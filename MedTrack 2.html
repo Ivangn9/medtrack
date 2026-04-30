@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MedTrack">
+<title>MedTrack</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0;}
+body{font-family:'Helvetica Neue',Arial,sans-serif;background:#060d18;color:#dde6f0;min-height:100vh;overscroll-behavior:none;}
+input,select,textarea{font-family:inherit;color:#e2e8f0;background:#0f1f35;}
+input[type=date]{color-scheme:dark;}
+button{font-family:inherit;cursor:pointer;border:none;transition:opacity .14s,transform .14s;}
+button:active{transform:scale(.95);opacity:.8;}
+.tap:active{opacity:.72;transform:scale(.97);}
+.slide{animation:su .2s ease;}
+@keyframes su{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.fade{animation:fi .18s ease;}
+@keyframes fi{from{opacity:0}to{opacity:1}}
+.pulse{animation:pu 2s infinite;}
+@keyframes pu{0%,100%{opacity:1}50%{opacity:.25}}
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-track{background:#060d18}
+::-webkit-scrollbar-thumb{background:#1a3050;border-radius:2px}
+.hidden{display:none!important;}
+/* inputs */
+.inp{width:100%;background:#0f1f35;border:1px solid #1e3a5f;border-radius:9px;padding:11px 13px;color:#e2e8f0;font-size:.87rem;outline:none;font-family:inherit;}
+.inp:focus{border-color:#3b82f6;}
+textarea.inp{resize:vertical;}
+/* form field */
+.ff{margin-bottom:13px;}
+.ff-label{font-size:.64rem;color:#253750;text-transform:uppercase;letter-spacing:.9px;font-weight:700;margin-bottom:5px;}
+/* grid 2 col */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+/* save btn */
+.save-btn{width:100%;background:linear-gradient(135deg,#1d4ed8,#6366f1);color:#fff;border:none;border-radius:10px;padding:13px;font-weight:700;font-size:.92rem;margin-top:4px;}
+/* pill */
+.pill{display:inline-block;border-radius:5px;padding:2px 8px;font-size:.66rem;font-weight:600;white-space:nowrap;}
+/* ibox */
+.ibox{background:#0f1929;border-radius:7px;padding:7px 9px;}
+.ibox-l{font-size:.59rem;color:#1a3050;text-transform:uppercase;letter-spacing:.8px;margin-bottom:2px;}
+.ibox-v{font-size:.77rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+/* section title */
+.sec{font-size:.64rem;text-transform:uppercase;letter-spacing:1.2px;font-weight:700;margin-bottom:8px;padding-left:1px;}
+/* card */
+.card{background:#0b1929;border:1px solid #0f1e30;border-radius:13px;padding:13px 15px;margin-bottom:9px;}
+/* header */
+#header{background:#060d18;border-bottom:1px solid #0f1e30;padding:12px 15px 12px calc(12px + env(safe-area-inset-left));display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+#logo-wrap{display:flex;align-items:center;gap:10px;}
+#logo-icon{width:33px;height:33px;border-radius:9px;background:linear-gradient(135deg,#2563eb,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
+#logo-name{font-weight:700;font-size:.96rem;letter-spacing:-.3px;background:linear-gradient(90deg,#60a5fa,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+#logo-time{font-size:.61rem;color:#1e3a5f;font-family:monospace;}
+#header-right{display:flex;gap:8px;align-items:center;}
+#badge-critico{background:#ef4444;color:#fff;border-radius:50%;width:23px;height:23px;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;}
+#btn-nuevo-eq{background:linear-gradient(135deg,#1d4ed8,#6366f1);color:#fff;border-radius:9px;padding:8px 14px;font-weight:600;font-size:.79rem;}
+/* tabs */
+#tabs{display:flex;background:#060d18;border-bottom:1px solid #0f1e30;padding:0 10px;overflow-x:auto;}
+.tab-btn{padding:11px 13px;background:none;font-size:.79rem;white-space:nowrap;font-weight:400;border-bottom:2px solid transparent;margin-bottom:-1px;color:#2a4060;}
+.tab-btn.active{color:#60a5fa;font-weight:600;border-bottom-color:#60a5fa;}
+.tab-badge{margin-left:4px;background:#1e3a5f;color:#93c5fd;border-radius:10px;padding:0 6px;font-size:.62rem;}
+/* content */
+#content{padding:14px 13px 90px;max-width:780px;margin:0 auto;}
+/* modal */
+#modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:500;display:flex;align-items:flex-end;justify-content:center;}
+#modal-box{background:#0b1929;border-radius:20px 20px 0 0;width:100%;max-width:700px;max-height:93vh;overflow-y:auto;padding:22px 18px 48px;border-top:1px solid #1a3050;}
+/* modal header */
+.mh{display:flex;justify-content:space-between;align-items:center;margin-bottom:17px;}
+.mh-title{font-weight:700;font-size:1.02rem;}
+.mh-close{background:#152238;color:#64748b;border-radius:8px;padding:6px 11px;font-size:1rem;}
+/* back btn */
+#back-btn{background:#111f33;color:#7a9ab5;border-radius:8px;padding:7px 11px;font-size:1.05rem;margin-right:6px;}
+/* toast */
+#toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:9999;padding:9px 20px;border-radius:10px;font-size:.82rem;font-weight:600;box-shadow:0 4px 24px rgba(0,0,0,.7);white-space:nowrap;pointer-events:none;}
+/* stat card */
+.stat-card{background:#0b1929;border-radius:11px;padding:11px 12px;border-top:2px solid #60a5fa;}
+.stat-label{font-size:.61rem;color:#1e3a5f;text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px;}
+.stat-value{font-size:1.75rem;font-weight:700;line-height:1;}
+/* cat card */
+.cat-card{background:#0b1929;border-radius:11px;padding:11px 12px;border-left:3px solid #818cf8;cursor:pointer;}
+/* eq list item */
+.eq-item{background:#0b1929;border:1px solid #0f1e30;border-radius:13px;padding:12px 13px;margin-bottom:8px;border-left:4px solid #22c55e;cursor:pointer;}
+/* filter chip */
+.fchip{padding:6px 13px;border-radius:20px;font-size:.72rem;font-weight:500;white-space:nowrap;background:none;color:#2a4060;border:1px solid #0f1e30;}
+.fchip.active{background:rgba(96,165,250,.12);color:#60a5fa;border-color:#60a5fa;}
+/* alerta row */
+.alerta-row{background:#0b1929;border-left:3px solid #ef4444;border-radius:10px;padding:10px 12px;margin-bottom:7px;cursor:pointer;}
+/* estado btns */
+.est-btn{flex:1;padding:8px 4px;border-radius:8px;font-size:.66rem;font-weight:600;background:#0f1929;color:#2a4060;border:1px solid #0f1e30;}
+/* parte card */
+.parte-card{background:#0b1929;border:1px solid #0f1e30;border-radius:11px;padding:12px 13px;margin-bottom:8px;}
+/* mant banner */
+.mant-banner{border-radius:9px;padding:10px 12px;margin-bottom:11px;display:flex;justify-content:space-between;align-items:center;}
+.mant-reg-btn{background:#1d4ed8;color:#bfdbfe;border-radius:9px;padding:8px 13px;font-weight:600;font-size:.77rem;}
+/* detail info grid */
+.det-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:11px;}
+/* parte estado btns */
+.pt-est-btn{flex:1;padding:9px 4px;border-radius:9px;font-size:.7rem;font-weight:700;background:#0f1929;color:#1e3a5f;border:1px solid #0f1e30;}
+</style>
+</head>
+<body>
+
+<!-- TOAST -->
+<div id="toast" class="hidden"></div>
+
+<!-- MODAL -->
+<div id="modal-overlay" class="hidden" onclick="handleOverlayClick(event)">
+  <div id="modal-box"></div>
+</div>
+
+<!-- HEADER -->
+<div id="header">
+  <div id="logo-wrap">
+    <button id="back-btn" class="hidden" onclick="goBack()">←</button>
+    <div id="logo-icon">🏥</div>
+    <div>
+      <div id="logo-name">MedTrack</div>
+      <div id="logo-time"></div>
+    </div>
+  </div>
+  <div id="header-right">
+    <div id="badge-critico" class="pulse hidden">0</div>
+    <button id="btn-nuevo-eq" onclick="openModalEq(null)">+ Equipo</button>
+  </div>
+</div>
+
+<!-- TABS -->
+<div id="tabs">
+  <button class="tab-btn active" data-tab="dash" onclick="setView('dash')">📊 Panel</button>
+  <button class="tab-btn" data-tab="lista" onclick="setView('lista')">🔧 Equipos</button>
+  <button class="tab-btn" data-tab="alertas" onclick="setView('alertas')">🔔 Alertas <span id="tab-alert-badge" class="tab-badge hidden"></span></button>
+</div>
+
+<!-- CONTENT -->
+<div id="content"></div>
+
+<script>
+// ═══════════════════════════════════════════
+//  DATA
+// ═══════════════════════════════════════════
+const CATS=[
+  {id:"RM",    label:"RM",        icon:"🧲", color:"#818cf8"},
+  {id:"TC",    label:"TC",        icon:"🔬", color:"#38bdf8"},
+  {id:"MG",    label:"MG",        icon:"🩻", color:"#f472b6"},
+  {id:"RX",    label:"RX",        icon:"📡", color:"#fb923c"},
+  {id:"DM",    label:"DM",        icon:"🦴", color:"#34d399"},
+  {id:"AW",    label:"AW Server", icon:"🖥️", color:"#a78bfa"},
+  {id:"BOMBA", label:"Bombas",    icon:"💉", color:"#f87171"},
+];
+
+function catById(id){return CATS.find(c=>c.id===id)||{icon:"🔧",color:"#64748b",label:id};}
+
+function today(){return new Date().toISOString().split("T")[0];}
+function addMonths(str,n){if(!str)return"";const d=new Date(str);d.setMonth(d.getMonth()+n);return d.toISOString().split("T")[0];}
+function frecMeses(f){return{semestral:6,anual:12,trimestral:3,mensual:1}[f]||12;}
+function calcProx(desde,frec){return addMonths(desde,frecMeses(frec));}
+function diasHasta(str){if(!str)return 9999;return Math.ceil((new Date(str)-new Date())/86400000);}
+function fmtD(str){if(!str)return"—";const[y,m,d]=str.split("-");return`${d}/${m}/${y}`;}
+function semafo(eq){const d=diasHasta(eq.proximoMant);if(d<0)return"vencido";if(d<=30)return"urgente";if(d<=90)return"proximo";return"ok";}
+const CM={ok:"#22c55e",proximo:"#f59e0b",urgente:"#ef4444",vencido:"#ef4444"};
+const CE={operativo:"#22c55e",advertencia:"#f59e0b","fuera-de-servicio":"#ef4444"};
+const CP={ok:"#22c55e",pendiente:"#f59e0b",roto:"#ef4444"};
+
+const BD="2024-10-01";
+function mkeq(id,cat,nombre,ub,frec,contrato=""){
+  return{id,cat,nombre,ubicacion:ub,instalacion:"",serie:"",tecnico:"",contrato,
+    estado:"operativo",frecuencia:frec,ultimoMant:BD,proximoMant:calcProx(BD,frec),notas:"",partes:[]};
+}
+
+const EQ0=[
+  mkeq("EQ-01","RM","RM Explorer GN","GN","semestral"),
+  mkeq("EQ-02","RM","RM Explorer Pedernera","Pedernera","semestral"),
+  mkeq("EQ-03","RM","RM Explorer CRS","CRS","semestral"),
+  mkeq("EQ-04","TC","TC Siemens Somatom Go.Up","","anual","Siemens Healthineers"),
+  mkeq("EQ-05","TC","TC GE Revolution Maxima","","semestral","GE Healthcare"),
+  mkeq("EQ-06","RX","Rx AGFA Valory","","anual","AGFA HealthCare"),
+  mkeq("EQ-07","RX","Rx Carestream","","anual","Carestream Health"),
+  mkeq("EQ-08","MG","Mamógrafo Pristina Pedernera","Pedernera","semestral","GE Healthcare"),
+  mkeq("EQ-09","MG","Mamógrafo Pristina GN","GN","semestral","GE Healthcare"),
+  mkeq("EQ-10","DM","Densitómetro GE Lunar Pedernera","Pedernera","anual","GE Healthcare"),
+  mkeq("EQ-11","DM","Densitómetro Lunar GN","GN","anual","GE Healthcare"),
+  mkeq("EQ-12","AW","AW Server","","anual"),
+  mkeq("EQ-13","BOMBA","Bomba Bayer RM Pedernera","Pedernera","anual","Bayer"),
+  mkeq("EQ-14","BOMBA","Bomba Bayer RM CRS","CRS","anual","Bayer"),
+  mkeq("EQ-15","BOMBA","Bomba Bayer RM GN","GN","anual","Bayer"),
+  mkeq("EQ-16","BOMBA","Bomba Bayer TC Pedernera","Pedernera","anual","Bayer"),
+  mkeq("EQ-17","BOMBA","Bomba Bayer TC GN","GN","anual","Bayer"),
+];
+
+// ═══════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════
+let eqs=[];
+let view="dash";
+let selId=null;
+let filtCat="TODOS";
+
+function loadData(){
+  eqs=JSON.parse(JSON.stringify(EQ0));
+  try{
+    var s=localStorage.getItem("mt_v4");
+    if(s){var p=JSON.parse(s);if(Array.isArray(p)&&p.length>0)eqs=p;}
+  }catch(e){}
+}
+function saveData(){
+  try{localStorage.setItem("mt_v4",JSON.stringify(eqs));}catch(e){}
+}
+
+// ═══════════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════════
+let toastTimer=null;
+function showToast(msg,tp="ok"){
+  const t=document.getElementById("toast");
+  t.textContent=msg;
+  t.style.background=tp==="ok"?"#14532d":tp==="warn"?"#78350f":"#7f1d1d";
+  t.style.color="#fff";
+  t.classList.remove("hidden","fade");
+  void t.offsetWidth;
+  t.classList.add("fade");
+  if(toastTimer)clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.add("hidden"),3000);
+}
+
+// ═══════════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════════
+function setView(v){
+  view=v; selId=null;
+  document.getElementById("back-btn").classList.add("hidden");
+  document.getElementById("tabs").classList.remove("hidden");
+  document.querySelectorAll(".tab-btn").forEach(b=>{
+    b.classList.toggle("active",b.dataset.tab===v);
+  });
+  render();
+}
+function goDetalle(id){
+  selId=id; view="detalle";
+  document.getElementById("back-btn").classList.remove("hidden");
+  document.getElementById("tabs").classList.add("hidden");
+  render();
+}
+function goBack(){
+  selId=null; view="lista";
+  document.getElementById("back-btn").classList.add("hidden");
+  document.getElementById("tabs").classList.remove("hidden");
+  document.querySelectorAll(".tab-btn").forEach(b=>{
+    b.classList.toggle("active",b.dataset.tab==="lista");
+  });
+  render();
+}
+
+// ═══════════════════════════════════════════
+//  ALERTAS
+// ═══════════════════════════════════════════
+function getAlertas(){
+  const a=[];
+  eqs.filter(e=>e.estado==="fuera-de-servicio").forEach(e=>a.push({k:e.id+"fs",niv:"critico",tit:e.nombre,desc:"Fuera de servicio",eid:e.id}));
+  eqs.filter(e=>semafo(e)==="vencido").forEach(e=>a.push({k:e.id+"mv",niv:"critico",tit:e.nombre,desc:`Mant. VENCIDO — ${fmtD(e.proximoMant)}`,eid:e.id}));
+  eqs.forEach(e=>e.partes.filter(p=>p.estado==="roto").forEach(p=>a.push({k:e.id+p.id+"r",niv:"critico",tit:e.nombre,desc:`Parte rota: ${p.nombre}`,eid:e.id})));
+  eqs.filter(e=>semafo(e)==="urgente").forEach(e=>a.push({k:e.id+"mu",niv:"advertencia",tit:e.nombre,desc:`Mant. en ${diasHasta(e.proximoMant)} días`,eid:e.id}));
+  eqs.filter(e=>e.estado==="advertencia").forEach(e=>a.push({k:e.id+"ea",niv:"advertencia",tit:e.nombre,desc:"Equipo en advertencia",eid:e.id}));
+  eqs.forEach(e=>e.partes.filter(p=>p.estado==="pendiente").forEach(p=>a.push({k:e.id+p.id+"p",niv:"advertencia",tit:e.nombre,desc:`Parte pendiente: ${p.nombre}`,eid:e.id})));
+  eqs.filter(e=>semafo(e)==="proximo").forEach(e=>a.push({k:e.id+"mp",niv:"info",tit:e.nombre,desc:`Mant. en ${diasHasta(e.proximoMant)} días — ${fmtD(e.proximoMant)}`,eid:e.id}));
+  return a;
+}
+
+// ═══════════════════════════════════════════
+//  ACCIONES
+// ═══════════════════════════════════════════
+function saveEq(data){
+  if(eqs.find(e=>e.id===data.id)){eqs=eqs.map(e=>e.id===data.id?{...e,...data}:e);showToast("Equipo actualizado");}
+  else{eqs=[...eqs,{...data,id:"EQ-"+Date.now(),partes:[]}];showToast("Equipo agregado");}
+  saveData();closeModal();render();
+}
+function delEq(id){
+  if(!confirm("¿Eliminar este equipo?"))return;
+  eqs=eqs.filter(e=>e.id!==id);saveData();
+  showToast("Equipo eliminado","warn");
+  goBack();
+}
+function saveParte(eqId,pt){
+  eqs=eqs.map(e=>{
+    if(e.id!==eqId)return e;
+    const ex=e.partes.find(x=>x.id===pt.id);
+    return{...e,partes:ex?e.partes.map(x=>x.id===pt.id?pt:x):[...e.partes,{...pt,id:"PT-"+Date.now()}]};
+  });
+  saveData();showToast("Parte guardada");closeModal();render();
+}
+function delParte(eqId,pid){
+  if(!confirm("¿Eliminar esta parte?"))return;
+  eqs=eqs.map(e=>e.id!==eqId?e:{...e,partes:e.partes.filter(x=>x.id!==pid)});
+  saveData();showToast("Parte eliminada","warn");render();
+}
+function regMant(eqId,fecha,notas){
+  eqs=eqs.map(e=>e.id!==eqId?e:{...e,ultimoMant:fecha,proximoMant:calcProx(fecha,e.frecuencia),notas:notas!==undefined?notas:e.notas});
+  saveData();showToast("✅ Mantenimiento registrado");closeModal();render();
+}
+function setEst(eqId,est){
+  eqs=eqs.map(e=>e.id!==eqId?e:{...e,estado:est});
+  saveData();showToast("Estado actualizado");render();
+}
+
+// ═══════════════════════════════════════════
+//  MODAL
+// ═══════════════════════════════════════════
+function openModal(html){
+  const ov=document.getElementById("modal-overlay");
+  const bx=document.getElementById("modal-box");
+  bx.innerHTML=html;
+  ov.classList.remove("hidden","fade");
+  void ov.offsetWidth;
+  ov.classList.add("fade");
+}
+function closeModal(){
+  document.getElementById("modal-overlay").classList.add("hidden");
+}
+function handleOverlayClick(e){
+  if(e.target===document.getElementById("modal-overlay"))closeModal();
+}
+
+// ─── MODAL EQUIPO ───────────────────────────
+function openModalEq(eq){
+  const isNew=!eq;
+  const f=eq||{nombre:"",cat:"RM",ubicacion:"",instalacion:"",serie:"",tecnico:"",contrato:"",
+    estado:"operativo",frecuencia:"semestral",ultimoMant:today(),proximoMant:calcProx(today(),"semestral"),notas:""};
+  const catsOpts=CATS.map(c=>`<option value="${c.id}"${f.cat===c.id?" selected":""}>${c.icon} ${c.label}</option>`).join("");
+  const frecOpts=["semestral","anual","trimestral","mensual"].map(x=>`<option${f.frecuencia===x?" selected":""}>${x}</option>`).join("");
+  const estOpts=["operativo","advertencia","fuera-de-servicio"].map(x=>`<option${f.estado===x?" selected":""}>${x}</option>`).join("");
+  openModal(`
+    <div class="mh"><div class="mh-title">${isNew?"Nuevo Equipo":"Editar Equipo"}</div><button class="mh-close" onclick="closeModal()">✕</button></div>
+    <div class="ff"><div class="ff-label">Nombre *</div><input class="inp" id="eq-nombre" value="${esc(f.nombre)}" placeholder="Ej: RM Explorer GN"></div>
+    <div class="ff"><div class="ff-label">Categoría</div><select class="inp" id="eq-cat" onchange="autoFrecuencia()">${catsOpts}</select></div>
+    <div class="g2">
+      <div class="ff"><div class="ff-label">Sede / Ubicación</div><input class="inp" id="eq-ub" value="${esc(f.ubicacion)}" placeholder="GN / Pedernera / CRS"></div>
+      <div class="ff"><div class="ff-label">N° Serie</div><input class="inp" id="eq-serie" value="${esc(f.serie)}" placeholder="SN-0001"></div>
+    </div>
+    <div class="ff"><div class="ff-label">Fecha de Instalación</div><input class="inp" type="date" id="eq-inst" value="${f.instalacion}"></div>
+    <div class="g2">
+      <div class="ff"><div class="ff-label">Técnico</div><input class="inp" id="eq-tec" value="${esc(f.tecnico)}" placeholder="Ing. García"></div>
+      <div class="ff"><div class="ff-label">Contrato</div><input class="inp" id="eq-contrato" value="${esc(f.contrato)}" placeholder="GE Healthcare"></div>
+    </div>
+    <div class="g2">
+      <div class="ff"><div class="ff-label">Frecuencia</div><select class="inp" id="eq-frec" onchange="recalcProx()">${frecOpts}</select></div>
+      <div class="ff"><div class="ff-label">Estado</div><select class="inp" id="eq-est">${estOpts}</select></div>
+    </div>
+    <div class="g2">
+      <div class="ff"><div class="ff-label">Último Mantenimiento</div><input class="inp" type="date" id="eq-ultmant" value="${f.ultimoMant}" onchange="recalcProx()"></div>
+      <div class="ff"><div class="ff-label">Próximo Mantenimiento</div><input class="inp" type="date" id="eq-proxmant" value="${f.proximoMant}"></div>
+    </div>
+    <div class="ff"><div class="ff-label">Notas</div><textarea class="inp" id="eq-notas" rows="2">${esc(f.notas)}</textarea></div>
+    <button class="save-btn" onclick="submitEq('${f.id||""}')">${isNew?"✅ Agregar Equipo":"💾 Guardar Cambios"}</button>
+  `);
+}
+function autoFrecuencia(){
+  const cat=document.getElementById("eq-cat").value;
+  const nombre=(document.getElementById("eq-nombre").value||"").toLowerCase();
+  let fr="anual";
+  if(cat==="RM")fr="semestral";
+  else if(cat==="TC")fr=nombre.includes("siemens")?"anual":"semestral";
+  else if(cat==="MG")fr="semestral";
+  document.getElementById("eq-frec").value=fr;
+  recalcProx();
+}
+function recalcProx(){
+  const desde=document.getElementById("eq-ultmant").value;
+  const frec=document.getElementById("eq-frec").value;
+  if(desde)document.getElementById("eq-proxmant").value=calcProx(desde,frec);
+}
+function submitEq(existingId){
+  const nombre=document.getElementById("eq-nombre").value.trim();
+  if(!nombre){alert("El nombre es obligatorio");return;}
+  const data={
+    id:existingId||"",
+    nombre,cat:document.getElementById("eq-cat").value,
+    ubicacion:document.getElementById("eq-ub").value,
+    instalacion:document.getElementById("eq-inst").value,
+    serie:document.getElementById("eq-serie").value,
+    tecnico:document.getElementById("eq-tec").value,
+    contrato:document.getElementById("eq-contrato").value,
+    frecuencia:document.getElementById("eq-frec").value,
+    estado:document.getElementById("eq-est").value,
+    ultimoMant:document.getElementById("eq-ultmant").value,
+    proximoMant:document.getElementById("eq-proxmant").value,
+    notas:document.getElementById("eq-notas").value,
+  };
+  saveEq(data);
+}
+
+// ─── MODAL PARTE ────────────────────────────
+function openModalParte(eqId,pt){
+  const isNew=!pt;
+  const f=pt||{nombre:"",descripcion:"",estado:"roto",fechaRotura:"",fechaArreglo:"",marca:"",nroSerie:"",notas:""};
+  const estBtns=["ok","pendiente","roto"].map(est=>`
+    <button class="pt-est-btn" id="pt-est-${est}" onclick="setPtEst('${est}')"
+      style="border-color:${f.estado===est?(CP[est]+"55"):"#0f1e30"};background:${f.estado===est?CP[est]+"18":"#0f1929"};color:${f.estado===est?CP[est]:"#1e3a5f"}">
+      ${est==="ok"?"✅ OK":est==="pendiente"?"⚠️ Pendiente":"🔴 Roto"}
+    </button>`).join("");
+  openModal(`
+    <div class="mh"><div class="mh-title">${isNew?"Nueva Parte / Componente":"Editar Parte"}</div><button class="mh-close" onclick="closeModal()">✕</button></div>
+    <div class="ff"><div class="ff-label">Nombre *</div><input class="inp" id="pt-nombre" value="${esc(f.nombre)}" placeholder="Ej: Tubo de Rayos X, Bobina..."></div>
+    <div class="ff"><div class="ff-label">Descripción</div><input class="inp" id="pt-desc" value="${esc(f.descripcion)}" placeholder="Detalles adicionales"></div>
+    <div class="ff"><div class="ff-label">Estado de la parte</div>
+      <div style="display:flex;gap:7px;">${estBtns}</div>
+      <input type="hidden" id="pt-estado" value="${f.estado}">
+    </div>
+    <div class="g2">
+      <div class="ff"><div class="ff-label">Fecha de Rotura</div><input class="inp" type="date" id="pt-frot" value="${f.fechaRotura}"></div>
+      <div class="ff"><div class="ff-label">Fecha de Arreglo</div><input class="inp" type="date" id="pt-farr" value="${f.fechaArreglo}"></div>
+    </div>
+    <div class="g2">
+      <div class="ff"><div class="ff-label">Marca / Modelo</div><input class="inp" id="pt-marca" value="${esc(f.marca)}" placeholder="Siemens, GE..."></div>
+      <div class="ff"><div class="ff-label">N° Serie / Parte</div><input class="inp" id="pt-serie" value="${esc(f.nroSerie)}" placeholder="SN-0001"></div>
+    </div>
+    <div class="ff"><div class="ff-label">Notas / Seguimiento</div><textarea class="inp" id="pt-notas" rows="3" placeholder="Proveedor, presupuesto, estado del pedido...">${esc(f.notas)}</textarea></div>
+    <button class="save-btn" onclick="submitParte('${eqId}','${f.id||""}')">${isNew?"✅ Agregar Parte":"💾 Guardar Cambios"}</button>
+  `);
+}
+function setPtEst(est){
+  document.getElementById("pt-estado").value=est;
+  ["ok","pendiente","roto"].forEach(e=>{
+    const btn=document.getElementById("pt-est-"+e);
+    if(!btn)return;
+    const active=e===est;
+    btn.style.borderColor=active?(CP[e]+"55"):"#0f1e30";
+    btn.style.background=active?CP[e]+"18":"#0f1929";
+    btn.style.color=active?CP[e]:"#1e3a5f";
+  });
+}
+function submitParte(eqId,existingId){
+  const nombre=document.getElementById("pt-nombre").value.trim();
+  if(!nombre){alert("El nombre es obligatorio");return;}
+  const pt={
+    id:existingId||"",
+    nombre,
+    descripcion:document.getElementById("pt-desc").value,
+    estado:document.getElementById("pt-estado").value,
+    fechaRotura:document.getElementById("pt-frot").value,
+    fechaArreglo:document.getElementById("pt-farr").value,
+    marca:document.getElementById("pt-marca").value,
+    nroSerie:document.getElementById("pt-serie").value,
+    notas:document.getElementById("pt-notas").value,
+  };
+  saveParte(eqId,pt);
+}
+
+// ─── MODAL MANTENIMIENTO ────────────────────
+function openModalMant(eqId){
+  const eq=eqs.find(e=>e.id===eqId);
+  const ci=catById(eq.cat);
+  const td=today();
+  const prox=calcProx(td,eq.frecuencia);
+  openModal(`
+    <div class="mh"><div class="mh-title">Registrar Mantenimiento</div><button class="mh-close" onclick="closeModal()">✕</button></div>
+    <div style="background:#0f1929;border-radius:10px;padding:11px 13px;margin-bottom:14px;">
+      <div style="font-size:.67rem;color:#1e3a5f;margin-bottom:3px;">Equipo</div>
+      <div style="font-weight:700;font-size:.9rem;">${ci.icon} ${esc(eq.nombre)}</div>
+      <div style="font-size:.72rem;color:#2a4060;margin-top:2px;">Frecuencia: <span style="color:#60a5fa;font-weight:600;">${eq.frecuencia}</span></div>
+    </div>
+    <div class="ff"><div class="ff-label">Fecha del Mantenimiento *</div><input class="inp" type="date" id="mant-fecha" value="${td}" onchange="updateMantProx()"></div>
+    <div id="mant-prox-info" style="background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.16);border-radius:8px;padding:9px 11px;margin-bottom:13px;font-size:.76rem;color:#86efac;">
+      ✅ Próximo mant. calculado: <strong id="mant-prox-label">${fmtD(prox)}</strong>
+    </div>
+    <div class="ff"><div class="ff-label">Notas / Tareas Realizadas</div><textarea class="inp" id="mant-notas" rows="4" placeholder="Tareas realizadas, técnico, repuestos utilizados..."></textarea></div>
+    <button class="save-btn" onclick="submitMant('${eqId}')">✅ Confirmar Mantenimiento</button>
+  `);
+  window._mantEqFrec=eq.frecuencia;
+}
+function updateMantProx(){
+  const f=document.getElementById("mant-fecha").value;
+  const prox=calcProx(f,window._mantEqFrec||"anual");
+  document.getElementById("mant-prox-label").textContent=fmtD(prox);
+}
+function submitMant(eqId){
+  const fecha=document.getElementById("mant-fecha").value;
+  if(!fecha){alert("Fecha obligatoria");return;}
+  const notas=document.getElementById("mant-notas").value;
+  regMant(eqId,fecha,notas);
+}
+
+// ═══════════════════════════════════════════
+//  RENDER
+// ═══════════════════════════════════════════
+function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+
+function pillHtml(c,txt){return`<span class="pill" style="background:${c}1a;color:${c};border:1px solid ${c}33;">${txt}</span>`;}
+
+function renderHeader(){
+  const alertas=getAlertas();
+  const crit=alertas.filter(a=>a.niv==="critico").length;
+  const badge=document.getElementById("badge-critico");
+  badge.textContent=crit;
+  badge.classList.toggle("hidden",crit===0);
+  const tabBadge=document.getElementById("tab-alert-badge");
+  tabBadge.textContent=alertas.length;
+  tabBadge.classList.toggle("hidden",alertas.length===0);
+  document.getElementById("logo-time").textContent=new Date().toLocaleString("es-AR",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"});
+}
+
+function render(){
+  renderHeader();
+  const c=document.getElementById("content");
+  c.innerHTML="";
+  const div=document.createElement("div");
+  div.className="slide";
+  if(view==="dash")      div.innerHTML=renderDash();
+  else if(view==="lista") div.innerHTML=renderLista();
+  else if(view==="alertas")div.innerHTML=renderAlertas();
+  else if(view==="detalle")div.innerHTML=renderDetalle();
+  c.appendChild(div);
+}
+
+// ─── DASHBOARD ───────────────────────────────
+function renderDash(){
+  const alertas=getAlertas();
+  const opOK=eqs.filter(e=>e.estado==="operativo").length;
+  const opFuera=eqs.filter(e=>e.estado==="fuera-de-servicio").length;
+  const mantUrg=eqs.filter(e=>["vencido","urgente"].includes(semafo(e))).length;
+  const rotas=eqs.flatMap(e=>e.partes).filter(p=>p.estado==="roto").length;
+  const pend=eqs.flatMap(e=>e.partes).filter(p=>p.estado==="pendiente").length;
+
+  const stats=[
+    {l:"Total",v:eqs.length,c:"#60a5fa",ic:"🏥"},
+    {l:"Operativos",v:opOK,c:"#22c55e",ic:"✅"},
+    {l:"Fuera",v:opFuera,c:"#ef4444",ic:"🚫"},
+    {l:"Mant. Urg.",v:mantUrg,c:"#ef4444",ic:"🔔"},
+    {l:"Partes Rotas",v:rotas,c:"#ef4444",ic:"🔴"},
+    {l:"Pendientes",v:pend,c:"#f59e0b",ic:"⚠️"},
+  ];
+
+  let html=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;">`;
+  stats.forEach(s=>{
+    const danger=s.v>0&&s.c!=="#60a5fa"&&s.c!=="#22c55e";
+    html+=`<div class="stat-card" style="border-top-color:${s.c};border-color:${danger?"rgba(239,68,68,.2)":"#0f1e30"}">
+      <div class="stat-label">${s.ic} ${s.l}</div>
+      <div class="stat-value" style="color:${s.c}">${s.v}</div>
+    </div>`;
+  });
+  html+=`</div>`;
+
+  // por categoría
+  html+=`<div class="sec">Por Categoría</div>`;
+  html+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:15px;">`;
+  CATS.forEach(cat=>{
+    const ces=eqs.filter(e=>e.cat===cat.id);
+    if(!ces.length)return;
+    const fuera=ces.filter(e=>e.estado==="fuera-de-servicio").length;
+    const urg=ces.filter(e=>["vencido","urgente"].includes(semafo(e))).length;
+    const danger=fuera||urg;
+    html+=`<div class="cat-card tap" style="border-left-color:${cat.color};border-color:${danger?"rgba(239,68,68,.2)":"#0f1e30"};" onclick="setFiltro('${cat.id}')">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div style="font-weight:600;font-size:.83rem;">${cat.icon} ${cat.label}</div>
+        <div style="font-family:monospace;font-size:.75rem;color:${cat.color};font-weight:600;">${ces.length}</div>
+      </div>
+      <div style="font-size:.69rem;color:#1e3a5f;margin-top:3px;">
+        ${fuera?`<span style="color:#ef4444;margin-right:7px">🚫 ${fuera}</span>`:""}
+        ${urg?`<span style="color:#f59e0b">⚠️ ${urg} urg.</span>`:""}
+        ${!fuera&&!urg?`<span style="color:#22c55e">✅ OK</span>`:""}
+      </div>
+    </div>`;
+  });
+  html+=`</div>`;
+
+  // próximos mant
+  html+=`<div class="sec">Próximos Mantenimientos</div>`;
+  [...eqs].sort((a,b)=>new Date(a.proximoMant)-new Date(b.proximoMant)).slice(0,8).forEach(e=>{
+    const ms=semafo(e);const d=diasHasta(e.proximoMant);const ci=catById(e.cat);
+    html+=`<div class="tap" onclick="goDetalle('${e.id}')" style="background:#0b1929;border:1px solid #0f1e30;border-radius:10px;padding:10px 12px;margin-bottom:7px;display:flex;align-items:center;gap:10px;">
+      <div style="width:36px;height:36px;border-radius:9px;background:${ci.color}1a;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;">${ci.icon}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:600;font-size:.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(e.nombre)}</div>
+        <div style="font-size:.69rem;color:#1e3a5f;">${esc(e.ubicacion)||ci.label}</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0;">
+        <div style="font-size:.8rem;font-weight:700;color:${CM[ms]}">${d<0?"VENC.":d===0?"HOY":d+"d"}</div>
+        <div style="font-size:.64rem;color:#1e3a5f;">${fmtD(e.proximoMant)}</div>
+      </div>
+    </div>`;
+  });
+
+  // partes rotas
+  const partesRotas=eqs.flatMap(e=>e.partes.filter(p=>p.estado==="roto").map(p=>({...p,eq:e})));
+  if(partesRotas.length){
+    html+=`<div class="sec" style="color:#ef4444;margin-top:14px;">🔴 Partes Rotas / Pendientes</div>`;
+    partesRotas.forEach(p=>{
+      html+=`<div class="tap" onclick="goDetalle('${p.eq.id}')" style="background:#0b1929;border:1px solid rgba(239,68,68,.22);border-left:3px solid #ef4444;border-radius:10px;padding:10px 12px;margin-bottom:7px;">
+        <div style="font-weight:600;font-size:.83rem;color:#f87171;">🔴 ${esc(p.nombre)}</div>
+        <div style="font-size:.72rem;color:#2a4060;margin-top:1px;">${esc(p.eq.nombre)}</div>
+        <div style="display:flex;gap:14px;margin-top:5px;font-size:.69rem;flex-wrap:wrap;">
+          <span>Rotura: <span style="color:#f87171;">${fmtD(p.fechaRotura)||"Sin fecha"}</span></span>
+          ${p.fechaArreglo?`<span>Arreglo: <span style="color:#22c55e;">${fmtD(p.fechaArreglo)}</span></span>`:`<span style="color:#f59e0b;">Sin fecha de arreglo</span>`}
+        </div>
+      </div>`;
+    });
+  }
+  return html;
+}
+
+// ─── LISTA ────────────────────────────────────
+function renderLista(){
+  let html=`<div style="display:flex;gap:7px;overflow-x:auto;padding-bottom:6px;margin-bottom:11px;">
+    <button class="fchip${filtCat==="TODOS"?" active":""}" onclick="setFiltro('TODOS')">🏥 Todos</button>`;
+  CATS.forEach(c=>{
+    html+=`<button class="fchip${filtCat===c.id?" active":""}" style="${filtCat===c.id?`color:${c.color};border-color:${c.color};background:${c.color}18`:""}" onclick="setFiltro('${c.id}')">${c.icon} ${c.label}</button>`;
+  });
+  html+=`</div>`;
+  const lista=eqs.filter(e=>filtCat==="TODOS"||e.cat===filtCat);
+  if(!lista.length){html+=`<div style="text-align:center;color:#1e3a5f;padding:40px 0;font-size:.88rem;">Sin equipos</div>`;return html;}
+  lista.forEach(e=>{
+    const ms=semafo(e);const d=diasHasta(e.proximoMant);const ci=catById(e.cat);
+    const rot=e.partes.filter(p=>p.estado==="roto").length;
+    html+=`<div class="eq-item tap" style="border-left-color:${CE[e.estado]||"#22c55e"};" onclick="goDetalle('${e.id}')">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="width:41px;height:41px;border-radius:10px;background:${ci.color}18;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;">${ci.icon}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:700;font-size:.87rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(e.nombre)}</div>
+          <div style="font-size:.69rem;color:#1e3a5f;margin-top:1px;">${e.id}${e.ubicacion?" · "+esc(e.ubicacion):""}</div>
+          <div style="display:flex;gap:5px;margin-top:5px;flex-wrap:wrap;">
+            ${pillHtml(CE[e.estado]||"#22c55e",e.estado==="operativo"?"✅ OK":e.estado==="advertencia"?"⚠️ Adv":"🚫 Fuera")}
+            ${pillHtml(CM[ms],"🔧 "+(ms==="vencido"?"VENC":ms==="urgente"?d+"d URG":ms==="proximo"?d+"d prox":d+"d"))}
+            ${rot>0?pillHtml("#ef4444","🔴 "+rot+" rota"+(rot>1?"s":"")):""}
+          </div>
+        </div>
+        <div style="color:#1a3050;font-size:1rem;">›</div>
+      </div>
+    </div>`;
+  });
+  return html;
+}
+
+// ─── ALERTAS ──────────────────────────────────
+function renderAlertas(){
+  const alertas=getAlertas();
+  if(!alertas.length)return`<div style="text-align:center;padding:60px 0;"><div style="font-size:2.5rem;margin-bottom:10px;">✅</div><div style="font-weight:600;color:#22c55e;font-size:.97rem;">Sin alertas activas</div><div style="color:#1e3a5f;font-size:.82rem;margin-top:4px;">Todo en orden</div></div>`;
+  let html="";
+  [["critico","🔴 Crítico","#ef4444"],["advertencia","⚠️ Advertencia","#f59e0b"],["info","ℹ️ Info","#60a5fa"]].forEach(([niv,nl,nc])=>{
+    const sub=alertas.filter(a=>a.niv===niv);
+    if(!sub.length)return;
+    html+=`<div class="sec" style="color:${nc};">${nl} (${sub.length})</div>`;
+    sub.forEach(a=>{
+      html+=`<div class="alerta-row tap" style="border-left-color:${nc};border-color:${nc}28;" onclick="goDetalle('${a.eid}')">
+        <div style="font-weight:600;font-size:.83rem;">${esc(a.tit)}</div>
+        <div style="font-size:.75rem;color:#2a4060;margin-top:2px;">${esc(a.desc)}</div>
+      </div>`;
+    });
+    html+=`<div style="margin-bottom:10px;"></div>`;
+  });
+  return html;
+}
+
+// ─── DETALLE ──────────────────────────────────
+function renderDetalle(){
+  const eq=eqs.find(e=>e.id===selId);
+  if(!eq)return"";
+  const ms=semafo(eq);const d=diasHasta(eq.proximoMant);const ci=catById(eq.cat);
+  const estBtns=["operativo","advertencia","fuera-de-servicio"].map(est=>{
+    const active=eq.estado===est;
+    const c=CE[est];
+    return`<button class="est-btn" style="border-color:${active?c+"55":"#0f1e30"};background:${active?c+"18":"#0f1929"};color:${active?c:"#2a4060"};" onclick="setEst('${eq.id}','${est}')">${est==="operativo"?"✅ OK":est==="advertencia"?"⚠️ Adv":"🚫 Fuera"}</button>`;
+  }).join("");
+
+  let html=`<div style="background:#0b1929;border:1px solid #0f1e30;border-radius:14px;padding:15px;margin-bottom:12px;">
+    <div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:13px;">
+      <div style="width:47px;height:47px;border-radius:12px;background:${ci.color}1a;display:flex;align-items:center;justify-content:center;font-size:1.35rem;flex-shrink:0;">${ci.icon}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:700;font-size:.97rem;margin-bottom:2px;line-height:1.2;">${esc(eq.nombre)}</div>
+        <div style="font-family:monospace;font-size:.65rem;color:#1a3050;">${eq.id}${eq.serie?" · "+esc(eq.serie):""}</div>
+        ${eq.ubicacion?`<div style="font-size:.72rem;color:#2a4060;margin-top:2px;">📍 ${esc(eq.ubicacion)}</div>`:""}
+        ${eq.tecnico?`<div style="font-size:.72rem;color:#2a4060;">👷 ${esc(eq.tecnico)}</div>`:""}
+      </div>
+    </div>
+    <div style="margin-bottom:11px;">
+      <div style="font-size:.61rem;color:#1a3050;text-transform:uppercase;letter-spacing:.9px;font-weight:700;margin-bottom:5px;">Estado</div>
+      <div style="display:flex;gap:6px;">${estBtns}</div>
+    </div>
+    <div class="det-grid">
+      <div class="ibox"><div class="ibox-l">Categoría</div><div class="ibox-v">${ci.label}</div></div>
+      <div class="ibox"><div class="ibox-l">Frecuencia</div><div class="ibox-v">${eq.frecuencia}</div></div>
+      <div class="ibox"><div class="ibox-l">Instalación</div><div class="ibox-v">${fmtD(eq.instalacion)}</div></div>
+      <div class="ibox"><div class="ibox-l">N° Serie</div><div class="ibox-v">${esc(eq.serie)||"—"}</div></div>
+      <div class="ibox"><div class="ibox-l">Técnico</div><div class="ibox-v">${esc(eq.tecnico)||"—"}</div></div>
+      <div class="ibox"><div class="ibox-l">Contrato</div><div class="ibox-v">${esc(eq.contrato)||"—"}</div></div>
+      <div class="ibox"><div class="ibox-l">Último Mant.</div><div class="ibox-v">${fmtD(eq.ultimoMant)}</div></div>
+      <div class="ibox"><div class="ibox-l">Próx. Mant.</div><div class="ibox-v" style="color:${CM[ms]};">${fmtD(eq.proximoMant)}</div></div>
+    </div>
+    <div class="mant-banner" style="background:${CM[ms]}0d;border:1px solid ${CM[ms]}28;">
+      <div>
+        <div style="font-size:.62rem;color:#1e3a5f;">Próximo mantenimiento</div>
+        <div style="font-weight:700;font-size:.87rem;color:${CM[ms]};">${ms==="vencido"?"🔴 MANTENIMIENTO VENCIDO":ms==="urgente"?"🔴 URGENTE — "+d+"d":ms==="proximo"?"⚠️ En "+d+" días":"✅ En "+d+" días"}</div>
+      </div>
+      <button class="mant-reg-btn" onclick="openModalMant('${eq.id}')">Registrar</button>
+    </div>
+    ${eq.notas?`<div style="background:#0f1929;border-radius:8px;padding:8px 11px;margin-bottom:11px;"><div style="font-size:.61rem;color:#1a3050;margin-bottom:3px;">📝 Notas</div><div style="font-size:.79rem;color:#94a3b8;">${esc(eq.notas)}</div></div>`:""}
+    <div style="display:flex;gap:7px;">
+      <button onclick="openModalEq(${JSON.stringify(eq).replace(/"/g,"&quot;")})" style="flex:1;padding:10px;background:#111f33;color:#60a5fa;border-radius:9px;font-weight:600;font-size:.79rem;">✏️ Editar</button>
+      <button onclick="delEq('${eq.id}')" style="padding:10px 14px;background:rgba(239,68,68,.07);color:#f87171;border-radius:9px;font-weight:600;font-size:.79rem;border:1px solid rgba(239,68,68,.16);">🗑</button>
+    </div>
+  </div>`;
+
+  // PARTES
+  html+=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+    <div class="sec" style="margin-bottom:0;">🔩 Partes / Componentes (${eq.partes.length})</div>
+    <button onclick="openModalParte('${eq.id}',null)" style="background:#1d4ed8;color:#bfdbfe;border-radius:7px;padding:6px 12px;font-size:.73rem;font-weight:600;">+ Agregar</button>
+  </div>`;
+
+  if(!eq.partes.length){
+    html+=`<div style="text-align:center;color:#1a3050;padding:18px;background:#0b1929;border-radius:10px;border:1px dashed #0f1e30;font-size:.81rem;">Sin partes registradas — tocá "+ Agregar"</div>`;
+  } else {
+    eq.partes.forEach(p=>{
+      const c=CP[p.estado]||"#22c55e";
+      html+=`<div class="parte-card" style="border-color:${p.estado==="ok"?"#0f1e30":c+"28"};">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+          <div style="flex:1;min-width:0;padding-right:8px;">
+            <div style="font-weight:700;font-size:.85rem;">${esc(p.nombre)}</div>
+            ${p.descripcion?`<div style="font-size:.71rem;color:#2a4060;margin-top:2px;">${esc(p.descripcion)}</div>`:""}
+          </div>
+          ${pillHtml(c,p.estado==="ok"?"✅ OK":p.estado==="pendiente"?"⚠️ Pendiente":"🔴 Roto")}
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:${p.notas||p.marca?8:0}px;">
+          <div class="ibox"><div class="ibox-l">Fecha Rotura</div><div class="ibox-v" style="color:${p.fechaRotura?"#f87171":"#dde6f0"};">${fmtD(p.fechaRotura)||"No registrada"}</div></div>
+          <div class="ibox"><div class="ibox-l">Fecha Arreglo</div><div class="ibox-v" style="color:${p.fechaArreglo?"#22c55e":"#f59e0b"};">${fmtD(p.fechaArreglo)||"Pendiente"}</div></div>
+          ${p.marca?`<div class="ibox"><div class="ibox-l">Marca/Modelo</div><div class="ibox-v">${esc(p.marca)}</div></div>`:""}
+          ${p.nroSerie?`<div class="ibox"><div class="ibox-l">N° Serie</div><div class="ibox-v">${esc(p.nroSerie)}</div></div>`:""}
+        </div>
+        ${p.notas?`<div style="background:#0f1929;border-radius:7px;padding:7px 10px;font-size:.72rem;color:#7a9ab5;margin-bottom:8px;">${esc(p.notas)}</div>`:""}
+        <div style="display:flex;gap:6px;">
+          <button onclick='openModalParte("${eq.id}",${JSON.stringify(p).replace(/'/g,"&#39;")})' style="flex:1;padding:8px;background:#111f33;color:#94a3b8;border-radius:8px;font-size:.73rem;font-weight:600;">✏️ Editar</button>
+          <button onclick="delParte('${eq.id}','${p.id}')" style="padding:8px 12px;background:rgba(239,68,68,.07);color:#f87171;border-radius:8px;font-size:.73rem;border:1px solid rgba(239,68,68,.16);">🗑</button>
+        </div>
+      </div>`;
+    });
+  }
+  return html;
+}
+
+function setFiltro(cat){
+  filtCat=cat;
+  setView("lista");
+}
+
+// ═══════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════
+function init(){
+  loadData();
+  render();
+  setInterval(function(){
+    var el=document.getElementById("logo-time");
+    if(el)el.textContent=new Date().toLocaleString("es-AR",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"});
+    renderHeader();
+  },60000);
+}
+if(document.readyState==="loading"){
+  document.addEventListener("DOMContentLoaded",init);
+}else{
+  init();
+}
+</script>
+</body>
+</html>
