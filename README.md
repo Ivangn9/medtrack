@@ -1,1 +1,1 @@
-# mindex.html
+# index.html
