@@ -39,18 +39,32 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;bac
 
 /* ── LAYOUT ── */
 #app{position:relative;z-index:1;}
-#header{position:sticky;top:0;z-index:100;background:transparent;border-bottom:none;padding:calc(env(safe-area-inset-top,0px)+8px) 14px 4px;}
+#header{position:sticky;top:0;z-index:100;background:transparent;border-bottom:none;padding:calc(env(safe-area-inset-top,0px)+6px) 14px 4px;}
 #header-inner{display:flex;align-items:center;justify-content:space-between;max-width:920px;margin:0 auto;background:rgba(255,255,255,.5);-webkit-backdrop-filter:saturate(200%) blur(28px);backdrop-filter:saturate(200%) blur(28px);border:1px solid rgba(255,255,255,.6);border-radius:28px;padding:5px 6px 5px 16px;box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 4px 24px rgba(0,0,0,.07);}
 #header-left{display:flex;align-items:center;gap:10px;}
 #header-right{display:flex;gap:6px;align-items:center;}
 .hdr-time{font-size:.6rem;color:var(--text3);font-variant-numeric:tabular-nums;font-family:monospace;}
 
-#tabs{z-index:99;background:rgba(255,255,255,.38);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);border:1px solid rgba(255,255,255,.5);border-radius:22px;display:inline-flex;gap:2px;padding:3px;box-shadow:0 1px 6px rgba(0,0,0,.04),inset 0 .5px 0 rgba(255,255,255,.4);}
+#tabs{background:none;display:flex;gap:2px;padding:0;flex:1;justify-content:center;}
+/* ── BOTTOM BAR ── */
+#bottom-bar{position:fixed;bottom:0;left:0;right:0;z-index:200;
+  padding:6px 12px calc(env(safe-area-inset-bottom,0px)+4px);
+  background:rgba(255,255,255,.72);-webkit-backdrop-filter:saturate(200%) blur(28px);backdrop-filter:saturate(200%) blur(28px);
+  border-top:1px solid rgba(255,255,255,.6);
+  box-shadow:0 -2px 20px rgba(0,0,0,.06),inset 0 1px 0 rgba(255,255,255,.5);
+  display:flex;align-items:center;gap:6px;}
+#bottom-bar .tab{padding:9px 16px;font-size:.78rem;font-weight:500;color:var(--text2);background:none;border:none;border-radius:50px;min-height:40px;cursor:pointer;pointer-events:auto;position:relative;z-index:5;transition:all .25s;flex:1;max-width:120px;}
+#bottom-bar .tab.on{color:#fff;font-weight:700;background:var(--accent);box-shadow:0 2px 8px rgba(0,113,227,.3);}
+#bottom-bar .tab-badge{background:var(--red);color:#fff;border-radius:10px;padding:1px 6px;font-size:.6rem;font-weight:700;margin-left:4px;vertical-align:middle;}
+#bottom-bar .bar-sep{width:1px;height:28px;background:rgba(60,60,67,.12);flex-shrink:0;}
+#bottom-bar .bar-btn{background:rgba(120,120,128,.1);color:var(--text2);border:none;border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;cursor:pointer;flex-shrink:0;}
+#bottom-bar .bar-btn-red{background:rgba(255,59,48,.1);color:var(--red);border:none;border-radius:50px;padding:7px 12px;font-size:.72rem;font-weight:700;cursor:pointer;flex-shrink:0;white-space:nowrap;}
+#bottom-bar .bar-btn-blue{background:var(--accent);color:#fff;border:none;border-radius:50px;padding:7px 14px;font-size:.72rem;font-weight:700;cursor:pointer;flex-shrink:0;white-space:nowrap;box-shadow:0 2px 6px rgba(0,113,227,.3);}
 .tab{padding:11px 22px;font-size:.82rem;font-weight:500;color:var(--text2);background:none;border:none;border-radius:50px;letter-spacing:-.1px;transition:all .25s;min-height:44px;cursor:pointer;pointer-events:auto;position:relative;z-index:5;}
 .tab.on{color:#fff;font-weight:700;background:var(--accent);box-shadow:0 2px 8px rgba(0,113,227,.3);}
 .tab-badge{background:var(--red);color:#fff;border-radius:10px;padding:1px 6px;font-size:.6rem;font-weight:700;margin-left:4px;vertical-align:middle;}
 
-#main{max-width:900px;margin:0 auto;padding:14px 16px 100px;}
+#main{max-width:900px;margin:0 auto;padding:10px 16px calc(env(safe-area-inset-bottom,0px)+88px);}
 
 /* ── BUTTONS ── */
 .btn-primary{background:var(--accent);color:#fff;border-radius:50px;padding:8px 18px;
@@ -214,17 +228,18 @@ body.dark .settings-item{background:rgba(58,58,60,.5);border-color:rgba(84,84,88
       <div class="hdr-time" id="logo-time"></div>
     </div>
     <div id="header-right">
-      <button class="btn-icon" onclick="toggleSettings()">⚙️</button>
-      <div id="badge-critico" class="pulse hidden" style="background:var(--red);color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:700;">0</div>
-      <button style="background:#ff3b30;color:#fff;border:none;border-radius:50px;padding:8px 14px;font-weight:600;font-size:.78rem;cursor:pointer;box-shadow:0 1px 4px rgba(255,59,48,.25);font-family:inherit;" onclick="openMRotura()">⚠️ Rotura</button>
-      <button class="btn-primary" onclick="openModalEq(null)">+ Equipo</button>
+      <div id="badge-critico" class="pulse hidden" style="background:var(--red);color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:.62rem;font-weight:700;">0</div>
     </div>
   </div></div>
-  <div id="tabs-wrap" style="padding:6px 14px 0;position:sticky;top:var(--header-h,62px);z-index:90;background:transparent;"><div id="tabs">
+  <div id="bottom-bar">
     <button class="tab on" data-tab="dash" onclick="setView('dash')">📊 Panel</button>
     <button class="tab" data-tab="lista" onclick="setView('lista')">🔧 Equipos</button>
-    <button class="tab" data-tab="alertas" onclick="setView('alertas')">🔔 Alertas <span id="tab-alert-badge" class="tab-badge hidden"></span></button>
-  </div></div>
+    <button class="tab" data-tab="alertas" onclick="setView('alertas')">🔔 Alertas<span id="tab-alert-badge" class="tab-badge hidden"></span></button>
+    <div class="bar-sep"></div>
+    <button class="bar-btn" onclick="toggleSettings()" title="Ajustes">⚙️</button>
+    <button class="bar-btn-red" onclick="openMRotura()">⚠️ Rotura</button>
+    <button class="bar-btn-blue" onclick="openModalEq(null)">+ Equipo</button>
+  </div>
   <div id="main"></div>
 </div>
 
@@ -441,13 +456,12 @@ function iconFor(eq,size){
 function setView(v){
   view=v;selId=null;
   document.getElementById("back-btn").classList.add("hidden");
-  document.getElementById("tabs-wrap").classList.remove("hidden");
-  document.querySelectorAll(".tab").forEach(function(b){b.classList.toggle("on",b.dataset.tab===v);});
+  var bb=document.getElementById("bottom-bar");
+  if(bb){bb.querySelectorAll(".tab").forEach(function(b){b.classList.toggle("on",b.dataset.tab===v);});}
   render();
 }
 function goDetalle(id){selId=id;view="detalle";
   document.getElementById("back-btn").classList.remove("hidden");
-  document.getElementById("tabs-wrap").classList.add("hidden");
   render();
 }
 function goBack(){setView("lista");}
