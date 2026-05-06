@@ -437,8 +437,13 @@ var eqs=[],view="dash",selId=null,filtCat="TODOS",toastTimer=null,darkMode=false
 function loadData(){
   eqs=JSON.parse(JSON.stringify(EQ0));
   try{var s=localStorage.getItem("mt_v4");if(s){var p=JSON.parse(s);if(Array.isArray(p)&&p.length>0)eqs=p;}}catch(e){}
-  // Migrate: ensure all equipment have marca field
-  eqs=eqs.map(function(e){return Object.assign({marca:""},e);});
+  // Migrate: ensure all equipment have marca field; remove legacy ok-parts that have a historial entry
+  eqs=eqs.map(function(e){
+    e=Object.assign({marca:""},e);
+    var repIds=(e.historialMant||[]).filter(function(h){return h.tipo==="reparacion";}).map(function(h){return h.nombre;});
+    e.partes=(e.partes||[]).filter(function(p){return!(p.estado==="ok"&&repIds.indexOf(p.nombre)!==-1);});
+    return e;
+  });
 }
 function saveData(){try{localStorage.setItem("mt_v4",JSON.stringify(eqs));}catch(e){}}
 
@@ -784,9 +789,10 @@ function rDetalle(){
   h+='<div style="display:flex;gap:8px;"><button class="btn-secondary" style="flex:1;" onclick="openModalEq('+JSON.stringify(eq).replace(/"/g,"&quot;")+')">✏️ Editar</button><button class="btn-danger" onclick="delEq(\''+eq.id+'\')">🗑</button></div></div>';
 
   // PARTES
-  h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><div class="sec" style="margin-bottom:0;">🔩 Partes ('+eq.partes.length+')</div><button class="btn-primary btn-sm" onclick="openModalParte(\''+eq.id+'\',null)">+ Agregar</button></div>';
-  if(!eq.partes.length){h+='<div class="gc" style="text-align:center;color:var(--text3);padding:18px;font-size:.82rem;">Sin partes — tocá "+ Agregar"</div>';}
-  eq.partes.forEach(function(p){
+  var partesActivas=eq.partes.filter(function(p){return p.estado!=="ok";});
+  h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><div class="sec" style="margin-bottom:0;">🔩 Partes ('+partesActivas.length+')</div><button class="btn-primary btn-sm" onclick="openModalParte(\''+eq.id+'\',null)">+ Agregar</button></div>';
+  if(!partesActivas.length){h+='<div class="gc" style="text-align:center;color:var(--text3);padding:18px;font-size:.82rem;">Sin partes activas — tocá "+ Agregar"</div>';}
+  partesActivas.forEach(function(p){
     var c=CP[p.estado]||"var(--green)";
     h+='<div class="gc" style="padding:13px;margin-bottom:9px;border-color:'+(p.estado==="ok"?"var(--glass-border)":c+"30")+';">'+
       '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;"><div style="flex:1;"><div style="font-weight:700;font-size:.86rem;">'+esc(p.nombre)+'</div>'+(p.descripcion?'<div style="font-size:.72rem;color:var(--text3);margin-top:2px;">'+esc(p.descripcion)+'</div>':'')+'</div>'+pillH(c,p.estado==="ok"?"✅ OK":p.estado==="pendiente"?"⚠️ Pend.":"🔴 Roto")+'</div>'+
