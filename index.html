@@ -776,8 +776,8 @@ function rDetalle(){
       (p.marca?'<div class="ibox"><div class="ibox-l">Marca</div><div class="ibox-v">'+esc(p.marca)+'</div></div>':'')+
       (p.nroSerie?'<div class="ibox"><div class="ibox-l">N° Serie</div><div class="ibox-v">'+esc(p.nroSerie)+'</div></div>':'')+'</div>'+
       (p.notas?'<div class="ibox" style="margin-bottom:8px;"><div style="font-size:.73rem;color:var(--text2);">'+esc(p.notas)+'</div></div>':'')+
-      '<div style="display:flex;gap:6px;">'+(p.estado!=="ok"?'<button class="btn-sm" style="flex:2;background:rgba(52,199,89,.12);color:var(--green);border:1px solid rgba(52,199,89,.25);border-radius:var(--r-sm);font-weight:700;cursor:pointer;" onclick="repararParte(\''+eq.id+'\',\''+p.id+'\')">✅ Reparado</button>':'')+
-      '<button class="btn-secondary btn-sm" style="'+(p.estado!=="ok"?'':'flex:1;')+'" onclick=\'openModalParte("'+eq.id+'",'+JSON.stringify(p).replace(/'/g,"&#39;")+')\'>✏️</button><button class="btn-danger btn-sm" onclick="delParte(\''+eq.id+'\',\''+p.id+'\')">🗑</button></div></div>';
+      (p.estado!=="ok"?'<button onclick="repararParte(\''+eq.id+'\',\''+p.id+'\')" style="width:100%;padding:12px;margin-bottom:8px;border:none;border-radius:var(--r-md);background:var(--green);color:#fff;font-size:.88rem;font-weight:700;cursor:pointer;letter-spacing:.01em;box-shadow:0 2px 8px rgba(52,199,89,.35);">✅ Marcar como Reparado</button>':'')+
+      '<div style="display:flex;gap:6px;"><button class="btn-secondary btn-sm" style="flex:1;" onclick=\'openModalParte("'+eq.id+'",'+JSON.stringify(p).replace(/'/g,"&#39;")+')\'>✏️ Editar</button><button class="btn-danger btn-sm" onclick="delParte(\''+eq.id+'\',\''+p.id+'\')">🗑</button></div></div>';
   });
 
   // HISTORIAL
