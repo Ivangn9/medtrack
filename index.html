@@ -878,7 +878,62 @@ function exportPDF(eqId){
 }
 
 
-function expFiltered(){var desde=document.getElementById("r-desde").value,hasta=document.getElementById("r-hasta").value;if(!desde||!hasta){alert("Seleccioná DESDE y HASTA");return;}if(desde>hasta){alert("DESDE debe ser anterior a HASTA");return;}toggleSettings();var rows="",tm=0,tr=0;eqs.forEach(function(eq){var ci=catById(eq.cat);(eq.historialMant||[]).filter(function(h){return h.fecha>=desde&&h.fecha<=hasta;}).sort(function(a,b){return a.fecha>b.fecha?1:-1;}).forEach(function(h){var im=h.tipo==="mantenimiento";if(im)tm++;else tr++;rows+="<tr><td>"+fD(h.fecha)+"</td><td>"+esc(eq.nombre)+"</td><td>"+ci.label+"</td><td>"+(im?"Mantenimiento":"Reparación")+"</td><td>"+(im?"—":esc(h.nombre||""))+"</td><td>"+esc(h.tecnico||"—")+"</td><td>"+esc(h.notas||"—")+"</td></tr>";});});if(!rows){alert("Sin registros en "+fD(desde)+" — "+fD(hasta));return;}var w=window.open("","_blank");w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CIMA Informe</title><style>body{font-family:Helvetica,sans-serif;font-size:11px;color:#1d1d1f;margin:0}.hd{background:linear-gradient(135deg,#1a3a6b,#2a5298);color:#fff;padding:20px 24px}.b{padding:16px 24px}h2{font-size:12px;color:#1a3a6b;border-bottom:2px solid #dbeafe;padding-bottom:4px;margin:14px 0 8px}table{width:100%;border-collapse:collapse}th{background:#1a3a6b;color:#fff;padding:6px 8px;text-align:left;font-size:9px}td{padding:5px 8px;border-bottom:1px solid #e2e8f0;font-size:10px}tr:nth-child(even) td{background:#f8fafc}.st{display:flex;gap:12px;margin-bottom:14px}.sb{background:#f0f6ff;border:1px solid #dce8f5;border-radius:6px;padding:8px 16px}@media print{body{print-color-adjust:exact;-webkit-print-color-adjust:exact}}</style></head><body><div class="hd"><div style="font-size:18px;font-weight:700;">CIMA — Informe</div><div style="font-size:11px;opacity:.8;margin-top:2px;">'+fD(desde)+' al '+fD(hasta)+'</div></div><div class="b"><h2>Resumen</h2><div class="st"><div class="sb"><div style="font-size:8px;color:#64748b;text-transform:uppercase">Total</div><div style="font-size:20px;font-weight:700;color:#1a3a6b">'+(tm+tr)+'</div></div><div class="sb"><div style="font-size:8px;color:#64748b;text-transform:uppercase">Mant.</div><div style="font-size:20px;font-weight:700;color:#0071e3">'+tm+'</div></div><div class="sb"><div style="font-size:8px;color:#64748b;text-transform:uppercase">Rep.</div><div style="font-size:20px;font-weight:700;color:#34c759">'+tr+'</div></div></div><h2>Detalle</h2><table><thead><tr><th>Fecha</th><th>Equipo</th><th>Cat.</th><th>Tipo</th><th>Parte</th><th>Técnico</th><th>Notas</th></tr></thead><tbody>'+rows+'</tbody></table></div><script>onload=function(){print()}<\/script></body></html>');w.document.close();}
+function expFiltered(){
+  var desde=document.getElementById("r-desde").value,hasta=document.getElementById("r-hasta").value;
+  if(!desde||!hasta){alert("Seleccioná DESDE y HASTA");return;}
+  if(desde>hasta){alert("DESDE debe ser anterior a HASTA");return;}
+  toggleSettings();
+  var tm=0,tr=0,hasData=false;
+  var sections="";
+  eqs.forEach(function(eq){
+    var ci=catById(eq.cat);
+    var registros=(eq.historialMant||[]).filter(function(h){return h.fecha>=desde&&h.fecha<=hasta;}).sort(function(a,b){return a.fecha>b.fecha?1:-1;});
+    if(!registros.length)return;
+    hasData=true;
+    var repRows="",mantRows="";
+    registros.forEach(function(h){
+      if(h.tipo==="reparacion"){
+        tr++;
+        repRows+='<tr><td>'+esc(h.nombre||"—")+'</td><td>'+(h.notas?esc(h.notas):"—")+'</td><td style="color:#dc2626;">'+fD(h.fechaRotura)+'</td><td style="color:#16a34a;">'+fD(h.fecha)+'</td></tr>';
+      } else {
+        tm++;
+        mantRows+='<tr><td>'+fD(h.fecha)+'</td><td>'+(h.tecnico?esc(h.tecnico):"—")+'</td><td>'+(h.notas?esc(h.notas):"—")+'</td></tr>';
+      }
+    });
+    sections+='<div class="eq-block"><div class="eq-hdr"><span class="eq-name">'+esc(eq.nombre)+'</span><span class="eq-cat">'+ci.label+(eq.ubicacion?' · '+esc(eq.ubicacion):'')+'</span></div>';
+    if(repRows)sections+='<p class="sec-lbl">🔧 Reparaciones</p><table><thead><tr><th>Parte / Descripción</th><th>Notas</th><th>F. Rotura</th><th>F. Arreglo</th></tr></thead><tbody>'+repRows+'</tbody></table>';
+    if(mantRows)sections+='<p class="sec-lbl">🔩 Mantenimientos</p><table><thead><tr><th>Fecha</th><th>Técnico</th><th>Notas</th></tr></thead><tbody>'+mantRows+'</tbody></table>';
+    sections+='</div>';
+  });
+  if(!hasData){alert("Sin registros en "+fD(desde)+" — "+fD(hasta));return;}
+  var w=window.open("","_blank");
+  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CIMA Informe</title><style>'+
+    'body{font-family:Helvetica,sans-serif;font-size:11px;color:#1d1d1f;margin:0}'+
+    '.hd{background:linear-gradient(135deg,#1a3a6b,#2a5298);color:#fff;padding:20px 24px}'+
+    '.b{padding:16px 24px}'+
+    '.st{display:flex;gap:12px;margin-bottom:18px}'+
+    '.sb{background:#f0f6ff;border:1px solid #dce8f5;border-radius:6px;padding:8px 16px;text-align:center}'+
+    '.eq-block{border:1px solid #e2e8f0;border-radius:8px;margin-bottom:16px;overflow:hidden;page-break-inside:avoid}'+
+    '.eq-hdr{background:#1a3a6b;color:#fff;padding:8px 12px;display:flex;justify-content:space-between;align-items:center}'+
+    '.eq-name{font-size:12px;font-weight:700}'+
+    '.eq-cat{font-size:9px;opacity:.8}'+
+    '.sec-lbl{margin:8px 12px 4px;font-size:9px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em}'+
+    'table{width:100%;border-collapse:collapse;margin-bottom:4px}'+
+    'th{background:#f1f5f9;color:#475569;padding:5px 10px;text-align:left;font-size:8px;text-transform:uppercase}'+
+    'td{padding:5px 10px;border-bottom:1px solid #f1f5f9;font-size:10px}'+
+    '@media print{body{print-color-adjust:exact;-webkit-print-color-adjust:exact}.eq-block{page-break-inside:avoid}}'+
+    '</style></head><body>'+
+    '<div class="hd"><div style="font-size:18px;font-weight:700;">CIMA — Informe por Equipo</div>'+
+    '<div style="font-size:11px;opacity:.8;margin-top:2px;">'+fD(desde)+' al '+fD(hasta)+'</div></div>'+
+    '<div class="b">'+
+    '<div class="st">'+
+    '<div class="sb"><div style="font-size:8px;color:#64748b;text-transform:uppercase">Total</div><div style="font-size:20px;font-weight:700;color:#1a3a6b">'+(tm+tr)+'</div></div>'+
+    '<div class="sb"><div style="font-size:8px;color:#64748b;text-transform:uppercase">Mantenimientos</div><div style="font-size:20px;font-weight:700;color:#0071e3">'+tm+'</div></div>'+
+    '<div class="sb"><div style="font-size:8px;color:#64748b;text-transform:uppercase">Reparaciones</div><div style="font-size:20px;font-weight:700;color:#34c759">'+tr+'</div></div>'+
+    '</div>'+sections+
+    '</div><script>onload=function(){print()}<\/script></body></html>');
+  w.document.close();
+}
 
 
 // ═══════════════════════════════════════════
