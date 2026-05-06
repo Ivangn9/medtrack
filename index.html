@@ -546,7 +546,7 @@ function repararParte(eqId,pid){
     '<input class="inp" type="date" id="rep-fecha" value="'+new Date().toISOString().split("T")[0]+'"></div>'+
     '<div class="ff"><div class="ff-label">Notas (opcional)</div>'+
     '<textarea class="inp" id="rep-notas" rows="2" placeholder="Ej: Se reemplazó la pieza, técnico Juan García...">'+esc(pt.notas||'')+'</textarea></div>'+
-    '<button class="btn-primary" style="width:100%;padding:14px;font-size:.92rem;background:var(--green);margin-top:4px;" onclick="confirmarReparacion(''+eqId+'',''+pid+'')">✅ Confirmar Reparación</button>'
+    '<button class="btn-primary" style="width:100%;padding:14px;font-size:.92rem;background:var(--green);margin-top:4px;" onclick="confirmarReparacion(\''+eqId+'\',\''+pid+'\')">✅ Confirmar Reparación</button>'
   );
 }
 function confirmarReparacion(eqId,pid){
