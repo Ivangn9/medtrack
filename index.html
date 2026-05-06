@@ -437,13 +437,16 @@ var eqs=[],view="dash",selId=null,filtCat="TODOS",toastTimer=null,darkMode=false
 function loadData(){
   eqs=JSON.parse(JSON.stringify(EQ0));
   try{var s=localStorage.getItem("mt_v4");if(s){var p=JSON.parse(s);if(Array.isArray(p)&&p.length>0)eqs=p;}}catch(e){}
-  // Migrate: ensure all equipment have marca field; remove legacy ok-parts that have a historial entry
+  var dirty=false;
   eqs=eqs.map(function(e){
     e=Object.assign({marca:""},e);
-    var repIds=(e.historialMant||[]).filter(function(h){return h.tipo==="reparacion";}).map(function(h){return h.nombre;});
-    e.partes=(e.partes||[]).filter(function(p){return!(p.estado==="ok"&&repIds.indexOf(p.nombre)!==-1);});
+    // Remove any part that is ok AND has fechaArreglo (already repaired)
+    var before=(e.partes||[]).length;
+    e.partes=(e.partes||[]).filter(function(p){return!(p.estado==="ok"&&p.fechaArreglo);});
+    if(e.partes.length!==before)dirty=true;
     return e;
   });
+  if(dirty)saveData();
 }
 function saveData(){try{localStorage.setItem("mt_v4",JSON.stringify(eqs));}catch(e){}}
 
