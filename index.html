@@ -557,7 +557,13 @@ function confirmarReparacion(eqId,pid){
   if(!eq)return;
   var pt=eq.partes.find(function(p){return p.id===pid;});
   if(!pt)return;
-  saveParte(eqId,Object.assign({},pt,{estado:"ok",fechaArreglo:fecha,notas:notas||pt.notas||""}));
+  eqs=eqs.map(function(e){
+    if(e.id!==eqId)return e;
+    var hist=(e.historialMant||[]).concat({id:"HP-"+Date.now(),fecha:fecha,tipo:"reparacion",nombre:pt.nombre,marca:pt.marca||"",nroSerie:pt.nroSerie||"",fechaRotura:pt.fechaRotura||"",notas:notas||pt.notas||"",registradoEn:new Date().toISOString()});
+    var partes=e.partes.filter(function(x){return x.id!==pid;});
+    return Object.assign({},e,{partes:partes,historialMant:hist});
+  });
+  saveData();closeModal();showToast("✅ Reparación registrada en historial");render();
 }
 function delParte(eqId,pid){if(!confirm("¿Eliminar?"))return;eqs=eqs.map(function(e){return e.id!==eqId?e:Object.assign({},e,{partes:e.partes.filter(function(x){return x.id!==pid;})});});saveData();showToast("Eliminada","warn");render();}
 function delHist(eqId,hid){if(!confirm("¿Eliminar registro?"))return;eqs=eqs.map(function(e){return e.id!==eqId?e:Object.assign({},e,{historialMant:(e.historialMant||[]).filter(function(h){return h.id!==hid;})});});saveData();showToast("Eliminado","warn");render();}
