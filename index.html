@@ -753,7 +753,7 @@ function rDash(){
   var rot=0,pend=0;eqs.forEach(function(e){e.partes.forEach(function(p){if(p.estado==="roto")rot++;if(p.estado==="pendiente")pend++;});});
   
   var h='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;">';
-  [{l:"Total",v:eqs.length,c:"var(--accent)"},{l:"Operativos",v:opOK,c:"var(--green)"},{l:"Fuera",v:opF,c:"var(--red)"},{l:"Mant. Urg.",v:mU,c:"var(--red)"},{l:"Comp. Rotos",v:rot,c:"var(--red)"},{l:"Pendientes",v:pend,c:"var(--orange)"}].forEach(function(s){
+  [{l:"Total",v:eqs.length,c:"var(--accent)"},{l:"Operativos",v:opOK,c:"var(--green)"},{l:"Fuera de servicio",v:opF,c:"var(--red)"},{l:"Mant. Urg.",v:mU,c:"var(--red)"},{l:"Comp. Rotos",v:rot,c:"var(--red)"},{l:"Pendientes",v:pend,c:"var(--orange)"}].forEach(function(s){
     h+='<div class="gc stat"><div class="stat-lbl">'+s.l+'</div><div class="stat-val" style="color:'+s.c+';">'+s.v+'</div></div>';
   });
   h+='</div>';
@@ -806,7 +806,7 @@ function rLista(){
       '<div class="li-icon">'+iconFor(e,42)+'</div>'+
       '<div style="flex:1;min-width:0;"><div class="li-name">'+esc(e.nombre)+'</div><div class="li-sub">'+e.id+(e.ubicacion?' · '+esc(e.ubicacion):'')+'</div>'+
       '<div style="display:flex;gap:5px;margin-top:6px;flex-wrap:wrap;">'+
-        pillH(CE[e.estado]||"var(--green)",e.estado==="operativo"?"✅ OK":e.estado==="con-rotura"?"🔧 Con rotura":e.estado==="advertencia"?"⚠️ Adv":"🚫 Fuera")+
+        pillH(CE[e.estado]||"var(--green)",e.estado==="operativo"?"✅ OK":e.estado==="con-rotura"?"🔧 Con rotura":e.estado==="advertencia"?"⚠️ Adv":"🚫 Fuera de servicio")+
         (sinMant(e)?pillH("#8e8e93","⚫ Sin mant."):pillH(CM[ms],"🔧 "+(ms==="vencido"?"VENC":ms==="urgente"?d+"d URG":ms==="proximo"?d+"d prox":d+"d")))+
         (rot>0?pillH("var(--red)","🔴 "+rot+" comp. defectuoso"+(rot>1?"s":"")):"")+'</div></div>'+
       '<div style="color:var(--text3);font-size:1rem;">›</div></div></div>';
@@ -836,7 +836,7 @@ function rDetalle(){
   var ms=semafo(eq);var d=diasH(eq.proximoMant);var ci=catById(eq.cat);
   var estBtns=["operativo","con-rotura","advertencia","fuera-de-servicio"].map(function(est){
     var a=eq.estado===est;var c=CE[est]||"var(--green)";
-    return'<button style="flex:1;padding:9px 4px;border-radius:var(--r-sm);font-size:.64rem;font-weight:600;border:none;cursor:pointer;background:'+(a?c+"18":"rgba(120,120,128,.08)")+';color:'+(a?c:"var(--text3)")+';'+(a?"box-shadow:0 0 0 2px "+c+"40;":"")+'" onclick="setEst(\''+eq.id+'\',\''+est+'\')">'+(est==="operativo"?"✅ OK":est==="con-rotura"?"🔧 Rotura":est==="advertencia"?"⚠️ Adv":"🚫 Fuera")+'</button>';
+    return'<button style="flex:1;padding:9px 4px;border-radius:var(--r-sm);font-size:.64rem;font-weight:600;border:none;cursor:pointer;background:'+(a?c+"18":"rgba(120,120,128,.08)")+';color:'+(a?c:"var(--text3)")+';'+(a?"box-shadow:0 0 0 2px "+c+"40;":"")+'" onclick="setEst(\''+eq.id+'\',\''+est+'\')">'+(est==="operativo"?"✅ OK":est==="con-rotura"?"🔧 Rotura":est==="advertencia"?"⚠️ Adv":"🚫 Fuera de servicio")+'</button>';
   }).join("");
 
   var h='<div class="gc" style="padding:16px;margin-bottom:14px;">';
