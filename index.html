@@ -753,7 +753,7 @@ function rDash(){
   var rot=0,pend=0;eqs.forEach(function(e){e.partes.forEach(function(p){if(p.estado==="roto")rot++;if(p.estado==="pendiente")pend++;});});
   
   var h='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;">';
-  [{l:"Total",v:eqs.length,c:"var(--accent)"},{l:"Operativos",v:opOK,c:"var(--green)"},{l:"Fuera de servicio",v:opF,c:"var(--red)"},{l:"Mant. Urg.",v:mU,c:"var(--red)"},{l:"Comp. Rotos",v:rot,c:"var(--red)"},{l:"Pendientes",v:pend,c:"var(--orange)"}].forEach(function(s){
+  [{l:"Total",v:eqs.length,c:"var(--accent)"},{l:"Operativos",v:opOK,c:"var(--green)"},{l:"F. de servicio",v:opF,c:"var(--red)"},{l:"Mant. Urg.",v:mU,c:"var(--red)"},{l:"Comp. Rotos",v:rot,c:"var(--red)"},{l:"Pendientes",v:pend,c:"var(--orange)"}].forEach(function(s){
     h+='<div class="gc stat"><div class="stat-lbl">'+s.l+'</div><div class="stat-val" style="color:'+s.c+';">'+s.v+'</div></div>';
   });
   h+='</div>';
