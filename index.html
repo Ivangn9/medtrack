@@ -527,6 +527,35 @@ function saveParte(eqId,pt){
   });
   saveData();showToast("Parte guardada");closeModal();render();
 }
+function repararParte(eqId,pid){
+  var eq=eqs.find(function(e){return e.id===eqId;});
+  if(!eq)return;
+  var pt=eq.partes.find(function(p){return p.id===pid;});
+  if(!pt)return;
+  openModal(
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">'+
+    '<div class="modal-title">✅ Marcar como Reparado</div>'+
+    '<button class="modal-close" onclick="closeModal()">✕</button></div>'+
+    '<div style="background:rgba(52,199,89,.08);border:1px solid rgba(52,199,89,.2);border-radius:var(--r-md);padding:14px;margin-bottom:18px;">'+
+    '<div style="font-weight:700;font-size:.9rem;margin-bottom:4px;">'+esc(pt.nombre)+'</div>'+
+    '<div style="font-size:.72rem;color:var(--text3);">'+( pt.descripcion?esc(pt.descripcion):'')+'</div></div>'+
+    '<div class="ff"><div class="ff-label">Fecha de Reparación *</div>'+
+    '<input class="inp" type="date" id="rep-fecha" value="'+new Date().toISOString().split("T")[0]+'"></div>'+
+    '<div class="ff"><div class="ff-label">Notas (opcional)</div>'+
+    '<textarea class="inp" id="rep-notas" rows="2" placeholder="Ej: Se reemplazó la pieza, técnico Juan García...">'+esc(pt.notas||'')+'</textarea></div>'+
+    '<button class="btn-primary" style="width:100%;padding:14px;font-size:.92rem;background:var(--green);margin-top:4px;" onclick="confirmarReparacion(''+eqId+'',''+pid+'')">✅ Confirmar Reparación</button>'
+  );
+}
+function confirmarReparacion(eqId,pid){
+  var fecha=document.getElementById("rep-fecha").value;
+  var notas=document.getElementById("rep-notas").value;
+  if(!fecha)return alert("Ingresá la fecha de reparación");
+  var eq=eqs.find(function(e){return e.id===eqId;});
+  if(!eq)return;
+  var pt=eq.partes.find(function(p){return p.id===pid;});
+  if(!pt)return;
+  saveParte(eqId,Object.assign({},pt,{estado:"ok",fechaArreglo:fecha,notas:notas||pt.notas||""}));
+}
 function delParte(eqId,pid){if(!confirm("¿Eliminar?"))return;eqs=eqs.map(function(e){return e.id!==eqId?e:Object.assign({},e,{partes:e.partes.filter(function(x){return x.id!==pid;})});});saveData();showToast("Eliminada","warn");render();}
 function delHist(eqId,hid){if(!confirm("¿Eliminar registro?"))return;eqs=eqs.map(function(e){return e.id!==eqId?e:Object.assign({},e,{historialMant:(e.historialMant||[]).filter(function(h){return h.id!==hid;})});});saveData();showToast("Eliminado","warn");render();}
 function regMant(eqId,fecha,notas,tecnico){
@@ -747,7 +776,8 @@ function rDetalle(){
       (p.marca?'<div class="ibox"><div class="ibox-l">Marca</div><div class="ibox-v">'+esc(p.marca)+'</div></div>':'')+
       (p.nroSerie?'<div class="ibox"><div class="ibox-l">N° Serie</div><div class="ibox-v">'+esc(p.nroSerie)+'</div></div>':'')+'</div>'+
       (p.notas?'<div class="ibox" style="margin-bottom:8px;"><div style="font-size:.73rem;color:var(--text2);">'+esc(p.notas)+'</div></div>':'')+
-      '<div style="display:flex;gap:6px;"><button class="btn-secondary btn-sm" style="flex:1;" onclick=\'openModalParte("'+eq.id+'",'+JSON.stringify(p).replace(/'/g,"&#39;")+')\'>✏️</button><button class="btn-danger btn-sm" onclick="delParte(\''+eq.id+'\',\''+p.id+'\')">🗑</button></div></div>';
+      '<div style="display:flex;gap:6px;">'+(p.estado!=="ok"?'<button class="btn-sm" style="flex:2;background:rgba(52,199,89,.12);color:var(--green);border:1px solid rgba(52,199,89,.25);border-radius:var(--r-sm);font-weight:700;cursor:pointer;" onclick="repararParte(\''+eq.id+'\',\''+p.id+'\')">✅ Reparado</button>':'')+
+      '<button class="btn-secondary btn-sm" style="'+(p.estado!=="ok"?'':'flex:1;')+'" onclick=\'openModalParte("'+eq.id+'",'+JSON.stringify(p).replace(/'/g,"&#39;")+')\'>✏️</button><button class="btn-danger btn-sm" onclick="delParte(\''+eq.id+'\',\''+p.id+'\')">🗑</button></div></div>';
   });
 
   // HISTORIAL
