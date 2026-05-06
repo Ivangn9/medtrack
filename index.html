@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="MedTrack">
 <title>MedTrack — CIMA</title>
-<meta name="version" content="3.2">
+<meta name="version" content="4.0">
 <style>
 :root{
   --glass:rgba(255,255,255,.55);
@@ -211,7 +211,7 @@ body.dark .settings-item{background:rgba(58,58,60,.5);border-color:rgba(84,84,88
       </div>
       <button onclick="expFiltered()" style="width:100%;padding:12px;background:var(--red);color:#fff;border:none;border-radius:50px;font-weight:600;font-size:.82rem;cursor:pointer;">📄 Informe Filtrado</button>
     </div>
-    <div style="text-align:center;padding:14px 0;color:var(--text3);font-size:.66rem;">CIMA Investigaciones Avanzadas · MedTrack v3.0</div>
+    <div style="text-align:center;padding:14px 0;color:var(--text3);font-size:.66rem;">CIMA Investigaciones Avanzadas · MedTrack v4.0</div>
   </div>
 </div>
 
@@ -606,6 +606,7 @@ function openModalParte(eqId,pt){
     '<div class="g2"><div class="ff"><div class="ff-label">Fecha Rotura</div><input class="inp" type="date" id="pt-fr" value="'+f.fechaRotura+'"></div><div class="ff"><div class="ff-label">Fecha Arreglo</div><input class="inp" type="date" id="pt-fa" value="'+f.fechaArreglo+'"></div></div>'+
     '<div class="g2"><div class="ff"><div class="ff-label">Marca</div><input class="inp" id="pt-mk" value="'+esc(f.marca)+'"></div><div class="ff"><div class="ff-label">N° Serie</div><input class="inp" id="pt-sn" value="'+esc(f.nroSerie)+'"></div></div>'+
     '<div class="ff"><div class="ff-label">Notas</div><textarea class="inp" id="pt-nt" rows="3">'+esc(f.notas)+'</textarea></div>'+
+    (!n&&f.estado!=="ok"?'<button onclick="repararParte(\''+eqId+'\',\''+f.id+'\')" style="width:100%;padding:14px;margin-bottom:10px;border:none;border-radius:var(--r-md);background:var(--green);color:#fff;font-size:.95rem;font-weight:700;cursor:pointer;box-shadow:0 2px 10px rgba(52,199,89,.4);">✅ Marcar como Reparado</button>':'')+
     '<button class="btn-primary" style="width:100%;padding:14px;font-size:.92rem;" onclick="submitPt(\''+eqId+'\',\''+(f.id||"")+'\')">'+(n?"✅ Agregar":"💾 Guardar")+'</button>');
 }
 function setPtEst(e){document.getElementById("pt-es").value=e;openModalParte._lastEqId&&openModalParte(openModalParte._lastEqId,{nombre:document.getElementById("pt-n").value,descripcion:document.getElementById("pt-d").value,estado:e,fechaRotura:document.getElementById("pt-fr").value,fechaArreglo:document.getElementById("pt-fa").value,marca:document.getElementById("pt-mk").value,nroSerie:document.getElementById("pt-sn").value,notas:document.getElementById("pt-nt").value,id:document.getElementById("modal-box").dataset.ptid||""});}
