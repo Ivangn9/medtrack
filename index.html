@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.07.13 -->
+<!-- v2026.05.07.14 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -228,7 +228,7 @@ body.dark .settings-item{background:rgba(58,58,60,.5);border-color:rgba(84,84,88
       </div>
       <button onclick="expFiltered()" style="width:100%;padding:12px;background:var(--red);color:#fff;border:none;border-radius:50px;font-weight:600;font-size:.82rem;cursor:pointer;">📄 Informe Filtrado</button>
     </div>
-    <div style="text-align:center;padding:14px 0;color:var(--text3);font-size:.66rem;">CIMA Investigaciones Avanzadas · MedTrack v4.1.3</div>
+    <div style="text-align:center;padding:14px 0;color:var(--text3);font-size:.66rem;">CIMA Investigaciones Avanzadas · MedTrack v4.1.4</div>
   </div>
 </div>
 
@@ -1112,23 +1112,33 @@ function rDetalle(){
     return'<button style="flex:1;padding:9px 4px;border-radius:var(--r-sm);font-size:.64rem;font-weight:600;border:none;cursor:pointer;background:'+(a?c+"18":"rgba(120,120,128,.08)")+';color:'+(a?c:"var(--text3)")+';'+(a?"box-shadow:0 0 0 2px "+c+"40;":"")+'" onclick="setEst(\''+eq.id+'\',\''+est+'\')">'+(est==="operativo"?"✅ OK":est==="con-rotura"?"🔧 Rotura":est==="advertencia"?"⚠️ Adv":"🚫 Fuera de servicio")+'</button>';
   }).join("");
 
-  var h='<div class="gc" style="padding:16px;margin-bottom:14px;">';
-  h+='<div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:14px;"><div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0;">'+iconFor(eq,50)+'</div>';
+  // ── CARD 1: ESTADO ──
+  var h='<div class="gc" style="padding:16px;margin-bottom:12px;">';
+  h+='<div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:14px;"><div style="flex-shrink:0;">'+iconFor(eq,50)+'</div>';
   h+='<div style="flex:1;min-width:0;"><div style="font-weight:700;font-size:1rem;letter-spacing:-.3px;margin-bottom:2px;">'+esc(eq.nombre)+'</div>';
   h+='<div style="font-size:.66rem;color:var(--text3);font-family:monospace;">'+eq.id+(eq.serie?' · '+esc(eq.serie):'')+'</div>';
-  h+=(eq.ubicacion?'<div style="font-size:.74rem;color:var(--text3);margin-top:2px;">📍 '+esc(eq.ubicacion)+'</div>':'')+
-    (eq.tecnico?'<div style="font-size:.74rem;color:var(--text3);">👷 '+esc(eq.tecnico)+'</div>':'')+'</div></div>';
+  h+=(eq.ubicacion?'<div style="font-size:.74rem;color:var(--text3);margin-top:2px;">📍 '+esc(eq.ubicacion)+'</div>':'')+'</div></div>';
   h+='<div style="margin-bottom:12px;"><div class="ff-label">Estado</div><div style="display:flex;gap:6px;">'+estBtns+'</div></div>';
-  h+='<div class="det-grid">';
-  [{l:"Categoría",v:ci.label},{l:"Marca",v:eq.marca||"—"},{l:"Frecuencia",v:eq.frecuencia},{l:"Instalación",v:fD(eq.instalacion)},{l:"N° Serie",v:eq.serie||"—"},{l:"Técnico",v:eq.tecnico||"—"},{l:"Contrato",v:eq.contrato||"—"},{l:"Último Mant.",v:fD(eq.ultimoMant)},{l:"Próx. Mant.",v:fD(eq.proximoMant),c:CM[ms]}].forEach(function(x){
-    h+='<div class="ibox"><div class="ibox-l">'+x.l+'</div><div class="ibox-v"'+(x.c?' style="color:'+x.c+'"':'')+'>'+esc(x.v)+'</div></div>';
+  h+='<div class="det-grid" style="margin-bottom:12px;">';
+  [{l:"Categoría",v:ci.label},{l:"Marca",v:eq.marca||"—"},{l:"Instalación",v:fD(eq.instalacion)},{l:"N° Serie",v:eq.serie||"—"},{l:"Contrato",v:eq.contrato||"—"}].forEach(function(x){
+    h+='<div class="ibox"><div class="ibox-l">'+x.l+'</div><div class="ibox-v">'+esc(x.v)+'</div></div>';
   });
   h+='</div>';
-  h+='<div style="background:'+(sinMant(eq)?"rgba(120,120,128,.06)":CM[ms]+"0d")+';border-radius:var(--r-md);padding:12px 14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;">'+
-    '<div><div style="font-size:.64rem;color:var(--text3);">Mantenimiento</div><div style="font-weight:700;font-size:.88rem;color:'+(sinMant(eq)?"var(--text3)":CM[ms])+';">'+(sinMant(eq)?"⚫ Sin mant. programado":ms==="vencido"?"🔴 VENCIDO":ms==="urgente"?"🔴 URGENTE — "+d+"d":ms==="proximo"?"⚠️ "+d+" días":"✅ "+d+" días")+'</div></div>'+
-    (sinMant(eq)?'':'<button class="btn-primary btn-sm" onclick="openModalMant(\''+eq.id+'\')">Registrar</button>')+'</div>';
-  h+=(eq.notas?'<div class="ibox" style="margin-bottom:12px;"><div class="ibox-l">📝 Notas</div><div style="font-size:.8rem;color:var(--text2);">'+esc(eq.notas)+'</div></div>':'');
   h+='<div style="display:flex;gap:8px;"><button class="btn-secondary" style="flex:1;" onclick="openModalEq('+JSON.stringify(eq).replace(/"/g,"&quot;")+')">✏️ Editar</button><button class="btn-danger" onclick="delEq(\''+eq.id+'\')">🗑</button></div></div>';
+
+  // ── CARD 2: MANTENIMIENTO ──
+  h+='<div class="gc" style="padding:16px;margin-bottom:14px;">';
+  h+='<div style="font-weight:700;font-size:.88rem;margin-bottom:12px;">🔧 Mantenimiento</div>';
+  h+='<div class="det-grid" style="margin-bottom:10px;">';
+  h+='<div class="ibox"><div class="ibox-l">Frecuencia</div><div class="ibox-v">'+esc(eq.frecuencia)+'</div></div>';
+  h+='<div class="ibox"><div class="ibox-l">Último Mant.</div><div class="ibox-v">'+esc(fD(eq.ultimoMant))+'</div></div>';
+  h+='<div class="ibox"><div class="ibox-l">Próx. Mant.</div><div class="ibox-v" style="color:'+CM[ms]+';">'+esc(fD(eq.proximoMant))+'</div></div>';
+  h+='</div>';
+  h+='<div style="background:'+(sinMant(eq)?"rgba(120,120,128,.06)":CM[ms]+"0d")+';border-radius:var(--r-md);padding:12px 14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">'+
+    '<div><div style="font-size:.64rem;color:var(--text3);margin-bottom:2px;">Días para próximo mantenimiento</div><div style="font-weight:700;font-size:.92rem;color:'+(sinMant(eq)?"var(--text3)":CM[ms])+';">'+(sinMant(eq)?"⚫ Sin mant. programado":ms==="vencido"?"🔴 VENCIDO":ms==="urgente"?"🔴 URGENTE — "+d+" días":ms==="proximo"?"⚠️ "+d+" días":"✅ "+d+" días")+'</div></div>'+
+    (sinMant(eq)?'':'<button class="btn-primary btn-sm" onclick="openModalMant(\''+eq.id+'\')">Registrar</button>')+'</div>';
+  h+=(eq.notas?'<div class="ibox"><div class="ibox-l">📝 Nota</div><div style="font-size:.8rem;color:var(--text2);margin-top:2px;">'+esc(eq.notas)+'</div></div>':'');
+  h+='</div>';
 
   // PARTES
   var partesActivas=eq.partes.filter(function(p){return p.estado!=="ok";});
