@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.07.27 -->
+<!-- v2026.05.07.28 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@ body{
 .tab.on{color:#fff;font-weight:700;background:var(--accent);box-shadow:0 2px 8px rgba(0,113,227,.3);}
 .tab-badge{background:var(--red);color:#fff;border-radius:10px;padding:1px 6px;font-size:.6rem;font-weight:700;margin-left:4px;vertical-align:middle;}
 
-#main{max-width:900px;margin:0 auto;padding:20px 16px calc(env(safe-area-inset-bottom,0px)+200px);}
+#main{max-width:900px;margin:0 auto;padding:20px 16px calc(env(safe-area-inset-bottom,0px)+200px);overscroll-behavior-y:contain;}
 
 /* ── BUTTONS ── */
 .btn-primary{background:var(--accent);color:#fff;border-radius:50px;padding:8px 18px;
@@ -228,7 +228,7 @@ body.dark .settings-item{background:rgba(58,58,60,.5);border-color:rgba(84,84,88
       </div>
       <button onclick="expFiltered()" style="width:100%;padding:12px;background:var(--red);color:#fff;border:none;border-radius:50px;font-weight:600;font-size:.82rem;cursor:pointer;">📄 Informe Filtrado</button>
     </div>
-    <div style="text-align:center;padding:14px 0;color:var(--text3);font-size:.66rem;">CIMA Investigaciones Avanzadas · MedTrack v4.2.4</div>
+    <div style="text-align:center;padding:14px 0;color:var(--text3);font-size:.66rem;">CIMA Investigaciones Avanzadas · MedTrack v4.2.5</div>
   </div>
 </div>
 
@@ -1023,6 +1023,7 @@ function render(){
     else if(view==="alertas")d.innerHTML=rAlertas();
     else if(view==="detalle")d.innerHTML=rDetalle();
     m.appendChild(d);
+    var spacer=document.createElement("div");spacer.style.height="80px";spacer.style.flexShrink="0";m.appendChild(spacer);
   }catch(err){
     var m=document.getElementById("main");
     if(m)m.innerHTML='<div style="padding:20px;color:var(--red);font-size:.85rem;">Error: '+err.message+'</div>';
