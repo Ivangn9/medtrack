@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.07.16 -->
+<!-- v2026.05.07.17 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -228,7 +228,7 @@ body.dark .settings-item{background:rgba(58,58,60,.5);border-color:rgba(84,84,88
       </div>
       <button onclick="expFiltered()" style="width:100%;padding:12px;background:var(--red);color:#fff;border:none;border-radius:50px;font-weight:600;font-size:.82rem;cursor:pointer;">📄 Informe Filtrado</button>
     </div>
-    <div style="text-align:center;padding:14px 0;color:var(--text3);font-size:.66rem;">CIMA Investigaciones Avanzadas · MedTrack v4.1.6</div>
+    <div style="text-align:center;padding:14px 0;color:var(--text3);font-size:.66rem;">CIMA Investigaciones Avanzadas · MedTrack v4.1.7</div>
   </div>
 </div>
 
@@ -1128,7 +1128,7 @@ function rDetalle(){
 
   // ── CARD 2: MANTENIMIENTO ──
   h+='<div class="gc" style="padding:16px;margin-bottom:14px;">';
-  h+='<div style="font-weight:700;font-size:.88rem;margin-bottom:12px;">🔧 Mantenimiento</div>';
+  h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;"><div style="font-weight:700;font-size:.88rem;">🔧 Mantenimiento</div><button class="btn-secondary btn-sm" onclick="openModalEq('+JSON.stringify(eq).replace(/"/g,"&quot;")+')" style="font-size:.7rem;">✏️ Editar</button></div>';
   h+='<div class="det-grid" style="margin-bottom:10px;">';
   h+='<div class="ibox"><div class="ibox-l">Frecuencia</div><div class="ibox-v">'+esc(eq.frecuencia)+'</div></div>';
   h+='<div class="ibox"><div class="ibox-l">Último Mant.</div><div class="ibox-v">'+esc(fD(eq.ultimoMant))+'</div></div>';
