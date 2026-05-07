@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.07.18 -->
+<!-- v2026.05.07.19 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -228,7 +228,7 @@ body.dark .settings-item{background:rgba(58,58,60,.5);border-color:rgba(84,84,88
       </div>
       <button onclick="expFiltered()" style="width:100%;padding:12px;background:var(--red);color:#fff;border:none;border-radius:50px;font-weight:600;font-size:.82rem;cursor:pointer;">📄 Informe Filtrado</button>
     </div>
-    <div style="text-align:center;padding:14px 0;color:var(--text3);font-size:.66rem;">CIMA Investigaciones Avanzadas · MedTrack v4.2.0</div>
+    <div style="text-align:center;padding:14px 0;color:var(--text3);font-size:.66rem;">CIMA Investigaciones Avanzadas · MedTrack v4.2.1</div>
   </div>
 </div>
 
@@ -856,7 +856,7 @@ function setEst(eqId,est){eqs=eqs.map(function(e){return e.id!==eqId?e:Object.as
 //  MODAL BUILDERS
 // ═══════════════════════════════════════════
 function openModalEq(eq){
-  var n=!eq;var f=eq||{nombre:"",cat:"RM",ubicacion:"",instalacion:"",serie:"",tecnico:"",contrato:"",marca:"",estado:"operativo",frecuencia:"semestral",ultimoMant:today(),proximoMant:calcP(today(),"semestral"),notas:"",garantia:false,garantiaHasta:""};
+  var n=!eq;var f=eq||{nombre:"",cat:"RM",ubicacion:"",instalacion:"",serie:"",tecnico:"",contrato:"",marca:"",estado:"operativo",frecuencia:"semestral",ultimoMant:today(),proximoMant:calcP(today(),"semestral"),notas:"",garantia:false,garantiaHasta:"",tieneServicio:false};
   var catOpts=CATS.map(function(c){return'<option value="'+c.id+'"'+(f.cat===c.id?' selected':'')+'>'+c.label+'</option>';}).join("");
   var MARCAS=["","GE","Siemens","Planmeca","Carestream","AGFA","Bayer","Otra"];
   var marcaOpts=MARCAS.map(function(x){return'<option value="'+x+'"'+(f.marca===x?' selected':'')+'>'+( x||"— Sin marca —")+'</option>';}).join("");
@@ -868,6 +868,10 @@ function openModalEq(eq){
     '<div class="g2"><div class="ff"><div class="ff-label">Ubicación</div><input class="inp" id="eq-ub" value="'+esc(f.ubicacion)+'" placeholder="GN / Pedernera / CRS"></div><div class="ff"><div class="ff-label">SystemID</div><input class="inp" id="eq-sr" value="'+esc(f.serie)+'"></div></div>'+
     '<div class="ff"><div class="ff-label">Fecha Instalación</div><input class="inp" type="date" id="eq-inst" value="'+f.instalacion+'"></div>'+
     '<div class="g2"><div class="ff"><div class="ff-label">Ingeniero</div><input class="inp" id="eq-tc" value="'+esc(f.tecnico)+'"></div><div class="ff"><div class="ff-label">Contrato / Empresa</div><input class="inp" id="eq-ct" value="'+esc(f.contrato)+'"></div></div>'+
+    '<div class="ff"><div class="ff-label">Servicio de Mantenimiento</div>'+
+    '<label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.84rem;font-weight:500;padding:6px 0;">'+
+    '<input type="checkbox" id="eq-sv" style="width:17px;height:17px;cursor:pointer;accent-color:var(--green);"'+(f.tieneServicio?' checked':'')+'>'+
+    'Tiene contrato de servicio activo</label></div>'+
     '<div class="ff"><div class="ff-label" style="display:flex;align-items:center;gap:6px;">Marca <span style="font-size:.6rem;opacity:.7;">(para mostrar logo)</span></div><select class="inp" id="eq-mk">'+marcaOpts+'</select></div>'+
     '<div class="g2"><div class="ff"><div class="ff-label">Frecuencia</div><select class="inp" id="eq-fr" onchange="recalcP()">'+fOpts+'</select></div><div class="ff"><div class="ff-label">Estado</div><select class="inp" id="eq-es">'+eOpts+'</select></div></div>'+
     '<div class="g2"><div class="ff"><div class="ff-label">Último Mant.</div><input class="inp" type="date" id="eq-um" value="'+f.ultimoMant+'" onchange="recalcP()"></div><div class="ff"><div class="ff-label">Próximo Mant.</div><input class="inp" type="date" id="eq-pm" value="'+f.proximoMant+'"></div></div>'+
@@ -884,8 +888,8 @@ function openModalEq(eq){
 function recalcP(){var d=document.getElementById("eq-um").value,f=document.getElementById("eq-fr").value;if(d&&f!=="ninguna")document.getElementById("eq-pm").value=calcP(d,f);}
 function submitEq(eid){
   var n=document.getElementById("eq-n").value.trim();if(!n)return alert("Nombre obligatorio");
-  var grEl=document.getElementById("eq-gr");
-  saveEq({id:eid||"",nombre:n,cat:document.getElementById("eq-cat").value,ubicacion:document.getElementById("eq-ub").value,serie:document.getElementById("eq-sr").value,instalacion:document.getElementById("eq-inst").value,tecnico:document.getElementById("eq-tc").value,contrato:document.getElementById("eq-ct").value,marca:(document.getElementById("eq-mk")||{value:""}).value,frecuencia:document.getElementById("eq-fr").value,estado:document.getElementById("eq-es").value,ultimoMant:document.getElementById("eq-um").value,proximoMant:document.getElementById("eq-pm").value,notas:document.getElementById("eq-nt").value,garantia:grEl?grEl.checked:false,garantiaHasta:document.getElementById("eq-gh").value});
+  var grEl=document.getElementById("eq-gr");var svEl=document.getElementById("eq-sv");
+  saveEq({id:eid||"",nombre:n,cat:document.getElementById("eq-cat").value,ubicacion:document.getElementById("eq-ub").value,serie:document.getElementById("eq-sr").value,instalacion:document.getElementById("eq-inst").value,tecnico:document.getElementById("eq-tc").value,contrato:document.getElementById("eq-ct").value,marca:(document.getElementById("eq-mk")||{value:""}).value,frecuencia:document.getElementById("eq-fr").value,estado:document.getElementById("eq-es").value,ultimoMant:document.getElementById("eq-um").value,proximoMant:document.getElementById("eq-pm").value,notas:document.getElementById("eq-nt").value,garantia:grEl?grEl.checked:false,garantiaHasta:document.getElementById("eq-gh").value,tieneServicio:svEl?svEl.checked:false});
 }
 // ── FILE STORE (IndexedDB) ──
 var _idb=null;
@@ -1089,7 +1093,7 @@ function rLista(){
       '<div style="display:flex;gap:5px;margin-top:6px;flex-wrap:wrap;">'+
         pillH(CE[e.estado]||"var(--green)",e.estado==="operativo"?"✅ OK":e.estado==="con-rotura"?"🔧 Con rotura":e.estado==="advertencia"?"⚠️ Adv":"🚫 Fuera de servicio")+
         (sinMant(e)?pillH("#8e8e93","⚫ Sin mant."):pillH(CM[ms],"🔧 "+(ms==="vencido"?"VENC":ms==="urgente"?d+"d URG":ms==="proximo"?d+"d prox":d+"d")))+
-        (rot>0?pillH("var(--red)","🔴 "+rot+" comp. defectuoso"+(rot>1?"s":"")):"")+'</div></div>'+
+        (rot>0?pillH("var(--red)","🔴 "+rot+" comp. defectuoso"+(rot>1?"s":"")):"")+(e.tieneServicio?pillH("var(--green)","✔ Servicio"):"")+'</div></div>'+
       '<div style="color:var(--text3);font-size:1rem;">›</div></div></div>';
   });
   return h;
@@ -1132,6 +1136,7 @@ function rDetalle(){
     h+='<div class="ibox"><div class="ibox-l">'+x.l+'</div><div class="ibox-v">'+esc(x.v)+'</div></div>';
   });
   if(eq.garantia){var gd=diasH(eq.garantiaHasta);var gVenc=eq.garantiaHasta&&gd<0;h+='<div class="ibox" style="grid-column:1/-1;"><div class="ibox-l">Garantía</div><div class="ibox-v"><span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:50px;font-size:.72rem;font-weight:700;background:'+(gVenc?"rgba(255,59,48,.12)":"rgba(52,199,89,.12)")+';color:'+(gVenc?"var(--red)":"var(--green)")+'">'+(gVenc?"❌ Vencida":"✅ En garantía")+(eq.garantiaHasta?' · hasta '+fD(eq.garantiaHasta):'')+'</span></div></div>';}
+  if(eq.tieneServicio)h+='<div class="ibox" style="grid-column:1/-1;"><div class="ibox-l">Servicio</div><div class="ibox-v"><span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:50px;font-size:.72rem;font-weight:700;background:rgba(52,199,89,.12);color:var(--green);">✔ Contrato de servicio activo</span></div></div>';
   h+='</div>';
   h+='<div style="display:flex;gap:8px;"><button class="btn-secondary" style="flex:1;" onclick="openModalEq('+JSON.stringify(eq).replace(/"/g,"&quot;")+')">✏️ Editar</button><button class="btn-danger" onclick="delEq(\''+eq.id+'\')">🗑</button></div></div>';
 
