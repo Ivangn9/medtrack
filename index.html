@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.07.17 -->
+<!-- v2026.05.07.18 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -228,7 +228,7 @@ body.dark .settings-item{background:rgba(58,58,60,.5);border-color:rgba(84,84,88
       </div>
       <button onclick="expFiltered()" style="width:100%;padding:12px;background:var(--red);color:#fff;border:none;border-radius:50px;font-weight:600;font-size:.82rem;cursor:pointer;">📄 Informe Filtrado</button>
     </div>
-    <div style="text-align:center;padding:14px 0;color:var(--text3);font-size:.66rem;">CIMA Investigaciones Avanzadas · MedTrack v4.1.7</div>
+    <div style="text-align:center;padding:14px 0;color:var(--text3);font-size:.66rem;">CIMA Investigaciones Avanzadas · MedTrack v4.2.0</div>
   </div>
 </div>
 
@@ -856,7 +856,7 @@ function setEst(eqId,est){eqs=eqs.map(function(e){return e.id!==eqId?e:Object.as
 //  MODAL BUILDERS
 // ═══════════════════════════════════════════
 function openModalEq(eq){
-  var n=!eq;var f=eq||{nombre:"",cat:"RM",ubicacion:"",instalacion:"",serie:"",tecnico:"",contrato:"",marca:"",estado:"operativo",frecuencia:"semestral",ultimoMant:today(),proximoMant:calcP(today(),"semestral"),notas:""};
+  var n=!eq;var f=eq||{nombre:"",cat:"RM",ubicacion:"",instalacion:"",serie:"",tecnico:"",contrato:"",marca:"",estado:"operativo",frecuencia:"semestral",ultimoMant:today(),proximoMant:calcP(today(),"semestral"),notas:"",garantia:false,garantiaHasta:""};
   var catOpts=CATS.map(function(c){return'<option value="'+c.id+'"'+(f.cat===c.id?' selected':'')+'>'+c.label+'</option>';}).join("");
   var MARCAS=["","GE","Siemens","Planmeca","Carestream","AGFA","Bayer","Otra"];
   var marcaOpts=MARCAS.map(function(x){return'<option value="'+x+'"'+(f.marca===x?' selected':'')+'>'+( x||"— Sin marca —")+'</option>';}).join("");
@@ -865,19 +865,27 @@ function openModalEq(eq){
   openModal('<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><div class="modal-title">'+(n?"Nuevo Equipo":"Editar Equipo")+'</div><button class="modal-close" onclick="closeModal()">✕</button></div>'+
     '<div class="ff"><div class="ff-label">Nombre *</div><input class="inp" id="eq-n" value="'+esc(f.nombre)+'" placeholder="Ej: RM Explorer GN"></div>'+
     '<div class="ff"><div class="ff-label">Categoría</div><select class="inp" id="eq-cat">'+catOpts+'</select></div>'+
-    '<div class="g2"><div class="ff"><div class="ff-label">Ubicación</div><input class="inp" id="eq-ub" value="'+esc(f.ubicacion)+'" placeholder="GN / Pedernera / CRS"></div><div class="ff"><div class="ff-label">N° Serie</div><input class="inp" id="eq-sr" value="'+esc(f.serie)+'"></div></div>'+
+    '<div class="g2"><div class="ff"><div class="ff-label">Ubicación</div><input class="inp" id="eq-ub" value="'+esc(f.ubicacion)+'" placeholder="GN / Pedernera / CRS"></div><div class="ff"><div class="ff-label">SystemID</div><input class="inp" id="eq-sr" value="'+esc(f.serie)+'"></div></div>'+
     '<div class="ff"><div class="ff-label">Fecha Instalación</div><input class="inp" type="date" id="eq-inst" value="'+f.instalacion+'"></div>'+
     '<div class="g2"><div class="ff"><div class="ff-label">Ingeniero</div><input class="inp" id="eq-tc" value="'+esc(f.tecnico)+'"></div><div class="ff"><div class="ff-label">Contrato / Empresa</div><input class="inp" id="eq-ct" value="'+esc(f.contrato)+'"></div></div>'+
     '<div class="ff"><div class="ff-label" style="display:flex;align-items:center;gap:6px;">Marca <span style="font-size:.6rem;opacity:.7;">(para mostrar logo)</span></div><select class="inp" id="eq-mk">'+marcaOpts+'</select></div>'+
     '<div class="g2"><div class="ff"><div class="ff-label">Frecuencia</div><select class="inp" id="eq-fr" onchange="recalcP()">'+fOpts+'</select></div><div class="ff"><div class="ff-label">Estado</div><select class="inp" id="eq-es">'+eOpts+'</select></div></div>'+
     '<div class="g2"><div class="ff"><div class="ff-label">Último Mant.</div><input class="inp" type="date" id="eq-um" value="'+f.ultimoMant+'" onchange="recalcP()"></div><div class="ff"><div class="ff-label">Próximo Mant.</div><input class="inp" type="date" id="eq-pm" value="'+f.proximoMant+'"></div></div>'+
     '<div class="ff"><div class="ff-label">Notas</div><textarea class="inp" id="eq-nt" rows="2">'+esc(f.notas)+'</textarea></div>'+
+    '<div class="ff"><div class="ff-label">Garantía</div>'+
+    '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'+
+    '<label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:.84rem;font-weight:500;">'+
+    '<input type="checkbox" id="eq-gr" onchange="var d=document.getElementById(\'eq-gh\');d.style.display=this.checked?\'block\':\'none\';" style="width:16px;height:16px;cursor:pointer;"'+(f.garantia?' checked':'')+'>'+
+    'En garantía</label>'+
+    '<input class="inp" type="date" id="eq-gh" value="'+esc(f.garantiaHasta||'')+'" placeholder="Vence..." style="flex:1;min-width:140px;display:'+(f.garantia?'block':'none')+';">'+
+    '</div></div>'+
     '<button class="btn-primary" style="width:100%;padding:14px;font-size:.92rem;" onclick="submitEq(\''+((f.id)||"")+'\')">'+(n?"✅ Agregar":"💾 Guardar")+'</button>');
 }
 function recalcP(){var d=document.getElementById("eq-um").value,f=document.getElementById("eq-fr").value;if(d&&f!=="ninguna")document.getElementById("eq-pm").value=calcP(d,f);}
 function submitEq(eid){
   var n=document.getElementById("eq-n").value.trim();if(!n)return alert("Nombre obligatorio");
-  saveEq({id:eid||"",nombre:n,cat:document.getElementById("eq-cat").value,ubicacion:document.getElementById("eq-ub").value,serie:document.getElementById("eq-sr").value,instalacion:document.getElementById("eq-inst").value,tecnico:document.getElementById("eq-tc").value,contrato:document.getElementById("eq-ct").value,marca:(document.getElementById("eq-mk")||{value:""}).value,frecuencia:document.getElementById("eq-fr").value,estado:document.getElementById("eq-es").value,ultimoMant:document.getElementById("eq-um").value,proximoMant:document.getElementById("eq-pm").value,notas:document.getElementById("eq-nt").value});
+  var grEl=document.getElementById("eq-gr");
+  saveEq({id:eid||"",nombre:n,cat:document.getElementById("eq-cat").value,ubicacion:document.getElementById("eq-ub").value,serie:document.getElementById("eq-sr").value,instalacion:document.getElementById("eq-inst").value,tecnico:document.getElementById("eq-tc").value,contrato:document.getElementById("eq-ct").value,marca:(document.getElementById("eq-mk")||{value:""}).value,frecuencia:document.getElementById("eq-fr").value,estado:document.getElementById("eq-es").value,ultimoMant:document.getElementById("eq-um").value,proximoMant:document.getElementById("eq-pm").value,notas:document.getElementById("eq-nt").value,garantia:grEl?grEl.checked:false,garantiaHasta:document.getElementById("eq-gh").value});
 }
 // ── FILE STORE (IndexedDB) ──
 var _idb=null;
@@ -1116,13 +1124,14 @@ function rDetalle(){
   var h='<div class="gc" style="padding:16px;margin-bottom:12px;">';
   h+='<div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:14px;"><div style="flex-shrink:0;">'+iconFor(eq,50)+'</div>';
   h+='<div style="flex:1;min-width:0;"><div style="font-weight:700;font-size:1rem;letter-spacing:-.3px;margin-bottom:2px;">'+esc(eq.nombre)+'</div>';
-  h+='<div style="font-size:.66rem;color:var(--text3);font-family:monospace;">'+eq.id+(eq.serie?' · '+esc(eq.serie):'')+'</div>';
+  h+='<div style="font-size:.66rem;color:var(--text3);font-family:monospace;">'+eq.id+(eq.serie?' · SID: '+esc(eq.serie):'')+'</div>';
   h+=(eq.ubicacion?'<div style="font-size:.74rem;color:var(--text3);margin-top:2px;">📍 '+esc(eq.ubicacion)+'</div>':'')+'</div></div>';
   h+='<div style="margin-bottom:12px;"><div class="ff-label">Estado</div><div style="display:flex;gap:6px;">'+estBtns+'</div></div>';
   h+='<div class="det-grid" style="margin-bottom:12px;">';
-  [{l:"Categoría",v:ci.label},{l:"Marca",v:eq.marca||"—"},{l:"Instalación",v:fD(eq.instalacion)},{l:"N° Serie",v:eq.serie||"—"},{l:"Contrato",v:eq.contrato||"—"}].forEach(function(x){
+  [{l:"Categoría",v:ci.label},{l:"Marca",v:eq.marca||"—"},{l:"Instalación",v:fD(eq.instalacion)},{l:"SystemID",v:eq.serie||"—"},{l:"Contrato",v:eq.contrato||"—"}].forEach(function(x){
     h+='<div class="ibox"><div class="ibox-l">'+x.l+'</div><div class="ibox-v">'+esc(x.v)+'</div></div>';
   });
+  if(eq.garantia){var gd=diasH(eq.garantiaHasta);var gVenc=eq.garantiaHasta&&gd<0;h+='<div class="ibox" style="grid-column:1/-1;"><div class="ibox-l">Garantía</div><div class="ibox-v"><span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:50px;font-size:.72rem;font-weight:700;background:'+(gVenc?"rgba(255,59,48,.12)":"rgba(52,199,89,.12)")+';color:'+(gVenc?"var(--red)":"var(--green)")+'">'+(gVenc?"❌ Vencida":"✅ En garantía")+(eq.garantiaHasta?' · hasta '+fD(eq.garantiaHasta):'')+'</span></div></div>';}
   h+='</div>';
   h+='<div style="display:flex;gap:8px;"><button class="btn-secondary" style="flex:1;" onclick="openModalEq('+JSON.stringify(eq).replace(/"/g,"&quot;")+')">✏️ Editar</button><button class="btn-danger" onclick="delEq(\''+eq.id+'\')">🗑</button></div></div>';
 
@@ -1250,7 +1259,7 @@ function exportPDF(eqId){
   w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+esc(eq.nombre)+'</title><style>body{font-family:-apple-system,Helvetica,sans-serif;font-size:11px;color:#1c1c1e;margin:0;}.h{background:#007aff;color:#fff;padding:20px 24px;}.h h1{font-size:18px;margin:0;}.h p{font-size:10px;opacity:.7;margin:4px 0 0;}.b{padding:16px 24px;}h2{font-size:12px;color:#007aff;border-bottom:2px solid #e5e5ea;padding-bottom:4px;margin:14px 0 8px;}.ig{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}.ib{background:#f2f2f7;border-radius:6px;padding:7px 10px;}.ib-l{font-size:9px;color:#8e8e93;text-transform:uppercase;margin-bottom:2px;}.ib-v{font-size:12px;font-weight:600;}table{width:100%;border-collapse:collapse;}th{background:#007aff;color:#fff;padding:6px 8px;text-align:left;font-size:9px;}td{padding:5px 8px;border-bottom:1px solid #e5e5ea;font-size:10px;}tr:nth-child(even) td{background:#f2f2f7;}.ft{margin-top:20px;padding-top:10px;border-top:1px solid #e5e5ea;font-size:9px;color:#8e8e93;display:flex;justify-content:space-between;}@media print{body{-webkit-print-color-adjust:exact;}}</style></head><body>');
   w.document.write('<div class="h"><h1>CIMA — '+esc(eq.nombre)+'</h1><p>'+new Date().toLocaleString("es-AR")+'</p></div><div class="b">');
   w.document.write('<h2>Información</h2><div class="ig">');
-  [{l:"Equipo",v:eq.nombre},{l:"Categoría",v:ci.label},{l:"Estado",v:estLabel(eq.estado)},{l:"Ubicación",v:eq.ubicacion||"—"},{l:"N° Serie",v:eq.serie||"—"},{l:"Instalación",v:fmtD(eq.instalacion)},{l:"Ingeniero",v:eq.tecnico||"—"},{l:"Contrato",v:eq.contrato||"—"},{l:"Frecuencia",v:eq.frecuencia},{l:"Último Mant.",v:fmtD(eq.ultimoMant)},{l:"Próximo Mant.",v:fmtD(eq.proximoMant)}].forEach(function(x){w.document.write('<div class="ib"><div class="ib-l">'+x.l+'</div><div class="ib-v">'+esc(x.v)+'</div></div>');});
+  [{l:"Equipo",v:eq.nombre},{l:"Categoría",v:ci.label},{l:"Estado",v:estLabel(eq.estado)},{l:"Ubicación",v:eq.ubicacion||"—"},{l:"SystemID",v:eq.serie||"—"},{l:"Instalación",v:fmtD(eq.instalacion)},{l:"Ingeniero",v:eq.tecnico||"—"},{l:"Contrato",v:eq.contrato||"—"},{l:"Frecuencia",v:eq.frecuencia},{l:"Último Mant.",v:fmtD(eq.ultimoMant)},{l:"Próximo Mant.",v:fmtD(eq.proximoMant)}].forEach(function(x){w.document.write('<div class="ib"><div class="ib-l">'+x.l+'</div><div class="ib-v">'+esc(x.v)+'</div></div>');});
   w.document.write('</div><h2>Historial</h2><table><thead><tr><th>Fecha</th><th>Tipo</th><th>Parte</th><th>Ingeniero</th><th>Notas</th></tr></thead><tbody>'+histRows+'</tbody></table>');
   w.document.write('<h2 style="margin-top:16px;">Partes</h2><table><thead><tr><th>Nombre</th><th>Estado</th><th>Rotura</th><th>Arreglo</th><th>Marca</th><th>Notas</th></tr></thead><tbody>'+partesRows+'</tbody></table>');
   w.document.write('<div class="ft"><span>CIMA Investigaciones Avanzadas</span><span>'+new Date().toLocaleDateString("es-AR")+'</span></div></div><script>window.onload=function(){window.print();}<\/script></body></html>');
