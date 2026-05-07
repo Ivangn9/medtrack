@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.07.22 -->
+<!-- v2026.05.07.23 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -1048,9 +1048,16 @@ function rDash(){
     var ces=eqs.filter(function(e){return e.cat===cat.id;});if(!ces.length)return;
     var fuera=ces.filter(function(e){return e.estado==="fuera-de-servicio";}).length;
     var urg=ces.filter(function(e){return!sinMant(e)&&(semafo(e)==="vencido"||semafo(e)==="urgente");}).length;
-    h+='<div class="gc tap" onclick="filtCat=\''+cat.id+'\';setView(\'lista\');" style="padding:13px;border-left:4px solid '+cat.color+';cursor:pointer;">'+
-      '<div style="display:flex;justify-content:space-between;align-items:center;"><div style="display:flex;align-items:center;gap:8px;font-weight:600;font-size:.84rem;">'+(catSvgIcon(cat.id,28)||'')+' '+cat.label+'</div><div style="font-weight:700;font-size:.8rem;color:'+cat.color+';">'+ces.length+'</div></div>'+
-      '<div style="font-size:.7rem;color:var(--text3);margin-top:3px;">'+(fuera?'<span style="color:var(--red);">🚫 '+fuera+'</span> ':'')+(urg?'<span style="color:var(--orange);">⚠️ '+urg+' urg.</span>':'')+(!fuera&&!urg?'<span style="color:var(--green);">✅ OK</span>':'')+'</div></div>';
+    var statusColor=fuera?"var(--red)":urg?"var(--orange)":"var(--green)";
+    var statusLabel=fuera?'🚫 '+fuera+' fuera':urg?'⚠️ '+urg+' urg.':'✅ OK';
+    h+='<div class="gc tap" onclick="filtCat=\''+cat.id+'\';setView(\'lista\');" style="padding:16px 14px;border-left:4px solid '+cat.color+';cursor:pointer;">'+
+      '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">'+
+      '<div style="width:48px;height:48px;border-radius:14px;background:'+cat.color+'18;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+(catSvgIcon(cat.id,32)||'')+'</div>'+
+      '<div style="flex:1;min-width:0;"><div style="font-weight:700;font-size:.9rem;letter-spacing:-.2px;">'+cat.label+'</div>'+
+      '<div style="font-size:.72rem;color:var(--text3);margin-top:1px;">'+ces.length+' equipo'+(ces.length!==1?'s':'')+'</div></div>'+
+      '<div style="font-weight:800;font-size:1.4rem;color:'+cat.color+';line-height:1;">'+ces.length+'</div></div>'+
+      '<div style="font-size:.72rem;font-weight:600;color:'+statusColor+';">'+statusLabel+'</div>'+
+      '</div>';
   });
   h+='</div>';
 
