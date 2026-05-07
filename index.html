@@ -680,8 +680,89 @@ function openHistDetail(eqId,hid){
     (hh.precio?'<div class="ibox"><div class="ibox-l">Precio Reparación</div><div class="ibox-v" style="color:var(--green);">$'+esc(hh.precio)+'</div></div>':'')+
     '</div>'+
     (hh.notas?'<div class="ff"><div class="ff-label">Notas</div><div style="background:rgba(120,120,128,.06);border-radius:var(--r-sm);padding:10px 14px;font-size:.82rem;color:var(--text2);">'+esc(hh.notas)+'</div></div>':'')+
-    '<div class="ff"><div class="ff-label">Archivos PDF</div>'+pdfRows+'</div>'
+    '<div class="ff"><div class="ff-label">Archivos PDF</div>'+pdfRows+'</div>'+
+    '<button onclick="openEditHist(\''+eqId+'\',\''+hid+'\')" style="width:100%;padding:13px;margin-top:12px;border:none;border-radius:var(--r-md);background:var(--accent);color:#fff;font-size:.9rem;font-weight:700;cursor:pointer;">✏️ Editar</button>'
   );
+}
+function openEditHist(eqId,hid){
+  _pendingHistFiles=[];_deletedHistFiles=[];
+  var eq=eqs.find(function(e){return e.id===eqId;});if(!eq)return;
+  var hh=(eq.historialMant||[]).find(function(h){return h.id===hid;});if(!hh)return;
+  var isMant=hh.tipo==="mantenimiento";
+  var existFiles=(hh.archivos||[]).map(function(a){
+    return '<div id="hf-row-'+a.id+'" style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(0,0,0,.05);">'+
+      '<span style="font-size:1.1rem;">📄</span>'+
+      '<span style="font-size:.74rem;flex:1;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(a.nombre)+'</span>'+
+      '<button onclick="openPDFViewer(\''+a.id+'\',\''+esc(a.nombre)+'\')" style="background:rgba(0,113,227,.1);color:var(--accent);border:none;border-radius:8px;padding:3px 10px;font-size:.68rem;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;">Abrir</button>'+
+      '<button onclick="removeHistFile(\''+a.id+'\')" style="background:none;border:none;color:var(--red);font-size:.9rem;cursor:pointer;padding:2px 6px;">✕</button></div>';
+  }).join('');
+  openModal(
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">'+
+    '<div class="modal-title">✏️ Editar '+(isMant?"Mantenimiento":"Reparación")+'</div>'+
+    '<button class="modal-close" onclick="closeModal()">✕</button></div>'+
+    '<div class="ff"><div class="ff-label">Fecha *</div><input class="inp" type="date" id="eh-fecha" value="'+hh.fecha+'"></div>'+
+    (!isMant?'<div class="ff"><div class="ff-label">Precio reparación ($)</div><input class="inp" type="number" id="eh-precio" value="'+esc(hh.precio||'')+'" placeholder="0.00" min="0" step="0.01"></div>':'')+
+    (isMant?'<div class="ff"><div class="ff-label">Técnico</div><input class="inp" id="eh-tecnico" value="'+esc(hh.tecnico||'')+'"></div>':'')+
+    '<div class="ff"><div class="ff-label">Notas</div><textarea class="inp" id="eh-notas" rows="3">'+esc(hh.notas)+'</textarea></div>'+
+    '<div class="ff"><div class="ff-label">Archivos PDF</div>'+
+    '<div id="hf-exist">'+existFiles+'</div>'+
+    '<div id="hf-list"></div>'+
+    '<button onclick="attachHistPDF()" type="button" style="margin-top:6px;width:100%;padding:10px;border:1.5px dashed rgba(0,113,227,.4);border-radius:var(--r-md);background:rgba(0,113,227,.05);color:var(--accent);font-size:.8rem;font-weight:600;cursor:pointer;">📎 Adjuntar PDF</button></div>'+
+    '<button class="btn-primary" style="width:100%;padding:14px;font-size:.92rem;" onclick="submitHist(\''+eqId+'\',\''+hid+'\')">💾 Guardar cambios</button>'
+  );
+}
+function attachHistPDF(){
+  var input=document.createElement('input');input.type='file';input.accept='application/pdf';input.multiple=true;
+  input.onchange=function(){
+    Array.from(input.files).forEach(function(file){
+      var reader=new FileReader();
+      reader.onload=function(e){
+        _pendingHistFiles.push({id:'F-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),nombre:file.name,size:file.size,data:e.target.result});
+        renderHistPendingFiles();
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+  input.click();
+}
+function renderHistPendingFiles(){
+  var el=document.getElementById('hf-list');if(!el)return;
+  el.innerHTML=_pendingHistFiles.map(function(f,i){
+    return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(0,0,0,.05);">'+
+      '<span style="font-size:1.1rem;">📄</span>'+
+      '<span style="font-size:.74rem;flex:1;color:var(--text2);">'+esc(f.nombre)+'</span>'+
+      '<span style="font-size:.64rem;color:var(--text3);">'+(f.size/1024).toFixed(0)+'KB</span>'+
+      '<button onclick="removeHistPending('+i+')" style="background:none;border:none;color:var(--red);font-size:.9rem;cursor:pointer;padding:2px 6px;">✕</button></div>';
+  }).join('');
+}
+function removeHistPending(i){_pendingHistFiles.splice(i,1);renderHistPendingFiles();}
+function removeHistFile(fid){
+  _deletedHistFiles.push(fid);
+  var row=document.getElementById('hf-row-'+fid);
+  if(row)row.style.display='none';
+}
+function submitHist(eqId,hid){
+  var fecha=document.getElementById("eh-fecha").value;
+  if(!fecha)return alert("Ingresá la fecha");
+  var precioEl=document.getElementById("eh-precio");
+  var tecnicoEl=document.getElementById("eh-tecnico");
+  var newRefs=_pendingHistFiles.map(function(f){return{id:f.id,nombre:f.nombre,size:f.size};});
+  _pendingHistFiles.forEach(function(f){dbSave(f.id,f.nombre,f.data);});
+  _deletedHistFiles.forEach(function(fid){dbDel(fid);});
+  eqs=eqs.map(function(e){
+    if(e.id!==eqId)return e;
+    var hist=(e.historialMant||[]).map(function(h){
+      if(h.id!==hid)return h;
+      var archivos=(h.archivos||[]).filter(function(a){return _deletedHistFiles.indexOf(a.id)===-1;}).concat(newRefs);
+      var updated=Object.assign({},h,{fecha:fecha,notas:document.getElementById("eh-notas").value,archivos:archivos});
+      if(precioEl)updated.precio=precioEl.value;
+      if(tecnicoEl)updated.tecnico=tecnicoEl.value;
+      return updated;
+    });
+    return Object.assign({},e,{historialMant:hist});
+  });
+  _pendingHistFiles=[];_deletedHistFiles=[];
+  saveData();showToast("✅ Historial actualizado");closeModal();render();
 }
 function regMant(eqId,fecha,notas,tecnico){
   eqs=eqs.map(function(e){
@@ -747,6 +828,8 @@ function closePDFViewer(){
 }
 
 var _pendingFiles=[];
+var _pendingHistFiles=[];
+var _deletedHistFiles=[];
 function attachPDF(){
   var input=document.createElement('input');input.type='file';input.accept='application/pdf';input.multiple=true;
   input.onchange=function(){
