@@ -1164,16 +1164,39 @@ function changeFont(dir){fontScale=Math.max(70,Math.min(150,fontScale+dir*10));a
 function resetFont(){fontScale=100;applyFont();try{localStorage.setItem("mt_font","100");}catch(e){}}
 function applyFont(){document.documentElement.style.fontSize=fontScale+"%";updateSettingsUI();}
 function exportBackup(){
-  var j=JSON.stringify({version:"medtrack_v3",fecha:new Date().toISOString(),equipos:eqs},null,2);
+  showToast("⏳ Preparando backup...");
+  _openIDB(function(db){
+    var archivos=[];
+    if(db){
+      var req=db.transaction('files','readonly').objectStore('files').getAll();
+      req.onsuccess=function(){archivos=req.result||[];_doExportBackup(archivos);};
+      req.onerror=function(){_doExportBackup([]);};
+    } else {
+      _doExportBackup([]);
+    }
+  });
+}
+function _doExportBackup(archivos){
+  var j=JSON.stringify({version:"medtrack_v4",fecha:new Date().toISOString(),equipos:eqs,archivos:archivos},null,2);
   var b=new Blob([j],{type:"application/json"});var u=URL.createObjectURL(b);
   var a=document.createElement("a");a.href=u;a.download="MedTrack_Backup_"+today()+".json";document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(u);
-  showToast("📥 Backup descargado");toggleSettings();
+  showToast("📥 Backup listo ("+archivos.length+" PDF"+(archivos.length!==1?"s":"")+" incluido"+(archivos.length!==1?"s":"")+")"  );toggleSettings();
 }
 function importBackup(ev){
   var f=ev.target.files[0];if(!f)return;var r=new FileReader();
-  r.onload=function(e){try{var d=JSON.parse(e.target.result);if(d.equipos&&Array.isArray(d.equipos)&&d.equipos.length>0){
-    if(confirm("¿Restaurar "+d.equipos.length+" equipos?\nEsto reemplaza los datos actuales.")){eqs=d.equipos;saveData();showToast("✅ Restaurado ("+eqs.length+" equipos)");toggleSettings();render();}}
-  else{alert("Formato inválido.");}}catch(err){alert("Error: "+err.message);}};
+  r.onload=function(e){
+    try{
+      var d=JSON.parse(e.target.result);
+      if(d.equipos&&Array.isArray(d.equipos)&&d.equipos.length>0){
+        var nPDF=(d.archivos||[]).length;
+        if(confirm("¿Restaurar "+d.equipos.length+" equipos y "+nPDF+" PDF"+(nPDF!==1?"s":"")+"?\nEsto reemplaza los datos actuales.")){
+          eqs=d.equipos;saveData();
+          (d.archivos||[]).forEach(function(a){if(a.id&&a.nombre&&a.data)dbSave(a.id,a.nombre,a.data);});
+          showToast("✅ Restaurado ("+eqs.length+" equipos, "+nPDF+" PDFs)");toggleSettings();render();
+        }
+      } else {alert("Formato inválido.");}
+    }catch(err){alert("Error: "+err.message);}
+  };
   r.readAsText(f);ev.target.value="";
 }
 function exportAllPDF(){
