@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.07.14 -->
+<!-- v2026.05.07.15 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -228,7 +228,7 @@ body.dark .settings-item{background:rgba(58,58,60,.5);border-color:rgba(84,84,88
       </div>
       <button onclick="expFiltered()" style="width:100%;padding:12px;background:var(--red);color:#fff;border:none;border-radius:50px;font-weight:600;font-size:.82rem;cursor:pointer;">📄 Informe Filtrado</button>
     </div>
-    <div style="text-align:center;padding:14px 0;color:var(--text3);font-size:.66rem;">CIMA Investigaciones Avanzadas · MedTrack v4.1.4</div>
+    <div style="text-align:center;padding:14px 0;color:var(--text3);font-size:.66rem;">CIMA Investigaciones Avanzadas · MedTrack v4.1.5</div>
   </div>
 </div>
 
@@ -695,7 +695,7 @@ function repararParte(eqId,pid){
     '<div class="ff"><div class="ff-label">Fecha de Reparación *</div>'+
     '<input class="inp" type="date" id="rep-fecha" value="'+new Date().toISOString().split("T")[0]+'"></div>'+
     '<div class="ff"><div class="ff-label">Notas (opcional)</div>'+
-    '<textarea class="inp" id="rep-notas" rows="2" placeholder="Ej: Se reemplazó la pieza, técnico Juan García...">'+esc(pt.notas||'')+'</textarea></div>'+
+    '<textarea class="inp" id="rep-notas" rows="2" placeholder="Ej: Se reemplazó la pieza, ingeniero Juan García...">'+esc(pt.notas||'')+'</textarea></div>'+
     '<button class="btn-primary" style="width:100%;padding:14px;font-size:.92rem;background:var(--green);margin-top:4px;" onclick="confirmarReparacion(\''+eqId+'\',\''+pid+'\')">✅ Confirmar Reparación</button>'
   );
 }
@@ -740,7 +740,7 @@ function openHistDetail(eqId,hid){
     '<button class="modal-close" onclick="closeModal()">✕</button></div>'+
     '<div style="background:'+(isMant?"rgba(0,113,227,.07)":"rgba(52,199,89,.07)")+';border-radius:var(--r-md);padding:14px;margin-bottom:14px;">'+
     '<div style="font-weight:700;font-size:.92rem;margin-bottom:4px;">'+(isMant?"Mantenimiento preventivo":esc(hh.nombre||"Reparación"))+'</div>'+
-    '<div style="font-size:.72rem;color:var(--text3);">📅 '+fD(hh.fecha)+(hh.tecnico?' · 👷 '+esc(hh.tecnico):'')+'</div></div>'+
+    '<div style="font-size:.72rem;color:var(--text3);">📅 '+fD(hh.fecha)+(hh.tecnico?' · 👷 Ing. '+esc(hh.tecnico):'')+'</div></div>'+
     '<div class="det-grid" style="margin-bottom:12px;">'+
     (hh.marca?'<div class="ibox"><div class="ibox-l">Marca</div><div class="ibox-v">'+esc(hh.marca)+'</div></div>':'')+
     (hh.nroSerie?'<div class="ibox"><div class="ibox-l">N° Serie</div><div class="ibox-v">'+esc(hh.nroSerie)+'</div></div>':'')+
@@ -778,7 +778,7 @@ function openEditHist(eqId,hid){
     '<button class="modal-close" onclick="closeModal()">✕</button></div>'+
     '<div class="ff"><div class="ff-label">Fecha *</div><input class="inp" type="date" id="eh-fecha" value="'+hh.fecha+'"></div>'+
     (!isMant?'<div class="ff"><div class="ff-label">Precio reparación ($)</div><input class="inp" type="number" id="eh-precio" value="'+esc(hh.precio||'')+'" placeholder="0.00" min="0" step="0.01"></div>':'')+
-    (isMant?'<div class="ff"><div class="ff-label">Técnico</div><input class="inp" id="eh-tecnico" value="'+esc(hh.tecnico||'')+'"></div>':'')+
+    (isMant?'<div class="ff"><div class="ff-label">Ingeniero</div><input class="inp" id="eh-tecnico" value="'+esc(hh.tecnico||'')+'"></div>':'')+
     '<div class="ff"><div class="ff-label">Notas</div><textarea class="inp" id="eh-notas" rows="3">'+esc(hh.notas)+'</textarea></div>'+
     '<div class="ff"><div class="ff-label" style="margin-bottom:6px;">Archivos PDF</div>'+histPdfSection('presupuesto','Presupuesto',presExist)+histPdfSection('reporte','Reporte',repExist)+'</div>'+
     '<button class="btn-primary" style="width:100%;padding:14px;font-size:.92rem;" onclick="submitHist(\''+eqId+'\',\''+hid+'\')">💾 Guardar cambios</button>'
@@ -867,7 +867,7 @@ function openModalEq(eq){
     '<div class="ff"><div class="ff-label">Categoría</div><select class="inp" id="eq-cat">'+catOpts+'</select></div>'+
     '<div class="g2"><div class="ff"><div class="ff-label">Ubicación</div><input class="inp" id="eq-ub" value="'+esc(f.ubicacion)+'" placeholder="GN / Pedernera / CRS"></div><div class="ff"><div class="ff-label">N° Serie</div><input class="inp" id="eq-sr" value="'+esc(f.serie)+'"></div></div>'+
     '<div class="ff"><div class="ff-label">Fecha Instalación</div><input class="inp" type="date" id="eq-inst" value="'+f.instalacion+'"></div>'+
-    '<div class="g2"><div class="ff"><div class="ff-label">Técnico</div><input class="inp" id="eq-tc" value="'+esc(f.tecnico)+'"></div><div class="ff"><div class="ff-label">Contrato / Empresa</div><input class="inp" id="eq-ct" value="'+esc(f.contrato)+'"></div></div>'+
+    '<div class="g2"><div class="ff"><div class="ff-label">Ingeniero</div><input class="inp" id="eq-tc" value="'+esc(f.tecnico)+'"></div><div class="ff"><div class="ff-label">Contrato / Empresa</div><input class="inp" id="eq-ct" value="'+esc(f.contrato)+'"></div></div>'+
     '<div class="ff"><div class="ff-label" style="display:flex;align-items:center;gap:6px;">Marca <span style="font-size:.6rem;opacity:.7;">(para mostrar logo)</span></div><select class="inp" id="eq-mk">'+marcaOpts+'</select></div>'+
     '<div class="g2"><div class="ff"><div class="ff-label">Frecuencia</div><select class="inp" id="eq-fr" onchange="recalcP()">'+fOpts+'</select></div><div class="ff"><div class="ff-label">Estado</div><select class="inp" id="eq-es">'+eOpts+'</select></div></div>'+
     '<div class="g2"><div class="ff"><div class="ff-label">Último Mant.</div><input class="inp" type="date" id="eq-um" value="'+f.ultimoMant+'" onchange="recalcP()"></div><div class="ff"><div class="ff-label">Próximo Mant.</div><input class="inp" type="date" id="eq-pm" value="'+f.proximoMant+'"></div></div>'+
@@ -984,7 +984,7 @@ function openModalMant(eqId){
   var eq=eqs.find(function(e){return e.id===eqId;});var ci=catById(eq.cat);var td=today();var px=calcP(td,eq.frecuencia);
   openModal('<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><div class="modal-title">Registrar Mantenimiento</div><button class="modal-close" onclick="closeModal()">✕</button></div>'+
     '<div class="gc" style="padding:12px;margin-bottom:14px;"><div style="font-size:.68rem;color:var(--text3);margin-bottom:3px;">Equipo</div><div style="font-weight:700;font-size:.9rem;">'+ci.label+' · '+esc(eq.nombre)+'</div><div style="font-size:.72rem;color:var(--text3);margin-top:2px;">Frecuencia: <span style="color:var(--accent);font-weight:600;">'+eq.frecuencia+'</span></div></div>'+
-    '<div class="ff"><div class="ff-label">Técnico</div><input class="inp" id="mt-tc" value="'+esc(eq.tecnico)+'"></div>'+
+    '<div class="ff"><div class="ff-label">Ingeniero</div><input class="inp" id="mt-tc" value="'+esc(eq.tecnico)+'"></div>'+
     '<div class="ff"><div class="ff-label">Fecha *</div><input class="inp" type="date" id="mt-f" value="'+td+'"></div>'+
     '<div class="ff"><div class="ff-label">Notas</div><textarea class="inp" id="mt-nt" rows="4" placeholder="Tareas realizadas..."></textarea></div>'+
     '<div style="background:rgba(52,199,89,.08);border-radius:var(--r-sm);padding:10px;margin-bottom:14px;font-size:.76rem;color:var(--green);">✅ Próximo mant. calculado: <strong>'+fD(px)+'</strong></div>'+
@@ -1170,7 +1170,7 @@ function rDetalle(){
     h+='<div class="gc" style="padding:12px;margin-bottom:8px;border-left:3px solid '+c+';">'+
       '<div style="display:flex;justify-content:space-between;align-items:flex-start;"><div style="flex:1;">'+
       '<div style="font-weight:700;font-size:.82rem;color:'+c+';">'+(isMant?"🔧 Mantenimiento":"🔩 Reparación: "+esc(hh.nombre||""))+'</div>'+
-      '<div style="font-size:.7rem;color:var(--text3);margin-top:2px;">📅 '+fD(hh.fecha)+(hh.tecnico?" · 👷 "+esc(hh.tecnico):"")+'</div>'+
+      '<div style="font-size:.7rem;color:var(--text3);margin-top:2px;">📅 '+fD(hh.fecha)+(hh.tecnico?" · 👷 Ing. "+esc(hh.tecnico):"")+'</div>'+
       (!isMant&&hh.fechaRotura?'<div style="font-size:.7rem;color:var(--text3);">Rotura: '+fD(hh.fechaRotura)+'</div>':'')+
       (hh.precio?'<div style="font-size:.7rem;color:var(--green);font-weight:600;margin-top:2px;">💲 $'+esc(hh.precio)+'</div>':'')+
       (hh.notas?'<div style="font-size:.74rem;color:var(--text2);margin-top:4px;background:rgba(120,120,128,.06);padding:5px 8px;border-radius:6px;">'+esc(hh.notas)+'</div>':'')+'</div>'+
@@ -1249,8 +1249,8 @@ function exportPDF(eqId){
   w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+esc(eq.nombre)+'</title><style>body{font-family:-apple-system,Helvetica,sans-serif;font-size:11px;color:#1c1c1e;margin:0;}.h{background:#007aff;color:#fff;padding:20px 24px;}.h h1{font-size:18px;margin:0;}.h p{font-size:10px;opacity:.7;margin:4px 0 0;}.b{padding:16px 24px;}h2{font-size:12px;color:#007aff;border-bottom:2px solid #e5e5ea;padding-bottom:4px;margin:14px 0 8px;}.ig{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}.ib{background:#f2f2f7;border-radius:6px;padding:7px 10px;}.ib-l{font-size:9px;color:#8e8e93;text-transform:uppercase;margin-bottom:2px;}.ib-v{font-size:12px;font-weight:600;}table{width:100%;border-collapse:collapse;}th{background:#007aff;color:#fff;padding:6px 8px;text-align:left;font-size:9px;}td{padding:5px 8px;border-bottom:1px solid #e5e5ea;font-size:10px;}tr:nth-child(even) td{background:#f2f2f7;}.ft{margin-top:20px;padding-top:10px;border-top:1px solid #e5e5ea;font-size:9px;color:#8e8e93;display:flex;justify-content:space-between;}@media print{body{-webkit-print-color-adjust:exact;}}</style></head><body>');
   w.document.write('<div class="h"><h1>CIMA — '+esc(eq.nombre)+'</h1><p>'+new Date().toLocaleString("es-AR")+'</p></div><div class="b">');
   w.document.write('<h2>Información</h2><div class="ig">');
-  [{l:"Equipo",v:eq.nombre},{l:"Categoría",v:ci.label},{l:"Estado",v:estLabel(eq.estado)},{l:"Ubicación",v:eq.ubicacion||"—"},{l:"N° Serie",v:eq.serie||"—"},{l:"Instalación",v:fmtD(eq.instalacion)},{l:"Técnico",v:eq.tecnico||"—"},{l:"Contrato",v:eq.contrato||"—"},{l:"Frecuencia",v:eq.frecuencia},{l:"Último Mant.",v:fmtD(eq.ultimoMant)},{l:"Próximo Mant.",v:fmtD(eq.proximoMant)}].forEach(function(x){w.document.write('<div class="ib"><div class="ib-l">'+x.l+'</div><div class="ib-v">'+esc(x.v)+'</div></div>');});
-  w.document.write('</div><h2>Historial</h2><table><thead><tr><th>Fecha</th><th>Tipo</th><th>Parte</th><th>Técnico</th><th>Notas</th></tr></thead><tbody>'+histRows+'</tbody></table>');
+  [{l:"Equipo",v:eq.nombre},{l:"Categoría",v:ci.label},{l:"Estado",v:estLabel(eq.estado)},{l:"Ubicación",v:eq.ubicacion||"—"},{l:"N° Serie",v:eq.serie||"—"},{l:"Instalación",v:fmtD(eq.instalacion)},{l:"Ingeniero",v:eq.tecnico||"—"},{l:"Contrato",v:eq.contrato||"—"},{l:"Frecuencia",v:eq.frecuencia},{l:"Último Mant.",v:fmtD(eq.ultimoMant)},{l:"Próximo Mant.",v:fmtD(eq.proximoMant)}].forEach(function(x){w.document.write('<div class="ib"><div class="ib-l">'+x.l+'</div><div class="ib-v">'+esc(x.v)+'</div></div>');});
+  w.document.write('</div><h2>Historial</h2><table><thead><tr><th>Fecha</th><th>Tipo</th><th>Parte</th><th>Ingeniero</th><th>Notas</th></tr></thead><tbody>'+histRows+'</tbody></table>');
   w.document.write('<h2 style="margin-top:16px;">Partes</h2><table><thead><tr><th>Nombre</th><th>Estado</th><th>Rotura</th><th>Arreglo</th><th>Marca</th><th>Notas</th></tr></thead><tbody>'+partesRows+'</tbody></table>');
   w.document.write('<div class="ft"><span>CIMA Investigaciones Avanzadas</span><span>'+new Date().toLocaleDateString("es-AR")+'</span></div></div><script>window.onload=function(){window.print();}<\/script></body></html>');
   w.document.close();
@@ -1281,7 +1281,7 @@ function expFiltered(){
     });
     sections+='<div class="eq-block"><div class="eq-hdr"><span class="eq-name">'+esc(eq.nombre)+'</span><span class="eq-cat">'+ci.label+(eq.ubicacion?' · '+esc(eq.ubicacion):'')+'</span></div>';
     if(repRows)sections+='<p class="sec-lbl">🔧 Reparaciones</p><table><thead><tr><th>Parte / Descripción</th><th>Notas</th><th>F. Rotura</th><th>F. Arreglo</th></tr></thead><tbody>'+repRows+'</tbody></table>';
-    if(mantRows)sections+='<p class="sec-lbl">🔩 Mantenimientos</p><table><thead><tr><th>Fecha</th><th>Técnico</th><th>Notas</th></tr></thead><tbody>'+mantRows+'</tbody></table>';
+    if(mantRows)sections+='<p class="sec-lbl">🔩 Mantenimientos</p><table><thead><tr><th>Fecha</th><th>Ingeniero</th><th>Notas</th></tr></thead><tbody>'+mantRows+'</tbody></table>';
     sections+='</div>';
   });
   if(!hasData){alert("Sin registros en "+fD(desde)+" — "+fD(hasta));return;}
