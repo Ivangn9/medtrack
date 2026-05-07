@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.07.21 -->
+<!-- v2026.05.07.22 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -105,10 +105,10 @@ textarea.inp{resize:vertical;}
 .stat-val{font-size:1.9rem;font-weight:800;line-height:1;letter-spacing:-.8px;}
 
 /* ── LIST ITEM ── */
-.li-eq{padding:12px 14px;margin-bottom:8px;cursor:pointer;border-left:3.5px solid var(--green);}
-.li-eq .li-icon{width:48px;height:48px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;}
-.li-eq .li-name{font-weight:700;font-size:.88rem;letter-spacing:-.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.li-eq .li-sub{font-size:.7rem;color:var(--text3);margin-top:1px;}
+.li-eq{padding:16px;margin-bottom:10px;cursor:pointer;border-left:4px solid var(--green);}
+.li-eq .li-icon{width:68px;height:68px;border-radius:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;background:rgba(0,113,227,.07);}
+.li-eq .li-name{font-weight:700;font-size:1rem;letter-spacing:-.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.li-eq .li-sub{font-size:.72rem;color:var(--text3);margin-top:2px;}
 
 /* ── CHIPS ── */
 .chip{padding:10px 10px;border-radius:20px;font-size:.72rem;font-weight:500;background:rgba(120,120,128,.08);color:var(--text2);border:none;white-space:nowrap;}
@@ -1087,14 +1087,16 @@ function rLista(){
   if(!lista.length){h+='<div style="text-align:center;color:var(--text3);padding:40px 0;font-size:.88rem;">Sin equipos</div>';return h;}
   lista.forEach(function(e){
     var ms=semafo(e);var d=diasH(e.proximoMant);var rot=e.partes.filter(function(p){return p.estado==="roto";}).length;
-    h+='<div class="gc li-eq tap" onclick="goDetalle(\''+e.id+'\')" style="border-left-color:'+(CE[e.estado]||"var(--green)")+';"><div style="display:flex;align-items:center;gap:12px;">'+
-      '<div class="li-icon">'+iconFor(e,42)+'</div>'+
-      '<div style="flex:1;min-width:0;"><div class="li-name">'+esc(e.nombre)+'</div><div class="li-sub">'+e.id+(e.ubicacion?' · '+esc(e.ubicacion):'')+'</div>'+
-      '<div style="display:flex;gap:5px;margin-top:6px;flex-wrap:wrap;">'+
+    h+='<div class="gc li-eq tap" onclick="goDetalle(\''+e.id+'\')" style="border-left-color:'+(CE[e.estado]||"var(--green)")+';"><div style="display:flex;align-items:center;gap:16px;">'+
+      '<div class="li-icon">'+iconFor(e,58)+'</div>'+
+      '<div style="flex:1;min-width:0;">'+
+      '<div class="li-name">'+esc(e.nombre)+'</div>'+
+      '<div class="li-sub">'+(e.ubicacion?'📍 '+esc(e.ubicacion):'')+(e.serie?' · SID: '+esc(e.serie):'')+'</div>'+
+      '<div style="display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;">'+
         pillH(CE[e.estado]||"var(--green)",e.estado==="operativo"?"✅ OK":e.estado==="con-rotura"?"🔧 Con rotura":e.estado==="advertencia"?"⚠️ Adv":"🚫 Fuera de servicio")+
         (sinMant(e)?pillH("#8e8e93","⚫ Sin mant."):pillH(CM[ms],"🔧 "+(ms==="vencido"?"VENC":ms==="urgente"?d+"d URG":ms==="proximo"?d+"d prox":d+"d")))+
-        (rot>0?pillH("var(--red)","🔴 "+rot+" comp. defectuoso"+(rot>1?"s":"")):"")+(e.tieneServicio?pillH("var(--green)","✔ Servicio"):"")+'</div></div>'+
-      '<div style="color:var(--text3);font-size:1rem;">›</div></div></div>';
+        (rot>0?pillH("var(--red)","🔴 "+rot+" roto"+(rot>1?"s":"")):"")+(e.tieneServicio?pillH("var(--green)","✔ Servicio"):"")+'</div></div>'+
+      '<div style="color:var(--text3);font-size:1.2rem;flex-shrink:0;">›</div></div></div>';
   });
   return h;
 }
