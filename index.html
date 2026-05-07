@@ -155,12 +155,26 @@ body.dark input,body.dark select,body.dark textarea{background:rgba(120,120,128,
 body.dark .modal-box{background:#2c2c2e;}
 body.dark .settings-panel{background:rgba(28,28,30,.95);}
 body.dark .settings-item{background:rgba(58,58,60,.5);border-color:rgba(84,84,88,.4);}
+
+/* ── PDF VIEWER ── */
+#pdf-viewer-overlay{position:fixed;inset:0;z-index:2000;background:#1a1a1a;display:flex;flex-direction:column;}
+#pdf-viewer-overlay iframe{flex:1;width:100%;border:none;}
+#pdf-back-btn{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px)+24px);left:24px;z-index:2100;
+  width:54px;height:54px;border-radius:50%;background:var(--accent);color:#fff;border:none;
+  font-size:1.4rem;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 20px rgba(0,113,227,.5);-webkit-tap-highlight-color:transparent;}
 </style>
 </head>
 <body>
 
 <!-- TOAST -->
 <div id="toast" class="hidden"></div>
+
+<!-- PDF VIEWER OVERLAY -->
+<div id="pdf-viewer-overlay" class="hidden">
+  <iframe id="pdf-viewer-frame" src="about:blank"></iframe>
+  <button id="pdf-back-btn" onclick="closePDFViewer()">&#8592;</button>
+</div>
 
 <!-- SETTINGS OVERLAY -->
 <div id="settings-overlay" class="hidden" onclick="if(event.target===this)toggleSettings();" style="position:fixed;inset:0;background:rgba(0,0,0,.4);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);z-index:600;display:flex;align-items:stretch;justify-content:flex-end;">
@@ -633,7 +647,7 @@ function confirmarReparacion(eqId,pid){
   if(!pt)return;
   eqs=eqs.map(function(e){
     if(e.id!==eqId)return e;
-    var hist=(e.historialMant||[]).concat({id:"HP-"+Date.now(),fecha:fecha,tipo:"reparacion",nombre:pt.nombre,marca:pt.marca||"",nroSerie:pt.nroSerie||"",fechaRotura:pt.fechaRotura||"",notas:notas||pt.notas||"",registradoEn:new Date().toISOString()});
+    var hist=(e.historialMant||[]).concat({id:"HP-"+Date.now(),fecha:fecha,tipo:"reparacion",nombre:pt.nombre,marca:pt.marca||"",nroSerie:pt.nroSerie||"",fechaRotura:pt.fechaRotura||"",notas:notas||pt.notas||"",precio:pt.precio||"",archivos:pt.archivos||[],registradoEn:new Date().toISOString()});
     var partes=e.partes.filter(function(x){return x.id!==pid;});
     return Object.assign({},e,{partes:partes,historialMant:hist});
   });
@@ -641,6 +655,34 @@ function confirmarReparacion(eqId,pid){
 }
 function delParte(eqId,pid){if(!confirm("¿Eliminar?"))return;eqs=eqs.map(function(e){return e.id!==eqId?e:Object.assign({},e,{partes:e.partes.filter(function(x){return x.id!==pid;})});});saveData();showToast("Eliminada","warn");render();}
 function delHist(eqId,hid){if(!confirm("¿Eliminar registro?"))return;eqs=eqs.map(function(e){return e.id!==eqId?e:Object.assign({},e,{historialMant:(e.historialMant||[]).filter(function(h){return h.id!==hid;})});});saveData();showToast("Eliminado","warn");render();}
+function openHistDetail(eqId,hid){
+  var eq=eqs.find(function(e){return e.id===eqId;});if(!eq)return;
+  var hh=(eq.historialMant||[]).find(function(h){return h.id===hid;});if(!hh)return;
+  var isMant=hh.tipo==="mantenimiento";
+  var archivos=hh.archivos||[];
+  var pdfRows=archivos.length?archivos.map(function(a){
+    return '<div style="display:flex;align-items:center;gap:10px;padding:8px;background:rgba(0,113,227,.05);border-radius:var(--r-sm);margin-bottom:6px;">'+
+      '<span style="font-size:1.3rem;">📄</span>'+
+      '<span style="font-size:.78rem;flex:1;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(a.nombre)+'</span>'+
+      '<button onclick="openPDFViewer(\''+a.id+'\',\''+esc(a.nombre)+'\')" style="background:var(--accent);color:#fff;border:none;border-radius:50px;padding:6px 14px;font-size:.72rem;font-weight:700;cursor:pointer;flex-shrink:0;">Abrir PDF</button></div>';
+  }).join(''):'<div style="color:var(--text3);font-size:.78rem;text-align:center;padding:8px;">Sin archivos adjuntos</div>';
+  openModal(
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">'+
+    '<div class="modal-title">'+(isMant?"🔧 Mantenimiento":"🔩 Reparación")+'</div>'+
+    '<button class="modal-close" onclick="closeModal()">✕</button></div>'+
+    '<div style="background:'+(isMant?"rgba(0,113,227,.07)":"rgba(52,199,89,.07)")+';border-radius:var(--r-md);padding:14px;margin-bottom:14px;">'+
+    '<div style="font-weight:700;font-size:.92rem;margin-bottom:4px;">'+(isMant?"Mantenimiento preventivo":esc(hh.nombre||"Reparación"))+'</div>'+
+    '<div style="font-size:.72rem;color:var(--text3);">📅 '+fD(hh.fecha)+(hh.tecnico?' · 👷 '+esc(hh.tecnico):'')+'</div></div>'+
+    '<div class="det-grid" style="margin-bottom:12px;">'+
+    (hh.marca?'<div class="ibox"><div class="ibox-l">Marca</div><div class="ibox-v">'+esc(hh.marca)+'</div></div>':'')+
+    (hh.nroSerie?'<div class="ibox"><div class="ibox-l">N° Serie</div><div class="ibox-v">'+esc(hh.nroSerie)+'</div></div>':'')+
+    (hh.fechaRotura?'<div class="ibox"><div class="ibox-l">Fecha Rotura</div><div class="ibox-v" style="color:var(--red);">'+fD(hh.fechaRotura)+'</div></div>':'')+
+    (hh.precio?'<div class="ibox"><div class="ibox-l">Precio Reparación</div><div class="ibox-v" style="color:var(--green);">$'+esc(hh.precio)+'</div></div>':'')+
+    '</div>'+
+    (hh.notas?'<div class="ff"><div class="ff-label">Notas</div><div style="background:rgba(120,120,128,.06);border-radius:var(--r-sm);padding:10px 14px;font-size:.82rem;color:var(--text2);">'+esc(hh.notas)+'</div></div>':'')+
+    '<div class="ff"><div class="ff-label">Archivos PDF</div>'+pdfRows+'</div>'
+  );
+}
 function regMant(eqId,fecha,notas,tecnico){
   eqs=eqs.map(function(e){
     if(e.id!==eqId)return e;
@@ -679,24 +721,83 @@ function submitEq(eid){
   var n=document.getElementById("eq-n").value.trim();if(!n)return alert("Nombre obligatorio");
   saveEq({id:eid||"",nombre:n,cat:document.getElementById("eq-cat").value,ubicacion:document.getElementById("eq-ub").value,serie:document.getElementById("eq-sr").value,instalacion:document.getElementById("eq-inst").value,tecnico:document.getElementById("eq-tc").value,contrato:document.getElementById("eq-ct").value,marca:(document.getElementById("eq-mk")||{value:""}).value,frecuencia:document.getElementById("eq-fr").value,estado:document.getElementById("eq-es").value,ultimoMant:document.getElementById("eq-um").value,proximoMant:document.getElementById("eq-pm").value,notas:document.getElementById("eq-nt").value});
 }
+// ── FILE STORE (IndexedDB) ──
+var _idb=null;
+function _openIDB(cb){if(_idb){cb(_idb);return;}var r=indexedDB.open('mt_files',1);r.onupgradeneeded=function(e){e.target.result.createObjectStore('files',{keyPath:'id'});};r.onsuccess=function(e){_idb=e.target.result;cb(_idb);};r.onerror=function(){cb(null);};}
+function dbSave(id,nombre,data,cb){_openIDB(function(d){if(!d){cb&&cb(false);return;}var tx=d.transaction('files','readwrite');tx.objectStore('files').put({id:id,nombre:nombre,data:data});tx.oncomplete=function(){cb&&cb(true);};});}
+function dbGet(id,cb){_openIDB(function(d){if(!d){cb(null);return;}var r=d.transaction('files','readonly').objectStore('files').get(id);r.onsuccess=function(){cb(r.result||null);};r.onerror=function(){cb(null);};});}
+function dbDel(id){_openIDB(function(d){if(!d)return;d.transaction('files','readwrite').objectStore('files').delete(id);});}
+
+function openPDFViewer(fileId,nombre){
+  dbGet(fileId,function(rec){
+    if(!rec){showToast("Archivo no encontrado","warn");return;}
+    var overlay=document.getElementById('pdf-viewer-overlay');
+    var frame=document.getElementById('pdf-viewer-frame');
+    frame.src=rec.data;
+    overlay.classList.remove('hidden');
+    document.body.style.overflow='hidden';
+  });
+}
+function closePDFViewer(){
+  var overlay=document.getElementById('pdf-viewer-overlay');
+  var frame=document.getElementById('pdf-viewer-frame');
+  overlay.classList.add('hidden');
+  frame.src='about:blank';
+  document.body.style.overflow='';
+}
+
+var _pendingFiles=[];
+function attachPDF(){
+  var input=document.createElement('input');input.type='file';input.accept='application/pdf';input.multiple=true;
+  input.onchange=function(){
+    Array.from(input.files).forEach(function(file){
+      var reader=new FileReader();
+      reader.onload=function(e){
+        _pendingFiles.push({id:'F-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),nombre:file.name,size:file.size,data:e.target.result});
+        renderPendingFiles();
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+  input.click();
+}
+function renderPendingFiles(){
+  var el=document.getElementById('pdf-list');if(!el)return;
+  el.innerHTML=_pendingFiles.map(function(f,i){
+    return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(0,0,0,.05);">'+
+      '<span style="font-size:1.1rem;">📄</span>'+
+      '<span style="font-size:.74rem;flex:1;color:var(--text2);">'+esc(f.nombre)+'</span>'+
+      '<span style="font-size:.64rem;color:var(--text3);">'+(f.size/1024).toFixed(0)+'KB</span>'+
+      '<button onclick="removePending('+i+')" style="background:none;border:none;color:var(--red);font-size:.9rem;cursor:pointer;padding:2px 6px;">✕</button></div>';
+  }).join('');
+}
+function removePending(i){_pendingFiles.splice(i,1);renderPendingFiles();}
+
 function openModalParte(eqId,pt){
-  var n=!pt;var f=pt||{nombre:"",descripcion:"",estado:"roto",fechaRotura:"",fechaArreglo:"",marca:"",nroSerie:"",notas:""};
+  _pendingFiles=[];
+  var n=!pt;var f=pt||{nombre:"",descripcion:"",estado:"roto",fechaRotura:"",fechaArreglo:"",marca:"",nroSerie:"",notas:"",precio:"",archivos:[]};
+  if(!f.archivos)f.archivos=[];
   var estBtns=["ok","pendiente","roto"].map(function(e){var a=f.estado===e;return'<button data-est="'+e+'" style="flex:1;padding:10px;border-radius:var(--r-sm);font-size:.72rem;font-weight:700;border:none;cursor:pointer;background:'+(a?CP[e]+"20":"rgba(120,120,128,.08)")+';color:'+(a?CP[e]:"var(--text3)")+';'+(a?"box-shadow:0 0 0 2px "+CP[e]+"40;":"")+'" onclick="setPtEst(\''+e+'\')">'+(e==="ok"?"✅ OK":e==="pendiente"?"⚠️ Pendiente":"🔴 Roto")+'</button>';}).join("");
+  var existFiles=f.archivos.map(function(a){return'<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(0,0,0,.05);"><span style="font-size:1.1rem;">📄</span><span style="font-size:.74rem;flex:1;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(a.nombre)+'</span><button onclick="openPDFViewer(\''+a.id+'\',\''+esc(a.nombre)+'\')" style="background:rgba(0,113,227,.1);color:var(--accent);border:none;border-radius:8px;padding:3px 10px;font-size:.68rem;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;">Abrir</button></div>';}).join('');
   openModal('<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><div class="modal-title">'+(n?"Nueva Parte":"Editar Parte")+'</div><button class="modal-close" onclick="closeModal()">✕</button></div>'+
     '<div class="ff"><div class="ff-label">Nombre *</div><input class="inp" id="pt-n" value="'+esc(f.nombre)+'" placeholder="Tubo de Rayos X..."></div>'+
     '<div class="ff"><div class="ff-label">Descripción</div><input class="inp" id="pt-d" value="'+esc(f.descripcion)+'"></div>'+
     '<div class="ff"><div class="ff-label">Estado</div><div style="display:flex;gap:8px;">'+estBtns+'</div><input type="hidden" id="pt-es" value="'+f.estado+'"></div>'+
     '<div class="g2"><div class="ff"><div class="ff-label">Fecha Rotura</div><input class="inp" type="date" id="pt-fr" value="'+f.fechaRotura+'"></div><div class="ff"><div class="ff-label">Fecha Arreglo</div><input class="inp" type="date" id="pt-fa" value="'+f.fechaArreglo+'"></div></div>'+
     '<div class="g2"><div class="ff"><div class="ff-label">Marca</div><input class="inp" id="pt-mk" value="'+esc(f.marca)+'"></div><div class="ff"><div class="ff-label">N° Serie</div><input class="inp" id="pt-sn" value="'+esc(f.nroSerie)+'"></div></div>'+
-    '<div class="ff"><div class="ff-label">Notas</div><textarea class="inp" id="pt-nt" rows="3">'+esc(f.notas)+'</textarea></div>'+
+    '<div class="ff"><div class="ff-label">Precio reparación ($)</div><input class="inp" type="number" id="pt-pc" value="'+esc(f.precio||'')+'" placeholder="0.00" min="0" step="0.01"></div>'+
+    '<div class="ff"><div class="ff-label">Notas</div><textarea class="inp" id="pt-nt" rows="2">'+esc(f.notas)+'</textarea></div>'+
+    '<div class="ff"><div class="ff-label">Archivos PDF</div>'+
+    (existFiles?'<div style="margin-bottom:6px;">'+existFiles+'</div>':'')+
+    '<div id="pdf-list"></div>'+
+    '<button onclick="attachPDF()" type="button" style="margin-top:6px;width:100%;padding:10px;border:1.5px dashed rgba(0,113,227,.4);border-radius:var(--r-md);background:rgba(0,113,227,.05);color:var(--accent);font-size:.8rem;font-weight:600;cursor:pointer;">📎 Adjuntar PDF</button></div>'+
     (!n&&f.estado!=="ok"?'<button onclick="repararParte(\''+eqId+'\',\''+f.id+'\')" style="width:100%;padding:14px;margin-bottom:10px;border:none;border-radius:var(--r-md);background:var(--green);color:#fff;font-size:.95rem;font-weight:700;cursor:pointer;box-shadow:0 2px 10px rgba(52,199,89,.4);">✅ Marcar como Reparado</button>':'')+
     '<button class="btn-primary" style="width:100%;padding:14px;font-size:.92rem;" onclick="submitPt(\''+eqId+'\',\''+(f.id||"")+'\')">'+(n?"✅ Agregar":"💾 Guardar")+'</button>');
 }
 function setPtEst(e){
   document.getElementById("pt-es").value=e;
   ["ok","pendiente","roto"].forEach(function(s){
-    var btn=document.querySelector('[data-est="'+s+'"]');
-    if(!btn)return;
+    var btn=document.querySelector('[data-est="'+s+'"]');if(!btn)return;
     var a=s===e;
     btn.style.background=a?CP[s]+"20":"rgba(120,120,128,.08)";
     btn.style.color=a?CP[s]:"var(--text3)";
@@ -705,7 +806,13 @@ function setPtEst(e){
 }
 function submitPt(eqId,ptId){
   var n=document.getElementById("pt-n").value.trim();if(!n)return alert("Nombre obligatorio");
-  saveParte(eqId,{id:ptId||"",nombre:n,descripcion:document.getElementById("pt-d").value,estado:document.getElementById("pt-es").value,fechaRotura:document.getElementById("pt-fr").value,fechaArreglo:document.getElementById("pt-fa").value,marca:document.getElementById("pt-mk").value,nroSerie:document.getElementById("pt-sn").value,notas:document.getElementById("pt-nt").value});
+  var archivosExist=[];
+  var eq=eqs.find(function(e){return e.id===eqId;});
+  if(eq&&ptId){var px=eq.partes.find(function(p){return p.id===ptId;});if(px)archivosExist=px.archivos||[];}
+  var newRefs=_pendingFiles.map(function(f){return{id:f.id,nombre:f.nombre,size:f.size};});
+  _pendingFiles.forEach(function(f){dbSave(f.id,f.nombre,f.data);});
+  saveParte(eqId,{id:ptId||"",nombre:n,descripcion:document.getElementById("pt-d").value,estado:document.getElementById("pt-es").value,fechaRotura:document.getElementById("pt-fr").value,fechaArreglo:document.getElementById("pt-fa").value,marca:document.getElementById("pt-mk").value,nroSerie:document.getElementById("pt-sn").value,notas:document.getElementById("pt-nt").value,precio:document.getElementById("pt-pc").value,archivos:archivosExist.concat(newRefs)});
+  _pendingFiles=[];
 }
 function openModalMant(eqId){
   var eq=eqs.find(function(e){return e.id===eqId;});var ci=catById(eq.cat);var td=today();var px=calcP(td,eq.frecuencia);
@@ -869,8 +976,10 @@ function rDetalle(){
       '<div class="ibox"><div class="ibox-l">Rotura</div><div class="ibox-v"'+(p.fechaRotura?' style="color:var(--red);"':'')+'>'+fD(p.fechaRotura)+'</div></div>'+
       '<div class="ibox"><div class="ibox-l">Arreglo</div><div class="ibox-v"'+(p.fechaArreglo?' style="color:var(--green);"':' style="color:var(--orange);"')+'>'+fD(p.fechaArreglo)+'</div></div>'+
       (p.marca?'<div class="ibox"><div class="ibox-l">Marca</div><div class="ibox-v">'+esc(p.marca)+'</div></div>':'')+
-      (p.nroSerie?'<div class="ibox"><div class="ibox-l">N° Serie</div><div class="ibox-v">'+esc(p.nroSerie)+'</div></div>':'')+'</div>'+
+      (p.nroSerie?'<div class="ibox"><div class="ibox-l">N° Serie</div><div class="ibox-v">'+esc(p.nroSerie)+'</div></div>':'')+
+      (p.precio?'<div class="ibox"><div class="ibox-l">Precio</div><div class="ibox-v" style="color:var(--green);">$'+esc(p.precio)+'</div></div>':'')+'</div>'+
       (p.notas?'<div class="ibox" style="margin-bottom:8px;"><div style="font-size:.73rem;color:var(--text2);">'+esc(p.notas)+'</div></div>':'')+
+      ((p.archivos&&p.archivos.length)?'<div style="margin-bottom:8px;">'+p.archivos.map(function(a){return'<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(0,0,0,.05);"><span>📄</span><span style="font-size:.72rem;flex:1;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(a.nombre)+'</span><button onclick="openPDFViewer(\''+a.id+'\',\''+esc(a.nombre)+'\')" style="background:rgba(0,113,227,.1);color:var(--accent);border:none;border-radius:8px;padding:3px 10px;font-size:.65rem;font-weight:600;cursor:pointer;flex-shrink:0;">Abrir</button></div>';}).join('')+'</div>':'')+
       (p.estado!=="ok"?'<button onclick="repararParte(\''+eq.id+'\',\''+p.id+'\')" style="width:100%;padding:12px;margin-bottom:8px;border:none;border-radius:var(--r-md);background:var(--green);color:#fff;font-size:.88rem;font-weight:700;cursor:pointer;letter-spacing:.01em;box-shadow:0 2px 8px rgba(52,199,89,.35);">✅ Marcar como Reparado</button>':'')+
       '<div style="display:flex;gap:6px;"><button class="btn-secondary btn-sm" style="flex:1;" onclick=\'openModalParte("'+eq.id+'",'+JSON.stringify(p).replace(/'/g,"&#39;")+')\'>✏️ Editar</button><button class="btn-danger btn-sm" onclick="delParte(\''+eq.id+'\',\''+p.id+'\')">🗑</button></div></div>';
   });
@@ -881,13 +990,18 @@ function rDetalle(){
   if(!hist.length){h+='<div class="gc" style="text-align:center;color:var(--text3);padding:16px;font-size:.82rem;">Sin historial</div>';}
   hist.forEach(function(hh){
     var isMant=hh.tipo==="mantenimiento";var c=isMant?"var(--accent)":"var(--green)";
+    var hasPdf=(hh.archivos&&hh.archivos.length>0);
     h+='<div class="gc" style="padding:12px;margin-bottom:8px;border-left:3px solid '+c+';">'+
       '<div style="display:flex;justify-content:space-between;align-items:flex-start;"><div style="flex:1;">'+
       '<div style="font-weight:700;font-size:.82rem;color:'+c+';">'+(isMant?"🔧 Mantenimiento":"🔩 Reparación: "+esc(hh.nombre||""))+'</div>'+
       '<div style="font-size:.7rem;color:var(--text3);margin-top:2px;">📅 '+fD(hh.fecha)+(hh.tecnico?" · 👷 "+esc(hh.tecnico):"")+'</div>'+
       (!isMant&&hh.fechaRotura?'<div style="font-size:.7rem;color:var(--text3);">Rotura: '+fD(hh.fechaRotura)+'</div>':'')+
+      (hh.precio?'<div style="font-size:.7rem;color:var(--green);font-weight:600;margin-top:2px;">💲 $'+esc(hh.precio)+'</div>':'')+
       (hh.notas?'<div style="font-size:.74rem;color:var(--text2);margin-top:4px;background:rgba(120,120,128,.06);padding:5px 8px;border-radius:6px;">'+esc(hh.notas)+'</div>':'')+'</div>'+
-      '<button onclick="delHist(\''+eq.id+'\',\''+hh.id+'\')" style="padding:4px 8px;background:rgba(255,59,48,.08);color:var(--red);border-radius:8px;font-size:.7rem;border:none;cursor:pointer;flex-shrink:0;margin-left:8px;">🗑</button></div></div>';
+      '<div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end;flex-shrink:0;margin-left:8px;">'+
+      '<button onclick="openHistDetail(\''+eq.id+'\',\''+hh.id+'\')" style="padding:5px 10px;background:rgba(0,113,227,.1);color:var(--accent);border-radius:8px;font-size:.68rem;font-weight:600;border:none;cursor:pointer;white-space:nowrap;">'+(hasPdf?"📄 Ver":"🔍 Ver")+'</button>'+
+      '<button onclick="delHist(\''+eq.id+'\',\''+hh.id+'\')" style="padding:4px 8px;background:rgba(255,59,48,.08);color:var(--red);border-radius:8px;font-size:.7rem;border:none;cursor:pointer;">🗑</button>'+
+      '</div></div></div>';
   });
   return h;
 }
