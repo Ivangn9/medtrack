@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.07.34 -->
+<!-- v2026.05.07.35 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -961,7 +961,13 @@ function rDash(){
 
 // ── LISTA ──
 var _busqueda="";
-function setBusqueda(v){_busqueda=v;render();}
+function setBusqueda(v){
+  var inp=document.getElementById('busq-inp');
+  var sel=inp?inp.selectionStart:null;
+  _busqueda=v;render();
+  inp=document.getElementById('busq-inp');
+  if(inp){inp.focus();if(sel!==null)inp.setSelectionRange(sel,sel);}
+}
 function rLista(){
   var h='<div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:10px;padding-top:12px;">';
   h+='<button class="chip'+(filtCat==="TODOS"?" on":"")+'" onclick="filtCat=\'TODOS\';render();">Todos</button>';
