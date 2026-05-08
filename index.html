@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.07.33 -->
+<!-- v2026.05.07.34 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -960,12 +960,69 @@ function rDash(){
 }
 
 // ── LISTA ──
+var _busqueda="";
+function setBusqueda(v){_busqueda=v;render();}
 function rLista(){
-  var h='<div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:24px;padding-top:12px;">';
+  var h='<div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:10px;padding-top:12px;">';
   h+='<button class="chip'+(filtCat==="TODOS"?" on":"")+'" onclick="filtCat=\'TODOS\';render();">Todos</button>';
   CATS.forEach(function(c){h+='<button class="chip'+(filtCat===c.id?" on":"")+'" onclick="filtCat=\''+c.id+'\';render();">'+(catSvgIcon(c.id,18)||'')+' '+c.label+'</button>';});
   h+='</div>';
+  h+='<div style="position:relative;margin-bottom:16px;">'+
+    '<span style="position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:1rem;pointer-events:none;">🔍</span>'+
+    '<input id="busq-inp" class="inp" value="'+esc(_busqueda)+'" placeholder="Buscar equipo, parte, descripción..." '+
+    'oninput="setBusqueda(this.value)" '+
+    'style="padding-left:38px;padding-right:'+(  _busqueda?'36px':'12px')+';width:100%;font-size:.86rem;">'+
+    (_busqueda?'<button onclick="_busqueda=\'\';render();" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--text3);">✕</button>':'')+'</div>';
+
+  var q=_busqueda.toLowerCase().trim();
   var lista=eqs.filter(function(e){return filtCat==="TODOS"||e.cat===filtCat;});
+
+  if(q){
+    // Buscar por equipo o partes
+    var resultados=[];
+    lista.forEach(function(e){
+      var matchEq=(e.nombre||"").toLowerCase().includes(q)||(e.ubicacion||"").toLowerCase().includes(q)||(e.serie||"").toLowerCase().includes(q)||(e.marca||"").toLowerCase().includes(q);
+      var matchParts=e.partes.filter(function(p){
+        return (p.nombre||"").toLowerCase().includes(q)||(p.descripcion||"").toLowerCase().includes(q)||(p.notas||"").toLowerCase().includes(q)||(p.estado||"").toLowerCase().includes(q)||(p.marca||"").toLowerCase().includes(q);
+      });
+      if(matchEq||matchParts.length)resultados.push({eq:e,matchParts:matchParts,matchEq:matchEq});
+    });
+
+    if(!resultados.length){
+      h+='<div style="text-align:center;color:var(--text3);padding:40px 0;font-size:.88rem;">Sin resultados para "'+esc(_busqueda)+'"</div>';
+      return h;
+    }
+    h+='<div style="font-size:.72rem;color:var(--text3);margin-bottom:10px;">'+resultados.length+' resultado'+(resultados.length!==1?'s':'')+'</div>';
+    resultados.forEach(function(r){
+      var e=r.eq;var ms=semafo(e);var d=diasH(e.proximoMant);var rot=e.partes.filter(function(p){return p.estado==="roto";}).length;
+      h+='<div class="gc li-eq tap" onclick="goDetalle(\''+e.id+'\')" style="border-left-color:'+(CE[e.estado]||"var(--green)")+';"><div style="display:flex;align-items:center;gap:16px;">'+
+        '<div class="li-icon">'+iconFor(e,58)+'</div>'+
+        '<div style="flex:1;min-width:0;">'+
+        '<div class="li-name">'+esc(e.nombre)+'</div>'+
+        '<div class="li-sub">'+(e.ubicacion?'📍 '+esc(e.ubicacion):'')+(e.serie?' · SID: '+esc(e.serie):'')+'</div>'+
+        '<div style="display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;">'+
+          pillH(CE[e.estado]||"var(--green)",e.estado==="operativo"?"✅ OK":e.estado==="con-rotura"?"🔧 Con rotura":e.estado==="advertencia"?"⚠️ Adv":"🚫 Fuera de servicio")+
+          (sinMant(e)?pillH("#8e8e93","⚫ Sin mant."):pillH(CM[ms],"🔧 "+(ms==="vencido"?"VENC":ms==="urgente"?d+"d URG":ms==="proximo"?d+"d prox":d+"d")))+
+          (rot>0?pillH("var(--red)","🔴 "+rot+" roto"+(rot>1?"s":"")):"")+(e.tieneServicio?pillH("var(--green)","✔ Servicio"):"")+'</div></div>'+
+        '<div style="color:var(--text3);font-size:1.2rem;flex-shrink:0;">›</div></div></div>';
+      if(r.matchParts.length){
+        r.matchParts.forEach(function(p){
+          var c=CP[p.estado]||"var(--green)";
+          h+='<div class="gc tap" onclick="goDetalle(\''+e.id+'\')" style="padding:10px 14px;margin-bottom:6px;margin-left:16px;border-left:3px solid '+c+';cursor:pointer;">'+
+            '<div style="display:flex;align-items:center;gap:8px;">'+
+            '<span style="font-size:1rem;">'+(p.estado==="roto"?"🔴":p.estado==="pendiente"?"⚠️":"✅")+'</span>'+
+            '<div style="flex:1;min-width:0;">'+
+            '<div style="font-weight:600;font-size:.82rem;color:'+c+';">'+esc(p.nombre)+'</div>'+
+            (p.descripcion?'<div style="font-size:.7rem;color:var(--text3);">'+esc(p.descripcion)+'</div>':'')+
+            '<div style="font-size:.68rem;color:var(--text3);margin-top:2px;">'+
+            (p.fechaRotura?'Rotura: <span style="color:var(--red);">'+fD(p.fechaRotura)+'</span> ':'')+(p.fechaArreglo?'· Arreglo: <span style="color:var(--green);">'+fD(p.fechaArreglo)+'</span>':'<span style="color:var(--orange);">Sin arreglo</span>')+
+            '</div></div></div></div>';
+        });
+      }
+    });
+    return h;
+  }
+
   if(!lista.length){h+='<div style="text-align:center;color:var(--text3);padding:40px 0;font-size:.88rem;">Sin equipos</div>';return h;}
   lista.forEach(function(e){
     var ms=semafo(e);var d=diasH(e.proximoMant);var rot=e.partes.filter(function(p){return p.estado==="roto";}).length;
