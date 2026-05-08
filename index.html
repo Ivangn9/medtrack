@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.07.35 -->
+<!-- v2026.05.07.36 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -504,7 +504,7 @@ function setView(v){
   if(bb){bb.querySelectorAll(".tab").forEach(function(b){b.classList.toggle("on",b.dataset.tab===v);});}
   render();
 }
-function goDetalle(id){selId=id;view="detalle";
+function goDetalle(id){selId=id;view="detalle";_detalleQ="";_detalleSearchOpen=false;
   document.getElementById("back-btn").classList.remove("hidden");
   render();
 }
@@ -961,6 +961,9 @@ function rDash(){
 
 // ── LISTA ──
 var _busqueda="";
+var _detalleQ="",_detalleSearchOpen=false;
+function toggleDetalleSearch(){_detalleSearchOpen=!_detalleSearchOpen;if(!_detalleSearchOpen)_detalleQ="";render();if(_detalleSearchOpen){var i=document.getElementById('det-busq');if(i)i.focus();}}
+function setDetalleQ(v){var inp=document.getElementById('det-busq');var sel=inp?inp.selectionStart:null;_detalleQ=v;render();inp=document.getElementById('det-busq');if(inp){inp.focus();if(sel!==null)inp.setSelectionRange(sel,sel);}}
 function setBusqueda(v){
   var inp=document.getElementById('busq-inp');
   var sel=inp?inp.selectionStart:null;
@@ -1101,10 +1104,28 @@ function rDetalle(){
   h+=(eq.notas?'<div class="ibox"><div class="ibox-l">📝 Nota</div><div style="font-size:.8rem;color:var(--text2);margin-top:2px;">'+esc(eq.notas)+'</div></div>':'');
   h+='</div>';
 
-  // PARTES
-  var partesActivas=eq.partes.filter(function(p){return p.estado!=="ok";});
-  h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><div class="sec" style="margin-bottom:0;">🔩 Partes ('+partesActivas.length+')</div><button class="btn-primary btn-sm" onclick="openModalParte(\''+eq.id+'\',null)">+ Agregar</button></div>';
-  if(!partesActivas.length){h+='<div class="gc" style="text-align:center;color:var(--text3);padding:18px;font-size:.82rem;">Sin partes activas — tocá "+ Agregar"</div>';}
+  // PARTES + HISTORIAL search bar
+  var dq=_detalleQ.toLowerCase().trim();
+  h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:'+(_detalleSearchOpen?'8px':'10px')+';gap:8px;">';
+  h+='<div class="sec" style="margin-bottom:0;">🔩 Partes</div>';
+  h+='<div style="display:flex;align-items:center;gap:6px;">';
+  if(_detalleSearchOpen){
+    h+='<div style="position:relative;flex:1;">';
+    h+='<input id="det-busq" class="inp" value="'+esc(_detalleQ)+'" placeholder="Buscar partes e historial..." oninput="setDetalleQ(this.value)" style="padding:6px 30px 6px 10px;font-size:.78rem;width:100%;min-width:160px;">';
+    if(_detalleQ)h+='<button onclick="_detalleQ=\'\';render();setTimeout(function(){var i=document.getElementById(\'det-busq\');if(i)i.focus();},50);" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:.9rem;cursor:pointer;color:var(--text3);">✕</button>';
+    h+='</div>';
+  }
+  h+='<button onclick="toggleDetalleSearch()" style="background:'+((_detalleSearchOpen||_detalleQ)?'rgba(0,113,227,.15)':'rgba(120,120,128,.1)')+';border:none;border-radius:10px;padding:6px 10px;cursor:pointer;font-size:.85rem;color:'+( (_detalleSearchOpen||_detalleQ)?'var(--accent)':'var(--text3)')+';" title="Buscar">🔍</button>';
+  h+='<button class="btn-primary btn-sm" onclick="openModalParte(\''+eq.id+'\',null)">+ Agregar</button>';
+  h+='</div></div>';
+
+  var partesActivas=eq.partes.filter(function(p){
+    if(p.estado==="ok")return false;
+    if(!dq)return true;
+    return (p.nombre||"").toLowerCase().includes(dq)||(p.descripcion||"").toLowerCase().includes(dq)||(p.notas||"").toLowerCase().includes(dq)||(p.estado||"").toLowerCase().includes(dq)||(p.marca||"").toLowerCase().includes(dq)||(p.nroSerie||"").toLowerCase().includes(dq);
+  });
+  if(!eq.partes.filter(function(p){return p.estado!=="ok";}).length){h+='<div class="gc" style="text-align:center;color:var(--text3);padding:18px;font-size:.82rem;">Sin partes activas — tocá "+ Agregar"</div>';}
+  else if(dq&&!partesActivas.length){h+='<div style="color:var(--text3);font-size:.78rem;padding:8px 0 12px;text-align:center;">Sin partes que coincidan</div>';}
   partesActivas.forEach(function(p){
     var c=CP[p.estado]||"var(--green)";
     h+='<div class="gc" style="padding:13px;margin-bottom:9px;border-color:'+(p.estado==="ok"?"var(--glass-border)":c+"30")+';">'+
@@ -1122,9 +1143,11 @@ function rDetalle(){
   });
 
   // HISTORIAL
-  var hist=(eq.historialMant||[]).slice().reverse();
-  h+='<div style="display:flex;justify-content:space-between;align-items:center;margin:4px 0 10px;"><div class="sec" style="margin:0;">📋 Historial ('+hist.length+')</div><button onclick="exportPDF(\''+eq.id+'\')" style="background:var(--red);color:#fff;border:none;border-radius:var(--r-sm);padding:6px 14px;font-size:.72rem;font-weight:600;cursor:pointer;">📄 PDF</button></div>';
-  if(!hist.length){h+='<div class="gc" style="text-align:center;color:var(--text3);padding:16px;font-size:.82rem;">Sin historial</div>';}
+  var histAll=(eq.historialMant||[]).slice().reverse();
+  var hist=dq?histAll.filter(function(hh){return (hh.nombre||"").toLowerCase().includes(dq)||(hh.notas||"").toLowerCase().includes(dq)||(hh.tecnico||"").toLowerCase().includes(dq)||(hh.tipo||"").toLowerCase().includes(dq)||(hh.precio||"").toString().includes(dq);}) : histAll;
+  h+='<div style="display:flex;justify-content:space-between;align-items:center;margin:4px 0 10px;"><div class="sec" style="margin:0;">📋 Historial ('+(dq?hist.length+'/'+histAll.length:histAll.length)+')</div><button onclick="exportPDF(\''+eq.id+'\')" style="background:var(--red);color:#fff;border:none;border-radius:var(--r-sm);padding:6px 14px;font-size:.72rem;font-weight:600;cursor:pointer;">📄 PDF</button></div>';
+  if(!histAll.length){h+='<div class="gc" style="text-align:center;color:var(--text3);padding:16px;font-size:.82rem;">Sin historial</div>';}
+  else if(dq&&!hist.length){h+='<div style="color:var(--text3);font-size:.78rem;padding:8px 0 12px;text-align:center;">Sin historial que coincida</div>';}
   hist.forEach(function(hh){
     var isMant=hh.tipo==="mantenimiento";var c=isMant?"var(--accent)":"var(--green)";
     var hasPdf=(hh.archivos&&hh.archivos.length>0);
