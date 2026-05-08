@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.07.28 -->
+<!-- v2026.05.07.29 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -228,7 +228,7 @@ body.dark .settings-item{background:rgba(58,58,60,.5);border-color:rgba(84,84,88
       </div>
       <button onclick="expFiltered()" style="width:100%;padding:12px;background:var(--red);color:#fff;border:none;border-radius:50px;font-weight:600;font-size:.82rem;cursor:pointer;">📄 Informe Filtrado</button>
     </div>
-    <div style="text-align:center;padding:14px 0;color:var(--text3);font-size:.66rem;">CIMA Investigaciones Avanzadas · MedTrack v4.2.5</div>
+    <div style="text-align:center;padding:14px 0;color:var(--text3);font-size:.66rem;">CIMA Investigaciones Avanzadas · MedTrack v4.3.0</div>
   </div>
 </div>
 
@@ -239,133 +239,7 @@ body.dark .settings-item{background:rgba(58,58,60,.5);border-color:rgba(84,84,88
 
 <!-- APP -->
 <!-- MEDICAL ILLUSTRATIONS OVERLAY -->
-<div style="position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;">
-<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 1366 1024" preserveAspectRatio="xMidYMid slice">
-<defs>
-  <linearGradient id="rb1" x1="0" y1="0" x2="1" y2="0.5">
-    <stop offset="0%" stop-color="#72d2f0" stop-opacity="0"/>
-    <stop offset="30%" stop-color="#52c4ec" stop-opacity="0.62"/>
-    <stop offset="60%" stop-color="#60cef0" stop-opacity="0.70"/>
-    <stop offset="100%" stop-color="#88daf8" stop-opacity="0.10"/>
-  </linearGradient>
-  <linearGradient id="rb2" x1="0" y1="1" x2="1" y2="0">
-    <stop offset="0%" stop-color="#9ab4e8" stop-opacity="0"/>
-    <stop offset="25%" stop-color="#7aa8e4" stop-opacity="0.42"/>
-    <stop offset="65%" stop-color="#6ab8ec" stop-opacity="0.50"/>
-    <stop offset="100%" stop-color="#aad8f4" stop-opacity="0.05"/>
-  </linearGradient>
-  <linearGradient id="rb3" x1="0" y1="0" x2="1" y2="0.3">
-    <stop offset="0%" stop-color="#c0a8f0" stop-opacity="0"/>
-    <stop offset="40%" stop-color="#a090e0" stop-opacity="0.22"/>
-    <stop offset="100%" stop-color="#80b0e8" stop-opacity="0"/>
-  </linearGradient>
-</defs>
-
-<!-- RIBBONS -->
-<path d="M-120,820 C80,650 280,480 480,360 C620,275 780,260 960,240 C1100,225 1240,240 1500,180" stroke="url(#rb1)" stroke-width="170" fill="none" stroke-linecap="round"/>
-<path d="M-120,820 C80,650 280,480 480,360 C620,275 780,260 960,240 C1100,225 1240,240 1500,180" stroke="#70d0f2" stroke-width="55" fill="none" stroke-linecap="round" opacity="0.22"/>
-<path d="M-120,920 C100,740 300,580 520,450 C680,350 850,330 1050,310 C1200,295 1340,310 1500,270" stroke="url(#rb2)" stroke-width="110" fill="none" stroke-linecap="round"/>
-<path d="M-60,700 C140,560 340,420 560,320 C720,245 900,230 1100,215 C1250,205 1370,220 1500,190" stroke="url(#rb3)" stroke-width="75" fill="none" stroke-linecap="round"/>
-
-<!-- ═══════════════════════════════════════════ -->
-<!-- RESONANCIA (MRI) — izquierda              -->
-<!-- ═══════════════════════════════════════════ -->
-<g transform="translate(148,560)" opacity="0.20" fill="none" stroke="#1a5080" stroke-linecap="round">
-  <!-- C-arc -->
-  <path d="M48,-88 A95,95 0 1,0 48,88" stroke-width="22"/>
-  <!-- Gantry bore exterior -->
-  <circle cx="-8" cy="0" r="50" stroke-width="13"/>
-  <!-- Gantry bore interior -->
-  <circle cx="-8" cy="0" r="30" stroke-width="8"/>
-  <!-- Inner bore detail -->
-  <circle cx="-8" cy="0" r="15" stroke-width="5"/>
-  <!-- Side panels -->
-  <rect x="-62" y="-16" width="11" height="32" rx="4" fill="#1a5080" stroke="none"/>
-  <rect x="46" y="-16" width="11" height="32" rx="4" fill="#1a5080" stroke="none"/>
-  <!-- Patient bed -->
-  <rect x="-42" y="10" width="82" height="13" rx="5" fill="#1a5080" stroke="none"/>
-  <rect x="25" y="23" width="16" height="22" rx="4" fill="#1a5080" stroke="none"/>
-</g>
-
-<!-- ═══════════════════════════════════════════ -->
-<!-- TOMOGRAFÍA (CT) — derecha                 -->
-<!-- ═══════════════════════════════════════════ -->
-<g transform="translate(1185,650)" opacity="0.20" fill="none" stroke="#1a5080" stroke-linecap="round">
-  <!-- C-arc -->
-  <path d="M48,-88 A95,95 0 1,0 48,88" stroke-width="22"/>
-  <!-- CT gantry exterior -->
-  <circle cx="-8" cy="0" r="50" stroke-width="13"/>
-  <!-- CT gantry bore -->
-  <circle cx="-8" cy="0" r="28" stroke-width="9"/>
-  <!-- Patient table -->
-  <rect x="-8" y="10" width="72" height="13" rx="5" fill="#1a5080" stroke="none"/>
-  <!-- Table pedestal -->
-  <rect x="40" y="23" width="16" height="26" rx="4" fill="#1a5080" stroke="none"/>
-  <!-- Table base -->
-  <rect x="28" y="46" width="40" height="9" rx="3" fill="#1a5080" stroke="none"/>
-  <!-- Gantry top panel -->
-  <rect x="-38" y="-60" width="60" height="12" rx="4" fill="#1a5080" stroke="none"/>
-</g>
-
-<!-- ═══════════════════════════════════════════ -->
-<!-- MAMOGRAFÍA — centro-izquierda inferior    -->
-<!-- ═══════════════════════════════════════════ -->
-<g transform="translate(470,780)" opacity="0.20" fill="none" stroke="#1a5080" stroke-linecap="round">
-  <!-- C-arc -->
-  <path d="M48,-88 A95,95 0 1,0 48,88" stroke-width="22"/>
-  <!-- Columna vertical -->
-  <rect x="-38" y="-68" width="16" height="136" rx="6" fill="#1a5080" stroke="none"/>
-  <!-- Base -->
-  <rect x="-52" y="62" width="44" height="12" rx="5" fill="#1a5080" stroke="none"/>
-  <!-- Brazo horizontal superior -->
-  <rect x="-24" y="-58" width="52" height="13" rx="5" fill="#1a5080" stroke="none"/>
-  <!-- Placa compresora superior -->
-  <rect x="20" y="-46" width="28" height="12" rx="4" fill="#1a5080" stroke="none"/>
-  <!-- Brazo conector -->
-  <rect x="26" y="-34" width="14" height="28" rx="4" fill="#1a5080" stroke="none"/>
-  <!-- Placa compresora inferior -->
-  <rect x="20" y="-8" width="28" height="12" rx="4" fill="#1a5080" stroke="none"/>
-  <!-- Figura paciente — cabeza -->
-  <circle cx="52" cy="-52" r="11" stroke-width="9"/>
-  <!-- Cuerpo -->
-  <line x1="52" y1="-41" x2="52" y2="22" stroke-width="9"/>
-  <!-- Brazos -->
-  <line x1="34" y1="-18" x2="70" y2="-18" stroke-width="8"/>
-  <!-- Piernas -->
-  <line x1="52" y1="22" x2="42" y2="58" stroke-width="8"/>
-  <line x1="52" y1="22" x2="62" y2="58" stroke-width="8"/>
-</g>
-
-<!-- ═══════════════════════════════════════════ -->
-<!-- RADIOGRAFÍA — centro-derecha inferior     -->
-<!-- ═══════════════════════════════════════════ -->
-<g transform="translate(720,800)" opacity="0.20" fill="none" stroke="#1a5080" stroke-linecap="round" stroke-linejoin="round">
-  <rect x="-58" y="60" width="72" height="15" rx="5" fill="#1a5080" stroke="none"/>
-  <circle cx="-44" cy="82" r="14" stroke-width="13"/>
-  <circle cx="0" cy="82" r="14" stroke-width="13"/>
-  <line x1="-14" y1="60" x2="-14" y2="-108" stroke-width="19"/>
-  <rect x="-50" y="-78" width="33" height="50" rx="7" fill="#1a5080" stroke="none"/>
-  <line x1="-5" y1="-108" x2="92" y2="-108" stroke-width="19"/>
-  <circle cx="92" cy="-108" r="14" fill="#1a5080" stroke="none"/>
-  <line x1="92" y1="-94" x2="92" y2="-28" stroke-width="19"/>
-  <rect x="66" y="-40" width="58" height="38" rx="10" fill="#1a5080" stroke="none"/>
-  <rect x="73" y="-34" width="44" height="26" rx="6" fill="rgba(26,80,128,0.38)" stroke="none"/>
-</g>
-
-<!-- CIMA LOGO MARK — bottom right -->
-<g transform="translate(1220,870)" opacity="0.22">
-  <path d="M0,-88 A88,88 0 0,1 62,-62" stroke="#1a3a6b" stroke-width="20" fill="none" stroke-linecap="round"/>
-  <path d="M62,-62 A88,88 0 0,1 88,0" stroke="#2a5298" stroke-width="20" fill="none" stroke-linecap="round"/>
-  <path d="M88,0 A88,88 0 0,1 62,62" stroke="#4a6fa5" stroke-width="20" fill="none" stroke-linecap="round"/>
-  <path d="M62,62 A88,88 0 0,1 0,88" stroke="#6080a8" stroke-width="20" fill="none" stroke-linecap="round"/>
-  <path d="M0,88 A88,88 0 0,1 -62,62" stroke="#8098bc" stroke-width="20" fill="none" stroke-linecap="round"/>
-  <path d="M-62,62 A88,88 0 0,1 -88,0" stroke="#9ab0cc" stroke-width="20" fill="none" stroke-linecap="round"/>
-  <path d="M-88,0 A88,88 0 0,1 -62,-62" stroke="#b8cce0" stroke-width="20" fill="none" stroke-linecap="round"/>
-  <circle cx="0" cy="0" r="46" fill="#708ca8"/>
-</g>
-
-</svg>
-</div>
+<div style="position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;background-image:url('bg.jpg');background-size:cover;background-position:center center;background-repeat:no-repeat;opacity:0.18;"></div>
 <div id="app">
   <div id="header"><div id="header-inner">
     <div id="header-left">
