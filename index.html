@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.08.42 -->
+<!-- v2026.05.08.43 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-title" content="MedTrack">
 <title>MedTrack — CIMA</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.05.08.42">
+<meta name="app-version" content="v2026.05.08.43">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1238,9 +1238,9 @@ function toggleDarkMode(){darkMode=!darkMode;document.body.classList.toggle("dar
 function updateSettingsUI(){
   var b=document.getElementById("dark-toggle"),d=document.getElementById("dark-dot"),l=document.getElementById("font-label"),vl=document.getElementById("ver-label"),sf=document.getElementById("settings-footer");
   if(b){b.style.background=darkMode?"var(--accent)":"#e5e5ea";}if(d){d.style.left=darkMode?"23px":"3px";}if(l)l.textContent=fontScale+"%";
-  if(vl)vl.textContent=APP_VERSION||"";
+  if(vl)vl.textContent=(APP_DISPLAY_VERSION||APP_VERSION)||"";
   if(sf&&APP_VERSION){
-    sf.innerHTML='<div style="margin-bottom:3px;font-size:.64rem;">Última actualización: '+APP_BUILD+'</div>'+'<div>CIMA Investigaciones Avanzadas · MedTrack '+APP_VERSION+'</div>';
+    sf.innerHTML='<div style="margin-bottom:3px;font-size:.64rem;">Última actualización: '+APP_BUILD+'</div>'+'<div>CIMA Investigaciones Avanzadas · MedTrack '+(APP_DISPLAY_VERSION||APP_VERSION)+'</div>';
   }
 }
 function changeFont(dir){fontScale=Math.max(70,Math.min(150,fontScale+dir*10));applyFont();try{localStorage.setItem("mt_font",String(fontScale));}catch(e){}}
@@ -1452,7 +1452,8 @@ function submitRotura(){
 //  HARD REFRESH
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
-var APP_BUILD="08/05/26 12:10";
+var APP_DISPLAY_VERSION="v5.0";
+var APP_BUILD="08/05/26 12:25";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
