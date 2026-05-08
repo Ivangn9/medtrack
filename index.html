@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.07.32 -->
+<!-- v2026.05.07.33 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -228,7 +228,7 @@ body.dark .settings-item{background:rgba(58,58,60,.5);border-color:rgba(84,84,88
       </div>
       <button onclick="expFiltered()" style="width:100%;padding:12px;background:var(--red);color:#fff;border:none;border-radius:50px;font-weight:600;font-size:.82rem;cursor:pointer;">📄 Informe Filtrado</button>
     </div>
-    <div style="text-align:center;padding:14px 0;color:var(--text3);font-size:.66rem;">CIMA Investigaciones Avanzadas · MedTrack v4.3.3</div>
+    <div style="text-align:center;padding:14px 0;color:var(--text3);font-size:.66rem;">CIMA Investigaciones Avanzadas · MedTrack v4.3.4</div>
   </div>
 </div>
 
@@ -1134,7 +1134,7 @@ function exportAllPDF(){
     rows+="<tr><td>"+esc(eq.nombre)+"</td><td>"+ci.label+"</td><td>"+esc(eq.ubicacion||"—")+"</td><td>"+eq.estado+"</td><td>"+eq.frecuencia+"</td><td>"+fD(eq.ultimoMant)+"</td><td>"+fD(eq.proximoMant)+"</td><td>"+eq.partes.length+"</td><td>"+rot+"</td><td>"+(eq.historialMant||[]).length+"</td></tr>";
   });
   var w=window.open("","_blank");
-  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CIMA Reporte</title><style>body{font-family:Helvetica,sans-serif;font-size:11px;color:#1c1c1e;margin:0}.h{background:#1a3a6b;color:#fff;padding:20px 24px}.h1{font-size:18px;font-weight:700}.b{padding:16px 24px}h2{font-size:12px;color:#1a3a6b;border-bottom:2px solid #dbeafe;padding-bottom:4px;margin:14px 0 8px}table{width:100%;border-collapse:collapse}th{background:#1a3a6b;color:#fff;padding:6px 8px;text-align:left;font-size:9px}td{padding:5px 8px;border-bottom:1px solid #e2e8f0;font-size:10px}tr:nth-child(even) td{background:#f8fafc}@media print{body{print-color-adjust:exact;-webkit-print-color-adjust:exact}}</style></head><body><div class="h"><div class="h1">CIMA — Reporte General</div><div style="font-size:10px;opacity:.7;">'+new Date().toLocaleString("es-AR")+' · '+eqs.length+' equipos</div></div><div class="b"><h2>Equipos</h2><table><thead><tr><th>Equipo</th><th>Cat.</th><th>Ubic.</th><th>Estado</th><th>Frec.</th><th>Últ.Mant.</th><th>Próx.Mant.</th><th>Partes</th><th>Rotas</th><th>Hist.</th></tr></thead><tbody>'+rows+'</tbody></table></div><script>window.onload=function(){window.print();}<\/script></body></html>');
+  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CIMA Reporte</title><style>body{font-family:Helvetica,sans-serif;font-size:11px;color:#1c1c1e;margin:0}.h{background:#1a3a6b;color:#fff;padding:20px 24px}.h1{font-size:18px;font-weight:700}.b{padding:16px 24px}h2{font-size:12px;color:#1a3a6b;border-bottom:2px solid #dbeafe;padding-bottom:4px;margin:14px 0 8px}table{width:100%;border-collapse:collapse}th{background:#1a3a6b;color:#fff;padding:6px 8px;text-align:left;font-size:9px}td{padding:5px 8px;border-bottom:1px solid #e2e8f0;font-size:10px}tr:nth-child(even) td{background:#f8fafc}.nav-bar{position:sticky;top:0;z-index:99;background:rgba(255,255,255,.95);backdrop-filter:blur(10px);border-bottom:1px solid #e2e8f0;padding:10px 16px;display:flex;gap:10px;}.btn-back{background:#1a3a6b;color:#fff;border:none;border-radius:50px;padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer;}.btn-print{background:#f1f5f9;color:#1a3a6b;border:1px solid #dce8f5;border-radius:50px;padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer;}@media print{.nav-bar{display:none}body{print-color-adjust:exact;-webkit-print-color-adjust:exact}}</style></head><body><div class="nav-bar"><button class="btn-back" onclick="window.close()">← Volver</button><button class="btn-print" onclick="window.print()">🖨 Imprimir</button></div><div class="h"><div class="h1">CIMA — Reporte General</div><div style="font-size:10px;opacity:.7;">'+new Date().toLocaleString("es-AR")+' · '+eqs.length+' equipos</div></div><div class="b"><h2>Equipos</h2><table><thead><tr><th>Equipo</th><th>Cat.</th><th>Ubic.</th><th>Estado</th><th>Frec.</th><th>Últ.Mant.</th><th>Próx.Mant.</th><th>Partes</th><th>Rotas</th><th>Hist.</th></tr></thead><tbody>'+rows+'</tbody></table></div></body></html>');
   w.document.close();toggleSettings();
 }
 
@@ -1145,13 +1145,13 @@ function exportPDF(eqId){
   var histRows="";if(hist.length){hist.forEach(function(h){histRows+="<tr><td>"+fmtD(h.fecha)+"</td><td>"+(h.tipo==="mantenimiento"?"Mantenimiento":"Reparación")+"</td><td>"+(h.nombre||"—")+"</td><td>"+(h.tecnico||"—")+"</td><td>"+(h.notas||"—")+"</td></tr>";});}else{histRows='<tr><td colspan="5" style="text-align:center;color:#8e8e93;">Sin historial</td></tr>';}
   var partesRows="";if(eq.partes.length){eq.partes.forEach(function(p){partesRows+="<tr><td>"+esc(p.nombre)+"</td><td>"+({ok:"OK",pendiente:"Pendiente",roto:"Roto"}[p.estado]||p.estado)+"</td><td>"+(fmtD(p.fechaRotura)||"—")+"</td><td>"+(fmtD(p.fechaArreglo)||"—")+"</td><td>"+(esc(p.marca)||"—")+"</td><td>"+(esc(p.notas)||"—")+"</td></tr>";});}else{partesRows='<tr><td colspan="6" style="text-align:center;color:#8e8e93;">Sin partes</td></tr>';}
   var w=window.open("","_blank");
-  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+esc(eq.nombre)+'</title><style>body{font-family:-apple-system,Helvetica,sans-serif;font-size:11px;color:#1c1c1e;margin:0;}.h{background:#007aff;color:#fff;padding:20px 24px;}.h h1{font-size:18px;margin:0;}.h p{font-size:10px;opacity:.7;margin:4px 0 0;}.b{padding:16px 24px;}h2{font-size:12px;color:#007aff;border-bottom:2px solid #e5e5ea;padding-bottom:4px;margin:14px 0 8px;}.ig{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}.ib{background:#f2f2f7;border-radius:6px;padding:7px 10px;}.ib-l{font-size:9px;color:#8e8e93;text-transform:uppercase;margin-bottom:2px;}.ib-v{font-size:12px;font-weight:600;}table{width:100%;border-collapse:collapse;}th{background:#007aff;color:#fff;padding:6px 8px;text-align:left;font-size:9px;}td{padding:5px 8px;border-bottom:1px solid #e5e5ea;font-size:10px;}tr:nth-child(even) td{background:#f2f2f7;}.ft{margin-top:20px;padding-top:10px;border-top:1px solid #e5e5ea;font-size:9px;color:#8e8e93;display:flex;justify-content:space-between;}@media print{body{-webkit-print-color-adjust:exact;}}</style></head><body>');
+  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+esc(eq.nombre)+'</title><style>body{font-family:-apple-system,Helvetica,sans-serif;font-size:11px;color:#1c1c1e;margin:0;}.h{background:#007aff;color:#fff;padding:20px 24px;}.h h1{font-size:18px;margin:0;}.h p{font-size:10px;opacity:.7;margin:4px 0 0;}.b{padding:16px 24px;}h2{font-size:12px;color:#007aff;border-bottom:2px solid #e5e5ea;padding-bottom:4px;margin:14px 0 8px;}.ig{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}.ib{background:#f2f2f7;border-radius:6px;padding:7px 10px;}.ib-l{font-size:9px;color:#8e8e93;text-transform:uppercase;margin-bottom:2px;}.ib-v{font-size:12px;font-weight:600;}table{width:100%;border-collapse:collapse;}th{background:#007aff;color:#fff;padding:6px 8px;text-align:left;font-size:9px;}td{padding:5px 8px;border-bottom:1px solid #e5e5ea;font-size:10px;}tr:nth-child(even) td{background:#f2f2f7;}.ft{margin-top:20px;padding-top:10px;border-top:1px solid #e5e5ea;font-size:9px;color:#8e8e93;display:flex;justify-content:space-between;}.nav-bar{position:sticky;top:0;z-index:99;background:rgba(255,255,255,.95);backdrop-filter:blur(10px);border-bottom:1px solid #e2e8f0;padding:10px 16px;display:flex;gap:10px;}.btn-back{background:#007aff;color:#fff;border:none;border-radius:50px;padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer;}.btn-print{background:#f2f2f7;color:#007aff;border:1px solid #e5e5ea;border-radius:50px;padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer;}@media print{.nav-bar{display:none;}body{-webkit-print-color-adjust:exact;}}</style></head><body><div class="nav-bar"><button class="btn-back" onclick="window.close()">← Volver</button><button class="btn-print" onclick="window.print()">🖨 Imprimir</button></div>');
   w.document.write('<div class="h"><h1>CIMA — '+esc(eq.nombre)+'</h1><p>'+new Date().toLocaleString("es-AR")+'</p></div><div class="b">');
   w.document.write('<h2>Información</h2><div class="ig">');
   [{l:"Equipo",v:eq.nombre},{l:"Categoría",v:ci.label},{l:"Estado",v:estLabel(eq.estado)},{l:"Ubicación",v:eq.ubicacion||"—"},{l:"SystemID",v:eq.serie||"—"},{l:"Instalación",v:fmtD(eq.instalacion)},{l:"Ingeniero",v:eq.tecnico||"—"},{l:"Contrato",v:eq.contrato||"—"},{l:"Frecuencia",v:eq.frecuencia},{l:"Último Mant.",v:fmtD(eq.ultimoMant)},{l:"Próximo Mant.",v:fmtD(eq.proximoMant)}].forEach(function(x){w.document.write('<div class="ib"><div class="ib-l">'+x.l+'</div><div class="ib-v">'+esc(x.v)+'</div></div>');});
   w.document.write('</div><h2>Historial</h2><table><thead><tr><th>Fecha</th><th>Tipo</th><th>Parte</th><th>Ingeniero</th><th>Notas</th></tr></thead><tbody>'+histRows+'</tbody></table>');
   w.document.write('<h2 style="margin-top:16px;">Partes</h2><table><thead><tr><th>Nombre</th><th>Estado</th><th>Rotura</th><th>Arreglo</th><th>Marca</th><th>Notas</th></tr></thead><tbody>'+partesRows+'</tbody></table>');
-  w.document.write('<div class="ft"><span>CIMA Investigaciones Avanzadas</span><span>'+new Date().toLocaleDateString("es-AR")+'</span></div></div><script>window.onload=function(){window.print();}<\/script></body></html>');
+  w.document.write('<div class="ft"><span>CIMA Investigaciones Avanzadas</span><span>'+new Date().toLocaleDateString("es-AR")+'</span></div></div></body></html>');
   w.document.close();
 }
 
@@ -1199,8 +1199,12 @@ function expFiltered(){
     'table{width:100%;border-collapse:collapse;margin-bottom:4px}'+
     'th{background:#f1f5f9;color:#475569;padding:5px 10px;text-align:left;font-size:8px;text-transform:uppercase}'+
     'td{padding:5px 10px;border-bottom:1px solid #f1f5f9;font-size:10px}'+
-    '@media print{body{print-color-adjust:exact;-webkit-print-color-adjust:exact}.eq-block{page-break-inside:avoid}}'+
+    '.nav-bar{position:sticky;top:0;z-index:99;background:rgba(255,255,255,.95);backdrop-filter:blur(10px);border-bottom:1px solid #e2e8f0;padding:10px 16px;display:flex;gap:10px;align-items:center;}'+
+    '.btn-back{background:#1a3a6b;color:#fff;border:none;border-radius:50px;padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer;}'+
+    '.btn-print{background:#f1f5f9;color:#1a3a6b;border:1px solid #dce8f5;border-radius:50px;padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer;}'+
+    '@media print{.nav-bar{display:none}body{print-color-adjust:exact;-webkit-print-color-adjust:exact}.eq-block{page-break-inside:avoid}}'+
     '</style></head><body>'+
+    '<div class="nav-bar"><button class="btn-back" onclick="window.close()">← Volver</button><button class="btn-print" onclick="window.print()">🖨 Imprimir</button></div>'+
     '<div class="hd"><div style="font-size:18px;font-weight:700;">CIMA — Informe por Equipo</div>'+
     '<div style="font-size:11px;opacity:.8;margin-top:2px;">'+fD(desde)+' al '+fD(hasta)+'</div></div>'+
     '<div class="b">'+
@@ -1209,7 +1213,7 @@ function expFiltered(){
     '<div class="sb"><div style="font-size:8px;color:#64748b;text-transform:uppercase">Mantenimientos</div><div style="font-size:20px;font-weight:700;color:#0071e3">'+tm+'</div></div>'+
     '<div class="sb"><div style="font-size:8px;color:#64748b;text-transform:uppercase">Reparaciones</div><div style="font-size:20px;font-weight:700;color:#34c759">'+tr+'</div></div>'+
     '</div>'+sections+
-    '</div><script>onload=function(){print()}<\/script></body></html>');
+    '</div></body></html>');
   w.document.close();
 }
 
