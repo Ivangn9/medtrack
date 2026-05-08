@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.08.45 -->
+<!-- v2026.05.08.46 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-title" content="MedTrack">
 <title>MedTrack — CIMA</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.05.08.45">
+<meta name="app-version" content="v2026.05.08.46">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -561,7 +561,7 @@ function iconFor(eq,size){
 //  NAVIGATION
 // ═══════════════════════════════════════════
 function setView(v){
-  view=v;selId=null;
+  view=v;selId=null;if(v==="dash")_filtDash=null;
   document.getElementById("back-btn").classList.add("hidden");
   var bb=document.getElementById("bottom-bar");
   if(bb){bb.querySelectorAll(".tab").forEach(function(b){b.classList.toggle("on",b.dataset.tab===v);});}
@@ -989,8 +989,12 @@ function rDash(){
   var rot=0,pend=0;eqs.forEach(function(e){e.partes.forEach(function(p){if(p.estado==="roto")rot++;if(p.estado==="pendiente")pend++;});});
   
   var h='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;">';
-  [{l:"Total",v:eqs.length,c:"var(--accent)"},{l:"Operativos",v:opOK,c:"var(--green)"},{l:"F. de servicio",v:opF,c:"var(--red)"},{l:"Mant. Urg.",v:mU,c:"var(--red)"},{l:"Comp. Rotos",v:rot,c:"var(--red)"},{l:"Pendientes",v:pend,c:"var(--orange)"}].forEach(function(s){
-    h+='<div class="gc stat"><div class="stat-lbl">'+s.l+'</div><div class="stat-val" style="color:'+s.c+';">'+s.v+'</div></div>';
+  [{l:"Total",v:eqs.length,c:"var(--accent)",k:"total"},{l:"Operativos",v:opOK,c:"var(--green)",k:"operativo"},{l:"F. de servicio",v:opF,c:"var(--red)",k:"fuera"},{l:"Mant. Urg.",v:mU,c:"var(--red)",k:"manturg"},{l:"Comp. Rotos",v:rot,c:"var(--red)",k:"rotos"},{l:"Pendientes",v:pend,c:"var(--orange)",k:"pendientes"}].forEach(function(s){
+    h+='<div class="gc stat tap" onclick="applyDashFilter(\''+s.k+'\')" style="cursor:pointer;border-bottom:3px solid '+s.c+'40;transition:transform .18s,box-shadow .18s;">'+
+      '<div class="stat-lbl">'+s.l+'</div>'+
+      '<div class="stat-val" style="color:'+s.c+';">'+s.v+'</div>'+
+      '<div style="font-size:.58rem;color:var(--text3);margin-top:6px;font-weight:500;">Ver lista →</div>'+
+      '</div>';
   });
   h+='</div>';
 
@@ -1038,6 +1042,17 @@ function rDash(){
 // ── LISTA ──
 var _busqueda="";
 var _detalleQ="",_detalleSearchOpen=false;
+var _filtDash=null;
+var FDASH={
+  total:     {l:"Todos los equipos",     c:"var(--accent)"},
+  operativo: {l:"Operativos",            c:"var(--green)"},
+  fuera:     {l:"Fuera de servicio",     c:"var(--red)"},
+  manturg:   {l:"Mantenimiento urgente", c:"var(--red)"},
+  rotos:     {l:"Con componentes rotos", c:"var(--red)"},
+  pendientes:{l:"Con partes pendientes", c:"var(--orange)"}
+};
+function applyDashFilter(key){_filtDash=key;filtCat="TODOS";_busqueda="";setView("lista");}
+function clearDashFilter(){_filtDash=null;render();}
 function toggleDetalleSearch(){_detalleSearchOpen=!_detalleSearchOpen;if(!_detalleSearchOpen)_detalleQ="";render();if(_detalleSearchOpen){var i=document.getElementById('det-busq');if(i)i.focus();}}
 function setDetalleQ(v){var inp=document.getElementById('det-busq');var sel=inp?inp.selectionStart:null;_detalleQ=v;render();inp=document.getElementById('det-busq');if(inp){inp.focus();if(sel!==null)inp.setSelectionRange(sel,sel);}}
 function setBusqueda(v){
@@ -1048,9 +1063,22 @@ function setBusqueda(v){
   if(inp){inp.focus();if(sel!==null)inp.setSelectionRange(sel,sel);}
 }
 function rLista(){
-  var h='<div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:10px;padding-top:12px;">';
-  h+='<button class="chip'+(filtCat==="TODOS"?" on":"")+'" onclick="filtCat=\'TODOS\';render();">Todos</button>';
-  CATS.forEach(function(c){h+='<button class="chip'+(filtCat===c.id?" on":"")+'" onclick="filtCat=\''+c.id+'\';render();">'+(catSvgIcon(c.id,18)||'')+' '+c.label+'</button>';});
+  var h="";
+  // Banner filtro de dashboard
+  if(_filtDash&&FDASH[_filtDash]){
+    var fd=FDASH[_filtDash];
+    h+='<div style="display:flex;align-items:center;justify-content:space-between;background:'+fd.c+'14;border:1px solid '+fd.c+'30;border-radius:var(--r-md);padding:10px 14px;margin-bottom:12px;">'+
+      '<div style="display:flex;align-items:center;gap:8px;">'+
+      '<span style="font-size:.85rem;">🔎</span>'+
+      '<div><div style="font-size:.72rem;font-weight:700;color:'+fd.c+';">'+fd.l+'</div>'+
+      '<div style="font-size:.64rem;color:var(--text3);">Filtro activo desde el panel</div></div>'+
+      '</div>'+
+      '<button onclick="clearDashFilter()" style="background:'+fd.c+'20;border:none;border-radius:50px;padding:5px 12px;font-size:.7rem;font-weight:700;color:'+fd.c+';cursor:pointer;">✕ Quitar</button>'+
+      '</div>';
+  }
+  h+='<div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:10px;">';
+  h+='<button class="chip'+(!_filtDash&&filtCat==="TODOS"?" on":"")+'" onclick="_filtDash=null;filtCat=\'TODOS\';render();">Todos</button>';
+  CATS.forEach(function(c){h+='<button class="chip'+(!_filtDash&&filtCat===c.id?" on":"")+'" onclick="_filtDash=null;filtCat=\''+c.id+'\';render();">'+(catSvgIcon(c.id,18)||'')+' '+c.label+'</button>';});
   h+='</div>';
   h+='<div style="position:relative;margin-bottom:16px;">'+
     '<span style="position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:1rem;pointer-events:none;z-index:2;">🔍</span>'+
@@ -1060,7 +1088,16 @@ function rLista(){
     (_busqueda?'<button onclick="_busqueda=\'\';render();" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--text3);z-index:2;">✕</button>':'')+'</div>';
 
   var q=_busqueda.toLowerCase().trim();
-  var lista=eqs.filter(function(e){return filtCat==="TODOS"||e.cat===filtCat;});
+  var lista=eqs.filter(function(e){
+    if(_filtDash&&_filtDash!=="total"){
+      if(_filtDash==="operativo")return e.estado==="operativo";
+      if(_filtDash==="fuera")return e.estado==="fuera-de-servicio";
+      if(_filtDash==="manturg")return !sinMant(e)&&(semafo(e)==="vencido"||semafo(e)==="urgente");
+      if(_filtDash==="rotos")return e.partes.some(function(p){return p.estado==="roto";});
+      if(_filtDash==="pendientes")return e.partes.some(function(p){return p.estado==="pendiente";});
+    }
+    return filtCat==="TODOS"||e.cat===filtCat;
+  });
 
   if(q){
     // Al buscar, ignorar filtro de categoría y buscar en TODOS los equipos
@@ -1514,8 +1551,8 @@ function submitRotura(){
 //  HARD REFRESH
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
-var APP_DISPLAY_VERSION="v5.1";
-var APP_BUILD="08/05/26 13:15";
+var APP_DISPLAY_VERSION="v5.1.1";
+var APP_BUILD="08/05/26 13:50";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
