@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.08.43 -->
+<!-- v2026.05.08.44 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-title" content="MedTrack">
 <title>MedTrack — CIMA</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.05.08.43">
+<meta name="app-version" content="v2026.05.08.44">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1121,8 +1121,25 @@ function rAlertas(){
     var sub=al.filter(function(a){return a.niv===g[0];});if(!sub.length)return;
     h+='<div class="sec" style="color:'+g[2]+';">'+g[1]+' ('+sub.length+')</div>';
     sub.forEach(function(a){
-      h+='<div class="gc tap" onclick="goDetalle(\''+a.eid+'\')" style="padding:12px 14px;margin-bottom:8px;border-left:3px solid '+g[2]+';cursor:pointer;">'+
-        '<div style="font-weight:600;font-size:.84rem;">'+esc(a.tit)+'</div><div style="font-size:.76rem;color:var(--text3);margin-top:2px;">'+esc(a.desc)+'</div></div>';
+      var eq=eqs.find(function(e){return e.id===a.eid;})||{};
+      var cat=catById(eq.cat);
+      var catColor=cat.color||"#64748b";
+      var nivColor=g[2];
+      h+='<div class="gc tap" onclick="goDetalle(\''+a.eid+'\')" style="padding:13px 14px;margin-bottom:8px;border-left:4px solid '+nivColor+';cursor:pointer;">'+
+        '<div style="display:flex;align-items:center;gap:12px;">'+
+        '<div style="width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:'+catColor+'18;border:1px solid '+catColor+'30;box-shadow:0 2px 8px rgba(0,0,0,.06),inset 0 1px 0 rgba(255,255,255,.8);">'+
+        (catSvgIcon(eq.cat,30)||'<span style="font-size:1.2rem;">'+cat.icon+'</span>')+
+        '</div>'+
+        '<div style="flex:1;min-width:0;">'+
+        '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">'+
+        '<span style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:.6rem;font-weight:700;background:'+nivColor+'18;color:'+nivColor+';">'+g[1].split(' ')[0]+'</span>'+
+        '<span style="font-size:.62rem;font-weight:600;color:'+catColor+';background:'+catColor+'14;padding:2px 8px;border-radius:20px;">'+cat.label+'</span>'+
+        '</div>'+
+        '<div style="font-weight:700;font-size:.86rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+esc(a.tit)+'</div>'+
+        '<div style="font-size:.74rem;color:var(--text3);margin-top:2px;">'+esc(a.desc)+'</div>'+
+        '</div>'+
+        '<div style="color:var(--text3);font-size:1.1rem;flex-shrink:0;">›</div>'+
+        '</div></div>';
     });
   });
   return h;
@@ -1452,8 +1469,8 @@ function submitRotura(){
 //  HARD REFRESH
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
-var APP_DISPLAY_VERSION="v5.0";
-var APP_BUILD="08/05/26 12:25";
+var APP_DISPLAY_VERSION="v5.0.1";
+var APP_BUILD="08/05/26 12:45";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
