@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.08.46 -->
+<!-- v2026.05.08.47 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-title" content="MedTrack">
 <title>MedTrack — CIMA</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.05.08.46">
+<meta name="app-version" content="v2026.05.08.47">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1215,7 +1215,7 @@ function rDetalle(){
   [{l:"Categoría",v:ci.label},{l:"Marca",v:eq.marca||"—"},{l:"Instalación",v:fD(eq.instalacion)},{l:"SystemID",v:eq.serie||"—"},{l:"Contrato",v:eq.contrato||"—"}].forEach(function(x){
     h+='<div class="ibox"><div class="ibox-l">'+x.l+'</div><div class="ibox-v">'+esc(x.v)+'</div></div>';
   });
-  if(eq.garantia){var gd=diasH(eq.garantiaHasta);var gVenc=eq.garantiaHasta&&gd<0;h+='<div class="ibox" style="grid-column:1/-1;"><div class="ibox-l">Garantía</div><div class="ibox-v"><span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:50px;font-size:.72rem;font-weight:700;background:'+(gVenc?"rgba(255,59,48,.12)":"rgba(52,199,89,.12)")+';color:'+(gVenc?"var(--red)":"var(--green)")+'">'+(gVenc?"❌ Vencida":"✅ En garantía")+(eq.garantiaHasta?' · hasta '+fD(eq.garantiaHasta):'')+'</span></div></div>';}
+  if(eq.garantia){var gd=diasH(eq.garantiaHasta);var gVenc=eq.garantiaHasta&&gd<0;var gProx=!gVenc&&eq.garantiaHasta&&gd<=30;var gColor=gVenc?"var(--red)":gProx?"var(--orange)":"var(--green)";var gBg=gVenc?"rgba(255,59,48,.12)":gProx?"rgba(255,149,0,.12)":"rgba(52,199,89,.12)";var gLabel=gVenc?"❌ Vencida":gProx?"⚠️ Vence en "+gd+"d":"✅ En garantía";h+='<div class="ibox" style="grid-column:1/-1;"><div class="ibox-l">Garantía</div><div class="ibox-v"><span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:50px;font-size:.72rem;font-weight:700;background:'+gBg+';color:'+gColor+';">'+gLabel+(eq.garantiaHasta?' · hasta '+fD(eq.garantiaHasta):'')+'</span></div></div>';}
   if(eq.tieneServicio)h+='<div class="ibox" style="grid-column:1/-1;"><div class="ibox-l">Servicio</div><div class="ibox-v"><span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:50px;font-size:.72rem;font-weight:700;background:rgba(52,199,89,.12);color:var(--green);">✔ Contrato de servicio activo</span></div></div>';
   h+='</div>';
   h+='<div style="display:flex;gap:8px;"><button class="btn-secondary" style="flex:1;" onclick="openModalEq('+JSON.stringify(eq).replace(/"/g,"&quot;")+')">✏️ Editar</button><button class="btn-danger" onclick="delEq(\''+eq.id+'\')">🗑</button></div></div>';
@@ -1551,8 +1551,8 @@ function submitRotura(){
 //  HARD REFRESH
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
-var APP_DISPLAY_VERSION="v5.1.1";
-var APP_BUILD="08/05/26 13:50";
+var APP_DISPLAY_VERSION="v5.1.2";
+var APP_BUILD="08/05/26 14:10";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
