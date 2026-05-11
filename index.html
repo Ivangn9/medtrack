@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.08.50 -->
+<!-- v2026.05.08.51 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -14,7 +14,7 @@
 <link rel="shortcut icon" href="icon.png">
 <title>MedTrack — CIMA</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.05.08.50">
+<meta name="app-version" content="v2026.05.08.51">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -731,13 +731,16 @@ function repararParte(eqId,pid){
     '<div style="font-size:.72rem;color:var(--text3);">'+( pt.descripcion?esc(pt.descripcion):'')+'</div></div>'+
     '<div class="ff"><div class="ff-label">Fecha de Reparación *</div>'+
     '<input class="inp" type="date" id="rep-fecha" value="'+new Date().toISOString().split("T")[0]+'"></div>'+
+    '<div class="ff"><div class="ff-label">Ingeniero que reparó</div>'+
+    '<input class="inp" id="rep-tecnico" placeholder="Nombre del ingeniero..." value="'+esc(pt.tecnicoReparacion||eq.tecnico||'')+'"></div>'+
     '<div class="ff"><div class="ff-label">Notas (opcional)</div>'+
-    '<textarea class="inp" id="rep-notas" rows="2" placeholder="Ej: Se reemplazó la pieza, ingeniero Juan García...">'+esc(pt.notas||'')+'</textarea></div>'+
+    '<textarea class="inp" id="rep-notas" rows="2" placeholder="Descripción de la reparación...">'+esc(pt.notas||'')+'</textarea></div>'+
     '<button class="btn-primary" style="width:100%;padding:14px;font-size:.92rem;background:var(--green);margin-top:4px;" onclick="confirmarReparacion(\''+eqId+'\',\''+pid+'\')">✅ Confirmar Reparación</button>'
   );
 }
 function confirmarReparacion(eqId,pid){
   var fecha=document.getElementById("rep-fecha").value;
+  var tecnico=(document.getElementById("rep-tecnico")||{value:""}).value.trim();
   var notas=document.getElementById("rep-notas").value;
   if(!fecha)return alert("Ingresá la fecha de reparación");
   var eq=eqs.find(function(e){return e.id===eqId;});
@@ -746,7 +749,7 @@ function confirmarReparacion(eqId,pid){
   if(!pt)return;
   eqs=eqs.map(function(e){
     if(e.id!==eqId)return e;
-    var hist=(e.historialMant||[]).concat({id:"HP-"+Date.now(),fecha:fecha,tipo:"reparacion",nombre:pt.nombre,marca:pt.marca||"",nroSerie:pt.nroSerie||"",fechaRotura:pt.fechaRotura||"",notas:notas||pt.notas||"",precio:pt.precio||"",archivos:pt.archivos||[],registradoEn:new Date().toISOString()});
+    var hist=(e.historialMant||[]).concat({id:"HP-"+Date.now(),fecha:fecha,tipo:"reparacion",nombre:pt.nombre,marca:pt.marca||"",nroSerie:pt.nroSerie||"",fechaRotura:pt.fechaRotura||"",notas:notas||pt.notas||"",precio:pt.precio||"",tecnico:tecnico,archivos:pt.archivos||[],registradoEn:new Date().toISOString()});
     var partes=e.partes.filter(function(x){return x.id!==pid;});
     return Object.assign({},e,{partes:partes,historialMant:hist});
   });
@@ -1002,6 +1005,7 @@ function openModalParte(eqId,pt){
     '<div class="ff"><div class="ff-label">Estado</div><div style="display:flex;gap:6px;">'+estBtns+'</div><input type="hidden" id="pt-es" value="'+f.estado+'"></div>'+
     '<div id="pt-rotura-fields" style="display:'+(isMejora?'none':'block')+'">'+
       '<div class="g2"><div class="ff"><div class="ff-label">Fecha Rotura</div><input class="inp" type="date" id="pt-fr" value="'+f.fechaRotura+'"></div><div class="ff"><div class="ff-label">Fecha Arreglo</div><input class="inp" type="date" id="pt-fa" value="'+f.fechaArreglo+'"></div></div>'+
+      '<div class="ff"><div class="ff-label">Ingeniero que reparó</div><input class="inp" id="pt-tec" value="'+esc(f.tecnicoReparacion||'')+'" placeholder="Nombre del ingeniero..."></div>'+
       '<div class="ff"><div class="ff-label">Precio reparación ($)</div><input class="inp" type="number" id="pt-pc" value="'+esc(f.precio||'')+'" placeholder="0.00" min="0" step="0.01"></div>'+
     '</div>'+
     '<div id="pt-mejora-fields" style="display:'+(isMejora?'block':'none')+'">'+
@@ -1039,7 +1043,7 @@ function submitPt(eqId,ptId){
   _pendingPresupuestos.forEach(function(f){dbSave(f.id,f.nombre,f.data);});
   _pendingReportes.forEach(function(f){dbSave(f.id,f.nombre,f.data);});
   var esEl=document.getElementById("pt-es");var esMej=esEl&&esEl.value==="mejora";
-  saveParte(eqId,{id:ptId||"",nombre:n,descripcion:document.getElementById("pt-d").value,estado:esEl?esEl.value:"roto",fechaRotura:esMej?"":document.getElementById("pt-fr").value,fechaArreglo:esMej?"":document.getElementById("pt-fa").value,asignadoA:esMej?(document.getElementById("pt-asig")||{}).value||"":"",fechaMejora:esMej?(document.getElementById("pt-fmej")||{}).value||"":"",marca:document.getElementById("pt-mk").value,nroSerie:document.getElementById("pt-sn").value,notas:document.getElementById("pt-nt").value,precio:esMej?"":(document.getElementById("pt-pc")||{}).value||"",archivos:archivosExist.concat(newPresRefs).concat(newRepRefs)});
+  saveParte(eqId,{id:ptId||"",nombre:n,descripcion:document.getElementById("pt-d").value,estado:esEl?esEl.value:"roto",fechaRotura:esMej?"":document.getElementById("pt-fr").value,fechaArreglo:esMej?"":document.getElementById("pt-fa").value,tecnicoReparacion:esMej?"":(document.getElementById("pt-tec")||{value:""}).value||"",asignadoA:esMej?(document.getElementById("pt-asig")||{}).value||"":"",fechaMejora:esMej?(document.getElementById("pt-fmej")||{}).value||"":"",marca:document.getElementById("pt-mk").value,nroSerie:document.getElementById("pt-sn").value,notas:document.getElementById("pt-nt").value,precio:esMej?"":(document.getElementById("pt-pc")||{}).value||"",archivos:archivosExist.concat(newPresRefs).concat(newRepRefs)});
   _pendingPresupuestos=[];_pendingReportes=[];
 }
 function openModalMant(eqId){
@@ -1365,6 +1369,7 @@ function rDetalle(){
       '<div class="ibox"><div class="ibox-l">Arreglo</div><div class="ibox-v"'+(p.fechaArreglo?' style="color:var(--green);"':' style="color:var(--orange);"')+'>'+fD(p.fechaArreglo)+'</div></div>'+
       (p.marca?'<div class="ibox"><div class="ibox-l">Marca</div><div class="ibox-v">'+esc(p.marca)+'</div></div>':'')+
       (p.nroSerie?'<div class="ibox"><div class="ibox-l">N° Serie</div><div class="ibox-v">'+esc(p.nroSerie)+'</div></div>':'')+
+      (p.tecnicoReparacion?'<div class="ibox"><div class="ibox-l">Reparó</div><div class="ibox-v" style="color:var(--accent);">👷 '+esc(p.tecnicoReparacion)+'</div></div>':'')+
       (p.precio?'<div class="ibox"><div class="ibox-l">Precio</div><div class="ibox-v" style="color:var(--green);">$'+esc(p.precio)+'</div></div>':'')+'</div>'+
       (p.notas?'<div class="ibox" style="margin-bottom:8px;"><div style="font-size:.73rem;color:var(--text2);">'+esc(p.notas)+'</div></div>':'')+
       ((p.archivos&&p.archivos.length)?'<div style="margin-bottom:8px;">'+p.archivos.map(function(a){return'<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(0,0,0,.05);"><span>📄</span><span style="font-size:.72rem;flex:1;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(a.nombre)+'</span><button onclick="openPDFViewer(\''+a.id+'\',\''+esc(a.nombre)+'\')" style="background:rgba(0,113,227,.1);color:var(--accent);border:none;border-radius:8px;padding:3px 10px;font-size:.65rem;font-weight:600;cursor:pointer;flex-shrink:0;">Abrir</button></div>';}).join('')+'</div>':'')+
@@ -1651,8 +1656,8 @@ function submitRotura(){
 //  HARD REFRESH
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
-var APP_DISPLAY_VERSION="v6.0.2";
-var APP_BUILD="11/05/26 10:00";
+var APP_DISPLAY_VERSION="v6.0.3";
+var APP_BUILD="11/05/26 11:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
