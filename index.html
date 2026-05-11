@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.08.55 -->
+<!-- v2026.05.08.56 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -14,7 +14,7 @@
 <link rel="shortcut icon" href="icon.png">
 <title>MedTrack — CIMA</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.05.08.55">
+<meta name="app-version" content="v2026.05.08.56">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -267,22 +267,36 @@ body.dark .ibox{background:rgba(50,50,58,.5);border-color:rgba(80,80,90,.4);}
   #header-inner{padding:8px 6px 8px 12px;}
 }
 /* ── SIDEBAR ── */
-#sidebar{display:none;position:fixed;left:0;top:0;bottom:0;width:230px;z-index:50;background:rgba(10,12,24,.92);backdrop-filter:saturate(180%) blur(32px);-webkit-backdrop-filter:saturate(180%) blur(32px);border-right:1px solid rgba(255,255,255,.07);flex-direction:column;overflow-y:auto;overflow-x:hidden;padding:calc(env(safe-area-inset-top,0px)+12px) 0 calc(env(safe-area-inset-bottom,0px)+12px);}
+#sidebar{display:none;position:fixed;left:0;top:0;bottom:0;width:234px;z-index:50;
+  background:rgba(232,234,244,.72);
+  -webkit-backdrop-filter:saturate(200%) blur(40px);backdrop-filter:saturate(200%) blur(40px);
+  border-right:1px solid rgba(255,255,255,.75);
+  flex-direction:column;overflow-y:auto;overflow-x:hidden;
+  padding:calc(env(safe-area-inset-top,0px)+12px) 0 calc(env(safe-area-inset-bottom,0px)+12px);
+  box-shadow:2px 0 24px rgba(0,0,0,.07),inset -1px 0 0 rgba(255,255,255,.6);}
+#sidebar::before{content:'';position:absolute;inset:0;pointer-events:none;
+  background:var(--lg-shimmer);z-index:0;}
+#sidebar>*{position:relative;z-index:1;}
 @media(min-width:900px){
   #sidebar{display:flex;}
-  #app{margin-left:230px;}
-  #header{left:230px;}
-  #bottom-bar{left:230px;}
-  #main{padding-bottom:calc(env(safe-area-inset-bottom,0px)+120px);}
+  #app{margin-left:234px;}
+  #header{left:234px;}
+  #bottom-bar{display:none!important;}
+  #main{padding-bottom:calc(env(safe-area-inset-bottom,0px)+60px);}
 }
-.sb-section{padding:16px 16px 0;}
-.sb-nav-btn{display:flex;align-items:center;gap:10px;width:100%;padding:10px 16px;border:none;background:none;color:rgba(255,255,255,.55);font-size:.82rem;font-weight:500;cursor:pointer;border-radius:10px;margin-bottom:2px;text-align:left;transition:all .2s;}
-.sb-nav-btn:hover{background:rgba(255,255,255,.07);color:#fff;}
-.sb-nav-btn.on{background:rgba(0,212,255,.12);color:#00d4ff;font-weight:700;}
-.sb-nav-btn .sb-icon{font-size:1rem;width:20px;text-align:center;}
-.sb-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:12px;margin-bottom:10px;}
-.sb-lbl{font-size:.58rem;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.35);font-weight:600;margin-bottom:6px;}
-.sb-val{font-size:1.4rem;font-weight:800;line-height:1;}
+body.dark #sidebar{background:rgba(18,18,26,.82);border-right-color:rgba(255,255,255,.08);box-shadow:2px 0 24px rgba(0,0,0,.3);}
+.sb-section{padding:12px 12px 0;}
+.sb-nav-btn{display:flex;align-items:center;gap:10px;width:100%;padding:10px 14px;border:none;background:none;color:var(--text2);font-size:.82rem;font-weight:500;cursor:pointer;border-radius:14px;margin-bottom:2px;text-align:left;transition:all .2s;-webkit-tap-highlight-color:transparent;}
+.sb-nav-btn:hover{background:rgba(255,255,255,.5);color:var(--text);}
+.sb-nav-btn.on{background:rgba(255,255,255,.72);color:var(--accent);font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,.08),inset 0 1px 0 rgba(255,255,255,.9);}
+body.dark .sb-nav-btn{color:rgba(255,255,255,.55);}
+body.dark .sb-nav-btn:hover{background:rgba(255,255,255,.08);color:#fff;}
+body.dark .sb-nav-btn.on{background:rgba(0,113,227,.2);color:#60aaff;box-shadow:none;}
+.sb-nav-btn .sb-icon{font-size:1rem;width:22px;text-align:center;flex-shrink:0;}
+.sb-card{background:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.75);border-radius:16px;padding:12px;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,.04),inset 0 1px 0 rgba(255,255,255,.9);}
+body.dark .sb-card{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.08);box-shadow:none;}
+.sb-lbl{font-size:.58rem;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);font-weight:600;margin-bottom:6px;}
+.sb-val{font-size:1.5rem;font-weight:800;line-height:1;}
 </style>
 </head>
 <body>
@@ -403,46 +417,51 @@ body.dark .ibox{background:rgba(50,50,58,.5);border-color:rgba(80,80,90,.4);}
 </div>
 
 <div id="sidebar">
-  <div style="padding:16px 16px 12px;border-bottom:1px solid rgba(255,255,255,.06);margin-bottom:8px;">
+  <!-- Logo header -->
+  <div style="padding:14px 16px 12px;border-bottom:1px solid rgba(120,120,128,.15);margin-bottom:6px;">
     <div style="display:flex;align-items:center;gap:9px;">
-      <img src="logo.png" style="height:28px;opacity:.9;" onerror="this.style.display='none'">
+      <img src="logo.png" style="height:30px;opacity:1;filter:drop-shadow(0 1px 3px rgba(0,0,0,.15));" onerror="this.style.display='none'">
       <div>
-        <div style="font-weight:800;font-size:.9rem;color:#fff;letter-spacing:-.3px;">MedTrack</div>
-        <div style="font-size:.58rem;color:rgba(255,255,255,.35);letter-spacing:.3px;">CIMA Investigaciones</div>
+        <div style="font-weight:800;font-size:.92rem;color:var(--text);letter-spacing:-.3px;">MedTrack</div>
+        <div style="font-size:.58rem;color:var(--text3);letter-spacing:.3px;">CIMA Investigaciones</div>
       </div>
     </div>
   </div>
-  <div id="sb-user" style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.06);margin-bottom:8px;display:flex;align-items:center;gap:10px;">
-    <div id="sb-avatar-wrap" style="width:36px;height:36px;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,#0071e3,#7c3aed);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700;font-size:.9rem;color:#fff;">?</div>
+  <!-- User profile -->
+  <div id="sb-user" style="padding:10px 14px;margin:0 10px 8px;background:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.8);border-radius:16px;display:flex;align-items:center;gap:10px;box-shadow:0 2px 8px rgba(0,0,0,.05),inset 0 1px 0 rgba(255,255,255,.9);">
+    <div id="sb-avatar-wrap" style="width:38px;height:38px;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,var(--accent),#7c3aed);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700;font-size:.95rem;color:#fff;box-shadow:0 2px 8px rgba(0,113,227,.3);">?</div>
     <div style="flex:1;min-width:0;">
-      <div id="sb-name" style="font-size:.78rem;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">—</div>
-      <div id="sb-email" style="font-size:.58rem;color:rgba(255,255,255,.4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">—</div>
+      <div id="sb-name" style="font-size:.78rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">—</div>
+      <div id="sb-email" style="font-size:.58rem;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">—</div>
     </div>
   </div>
-  <div style="padding:0 10px;margin-bottom:8px;">
+  <!-- Navigation -->
+  <div style="padding:0 10px;margin-bottom:10px;">
     <button class="sb-nav-btn on" data-sb="dash" onclick="setView('dash')"><span class="sb-icon">📊</span>Panel</button>
     <button class="sb-nav-btn" data-sb="lista" onclick="setView('lista')"><span class="sb-icon">🔧</span>Equipos</button>
-    <button class="sb-nav-btn" data-sb="alertas" onclick="setView('alertas')"><span class="sb-icon">🔔</span>Alertas<span id="sb-alert-badge" style="display:none;background:#ff3b30;color:#fff;border-radius:10px;padding:1px 6px;font-size:.6rem;font-weight:700;margin-left:auto;"></span></button>
+    <button class="sb-nav-btn" data-sb="alertas" onclick="setView('alertas')"><span class="sb-icon">🔔</span>Alertas<span id="sb-alert-badge" style="display:none;background:var(--red);color:#fff;border-radius:10px;padding:1px 6px;font-size:.6rem;font-weight:700;margin-left:auto;"></span></button>
     <button class="sb-nav-btn" onclick="toggleSettings()"><span class="sb-icon">⚙️</span>Ajustes</button>
-    <button class="sb-nav-btn" onclick="openMRotura()" style="color:rgba(255,80,80,.7);"><span class="sb-icon">⚠️</span>Reportar Rotura</button>
-    <button class="sb-nav-btn" onclick="openModalEq(null)" style="color:rgba(0,212,255,.7);"><span class="sb-icon">＋</span>Agregar Equipo</button>
+    <div style="height:1px;background:rgba(120,120,128,.12);margin:6px 4px;"></div>
+    <button class="sb-nav-btn" onclick="openMRotura()" style="color:var(--red);"><span class="sb-icon">⚠️</span>Reportar Rotura</button>
+    <button class="sb-nav-btn" onclick="openModalEq(null)" style="color:var(--accent);font-weight:600;"><span class="sb-icon">＋</span>Agregar Equipo</button>
   </div>
+  <!-- Charts section -->
   <div class="sb-section">
     <div class="sb-lbl">Estado de Equipos</div>
     <div class="sb-card" style="display:flex;align-items:center;gap:12px;">
       <div id="sb-donut" style="flex-shrink:0;"></div>
       <div id="sb-donut-legend" style="flex:1;"></div>
     </div>
-    <div class="sb-lbl" style="margin-top:4px;">Próximos Servicios</div>
+    <div class="sb-lbl" style="margin-top:2px;">Próximos Servicios</div>
     <div id="sb-upcoming" class="sb-card"></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">
       <div class="sb-card" style="text-align:center;">
         <div class="sb-lbl">Rotos</div>
-        <div id="sb-rotos" class="sb-val" style="color:#ff453a;">0</div>
+        <div id="sb-rotos" class="sb-val" style="color:var(--red);">0</div>
       </div>
       <div class="sb-card" style="text-align:center;">
         <div class="sb-lbl">Pendientes</div>
-        <div id="sb-pend" class="sb-val" style="color:#ff9f0a;">0</div>
+        <div id="sb-pend" class="sb-val" style="color:var(--orange);">0</div>
       </div>
     </div>
   </div>
@@ -1716,8 +1735,8 @@ function submitRotura(){
 //  HARD REFRESH
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
-var APP_DISPLAY_VERSION="v6.2";
-var APP_BUILD="11/05/26 16:00";
+var APP_DISPLAY_VERSION="v6.2.1";
+var APP_BUILD="11/05/26 17:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
@@ -1944,14 +1963,14 @@ function rSidebar(){
   var opOth=eqs.length-opOK-opF;
   var donutEl=document.getElementById("sb-donut");
   var legendEl=document.getElementById("sb-donut-legend");
-  if(donutEl){donutEl.innerHTML=donutSVG([{v:opOK,c:"#30d158"},{v:opF,c:"#ff453a"},{v:opOth,c:"#636366"}],72);}
-  if(legendEl){legendEl.innerHTML='<div style="font-size:.7rem;color:#30d158;font-weight:700;margin-bottom:4px;">✅ '+opOK+' Operativos</div><div style="font-size:.7rem;color:#ff453a;font-weight:700;margin-bottom:4px;">🔴 '+opF+' F. Servicio</div><div style="font-size:.7rem;color:rgba(255,255,255,.4);">⬜ '+opOth+' Otros</div>';}
+  if(donutEl){donutEl.innerHTML=donutSVG([{v:opOK,c:"#34c759"},{v:opF,c:"#ff3b30"},{v:opOth,c:"rgba(120,120,128,.35)"}],72);}
+  if(legendEl){legendEl.innerHTML='<div style="font-size:.68rem;color:#34c759;font-weight:700;margin-bottom:5px;">✅ '+opOK+' Operativos</div><div style="font-size:.68rem;color:#ff3b30;font-weight:700;margin-bottom:5px;">🔴 '+opF+' F. Servicio</div><div style="font-size:.68rem;color:var(--text3);">⬜ '+opOth+' Otros</div>';}
   // Upcoming
   var upEl=document.getElementById("sb-upcoming");
   if(upEl){
     var sorted=eqs.filter(function(e){return e.proximoMant&&e.estado!=="fuera-de-servicio";}).sort(function(a,b){return new Date(a.proximoMant)-new Date(b.proximoMant);}).slice(0,4);
-    if(!sorted.length){upEl.innerHTML='<div style="font-size:.72rem;color:rgba(255,255,255,.3);text-align:center;padding:4px 0;">Sin servicios programados</div>';}
-    else{upEl.innerHTML=sorted.map(function(e){var d=diasH(e.proximoMant);var col=d<0?"#ff453a":d<=7?"#ff9f0a":d<=30?"#ffd60a":"#30d158";return'<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05);">'+iconFor(e,24)+'<div style="flex:1;min-width:0;"><div style="font-size:.72rem;color:#fff;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+esc(e.nombre)+'</div><div style="font-size:.6rem;color:rgba(255,255,255,.35);">'+fD(e.proximoMant)+'</div></div><div style="font-size:.68rem;font-weight:700;color:'+col+';flex-shrink:0;">'+(d<0?"VENC.":d===0?"HOY":d+"d")+'</div></div>';}).join('');}
+    if(!sorted.length){upEl.innerHTML='<div style="font-size:.72rem;color:var(--text3);text-align:center;padding:4px 0;">Sin servicios programados</div>';}
+    else{upEl.innerHTML=sorted.map(function(e){var d=diasH(e.proximoMant);var col=d<0?"#ff3b30":d<=7?"#ff9500":d<=30?"#ffcc00":"#34c759";return'<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(120,120,128,.1);">'+iconFor(e,24)+'<div style="flex:1;min-width:0;"><div style="font-size:.72rem;color:var(--text);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+esc(e.nombre)+'</div><div style="font-size:.6rem;color:var(--text3);">'+fD(e.proximoMant)+'</div></div><div style="font-size:.68rem;font-weight:700;color:'+col+';flex-shrink:0;">'+(d<0?"VENC.":d===0?"HOY":d+"d")+'</div></div>';}).join('');}
   }
   // Stats
   var rot=0,pend=0;eqs.forEach(function(e){e.partes.forEach(function(p){if(p.estado==="roto")rot++;if(p.estado==="pendiente")pend++;});});
