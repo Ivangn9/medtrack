@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.08.54 -->
+<!-- v2026.05.08.55 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -14,7 +14,7 @@
 <link rel="shortcut icon" href="icon.png">
 <title>MedTrack — CIMA</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.05.08.54">
+<meta name="app-version" content="v2026.05.08.55">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -266,6 +266,23 @@ body.dark .ibox{background:rgba(50,50,58,.5);border-color:rgba(80,80,90,.4);}
   .stat-val{font-size:1.3rem;}
   #header-inner{padding:8px 6px 8px 12px;}
 }
+/* ── SIDEBAR ── */
+#sidebar{display:none;position:fixed;left:0;top:0;bottom:0;width:230px;z-index:50;background:rgba(10,12,24,.92);backdrop-filter:saturate(180%) blur(32px);-webkit-backdrop-filter:saturate(180%) blur(32px);border-right:1px solid rgba(255,255,255,.07);flex-direction:column;overflow-y:auto;overflow-x:hidden;padding:calc(env(safe-area-inset-top,0px)+12px) 0 calc(env(safe-area-inset-bottom,0px)+12px);}
+@media(min-width:900px){
+  #sidebar{display:flex;}
+  #app{margin-left:230px;}
+  #header{left:230px;}
+  #bottom-bar{left:230px;}
+  #main{padding-bottom:calc(env(safe-area-inset-bottom,0px)+120px);}
+}
+.sb-section{padding:16px 16px 0;}
+.sb-nav-btn{display:flex;align-items:center;gap:10px;width:100%;padding:10px 16px;border:none;background:none;color:rgba(255,255,255,.55);font-size:.82rem;font-weight:500;cursor:pointer;border-radius:10px;margin-bottom:2px;text-align:left;transition:all .2s;}
+.sb-nav-btn:hover{background:rgba(255,255,255,.07);color:#fff;}
+.sb-nav-btn.on{background:rgba(0,212,255,.12);color:#00d4ff;font-weight:700;}
+.sb-nav-btn .sb-icon{font-size:1rem;width:20px;text-align:center;}
+.sb-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:12px;margin-bottom:10px;}
+.sb-lbl{font-size:.58rem;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.35);font-weight:600;margin-bottom:6px;}
+.sb-val{font-size:1.4rem;font-weight:800;line-height:1;}
 </style>
 </head>
 <body>
@@ -382,6 +399,52 @@ body.dark .ibox{background:rgba(50,50,58,.5);border-color:rgba(80,80,90,.4);}
       <button onclick="doSignOut()" style="width:100%;padding:10px;background:rgba(255,59,48,.1);color:var(--red);border:1px solid rgba(255,59,48,.2);border-radius:50px;font-weight:600;font-size:.8rem;cursor:pointer;position:relative;z-index:1;">🚪 Cerrar sesión</button>
     </div>
     <div id="settings-footer" style="text-align:center;padding:14px 0;color:var(--text3);font-size:.66rem;line-height:1.6;"></div>
+  </div>
+</div>
+
+<div id="sidebar">
+  <div style="padding:16px 16px 12px;border-bottom:1px solid rgba(255,255,255,.06);margin-bottom:8px;">
+    <div style="display:flex;align-items:center;gap:9px;">
+      <img src="logo.png" style="height:28px;opacity:.9;" onerror="this.style.display='none'">
+      <div>
+        <div style="font-weight:800;font-size:.9rem;color:#fff;letter-spacing:-.3px;">MedTrack</div>
+        <div style="font-size:.58rem;color:rgba(255,255,255,.35);letter-spacing:.3px;">CIMA Investigaciones</div>
+      </div>
+    </div>
+  </div>
+  <div id="sb-user" style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.06);margin-bottom:8px;display:flex;align-items:center;gap:10px;">
+    <div id="sb-avatar-wrap" style="width:36px;height:36px;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,#0071e3,#7c3aed);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700;font-size:.9rem;color:#fff;">?</div>
+    <div style="flex:1;min-width:0;">
+      <div id="sb-name" style="font-size:.78rem;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">—</div>
+      <div id="sb-email" style="font-size:.58rem;color:rgba(255,255,255,.4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">—</div>
+    </div>
+  </div>
+  <div style="padding:0 10px;margin-bottom:8px;">
+    <button class="sb-nav-btn on" data-sb="dash" onclick="setView('dash')"><span class="sb-icon">📊</span>Panel</button>
+    <button class="sb-nav-btn" data-sb="lista" onclick="setView('lista')"><span class="sb-icon">🔧</span>Equipos</button>
+    <button class="sb-nav-btn" data-sb="alertas" onclick="setView('alertas')"><span class="sb-icon">🔔</span>Alertas<span id="sb-alert-badge" style="display:none;background:#ff3b30;color:#fff;border-radius:10px;padding:1px 6px;font-size:.6rem;font-weight:700;margin-left:auto;"></span></button>
+    <button class="sb-nav-btn" onclick="toggleSettings()"><span class="sb-icon">⚙️</span>Ajustes</button>
+    <button class="sb-nav-btn" onclick="openMRotura()" style="color:rgba(255,80,80,.7);"><span class="sb-icon">⚠️</span>Reportar Rotura</button>
+    <button class="sb-nav-btn" onclick="openModalEq(null)" style="color:rgba(0,212,255,.7);"><span class="sb-icon">＋</span>Agregar Equipo</button>
+  </div>
+  <div class="sb-section">
+    <div class="sb-lbl">Estado de Equipos</div>
+    <div class="sb-card" style="display:flex;align-items:center;gap:12px;">
+      <div id="sb-donut" style="flex-shrink:0;"></div>
+      <div id="sb-donut-legend" style="flex:1;"></div>
+    </div>
+    <div class="sb-lbl" style="margin-top:4px;">Próximos Servicios</div>
+    <div id="sb-upcoming" class="sb-card"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">
+      <div class="sb-card" style="text-align:center;">
+        <div class="sb-lbl">Rotos</div>
+        <div id="sb-rotos" class="sb-val" style="color:#ff453a;">0</div>
+      </div>
+      <div class="sb-card" style="text-align:center;">
+        <div class="sb-lbl">Pendientes</div>
+        <div id="sb-pend" class="sb-val" style="color:#ff9f0a;">0</div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1083,7 +1146,7 @@ function renderHeader(){
 
 function render(){
   try{
-    renderHeader();var m=document.getElementById("main");if(!m)return;m.innerHTML="";
+    renderHeader();rSidebar();var m=document.getElementById("main");if(!m)return;m.innerHTML="";
     var d=document.createElement("div");d.className="slide";
     if(view==="dash")d.innerHTML=rDash();
     else if(view==="lista")d.innerHTML=rLista();
@@ -1653,8 +1716,8 @@ function submitRotura(){
 //  HARD REFRESH
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
-var APP_DISPLAY_VERSION="v6.1";
-var APP_BUILD="11/05/26 14:00";
+var APP_DISPLAY_VERSION="v6.2";
+var APP_BUILD="11/05/26 16:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
@@ -1843,6 +1906,58 @@ function init(){
   }
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
+function donutSVG(segs,size){
+  var r=size/2-7,cx=size/2,cy=size/2,circ=2*Math.PI*r,total=segs.reduce(function(a,s){return a+s.v;},0)||1;
+  var offset=0,paths='';
+  segs.forEach(function(s){
+    var dash=(s.v/total)*circ,gap=circ-dash;
+    paths+='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="'+s.c+'" stroke-width="7" stroke-dasharray="'+dash+' '+gap+'" stroke-dashoffset="'+(-offset)+'" transform="rotate(-90 '+cx+' '+cy+')" stroke-linecap="butt"/>';
+    offset+=dash;
+  });
+  return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 '+size+' '+size+'"><circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="7"/>'+paths+'</svg>';
+}
+function rSidebar(){
+  // User
+  var user=window._fbUser;
+  var avatarWrap=document.getElementById("sb-avatar-wrap");
+  var sbName=document.getElementById("sb-name");
+  var sbEmail=document.getElementById("sb-email");
+  if(user&&avatarWrap){
+    if(user.photoURL){
+      avatarWrap.innerHTML='<img src="'+user.photoURL+'" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentNode.textContent=\''+(user.displayName||user.email||"?")[0].toUpperCase()+'\'">';
+    } else {
+      avatarWrap.textContent=(user.displayName||user.email||"?")[0].toUpperCase();
+    }
+    if(sbName)sbName.textContent=user.displayName||user.email||"Usuario";
+    if(sbEmail)sbEmail.textContent=user.email||"";
+  }
+  // Nav active state
+  document.querySelectorAll('.sb-nav-btn[data-sb]').forEach(function(b){b.classList.toggle('on',b.dataset.sb===view);});
+  // Alert badge
+  var alertCount=0;
+  eqs.forEach(function(e){if(e.estado==="fuera-de-servicio")alertCount++;e.partes.forEach(function(p){if(p.estado==="roto")alertCount++;});});
+  var sbb=document.getElementById("sb-alert-badge");
+  if(sbb){sbb.style.display=alertCount>0?"inline":"none";sbb.textContent=alertCount;}
+  // Donut chart
+  var opOK=eqs.filter(function(e){return e.estado==="operativo";}).length;
+  var opF=eqs.filter(function(e){return e.estado==="fuera-de-servicio";}).length;
+  var opOth=eqs.length-opOK-opF;
+  var donutEl=document.getElementById("sb-donut");
+  var legendEl=document.getElementById("sb-donut-legend");
+  if(donutEl){donutEl.innerHTML=donutSVG([{v:opOK,c:"#30d158"},{v:opF,c:"#ff453a"},{v:opOth,c:"#636366"}],72);}
+  if(legendEl){legendEl.innerHTML='<div style="font-size:.7rem;color:#30d158;font-weight:700;margin-bottom:4px;">✅ '+opOK+' Operativos</div><div style="font-size:.7rem;color:#ff453a;font-weight:700;margin-bottom:4px;">🔴 '+opF+' F. Servicio</div><div style="font-size:.7rem;color:rgba(255,255,255,.4);">⬜ '+opOth+' Otros</div>';}
+  // Upcoming
+  var upEl=document.getElementById("sb-upcoming");
+  if(upEl){
+    var sorted=eqs.filter(function(e){return e.proximoMant&&e.estado!=="fuera-de-servicio";}).sort(function(a,b){return new Date(a.proximoMant)-new Date(b.proximoMant);}).slice(0,4);
+    if(!sorted.length){upEl.innerHTML='<div style="font-size:.72rem;color:rgba(255,255,255,.3);text-align:center;padding:4px 0;">Sin servicios programados</div>';}
+    else{upEl.innerHTML=sorted.map(function(e){var d=diasH(e.proximoMant);var col=d<0?"#ff453a":d<=7?"#ff9f0a":d<=30?"#ffd60a":"#30d158";return'<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05);">'+iconFor(e,24)+'<div style="flex:1;min-width:0;"><div style="font-size:.72rem;color:#fff;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+esc(e.nombre)+'</div><div style="font-size:.6rem;color:rgba(255,255,255,.35);">'+fD(e.proximoMant)+'</div></div><div style="font-size:.68rem;font-weight:700;color:'+col+';flex-shrink:0;">'+(d<0?"VENC.":d===0?"HOY":d+"d")+'</div></div>';}).join('');}
+  }
+  // Stats
+  var rot=0,pend=0;eqs.forEach(function(e){e.partes.forEach(function(p){if(p.estado==="roto")rot++;if(p.estado==="pendiente")pend++;});});
+  var rotEl=document.getElementById("sb-rotos");var pendEl=document.getElementById("sb-pend");
+  if(rotEl)rotEl.textContent=rot;if(pendEl)pendEl.textContent=pend;
+}
 </script>
 
 </body>
