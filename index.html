@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.08.48 -->
+<!-- v2026.05.08.49 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -7,9 +7,14 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="MedTrack">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="apple-touch-icon" sizes="152x152" href="icon.png">
+<link rel="apple-touch-icon" sizes="167x167" href="icon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icon.png">
+<link rel="shortcut icon" href="icon.png">
 <title>MedTrack — CIMA</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.05.08.48">
+<meta name="app-version" content="v2026.05.08.49">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1610,8 +1615,8 @@ function submitRotura(){
 //  HARD REFRESH
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
-var APP_DISPLAY_VERSION="v6.0";
-var APP_BUILD="08/05/26 15:00";
+var APP_DISPLAY_VERSION="v6.0.1";
+var APP_BUILD="08/05/26 15:30";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
