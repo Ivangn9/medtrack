@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.08.47 -->
+<!-- v2026.05.08.48 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-title" content="MedTrack">
 <title>MedTrack — CIMA</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.05.08.47">
+<meta name="app-version" content="v2026.05.08.48">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -228,6 +228,45 @@ body.dark .ibox{background:rgba(50,50,58,.5);border-color:rgba(80,80,90,.4);}
 </style>
 </head>
 <body>
+<!-- FIREBASE SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen" style="position:fixed;inset:0;z-index:10000;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;gap:0;">
+  <div style="width:100%;max-width:400px;">
+    <!-- Logo / header -->
+    <div style="text-align:center;margin-bottom:32px;">
+      <img src="logo.png" alt="CIMA" style="height:56px;width:auto;object-fit:contain;margin-bottom:12px;" onerror="this.style.display='none'">
+      <div style="font-weight:800;font-size:1.4rem;letter-spacing:-.5px;color:var(--text);">MedTrack</div>
+      <div style="font-size:.78rem;color:var(--text3);margin-top:4px;">CIMA Investigaciones Avanzadas</div>
+    </div>
+    <!-- Card -->
+    <div class="gc" style="padding:24px;border-radius:28px;">
+      <div style="font-weight:700;font-size:1rem;margin-bottom:18px;text-align:center;">Iniciar sesión</div>
+      <!-- Google -->
+      <button onclick="signInGoogle()" style="width:100%;padding:13px;border-radius:50px;border:1.5px solid rgba(200,200,220,.6);background:rgba(255,255,255,.8);display:flex;align-items:center;justify-content:center;gap:10px;font-weight:600;font-size:.88rem;cursor:pointer;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,.06),inset 0 1px 0 rgba(255,255,255,.9);">
+        <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.36-8.16 2.36-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>
+        Continuar con Google
+      </button>
+      <!-- Divider -->
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+        <div style="flex:1;height:1px;background:rgba(120,120,128,.15);"></div>
+        <div style="font-size:.7rem;color:var(--text3);">o con email</div>
+        <div style="flex:1;height:1px;background:rgba(120,120,128,.15);"></div>
+      </div>
+      <!-- Email / Password -->
+      <input type="hidden" id="login-mode" value="login">
+      <div class="ff"><input class="inp" type="email" id="login-email" placeholder="correo@ejemplo.com" autocomplete="email" style="font-size:.88rem;"></div>
+      <div class="ff"><input class="inp" type="password" id="login-pass" placeholder="Contraseña" autocomplete="current-password" style="font-size:.88rem;"></div>
+      <div id="login-error" style="display:none;color:var(--red);font-size:.74rem;margin-bottom:10px;text-align:center;background:rgba(255,59,48,.08);padding:8px;border-radius:10px;"></div>
+      <button id="login-submit-btn" onclick="signInEmail()" style="width:100%;padding:13px;border-radius:50px;border:none;background:var(--accent);color:#fff;font-weight:700;font-size:.9rem;cursor:pointer;box-shadow:0 2px 10px rgba(0,113,227,.35);margin-bottom:12px;">Iniciar sesión</button>
+      <button id="login-toggle" onclick="toggleLoginMode()" style="width:100%;padding:8px;border:none;background:none;color:var(--accent);font-size:.78rem;font-weight:600;cursor:pointer;">¿No tenés cuenta? Crear una</button>
+    </div>
+    <div style="text-align:center;margin-top:16px;font-size:.64rem;color:var(--text3);">v6.0 · CIMA Investigaciones Avanzadas</div>
+  </div>
+</div>
 
 <!-- TOAST -->
 <div id="toast" class="hidden"></div>
@@ -290,6 +329,13 @@ body.dark .ibox{background:rgba(50,50,58,.5);border-color:rgba(80,80,90,.4);}
         <div style="flex:1;"><div style="font-size:.58rem;color:var(--text3);margin-bottom:3px;">HASTA</div><input class="inp" type="date" id="r-hasta" style="padding:8px 10px;font-size:.78rem;"></div>
       </div>
       <button onclick="expFiltered()" style="width:100%;padding:12px;background:var(--red);color:#fff;border:none;border-radius:50px;font-weight:600;font-size:.82rem;cursor:pointer;">📄 Informe Filtrado</button>
+    </div>
+    <div class="settings-item" style="margin-bottom:12px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;position:relative;z-index:1;">
+        <div style="width:36px;height:36px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1rem;flex-shrink:0;">👤</div>
+        <div style="flex:1;min-width:0;"><div style="font-size:.7rem;color:var(--text3);">Sesión activa</div><div id="user-info" style="font-size:.8rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">—</div></div>
+      </div>
+      <button onclick="doSignOut()" style="width:100%;padding:10px;background:rgba(255,59,48,.1);color:var(--red);border:1px solid rgba(255,59,48,.2);border-radius:50px;font-weight:600;font-size:.8rem;cursor:pointer;position:relative;z-index:1;">🚪 Cerrar sesión</button>
     </div>
     <div id="settings-footer" style="text-align:center;padding:14px 0;color:var(--text3);font-size:.66rem;line-height:1.6;"></div>
   </div>
@@ -527,7 +573,20 @@ function loadData(){
   });
   if(dirty)saveData();
 }
-function saveData(){try{localStorage.setItem("mt_v4",JSON.stringify(eqs));}catch(e){}}
+function saveData(){
+  try{localStorage.setItem("mt_v4",JSON.stringify(eqs));}catch(e){}
+  firestoreSave();
+}
+var _fsSaveTimer=null;
+function firestoreSave(){
+  if(!window._fbUser||!window._fbdb)return;
+  if(_fsSaveTimer)clearTimeout(_fsSaveTimer);
+  _fsSaveTimer=setTimeout(function(){
+    window._fbdb.collection("users").doc(window._fbUser.uid).collection("app").doc("data")
+      .set({eqs:eqs,updatedAt:new Date().toISOString()},{merge:true})
+      .catch(function(e){console.warn("Firestore save:",e);});
+  },1500);
+}
 
 // ═══════════════════════════════════════════
 //  UI HELPERS
@@ -1551,8 +1610,8 @@ function submitRotura(){
 //  HARD REFRESH
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
-var APP_DISPLAY_VERSION="v5.1.2";
-var APP_BUILD="08/05/26 14:10";
+var APP_DISPLAY_VERSION="v6.0";
+var APP_BUILD="08/05/26 15:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
@@ -1576,16 +1635,92 @@ function checkForUpdates(){
 // ═══════════════════════════════════════════
 //  INIT
 // ═══════════════════════════════════════════
+// ═══════════════════════════════════════════
+//  FIREBASE AUTH + FIRESTORE
+// ═══════════════════════════════════════════
+var firebaseConfig={apiKey:"AIzaSyDpzlN1gaJUH6XGAWv5GRW_suk7zcqKeJE",authDomain:"medtrack-cima-3e9c1.firebaseapp.com",projectId:"medtrack-cima-3e9c1",storageBucket:"medtrack-cima-3e9c1.firebasestorage.app",messagingSenderId:"110780335014",appId:"1:110780335014:web:b991d26e01637bdc884567"};
+if(typeof firebase!=="undefined"&&!firebase.apps.length){firebase.initializeApp(firebaseConfig);}
+window._fbAuth=typeof firebase!=="undefined"?firebase.auth():null;
+window._fbdb=typeof firebase!=="undefined"?firebase.firestore():null;
+window._fbUser=null;
+
+function signInGoogle(){
+  if(!window._fbAuth)return;
+  var p=new firebase.auth.GoogleAuthProvider();
+  window._fbAuth.signInWithPopup(p).catch(function(e){showLoginError(e.message);});
+}
+function signInEmail(){
+  var em=document.getElementById("login-email").value.trim();
+  var pw=document.getElementById("login-pass").value;
+  var mo=document.getElementById("login-mode").value;
+  if(!em||!pw)return showLoginError("Completá email y contraseña");
+  var pr=mo==="register"?window._fbAuth.createUserWithEmailAndPassword(em,pw):window._fbAuth.signInWithEmailAndPassword(em,pw);
+  pr.catch(function(e){
+    var msg=e.code==="auth/user-not-found"?"Usuario no encontrado":e.code==="auth/wrong-password"?"Contraseña incorrecta":e.code==="auth/email-already-in-use"?"Email ya registrado":e.code==="auth/weak-password"?"Contraseña demasiado corta (mín. 6 caracteres)":e.message;
+    showLoginError(msg);
+  });
+}
+function doSignOut(){if(!confirm("¿Cerrar sesión?"))return;if(window._fbAuth)window._fbAuth.signOut();toggleSettings();}
+function showLoginError(msg){var el=document.getElementById("login-error");if(el){el.textContent=msg;el.style.display="block";}}
+function toggleLoginMode(){
+  var m=document.getElementById("login-mode"),btn=document.getElementById("login-submit-btn"),tog=document.getElementById("login-toggle");
+  var isReg=m.value==="login";m.value=isReg?"register":"login";
+  btn.textContent=isReg?"Crear cuenta":"Iniciar sesión";
+  tog.textContent=isReg?"¿Ya tenés cuenta? Iniciar sesión":"¿No tenés cuenta? Crear una";
+  document.getElementById("login-error").style.display="none";
+}
+function showLoginScreen(){
+  var ls=document.getElementById("login-screen"),ap=document.getElementById("app"),bb=document.getElementById("bottom-bar");
+  if(ls)ls.style.display="flex";if(ap)ap.style.display="none";if(bb)bb.style.display="none";
+}
+function hideLoginScreen(){
+  var ls=document.getElementById("login-screen"),ap=document.getElementById("app"),bb=document.getElementById("bottom-bar");
+  if(ls)ls.style.display="none";if(ap)ap.style.display="";if(bb)bb.style.display="";
+}
+
 function init(){
-  eqs=JSON.parse(JSON.stringify(EQ0));
-  try{var s=localStorage.getItem("mt_v4");if(s){var p=JSON.parse(s);if(Array.isArray(p)&&p.length>0)eqs=p;}}catch(e){}
+  // Load preferences
   try{if(localStorage.getItem("mt_dark")==="1"){darkMode=true;document.body.classList.add("dark");}
     var f=localStorage.getItem("mt_font");if(f){fontScale=parseInt(f)||100;document.documentElement.style.fontSize=fontScale+"%";}}catch(e){}
   updateSettingsUI();
-  setTimeout(function(){render();},50);
-  setTimeout(checkForUpdates,3000);
-  setInterval(checkForUpdates,10*60*1000);
   setInterval(function(){var el=document.getElementById("logo-time");if(el)el.textContent=new Date().toLocaleString("es-AR",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"});renderHeader();},6e4);
+
+  if(window._fbAuth){
+    showLoginScreen();
+    window._fbAuth.onAuthStateChanged(function(user){
+      window._fbUser=user;
+      if(!user){showLoginScreen();return;}
+      hideLoginScreen();
+      // Update user info
+      var ui=document.getElementById("user-info");
+      if(ui)ui.textContent=user.displayName||user.email||"Usuario";
+      // Load from Firestore, fallback to localStorage
+      window._fbdb.collection("users").doc(user.uid).collection("app").doc("data").get()
+        .then(function(doc){
+          eqs=JSON.parse(JSON.stringify(EQ0));
+          if(doc.exists&&Array.isArray(doc.data().eqs)&&doc.data().eqs.length>0){
+            eqs=doc.data().eqs;
+          } else {
+            try{var s=localStorage.getItem("mt_v4");if(s){var p=JSON.parse(s);if(Array.isArray(p)&&p.length>0)eqs=p;}}catch(e){}
+          }
+          render();
+          setTimeout(checkForUpdates,3000);
+          setInterval(checkForUpdates,10*60*1000);
+        })
+        .catch(function(){
+          eqs=JSON.parse(JSON.stringify(EQ0));
+          try{var s=localStorage.getItem("mt_v4");if(s){var p=JSON.parse(s);if(Array.isArray(p)&&p.length>0)eqs=p;}}catch(e){}
+          render();
+        });
+    });
+  } else {
+    // Firebase not loaded — fallback to localStorage
+    eqs=JSON.parse(JSON.stringify(EQ0));
+    try{var s=localStorage.getItem("mt_v4");if(s){var p=JSON.parse(s);if(Array.isArray(p)&&p.length>0)eqs=p;}}catch(e){}
+    setTimeout(function(){render();},50);
+    setTimeout(checkForUpdates,3000);
+    setInterval(checkForUpdates,10*60*1000);
+  }
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
 </script>
