@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.08.52 -->
+<!-- v2026.05.08.53 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -14,7 +14,7 @@
 <link rel="shortcut icon" href="icon.png">
 <title>MedTrack — CIMA</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.05.08.52">
+<meta name="app-version" content="v2026.05.08.53">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1422,7 +1422,7 @@ function rDetalle(){
   // HISTORIAL
   var histAll=(eq.historialMant||[]).slice().reverse();
   var hist=dq?histAll.filter(function(hh){return (hh.nombre||"").toLowerCase().includes(dq)||(hh.notas||"").toLowerCase().includes(dq)||(hh.tecnico||"").toLowerCase().includes(dq)||(hh.tipo||"").toLowerCase().includes(dq)||(hh.precio||"").toString().includes(dq);}) : histAll;
-  h+='<div style="display:flex;justify-content:space-between;align-items:center;margin:4px 0 10px;"><div class="sec" style="margin:0;">📋 Historial ('+(dq?hist.length+'/'+histAll.length:histAll.length)+')</div><button onclick="exportPDF(\''+eq.id+'\')" style="background:var(--red);color:#fff;border:none;border-radius:var(--r-sm);padding:6px 14px;font-size:.72rem;font-weight:600;cursor:pointer;">📄 PDF</button></div>';
+  h+='<div class="sec" style="margin:4px 0 10px;">📋 Historial ('+(dq?hist.length+'/'+histAll.length:histAll.length)+')</div>';
   if(!histAll.length){h+='<div class="gc" style="text-align:center;color:var(--text3);padding:16px;font-size:.82rem;">Sin historial</div>';}
   else if(dq&&!hist.length){h+='<div style="color:var(--text3);font-size:.78rem;padding:8px 0 12px;text-align:center;">Sin historial que coincida</div>';}
   hist.forEach(function(hh){
@@ -1650,8 +1650,8 @@ function submitRotura(){
 //  HARD REFRESH
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
-var APP_DISPLAY_VERSION="v6.0.4";
-var APP_BUILD="11/05/26 12:00";
+var APP_DISPLAY_VERSION="v6.0.5";
+var APP_BUILD="11/05/26 13:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
