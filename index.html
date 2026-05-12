@@ -267,7 +267,7 @@ body.dark .ibox{background:rgba(50,50,58,.5);border-color:rgba(80,80,90,.4);}
   #header-inner{padding:8px 6px 8px 12px;}
 }
 /* ── SIDEBAR ── */
-#sidebar{display:none;position:fixed;left:0;top:0;bottom:0;width:234px;z-index:50;
+#sidebar{display:none;position:fixed;left:0;top:0;bottom:0;width:280px;z-index:50;
   background:rgba(248,249,255,.38);
   -webkit-backdrop-filter:saturate(220%) blur(48px);backdrop-filter:saturate(220%) blur(48px);
   border-right:1px solid rgba(255,255,255,.9);
@@ -281,8 +281,8 @@ body.dark .ibox{background:rgba(50,50,58,.5);border-color:rgba(80,80,90,.4);}
 #sidebar>*{position:relative;z-index:1;}
 @media(min-width:900px){
   #sidebar{display:flex;}
-  #app{margin-left:234px;}
-  #header{left:234px;}
+  #app{margin-left:280px;}
+  #header{left:280px;}
   #bottom-bar{display:none!important;}
   #main{padding-bottom:calc(env(safe-area-inset-bottom,0px)+60px);}
 }
@@ -1751,7 +1751,7 @@ function submitRotura(){
 //  HARD REFRESH
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
-var APP_DISPLAY_VERSION="v6.3.3";
+var APP_DISPLAY_VERSION="v6.3.4";
 var APP_BUILD="12/05/26 15:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
