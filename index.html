@@ -448,25 +448,7 @@ body.dark .sb-card{background:rgba(255,255,255,.07);border-color:rgba(255,255,25
   <!-- Navigation -->
   <div style="padding:0 10px;margin-bottom:10px;">
     <button class="sb-nav-btn on" data-sb="dash" onclick="setView('dash')"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="8" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="15" width="7" height="6" rx="1.5"/></svg></span>Panel</button>
-    <div style="position:relative;">
-      <button class="sb-nav-btn" id="sb-equipos-btn" data-sb="lista" onclick="toggleSbEquiposMenu(event)"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg></span>Equipos<span style="margin-left:auto;font-size:.65rem;opacity:.5;transition:transform .2s;" id="sb-eq-chevron">▾</span></button>
-      <!-- Equipos submenu popup -->
-      <div id="sb-equipos-menu" style="display:none;position:absolute;left:8px;right:8px;top:calc(100% + 4px);z-index:200;
-        background:rgba(248,249,255,.82);-webkit-backdrop-filter:saturate(220%) blur(40px);backdrop-filter:saturate(220%) blur(40px);
-        border:1px solid rgba(255,255,255,.9);border-radius:18px;
-        box-shadow:0 8px 32px rgba(0,0,0,.12),0 2px 8px rgba(0,0,0,.08),inset 0 1px 0 rgba(255,255,255,.95);
-        overflow:hidden;padding:6px;">
-        <button class="sb-sub-btn" onclick="closeSbEquiposMenu();setView('lista')">
-          <span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg></span>Ver Equipos
-        </button>
-        <button class="sb-sub-btn" style="color:var(--accent);font-weight:600;" onclick="closeSbEquiposMenu();openModalEq(null)">
-          <span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></span>Agregar Equipo
-        </button>
-        <button class="sb-sub-btn" style="color:var(--red);" onclick="closeSbEquiposMenu();openMRotura()">
-          <span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>Reportar Rotura
-        </button>
-      </div>
-    </div>
+    <button class="sb-nav-btn" id="sb-equipos-btn" data-sb="lista" onclick="toggleSbEquiposMenu(event)"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg></span>Equipos<span style="margin-left:auto;font-size:.65rem;opacity:.5;transition:transform .2s;" id="sb-eq-chevron">▸</span></button>
     <button class="sb-nav-btn" data-sb="alertas" onclick="setView('alertas')"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></span>Alertas<span id="sb-alert-badge" style="display:none;background:var(--red);color:#fff;border-radius:10px;padding:1px 6px;font-size:.6rem;font-weight:700;margin-left:auto;"></span></button>
     <button class="sb-nav-btn" onclick="toggleSettings()"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span>Ajustes</button>
   </div>
@@ -1560,8 +1542,8 @@ function rDetalle(){
 //  SETTINGS
 // ═══════════════════════════════════════════
 function toggleSettings(){var o=document.getElementById("settings-overlay");o.classList.toggle("hidden");updateSettingsUI();}
-function toggleSbEquiposMenu(e){if(e)e.stopPropagation();var m=document.getElementById("sb-equipos-menu");var ch=document.getElementById("sb-eq-chevron");var open=m.style.display==="none"||m.style.display==="";if(open){m.style.display="block";if(ch)ch.style.transform="rotate(180deg)";setTimeout(function(){document.addEventListener("click",_sbEqOutside);},0);}else{closeSbEquiposMenu();}}
-function closeSbEquiposMenu(){var m=document.getElementById("sb-equipos-menu");var ch=document.getElementById("sb-eq-chevron");if(m)m.style.display="none";if(ch)ch.style.transform="";document.removeEventListener("click",_sbEqOutside);}
+function toggleSbEquiposMenu(e){if(e)e.stopPropagation();var m=document.getElementById("sb-equipos-menu");var ch=document.getElementById("sb-eq-chevron");var btn=document.getElementById("sb-equipos-btn");var open=m.style.display==="none"||m.style.display==="";if(open){var r=btn.getBoundingClientRect();m.style.left=(r.right+8)+"px";m.style.top=r.top+"px";m.style.display="block";if(ch)ch.style.transform="rotate(90deg)";setTimeout(function(){document.addEventListener("click",_sbEqOutside);},0);}else{closeSbEquiposMenu();}}
+function closeSbEquiposMenu(){var m=document.getElementById("sb-equipos-menu");var ch=document.getElementById("sb-eq-chevron");if(m)m.style.display="none";if(ch){ch.style.transform="";ch.textContent="▸";}document.removeEventListener("click",_sbEqOutside);}
 function _sbEqOutside(e){var m=document.getElementById("sb-equipos-menu");var btn=document.getElementById("sb-equipos-btn");if(m&&!m.contains(e.target)&&btn&&!btn.contains(e.target)){closeSbEquiposMenu();}}
 function toggleDarkMode(){darkMode=!darkMode;document.body.classList.toggle("dark",darkMode);try{localStorage.setItem("mt_dark",darkMode?"1":"0");}catch(e){}updateSettingsUI();}
 function updateSettingsUI(){
@@ -1765,7 +1747,7 @@ function submitRotura(){
 //  HARD REFRESH
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
-var APP_DISPLAY_VERSION="v6.3.1";
+var APP_DISPLAY_VERSION="v6.3.2";
 var APP_BUILD="12/05/26 15:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
@@ -2116,6 +2098,23 @@ function sbCalTap(ds){
     '<span style="font-size:.8rem;color:var(--text);font-weight:500;">'+esc(ev.label)+'</span></div>';}).join(""));
 }
 </script>
+
+<!-- Equipos floating submenu — outside sidebar to avoid overflow-x:hidden clipping -->
+<div id="sb-equipos-menu" style="display:none;position:fixed;z-index:500;width:210px;
+  background:rgba(248,249,255,.88);-webkit-backdrop-filter:saturate(220%) blur(40px);backdrop-filter:saturate(220%) blur(40px);
+  border:1px solid rgba(255,255,255,.9);border-radius:18px;
+  box-shadow:0 8px 32px rgba(0,0,0,.14),0 2px 8px rgba(0,0,0,.08),inset 0 1px 0 rgba(255,255,255,.95);
+  padding:6px;">
+  <button class="sb-sub-btn" onclick="closeSbEquiposMenu();setView('lista')">
+    <span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg></span>Ver Equipos
+  </button>
+  <button class="sb-sub-btn" style="color:var(--accent);font-weight:600;" onclick="closeSbEquiposMenu();openModalEq(null)">
+    <span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></span>Agregar Equipo
+  </button>
+  <button class="sb-sub-btn" style="color:var(--red);" onclick="closeSbEquiposMenu();openMRotura()">
+    <span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>Reportar Rotura
+  </button>
+</div>
 
 </body>
 </html>
