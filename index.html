@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.08.58 -->
+<!-- v2026.05.08.59 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -14,7 +14,7 @@
 <link rel="shortcut icon" href="icon.png">
 <title>MedTrack — CIMA</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.05.08.58">
+<meta name="app-version" content="v2026.05.08.59">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -453,9 +453,9 @@ body.dark .sb-card{background:rgba(255,255,255,.07);border-color:rgba(255,255,25
   <!-- Charts section -->
   <div class="sb-section">
     <div class="sb-lbl">Estado de Equipos</div>
-    <div class="sb-card" style="display:flex;align-items:center;gap:12px;">
-      <div id="sb-donut" style="flex-shrink:0;"></div>
-      <div id="sb-donut-legend" style="flex:1;"></div>
+    <div class="sb-card" style="text-align:center;padding:14px 12px 12px;">
+      <div id="sb-donut" style="display:flex;justify-content:center;margin-bottom:12px;"></div>
+      <div id="sb-donut-legend" style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;"></div>
     </div>
     <div class="sb-lbl" style="margin-top:2px;">Próximos Servicios</div>
     <div id="sb-upcoming" class="sb-card"></div>
@@ -1740,8 +1740,8 @@ function submitRotura(){
 //  HARD REFRESH
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
-var APP_DISPLAY_VERSION="v6.2.3";
-var APP_BUILD="12/05/26 11:00";
+var APP_DISPLAY_VERSION="v6.2.4";
+var APP_BUILD="12/05/26 12:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
@@ -1938,7 +1938,35 @@ function donutSVG(segs,size){
     paths+='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="'+s.c+'" stroke-width="7" stroke-dasharray="'+dash+' '+gap+'" stroke-dashoffset="'+(-offset)+'" transform="rotate(-90 '+cx+' '+cy+')" stroke-linecap="butt"/>';
     offset+=dash;
   });
-  return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 '+size+' '+size+'"><circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="7"/>'+paths+'</svg>';
+  return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 '+size+' '+size+'"><circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="rgba(120,120,128,.12)" stroke-width="7"/>'+paths+'</svg>';
+}
+function sbGlassDonut(ok,fuera,total){
+  var s=124,r=42,cx=62,cy=62,sw=16,circ=2*Math.PI*r;
+  var t=total||1;
+  var dOk=(ok/t)*circ,dF=(fuera/t)*circ;
+  var pct=total>0?Math.round((ok/total)*100):0;
+  var hasBoth=ok>0&&fuera>0;
+  var gap=hasBoth?2:0;
+  var defs='<defs>'+
+    '<filter id="sbgok"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>'+
+    '<filter id="sbgr"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>'+
+    '</defs>';
+  var track='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="rgba(120,120,128,.12)" stroke-width="'+sw+'"/>';
+  var segOk='',segF='';
+  if(ok>0){
+    var d=Math.max(dOk-gap,1),g=circ-d;
+    segOk='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="#34c759" stroke-width="'+sw+'" stroke-dasharray="'+d+' '+g+'" stroke-dashoffset="0" transform="rotate(-90 '+cx+' '+cy+')" stroke-linecap="round" filter="url(#sbgok)" opacity=".95"/>'+
+    '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="rgba(160,255,160,.45)" stroke-width="6" stroke-dasharray="'+(d*.7)+' '+(circ-(d*.7))+'" stroke-dashoffset="'+(-(d*.15))+'" transform="rotate(-90 '+cx+' '+cy+')" stroke-linecap="round"/>';
+  }
+  if(fuera>0){
+    var d2=Math.max(dF-gap,1),g2=circ-d2,off=-(dOk);
+    segF='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="#ff3b30" stroke-width="'+sw+'" stroke-dasharray="'+d2+' '+g2+'" stroke-dashoffset="'+off+'" transform="rotate(-90 '+cx+' '+cy+')" stroke-linecap="round" filter="url(#sbgr)" opacity=".95"/>'+
+    '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="rgba(255,160,160,.4)" stroke-width="6" stroke-dasharray="'+(d2*.7)+' '+(circ-(d2*.7))+'" stroke-dashoffset="'+(off-(d2*.15))+'" transform="rotate(-90 '+cx+' '+cy+')" stroke-linecap="round"/>';
+  }
+  var centerLabel=total===0?'<text x="'+cx+'" y="'+(cy+4)+'" text-anchor="middle" fill="rgba(120,120,128,.6)" font-size="11" font-family="-apple-system,sans-serif">Sin datos</text>':
+    '<text x="'+cx+'" y="'+(cy-4)+'" text-anchor="middle" fill="var(--text)" font-size="24" font-weight="800" font-family="-apple-system,BlinkMacSystemFont,sans-serif" letter-spacing="-1">'+pct+'%</text>'+
+    '<text x="'+cx+'" y="'+(cy+11)+'" text-anchor="middle" fill="var(--text3)" font-size="7.5" font-weight="700" font-family="-apple-system,sans-serif" letter-spacing="0.8">OPERATIVOS</text>';
+  return '<svg width="'+s+'" height="'+s+'" viewBox="0 0 '+s+' '+s+'">'+defs+track+segOk+segF+centerLabel+'</svg>';
 }
 function rSidebar(){
   // User
@@ -1965,11 +1993,22 @@ function rSidebar(){
   // Donut chart
   var opOK=eqs.filter(function(e){return e.estado==="operativo";}).length;
   var opF=eqs.filter(function(e){return e.estado==="fuera-de-servicio";}).length;
-  var opOth=eqs.length-opOK-opF;
   var donutEl=document.getElementById("sb-donut");
   var legendEl=document.getElementById("sb-donut-legend");
-  if(donutEl){donutEl.innerHTML=donutSVG([{v:opOK,c:"#34c759"},{v:opF,c:"#ff3b30"},{v:opOth,c:"rgba(120,120,128,.35)"}],72);}
-  if(legendEl){legendEl.innerHTML='<div style="font-size:.68rem;color:#34c759;font-weight:700;margin-bottom:5px;">✅ '+opOK+' Operativos</div><div style="font-size:.68rem;color:#ff3b30;font-weight:700;margin-bottom:5px;">🔴 '+opF+' F. Servicio</div><div style="font-size:.68rem;color:var(--text3);">⬜ '+opOth+' Otros</div>';}
+  if(donutEl){donutEl.innerHTML=sbGlassDonut(opOK,opF,eqs.length);}
+  if(legendEl){
+    var pOk=eqs.length>0?Math.round((opOK/eqs.length)*100):0;
+    var pF=eqs.length>0?Math.round((opF/eqs.length)*100):0;
+    legendEl.innerHTML=
+      '<div style="display:flex;align-items:center;gap:6px;background:rgba(52,199,89,.1);border:1px solid rgba(52,199,89,.25);border-radius:20px;padding:5px 10px;">'+
+      '<div style="width:8px;height:8px;border-radius:50%;background:#34c759;box-shadow:0 0 6px rgba(52,199,89,.6);flex-shrink:0;"></div>'+
+      '<div><div style="font-size:.58rem;text-transform:uppercase;letter-spacing:.6px;font-weight:700;color:var(--text3);">Óptimo</div>'+
+      '<div style="font-size:.9rem;font-weight:800;color:#34c759;line-height:1.1;">'+pOk+'%</div></div></div>'+
+      '<div style="display:flex;align-items:center;gap:6px;background:rgba(255,59,48,.1);border:1px solid rgba(255,59,48,.25);border-radius:20px;padding:5px 10px;">'+
+      '<div style="width:8px;height:8px;border-radius:50%;background:#ff3b30;box-shadow:0 0 6px rgba(255,59,48,.6);flex-shrink:0;"></div>'+
+      '<div><div style="font-size:.58rem;text-transform:uppercase;letter-spacing:.6px;font-weight:700;color:var(--text3);">Crítico</div>'+
+      '<div style="font-size:.9rem;font-weight:800;color:#ff3b30;line-height:1.1;">'+pF+'%</div></div></div>';
+  }
   // Upcoming
   var upEl=document.getElementById("sb-upcoming");
   if(upEl){
