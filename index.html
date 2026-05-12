@@ -740,6 +740,9 @@ function showToast(msg,tp){
 function pillH(c,txt){return'<span class="pill" style="background:'+c+'18;color:'+c+';">'+txt+'</span>';}
 
 function normBrand(s){return(s||'').toLowerCase().trim().replace(/[áàä]/g,'a').replace(/[éèë]/g,'e').replace(/[íìï]/g,'i').replace(/[óòö]/g,'o').replace(/[úùü]/g,'u').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');}
+var _LOGO_EXTS=['png','PNG','jpg','JPG','jpeg','JPEG','svg','SVG'];
+function _logoErr(img){var i=parseInt(img.dataset.li||0)+1;if(i<_LOGO_EXTS.length){img.dataset.li=i;img.src='logos/'+img.dataset.slug+'.'+_LOGO_EXTS[i];}else{img.remove();}}
+function _logoImgHTML(slug,r){return slug?'<img src="logos/'+slug+'.'+_LOGO_EXTS[0]+'" data-slug="'+slug+'" data-li="0" onerror="_logoErr(this)" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:3px;border-radius:'+r+'px;">':'';}
 
 function iconFor(eq,size){
   var ci=catById(eq.cat);
@@ -748,7 +751,7 @@ function iconFor(eq,size){
   var brand=brandBadgeOrLogo(eq.marca||eq.contrato,s);
   var catSvg=catSvgIcon(eq.cat,s);
   var bslug=normBrand(eq.marca||eq.contrato);
-  var imgOverlay=bslug?'<img src="logos/'+bslug+'.png" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:3px;border-radius:'+r+'px;" onerror="this.remove()">':'';
+  var imgOverlay=_logoImgHTML(bslug,r);
 
   if(brand&&catSvg){
     return '<div style="position:relative;width:'+s+'px;height:'+s+'px;flex-shrink:0;">'+
@@ -1874,7 +1877,7 @@ function submitRotura(){
 //  HARD REFRESH
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
-var APP_DISPLAY_VERSION="3.5.3";
+var APP_DISPLAY_VERSION="3.5.4";
 var APP_BUILD="12/05/26 15:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
