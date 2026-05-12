@@ -739,20 +739,29 @@ function showToast(msg,tp){
 
 function pillH(c,txt){return'<span class="pill" style="background:'+c+'18;color:'+c+';">'+txt+'</span>';}
 
+function normBrand(s){return(s||'').toLowerCase().trim().replace(/[áàä]/g,'a').replace(/[éèë]/g,'e').replace(/[íìï]/g,'i').replace(/[óòö]/g,'o').replace(/[úùü]/g,'u').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');}
+
 function iconFor(eq,size){
   var ci=catById(eq.cat);
-  var brand=brandBadgeOrLogo(eq.marca||eq.contrato,size);
-  var catSvg=catSvgIcon(eq.cat,size);
-  
-  if(brand && catSvg){
-    // Both: category SVG background with brand logo overlay
-    return '<div style="position:relative;width:'+size+'px;height:'+size+'px;flex-shrink:0;">'+
+  var s=size||36;
+  var r=Math.round(s*.27);
+  var brand=brandBadgeOrLogo(eq.marca||eq.contrato,s);
+  var catSvg=catSvgIcon(eq.cat,s);
+  var bslug=normBrand(eq.marca||eq.contrato);
+  var imgOverlay=bslug?'<img src="logos/'+bslug+'.png" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:3px;border-radius:'+r+'px;" onerror="this.remove()">':'';
+
+  if(brand&&catSvg){
+    return '<div style="position:relative;width:'+s+'px;height:'+s+'px;flex-shrink:0;">'+
       '<div style="position:absolute;inset:0;opacity:.15;">'+catSvg+'</div>'+
-      '<div style="position:relative;z-index:1;">'+brand+'</div></div>';
+      '<div style="position:relative;z-index:1;">'+brand+'</div>'+imgOverlay+'</div>';
   }
-  if(brand) return brand;
-  if(catSvg) return catSvg;
-  return '<div style="width:'+size+'px;height:'+size+'px;border-radius:'+Math.round(size*.27)+'px;background:'+ci.color+'12;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.7rem;color:'+ci.color+';">'+ci.label+'</div>';
+  if(brand){
+    return imgOverlay?'<div style="position:relative;width:'+s+'px;height:'+s+'px;flex-shrink:0;">'+brand+imgOverlay+'</div>':brand;
+  }
+  if(catSvg){
+    return imgOverlay?'<div style="position:relative;width:'+s+'px;height:'+s+'px;flex-shrink:0;">'+catSvg+imgOverlay+'</div>':catSvg;
+  }
+  return '<div style="position:relative;width:'+s+'px;height:'+s+'px;border-radius:'+r+'px;background:'+ci.color+'12;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.7rem;color:'+ci.color+';">'+ci.label+imgOverlay+'</div>';
 }
 
 // ═══════════════════════════════════════════
@@ -1865,7 +1874,7 @@ function submitRotura(){
 //  HARD REFRESH
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
-var APP_DISPLAY_VERSION="3.5.2";
+var APP_DISPLAY_VERSION="3.5.3";
 var APP_BUILD="12/05/26 15:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
