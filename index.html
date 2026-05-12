@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.08.56 -->
+<!-- v2026.05.08.57 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -14,7 +14,7 @@
 <link rel="shortcut icon" href="icon.png">
 <title>MedTrack — CIMA</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.05.08.56">
+<meta name="app-version" content="v2026.05.08.57">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -268,14 +268,16 @@ body.dark .ibox{background:rgba(50,50,58,.5);border-color:rgba(80,80,90,.4);}
 }
 /* ── SIDEBAR ── */
 #sidebar{display:none;position:fixed;left:0;top:0;bottom:0;width:234px;z-index:50;
-  background:rgba(232,234,244,.72);
-  -webkit-backdrop-filter:saturate(200%) blur(40px);backdrop-filter:saturate(200%) blur(40px);
-  border-right:1px solid rgba(255,255,255,.75);
+  background:rgba(248,249,255,.38);
+  -webkit-backdrop-filter:saturate(220%) blur(48px);backdrop-filter:saturate(220%) blur(48px);
+  border-right:1px solid rgba(255,255,255,.9);
   flex-direction:column;overflow-y:auto;overflow-x:hidden;
   padding:calc(env(safe-area-inset-top,0px)+12px) 0 calc(env(safe-area-inset-bottom,0px)+12px);
-  box-shadow:2px 0 24px rgba(0,0,0,.07),inset -1px 0 0 rgba(255,255,255,.6);}
-#sidebar::before{content:'';position:absolute;inset:0;pointer-events:none;
-  background:var(--lg-shimmer);z-index:0;}
+  box-shadow:2px 0 32px rgba(0,0,0,.06),inset -1px 0 0 rgba(255,255,255,.95),inset 1px 0 0 rgba(255,255,255,.5);}
+#sidebar::before{content:'';position:absolute;inset:0;pointer-events:none;z-index:0;
+  background:linear-gradient(160deg,rgba(255,230,250,.22) 0%,rgba(220,210,255,.18) 25%,rgba(200,230,255,.14) 55%,rgba(210,255,230,.10) 100%);}
+#sidebar::after{content:'';position:absolute;top:0;left:0;right:0;height:160px;pointer-events:none;z-index:0;
+  background:linear-gradient(180deg,rgba(255,255,255,.55) 0%,transparent 100%);}
 #sidebar>*{position:relative;z-index:1;}
 @media(min-width:900px){
   #sidebar{display:flex;}
@@ -284,7 +286,9 @@ body.dark .ibox{background:rgba(50,50,58,.5);border-color:rgba(80,80,90,.4);}
   #bottom-bar{display:none!important;}
   #main{padding-bottom:calc(env(safe-area-inset-bottom,0px)+60px);}
 }
-body.dark #sidebar{background:rgba(18,18,26,.82);border-right-color:rgba(255,255,255,.08);box-shadow:2px 0 24px rgba(0,0,0,.3);}
+body.dark #sidebar{background:rgba(20,20,32,.55);border-right-color:rgba(255,255,255,.12);box-shadow:2px 0 32px rgba(0,0,0,.4),inset -1px 0 0 rgba(255,255,255,.08);}
+body.dark #sidebar::before{background:linear-gradient(160deg,rgba(120,80,180,.12) 0%,rgba(60,100,200,.10) 40%,rgba(0,180,180,.07) 100%);}
+body.dark #sidebar::after{background:linear-gradient(180deg,rgba(255,255,255,.06) 0%,transparent 100%);}
 .sb-section{padding:12px 12px 0;}
 .sb-nav-btn{display:flex;align-items:center;gap:10px;width:100%;padding:10px 14px;border:none;background:none;color:var(--text2);font-size:.82rem;font-weight:500;cursor:pointer;border-radius:14px;margin-bottom:2px;text-align:left;transition:all .2s;-webkit-tap-highlight-color:transparent;}
 .sb-nav-btn:hover{background:rgba(255,255,255,.5);color:var(--text);}
@@ -293,8 +297,8 @@ body.dark .sb-nav-btn{color:rgba(255,255,255,.55);}
 body.dark .sb-nav-btn:hover{background:rgba(255,255,255,.08);color:#fff;}
 body.dark .sb-nav-btn.on{background:rgba(0,113,227,.2);color:#60aaff;box-shadow:none;}
 .sb-nav-btn .sb-icon{font-size:1rem;width:22px;text-align:center;flex-shrink:0;}
-.sb-card{background:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.75);border-radius:16px;padding:12px;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,.04),inset 0 1px 0 rgba(255,255,255,.9);}
-body.dark .sb-card{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.08);box-shadow:none;}
+.sb-card{background:rgba(255,255,255,.65);border:1px solid rgba(255,255,255,.95);border-radius:16px;padding:12px;margin-bottom:10px;box-shadow:0 2px 12px rgba(0,0,0,.05),inset 0 1.5px 0 rgba(255,255,255,1),inset 0 -1px 0 rgba(0,0,0,.02);}
+body.dark .sb-card{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.12);box-shadow:0 2px 8px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.08);}
 .sb-lbl{font-size:.58rem;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);font-weight:600;margin-bottom:6px;}
 .sb-val{font-size:1.5rem;font-weight:800;line-height:1;}
 </style>
@@ -1735,8 +1739,8 @@ function submitRotura(){
 //  HARD REFRESH
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
-var APP_DISPLAY_VERSION="v6.2.1";
-var APP_BUILD="11/05/26 17:00";
+var APP_DISPLAY_VERSION="v6.2.2";
+var APP_BUILD="12/05/26 10:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
