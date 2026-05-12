@@ -1677,6 +1677,98 @@ function expFiltered(){
 
 
 // ═══════════════════════════════════════════
+//  PANEL DE REPORTES
+// ═══════════════════════════════════════════
+function openReportPanel(){
+  var locs=[].concat.apply([],eqs.map(function(e){return (e.ubicacion||'').trim();})).filter(Boolean);
+  locs=locs.filter(function(v,i,a){return a.indexOf(v)===i;}).sort();
+  var tipoOpts=[{v:'todo',l:'📋 Todo'},{v:'mant',l:'🔩 Mantenimientos'},{v:'rep',l:'🔧 Reparaciones'}];
+  var tipoPills=tipoOpts.map(function(t){var a=t.v==='todo';return'<button type="button" data-rep-tipo="'+t.v+'" onclick="setRepTipo(\''+t.v+'\')" style="flex:1;padding:9px 4px;border-radius:12px;font-size:.72rem;font-weight:600;border:none;cursor:pointer;background:'+(a?'rgba(0,113,227,.18)':'rgba(120,120,128,.08)')+';color:'+(a?'var(--accent)':'var(--text3)')+(a?';box-shadow:0 0 0 2px rgba(0,113,227,.3)':'')+';transition:all .15s;">'+t.l+'</button>';}).join('');
+  var locPills=locs.map(function(l){return'<button type="button" data-rep-loc-pill="'+esc(l)+'" onclick="toggleRepLoc(\''+l.replace(/'/g,"\\'")+'\')" style="padding:6px 13px;border-radius:20px;font-size:.72rem;font-weight:600;border:1.5px solid rgba(0,113,227,.25);background:rgba(0,113,227,.1);color:var(--accent);cursor:pointer;transition:all .15s;">📍 '+esc(l)+'</button>';}).join('');
+  var eqList=eqs.map(function(e){var ci=catById(e.cat);return'<label style="display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:10px;cursor:pointer;" class="rep-eq-row" data-eq-loc="'+esc(e.ubicacion||'')+'"><input type="checkbox" checked class="rep-eq-chk" value="'+e.id+'" style="accent-color:var(--accent);width:16px;height:16px;flex-shrink:0;"><span style="flex:1;font-size:.79rem;font-weight:500;">'+esc(e.nombre)+'</span><span style="font-size:.62rem;color:var(--text3);flex-shrink:0;">'+ci.label+(e.ubicacion?' · '+esc(e.ubicacion):'')+'</span></label>';}).join('');
+  var iconCal='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:.6"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
+  var iconPin='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:.6"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>';
+  var iconGrid='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:.6"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>';
+  openModal(
+    '<div class="modal-hdr"><div class="modal-title" style="display:flex;align-items:center;gap:8px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Generar Reporte</div><button class="modal-x" onclick="closeModal()">✕</button></div>'+
+    '<div class="ff"><div class="ff-label" style="display:flex;align-items:center;gap:5px;">Tipo de Reporte</div><div style="display:flex;gap:5px;">'+tipoPills+'</div><input type="hidden" id="rep-tipo" value="todo"></div>'+
+    '<div class="ff"><div class="ff-label" style="display:flex;align-items:center;gap:5px;">'+iconCal+' Rango de Fechas <span style="font-weight:400;color:var(--text3);font-size:.65rem;">(opcional)</span></div>'+
+    '<div class="g2"><div><div style="font-size:.58rem;color:var(--text3);margin-bottom:3px;font-weight:600;">DESDE</div><input class="inp" type="date" id="rep-desde" style="padding:9px 10px;"></div>'+
+    '<div><div style="font-size:.58rem;color:var(--text3);margin-bottom:3px;font-weight:600;">HASTA</div><input class="inp" type="date" id="rep-hasta" style="padding:9px 10px;"></div></div></div>'+
+    (locs.length?'<div class="ff"><div class="ff-label" style="display:flex;align-items:center;gap:5px;">'+iconPin+' Sucursales / Centros</div><div style="display:flex;gap:6px;flex-wrap:wrap;">'+locPills+'</div></div>':'')+
+    '<div class="ff"><div class="ff-label" style="display:flex;align-items:center;justify-content:space-between;">'+
+      '<span style="display:flex;align-items:center;gap:5px;">'+iconGrid+' Equipos</span>'+
+      '<div><button type="button" onclick="toggleAllRepEq(true)" style="font-size:.68rem;color:var(--accent);background:none;border:none;cursor:pointer;font-weight:700;padding:2px 6px;">Todos</button>'+
+      '<button type="button" onclick="toggleAllRepEq(false)" style="font-size:.68rem;color:var(--text3);background:none;border:none;cursor:pointer;font-weight:600;padding:2px 6px;">Ninguno</button></div></div>'+
+    '<div style="max-height:210px;overflow-y:auto;border-radius:12px;border:1px solid rgba(120,120,128,.12);margin-top:6px;">'+eqList+'</div></div>'+
+    '<button style="width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:50px;font-weight:700;font-size:.9rem;cursor:pointer;box-shadow:0 2px 8px rgba(0,113,227,.3);margin-top:4px;" onclick="generateReport()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px;"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Generar PDF</button>'
+  );
+}
+function setRepTipo(v){document.getElementById('rep-tipo').value=v;document.querySelectorAll('[data-rep-tipo]').forEach(function(b){var a=b.dataset.repTipo===v;b.style.background=a?'rgba(0,113,227,.18)':'rgba(120,120,128,.08)';b.style.color=a?'var(--accent)':'var(--text3)';b.style.boxShadow=a?'0 0 0 2px rgba(0,113,227,.3)':'none';});}
+function toggleAllRepEq(checked){document.querySelectorAll('.rep-eq-chk').forEach(function(c){c.checked=checked;});}
+function toggleRepLoc(loc){
+  var rows=document.querySelectorAll('.rep-eq-row');
+  var locRows=[].filter.call(rows,function(r){return r.dataset.eqLoc===loc;});
+  if(!locRows.length)return;
+  var allChk=locRows.every(function(r){return r.querySelector('.rep-eq-chk').checked;});
+  var nv=!allChk;
+  locRows.forEach(function(r){r.querySelector('.rep-eq-chk').checked=nv;});
+  var pill=document.querySelector('[data-rep-loc-pill="'+loc+'"]');
+  if(pill){pill.style.background=nv?'rgba(0,113,227,.22)':'rgba(0,113,227,.06)';pill.style.borderColor=nv?'rgba(0,113,227,.6)':'rgba(0,113,227,.2)';}
+}
+function generateReport(){
+  var tipo=document.getElementById('rep-tipo').value;
+  var desde=document.getElementById('rep-desde').value;
+  var hasta=document.getElementById('rep-hasta').value;
+  var selIds=[];document.querySelectorAll('.rep-eq-chk:checked').forEach(function(c){selIds.push(c.value);});
+  if(!selIds.length){alert('Seleccioná al menos un equipo');return;}
+  var filtEqs=eqs.filter(function(e){return selIds.indexOf(e.id)!==-1;});
+  closeModal();
+  var tm=0,tr=0,hasData=false,sections='';
+  filtEqs.forEach(function(eq){
+    var ci=catById(eq.cat);
+    var hist=(eq.historialMant||[]).filter(function(h){
+      if(desde&&h.fecha<desde)return false;
+      if(hasta&&h.fecha>hasta)return false;
+      if(tipo==='mant'&&h.tipo==='reparacion')return false;
+      if(tipo==='rep'&&h.tipo!=='reparacion')return false;
+      return true;
+    }).sort(function(a,b){return a.fecha>b.fecha?1:-1;});
+    if(!hist.length&&(desde||hasta||tipo!=='todo'))return;
+    hasData=true;
+    var repRows='',mantRows='';
+    (hist.length?hist:(tipo==='todo'?[]:[])).forEach(function(h){
+      if(h.tipo==='reparacion'){tr++;repRows+='<tr><td>'+esc(h.nombre||'—')+'</td><td>'+(h.notas?esc(h.notas):'—')+'</td><td style="color:#dc2626;">'+fD(h.fechaRotura)+'</td><td style="color:#16a34a;">'+fD(h.fecha)+'</td></tr>';}
+      else{tm++;mantRows+='<tr><td>'+fD(h.fecha)+'</td><td>'+(h.tecnico?esc(h.tecnico):'—')+'</td><td>'+(h.notas?esc(h.notas):'—')+'</td></tr>';}
+    });
+    var rot=eq.partes.filter(function(p){return p.estado==='roto';}).length;
+    sections+='<div class="eq-block"><div class="eq-hdr"><span class="eq-name">'+esc(eq.nombre)+'</span><span class="eq-cat">'+ci.label+(eq.ubicacion?' · '+esc(eq.ubicacion):'')+(eq.serie?' · SID:'+esc(eq.serie):'')+'</span></div>';
+    sections+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:8px 12px;background:#f8fafc;">';
+    sections+='<div class="sb"><div style="font-size:8px;color:#64748b;text-transform:uppercase">Estado</div><div style="font-size:11px;font-weight:700;color:'+(eq.estado==='fuera-de-servicio'?'#dc2626':eq.estado==='operativo'?'#16a34a':'#d97706')+'">' +eq.estado+'</div></div>';
+    sections+='<div class="sb"><div style="font-size:8px;color:#64748b;text-transform:uppercase">Últ.Mant.</div><div style="font-size:11px;font-weight:700;">'+fD(eq.ultimoMant)+'</div></div>';
+    sections+='<div class="sb"><div style="font-size:8px;color:#64748b;text-transform:uppercase">Próx.Mant.</div><div style="font-size:11px;font-weight:700;">'+fD(eq.proximoMant)+'</div></div>';
+    sections+='<div class="sb"><div style="font-size:8px;color:#64748b;text-transform:uppercase">P.Rotas</div><div style="font-size:11px;font-weight:700;color:'+(rot>0?'#dc2626':'#16a34a')+'">'+rot+'</div></div></div>';
+    if(repRows)sections+='<p class="sec-lbl">🔧 Reparaciones</p><table><thead><tr><th>Parte</th><th>Notas</th><th>F. Rotura</th><th>F. Arreglo</th></tr></thead><tbody>'+repRows+'</tbody></table>';
+    if(mantRows)sections+='<p class="sec-lbl">🔩 Mantenimientos</p><table><thead><tr><th>Fecha</th><th>Ingeniero</th><th>Notas</th></tr></thead><tbody>'+mantRows+'</tbody></table>';
+    if(!repRows&&!mantRows)sections+='<p style="margin:8px 12px;font-size:10px;color:#8e8e93;">Sin historial en el período seleccionado</p>';
+    sections+='</div>';
+  });
+  if(!hasData){alert('Sin datos con los filtros seleccionados');return;}
+  var subtit=(desde||hasta)?((desde?fD(desde):'inicio')+' — '+(hasta?fD(hasta):'hoy')):'Todos los períodos';
+  subtit+=(' · '+filtEqs.length+' equipo'+(filtEqs.length!==1?'s':''));
+  var css=_reportCSS+'.eq-block{border:1px solid #e2e8f0;border-radius:8px;margin-bottom:16px;overflow:hidden;page-break-inside:avoid}.eq-hdr{background:#1a3a6b;color:#fff;padding:8px 12px;display:flex;justify-content:space-between;align-items:center}.eq-name{font-size:12px;font-weight:700}.eq-cat{font-size:9px;opacity:.8}.sec-lbl{margin:8px 12px 4px;font-size:9px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em}.sb{background:#f0f6ff;border:1px solid #dce8f5;border-radius:6px;padding:6px 8px;text-align:center}';
+  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CIMA Reporte</title><style>'+css+'</style></head><body>'+
+    '<div class="nav-bar"><button class="btn-print" onclick="window.print()">🖨 Imprimir</button></div>'+
+    '<div class="h"><div class="h1">CIMA — Reporte de Equipos</div><div class="h-sub">'+subtit+' · Generado: '+new Date().toLocaleString("es-AR")+'</div></div>'+
+    '<div class="b"><div style="display:flex;gap:10px;margin-bottom:16px;">'+
+    '<div class="sb" style="flex:1"><div style="font-size:8px;color:#64748b;text-transform:uppercase">Equipos</div><div style="font-size:22px;font-weight:700;color:#1a3a6b">'+filtEqs.length+'</div></div>'+
+    '<div class="sb" style="flex:1"><div style="font-size:8px;color:#64748b;text-transform:uppercase">Mantenimientos</div><div style="font-size:22px;font-weight:700;color:#0071e3">'+tm+'</div></div>'+
+    '<div class="sb" style="flex:1"><div style="font-size:8px;color:#64748b;text-transform:uppercase">Reparaciones</div><div style="font-size:22px;font-weight:700;color:#34c759">'+tr+'</div></div></div>'+
+    sections+'</div></body></html>';
+  openHTMLViewer(html);
+}
+
+// ═══════════════════════════════════════════
 //  REPORTAR ROTURA
 // ═══════════════════════════════════════════
 function openMRotura(){
@@ -1760,7 +1852,7 @@ function submitRotura(){
 //  HARD REFRESH
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
-var APP_DISPLAY_VERSION="3.4.2";
+var APP_DISPLAY_VERSION="3.5.0";
 var APP_BUILD="12/05/26 15:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
@@ -2127,8 +2219,8 @@ function sbCalTap(ds){
     <span style="flex:1;">Modo Oscuro</span><span id="sb-dark-pill" style="font-size:.6rem;padding:2px 8px;border-radius:20px;background:rgba(0,113,227,.12);color:var(--accent);font-weight:700;">OFF</span>
   </button>
   <div style="height:1px;background:rgba(120,120,128,.1);margin:3px 4px;"></div>
-  <button class="sb-sub-btn" onclick="closeSbAjustesMenu();exportAllPDF()">
-    <span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></span>Reporte PDF
+  <button class="sb-sub-btn" onclick="closeSbAjustesMenu();openReportPanel()">
+    <span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>Reporte PDF
   </button>
   <button class="sb-sub-btn" onclick="closeSbAjustesMenu();exportBackup()">
     <span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span>Descargar Backup
