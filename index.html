@@ -474,6 +474,10 @@ body.dark .sb-card{background:rgba(255,255,255,.07);border-color:rgba(255,255,25
     <div class="sb-lbl">Calendario</div>
     <div id="sb-calendar" class="sb-card" style="padding:10px;"></div>
   </div>
+  <!-- Version footer -->
+  <div style="margin-top:auto;padding:12px 16px 4px;text-align:center;border-top:1px solid rgba(120,120,128,.1);">
+    <div style="font-size:.6rem;color:var(--text3);font-family:monospace;letter-spacing:.04em;" id="sb-ver-label"></div>
+  </div>
 </div>
 
 <!-- MODAL -->
@@ -1852,7 +1856,7 @@ function submitRotura(){
 //  HARD REFRESH
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
-var APP_DISPLAY_VERSION="3.5.0";
+var APP_DISPLAY_VERSION="3.5.1";
 var APP_BUILD="12/05/26 15:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
@@ -2085,6 +2089,8 @@ function sbGlassDonut(ok,fuera,total){
   return '<svg width="'+s+'" height="'+s+'" viewBox="0 0 '+s+' '+s+'">'+defs+track+segOk+segF+centerLabel+'</svg>';
 }
 function rSidebar(){
+  var vl=document.getElementById("sb-ver-label");
+  if(vl)vl.textContent=(APP_DISPLAY_VERSION||APP_VERSION||"")+(APP_BUILD?" · "+APP_BUILD:"");
   // User
   var user=window._fbUser;
   var avatarWrap=document.getElementById("sb-avatar-wrap");
