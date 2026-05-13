@@ -861,7 +861,7 @@ function confirmarReparacion(eqId,pid){
   if(!pt)return;
   eqs=eqs.map(function(e){
     if(e.id!==eqId)return e;
-    var hist=(e.historialMant||[]).concat({id:"HP-"+Date.now(),fecha:fecha,tipo:"reparacion",nombre:pt.nombre,marca:pt.marca||"",nroSerie:pt.nroSerie||"",fechaRotura:pt.fechaRotura||"",notas:notas||pt.notas||"",precio:pt.precio||"",tecnico:tecnico,archivos:pt.archivos||[],registradoEn:new Date().toISOString()});
+    var hist=(e.historialMant||[]).concat({id:"HP-"+Date.now(),fecha:fecha,tipo:"reparacion",nombre:pt.nombre,marca:pt.marca||"",nroSerie:pt.nroSerie||"",fechaRotura:pt.fechaRotura||"",notas:notas||pt.notas||"",precio:pt.precio||"",tecnico:tecnico,archivos:pt.archivos||[],registradoEn:new Date().toISOString(),_parteOriginal:Object.assign({},pt)});
     var partes=e.partes.filter(function(x){return x.id!==pid;});
     return Object.assign({},e,{partes:partes,historialMant:hist});
   });
@@ -896,14 +896,30 @@ function confirmarMejora(eqId,pid){
   var pt=eq.partes.find(function(p){return p.id===pid;});if(!pt)return;
   eqs=eqs.map(function(e){
     if(e.id!==eqId)return e;
-    var hist=(e.historialMant||[]).concat({id:"HM-"+Date.now(),fecha:fecha,tipo:"mejora",nombre:pt.nombre,descripcion:pt.descripcion||"",asignadoA:pt.asignadoA||"",notas:notas||pt.notas||"",tecnico:tecnico,registradoEn:new Date().toISOString()});
+    var hist=(e.historialMant||[]).concat({id:"HM-"+Date.now(),fecha:fecha,tipo:"mejora",nombre:pt.nombre,descripcion:pt.descripcion||"",asignadoA:pt.asignadoA||"",notas:notas||pt.notas||"",tecnico:tecnico,registradoEn:new Date().toISOString(),_parteOriginal:Object.assign({},pt)});
     var partes=e.partes.filter(function(x){return x.id!==pid;});
     return Object.assign({},e,{partes:partes,historialMant:hist});
   });
   saveData();closeModal();showToast("✅ Mejora completada y registrada en historial");render();
 }
 function delParte(eqId,pid){if(!confirm("¿Eliminar?"))return;eqs=eqs.map(function(e){return e.id!==eqId?e:Object.assign({},e,{partes:e.partes.filter(function(x){return x.id!==pid;})});});saveData();showToast("Eliminada","warn");render();}
-function delHist(eqId,hid){if(!confirm("¿Eliminar registro?"))return;eqs=eqs.map(function(e){return e.id!==eqId?e:Object.assign({},e,{historialMant:(e.historialMant||[]).filter(function(h){return h.id!==hid;})});});saveData();showToast("Eliminado","warn");render();}
+function delHist(eqId,hid){
+  var eq=eqs.find(function(e){return e.id===eqId;});if(!eq)return;
+  var hh=(eq.historialMant||[]).find(function(h){return h.id===hid;});if(!hh)return;
+  var tieneOrigen=!!(hh._parteOriginal);
+  var msg=tieneOrigen?"¿Eliminar este registro? El parte volverá a la lista como estaba antes.":"¿Eliminar registro?";
+  if(!confirm(msg))return;
+  eqs=eqs.map(function(e){
+    if(e.id!==eqId)return e;
+    var newHist=(e.historialMant||[]).filter(function(h){return h.id!==hid;});
+    var newPartes=e.partes.slice();
+    if(tieneOrigen){newPartes.unshift(Object.assign({},hh._parteOriginal));}
+    return Object.assign({},e,{historialMant:newHist,partes:newPartes});
+  });
+  saveData();
+  showToast(tieneOrigen?"↩️ Registro eliminado y parte restaurado":"Eliminado","warn");
+  render();
+}
 function openHistDetail(eqId,hid){
   var eq=eqs.find(function(e){return e.id===eqId;});if(!eq)return;
   var hh=(eq.historialMant||[]).find(function(h){return h.id===hid;});if(!hh)return;
@@ -1970,8 +1986,8 @@ function submitRotura(){
 //  HARD REFRESH
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
-var APP_DISPLAY_VERSION="3.6.7";
-var APP_BUILD="13/05/26 13:00";
+var APP_DISPLAY_VERSION="3.6.8";
+var APP_BUILD="13/05/26 14:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
