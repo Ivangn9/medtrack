@@ -1335,14 +1335,7 @@ function renderHeader(){
   var b=document.getElementById("badge-critico");b.textContent=cr;b.classList.toggle("hidden",cr===0);
   var tb=document.getElementById("tab-alert-badge");tb.textContent=al.length;tb.classList.toggle("hidden",al.length===0);
   var lt=document.getElementById("logo-time");if(lt)lt.textContent=new Date().toLocaleString("es-AR",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"});
-  var user=window._fbUser;var ha=document.getElementById("hdr-avatar");
-  if(user&&ha){
-    if(user.photoURL){
-      ha.innerHTML='<img src="'+user.photoURL+'" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentNode.textContent=\''+(user.displayName||user.email||"?")[0].toUpperCase()+'\'">';
-    } else {
-      ha.textContent=(user.displayName||user.email||"?")[0].toUpperCase();
-    }
-  }
+  var user=window._fbUser;_setAvatar(document.getElementById("hdr-avatar"),user);
 }
 
 function render(){
@@ -2081,8 +2074,8 @@ function submitRotura(){
 //  HARD REFRESH
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
-var APP_DISPLAY_VERSION="3.8.6";
-var APP_BUILD="14/05/26 19:30";
+var APP_DISPLAY_VERSION="3.8.7";
+var APP_BUILD="14/05/26 20:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
@@ -2316,6 +2309,24 @@ function sbGlassDonut(ok,fuera,total){
     '<text x="'+cx+'" y="'+(cy+11)+'" text-anchor="middle" fill="var(--text3)" font-size="7.5" font-weight="700" font-family="-apple-system,sans-serif" letter-spacing="0.8">OPERATIVOS</text>';
   return '<svg width="'+s+'" height="'+s+'" viewBox="0 0 '+s+' '+s+'">'+defs+track+segOk+segF+centerLabel+'</svg>';
 }
+function _getUserPhoto(user){
+  // providerData[0] has the freshest photo directly from Google OAuth
+  var pd=user&&user.providerData&&user.providerData[0];
+  var url=(pd&&pd.photoURL)||user.photoURL||"";
+  // Upgrade Google photo to higher resolution and bypass cache
+  if(url&&url.indexOf("googleusercontent.com")!==-1){
+    url=url.replace(/=s\d+-c$/,"=s200-c").replace(/\/s\d+-c\//,"/s200-c/");
+    if(url.indexOf("=s")===-1&&url.indexOf("/s")===-1)url=url+"=s200-c";
+  }
+  return url;
+}
+function _setAvatar(el,user){
+  if(!el||!user)return;
+  var url=_getUserPhoto(user);
+  var ini=(user.displayName||user.email||"?")[0].toUpperCase();
+  if(url){el.innerHTML='<img src="'+url+'" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentNode.innerHTML=\''+ini+'\'">';}
+  else{el.innerHTML=ini;}
+}
 function rSidebar(){
   var vl=document.getElementById("sb-ver-label");
   if(vl)vl.textContent=(APP_DISPLAY_VERSION||APP_VERSION||"")+(APP_BUILD?" · "+APP_BUILD:"");
@@ -2325,11 +2336,7 @@ function rSidebar(){
   var sbName=document.getElementById("sb-name");
   var sbEmail=document.getElementById("sb-email");
   if(user&&avatarWrap){
-    if(user.photoURL){
-      avatarWrap.innerHTML='<img src="'+user.photoURL+'" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentNode.textContent=\''+(user.displayName||user.email||"?")[0].toUpperCase()+'\'">';
-    } else {
-      avatarWrap.textContent=(user.displayName||user.email||"?")[0].toUpperCase();
-    }
+    _setAvatar(avatarWrap,user);
     if(sbName)sbName.textContent=user.displayName||user.email||"Usuario";
     if(sbEmail)sbEmail.textContent=user.email||"";
   }
