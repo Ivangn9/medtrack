@@ -319,7 +319,9 @@ body.dark .sb-card{background:rgba(255,255,255,.07);border-color:rgba(255,255,25
   <div style="width:100%;max-width:400px;">
     <!-- Logo / header -->
     <div style="text-align:center;margin-bottom:32px;">
-      <img src="logo.png" alt="CIMA" style="height:56px;width:auto;object-fit:contain;margin-bottom:12px;" onerror="this.style.display='none'">
+      <div style="display:inline-flex;align-items:center;justify-content:center;width:80px;height:80px;border-radius:22px;background:linear-gradient(135deg,#0a4fa8,#1565c0);box-shadow:0 8px 28px rgba(10,79,168,.35);margin-bottom:14px;">
+        <img src="logo.png" alt="CIMA" style="height:62px;width:62px;object-fit:contain;mix-blend-mode:multiply;" onerror="this.style.display='none'">
+      </div>
       <div style="font-weight:800;font-size:1.4rem;letter-spacing:-.5px;color:var(--text);">MedTrack</div>
       <div style="font-size:.78rem;color:var(--text3);margin-top:4px;">CIMA Investigaciones Avanzadas</div>
     </div>
@@ -435,7 +437,9 @@ body.dark .sb-card{background:rgba(255,255,255,.07);border-color:rgba(255,255,25
   <!-- Logo header -->
   <div style="padding:14px 16px 12px;border-bottom:1px solid rgba(120,120,128,.15);margin-bottom:6px;">
     <div style="display:flex;align-items:center;gap:9px;">
-      <img src="logo.png" style="height:30px;opacity:1;filter:drop-shadow(0 1px 3px rgba(0,0,0,.15));" onerror="this.style.display='none'">
+      <div style="display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,#0a4fa8,#1565c0);box-shadow:0 3px 10px rgba(10,79,168,.3);flex-shrink:0;">
+        <img src="logo.png" style="height:28px;width:28px;object-fit:contain;mix-blend-mode:multiply;" onerror="this.style.display='none'">
+      </div>
       <div>
         <div style="font-weight:800;font-size:.92rem;color:var(--text);letter-spacing:-.3px;">MedTrack</div>
         <div style="font-size:.58rem;color:var(--text3);letter-spacing:.3px;">CIMA Investigaciones</div>
@@ -512,7 +516,9 @@ body.dark .sb-card{background:rgba(255,255,255,.07);border-color:rgba(255,255,25
           <path d="M12 5 L7 10 L12 15" stroke="#1a6fbf" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
-      <img src="logo.png" alt="CIMA" id="logo-img" style="height:46px;width:auto;object-fit:contain;">
+      <div style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#0a4fa8,#1565c0);box-shadow:0 3px 10px rgba(10,79,168,.25);">
+        <img src="logo.png" alt="CIMA" id="logo-img" style="height:34px;width:34px;object-fit:contain;mix-blend-mode:multiply;">
+      </div>
       <div class="hdr-time" id="logo-time"></div>
     </div>
     <div id="header-right">
@@ -2033,8 +2039,8 @@ function submitRotura(){
 //  HARD REFRESH
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
-var APP_DISPLAY_VERSION="3.7.8";
-var APP_BUILD="14/05/26 14:00";
+var APP_DISPLAY_VERSION="3.7.9";
+var APP_BUILD="14/05/26 15:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
