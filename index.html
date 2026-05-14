@@ -16,13 +16,11 @@
   function makeIcon(size){
     var c=document.createElement('canvas');c.width=size;c.height=size;
     var ctx=c.getContext('2d');
-    var g=ctx.createLinearGradient(0,0,size,size);
-    g.addColorStop(0,'#1e2d6b');g.addColorStop(1,'#243070');
-    ctx.fillStyle=g;ctx.fillRect(0,0,size,size);
+    ctx.fillStyle='#ffffff';ctx.fillRect(0,0,size,size);
     var img=new Image();
     img.onload=function(){
-      var pad=Math.round(size*0.20);
-      ctx.globalCompositeOperation='multiply';
+      var pad=Math.round(size*0.15);
+      ctx.globalCompositeOperation='source-over';
       ctx.drawImage(img,pad,pad,size-pad*2,size-pad*2);
       var url=c.toDataURL('image/png');
       ['ati-180','ati-152','ati-167','ati-180b'].forEach(function(id){var el=document.getElementById(id);if(el)el.href=url;});
@@ -2054,8 +2052,8 @@ function submitRotura(){
 //  HARD REFRESH
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
-var APP_DISPLAY_VERSION="3.8.2";
-var APP_BUILD="14/05/26 17:30";
+var APP_DISPLAY_VERSION="3.8.3";
+var APP_BUILD="14/05/26 18:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
