@@ -1067,6 +1067,7 @@ function regMant(eqId,fecha,notas,tecnico){
   saveData();showToast("✅ Mantenimiento registrado");closeModal();render();
 }
 function setEst(eqId,est){eqs=eqs.map(function(e){return e.id!==eqId?e:Object.assign({},e,{estado:est});});saveData();showToast("Estado actualizado");render();}
+function estLabel(s){return{operativo:"Operativo","con-rotura":"Con Rotura",advertencia:"Advertencia","fuera-de-servicio":"Fuera de servicio"}[s]||s||"—";}
 
 // ═══════════════════════════════════════════
 //  MODAL BUILDERS
@@ -2033,8 +2034,8 @@ function submitRotura(){
 //  HARD REFRESH
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
-var APP_DISPLAY_VERSION="3.7.6";
-var APP_BUILD="14/05/26 13:00";
+var APP_DISPLAY_VERSION="3.7.7";
+var APP_BUILD="14/05/26 13:30";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
