@@ -1845,7 +1845,7 @@ function expFiltered(){
 function openReportPanel(){
   var locs=[].concat.apply([],eqs.map(function(e){return (e.ubicacion||'').trim();})).filter(Boolean);
   locs=locs.filter(function(v,i,a){return a.indexOf(v)===i;}).sort();
-  var tipoOpts=[{v:'todo',l:'📋 Todo'},{v:'mant',l:'🔩 Mantenimientos'},{v:'rep',l:'🔧 Reparaciones'}];
+  var tipoOpts=[{v:'todo',l:'📋 Todo'},{v:'mant',l:'🔩 Mantenimientos'},{v:'rep',l:'🔧 Reparaciones'},{v:'mejora',l:'✨ Mejoras'},{v:'activas',l:'🔴 Partes Activas'}];
   var tipoPills=tipoOpts.map(function(t){var a=t.v==='todo';return'<button type="button" data-rep-tipo="'+t.v+'" onclick="setRepTipo(\''+t.v+'\')" style="flex:1;padding:9px 4px;border-radius:12px;font-size:.72rem;font-weight:600;border:none;cursor:pointer;background:'+(a?'rgba(0,113,227,.18)':'rgba(120,120,128,.08)')+';color:'+(a?'var(--accent)':'var(--text3)')+(a?';box-shadow:0 0 0 2px rgba(0,113,227,.3)':'')+';transition:all .15s;">'+t.l+'</button>';}).join('');
   var locPills=locs.map(function(l){return'<button type="button" data-rep-loc-pill="'+esc(l)+'" onclick="toggleRepLoc(\''+l.replace(/'/g,"\\'")+'\')" style="padding:6px 13px;border-radius:20px;font-size:.72rem;font-weight:600;border:1.5px solid rgba(0,113,227,.25);background:rgba(0,113,227,.1);color:var(--accent);cursor:pointer;transition:all .15s;">📍 '+esc(l)+'</button>';}).join('');
   var eqList=eqs.map(function(e){var ci=catById(e.cat);return'<label style="display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:10px;cursor:pointer;" class="rep-eq-row" data-eq-loc="'+esc(e.ubicacion||'')+'"><input type="checkbox" checked class="rep-eq-chk" value="'+e.id+'" style="accent-color:var(--accent);width:16px;height:16px;flex-shrink:0;"><span style="flex:1;font-size:.79rem;font-weight:500;">'+esc(e.nombre)+'</span><span style="font-size:.62rem;color:var(--text3);flex-shrink:0;">'+ci.label+(e.ubicacion?' · '+esc(e.ubicacion):'')+'</span></label>';}).join('');
@@ -1887,47 +1887,65 @@ function generateReport(){
   if(!selIds.length){alert('Seleccioná al menos un equipo');return;}
   var filtEqs=eqs.filter(function(e){return selIds.indexOf(e.id)!==-1;});
   closeModal();
-  var tm=0,tr=0,hasData=false,sections='';
+  var tm=0,tr=0,tmej=0,tact=0,tmejpend=0,hasData=false,sections='';
+  var inclMant=tipo==='todo'||tipo==='mant';
+  var inclRep=tipo==='todo'||tipo==='rep';
+  var inclMejHist=tipo==='todo'||tipo==='mejora';
+  var inclActivas=tipo==='todo'||tipo==='activas'||tipo==='rep';
+  var inclMejPend=tipo==='todo'||tipo==='mejora';
   filtEqs.forEach(function(eq){
     var ci=catById(eq.cat);
     var hist=(eq.historialMant||[]).filter(function(h){
       if(desde&&h.fecha<desde)return false;
       if(hasta&&h.fecha>hasta)return false;
-      if(tipo==='mant'&&h.tipo==='reparacion')return false;
-      if(tipo==='rep'&&h.tipo!=='reparacion')return false;
       return true;
     }).sort(function(a,b){return a.fecha>b.fecha?1:-1;});
-    if(!hist.length&&(desde||hasta||tipo!=='todo'))return;
-    hasData=true;
-    var repRows='',mantRows='';
-    (hist.length?hist:(tipo==='todo'?[]:[])).forEach(function(h){
-      if(h.tipo==='reparacion'){tr++;repRows+='<tr><td>'+esc(h.nombre||'—')+'</td><td>'+(h.notas?esc(h.notas):'—')+'</td><td style="color:#dc2626;">'+fD(h.fechaRotura)+'</td><td style="color:#16a34a;">'+fD(h.fecha)+'</td></tr>';}
-      else{tm++;mantRows+='<tr><td>'+fD(h.fecha)+'</td><td>'+(h.tecnico?esc(h.tecnico):'—')+'</td><td>'+(h.notas?esc(h.notas):'—')+'</td></tr>';}
+    // Active partes: rotas/pendientes with fechaRotura in range (or all if no date)
+    var partesActivas=eq.partes.filter(function(p){
+      if(p.estado!=='roto'&&p.estado!=='pendiente')return false;
+      if(desde&&p.fechaRotura&&p.fechaRotura<desde)return false;
+      if(hasta&&p.fechaRotura&&p.fechaRotura>hasta)return false;
+      return true;
     });
+    // Active mejoras
+    var mejorasPend=eq.partes.filter(function(p){return p.estado==='mejora';});
+    var mantHist=inclMant?hist.filter(function(h){return h.tipo==='mantenimiento';}):[];
+    var repHist=inclRep?hist.filter(function(h){return h.tipo==='reparacion';}):[];
+    var mejHist=inclMejHist?hist.filter(function(h){return h.tipo==='mejora';}):[];
+    var actToShow=inclActivas?partesActivas:[];
+    var mejPendToShow=inclMejPend?mejorasPend:[];
+    var eqHasData=mantHist.length||repHist.length||mejHist.length||actToShow.length||mejPendToShow.length;
+    if(!eqHasData)return;
+    hasData=true;
+    tm+=mantHist.length;tr+=repHist.length;tmej+=mejHist.length;tact+=actToShow.length;tmejpend+=mejPendToShow.length;
     var rot=eq.partes.filter(function(p){return p.estado==='roto';}).length;
     sections+='<div class="eq-block"><div class="eq-hdr"><span class="eq-name">'+esc(eq.nombre)+'</span><span class="eq-cat">'+ci.label+(eq.ubicacion?' · '+esc(eq.ubicacion):'')+(eq.serie?' · SID:'+esc(eq.serie):'')+'</span></div>';
     sections+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:8px 12px;background:#f8fafc;">';
-    sections+='<div class="sb"><div style="font-size:8px;color:#64748b;text-transform:uppercase">Estado</div><div style="font-size:11px;font-weight:700;color:'+(eq.estado==='fuera-de-servicio'?'#dc2626':eq.estado==='operativo'?'#16a34a':'#d97706')+'">' +eq.estado+'</div></div>';
+    sections+='<div class="sb"><div style="font-size:8px;color:#64748b;text-transform:uppercase">Estado</div><div style="font-size:11px;font-weight:700;color:'+(eq.estado==='fuera-de-servicio'?'#dc2626':eq.estado==='operativo'?'#16a34a':'#d97706')+'">'+estLabel(eq.estado)+'</div></div>';
     sections+='<div class="sb"><div style="font-size:8px;color:#64748b;text-transform:uppercase">Últ.Mant.</div><div style="font-size:11px;font-weight:700;">'+fD(eq.ultimoMant)+'</div></div>';
     sections+='<div class="sb"><div style="font-size:8px;color:#64748b;text-transform:uppercase">Próx.Mant.</div><div style="font-size:11px;font-weight:700;">'+fD(eq.proximoMant)+'</div></div>';
     sections+='<div class="sb"><div style="font-size:8px;color:#64748b;text-transform:uppercase">P.Rotas</div><div style="font-size:11px;font-weight:700;color:'+(rot>0?'#dc2626':'#16a34a')+'">'+rot+'</div></div></div>';
-    if(repRows)sections+='<p class="sec-lbl">🔧 Reparaciones</p><table><thead><tr><th>Parte</th><th>Notas</th><th>F. Rotura</th><th>F. Arreglo</th></tr></thead><tbody>'+repRows+'</tbody></table>';
-    if(mantRows)sections+='<p class="sec-lbl">🔩 Mantenimientos</p><table><thead><tr><th>Fecha</th><th>Ingeniero</th><th>Notas</th></tr></thead><tbody>'+mantRows+'</tbody></table>';
-    if(!repRows&&!mantRows)sections+='<p style="margin:8px 12px;font-size:10px;color:#8e8e93;">Sin historial en el período seleccionado</p>';
+    if(mantHist.length){var mantRows='';mantHist.forEach(function(h){mantRows+='<tr><td>'+fD(h.fecha)+'</td><td>'+(h.tecnico?esc(h.tecnico):'—')+'</td><td>'+(h.notas?esc(h.notas):'—')+'</td></tr>';});sections+='<p class="sec-lbl" style="color:#0071e3;">🔩 Mantenimientos ('+mantHist.length+')</p><table><thead><tr><th>Fecha</th><th>Ingeniero</th><th>Notas</th></tr></thead><tbody>'+mantRows+'</tbody></table>';}
+    if(repHist.length){var repRows='';repHist.forEach(function(h){repRows+='<tr><td>'+esc(h.nombre||'—')+'</td><td style="color:#dc2626;">'+fD(h.fechaRotura)+'</td><td style="color:#16a34a;">'+fD(h.fecha)+'</td><td>'+(h.tecnico?esc(h.tecnico):'—')+'</td><td>'+(h.precio?'$'+esc(h.precio):'—')+'</td><td>'+(h.notas?esc(h.notas):'—')+'</td></tr>';});sections+='<p class="sec-lbl" style="color:#16a34a;">🔧 Reparaciones completadas ('+repHist.length+')</p><table><thead><tr><th>Parte</th><th>F.Rotura</th><th>F.Arreglo</th><th>Ingeniero</th><th>Precio</th><th>Notas</th></tr></thead><tbody>'+repRows+'</tbody></table>';}
+    if(mejHist.length){var mejRows='';mejHist.forEach(function(h){mejRows+='<tr><td>'+esc(h.nombre||'—')+'</td><td>'+fD(h.fecha)+'</td><td>'+(h.asignadoA||h.tecnico?esc(h.asignadoA||h.tecnico):'—')+'</td><td>'+(h.notas?esc(h.notas):'—')+'</td></tr>';});sections+='<p class="sec-lbl" style="color:#8b5cf6;">✨ Mejoras completadas ('+mejHist.length+')</p><table><thead><tr><th>Mejora</th><th>Fecha</th><th>Responsable</th><th>Notas</th></tr></thead><tbody>'+mejRows+'</tbody></table>';}
+    if(actToShow.length){var actRows='';actToShow.forEach(function(p){var pill=p.estado==='roto'?'<span style="color:#dc2626;font-weight:700;">🔴 Roto</span>':'<span style="color:#d97706;font-weight:700;">⚠️ Pendiente</span>';actRows+='<tr><td>'+esc(p.nombre)+'</td><td>'+pill+'</td><td style="color:#dc2626;">'+fD(p.fechaRotura)+'</td><td>'+(p.canalReclamo?canalLabel(p.canalReclamo):'—')+'</td><td>'+(p.presupuestoAprobado?'<span style="color:#16a34a;">✅ Aprobado'+(p.fechaAprobacion?' '+fD(p.fechaAprobacion):'')+'</span>':'<span style="color:#d97706;">⏳ Pendiente</span>')+'</td><td>'+(p.precio?'$'+esc(p.precio):'—')+'</td><td>'+(p.notas?esc(p.notas):'—')+'</td></tr>';});sections+='<p class="sec-lbl" style="color:#dc2626;">🔴 Partes rotas / pendientes ('+actToShow.length+')</p><table><thead><tr><th>Parte</th><th>Estado</th><th>F.Rotura</th><th>Canal</th><th>Presupuesto</th><th>Precio</th><th>Notas</th></tr></thead><tbody>'+actRows+'</tbody></table>';}
+    if(mejPendToShow.length){var mpRows='';mejPendToShow.forEach(function(p){mpRows+='<tr><td>'+esc(p.nombre)+'</td><td>'+(p.descripcion?esc(p.descripcion):'—')+'</td><td>'+(p.asignadoA?esc(p.asignadoA):'—')+'</td><td>'+(p.fechaMejora?fD(p.fechaMejora):'—')+'</td><td>'+(p.notas?esc(p.notas):'—')+'</td></tr>';});sections+='<p class="sec-lbl" style="color:#8b5cf6;">🎨 Mejoras pendientes ('+mejPendToShow.length+')</p><table><thead><tr><th>Mejora</th><th>Descripción</th><th>Asignado</th><th>F.Prog.</th><th>Notas</th></tr></thead><tbody>'+mpRows+'</tbody></table>';}
     sections+='</div>';
   });
   if(!hasData){alert('Sin datos con los filtros seleccionados');return;}
   var subtit=(desde||hasta)?((desde?fD(desde):'inicio')+' — '+(hasta?fD(hasta):'hoy')):'Todos los períodos';
   subtit+=(' · '+filtEqs.length+' equipo'+(filtEqs.length!==1?'s':''));
-  var css=_reportCSS+'.eq-block{border:1px solid #e2e8f0;border-radius:8px;margin-bottom:16px;overflow:hidden;page-break-inside:avoid}.eq-hdr{background:#1a3a6b;color:#fff;padding:8px 12px;display:flex;justify-content:space-between;align-items:center}.eq-name{font-size:12px;font-weight:700}.eq-cat{font-size:9px;opacity:.8}.sec-lbl{margin:8px 12px 4px;font-size:9px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em}.sb{background:#f0f6ff;border:1px solid #dce8f5;border-radius:6px;padding:6px 8px;text-align:center}';
+  var css=_reportCSS+'.eq-block{border:1px solid #e2e8f0;border-radius:8px;margin-bottom:16px;overflow:hidden;page-break-inside:avoid}.eq-hdr{background:#1a3a6b;color:#fff;padding:8px 12px;display:flex;justify-content:space-between;align-items:center}.eq-name{font-size:12px;font-weight:700}.eq-cat{font-size:9px;opacity:.8}.sec-lbl{margin:8px 12px 4px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em}.sb{background:#f0f6ff;border:1px solid #dce8f5;border-radius:6px;padding:6px 8px;text-align:center}';
   var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CIMA Reporte</title><style>'+css+'</style></head><body>'+
     '<div class="nav-bar"><button class="btn-print" onclick="window.print()">🖨 Imprimir</button></div>'+
     '<div class="h"><div class="h1">CIMA — Reporte de Equipos</div><div class="h-sub">'+subtit+' · Generado: '+new Date().toLocaleString("es-AR")+'</div></div>'+
-    '<div class="b"><div style="display:flex;gap:10px;margin-bottom:16px;">'+
-    '<div class="sb" style="flex:1"><div style="font-size:8px;color:#64748b;text-transform:uppercase">Equipos</div><div style="font-size:22px;font-weight:700;color:#1a3a6b">'+filtEqs.length+'</div></div>'+
-    '<div class="sb" style="flex:1"><div style="font-size:8px;color:#64748b;text-transform:uppercase">Mantenimientos</div><div style="font-size:22px;font-weight:700;color:#0071e3">'+tm+'</div></div>'+
-    '<div class="sb" style="flex:1"><div style="font-size:8px;color:#64748b;text-transform:uppercase">Reparaciones</div><div style="font-size:22px;font-weight:700;color:#34c759">'+tr+'</div></div></div>'+
-    sections+'</div></body></html>';
+    '<div class="b"><div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:16px;">'+
+    '<div class="sb"><div style="font-size:8px;color:#64748b;text-transform:uppercase">Equipos</div><div style="font-size:20px;font-weight:700;color:#1a3a6b">'+filtEqs.length+'</div></div>'+
+    '<div class="sb"><div style="font-size:8px;color:#64748b;text-transform:uppercase">Mantenimientos</div><div style="font-size:20px;font-weight:700;color:#0071e3">'+tm+'</div></div>'+
+    '<div class="sb"><div style="font-size:8px;color:#64748b;text-transform:uppercase">Reparaciones</div><div style="font-size:20px;font-weight:700;color:#16a34a">'+tr+'</div></div>'+
+    '<div class="sb"><div style="font-size:8px;color:#64748b;text-transform:uppercase">Mejoras</div><div style="font-size:20px;font-weight:700;color:#8b5cf6">'+(tmej+tmejpend)+'</div></div>'+
+    '<div class="sb"><div style="font-size:8px;color:#64748b;text-transform:uppercase">P.Activas</div><div style="font-size:20px;font-weight:700;color:#dc2626">'+tact+'</div></div>'+
+    '</div>'+sections+'</div></body></html>';
   openHTMLViewer(html);
 }
 
@@ -2015,8 +2033,8 @@ function submitRotura(){
 //  HARD REFRESH
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
-var APP_DISPLAY_VERSION="3.7.5";
-var APP_BUILD="14/05/26 12:00";
+var APP_DISPLAY_VERSION="3.7.6";
+var APP_BUILD="14/05/26 13:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
