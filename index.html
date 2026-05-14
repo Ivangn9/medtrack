@@ -1124,15 +1124,13 @@ function openModalEq(eq){
     '<div class="ff"><div class="ff-label">Categoría</div><select class="inp" id="eq-cat">'+catOpts+'</select></div>'+
     '<div class="g2"><div class="ff"><div class="ff-label">Centro</div><div style="display:flex;gap:6px;">'+["Pedernera","CRS","GN"].map(function(c){var a=(f.ubicacion||"").toUpperCase()===c.toUpperCase();return'<button type="button" onclick="setCentro(\''+c+'\')" data-centro="'+c+'" style="flex:1;padding:9px 4px;border-radius:12px;font-size:.75rem;font-weight:700;border:none;cursor:pointer;background:'+(a?'rgba(0,113,227,.18)':'rgba(120,120,128,.08)')+';color:'+(a?'var(--accent)':'var(--text3)')+(a?';box-shadow:0 0 0 2px rgba(0,113,227,.3)':'')+';transition:all .15s;text-transform:uppercase;letter-spacing:.03em;">'+c+'</button>';}).join("")+'</div><input type="hidden" id="eq-ub" value="'+esc(f.ubicacion)+'"></div><div class="ff"><div class="ff-label">SystemID</div><input class="inp" id="eq-sr" value="'+esc(f.serie)+'"></div></div>'+
     '<div class="ff"><div class="ff-label">Fecha Instalación</div><input class="inp" type="date" id="eq-inst" value="'+f.instalacion+'"></div>'+
-    '<div class="g2"><div class="ff"><div class="ff-label">Ingeniero</div><input class="inp" id="eq-tc" value="'+esc(f.tecnico)+'"></div><div class="ff"><div class="ff-label">Contrato / Empresa</div><input class="inp" id="eq-ct" value="'+esc(f.contrato)+'"></div></div>'+
+    '<div class="ff"><div class="ff-label">Contrato / Empresa</div><input class="inp" id="eq-ct" value="'+esc(f.contrato)+'"></div>'+
     '<div class="ff"><div class="ff-label">Servicio de Mantenimiento</div>'+
     '<label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.84rem;font-weight:500;padding:6px 0;">'+
     '<input type="checkbox" id="eq-sv" style="width:17px;height:17px;cursor:pointer;accent-color:var(--green);"'+(f.tieneServicio?' checked':'')+'>'+
     'Tiene contrato de servicio activo</label></div>'+
     '<div class="ff"><div class="ff-label" style="display:flex;align-items:center;gap:6px;">Marca <span style="font-size:.6rem;opacity:.7;">(para mostrar logo)</span></div><select class="inp" id="eq-mk">'+marcaOpts+'</select></div>'+
-    '<div class="g2"><div class="ff"><div class="ff-label">Frecuencia</div><select class="inp" id="eq-fr" onchange="recalcP()">'+fOpts+'</select></div><div class="ff"><div class="ff-label">Estado</div><select class="inp" id="eq-es">'+eOpts+'</select></div></div>'+
-    '<div class="g2"><div class="ff"><div class="ff-label">Último Mant.</div><input class="inp" type="date" id="eq-um" value="'+f.ultimoMant+'" onchange="recalcP()"></div><div class="ff"><div class="ff-label">Próximo Mant.</div><input class="inp" type="date" id="eq-pm" value="'+f.proximoMant+'"></div></div>'+
-    '<div class="ff"><div class="ff-label">Notas</div><textarea class="inp" id="eq-nt" rows="2">'+esc(f.notas)+'</textarea></div>'+
+    '<div class="ff"><div class="ff-label">Estado</div><select class="inp" id="eq-es">'+eOpts+'</select></div>'+
     '<div class="ff"><div class="ff-label">Garantía</div>'+
     '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'+
     '<label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:.84rem;font-weight:500;">'+
@@ -1146,7 +1144,8 @@ function recalcP(){var d=document.getElementById("eq-um").value,f=document.getEl
 function submitEq(eid){
   var n=document.getElementById("eq-n").value.trim();if(!n)return alert("Nombre obligatorio");
   var grEl=document.getElementById("eq-gr");var svEl=document.getElementById("eq-sv");
-  saveEq({id:eid||"",nombre:n,cat:document.getElementById("eq-cat").value,ubicacion:document.getElementById("eq-ub").value,serie:document.getElementById("eq-sr").value,instalacion:document.getElementById("eq-inst").value,tecnico:document.getElementById("eq-tc").value,contrato:document.getElementById("eq-ct").value,marca:(document.getElementById("eq-mk")||{value:""}).value,frecuencia:document.getElementById("eq-fr").value,estado:document.getElementById("eq-es").value,ultimoMant:document.getElementById("eq-um").value,proximoMant:document.getElementById("eq-pm").value,notas:document.getElementById("eq-nt").value,garantia:grEl?grEl.checked:false,garantiaHasta:document.getElementById("eq-gh").value,tieneServicio:svEl?svEl.checked:false});
+  var ex=eid?(eqs.find(function(e){return e.id===eid;})||{}):{};
+  saveEq({id:eid||"",nombre:n,cat:document.getElementById("eq-cat").value,ubicacion:document.getElementById("eq-ub").value,serie:document.getElementById("eq-sr").value,instalacion:document.getElementById("eq-inst").value,tecnico:ex.tecnico||"",contrato:document.getElementById("eq-ct").value,marca:(document.getElementById("eq-mk")||{value:""}).value,frecuencia:ex.frecuencia||"semestral",estado:document.getElementById("eq-es").value,ultimoMant:ex.ultimoMant||"",proximoMant:ex.proximoMant||"",notas:ex.notas||"",garantia:grEl?grEl.checked:false,garantiaHasta:document.getElementById("eq-gh").value,tieneServicio:svEl?svEl.checked:false});
 }
 // ── FILE STORE (IndexedDB) ──
 var _idb=null;
@@ -2073,8 +2072,8 @@ function submitRotura(){
 //  HARD REFRESH
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
-var APP_DISPLAY_VERSION="3.8.4";
-var APP_BUILD="14/05/26 18:30";
+var APP_DISPLAY_VERSION="3.8.5";
+var APP_BUILD="14/05/26 19:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
