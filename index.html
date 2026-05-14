@@ -1703,7 +1703,7 @@ function rDetalle(){
         (hh.precio?'<div style="font-size:.7rem;color:var(--green);font-weight:600;">💲 $'+esc(hh.precio)+'</div>':'')+
         (hh.notas?'<div style="font-size:.72rem;color:var(--text2);margin-top:4px;background:rgba(0,0,0,.03);padding:4px 8px;border-radius:7px;">'+esc(hh.notas)+'</div>':'')+'</div>'+
         '<div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;flex-shrink:0;">'+
-        '<button onclick="openHistDetail(\''+eq.id+'\',\''+hh.id+'\')" style="padding:4px 10px;background:rgba(0,113,227,.1);color:var(--accent);border-radius:8px;font-size:.66rem;font-weight:600;border:none;cursor:pointer;white-space:nowrap;">'+(hasPdf?"📄 Ver":"🔍 Ver")+'</button>'+
+        '<button onclick="'+(hasPdf?"openPDFViewer('"+hh.archivos[0].id+"','"+esc(hh.archivos[0].nombre)+"')":"openHistDetail('"+eq.id+"','"+hh.id+"')")+'" style="padding:4px 10px;background:rgba(0,113,227,.1);color:var(--accent);border-radius:8px;font-size:.66rem;font-weight:600;border:none;cursor:pointer;white-space:nowrap;">'+(hasPdf?"📄 Ver PDF":"🔍 Ver")+'</button>'+
         '<button onclick="openEditHist(\''+eq.id+'\',\''+hh.id+'\')" style="padding:4px 10px;background:rgba(52,199,89,.1);color:var(--green);border-radius:8px;font-size:.66rem;font-weight:600;border:none;cursor:pointer;">✏️</button>'+
         '<button onclick="delHist(\''+eq.id+'\',\''+hh.id+'\')" style="padding:4px 8px;background:rgba(255,59,48,.07);color:var(--red);border-radius:8px;font-size:.68rem;border:none;cursor:pointer;">🗑</button>'+
         '</div></div></div></div>';
@@ -2021,8 +2021,8 @@ function submitRotura(){
 //  HARD REFRESH
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
-var APP_DISPLAY_VERSION="3.7.3";
-var APP_BUILD="14/05/26 11:00";
+var APP_DISPLAY_VERSION="3.7.4";
+var APP_BUILD="14/05/26 11:30";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
