@@ -22,12 +22,12 @@
     var img=new Image();
     img.onload=function(){
       var pad=Math.round(size*0.20);
-      ctx.globalCompositeOperation='screen';
+      ctx.globalCompositeOperation='multiply';
       ctx.drawImage(img,pad,pad,size-pad*2,size-pad*2);
       var url=c.toDataURL('image/png');
       ['ati-180','ati-152','ati-167','ati-180b'].forEach(function(id){var el=document.getElementById(id);if(el)el.href=url;});
     };
-    img.src='logo.png';
+    img.src='icon.png';
   }
   window.addEventListener('load',function(){makeIcon(180);});
 })();
@@ -2054,8 +2054,8 @@ function submitRotura(){
 //  HARD REFRESH
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
-var APP_DISPLAY_VERSION="3.8.1";
-var APP_BUILD="14/05/26 17:00";
+var APP_DISPLAY_VERSION="3.8.2";
+var APP_BUILD="14/05/26 17:30";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
