@@ -228,11 +228,10 @@ body.dark .ibox{background:rgba(50,50,58,.5);border-color:rgba(80,80,90,.4);}
 
 /* ── PDF VIEWER ── */
 #pdf-viewer-overlay{position:fixed;inset:0;z-index:2000;background:#1a1a1a;display:flex;flex-direction:column;}
-#pdf-viewer-overlay iframe{flex:1;width:100%;border:none;}
-#pdf-back-btn{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px)+24px);left:24px;z-index:2100;
-  width:54px;height:54px;border-radius:50%;background:var(--accent);color:#fff;border:none;
-  font-size:1.4rem;cursor:pointer;display:flex;align-items:center;justify-content:center;
-  box-shadow:0 4px 20px rgba(0,113,227,.5);-webkit-tap-highlight-color:transparent;}
+#pdf-viewer-hdr{display:flex;align-items:center;gap:10px;padding:10px 16px;padding-top:calc(env(safe-area-inset-top,0px)+10px);background:#2c2c2e;flex-shrink:0;min-height:52px;}
+#pdf-viewer-title{flex:1;font-size:.82rem;font-weight:600;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+#pdf-viewer-body{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;align-items:center;background:#404040;}
+#pdf-viewer-frame{width:100%;flex:1;border:none;min-height:0;}
 /* ── RESPONSIVE MOBILE ── */
 @media(max-width:480px){
   #header{padding:calc(env(safe-area-inset-top,0px)+8px) 10px 16px;}
@@ -355,8 +354,14 @@ body.dark .sb-card{background:rgba(255,255,255,.07);border-color:rgba(255,255,25
 
 <!-- PDF VIEWER OVERLAY -->
 <div id="pdf-viewer-overlay" class="hidden">
-  <iframe id="pdf-viewer-frame" src="about:blank"></iframe>
-  <button id="pdf-back-btn" onclick="closePDFViewer()">&#8592;</button>
+  <div id="pdf-viewer-hdr">
+    <button onclick="closePDFViewer()" style="flex-shrink:0;background:rgba(255,255,255,.12);color:#fff;border:none;border-radius:10px;padding:7px 14px;font-size:.82rem;font-weight:600;cursor:pointer;">← Cerrar</button>
+    <span id="pdf-viewer-title">Documento</span>
+    <a id="pdf-dl-btn" download="" href="#" style="flex-shrink:0;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:7px 14px;font-size:.82rem;font-weight:600;cursor:pointer;text-decoration:none;display:flex;align-items:center;gap:5px;">⬇ Descargar</a>
+  </div>
+  <div id="pdf-viewer-body">
+    <iframe id="pdf-viewer-frame" src="about:blank"></iframe>
+  </div>
 </div>
 
 <!-- SETTINGS OVERLAY -->
@@ -1109,12 +1114,23 @@ function dbSave(id,nombre,data,cb){_openIDB(function(d){if(!d){cb&&cb(false);ret
 function dbGet(id,cb){_openIDB(function(d){if(!d){cb(null);return;}var r=d.transaction('files','readonly').objectStore('files').get(id);r.onsuccess=function(){cb(r.result||null);};r.onerror=function(){cb(null);};});}
 function dbDel(id){_openIDB(function(d){if(!d)return;d.transaction('files','readwrite').objectStore('files').delete(id);});}
 
+var _pdfBlobUrl=null;
 function openPDFViewer(fileId,nombre){
   dbGet(fileId,function(rec){
     if(!rec){showToast("Archivo no encontrado","warn");return;}
+    if(_pdfBlobUrl){URL.revokeObjectURL(_pdfBlobUrl);_pdfBlobUrl=null;}
+    var parts=rec.data.split(',');var mime=parts[0].split(':')[1].split(';')[0];
+    var bytes=atob(parts[1]);var ab=new ArrayBuffer(bytes.length);var ia=new Uint8Array(ab);
+    for(var i=0;i<bytes.length;i++)ia[i]=bytes.charCodeAt(i);
+    var blob=new Blob([ab],{type:mime});
+    _pdfBlobUrl=URL.createObjectURL(blob);
     var overlay=document.getElementById('pdf-viewer-overlay');
     var frame=document.getElementById('pdf-viewer-frame');
-    frame.src=rec.data;
+    var title=document.getElementById('pdf-viewer-title');
+    var dlBtn=document.getElementById('pdf-dl-btn');
+    if(title)title.textContent=nombre||'Documento';
+    if(dlBtn){dlBtn.href=_pdfBlobUrl;dlBtn.download=nombre||'documento.pdf';}
+    frame.src=_pdfBlobUrl;
     overlay.classList.remove('hidden');
     document.body.style.overflow='hidden';
   });
@@ -1135,6 +1151,7 @@ function closePDFViewer(){
   overlay.classList.add('hidden');
   frame.src='about:blank';
   document.body.style.overflow='';
+  if(_pdfBlobUrl){URL.revokeObjectURL(_pdfBlobUrl);_pdfBlobUrl=null;}
 }
 
 var _pendingPresupuestos=[];
@@ -2004,8 +2021,8 @@ function submitRotura(){
 //  HARD REFRESH
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
-var APP_DISPLAY_VERSION="3.7.2";
-var APP_BUILD="14/05/26 10:00";
+var APP_DISPLAY_VERSION="3.7.3";
+var APP_BUILD="14/05/26 11:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
