@@ -744,7 +744,7 @@ var _LOGO_EXTS=['png','PNG','jpg','JPG','jpeg','JPEG','svg','SVG'];
 var _BRAND_ALIAS={'ge-healthcare':'ge','ge-lunar':'ge','ge-healthcare-life-sciences':'ge','siemens-healthineers':'siemens','siemens-healthcare':'siemens','carestream-health':'carestream','agfa-healthcare':'agfa','agfa-healthcare-nv':'agfa','philips-healthcare':'philips','canon-medical':'canon','fujifilm-healthcare':'fujifilm'};
 function _brandSlug(s){var sl=normBrand(s);return _BRAND_ALIAS[sl]||sl;}
 function _logoErr(img){var i=parseInt(img.dataset.li||0)+1;if(i<_LOGO_EXTS.length){img.dataset.li=i;img.src='logos/'+img.dataset.slug+'.'+_LOGO_EXTS[i];}else{img.remove();}}
-function _logoImgHTML(slug,r){return slug?'<img src="logos/'+slug+'.'+_LOGO_EXTS[0]+'" data-slug="'+slug+'" data-li="0" onload="var p=this.previousElementSibling;if(p)p.style.display=\'none\';" onerror="_logoErr(this)" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:3px;border-radius:'+r+'px;z-index:2;">':'';}
+function _logoImgHTML(slug,r){return slug?'<img src="logos/'+slug+'.'+_LOGO_EXTS[0]+'" data-slug="'+slug+'" data-li="0" onload="this.style.opacity=\'1\';var p=this.previousElementSibling;if(p)p.style.display=\'none\';" onerror="_logoErr(this)" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:3px;border-radius:'+r+'px;z-index:2;opacity:0;transition:opacity .18s;">':'';}
 
 function iconFor(eq,size){
   var ci=catById(eq.cat);
@@ -1993,8 +1993,8 @@ function submitRotura(){
 //  HARD REFRESH
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
-var APP_DISPLAY_VERSION="3.6.9";
-var APP_BUILD="13/05/26 15:00";
+var APP_DISPLAY_VERSION="3.7.0";
+var APP_BUILD="14/05/26 09:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
