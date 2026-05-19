@@ -2158,26 +2158,58 @@ function expFiltered(){
 function openReportPanel(){
   var locs=[].concat.apply([],eqs.map(function(e){return (e.ubicacion||'').trim();})).filter(Boolean);
   locs=locs.filter(function(v,i,a){return a.indexOf(v)===i;}).sort();
-  var tipoOpts=[{v:'todo',l:'📋 Todo'},{v:'mant',l:'🔩 Mantenimientos'},{v:'rep',l:'🔧 Reparaciones'},{v:'mejora',l:'✨ Mejoras'},{v:'activas',l:'🔴 Partes Activas'}];
-  var tipoPills=tipoOpts.map(function(t){var a=t.v==='todo';return'<button type="button" data-rep-tipo="'+t.v+'" onclick="setRepTipo(\''+t.v+'\')" style="flex:1;padding:9px 4px;border-radius:12px;font-size:.72rem;font-weight:600;border:none;cursor:pointer;background:'+(a?'rgba(0,113,227,.18)':'rgba(120,120,128,.08)')+';color:'+(a?'var(--accent)':'var(--text3)')+(a?';box-shadow:0 0 0 2px rgba(0,113,227,.3)':'')+';transition:all .15s;">'+t.l+'</button>';}).join('');
-  var locPills=locs.map(function(l){return'<button type="button" data-rep-loc-pill="'+esc(l)+'" onclick="toggleRepLoc(\''+l.replace(/'/g,"\\'")+'\')" style="padding:6px 13px;border-radius:20px;font-size:.72rem;font-weight:600;border:1.5px solid rgba(0,113,227,.25);background:rgba(0,113,227,.1);color:var(--accent);cursor:pointer;transition:all .15s;">📍 '+esc(l)+'</button>';}).join('');
-  var eqList=eqs.map(function(e){var ci=catById(e.cat);return'<label style="display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:10px;cursor:pointer;" class="rep-eq-row" data-eq-loc="'+esc(e.ubicacion||'')+'"><input type="checkbox" checked class="rep-eq-chk" value="'+e.id+'" style="accent-color:var(--accent);width:16px;height:16px;flex-shrink:0;"><span style="flex:1;font-size:.79rem;font-weight:500;">'+esc(e.nombre)+'</span><span style="font-size:.62rem;color:var(--text3);flex-shrink:0;">'+ci.label+(e.ubicacion?' · '+esc(e.ubicacion):'')+'</span></label>';}).join('');
-  var iconCal='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:.6"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
-  var iconPin='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:.6"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>';
-  var iconGrid='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:.6"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>';
+  var tipoOpts=[{v:'todo',l:'Todo',icon:'📋'},{v:'mant',l:'Mantenimientos',icon:'🔩'},{v:'rep',l:'Reparaciones',icon:'🔧'},{v:'mejora',l:'Mejoras',icon:'✨'},{v:'activas',l:'Partes Activas',icon:'🔴'}];
+  var tipoPills=tipoOpts.map(function(t){var a=t.v==='todo';return'<button type="button" data-rep-tipo="'+t.v+'" onclick="setRepTipo(\''+t.v+'\')" style="display:flex;align-items:center;gap:5px;padding:9px 14px;border-radius:var(--r-pill);font-size:.73rem;font-weight:600;border:1.5px solid '+(a?'rgba(0,113,227,.40)':'rgba(255,255,255,.65)')+';cursor:pointer;white-space:nowrap;transition:all .18s;background:'+(a?'rgba(0,113,227,.14)':'rgba(255,255,255,.32)')+';color:'+(a?'var(--accent)':'var(--text2)')+(a?';box-shadow:0 0 0 1px rgba(0,113,227,.18),inset 0 1.5px 0 rgba(255,255,255,.8)':';box-shadow:inset 0 1.5px 0 rgba(255,255,255,.8)')+';-webkit-backdrop-filter:saturate(280%) blur(16px);backdrop-filter:saturate(280%) blur(16px);">'+t.icon+' '+t.l+'</button>';}).join('');
+  var locPills=locs.map(function(l){return'<button type="button" data-rep-loc-pill="'+esc(l)+'" onclick="toggleRepLoc(\''+l.replace(/'/g,"\\'")+'\')" style="padding:8px 16px;border-radius:var(--r-pill);font-size:.73rem;font-weight:600;border:1.5px solid rgba(0,113,227,.35);background:rgba(0,113,227,.12);color:var(--accent);cursor:pointer;transition:all .18s;box-shadow:inset 0 1.5px 0 rgba(255,255,255,.8);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);">📍 '+esc(l)+'</button>';}).join('');
+  var eqList=eqs.map(function(e){var ci=catById(e.cat);return'<label style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--r-md);cursor:pointer;transition:background .15s;background:rgba(255,255,255,.0);" class="rep-eq-row" data-eq-loc="'+esc(e.ubicacion||'')+'">'+
+    '<input type="checkbox" checked class="rep-eq-chk" value="'+e.id+'" style="accent-color:var(--accent);width:18px;height:18px;flex-shrink:0;border-radius:6px;">'+
+    '<span style="flex:1;font-size:.82rem;font-weight:600;color:var(--text);">'+esc(e.nombre)+'</span>'+
+    '<span style="font-size:.64rem;color:var(--text3);background:rgba(120,120,128,.08);padding:3px 8px;border-radius:20px;flex-shrink:0;">'+ci.label+(e.ubicacion?' · '+esc(e.ubicacion):'')+'</span>'+
+  '</label>';}).join('');
+  var secStyle='display:flex;align-items:center;gap:7px;font-size:.6rem;text-transform:uppercase;letter-spacing:.8px;font-weight:800;color:var(--text3);margin-bottom:8px;margin-top:16px;';
+  var iconCal='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
+  var iconPin='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>';
+  var iconGrid='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>';
   openModal(
-    '<div class="modal-hdr"><div class="modal-title" style="display:flex;align-items:center;gap:8px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Generar Reporte</div><button class="modal-x" onclick="closeModal()">✕</button></div>'+
-    '<div class="ff"><div class="ff-label" style="display:flex;align-items:center;gap:5px;">Tipo de Reporte</div><div style="display:flex;gap:5px;">'+tipoPills+'</div><input type="hidden" id="rep-tipo" value="todo"></div>'+
-    '<div class="ff"><div class="ff-label" style="display:flex;align-items:center;gap:5px;">'+iconCal+' Rango de Fechas <span style="font-weight:400;color:var(--text3);font-size:.65rem;">(opcional)</span></div>'+
-    '<div class="g2"><div><div style="font-size:.58rem;color:var(--text3);margin-bottom:3px;font-weight:600;">DESDE</div><input class="inp" type="date" id="rep-desde" style="padding:9px 10px;"></div>'+
-    '<div><div style="font-size:.58rem;color:var(--text3);margin-bottom:3px;font-weight:600;">HASTA</div><input class="inp" type="date" id="rep-hasta" style="padding:9px 10px;"></div></div></div>'+
-    (locs.length?'<div class="ff"><div class="ff-label" style="display:flex;align-items:center;gap:5px;">'+iconPin+' Sucursales / Centros</div><div style="display:flex;gap:6px;flex-wrap:wrap;">'+locPills+'</div></div>':'')+
-    '<div class="ff"><div class="ff-label" style="display:flex;align-items:center;justify-content:space-between;">'+
-      '<span style="display:flex;align-items:center;gap:5px;">'+iconGrid+' Equipos</span>'+
-      '<div><button type="button" onclick="toggleAllRepEq(true)" style="font-size:.68rem;color:var(--accent);background:none;border:none;cursor:pointer;font-weight:700;padding:2px 6px;">Todos</button>'+
-      '<button type="button" onclick="toggleAllRepEq(false)" style="font-size:.68rem;color:var(--text3);background:none;border:none;cursor:pointer;font-weight:600;padding:2px 6px;">Ninguno</button></div></div>'+
-    '<div style="max-height:210px;overflow-y:auto;border-radius:12px;border:1px solid rgba(120,120,128,.12);margin-top:6px;">'+eqList+'</div></div>'+
-    '<button style="width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:50px;font-weight:700;font-size:.9rem;cursor:pointer;box-shadow:0 2px 8px rgba(0,113,227,.3);margin-top:4px;" onclick="generateReport()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px;"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Generar PDF</button>'
+    /* Header */
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">'+
+      '<div style="display:flex;align-items:center;gap:10px;">'+
+        '<div style="width:36px;height:36px;border-radius:12px;background:linear-gradient(135deg,rgba(0,113,227,.18),rgba(0,180,255,.10));display:flex;align-items:center;justify-content:center;border:1px solid rgba(0,113,227,.20);box-shadow:inset 0 1px 0 rgba(255,255,255,.7);">'+
+          '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>'+
+        '</div>'+
+        '<div><div style="font-weight:800;font-size:1.1rem;letter-spacing:-.3px;">Generar Reporte</div>'+
+        '<div style="font-size:.66rem;color:var(--text3);margin-top:1px;">Seleccioná tipo, rango y equipos</div></div>'+
+      '</div>'+
+      '<button onclick="closeModal()" style="width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;transition:transform .15s;" ontouchstart="this.style.transform=\'scale(.88)\'" ontouchend="this.style.transform=\'\'">✕</button>'+
+    '</div>'+
+    /* Tipo */
+    '<div style="'+secStyle+'">'+iconCal+' Tipo de Reporte</div>'+
+    '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px;">'+tipoPills+'</div>'+
+    '<input type="hidden" id="rep-tipo" value="todo">'+
+    /* Fechas */
+    '<div style="'+secStyle+'">'+iconCal+' Rango de Fechas <span style="font-weight:400;opacity:.6;font-size:.58rem;text-transform:none;letter-spacing:0;">(opcional)</span></div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px;">'+
+      '<div><div style="font-size:.58rem;color:var(--text3);font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:5px;">Desde</div>'+
+      '<input class="inp" type="date" id="rep-desde" style="padding:11px 12px;font-size:.84rem;background:rgba(255,255,255,.55);border:1.5px solid rgba(255,255,255,.80);border-top-color:rgba(255,255,255,1.0);box-shadow:inset 0 2px 0 rgba(255,255,255,1.0);"></div>'+
+      '<div><div style="font-size:.58rem;color:var(--text3);font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:5px;">Hasta</div>'+
+      '<input class="inp" type="date" id="rep-hasta" style="padding:11px 12px;font-size:.84rem;background:rgba(255,255,255,.55);border:1.5px solid rgba(255,255,255,.80);border-top-color:rgba(255,255,255,1.0);box-shadow:inset 0 2px 0 rgba(255,255,255,1.0);"></div>'+
+    '</div>'+
+    /* Centros */
+    (locs.length?'<div style="'+secStyle+'">'+iconPin+' Sucursales / Centros</div>'+
+    '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px;">'+locPills+'</div>':'')+
+    /* Equipos */
+    '<div style="'+secStyle+'margin-top:14px;">'+iconGrid+' Equipos'+
+      '<div style="display:flex;gap:2px;margin-left:auto;">'+
+        '<button type="button" onclick="toggleAllRepEq(true)" style="font-size:.68rem;color:var(--accent);background:rgba(0,113,227,.08);border:1px solid rgba(0,113,227,.18);border-radius:20px;cursor:pointer;font-weight:700;padding:3px 10px;transition:all .15s;">Todos</button>'+
+        '<button type="button" onclick="toggleAllRepEq(false)" style="font-size:.68rem;color:var(--text3);background:rgba(120,120,128,.06);border:1px solid rgba(120,120,128,.15);border-radius:20px;cursor:pointer;font-weight:600;padding:3px 10px;transition:all .15s;">Ninguno</button>'+
+      '</div>'+
+    '</div>'+
+    '<div style="max-height:220px;overflow-y:auto;border-radius:var(--r-md);border:1.5px solid rgba(255,255,255,.75);border-top-color:rgba(255,255,255,1.0);background:rgba(255,255,255,.38);-webkit-backdrop-filter:saturate(280%) blur(16px);backdrop-filter:saturate(280%) blur(16px);box-shadow:inset 0 2px 0 rgba(255,255,255,1.0),0 2px 8px rgba(0,0,0,.04);overflow-x:hidden;">'+eqList+'</div>'+
+    /* Botón */
+    '<button style="width:100%;padding:16px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:var(--r-pill);font-weight:700;font-size:.95rem;cursor:pointer;box-shadow:0 4px 20px rgba(0,113,227,.40),inset 0 1px 0 rgba(255,255,255,.25);margin-top:14px;display:flex;align-items:center;justify-content:center;gap:8px;transition:transform .2s var(--spring);" onclick="generateReport()" ontouchstart="this.style.transform=\'scale(.97)\'" ontouchend="this.style.transform=\'\'">'+
+      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>'+
+      'Generar PDF'+
+    '</button>'
   );
 }
 function setRepTipo(v){document.getElementById('rep-tipo').value=v;document.querySelectorAll('[data-rep-tipo]').forEach(function(b){var a=b.dataset.repTipo===v;b.style.background=a?'rgba(0,113,227,.18)':'rgba(120,120,128,.08)';b.style.color=a?'var(--accent)':'var(--text3)';b.style.boxShadow=a?'0 0 0 2px rgba(0,113,227,.3)':'none';});}
@@ -2348,8 +2380,8 @@ function submitRotura(){
 //  HARD REFRESH
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
-var APP_DISPLAY_VERSION="4.0.1";
-var APP_BUILD="19/05/26 22:00";
+var APP_DISPLAY_VERSION="4.0.2";
+var APP_BUILD="19/05/26 23:30";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
