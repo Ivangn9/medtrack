@@ -88,27 +88,28 @@ body::before{
 
 /* ── LIQUID GLASS CARD ── */
 .gc{
-  background:rgba(235,238,255,.28);
+  background:rgba(255,255,255,.38);
   -webkit-backdrop-filter:saturate(320%) contrast(108%) brightness(110%) blur(30px);
   backdrop-filter:saturate(320%) contrast(108%) brightness(110%) blur(30px);
-  border:1px solid rgba(255,255,255,.62);
+  border:1.5px solid rgba(255,255,255,.90);
   border-top-color:rgba(255,255,255,1.0);
   border-radius:var(--r-lg);
   box-shadow:
-    0 1px 2px rgba(0,0,0,.03),
-    0 4px 16px rgba(0,0,0,.06),
-    0 12px 40px rgba(0,0,0,.05),
-    inset 0 2px 0 rgba(255,255,255,1.0),
-    inset 0 0 0 1px rgba(255,255,255,.32),
-    inset 0 -1px 4px rgba(0,0,0,.04);
+    0 0 0 1px rgba(180,200,255,.28),
+    0 2px 8px rgba(140,160,220,.12),
+    0 8px 28px rgba(140,160,220,.10),
+    0 20px 48px rgba(0,0,0,.06),
+    inset 0 2.5px 0 rgba(255,255,255,1.0),
+    inset 0 0 0 1px rgba(255,255,255,.55),
+    inset 0 -1px 4px rgba(0,0,0,.03);
   position:relative;overflow:hidden;
   transition:transform .32s var(--spring),box-shadow .28s var(--ease-out);}
 /* shimmer layer */
 .gc::before{content:'';position:absolute;inset:0;border-radius:inherit;
   background:var(--lg-shimmer);pointer-events:none;z-index:0;}
 /* top specular highlight */
-.gc::after{content:'';position:absolute;top:0;left:0;right:0;height:60%;border-radius:inherit;
-  background:linear-gradient(180deg,rgba(255,255,255,.75) 0%,rgba(255,255,255,.22) 45%,rgba(255,255,255,.0) 100%);
+.gc::after{content:'';position:absolute;top:0;left:0;right:0;height:62%;border-radius:inherit;
+  background:linear-gradient(180deg,rgba(255,255,255,.82) 0%,rgba(255,255,255,.35) 30%,rgba(255,255,255,.08) 65%,rgba(255,255,255,.0) 100%);
   pointer-events:none;z-index:0;}
 .gc:active{transform:scale(.968);
   box-shadow:0 1px 4px rgba(0,0,0,.05),0 3px 12px rgba(0,0,0,.06),inset 0 1px 0 rgba(255,255,255,.8);}
@@ -121,13 +122,13 @@ body::before{
 #app{position:relative;z-index:1;}
 #header{position:sticky;top:0;z-index:100;background:transparent;border-bottom:none;padding:calc(env(safe-area-inset-top,0px)+10px) 16px 24px;}
 #header-inner{display:flex;align-items:center;justify-content:space-between;max-width:920px;margin:0 auto;
-  background:rgba(255,255,255,.28);-webkit-backdrop-filter:var(--blur-heavy);backdrop-filter:var(--blur-heavy);
-  border:1px solid rgba(255,255,255,.68);border-top-color:rgba(255,255,255,1.0);
+  background:rgba(255,255,255,.42);-webkit-backdrop-filter:var(--blur-heavy);backdrop-filter:var(--blur-heavy);
+  border:1.5px solid rgba(255,255,255,.92);border-top-color:rgba(255,255,255,1.0);
   border-radius:var(--r-xl);padding:12px 12px 12px 18px;
-  box-shadow:0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.06),0 12px 40px rgba(0,0,0,.05),inset 0 2px 0 rgba(255,255,255,1.0),inset 0 0 0 1px rgba(255,255,255,.32),inset 0 -1px 0 rgba(0,0,0,.03);
+  box-shadow:0 0 0 1px rgba(180,200,255,.22),0 2px 8px rgba(140,160,220,.10),0 8px 32px rgba(0,0,0,.07),inset 0 2.5px 0 rgba(255,255,255,1.0),inset 0 0 0 1px rgba(255,255,255,.60);
   position:relative;overflow:hidden;min-height:64px;}
 #header-inner::before{content:'';position:absolute;inset:0;border-radius:inherit;background:var(--lg-shimmer);pointer-events:none;}
-#header-inner::after{content:'';position:absolute;top:0;left:0;right:0;height:56%;background:linear-gradient(180deg,rgba(255,255,255,.65) 0%,rgba(255,255,255,.18) 50%,transparent 100%);pointer-events:none;}
+#header-inner::after{content:'';position:absolute;top:0;left:0;right:0;height:58%;background:linear-gradient(180deg,rgba(255,255,255,.82) 0%,rgba(255,255,255,.30) 40%,transparent 100%);pointer-events:none;}
 #header-left{display:flex;align-items:center;gap:10px;position:relative;z-index:1;}
 #header-right{display:flex;gap:6px;align-items:center;position:relative;z-index:1;}
 .hdr-time{font-size:.6rem;color:var(--text3);font-variant-numeric:tabular-nums;font-family:monospace;}
@@ -532,7 +533,7 @@ body.dark .sb-nav-btn.on{background:rgba(0,113,227,.2);color:#60aaff;box-shadow:
 .sb-sub-btn:last-child{margin-bottom:0;}
 body.dark .sb-sub-btn{color:rgba(255,255,255,.55);}
 body.dark .sb-sub-btn:hover{background:rgba(255,255,255,.1);color:#fff;}
-.sb-card{background:rgba(255,255,255,.65);border:1px solid rgba(255,255,255,.95);border-radius:16px;padding:12px;margin-bottom:10px;box-shadow:0 2px 12px rgba(0,0,0,.05),inset 0 1.5px 0 rgba(255,255,255,1),inset 0 -1px 0 rgba(0,0,0,.02);}
+.sb-card{background:rgba(255,255,255,.55);border:1.5px solid rgba(255,255,255,.92);border-top-color:rgba(255,255,255,1.0);border-radius:16px;padding:12px;margin-bottom:10px;box-shadow:0 0 0 1px rgba(180,200,255,.22),0 2px 12px rgba(140,160,220,.10),inset 0 2px 0 rgba(255,255,255,1.0),inset 0 0 0 1px rgba(255,255,255,.50);}
 body.dark .sb-card{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.12);box-shadow:0 2px 8px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.08);}
 .sb-lbl{font-size:.58rem;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);font-weight:600;margin-bottom:6px;}
 .sb-val{font-size:1.5rem;font-weight:800;line-height:1;}
@@ -696,6 +697,13 @@ body.dark .sb-card{background:rgba(255,255,255,.07);border-color:rgba(255,255,25
     <div style="flex:1;min-width:0;">
       <div id="sb-name" style="font-size:.78rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">—</div>
       <div id="sb-email" style="font-size:.58rem;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">—</div>
+    </div>
+  </div>
+  <!-- Search bar -->
+  <div style="padding:0 12px;margin-bottom:10px;">
+    <div style="position:relative;">
+      <svg style="position:absolute;left:11px;top:50%;transform:translateY(-50%);pointer-events:none;z-index:2;" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/></svg>
+      <input id="sb-search-inp" class="inp" placeholder="Buscar equipos..." oninput="openListaSearch();setTimeout(function(){var i=document.getElementById('busq-inp');if(i){i.value=this.value;setBusqueda(this.value);}}.bind(this),130);" style="padding-left:36px;font-size:.8rem;background:rgba(255,255,255,.50);border:1.5px solid rgba(255,255,255,.90);border-top-color:rgba(255,255,255,1.0);box-shadow:inset 0 2px 0 rgba(255,255,255,1.0),0 0 0 1px rgba(180,200,255,.18);height:38px;">
     </div>
   </div>
   <!-- Navigation -->
@@ -2331,8 +2339,8 @@ function submitRotura(){
 //  HARD REFRESH
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
-var APP_DISPLAY_VERSION="3.9.4";
-var APP_BUILD="19/05/26 15:00";
+var APP_DISPLAY_VERSION="3.9.5";
+var APP_BUILD="19/05/26 16:30";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
