@@ -88,12 +88,18 @@ body::before{
 
 /* ── LIQUID GLASS CARD ── */
 .gc{
-  background:rgba(235,238,250,.68);
-  -webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);
+  background:rgba(235,238,250,.55);
+  -webkit-backdrop-filter:saturate(220%) contrast(102%) blur(28px);
+  backdrop-filter:saturate(220%) contrast(102%) blur(28px);
   border:1px solid rgba(255,255,255,.55);
   border-top-color:rgba(255,255,255,.92);
   border-radius:var(--r-lg);
-  box-shadow:var(--lg-shadow);
+  box-shadow:
+    0 1px 2px rgba(0,0,0,.03),
+    0 4px 16px rgba(0,0,0,.06),
+    0 12px 40px rgba(0,0,0,.06),
+    inset 0 1.5px 0 rgba(255,255,255,.95),
+    inset 0 -1.5px 4px rgba(0,0,0,.06);
   position:relative;overflow:hidden;
   transition:transform .32s var(--spring),box-shadow .28s var(--ease-out);}
 /* shimmer layer */
@@ -136,20 +142,38 @@ body::before{
 #bb-inner{
   width:100%;max-width:560px;margin:0 auto;
   display:flex;align-items:center;gap:4px;
-  background:rgba(255,255,255,.58);
-  -webkit-backdrop-filter:var(--blur-heavy);backdrop-filter:var(--blur-heavy);
-  border:1px solid rgba(255,255,255,.60);border-top-color:rgba(255,255,255,.95);
+  background:rgba(255,255,255,.42);
+  -webkit-backdrop-filter:saturate(280%) contrast(105%) brightness(108%) blur(38px);
+  backdrop-filter:saturate(280%) contrast(105%) brightness(108%) blur(38px);
+  border:1px solid rgba(255,255,255,.55);border-top-color:rgba(255,255,255,.96);
   border-radius:var(--r-pill);
   padding:5px;
-  box-shadow:0 2px 6px rgba(0,0,0,.05),0 8px 28px rgba(0,0,0,.09),0 28px 72px rgba(0,0,0,.08),inset 0 1.5px 0 rgba(255,255,255,.96),inset 0 -1px 0 rgba(0,0,0,.03);
+  box-shadow:
+    0 2px 6px rgba(0,0,0,.06),
+    0 8px 28px rgba(0,0,0,.10),
+    0 24px 64px rgba(0,0,0,.08),
+    inset 0 2px 0 rgba(255,255,255,.96),
+    inset 0 -2px 8px rgba(0,0,0,.10),
+    inset 0 -1px 0 rgba(255,255,255,.30);
   pointer-events:auto;
   position:relative;overflow:hidden;}
 /* shimmer */
 #bb-inner::before{content:'';position:absolute;inset:0;border-radius:inherit;background:var(--lg-shimmer);pointer-events:none;z-index:0;}
-/* specular top + chromatic bottom refraction */
+/* lens: top specular + bottom refraction tint */
 #bb-inner::after{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:0;
-  background:linear-gradient(180deg,rgba(255,255,255,.44) 0%,rgba(255,255,255,0) 45%),
-    linear-gradient(0deg,rgba(140,180,255,.10) 0%,rgba(200,140,255,.06) 25%,transparent 55%);}
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.55) 0%,rgba(255,255,255,.0) 38%,rgba(255,255,255,0) 65%,rgba(255,255,255,.10) 100%),
+    linear-gradient(0deg,rgba(140,180,255,.12) 0%,rgba(200,140,255,.08) 25%,transparent 55%);}
+/* Animated sliding indicator */
+#bb-indicator{
+  position:absolute;top:5px;height:calc(100% - 10px);
+  border-radius:var(--r-pill);
+  background:rgba(255,255,255,.78);
+  box-shadow:0 1px 4px rgba(0,0,0,.10),0 2px 12px rgba(0,0,0,.06),inset 0 1px 0 rgba(255,255,255,.96),inset 0 -1px 0 rgba(0,0,0,.04);
+  transition:left .42s var(--spring),width .42s var(--spring),opacity .25s var(--ease-out);
+  pointer-events:none;z-index:0;
+  opacity:0;}
+#bb-indicator.show{opacity:1;}
 #bottom-bar .tab{
   flex:1;position:relative;z-index:1;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -162,8 +186,7 @@ body::before{
 #bottom-bar .tab svg{flex-shrink:0;transition:transform .2s var(--spring);}
 #bottom-bar .tab.on{
   color:var(--accent);font-weight:700;
-  background:rgba(255,255,255,.75);
-  box-shadow:0 1px 8px rgba(0,0,0,.08),inset 0 1px 0 rgba(255,255,255,.9);}
+  background:transparent;}
 #bottom-bar .tab:active{transform:scale(.88);}
 #bottom-bar .tab.on svg{transform:scale(1.08);}
 #bottom-bar .tab-badge{background:var(--red);color:#fff;border-radius:10px;padding:1px 5px;font-size:.52rem;font-weight:700;margin-left:0;vertical-align:middle;}
@@ -293,15 +316,16 @@ textarea.inp{resize:vertical;}
 .chip:active{transform:scale(.92);}
 
 /* ── MODAL ── */
-.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.22);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);z-index:500;display:flex;align-items:flex-end;justify-content:center;animation:modalFadeIn .22s var(--ease-out);}
+.modal-bg{position:fixed;inset:0;background:rgba(15,18,40,.32);-webkit-backdrop-filter:saturate(140%) blur(16px);backdrop-filter:saturate(140%) blur(16px);z-index:500;display:flex;align-items:flex-end;justify-content:center;animation:modalFadeIn .22s var(--ease-out);}
 .modal-box{
-  background:rgba(240,241,252,.86);
-  -webkit-backdrop-filter:var(--blur-heavy);backdrop-filter:var(--blur-heavy);
-  border:1px solid rgba(255,255,255,.62);border-top-color:rgba(255,255,255,.94);
+  background:rgba(240,241,252,.76);
+  -webkit-backdrop-filter:saturate(260%) contrast(105%) brightness(106%) blur(42px);
+  backdrop-filter:saturate(260%) contrast(105%) brightness(106%) blur(42px);
+  border:1px solid rgba(255,255,255,.58);border-top-color:rgba(255,255,255,.96);
   border-radius:var(--r-xl) var(--r-xl) 0 0;width:100%;max-width:680px;max-height:93dvh;overflow-y:auto;
   padding:4px 20px 52px;
-  box-shadow:0 -1px 2px rgba(0,0,0,.03),0 -6px 32px rgba(0,0,0,.09),0 -24px 64px rgba(0,0,0,.06),inset 0 1.5px 0 rgba(255,255,255,.96);
-  animation:modalSlideUp .36s var(--spring);}
+  box-shadow:0 -1px 2px rgba(0,0,0,.03),0 -6px 32px rgba(0,0,0,.10),0 -24px 64px rgba(0,0,0,.08),inset 0 2px 0 rgba(255,255,255,.96);
+  animation:modalSlideUp .42s var(--spring);}
 .modal-handle{width:36px;height:5px;background:rgba(60,60,67,.18);border-radius:3px;margin:8px auto 14px;}
 .modal-title{font-weight:800;font-size:1.15rem;letter-spacing:-.4px;}
 .modal-close{background:rgba(120,120,128,.12);width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:.85rem;border:1px solid rgba(255,255,255,.65);transition:transform .2s var(--spring);}
@@ -499,6 +523,24 @@ body.dark .sb-card{background:rgba(255,255,255,.07);border-color:rgba(255,255,25
 </style>
 </head>
 <body>
+<!-- LIQUID GLASS SVG FILTERS -->
+<svg style="position:absolute;width:0;height:0;overflow:hidden;" aria-hidden="true">
+  <defs>
+    <filter id="lg-refract" x="0%" y="0%" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.012" numOctaves="2" seed="3" result="noise"/>
+      <feGaussianBlur in="noise" stdDeviation="2" result="softNoise"/>
+      <feDisplacementMap in="SourceGraphic" in2="softNoise" scale="6" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <filter id="lg-edge-glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="1.2" result="blur"/>
+      <feSpecularLighting in="blur" surfaceScale="2" specularConstant="1.2" specularExponent="22" lighting-color="#ffffff" result="spec">
+        <fePointLight x="50" y="-30" z="120"/>
+      </feSpecularLighting>
+      <feComposite in="spec" in2="SourceGraphic" operator="in" result="specOut"/>
+      <feComposite in="SourceGraphic" in2="specOut" operator="arithmetic" k1="0" k2="1" k3="1" k4="0"/>
+    </filter>
+  </defs>
+</svg>
 <!-- FIREBASE SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -712,6 +754,7 @@ body.dark .sb-card{background:rgba(255,255,255,.07);border-color:rgba(255,255,25
   </div></div>
   <div id="bottom-bar">
     <div id="bb-inner">
+    <div id="bb-indicator"></div>
     <button class="tab on" data-tab="dash" onclick="setView('dash')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px;vertical-align:middle;"><rect x="3" y="3" width="7" height="8" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="15" width="7" height="6" rx="1.5"/></svg>Panel</button>
     <button class="tab" data-tab="lista" onclick="setView('lista')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px;vertical-align:middle;"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg>Equipos</button>
     <button class="tab" data-tab="alertas" onclick="setView('alertas')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px;vertical-align:middle;"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>Alertas<span id="tab-alert-badge" class="tab-badge hidden"></span></button>
@@ -971,11 +1014,26 @@ function iconFor(eq,size){
 // ═══════════════════════════════════════════
 //  NAVIGATION
 // ═══════════════════════════════════════════
+function moveBBIndicator(){
+  var ind=document.getElementById("bb-indicator");
+  var inner=document.getElementById("bb-inner");
+  if(!ind||!inner)return;
+  var active=inner.querySelector(".tab.on");
+  if(!active){ind.classList.remove("show");return;}
+  var innerRect=inner.getBoundingClientRect();
+  var tabRect=active.getBoundingClientRect();
+  var left=tabRect.left-innerRect.left;
+  ind.style.left=left+"px";
+  ind.style.width=tabRect.width+"px";
+  ind.classList.add("show");
+}
+window.addEventListener("resize",function(){moveBBIndicator();});
 function setView(v){
   view=v;selId=null;if(v==="dash")_filtDash=null;
   document.getElementById("back-btn").classList.add("hidden");
   var bb=document.getElementById("bottom-bar");
   if(bb){bb.querySelectorAll(".tab").forEach(function(b){b.classList.toggle("on",b.dataset.tab===v);});}
+  moveBBIndicator();
   render();
 }
 function goDetalle(id){selId=id;view="detalle";_detalleQ="";_detalleSearchOpen=false;
@@ -2226,8 +2284,8 @@ function submitRotura(){
 //  HARD REFRESH
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
-var APP_DISPLAY_VERSION="3.9.1";
-var APP_BUILD="14/05/26 22:00";
+var APP_DISPLAY_VERSION="3.9.2";
+var APP_BUILD="14/05/26 23:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
@@ -2365,6 +2423,7 @@ function showLoginScreen(){
 function hideLoginScreen(){
   var ls=document.getElementById("login-screen"),ap=document.getElementById("app"),bb=document.getElementById("bottom-bar");
   if(ls)ls.style.display="none";if(ap)ap.style.display="";if(bb)bb.style.display="";
+  setTimeout(moveBBIndicator,60);
 }
 
 function init(){
