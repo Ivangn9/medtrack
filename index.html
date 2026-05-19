@@ -1614,12 +1614,12 @@ function rDash(){
     var urg=ces.filter(function(e){return!sinMant(e)&&(semafo(e)==="vencido"||semafo(e)==="urgente");}).length;
     var statusColor=fuera?"#ff3b30":urg?"#ff9500":"#34c759";
     var statusLabel=fuera?'🚫 '+fuera+' fuera de servicio':urg?'⚠️ '+urg+' urgente'+(urg!==1?'s':''):'✅ Operativos';
-    var iconSvg=catSvgIcon(cat.id,96)||'';
+    var iconSvg=catSvgIcon(cat.id,192)||'';
     h+='<div class="gc tap" onclick="filtCat=\''+cat.id+'\';setView(\'lista\');" style="padding:0;overflow:hidden;cursor:pointer;border:1.5px solid '+cat.color+'40;min-height:130px;">'+
       '<div style="height:3px;background:linear-gradient(90deg,'+cat.color+','+cat.color+'55);border-radius:0;"></div>'+
       '<div style="padding:16px 14px 14px;display:flex;flex-direction:column;justify-content:space-between;height:calc(100% - 3px);position:relative;overflow:hidden;">'+
         /* big icon flush right, decorative */
-        '<div style="position:absolute;right:-10px;top:50%;transform:translateY(-50%);width:108px;height:108px;display:flex;align-items:center;justify-content:center;opacity:.22;pointer-events:none;">'+iconSvg+'</div>'+
+        '<div style="position:absolute;right:-18px;top:50%;transform:translateY(-50%);width:210px;height:210px;display:flex;align-items:center;justify-content:center;opacity:.55;pointer-events:none;">'+iconSvg+'</div>'+
         /* count top-left */
         '<div style="display:flex;flex-direction:column;gap:0;z-index:1;">'+
           '<div style="font-weight:900;font-size:2.6rem;color:'+cat.color+';line-height:1;letter-spacing:-2px;">'+ces.length+'</div>'+
@@ -2342,8 +2342,8 @@ function submitRotura(){
 //  HARD REFRESH
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
-var APP_DISPLAY_VERSION="3.9.6";
-var APP_BUILD="19/05/26 17:30";
+var APP_DISPLAY_VERSION="3.9.7";
+var APP_BUILD="19/05/26 18:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
