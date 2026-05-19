@@ -120,18 +120,18 @@ body::before{
 
 /* ── LAYOUT ── */
 #app{position:relative;z-index:1;}
-#header{position:sticky;top:0;z-index:100;background:transparent;border-bottom:none;padding:calc(env(safe-area-inset-top,0px)+10px) 16px 24px;}
-#header-inner{display:flex;align-items:center;justify-content:space-between;max-width:920px;margin:0 auto;
+#header{position:sticky;top:0;z-index:100;background:transparent;border-bottom:none;padding:calc(env(safe-area-inset-top,0px)+12px) 20px 28px;}
+#header-inner{display:flex;align-items:center;justify-content:space-between;max-width:1040px;margin:0 auto;
   background:rgba(255,255,255,.42);-webkit-backdrop-filter:var(--blur-heavy);backdrop-filter:var(--blur-heavy);
   border:1.5px solid rgba(255,255,255,.92);border-top-color:rgba(255,255,255,1.0);
-  border-radius:var(--r-xl);padding:12px 12px 12px 18px;
+  border-radius:var(--r-xl);padding:20px 20px 20px 28px;
   box-shadow:0 0 0 1px rgba(180,200,255,.22),0 2px 8px rgba(140,160,220,.10),0 8px 32px rgba(0,0,0,.07),inset 0 2.5px 0 rgba(255,255,255,1.0),inset 0 0 0 1px rgba(255,255,255,.60);
-  position:relative;overflow:hidden;min-height:64px;}
+  position:relative;overflow:hidden;min-height:96px;}
 #header-inner::before{content:'';position:absolute;inset:0;border-radius:inherit;background:var(--lg-shimmer);pointer-events:none;}
 #header-inner::after{content:'';position:absolute;top:0;left:0;right:0;height:58%;background:linear-gradient(180deg,rgba(255,255,255,.82) 0%,rgba(255,255,255,.30) 40%,transparent 100%);pointer-events:none;}
-#header-left{display:flex;align-items:center;gap:10px;position:relative;z-index:1;}
-#header-right{display:flex;gap:6px;align-items:center;position:relative;z-index:1;}
-.hdr-time{font-size:.6rem;color:var(--text3);font-variant-numeric:tabular-nums;font-family:monospace;}
+#header-left{display:flex;align-items:center;gap:14px;position:relative;z-index:1;}
+#header-right{display:flex;gap:10px;align-items:center;position:relative;z-index:1;}
+.hdr-time{font-size:.78rem;color:var(--text3);font-variant-numeric:tabular-nums;font-family:monospace;}
 
 #tabs{background:none;display:flex;gap:2px;padding:0;flex:1;justify-content:center;}
 /* ── BOTTOM BAR ── */
@@ -445,12 +445,14 @@ body.dark .ibox{background:rgba(50,50,58,.5);border-color:rgba(80,80,90,.4);}
 #pdf-viewer-frame{width:100%;flex:1;border:none;min-height:0;}
 /* ── RESPONSIVE MOBILE ── */
 @media(max-width:480px){
-  #header{padding:calc(env(safe-area-inset-top,0px)+8px) 10px 12px;}
-  #header-inner{padding:9px 8px 9px 14px;min-height:52px;border-radius:20px;}
-  #header-left img{height:26px!important;}
-  #header-left{gap:7px;}
+  #header{padding:calc(env(safe-area-inset-top,0px)+8px) 10px 14px;}
+  #header-inner{padding:12px 10px 12px 16px;min-height:64px;border-radius:22px;}
+  #header-left img{height:38px!important;}
+  #header-left{gap:9px;}
   .hdr-time{display:none;}
-  #header-right{gap:4px;}
+  #header-right{gap:7px;}
+  #hdr-avatar{width:40px!important;height:40px!important;}
+  #header-right button:first-child{width:42px!important;height:42px!important;}
 
   /* iPhone tab bar: icon stacked above label (iOS native style) */
   #bb-inner{
@@ -761,19 +763,19 @@ body.dark .sb-card{background:rgba(255,255,255,.07);border-color:rgba(255,255,25
           <path d="M12 5 L7 10 L12 15" stroke="#1a6fbf" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
-      <img src="logo.png" alt="CIMA" id="logo-img" style="height:46px;width:auto;object-fit:contain;">
+      <img src="logo.png" alt="CIMA" id="logo-img" style="height:68px;width:auto;object-fit:contain;">
       <div class="hdr-time" id="logo-time"></div>
     </div>
     <div id="header-right">
-      <button onclick="openListaSearch()" title="Buscar" style="width:42px;height:42px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform .2s var(--spring);
+      <button onclick="openListaSearch()" title="Buscar" style="width:56px;height:56px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform .2s var(--spring);
         background:rgba(255,255,255,.72);
         -webkit-backdrop-filter:saturate(300%) blur(20px);backdrop-filter:saturate(300%) blur(20px);
         box-shadow:0 2px 12px rgba(0,0,0,.10),0 1px 3px rgba(0,0,0,.06),inset 0 2px 0 rgba(255,255,255,1.0),inset 0 0 0 1px rgba(255,255,255,.60);"
         ontouchstart="this.style.transform='scale(.88)'" ontouchend="this.style.transform=''">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1c1c1e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/></svg>
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1c1c1e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/></svg>
       </button>
-      <div id="hdr-avatar" onclick="toggleSettings()" style="width:34px;height:34px;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,var(--accent),#7c3aed);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700;font-size:.85rem;color:#fff;cursor:pointer;box-shadow:0 1px 6px rgba(0,0,0,.12),inset 0 1px 0 rgba(255,255,255,.2);border:2px solid rgba(255,255,255,.6);transition:transform .15s;" ontouchstart="this.style.transform='scale(.9)'" ontouchend="this.style.transform=''">?</div>
-      <button id="badge-critico" onclick="setView('alertas')" class="pulse hidden" style="background:var(--red);color:#fff;border-radius:50%;width:24px;height:24px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;box-shadow:0 2px 6px rgba(255,59,48,.4);">0</button>
+      <div id="hdr-avatar" onclick="toggleSettings()" style="width:52px;height:52px;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,var(--accent),#7c3aed);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700;font-size:1.1rem;color:#fff;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.14),inset 0 1px 0 rgba(255,255,255,.2);border:2.5px solid rgba(255,255,255,.7);transition:transform .15s;" ontouchstart="this.style.transform='scale(.9)'" ontouchend="this.style.transform=''">?</div>
+      <button id="badge-critico" onclick="setView('alertas')" class="pulse hidden" style="background:var(--red);color:#fff;border-radius:50%;width:30px;height:30px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;box-shadow:0 2px 8px rgba(255,59,48,.5);">0</button>
     </div>
   </div></div>
   <div id="bottom-bar">
@@ -2342,8 +2344,8 @@ function submitRotura(){
 //  HARD REFRESH
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
-var APP_DISPLAY_VERSION="3.9.9";
-var APP_BUILD="19/05/26 20:00";
+var APP_DISPLAY_VERSION="4.0.0";
+var APP_BUILD="19/05/26 21:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
