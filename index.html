@@ -716,9 +716,9 @@ body.dark .sb-card{background:rgba(255,255,255,.07);border-color:rgba(255,255,25
   <!-- Charts section -->
   <div class="sb-section">
     <div class="sb-lbl">Estado de Equipos</div>
-    <div class="sb-card" style="text-align:center;padding:14px 12px 12px;">
-      <div id="sb-donut" style="display:flex;justify-content:center;margin-bottom:12px;"></div>
-      <div id="sb-donut-legend" style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;"></div>
+    <div class="sb-card" style="text-align:center;padding:18px 14px 16px;background:rgba(255,255,255,.45);">
+      <div id="sb-donut" style="display:flex;justify-content:center;margin-bottom:14px;filter:drop-shadow(0 4px 16px rgba(0,0,0,.08));"></div>
+      <div id="sb-donut-legend" style="display:flex;gap:8px;justify-content:stretch;"></div>
     </div>
     <div class="sb-lbl" style="margin-top:2px;">Próximos Servicios</div>
     <div id="sb-upcoming" class="sb-card"></div>
@@ -2342,8 +2342,8 @@ function submitRotura(){
 //  HARD REFRESH
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
-var APP_DISPLAY_VERSION="3.9.7";
-var APP_BUILD="19/05/26 18:00";
+var APP_DISPLAY_VERSION="3.9.8";
+var APP_BUILD="19/05/26 19:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
@@ -2551,32 +2551,64 @@ function donutSVG(segs,size){
   return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 '+size+' '+size+'"><circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="rgba(120,120,128,.12)" stroke-width="7"/>'+paths+'</svg>';
 }
 function sbGlassDonut(ok,fuera,total){
-  var s=124,r=42,cx=62,cy=62,sw=16,circ=2*Math.PI*r;
+  var s=148,r=50,cx=74,cy=74,sw=14,circ=2*Math.PI*r;
   var t=total||1;
   var dOk=(ok/t)*circ,dF=(fuera/t)*circ;
   var pct=total>0?Math.round((ok/total)*100):0;
   var hasBoth=ok>0&&fuera>0;
-  var gap=hasBoth?2:0;
+  var gap=hasBoth?3:0;
+  var glowColor=fuera>0?"#ff3b30":"#34c759";
   var defs='<defs>'+
-    '<filter id="sbgok"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>'+
-    '<filter id="sbgr"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>'+
-    '</defs>';
-  var track='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="rgba(120,120,128,.12)" stroke-width="'+sw+'"/>';
+    '<radialGradient id="sbcenter" cx="50%" cy="35%" r="60%">'+
+      '<stop offset="0%" stop-color="rgba(255,255,255,.55)"/>'+
+      '<stop offset="100%" stop-color="rgba(255,255,255,.08)"/>'+
+    '</radialGradient>'+
+    '<filter id="sbgok" x="-30%" y="-30%" width="160%" height="160%">'+
+      '<feGaussianBlur stdDeviation="3" result="b"/>'+
+      '<feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>'+
+    '</filter>'+
+    '<filter id="sbgr" x="-30%" y="-30%" width="160%" height="160%">'+
+      '<feGaussianBlur stdDeviation="3" result="b"/>'+
+      '<feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>'+
+    '</filter>'+
+    '<filter id="sbglow" x="-40%" y="-40%" width="180%" height="180%">'+
+      '<feGaussianBlur stdDeviation="5" result="b"/>'+
+      '<feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>'+
+    '</filter>'+
+  '</defs>';
+  /* glass background circle */
+  var bg='<circle cx="'+cx+'" cy="'+cy+'" r="'+(r+sw/2+6)+'" fill="rgba(255,255,255,.18)" stroke="rgba(255,255,255,.55)" stroke-width="1.5"/>'+
+    '<circle cx="'+cx+'" cy="'+cy+'" r="'+(r+sw/2+6)+'" fill="url(#sbcenter)"/>';
+  /* track */
+  var track='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="rgba(120,120,128,.10)" stroke-width="'+sw+'" stroke-linecap="round"/>'+
+    '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="2" stroke-linecap="round"/>';
   var segOk='',segF='';
   if(ok>0){
     var d=Math.max(dOk-gap,1),g=circ-d;
-    segOk='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="#34c759" stroke-width="'+sw+'" stroke-dasharray="'+d+' '+g+'" stroke-dashoffset="0" transform="rotate(-90 '+cx+' '+cy+')" stroke-linecap="round" filter="url(#sbgok)" opacity=".95"/>'+
-    '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="rgba(160,255,160,.45)" stroke-width="6" stroke-dasharray="'+(d*.7)+' '+(circ-(d*.7))+'" stroke-dashoffset="'+(-(d*.15))+'" transform="rotate(-90 '+cx+' '+cy+')" stroke-linecap="round"/>';
+    /* glow shadow layer */
+    segOk='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="#34c759" stroke-width="'+(sw+8)+'" stroke-dasharray="'+d+' '+g+'" stroke-dashoffset="0" transform="rotate(-90 '+cx+' '+cy+')" stroke-linecap="round" opacity=".18" filter="url(#sbglow)"/>'+
+    /* main segment */
+    '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="#34c759" stroke-width="'+sw+'" stroke-dasharray="'+d+' '+g+'" stroke-dashoffset="0" transform="rotate(-90 '+cx+' '+cy+')" stroke-linecap="round" filter="url(#sbgok)" opacity=".96"/>'+
+    /* inner specular shine */
+    '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="rgba(200,255,200,.60)" stroke-width="4" stroke-dasharray="'+(d*.5)+' '+(circ-(d*.5))+'" stroke-dashoffset="'+(-(d*.08))+'" transform="rotate(-90 '+cx+' '+cy+')" stroke-linecap="round"/>';
   }
   if(fuera>0){
     var d2=Math.max(dF-gap,1),g2=circ-d2,off=-(dOk);
-    segF='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="#ff3b30" stroke-width="'+sw+'" stroke-dasharray="'+d2+' '+g2+'" stroke-dashoffset="'+off+'" transform="rotate(-90 '+cx+' '+cy+')" stroke-linecap="round" filter="url(#sbgr)" opacity=".95"/>'+
-    '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="rgba(255,160,160,.4)" stroke-width="6" stroke-dasharray="'+(d2*.7)+' '+(circ-(d2*.7))+'" stroke-dashoffset="'+(off-(d2*.15))+'" transform="rotate(-90 '+cx+' '+cy+')" stroke-linecap="round"/>';
+    segF='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="#ff3b30" stroke-width="'+(sw+8)+'" stroke-dasharray="'+d2+' '+g2+'" stroke-dashoffset="'+off+'" transform="rotate(-90 '+cx+' '+cy+')" stroke-linecap="round" opacity=".18" filter="url(#sbglow)"/>'+
+    '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="#ff3b30" stroke-width="'+sw+'" stroke-dasharray="'+d2+' '+g2+'" stroke-dashoffset="'+off+'" transform="rotate(-90 '+cx+' '+cy+')" stroke-linecap="round" filter="url(#sbgr)" opacity=".96"/>'+
+    '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="rgba(255,200,200,.55)" stroke-width="4" stroke-dasharray="'+(d2*.5)+' '+(circ-(d2*.5))+'" stroke-dashoffset="'+(off-(d2*.08))+'" transform="rotate(-90 '+cx+' '+cy+')" stroke-linecap="round"/>';
   }
-  var centerLabel=total===0?'<text x="'+cx+'" y="'+(cy+4)+'" text-anchor="middle" fill="rgba(120,120,128,.6)" font-size="11" font-family="-apple-system,sans-serif">Sin datos</text>':
-    '<text x="'+cx+'" y="'+(cy-4)+'" text-anchor="middle" fill="var(--text)" font-size="24" font-weight="800" font-family="-apple-system,BlinkMacSystemFont,sans-serif" letter-spacing="-1">'+pct+'%</text>'+
-    '<text x="'+cx+'" y="'+(cy+11)+'" text-anchor="middle" fill="var(--text3)" font-size="7.5" font-weight="700" font-family="-apple-system,sans-serif" letter-spacing="0.8">OPERATIVOS</text>';
-  return '<svg width="'+s+'" height="'+s+'" viewBox="0 0 '+s+' '+s+'">'+defs+track+segOk+segF+centerLabel+'</svg>';
+  /* inner glass disc */
+  var inner='<circle cx="'+cx+'" cy="'+cy+'" r="'+(r-sw/2-2)+'" fill="rgba(255,255,255,.22)" stroke="rgba(255,255,255,.45)" stroke-width="1"/>'+
+    '<circle cx="'+cx+'" cy="'+cy+'" r="'+(r-sw/2-2)+'" fill="rgba(255,255,255,.12)"/>';
+  /* center text */
+  var centerLabel=total===0?
+    '<text x="'+cx+'" y="'+(cy+4)+'" text-anchor="middle" fill="rgba(120,120,128,.5)" font-size="11" font-family="-apple-system,sans-serif">Sin datos</text>':
+    '<text x="'+cx+'" y="'+(cy-6)+'" text-anchor="middle" fill="'+glowColor+'" font-size="27" font-weight="900" font-family="-apple-system,BlinkMacSystemFont,sans-serif" letter-spacing="-1.5">'+pct+'%</text>'+
+    '<text x="'+cx+'" y="'+(cy+10)+'" text-anchor="middle" fill="rgba(100,100,110,.65)" font-size="7" font-weight="700" font-family="-apple-system,sans-serif" letter-spacing="1.2">OPERATIVOS</text>';
+  /* top specular arc */
+  var spec='<path d="M '+(cx-r+4)+','+(cy)+' A '+(r-4)+' '+(r-4)+' 0 0 1 '+(cx+r-4)+','+cy+'" fill="none" stroke="rgba(255,255,255,.30)" stroke-width="3" stroke-linecap="round"/>';
+  return '<svg width="'+s+'" height="'+s+'" viewBox="0 0 '+s+' '+s+'">'+defs+bg+track+segOk+segF+inner+centerLabel+spec+'</svg>';
 }
 function _getUserPhoto(user){
   // providerData[0] has the freshest photo directly from Google OAuth
@@ -2626,14 +2658,14 @@ function rSidebar(){
     var pOk=eqs.length>0?Math.round((opOK/eqs.length)*100):0;
     var pF=eqs.length>0?Math.round((opF/eqs.length)*100):0;
     legendEl.innerHTML=
-      '<div style="display:flex;align-items:center;gap:6px;background:rgba(52,199,89,.1);border:1px solid rgba(52,199,89,.25);border-radius:20px;padding:5px 10px;">'+
-      '<div style="width:8px;height:8px;border-radius:50%;background:#34c759;box-shadow:0 0 6px rgba(52,199,89,.6);flex-shrink:0;"></div>'+
-      '<div><div style="font-size:.58rem;text-transform:uppercase;letter-spacing:.6px;font-weight:700;color:var(--text3);">Óptimo</div>'+
-      '<div style="font-size:.9rem;font-weight:800;color:#34c759;line-height:1.1;">'+pOk+'%</div></div></div>'+
-      '<div style="display:flex;align-items:center;gap:6px;background:rgba(255,59,48,.1);border:1px solid rgba(255,59,48,.25);border-radius:20px;padding:5px 10px;">'+
-      '<div style="width:8px;height:8px;border-radius:50%;background:#ff3b30;box-shadow:0 0 6px rgba(255,59,48,.6);flex-shrink:0;"></div>'+
-      '<div><div style="font-size:.58rem;text-transform:uppercase;letter-spacing:.6px;font-weight:700;color:var(--text3);">Crítico</div>'+
-      '<div style="font-size:.9rem;font-weight:800;color:#ff3b30;line-height:1.1;">'+pF+'%</div></div></div>';
+      '<div style="display:flex;align-items:center;gap:8px;flex:1;background:rgba(52,199,89,.10);border:1.5px solid rgba(52,199,89,.28);border-top-color:rgba(255,255,255,.70);border-radius:18px;padding:8px 12px;box-shadow:0 0 0 1px rgba(52,199,89,.10),inset 0 1.5px 0 rgba(255,255,255,.70);">'+
+      '<div style="width:9px;height:9px;border-radius:50%;background:#34c759;box-shadow:0 0 8px rgba(52,199,89,.8),0 0 16px rgba(52,199,89,.4);flex-shrink:0;"></div>'+
+      '<div><div style="font-size:.55rem;text-transform:uppercase;letter-spacing:.7px;font-weight:700;color:rgba(52,199,89,.7);">Óptimo</div>'+
+      '<div style="font-size:1.05rem;font-weight:900;color:#2db352;line-height:1.1;letter-spacing:-.5px;">'+pOk+'%</div></div></div>'+
+      '<div style="display:flex;align-items:center;gap:8px;flex:1;background:rgba(255,59,48,.08);border:1.5px solid rgba(255,59,48,.25);border-top-color:rgba(255,255,255,.65);border-radius:18px;padding:8px 12px;box-shadow:0 0 0 1px rgba(255,59,48,.08),inset 0 1.5px 0 rgba(255,255,255,.65);">'+
+      '<div style="width:9px;height:9px;border-radius:50%;background:#ff3b30;box-shadow:0 0 8px rgba(255,59,48,.8),0 0 16px rgba(255,59,48,.4);flex-shrink:0;"></div>'+
+      '<div><div style="font-size:.55rem;text-transform:uppercase;letter-spacing:.7px;font-weight:700;color:rgba(255,59,48,.7);">Crítico</div>'+
+      '<div style="font-size:1.05rem;font-weight:900;color:#ff3b30;line-height:1.1;letter-spacing:-.5px;">'+pF+'%</div></div></div>';
   }
   // Upcoming
   var upEl=document.getElementById("sb-upcoming");
