@@ -969,6 +969,7 @@ var eqs=[],view="dash",selId=null,filtCat="TODOS",toastTimer=null,darkMode=false
 function loadData(){
   eqs=JSON.parse(JSON.stringify(EQ0));
   try{var s=localStorage.getItem("mt_v4");if(s){var p=JSON.parse(s);if(Array.isArray(p)&&p.length>0)eqs=p;}}catch(e){}
+  try{var sa=localStorage.getItem("mt_antenas");if(sa){var pa=JSON.parse(sa);if(Array.isArray(pa))antenas=pa;}}catch(e){}
   var dirty=false;
   eqs=eqs.map(function(e){
     e=Object.assign({marca:""},e);
@@ -981,7 +982,7 @@ function loadData(){
   if(dirty)saveData();
 }
 function saveData(){
-  try{localStorage.setItem("mt_v4",JSON.stringify(eqs));}catch(e){}
+  try{localStorage.setItem("mt_v4",JSON.stringify(eqs));localStorage.setItem("mt_antenas",JSON.stringify(antenas));}catch(e){}
   firestoreSave();
 }
 var _fsSaveTimer=null;
@@ -990,7 +991,7 @@ function firestoreSave(){
   if(_fsSaveTimer)clearTimeout(_fsSaveTimer);
   _fsSaveTimer=setTimeout(function(){
     window._fbdb.collection("users").doc(window._fbUser.uid).collection("app").doc("data")
-      .set({eqs:eqs,updatedAt:new Date().toISOString()},{merge:true})
+      .set({eqs:eqs,antenas:antenas,updatedAt:new Date().toISOString()},{merge:true})
       .catch(function(e){console.warn("Firestore save:",e);});
   },1500);
 }
@@ -2017,6 +2018,10 @@ function rDetalle(){
     });
     h+='</div>';
   }
+  // ── ANTENAS RF (RM only) ──
+  if(eq.cat==='RM'){
+    h+='<div style="margin-top:14px;"><button onclick="openAntennasPanel(\''+eq.id+'\')" style="width:100%;padding:14px 16px;border-radius:var(--r-lg);background:rgba(79,120,224,.10);border:1.5px solid rgba(79,120,224,.28);color:#4f78e0;font-weight:700;font-size:.88rem;cursor:pointer;display:flex;align-items:center;gap:10px;box-shadow:0 2px 8px rgba(79,120,224,.10),inset 0 1.5px 0 rgba(255,255,255,.8);" ontouchstart="this.style.transform=\'scale(.98)\'" ontouchend="this.style.transform=\'\'">'+antenaSvgIcon(28)+'<div style="text-align:left;"><div style="font-size:.9rem;font-weight:800;">Antenas RF</div><div style="font-size:.68rem;font-weight:500;opacity:.7;margin-top:1px;">'+((eqs.find(function(e){return e.id===eq.id;})||{antenaIds:[]}).antenaIds||[]).length+' antena(s) asignada(s)</div></div><svg style="margin-left:auto;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></button></div>';
+  }
   return h;
 }
 
@@ -2301,6 +2306,320 @@ function generateReport(){
   openHTMLViewer(html);
 }
 
+// ─── ANTENAS SUBSYSTEM ─────────────────────────────────
+function antenaSvgIcon(size){
+  var s=size||36;var r=Math.round(s*.3);
+  var c1="#4f78e0",c2="#93b8f7";
+  return '<svg width="'+s+'" height="'+s+'" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg" style="border-radius:'+r+'px;overflow:hidden;">'+
+    '<rect width="36" height="36" rx="'+Math.round(36*.3)+'" fill="'+c1+'" opacity=".07"/>'+
+    '<rect x="3" y="13" width="17" height="14" rx="2.5" fill="'+c2+'" opacity=".22" stroke="'+c1+'" stroke-width="1.5"/>'+
+    '<path d="M8 13 Q8 8 12.5 8 Q17 8 17 13" fill="none" stroke="'+c1+'" stroke-width="1.5" stroke-linecap="round" opacity=".42"/>'+
+    '<rect x="7" y="17" width="5" height="7" rx="1.2" fill="'+c1+'" opacity=".17"/>'+
+    '<line x1="8" y1="14.5" x2="16" y2="14.5" stroke="'+c1+'" stroke-width=".8" opacity=".28"/>'+
+    '<line x1="8" y1="16" x2="16" y2="16" stroke="'+c1+'" stroke-width=".8" opacity=".2"/>'+
+    '<path d="M20 6 Q32 18 20 30" fill="none" stroke="'+c1+'" stroke-width="2" stroke-linecap="round" opacity=".55"/>'+
+    '<path d="M20 10 Q28 18 20 26" fill="none" stroke="'+c2+'" stroke-width="1.4" stroke-linecap="round" opacity=".5"/>'+
+    '<path d="M20 14 Q24 18 20 22" fill="none" stroke="'+c2+'" stroke-width="1" stroke-linecap="round" opacity=".38"/>'+
+    '<line x1="4" y1="27" x2="3.5" y2="31" stroke="'+c1+'" stroke-width="1.5" stroke-linecap="round" opacity=".28"/>'+
+    '<line x1="18" y1="27" x2="18.5" y2="31" stroke="'+c1+'" stroke-width="1.5" stroke-linecap="round" opacity=".28"/>'+
+    '</svg>';
+}
+function openAntennasPanel(rmEquipId){
+  var eq=eqs.find(function(e){return e.id===rmEquipId;});
+  if(!eq)return;
+  var assignedIds=eq.antenaIds||[];
+  var assigned=antenas.filter(function(a){return assignedIds.indexOf(a.id)!==-1;});
+  var antenasHtml='';
+  if(assigned.length===0){
+    antenasHtml='<div style="text-align:center;padding:28px 16px;color:var(--text3);font-size:.82rem;">No hay antenas asignadas a este equipo.<br>Usá <strong>Agregar Antena</strong> para comenzar.</div>';
+  }else{
+    assigned.forEach(function(a){
+      var rotCount=(a.roturas||[]).length;
+      var rotColor=rotCount>0?'var(--orange)':'var(--green)';
+      antenasHtml+='<div class="gc" style="padding:0;overflow:hidden;margin-bottom:8px;">'+
+        '<div style="padding:12px 14px;display:flex;align-items:center;gap:10px;">'+
+          '<div style="flex-shrink:0;">'+antenaSvgIcon(40)+'</div>'+
+          '<div style="flex:1;min-width:0;">'+
+            '<div style="font-weight:700;font-size:.88rem;">'+esc(a.nombre)+'</div>'+
+            '<div style="font-size:.7rem;color:var(--text3);margin-top:2px;">'+
+              (a.cantidadCanales?a.cantidadCanales+' canales · ':'')+
+              'Origen: '+esc(a.nombreOrigen||'—')+
+              (a.fechaCompra?' · Compra: '+fD(a.fechaCompra):'')+
+            '</div>'+
+          '</div>'+
+          '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">'+
+            '<span style="font-size:.64rem;padding:2px 8px;border-radius:20px;font-weight:700;background:'+(rotCount>0?'rgba(255,149,0,.12)':'rgba(52,199,89,.12)')+';color:'+rotColor+';">'+(rotCount>0?rotCount+' rotura(s)':'Sin roturas')+'</span>'+
+            '<button onclick="openAntennaDetail(\''+a.id+'\',\''+rmEquipId+'\')" style="font-size:.7rem;padding:5px 12px;border-radius:20px;background:rgba(0,113,227,.10);border:1px solid rgba(0,113,227,.2);color:var(--accent);font-weight:600;cursor:pointer;">Ver detalles</button>'+
+          '</div>'+
+        '</div>'+
+      '</div>';
+    });
+  }
+  openModal(
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">'+
+      '<div style="flex-shrink:0;">'+antenaSvgIcon(40)+'</div>'+
+      '<div>'+
+        '<div style="font-weight:800;font-size:1.05rem;letter-spacing:-.3px;">Antenas RF</div>'+
+        '<div style="font-size:.65rem;color:var(--text3);margin-top:1px;">'+esc(eq.nombre)+' · '+assigned.length+' asignada(s)</div>'+
+      '</div>'+
+      '<button onclick="closeModal()" style="margin-left:auto;width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">✕</button>'+
+    '</div>'+
+    '<div style="display:flex;gap:6px;flex-wrap:wrap;margin:10px 0;">'+
+      '<button onclick="closeModal();setTimeout(function(){openAddAntennaModal(\''+rmEquipId+'\');},80);" style="flex:1;padding:10px;border-radius:var(--r-pill);background:rgba(0,113,227,.12);border:1.5px solid rgba(0,113,227,.25);color:var(--accent);font-weight:700;font-size:.8rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Agregar Antena</button>'+
+      '<button onclick="closeModal();setTimeout(function(){openAntennasReportPanel(\''+rmEquipId+'\');},80);" style="flex:1;padding:10px;border-radius:var(--r-pill);background:rgba(99,102,241,.10);border:1.5px solid rgba(99,102,241,.22);color:#6366f1;font-weight:700;font-size:.8rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Reporte PDF</button>'+
+    '</div>'+
+    antenasHtml
+  );
+}
+function openAddAntennaModal(rmEquipId){
+  var rmEqs=eqs.filter(function(e){return e.cat==='RM';});
+  var origenOpts=rmEqs.map(function(e){return'<option value="'+esc(e.nombre)+'">'+esc(e.nombre)+'</option>';}).join('')+
+    '<option value="RM Brivo">RM Brivo</option>';
+  openModal(
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">'+
+      '<div style="flex-shrink:0;">'+antenaSvgIcon(36)+'</div>'+
+      '<div>'+
+        '<div style="font-weight:800;font-size:1.05rem;">Nueva Antena</div>'+
+        '<div style="font-size:.65rem;color:var(--text3);">Completá los datos de la antena</div>'+
+      '</div>'+
+      '<button onclick="closeModal();setTimeout(function(){openAntennasPanel(\''+rmEquipId+'\');},80);" style="margin-left:auto;width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.85rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">‹</button>'+
+    '</div>'+
+    '<div class="ff"><div class="ff-label">Nombre de la antena *</div>'+
+      '<input class="inp" id="ant-nombre" placeholder="Ej: Antena de cabeza 1.5T" autocomplete="off">'+
+    '</div>'+
+    '<div class="g2">'+
+      '<div class="ff"><div class="ff-label">Origen (resonador) *</div>'+
+        '<select class="inp" id="ant-origen">'+origenOpts+'</select>'+
+      '</div>'+
+      '<div class="ff"><div class="ff-label">Canales</div>'+
+        '<input class="inp" id="ant-canales" type="number" min="1" placeholder="Ej: 8">'+
+      '</div>'+
+    '</div>'+
+    '<div class="ff"><div class="ff-label">Fecha de compra</div>'+
+      '<input class="inp" id="ant-fecha" type="date">'+
+    '</div>'+
+    '<div class="ff"><div class="ff-label">Notas</div>'+
+      '<textarea class="inp" id="ant-notas" rows="2" placeholder="Observaciones opcionales..."></textarea>'+
+    '</div>'+
+    '<button onclick="submitAddAntenna(\''+rmEquipId+'\')" style="width:100%;padding:14px;background:linear-gradient(135deg,#4f78e0,#6366f1);color:#fff;border:none;border-radius:var(--r-pill);font-weight:700;font-size:.9rem;cursor:pointer;box-shadow:0 4px 16px rgba(79,120,224,.35),inset 0 1px 0 rgba(255,255,255,.25);margin-top:8px;">Agregar Antena</button>'
+  );
+}
+function submitAddAntenna(rmEquipId){
+  var nombre=(document.getElementById('ant-nombre')||{}).value||'';
+  var origen=(document.getElementById('ant-origen')||{}).value||'';
+  var canales=parseInt((document.getElementById('ant-canales')||{}).value)||0;
+  var fecha=(document.getElementById('ant-fecha')||{}).value||'';
+  var notas=(document.getElementById('ant-notas')||{}).value||'';
+  if(!nombre.trim()){alert('Ingresá el nombre de la antena');return;}
+  var ant={id:'ANTEN-'+Date.now(),nombre:nombre.trim(),nombreOrigen:origen,cantidadCanales:canales||null,fechaCompra:fecha,notas:notas,roturas:[],creadoEn:new Date().toISOString()};
+  antenas.push(ant);
+  eqs=eqs.map(function(e){if(e.id===rmEquipId)return Object.assign({},e,{antenaIds:(e.antenaIds||[]).concat(ant.id)});return e;});
+  saveData();closeModal();showToast('📡 Antena agregada','');
+  setTimeout(function(){openAntennasPanel(rmEquipId);},80);
+}
+function openAntennaDetail(antenaId,rmEquipId){
+  var ant=antenas.find(function(a){return a.id===antenaId;});
+  if(!ant)return;
+  var roturas=ant.roturas||[];
+  var roturasHtml='';
+  if(roturas.length===0){
+    roturasHtml='<div style="text-align:center;padding:20px 16px;color:var(--text3);font-size:.8rem;">Sin roturas registradas.</div>';
+  }else{
+    roturas.forEach(function(rot){
+      roturasHtml+='<div style="padding:10px 14px;border-bottom:1px solid rgba(120,120,128,.08);last-child:border-none;">'+
+        '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">'+
+          '<div style="flex:1;min-width:0;">'+
+            '<div style="font-weight:600;font-size:.82rem;">'+esc(rot.descripcion||'—')+'</div>'+
+            '<div style="font-size:.68rem;color:var(--text3);margin-top:2px;">'+fD(rot.fecha)+(rot.tecnico?' · '+esc(rot.tecnico):'')+'</div>'+
+          '</div>'+
+          '<div style="display:flex;gap:5px;flex-shrink:0;">'+
+            (rot.presupuestoPdf?'<button onclick="dbGet(\''+rot.presupuestoPdf.id+'\').then(function(b){if(b){var u=URL.createObjectURL(b);window.open(u,\'_blank\');}});" style="font-size:.62rem;padding:3px 8px;border-radius:12px;background:rgba(0,113,227,.10);border:1px solid rgba(0,113,227,.2);color:var(--accent);cursor:pointer;">📄 Presup.</button>':'')+
+            (rot.reportePdf?'<button onclick="dbGet(\''+rot.reportePdf.id+'\').then(function(b){if(b){var u=URL.createObjectURL(b);window.open(u,\'_blank\');}});" style="font-size:.62rem;padding:3px 8px;border-radius:12px;background:rgba(52,199,89,.10);border:1px solid rgba(52,199,89,.2);color:var(--green);cursor:pointer;">📋 Reporte</button>':'')+
+            '<button onclick="deleteRotura(\''+ant.id+'\',\''+rot.id+'\','+(rmEquipId?'\''+rmEquipId+'\'':'null')+')" style="font-size:.68rem;padding:4px 8px;border-radius:12px;background:rgba(255,59,48,.08);border:1px solid rgba(255,59,48,.15);color:var(--red);cursor:pointer;">✕</button>'+
+          '</div>'+
+        '</div>'+
+      '</div>';
+    });
+  }
+  openModal(
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">'+
+      '<div style="flex-shrink:0;">'+antenaSvgIcon(36)+'</div>'+
+      '<div style="flex:1;min-width:0;">'+
+        '<div style="font-weight:800;font-size:.95rem;">'+esc(ant.nombre)+'</div>'+
+        '<div style="font-size:.65rem;color:var(--text3);">Origen: '+esc(ant.nombreOrigen||'—')+(ant.cantidadCanales?' · '+ant.cantidadCanales+' canales':'')+(ant.fechaCompra?' · '+fD(ant.fechaCompra):'')+'</div>'+
+      '</div>'+
+      (rmEquipId?'<button onclick="closeModal();setTimeout(function(){openAntennasPanel(\''+rmEquipId+'\');},80);" style="width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.85rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">‹</button>':'')+
+      '<button onclick="closeModal()" style="width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">✕</button>'+
+    '</div>'+
+    '<button onclick="closeModal();setTimeout(function(){openAddRoturaModal(\''+antenaId+'\','+(rmEquipId?'\''+rmEquipId+'\'':"''")+');},80);" style="width:100%;padding:11px;border-radius:var(--r-pill);background:rgba(239,68,68,.10);border:1.5px solid rgba(239,68,68,.22);color:#dc2626;font-weight:700;font-size:.82rem;cursor:pointer;margin:10px 0;display:flex;align-items:center;justify-content:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Registrar Rotura</button>'+
+    '<div style="border-radius:var(--r-md);border:1.5px solid rgba(255,255,255,.75);border-top-color:rgba(255,255,255,1.0);background:rgba(255,255,255,.38);-webkit-backdrop-filter:saturate(280%) blur(16px);backdrop-filter:saturate(280%) blur(16px);box-shadow:inset 0 2px 0 rgba(255,255,255,1.0),0 2px 8px rgba(0,0,0,.04);overflow:hidden;">'+
+      roturasHtml+
+    '</div>'+
+    (ant.notas?'<div style="margin-top:10px;font-size:.75rem;color:var(--text3);padding:8px 12px;background:rgba(120,120,128,.06);border-radius:var(--r-md);">📝 '+esc(ant.notas)+'</div>':'')+
+    (rmEquipId?'<button onclick="if(confirm(\'¿Quitar esta antena del equipo?\'))removeAntennaFromEq(\''+antenaId+'\',\''+rmEquipId+'\')" style="width:100%;padding:11px;border-radius:var(--r-pill);background:rgba(255,59,48,.08);border:1.5px solid rgba(255,59,48,.15);color:var(--red);font-weight:600;font-size:.78rem;cursor:pointer;margin-top:10px;">Quitar del equipo</button>':'')
+  );
+}
+function openAddRoturaModal(antenaId,rmEquipId){
+  var ant=antenas.find(function(a){return a.id===antenaId;});
+  if(!ant)return;
+  window._pendRotPres=null;window._pendRotRep=null;
+  openModal(
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">'+
+      '<div style="width:36px;height:36px;border-radius:10px;background:rgba(239,68,68,.12);display:flex;align-items:center;justify-content:center;">'+
+        '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'+
+      '</div>'+
+      '<div>'+
+        '<div style="font-weight:800;font-size:1rem;">Registrar Rotura</div>'+
+        '<div style="font-size:.65rem;color:var(--text3);">'+esc(ant.nombre)+'</div>'+
+      '</div>'+
+      '<button onclick="closeModal();setTimeout(function(){openAntennaDetail(\''+antenaId+'\','+(rmEquipId?'\''+rmEquipId+'\'':"''")+');},80);" style="margin-left:auto;width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.85rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">‹</button>'+
+    '</div>'+
+    '<div class="ff"><div class="ff-label">Fecha de rotura *</div>'+
+      '<input class="inp" id="rot-fecha" type="date" value="'+new Date().toISOString().split("T")[0]+'">'+
+    '</div>'+
+    '<div class="ff"><div class="ff-label">Descripción *</div>'+
+      '<textarea class="inp" id="rot-desc" rows="2" placeholder="¿Qué parte de la antena se rompió?"></textarea>'+
+    '</div>'+
+    '<div class="ff"><div class="ff-label">Técnico / Empresa</div>'+
+      '<input class="inp" id="rot-tec" placeholder="Nombre del técnico o empresa">'+
+    '</div>'+
+    '<div class="g2">'+
+      '<div class="ff"><div class="ff-label">Presupuesto PDF</div>'+
+        '<div id="rot-pres-name" style="font-size:.7rem;color:var(--green);margin-bottom:4px;min-height:16px;"></div>'+
+        '<label style="display:flex;align-items:center;gap:6px;padding:9px 12px;border-radius:var(--r-md);background:rgba(0,113,227,.08);border:1.5px dashed rgba(0,113,227,.25);cursor:pointer;font-size:.75rem;color:var(--accent);font-weight:600;">'+
+          '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Subir PDF'+
+          '<input type="file" accept=".pdf,application/pdf" style="display:none;" onchange="var f=this.files[0];if(f){window._pendRotPres=f;document.getElementById(\'rot-pres-name\').textContent=\'✅ \'+f.name;}">'+
+        '</label>'+
+      '</div>'+
+      '<div class="ff"><div class="ff-label">Reporte de arreglo PDF</div>'+
+        '<div id="rot-rep-name" style="font-size:.7rem;color:var(--green);margin-bottom:4px;min-height:16px;"></div>'+
+        '<label style="display:flex;align-items:center;gap:6px;padding:9px 12px;border-radius:var(--r-md);background:rgba(52,199,89,.08);border:1.5px dashed rgba(52,199,89,.25);cursor:pointer;font-size:.75rem;color:var(--green);font-weight:600;">'+
+          '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Subir PDF'+
+          '<input type="file" accept=".pdf,application/pdf" style="display:none;" onchange="var f=this.files[0];if(f){window._pendRotRep=f;document.getElementById(\'rot-rep-name\').textContent=\'✅ \'+f.name;}">'+
+        '</label>'+
+      '</div>'+
+    '</div>'+
+    '<button onclick="submitAddRotura(\''+antenaId+'\','+(rmEquipId?'\''+rmEquipId+'\'':"''")+');" style="width:100%;padding:14px;background:linear-gradient(135deg,#dc2626,#ef4444);color:#fff;border:none;border-radius:var(--r-pill);font-weight:700;font-size:.9rem;cursor:pointer;box-shadow:0 4px 16px rgba(220,38,38,.30),inset 0 1px 0 rgba(255,255,255,.2);margin-top:8px;">Registrar Rotura</button>'
+  );
+}
+function submitAddRotura(antenaId,rmEquipId){
+  var fecha=(document.getElementById('rot-fecha')||{}).value||'';
+  var desc=(document.getElementById('rot-desc')||{}).value||'';
+  var tec=(document.getElementById('rot-tec')||{}).value||'';
+  if(!fecha){alert('Ingresá la fecha de rotura');return;}
+  if(!desc.trim()){alert('Ingresá una descripción');return;}
+  var rotId='ROT-'+Date.now();
+  var saveAndFinish=function(presRef,repRef){
+    var rot={id:rotId,fecha:fecha,descripcion:desc.trim(),tecnico:tec.trim(),presupuestoPdf:presRef||null,reportePdf:repRef||null,creadoEn:new Date().toISOString()};
+    antenas=antenas.map(function(a){if(a.id===antenaId)return Object.assign({},a,{roturas:(a.roturas||[]).concat(rot)});return a;});
+    saveData();closeModal();showToast('⚠️ Rotura registrada','warn');
+    setTimeout(function(){openAntennaDetail(antenaId,rmEquipId);},80);
+  };
+  var presPend=window._pendRotPres;var repPend=window._pendRotRep;
+  window._pendRotPres=null;window._pendRotRep=null;
+  var uploadFile=function(file,cb){
+    if(!file){cb(null);return;}
+    var fid='F-'+Date.now()+'-'+Math.random().toString(36).slice(2);
+    var blob=new Blob([file],{type:file.type});
+    dbSave(fid,blob).then(function(){cb({id:fid,nombre:file.name,tipo:file.type,tam:file.size});}).catch(function(){cb(null);});
+  };
+  uploadFile(presPend,function(presRef){uploadFile(repPend,function(repRef){saveAndFinish(presRef,repRef);});});
+}
+function deleteRotura(antenaId,roturaId,rmEquipId){
+  if(!confirm('¿Eliminar esta rotura?'))return;
+  antenas=antenas.map(function(a){if(a.id===antenaId)return Object.assign({},a,{roturas:(a.roturas||[]).filter(function(r){return r.id!==roturaId;})});return a;});
+  saveData();showToast('Rotura eliminada','warn');
+  if(rmEquipId)openAntennaDetail(antenaId,rmEquipId);else closeModal();
+}
+function removeAntennaFromEq(antenaId,rmEquipId){
+  eqs=eqs.map(function(e){if(e.id===rmEquipId)return Object.assign({},e,{antenaIds:(e.antenaIds||[]).filter(function(id){return id!==antenaId;})});return e;});
+  saveData();closeModal();showToast('Antena quitada del equipo','');
+  setTimeout(function(){openAntennasPanel(rmEquipId);},80);
+}
+function openAntennasReportPanel(rmEquipId){
+  var eq=eqs.find(function(e){return e.id===rmEquipId;});
+  if(!eq)return;
+  var rmEqs=eqs.filter(function(e){return e.cat==='RM';});
+  var rmPills=rmEqs.map(function(e){
+    var sel=e.id===rmEquipId;
+    return '<button type="button" data-antreq-eq="'+e.id+'" onclick="toggleAntRepEq(\''+e.id+'\')" style="padding:7px 14px;border-radius:var(--r-pill);font-size:.73rem;font-weight:600;cursor:pointer;transition:all .18s;background:'+(sel?'rgba(79,120,224,.16)':'rgba(255,255,255,.32)')+';border:1.5px solid '+(sel?'rgba(79,120,224,.4)':'rgba(255,255,255,.65)')+';color:'+(sel?'#4f78e0':'var(--text2)')+(sel?';box-shadow:0 0 0 1px rgba(79,120,224,.18),inset 0 1.5px 0 rgba(255,255,255,.8)':';box-shadow:inset 0 1.5px 0 rgba(255,255,255,.8)')+';">'+esc(e.nombre)+'</button>';
+  }).join('');
+  openModal(
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">'+
+      '<div style="flex-shrink:0;">'+antenaSvgIcon(36)+'</div>'+
+      '<div>'+
+        '<div style="font-weight:800;font-size:1.05rem;">Reporte de Antenas</div>'+
+        '<div style="font-size:.65rem;color:var(--text3);">Filtrar por rango y generar PDF</div>'+
+      '</div>'+
+      '<button onclick="closeModal()" style="margin-left:auto;width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">✕</button>'+
+    '</div>'+
+    '<div style="display:flex;align-items:center;gap:7px;font-size:.62rem;text-transform:uppercase;letter-spacing:.8px;font-weight:800;color:rgba(60,60,67,.75);margin:14px 0 8px;">'+
+      '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>'+
+      'Rango de Fechas <span style="font-weight:400;opacity:.6;font-size:.58rem;text-transform:none;letter-spacing:0;">(opcional)</span>'+
+    '</div>'+
+    '<div style="display:flex;align-items:center;gap:0;background:rgba(255,255,255,.48);border:1.5px solid rgba(255,255,255,.82);border-top-color:rgba(255,255,255,1.0);border-radius:var(--r-md);box-shadow:inset 0 2px 0 rgba(255,255,255,1.0);overflow:hidden;margin-bottom:4px;">'+
+      '<div style="flex:1;padding:10px 14px;"><div style="font-size:.56rem;color:rgba(60,60,67,.55);font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;">Desde</div>'+
+        '<input type="date" id="antrep-desde" style="width:100%;background:transparent;border:none;outline:none;font-size:.88rem;font-weight:600;color:var(--text);font-family:inherit;padding:0;box-sizing:border-box;"></div>'+
+      '<div style="width:1px;background:rgba(120,120,128,.15);align-self:stretch;"></div>'+
+      '<div style="flex:1;padding:10px 14px;"><div style="font-size:.56rem;color:rgba(60,60,67,.55);font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;">Hasta</div>'+
+        '<input type="date" id="antrep-hasta" style="width:100%;background:transparent;border:none;outline:none;font-size:.88rem;font-weight:600;color:var(--text);font-family:inherit;padding:0;box-sizing:border-box;"></div>'+
+    '</div>'+
+    '<div style="display:flex;align-items:center;gap:7px;font-size:.62rem;text-transform:uppercase;letter-spacing:.8px;font-weight:800;color:rgba(60,60,67,.75);margin:14px 0 8px;">Equipos RM</div>'+
+    '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px;" id="antrep-eq-pills">'+rmPills+'</div>'+
+    '<input type="hidden" id="antrep-eqid" value="'+rmEquipId+'">'+
+    '<button onclick="generateAntennasReport()" style="width:100%;padding:16px;background:linear-gradient(135deg,#4f78e0,#6366f1);color:#fff;border:none;border-radius:var(--r-pill);font-weight:700;font-size:.95rem;cursor:pointer;box-shadow:0 4px 20px rgba(79,120,224,.40),inset 0 1px 0 rgba(255,255,255,.25);margin-top:14px;display:flex;align-items:center;justify-content:center;gap:8px;" ontouchstart="this.style.transform=\'scale(.97)\'" ontouchend="this.style.transform=\'\'">'+
+      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>Generar PDF'+
+    '</button>'
+  );
+}
+function toggleAntRepEq(eqId){
+  document.getElementById('antrep-eqid').value=eqId;
+  document.querySelectorAll('[data-antreq-eq]').forEach(function(b){
+    var sel=b.dataset.antreqEq===eqId;
+    b.style.background=sel?'rgba(79,120,224,.16)':'rgba(255,255,255,.32)';
+    b.style.borderColor=sel?'rgba(79,120,224,.4)':'rgba(255,255,255,.65)';
+    b.style.color=sel?'#4f78e0':'var(--text2)';
+    b.style.boxShadow=sel?'0 0 0 1px rgba(79,120,224,.18),inset 0 1.5px 0 rgba(255,255,255,.8)':'inset 0 1.5px 0 rgba(255,255,255,.8)';
+  });
+}
+function generateAntennasReport(){
+  var desde=document.getElementById('antrep-desde').value;
+  var hasta=document.getElementById('antrep-hasta').value;
+  var eqId=document.getElementById('antrep-eqid').value;
+  var eq=eqs.find(function(e){return e.id===eqId;});
+  if(!eq)return;
+  var assignedIds=eq.antenaIds||[];
+  var assigned=antenas.filter(function(a){return assignedIds.indexOf(a.id)!==-1;});
+  if(assigned.length===0){alert('No hay antenas asignadas a este equipo.');return;}
+  var rowsHtml='';var totalRoturas=0;
+  assigned.forEach(function(a){
+    var rots=(a.roturas||[]).filter(function(r){if(desde&&r.fecha<desde)return false;if(hasta&&r.fecha>hasta)return false;return true;});
+    totalRoturas+=rots.length;
+    rowsHtml+='<tr style="background:#eef2ff;"><td colspan="4" style="padding:8px 12px;font-weight:700;font-size:13px;color:#1e293b;border-bottom:1px solid #c7d2fe;">📡 '+esc(a.nombre)+(a.cantidadCanales?' · '+a.cantidadCanales+' canales':'')+' · Origen: '+esc(a.nombreOrigen||'—')+(a.fechaCompra?' · Compra: '+fmtD(a.fechaCompra):'')+'</td></tr>';
+    if(rots.length===0){rowsHtml+='<tr><td colspan="4" style="padding:6px 12px;font-size:12px;color:#94a3b8;font-style:italic;">Sin roturas en el período</td></tr>';}
+    else{rots.forEach(function(r){rowsHtml+='<tr><td style="padding:6px 12px;font-size:12px;">'+fmtD(r.fecha)+'</td><td style="padding:6px 12px;font-size:12px;">'+esc(r.descripcion||'—')+'</td><td style="padding:6px 12px;font-size:12px;">'+esc(r.tecnico||'—')+'</td><td style="padding:6px 12px;font-size:12px;text-align:center;">'+(r.presupuestoPdf?'📄':'—')+' / '+(r.reportePdf?'📋':'—')+'</td></tr>';});}
+  });
+  var rangoTxt=desde||hasta?((desde?fmtD(desde):'inicio')+' → '+(hasta?fmtD(hasta):'hoy')):'Todo el historial';
+  var html='<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Reporte Antenas · '+esc(eq.nombre)+'</title>'+
+    '<style>body{font-family:Arial,sans-serif;margin:0;padding:20px;color:#1e293b;}'+
+    '.hdr{background:linear-gradient(135deg,#4f78e0,#6366f1);color:#fff;padding:20px 24px;border-radius:8px;margin-bottom:20px;}'+
+    '.hdr h1{margin:0;font-size:20px;}.hdr .sub{font-size:13px;opacity:.85;margin-top:4px;}'+
+    '.stats{display:flex;gap:12px;margin-bottom:20px;}'+
+    '.stat{flex:1;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px;text-align:center;}'+
+    '.stat-n{font-size:24px;font-weight:800;color:#4f78e0;}.stat-l{font-size:11px;color:#64748b;margin-top:2px;}'+
+    'table{width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;}'+
+    'thead th{background:#4f78e0;color:#fff;padding:10px 12px;font-size:12px;text-align:left;}'+
+    'tbody tr:nth-child(even){background:#f1f5f9;}'+
+    '@media print{button{display:none}}</style></head><body>'+
+    '<div class="hdr"><h1>📡 Reporte de Antenas RF</h1><div class="sub">'+esc(eq.nombre)+' · '+rangoTxt+' · Generado: '+new Date().toLocaleDateString('es-AR')+'</div></div>'+
+    '<div class="stats"><div class="stat"><div class="stat-n">'+assigned.length+'</div><div class="stat-l">Antenas</div></div>'+
+    '<div class="stat"><div class="stat-n">'+totalRoturas+'</div><div class="stat-l">Roturas en período</div></div></div>'+
+    '<table><thead><tr><th>Fecha</th><th>Descripción</th><th>Técnico</th><th>Docs</th></tr></thead><tbody>'+rowsHtml+'</tbody></table>'+
+    '<script>window.onload=function(){window.print();};<\/script></body></html>';
+  var w=window.open('','_blank');if(w){w.document.write(html);w.document.close();}
+  closeModal();
+}
+
 // ═══════════════════════════════════════════
 //  REPORTAR ROTURA
 // ═══════════════════════════════════════════
@@ -2385,8 +2704,9 @@ function submitRotura(){
 //  HARD REFRESH
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
-var APP_DISPLAY_VERSION="4.0.3";
-var APP_BUILD="20/05/26 00:15";
+var antenas=[];
+var APP_DISPLAY_VERSION="4.1.0";
+var APP_BUILD="20/05/26 01:30";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
@@ -2554,8 +2874,10 @@ function init(){
             eqs=JSON.parse(JSON.stringify(EQ0));
             if(doc.exists&&Array.isArray(doc.data().eqs)&&doc.data().eqs.length>0){
               eqs=doc.data().eqs;
+              if(Array.isArray(doc.data().antenas))antenas=doc.data().antenas;
             } else {
               try{var s=localStorage.getItem("mt_v4");if(s){var p=JSON.parse(s);if(Array.isArray(p)&&p.length>0)eqs=p;}}catch(e){}
+              try{var sa=localStorage.getItem("mt_antenas");if(sa){var pa=JSON.parse(sa);if(Array.isArray(pa))antenas=pa;}}catch(e){}
             }
             render();
             setTimeout(checkForUpdates,3000);
