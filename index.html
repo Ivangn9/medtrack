@@ -1911,6 +1911,11 @@ function rDetalle(){
   h+=(eq.notas?'<div class="ibox"><div class="ibox-l">📝 Nota</div><div style="font-size:.8rem;color:var(--text2);margin-top:2px;">'+esc(eq.notas)+'</div></div>':'');
   h+='</div></div>';
 
+  // ── ANTENAS RF (RM only) ──
+  if(eq.cat==='RM'){
+    h+='<div style="margin-top:14px;margin-bottom:14px;"><button onclick="goAntenas(\''+eq.id+'\')" style="width:100%;padding:14px 16px;border-radius:var(--r-lg);background:rgba(79,120,224,.10);border:1.5px solid rgba(79,120,224,.28);color:#4f78e0;font-weight:700;font-size:.88rem;cursor:pointer;display:flex;align-items:center;gap:10px;box-shadow:0 2px 8px rgba(79,120,224,.10),inset 0 1.5px 0 rgba(255,255,255,.8);" ontouchstart="this.style.transform=\'scale(.98)\'" ontouchend="this.style.transform=\'\'">'+antenaSvgIcon(28)+'<div style="text-align:left;"><div style="font-size:.9rem;font-weight:800;">Antenas RF</div><div style="font-size:.68rem;font-weight:500;opacity:.7;margin-top:1px;">'+(eq.antenaIds||[]).length+' antena(s) asignada(s)</div></div><svg style="margin-left:auto;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></button></div>';
+  }
+
   // PARTES + HISTORIAL search bar
   var dq=_detalleQ.toLowerCase().trim();
   h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:'+(_detalleSearchOpen?'8px':'10px')+';gap:8px;">';
@@ -2031,10 +2036,6 @@ function rDetalle(){
         '</div></div></div></div>';
     });
     h+='</div>';
-  }
-  // ── ANTENAS RF (RM only) ──
-  if(eq.cat==='RM'){
-    h+='<div style="margin-top:14px;"><button onclick="goAntenas(\''+eq.id+'\')" style="width:100%;padding:14px 16px;border-radius:var(--r-lg);background:rgba(79,120,224,.10);border:1.5px solid rgba(79,120,224,.28);color:#4f78e0;font-weight:700;font-size:.88rem;cursor:pointer;display:flex;align-items:center;gap:10px;box-shadow:0 2px 8px rgba(79,120,224,.10),inset 0 1.5px 0 rgba(255,255,255,.8);" ontouchstart="this.style.transform=\'scale(.98)\'" ontouchend="this.style.transform=\'\'">'+antenaSvgIcon(28)+'<div style="text-align:left;"><div style="font-size:.9rem;font-weight:800;">Antenas RF</div><div style="font-size:.68rem;font-weight:500;opacity:.7;margin-top:1px;">'+(eq.antenaIds||[]).length+' antena(s) asignada(s)</div></div><svg style="margin-left:auto;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></button></div>';
   }
   return h;
 }
@@ -3320,7 +3321,7 @@ function submitRotura(){
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
 var antenas=[];
 var APP_DISPLAY_VERSION="4.2.2";
-var APP_BUILD="20/05/26 05:00";
+var APP_BUILD="20/05/26 05:15";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
