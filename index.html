@@ -2166,7 +2166,7 @@ function openReportPanel(){
     '<span style="flex:1;font-size:.82rem;font-weight:600;color:var(--text);">'+esc(e.nombre)+'</span>'+
     '<span style="font-size:.64rem;color:var(--text3);background:rgba(120,120,128,.08);padding:3px 8px;border-radius:20px;flex-shrink:0;">'+ci.label+(e.ubicacion?' · '+esc(e.ubicacion):'')+'</span>'+
   '</label>';}).join('');
-  var secStyle='display:flex;align-items:center;gap:7px;font-size:.6rem;text-transform:uppercase;letter-spacing:.8px;font-weight:800;color:var(--text3);margin-bottom:8px;margin-top:16px;';
+  var secStyle='display:flex;align-items:center;gap:7px;font-size:.62rem;text-transform:uppercase;letter-spacing:.8px;font-weight:800;color:rgba(60,60,67,.75);margin-bottom:8px;margin-top:16px;';
   var iconCal='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
   var iconPin='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>';
   var iconGrid='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>';
@@ -2188,11 +2188,16 @@ function openReportPanel(){
     '<input type="hidden" id="rep-tipo" value="todo">'+
     /* Fechas */
     '<div style="'+secStyle+'">'+iconCal+' Rango de Fechas <span style="font-weight:400;opacity:.6;font-size:.58rem;text-transform:none;letter-spacing:0;">(opcional)</span></div>'+
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px;">'+
-      '<div><div style="font-size:.58rem;color:var(--text3);font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:5px;">Desde</div>'+
-      '<input class="inp" type="date" id="rep-desde" style="padding:11px 12px;font-size:.84rem;background:rgba(255,255,255,.55);border:1.5px solid rgba(255,255,255,.80);border-top-color:rgba(255,255,255,1.0);box-shadow:inset 0 2px 0 rgba(255,255,255,1.0);"></div>'+
-      '<div><div style="font-size:.58rem;color:var(--text3);font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:5px;">Hasta</div>'+
-      '<input class="inp" type="date" id="rep-hasta" style="padding:11px 12px;font-size:.84rem;background:rgba(255,255,255,.55);border:1.5px solid rgba(255,255,255,.80);border-top-color:rgba(255,255,255,1.0);box-shadow:inset 0 2px 0 rgba(255,255,255,1.0);"></div>'+
+    '<div style="display:flex;align-items:center;gap:0;background:rgba(255,255,255,.48);border:1.5px solid rgba(255,255,255,.82);border-top-color:rgba(255,255,255,1.0);border-radius:var(--r-md);box-shadow:inset 0 2px 0 rgba(255,255,255,1.0),0 2px 8px rgba(0,0,0,.04);overflow:hidden;margin-bottom:4px;">'+
+      '<div style="flex:1;padding:10px 14px;">'+
+        '<div style="font-size:.56rem;color:rgba(60,60,67,.55);font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;">Desde</div>'+
+        '<input type="date" id="rep-desde" style="width:100%;background:transparent;border:none;outline:none;font-size:.88rem;font-weight:600;color:var(--text);font-family:inherit;padding:0;box-sizing:border-box;">'+
+      '</div>'+
+      '<div style="width:1px;background:rgba(120,120,128,.15);align-self:stretch;"></div>'+
+      '<div style="flex:1;padding:10px 14px;">'+
+        '<div style="font-size:.56rem;color:rgba(60,60,67,.55);font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;">Hasta</div>'+
+        '<input type="date" id="rep-hasta" style="width:100%;background:transparent;border:none;outline:none;font-size:.88rem;font-weight:600;color:var(--text);font-family:inherit;padding:0;box-sizing:border-box;">'+
+      '</div>'+
     '</div>'+
     /* Centros */
     (locs.length?'<div style="'+secStyle+'">'+iconPin+' Sucursales / Centros</div>'+
@@ -2380,8 +2385,8 @@ function submitRotura(){
 //  HARD REFRESH
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
-var APP_DISPLAY_VERSION="4.0.2";
-var APP_BUILD="19/05/26 23:30";
+var APP_DISPLAY_VERSION="4.0.3";
+var APP_BUILD="20/05/26 00:15";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
