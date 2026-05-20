@@ -2895,9 +2895,17 @@ function submitAddRoturaV2(antenaId){
   if(!que.trim()){alert('Ingresá qué se rompió');return;}
   var rotId='ROT-'+Date.now();
   var saveAndFinish=function(presRef){
+    var ant=antenas.find(function(a){return a.id===antenaId;});
     var rot={id:rotId,fecha:fecha,queSeRompio:que.trim(),descripcion:desc.trim(),tecnico:tec.trim(),estado:'roto',presupuestoArregloPdf:presRef||null,reporteArregloPdf:null,fechaArreglo:'',creadoEn:new Date().toISOString()};
     antenas=antenas.map(function(a){if(a.id===antenaId)return Object.assign({},a,{roturas:(a.roturas||[]).concat(rot)});return a;});
-    saveData();closeModal();showToast('⚠️ Rotura registrada','warn');render();
+    /* crear parte rota vinculada en el equipo */
+    var linkedEq=eqs.find(function(e){return(e.antenaIds||[]).indexOf(antenaId)!==-1;});
+    if(linkedEq){
+      var parteId='PANT-'+Date.now();
+      var nuevaParte={id:parteId,nombre:(ant?'[Antena] '+ant.nombre+' — ':'')+que.trim(),descripcion:desc.trim(),estado:'roto',fechaRotura:fecha,tecnicoReparacion:tec.trim(),marca:'',nroSerie:'',notas:'',archivos:[],_antenaRoturaId:rotId,_antenaId:antenaId,creadoEn:new Date().toISOString()};
+      eqs=eqs.map(function(e){if(e.id!==linkedEq.id)return e;return Object.assign({},e,{partes:(e.partes||[]).concat(nuevaParte)});});
+    }
+    saveData();closeModal();showToast('⚠️ Rotura registrada en antena y equipo','warn');render();
   };
   var presPend=window._pendRotPresArr;window._pendRotPresArr=null;
   if(!presPend){saveAndFinish(null);return;}
@@ -2910,6 +2918,8 @@ function submitAddRoturaV2(antenaId){
 function deleteRoturaV2(antenaId,roturaId){
   if(!confirm('¿Eliminar esta rotura?'))return;
   antenas=antenas.map(function(a){if(a.id===antenaId)return Object.assign({},a,{roturas:(a.roturas||[]).filter(function(r){return r.id!==roturaId;})});return a;});
+  /* eliminar parte vinculada en el equipo */
+  eqs=eqs.map(function(e){return Object.assign({},e,{partes:(e.partes||[]).filter(function(p){return p._antenaRoturaId!==roturaId;})});});
   saveData();showToast('Rotura eliminada','warn');render();
 }
 
@@ -2976,7 +2986,20 @@ function submitMarkReparada(antenaId,roturaId){
       }
       return a;
     });
-    saveData();closeModal();showToast('✅ Marcada como reparada','');render();
+    /* sincronizar con equipo: quitar parte vinculada y agregar al historial del equipo */
+    var linkedEq=eqs.find(function(e){return(e.antenaIds||[]).indexOf(antenaId)!==-1;});
+    if(linkedEq){
+      var archivosHist=repRef?[{id:repRef.id,nombre:repRef.nombre,tipo:repRef.tipo,tam:repRef.tam}]:[];
+      var histEqEntry={id:'HAE-'+Date.now(),fecha:fechaArr,tipo:'reparacion',nombre:'[Antena] '+ant.nombre+' — '+(rot.queSeRompio||''),descripcion:rot.descripcion||'',fechaRotura:rot.fecha,tecnico:tecArr.trim()||rot.tecnico||'',notas:'',precio:'',archivos:archivosHist,registradoEn:new Date().toISOString()};
+      eqs=eqs.map(function(e){
+        if(e.id!==linkedEq.id)return e;
+        return Object.assign({},e,{
+          partes:(e.partes||[]).filter(function(p){return p._antenaRoturaId!==roturaId;}),
+          historialMant:(e.historialMant||[]).concat(histEqEntry)
+        });
+      });
+    }
+    saveData();closeModal();showToast('✅ Reparación registrada en antena y equipo','');render();
   };
   var repPend=window._pendRotRepArr;window._pendRotRepArr=null;
   if(!repPend){saveAndFinish(null);return;}
@@ -3272,8 +3295,8 @@ function generateAntennasReport(){
     '<div class="stat"><div class="stat-n">'+totalRoturas+'</div><div class="stat-l">Roturas en período</div></div></div>'+
     '<table><thead><tr><th>Fecha</th><th>Descripción</th><th>Técnico</th><th>Docs</th></tr></thead><tbody>'+rowsHtml+'</tbody></table>'+
     '<script>window.onload=function(){window.print();};<\/script></body></html>';
-  var w=window.open('','_blank');if(w){w.document.write(html);w.document.close();}
   closeModal();
+  openHTMLViewer(html);
 }
 
 // ═══════════════════════════════════════════
@@ -3361,8 +3384,8 @@ function submitRotura(){
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
 var antenas=[];
-var APP_DISPLAY_VERSION="4.2.3";
-var APP_BUILD="20/05/26 06:00";
+var APP_DISPLAY_VERSION="4.2.4";
+var APP_BUILD="20/05/26 07:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
