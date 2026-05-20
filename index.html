@@ -1420,12 +1420,20 @@ function openPDFViewer(fileId,nombre){
     setTimeout(function(){URL.revokeObjectURL(url);},60000);
   });
 }
-function openHTMLViewer(htmlContent){
+function openHTMLViewer(htmlContent,title){
   var blob=new Blob([htmlContent],{type:'text/html'});
   var url=URL.createObjectURL(blob);
-  var a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener';
-  document.body.appendChild(a);a.click();document.body.removeChild(a);
-  setTimeout(function(){URL.revokeObjectURL(url);},60000);
+  if(_pdfBlobUrl){URL.revokeObjectURL(_pdfBlobUrl);}
+  _pdfBlobUrl=url;
+  var overlay=document.getElementById('pdf-viewer-overlay');
+  var frame=document.getElementById('pdf-viewer-frame');
+  var titleEl=document.getElementById('pdf-viewer-title');
+  var dlBtn=document.getElementById('pdf-dl-btn');
+  if(titleEl)titleEl.textContent=title||'Reporte';
+  if(dlBtn){dlBtn.href=url;dlBtn.download=(title||'reporte')+'.html';}
+  frame.src=url;
+  overlay.classList.remove('hidden');
+  document.body.style.overflow='hidden';
 }
 function closePDFViewer(){
   var overlay=document.getElementById('pdf-viewer-overlay');
@@ -3403,8 +3411,8 @@ function submitRotura(){
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
 var antenas=[];
-var APP_DISPLAY_VERSION="4.2.5";
-var APP_BUILD="20/05/26 08:00";
+var APP_DISPLAY_VERSION="4.2.6";
+var APP_BUILD="20/05/26 10:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
