@@ -2093,8 +2093,12 @@ function rAntenas(){
     '</div>';
   }else{
     assigned.forEach(function(a){
-      var rotCount=(a.roturas||[]).length;
-      var lastRot=rotCount>0?(a.roturas||[]).slice().sort(function(x,y){return x.fecha>y.fecha?-1:1;})[0]:null;
+      var rotCount=(a.roturas||[]).filter(function(r){return r.estado!=='reparado';}).length;
+      var lastRot=(a.roturas||[]).length>0?(a.roturas||[]).slice().sort(function(x,y){return x.fecha>y.fecha?-1:1;})[0]:null;
+      var estA=a.estado||'operativa';
+      var estColor=estA==='rota'?'var(--red)':estA==='fuera_servicio'?'var(--orange)':'var(--green)';
+      var estBg=estA==='rota'?'rgba(239,68,68,.12)':estA==='fuera_servicio'?'rgba(255,149,0,.12)':'rgba(52,199,89,.12)';
+      var estLabel=estA==='rota'?'Rota':estA==='fuera_servicio'?'Fuera de servicio':'Operativa';
       h+='<div class="gc tap" onclick="goAntenaDetalle(\''+a.id+'\',\''+eq.id+'\')" style="padding:0;overflow:hidden;margin-bottom:10px;cursor:pointer;">'+
         '<div style="padding:14px 16px;display:flex;align-items:center;gap:12px;">'+
           '<div style="flex-shrink:0;">'+antenaSvgIcon(44)+'</div>'+
@@ -2106,8 +2110,9 @@ function rAntenas(){
               (a.fechaCompra?'<br><span style="font-size:.64rem;">Compra: '+fD(a.fechaCompra)+'</span>':'')+
             '</div>'+
           '</div>'+
-          '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;">'+
-            '<span style="font-size:.65rem;padding:3px 9px;border-radius:20px;font-weight:700;background:'+(rotCount>0?'rgba(239,68,68,.12)':'rgba(52,199,89,.12)')+';color:'+(rotCount>0?'var(--red)':'var(--green)')+';">'+(rotCount>0?rotCount+' rotura(s)':'Sin roturas')+'</span>'+
+          '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0;">'+
+            '<span style="font-size:.65rem;padding:2px 9px;border-radius:20px;font-weight:700;background:'+estBg+';color:'+estColor+';">'+estLabel+'</span>'+
+            '<span style="font-size:.65rem;padding:2px 9px;border-radius:20px;font-weight:700;background:'+(rotCount>0?'rgba(239,68,68,.12)':'rgba(52,199,89,.12)')+';color:'+(rotCount>0?'var(--red)':'var(--green)')+';">'+(rotCount>0?rotCount+' rotura(s) activa(s)':'Sin roturas')+'</span>'+
             (lastRot?'<span style="font-size:.62rem;color:var(--text3);">Última: '+fD(lastRot.fecha)+'</span>':'')+
             '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>'+
           '</div>'+
@@ -2127,19 +2132,22 @@ function rAntenaDetalle(){
   var historial=ant.historialAntena||[];
   var h='';
   /* HEADER CARD */
+  var antEst=ant.estado||'operativa';
+  var antEstColor=antEst==='rota'?'var(--red)':antEst==='fuera_servicio'?'var(--orange)':'var(--green)';
+  var antEstBg=antEst==='rota'?'rgba(239,68,68,.12)':antEst==='fuera_servicio'?'rgba(255,149,0,.12)':'rgba(52,199,89,.12)';
+  var antEstLabel=antEst==='rota'?'🔴 Rota':antEst==='fuera_servicio'?'⚠️ Fuera de servicio':'✅ Operativa';
   h+='<div class="gc" style="padding:0;margin-bottom:12px;overflow:hidden;border-left:4px solid rgba(79,120,224,.6);background:linear-gradient(135deg,rgba(79,120,224,.07) 0%,rgba(99,102,241,.04) 100%);">'+
     '<div style="background:linear-gradient(90deg,rgba(79,120,224,.13),rgba(99,102,241,.07));padding:9px 16px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(79,120,224,.12);">'+
       antenaSvgIcon(14)+'<span style="font-size:.72rem;font-weight:700;color:rgba(79,120,224,.9);text-transform:uppercase;letter-spacing:.06em;">Antena RF</span>'+
+      '<button onclick="openEditAntennaModal(\''+ant.id+'\')" style="margin-left:auto;font-size:.7rem;padding:4px 10px;border-radius:12px;background:rgba(79,120,224,.12);border:1px solid rgba(79,120,224,.22);color:#4f78e0;cursor:pointer;font-weight:600;">✎ Editar</button>'+
     '</div>'+
     '<div style="padding:16px;position:relative;overflow:hidden;">'+
       '<div style="position:absolute;right:-12px;top:-8px;width:130px;height:130px;display:flex;align-items:center;justify-content:center;opacity:.35;pointer-events:none;z-index:0;">'+antenaSvgIcon(130)+'</div>'+
       '<div style="position:relative;z-index:1;">'+
-        '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">'+
-          '<div style="font-weight:800;font-size:1.15rem;letter-spacing:-.3px;">'+esc(ant.nombre)+'</div>'+
-          '<button onclick="openEditAntennaModal(\''+ant.id+'\')" title="Editar antena" style="flex-shrink:0;width:30px;height:30px;border-radius:50%;background:rgba(79,120,224,.10);border:1.5px solid rgba(79,120,224,.20);color:#4f78e0;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.85rem;">✎</button>'+
-        '</div>'+
+        '<div style="font-weight:800;font-size:1.15rem;letter-spacing:-.3px;">'+esc(ant.nombre)+'</div>'+
         (eq?'<div style="font-size:.7rem;color:var(--text3);margin-top:2px;">Asignada a: '+esc(eq.nombre)+'</div>':'')+
         '<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">'+
+          '<span style="background:'+antEstBg+';color:'+antEstColor+';padding:3px 10px;border-radius:20px;font-weight:700;font-size:.72rem;">'+antEstLabel+'</span>'+
           (ant.cantidadCanales?'<span style="background:rgba(79,120,224,.10);color:'+c1+';padding:3px 9px;border-radius:20px;font-weight:700;font-size:.72rem;">'+ant.cantidadCanales+' canales</span>':'')+
           '<span style="background:rgba(120,120,128,.08);color:var(--text2);padding:3px 9px;border-radius:20px;font-weight:600;font-size:.72rem;">Origen: '+esc(ant.nombreOrigen||'—')+'</span>'+
           (ant.fechaCompra?'<span style="background:rgba(120,120,128,.08);color:var(--text2);padding:3px 9px;border-radius:20px;font-weight:600;font-size:.72rem;">Compra: '+fD(ant.fechaCompra)+'</span>':'')+
@@ -2641,6 +2649,13 @@ function openAddAntennaModal(rmEquipId){
         '<input class="inp" id="ant-canales" type="number" min="1" placeholder="Ej: 8">'+
       '</div>'+
     '</div>'+
+    '<div class="ff"><div class="ff-label">Estado</div>'+
+      '<select class="inp" id="ant-estado">'+
+        '<option value="operativa">✅ Operativa</option>'+
+        '<option value="rota">🔴 Rota</option>'+
+        '<option value="fuera_servicio">⚠️ Fuera de servicio</option>'+
+      '</select>'+
+    '</div>'+
     '<div class="ff"><div class="ff-label">Fecha de compra</div>'+
       '<input class="inp" id="ant-fecha" type="date">'+
     '</div>'+
@@ -2654,10 +2669,11 @@ function submitAddAntenna(rmEquipId){
   var nombre=(document.getElementById('ant-nombre')||{}).value||'';
   var origen=(document.getElementById('ant-origen')||{}).value||'';
   var canales=parseInt((document.getElementById('ant-canales')||{}).value)||0;
+  var estado=(document.getElementById('ant-estado')||{}).value||'operativa';
   var fecha=(document.getElementById('ant-fecha')||{}).value||'';
   var notas=(document.getElementById('ant-notas')||{}).value||'';
   if(!nombre.trim()){alert('Ingresá el nombre de la antena');return;}
-  var ant={id:'ANTEN-'+Date.now(),nombre:nombre.trim(),nombreOrigen:origen,cantidadCanales:canales||null,fechaCompra:fecha,notas:notas,roturas:[],creadoEn:new Date().toISOString()};
+  var ant={id:'ANTEN-'+Date.now(),nombre:nombre.trim(),nombreOrigen:origen,cantidadCanales:canales||null,estado:estado,fechaCompra:fecha,notas:notas,roturas:[],creadoEn:new Date().toISOString()};
   antenas.push(ant);
   eqs=eqs.map(function(e){if(e.id===rmEquipId)return Object.assign({},e,{antenaIds:(e.antenaIds||[]).concat(ant.id)});return e;});
   saveData();closeModal();showToast('📡 Antena agregada','');
@@ -3002,6 +3018,13 @@ function openEditAntennaModal(antenaId){
         '<input class="inp" id="edit-ant-canales" type="number" min="1" value="'+(ant.cantidadCanales||'')+'" placeholder="Ej: 8">'+
       '</div>'+
     '</div>'+
+    '<div class="ff"><div class="ff-label">Estado</div>'+
+      '<select class="inp" id="edit-ant-estado">'+
+        '<option value="operativa"'+(( ant.estado||'operativa')==='operativa'?' selected':'')+'>✅ Operativa</option>'+
+        '<option value="rota"'+((ant.estado||'')==='rota'?' selected':'')+'>🔴 Rota</option>'+
+        '<option value="fuera_servicio"'+((ant.estado||'')==='fuera_servicio'?' selected':'')+'>⚠️ Fuera de servicio</option>'+
+      '</select>'+
+    '</div>'+
     '<div class="ff"><div class="ff-label">Fecha de compra</div>'+
       '<input class="inp" id="edit-ant-fecha" type="date" value="'+(ant.fechaCompra||'')+'">'+
     '</div>'+
@@ -3015,12 +3038,13 @@ function submitEditAntenna(antenaId){
   var nombre=(document.getElementById('edit-ant-nombre')||{}).value||'';
   var origen=(document.getElementById('edit-ant-origen')||{}).value||'';
   var canales=parseInt((document.getElementById('edit-ant-canales')||{}).value)||0;
+  var estado=(document.getElementById('edit-ant-estado')||{}).value||'operativa';
   var fecha=(document.getElementById('edit-ant-fecha')||{}).value||'';
   var notas=(document.getElementById('edit-ant-notas')||{}).value||'';
   if(!nombre.trim()){alert('Ingresá el nombre de la antena');return;}
   antenas=antenas.map(function(a){
     if(a.id!==antenaId)return a;
-    return Object.assign({},a,{nombre:nombre.trim(),nombreOrigen:origen,cantidadCanales:canales||null,fechaCompra:fecha,notas:notas.trim()});
+    return Object.assign({},a,{nombre:nombre.trim(),nombreOrigen:origen,cantidadCanales:canales||null,estado:estado,fechaCompra:fecha,notas:notas.trim()});
   });
   saveData();closeModal();showToast('✏️ Antena actualizada','');render();
 }
@@ -3337,8 +3361,8 @@ function submitRotura(){
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
 var antenas=[];
-var APP_DISPLAY_VERSION="4.2.2";
-var APP_BUILD="20/05/26 05:30";
+var APP_DISPLAY_VERSION="4.2.3";
+var APP_BUILD="20/05/26 06:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
