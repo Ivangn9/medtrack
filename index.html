@@ -822,6 +822,7 @@ function fm(f){return{semestral:6,anual:12,trimestral:3,mensual:1}[f]||12;}
 function calcP(d,f){return addM(d,fm(f));}
 function diasH(s){if(!s)return 9999;return Math.ceil((new Date(s)-new Date())/864e5);}
 function fD(s){if(!s)return"—";var p=s.split("-");return p[2]+"/"+p[1]+"/"+p[0];}
+var fmtD=fD;
 function semafo(eq){if(sinMant(eq))return"sinmant";var d=diasH(eq.proximoMant);if(d<0)return"vencido";if(d<=20)return"urgente";if(d<=90)return"proximo";return"ok";}
 function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
 var CM={ok:"#34c759",proximo:"#ff9500",urgente:"#ff3b30",vencido:"#ff3b30",sinmant:"#8e8e93"};
@@ -3412,8 +3413,8 @@ function submitRotura(){
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
 var antenas=[];
-var APP_DISPLAY_VERSION="4.2.7";
-var APP_BUILD="20/05/26 11:00";
+var APP_DISPLAY_VERSION="4.2.8";
+var APP_BUILD="20/05/26 12:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
