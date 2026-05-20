@@ -964,7 +964,7 @@ const EQ0=[
 // ═══════════════════════════════════════════
 //  STATE
 // ═══════════════════════════════════════════
-var eqs=[],view="dash",selId=null,filtCat="TODOS",toastTimer=null,darkMode=false,fontScale=100;
+var eqs=[],view="dash",selId=null,selAntenaEqId=null,filtCat="TODOS",toastTimer=null,darkMode=false,fontScale=100;
 
 function loadData(){
   eqs=JSON.parse(JSON.stringify(EQ0));
@@ -1068,7 +1068,11 @@ function goDetalle(id){selId=id;view="detalle";_detalleQ="";_detalleSearchOpen=f
   document.getElementById("back-btn").classList.remove("hidden");
   render();
 }
-function goBack(){setView("lista");}
+function goBack(){
+  if(view==="antenas"){selId=selAntenaEqId;view="detalle";_detalleQ="";_detalleSearchOpen=false;render();}
+  else setView("lista");
+}
+function goAntenas(rmEquipId){selAntenaEqId=rmEquipId;view="antenas";document.getElementById("back-btn").classList.remove("hidden");render();}
 
 // ═══════════════════════════════════════════
 //  MODAL
@@ -1584,6 +1588,7 @@ function render(){
     else if(view==="lista")d.innerHTML=rLista();
     else if(view==="alertas")d.innerHTML=rAlertas();
     else if(view==="detalle")d.innerHTML=rDetalle();
+    else if(view==="antenas")d.innerHTML=rAntenas();
     m.appendChild(d);
     var spacer=document.createElement("div");spacer.style.height="80px";spacer.style.flexShrink="0";m.appendChild(spacer);
   }catch(err){
@@ -2020,7 +2025,68 @@ function rDetalle(){
   }
   // ── ANTENAS RF (RM only) ──
   if(eq.cat==='RM'){
-    h+='<div style="margin-top:14px;"><button onclick="openAntennasPanel(\''+eq.id+'\')" style="width:100%;padding:14px 16px;border-radius:var(--r-lg);background:rgba(79,120,224,.10);border:1.5px solid rgba(79,120,224,.28);color:#4f78e0;font-weight:700;font-size:.88rem;cursor:pointer;display:flex;align-items:center;gap:10px;box-shadow:0 2px 8px rgba(79,120,224,.10),inset 0 1.5px 0 rgba(255,255,255,.8);" ontouchstart="this.style.transform=\'scale(.98)\'" ontouchend="this.style.transform=\'\'">'+antenaSvgIcon(28)+'<div style="text-align:left;"><div style="font-size:.9rem;font-weight:800;">Antenas RF</div><div style="font-size:.68rem;font-weight:500;opacity:.7;margin-top:1px;">'+((eqs.find(function(e){return e.id===eq.id;})||{antenaIds:[]}).antenaIds||[]).length+' antena(s) asignada(s)</div></div><svg style="margin-left:auto;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></button></div>';
+    h+='<div style="margin-top:14px;"><button onclick="goAntenas(\''+eq.id+'\')" style="width:100%;padding:14px 16px;border-radius:var(--r-lg);background:rgba(79,120,224,.10);border:1.5px solid rgba(79,120,224,.28);color:#4f78e0;font-weight:700;font-size:.88rem;cursor:pointer;display:flex;align-items:center;gap:10px;box-shadow:0 2px 8px rgba(79,120,224,.10),inset 0 1.5px 0 rgba(255,255,255,.8);" ontouchstart="this.style.transform=\'scale(.98)\'" ontouchend="this.style.transform=\'\'">'+antenaSvgIcon(28)+'<div style="text-align:left;"><div style="font-size:.9rem;font-weight:800;">Antenas RF</div><div style="font-size:.68rem;font-weight:500;opacity:.7;margin-top:1px;">'+(eq.antenaIds||[]).length+' antena(s) asignada(s)</div></div><svg style="margin-left:auto;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></button></div>';
+  }
+  return h;
+}
+
+// ── ANTENAS VIEW ──
+function rAntenas(){
+  var eq=eqs.find(function(e){return e.id===selAntenaEqId;});if(!eq)return'';
+  var assignedIds=eq.antenaIds||[];
+  var assigned=antenas.filter(function(a){return assignedIds.indexOf(a.id)!==-1;});
+  var totalRot=0;assigned.forEach(function(a){totalRot+=(a.roturas||[]).length;});
+  var c1='#4f78e0';
+  var h='';
+  h+='<div class="gc" style="padding:0;margin-bottom:12px;overflow:hidden;border-left:4px solid rgba(79,120,224,.6);background:linear-gradient(135deg,rgba(79,120,224,.07) 0%,rgba(99,102,241,.04) 100%);">'+
+    '<div style="background:linear-gradient(90deg,rgba(79,120,224,.13),rgba(99,102,241,.07));padding:9px 16px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(79,120,224,.12);">'+
+      antenaSvgIcon(14)+'<span style="font-size:.72rem;font-weight:700;color:rgba(79,120,224,.9);text-transform:uppercase;letter-spacing:.06em;">Antenas RF</span>'+
+    '</div>'+
+    '<div style="padding:16px;position:relative;overflow:hidden;">'+
+      '<div style="position:absolute;right:-12px;top:-8px;width:130px;height:130px;display:flex;align-items:center;justify-content:center;opacity:.35;pointer-events:none;z-index:0;">'+antenaSvgIcon(130)+'</div>'+
+      '<div style="position:relative;z-index:1;">'+
+        '<div style="font-weight:800;font-size:1.1rem;letter-spacing:-.3px;">'+esc(eq.nombre)+'</div>'+
+        '<div style="font-size:.72rem;color:var(--text3);margin-top:2px;">Gestión de antenas de radiofrecuencia</div>'+
+        '<div style="display:flex;gap:10px;margin-top:12px;">'+
+          '<div style="background:rgba(79,120,224,.10);border:1px solid rgba(79,120,224,.18);border-radius:var(--r-md);padding:8px 14px;text-align:center;"><div style="font-size:1.4rem;font-weight:900;color:'+c1+';line-height:1;">'+assigned.length+'</div><div style="font-size:.6rem;color:var(--text3);margin-top:2px;">Antena(s)</div></div>'+
+          '<div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.15);border-radius:var(--r-md);padding:8px 14px;text-align:center;"><div style="font-size:1.4rem;font-weight:900;color:'+(totalRot>0?'var(--red)':'var(--green)')+';line-height:1;">'+totalRot+'</div><div style="font-size:.6rem;color:var(--text3);margin-top:2px;">Rotura(s)</div></div>'+
+        '</div>'+
+      '</div>'+
+    '</div>'+
+  '</div>';
+  h+='<div style="display:flex;gap:8px;margin-bottom:12px;">'+
+    '<button onclick="openAddAntennaModal(\''+eq.id+'\')" style="flex:1;padding:12px;border-radius:var(--r-pill);background:rgba(79,120,224,.12);border:1.5px solid rgba(79,120,224,.28);color:'+c1+';font-weight:700;font-size:.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;box-shadow:inset 0 1.5px 0 rgba(255,255,255,.8);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Agregar Antena</button>'+
+    '<button onclick="openAntennasReportPanel(\''+eq.id+'\')" style="flex:1;padding:12px;border-radius:var(--r-pill);background:rgba(99,102,241,.10);border:1.5px solid rgba(99,102,241,.22);color:#6366f1;font-weight:700;font-size:.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;box-shadow:inset 0 1.5px 0 rgba(255,255,255,.8);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Reporte PDF</button>'+
+  '</div>';
+  if(assigned.length===0){
+    h+='<div class="gc" style="padding:28px 20px;text-align:center;">'+
+      '<div style="margin-bottom:10px;opacity:.4;">'+antenaSvgIcon(56)+'</div>'+
+      '<div style="font-weight:600;font-size:.88rem;color:var(--text2);">Sin antenas asignadas</div>'+
+      '<div style="font-size:.75rem;color:var(--text3);margin-top:4px;">Usá "Agregar Antena" para comenzar</div>'+
+    '</div>';
+  }else{
+    assigned.forEach(function(a){
+      var rotCount=(a.roturas||[]).length;
+      var lastRot=rotCount>0?(a.roturas||[]).slice().sort(function(x,y){return x.fecha>y.fecha?-1:1;})[0]:null;
+      h+='<div class="gc tap" onclick="openAntennaDetail(\''+a.id+'\',\''+eq.id+'\')" style="padding:0;overflow:hidden;margin-bottom:10px;cursor:pointer;">'+
+        '<div style="padding:14px 16px;display:flex;align-items:center;gap:12px;">'+
+          '<div style="flex-shrink:0;">'+antenaSvgIcon(44)+'</div>'+
+          '<div style="flex:1;min-width:0;">'+
+            '<div style="font-weight:700;font-size:.9rem;">'+esc(a.nombre)+'</div>'+
+            '<div style="font-size:.7rem;color:var(--text3);margin-top:3px;">'+
+              (a.cantidadCanales?'<span style="background:rgba(79,120,224,.10);color:'+c1+';padding:1px 7px;border-radius:10px;font-weight:600;margin-right:5px;">'+a.cantidadCanales+' ch</span>':'')+
+              'Origen: '+esc(a.nombreOrigen||'—')+
+              (a.fechaCompra?'<br><span style="font-size:.64rem;">Compra: '+fD(a.fechaCompra)+'</span>':'')+
+            '</div>'+
+          '</div>'+
+          '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;">'+
+            '<span style="font-size:.65rem;padding:3px 9px;border-radius:20px;font-weight:700;background:'+(rotCount>0?'rgba(239,68,68,.12)':'rgba(52,199,89,.12)')+';color:'+(rotCount>0?'var(--red)':'var(--green)')+';">'+(rotCount>0?rotCount+' rotura(s)':'Sin roturas')+'</span>'+
+            (lastRot?'<span style="font-size:.62rem;color:var(--text3);">Última: '+fD(lastRot.fecha)+'</span>':'')+
+            '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>'+
+          '</div>'+
+        '</div>'+
+      '</div>';
+    });
   }
   return h;
 }
@@ -2382,7 +2448,7 @@ function openAddAntennaModal(rmEquipId){
         '<div style="font-weight:800;font-size:1.05rem;">Nueva Antena</div>'+
         '<div style="font-size:.65rem;color:var(--text3);">Completá los datos de la antena</div>'+
       '</div>'+
-      '<button onclick="closeModal();setTimeout(function(){openAntennasPanel(\''+rmEquipId+'\');},80);" style="margin-left:auto;width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.85rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">‹</button>'+
+      '<button onclick="closeModal();" style="margin-left:auto;width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.85rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">‹</button>'+
     '</div>'+
     '<div class="ff"><div class="ff-label">Nombre de la antena *</div>'+
       '<input class="inp" id="ant-nombre" placeholder="Ej: Antena de cabeza 1.5T" autocomplete="off">'+
@@ -2415,7 +2481,7 @@ function submitAddAntenna(rmEquipId){
   antenas.push(ant);
   eqs=eqs.map(function(e){if(e.id===rmEquipId)return Object.assign({},e,{antenaIds:(e.antenaIds||[]).concat(ant.id)});return e;});
   saveData();closeModal();showToast('📡 Antena agregada','');
-  setTimeout(function(){openAntennasPanel(rmEquipId);},80);
+  render();
 }
 function openAntennaDetail(antenaId,rmEquipId){
   var ant=antenas.find(function(a){return a.id===antenaId;});
@@ -2448,7 +2514,7 @@ function openAntennaDetail(antenaId,rmEquipId){
         '<div style="font-weight:800;font-size:.95rem;">'+esc(ant.nombre)+'</div>'+
         '<div style="font-size:.65rem;color:var(--text3);">Origen: '+esc(ant.nombreOrigen||'—')+(ant.cantidadCanales?' · '+ant.cantidadCanales+' canales':'')+(ant.fechaCompra?' · '+fD(ant.fechaCompra):'')+'</div>'+
       '</div>'+
-      (rmEquipId?'<button onclick="closeModal();setTimeout(function(){openAntennasPanel(\''+rmEquipId+'\');},80);" style="width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.85rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">‹</button>':'')+
+      (rmEquipId?'<button onclick="closeModal();" style="width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.85rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">‹</button>':'')+
       '<button onclick="closeModal()" style="width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">✕</button>'+
     '</div>'+
     '<button onclick="closeModal();setTimeout(function(){openAddRoturaModal(\''+antenaId+'\','+(rmEquipId?'\''+rmEquipId+'\'':"''")+');},80);" style="width:100%;padding:11px;border-radius:var(--r-pill);background:rgba(239,68,68,.10);border:1.5px solid rgba(239,68,68,.22);color:#dc2626;font-weight:700;font-size:.82rem;cursor:pointer;margin:10px 0;display:flex;align-items:center;justify-content:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Registrar Rotura</button>'+
@@ -2534,7 +2600,7 @@ function deleteRotura(antenaId,roturaId,rmEquipId){
 function removeAntennaFromEq(antenaId,rmEquipId){
   eqs=eqs.map(function(e){if(e.id===rmEquipId)return Object.assign({},e,{antenaIds:(e.antenaIds||[]).filter(function(id){return id!==antenaId;})});return e;});
   saveData();closeModal();showToast('Antena quitada del equipo','');
-  setTimeout(function(){openAntennasPanel(rmEquipId);},80);
+  render();
 }
 function openAntennasReportPanel(rmEquipId){
   var eq=eqs.find(function(e){return e.id===rmEquipId;});
@@ -2705,8 +2771,8 @@ function submitRotura(){
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
 var antenas=[];
-var APP_DISPLAY_VERSION="4.1.0";
-var APP_BUILD="20/05/26 01:30";
+var APP_DISPLAY_VERSION="4.1.1";
+var APP_BUILD="20/05/26 02:15";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
