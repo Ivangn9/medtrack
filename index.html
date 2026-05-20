@@ -1421,17 +1421,17 @@ function openPDFViewer(fileId,nombre){
   });
 }
 function openHTMLViewer(htmlContent,title){
-  var blob=new Blob([htmlContent],{type:'text/html'});
-  var url=URL.createObjectURL(blob);
-  if(_pdfBlobUrl){URL.revokeObjectURL(_pdfBlobUrl);}
-  _pdfBlobUrl=url;
   var overlay=document.getElementById('pdf-viewer-overlay');
   var frame=document.getElementById('pdf-viewer-frame');
   var titleEl=document.getElementById('pdf-viewer-title');
   var dlBtn=document.getElementById('pdf-dl-btn');
   if(titleEl)titleEl.textContent=title||'Reporte';
-  if(dlBtn){dlBtn.href=url;dlBtn.download=(title||'reporte')+'.html';}
-  frame.src=url;
+  // srcdoc works on iOS Safari; blob URLs in iframes are blocked on iOS
+  frame.removeAttribute('src');
+  frame.srcdoc=htmlContent;
+  // Download button: blob URL for saving (only used on non-iOS where it works)
+  if(_pdfBlobUrl){URL.revokeObjectURL(_pdfBlobUrl);_pdfBlobUrl=null;}
+  try{var blob=new Blob([htmlContent],{type:'text/html'});_pdfBlobUrl=URL.createObjectURL(blob);if(dlBtn){dlBtn.href=_pdfBlobUrl;dlBtn.download=(title||'reporte')+'.html';}}catch(e){}
   overlay.classList.remove('hidden');
   document.body.style.overflow='hidden';
 }
@@ -1439,6 +1439,7 @@ function closePDFViewer(){
   var overlay=document.getElementById('pdf-viewer-overlay');
   var frame=document.getElementById('pdf-viewer-frame');
   overlay.classList.add('hidden');
+  frame.removeAttribute('srcdoc');
   frame.src='about:blank';
   document.body.style.overflow='';
   if(_pdfBlobUrl){URL.revokeObjectURL(_pdfBlobUrl);_pdfBlobUrl=null;}
@@ -3321,9 +3322,9 @@ function generateAntennasReport(){
     '<div class="stats"><div class="stat"><div class="stat-n">'+assigned.length+'</div><div class="stat-l">Antenas</div></div>'+
     '<div class="stat"><div class="stat-n">'+totalRoturas+'</div><div class="stat-l">Roturas en período</div></div></div>'+
     '<table><thead><tr><th>Fecha</th><th>Descripción</th><th>Técnico</th><th>Docs</th></tr></thead><tbody>'+rowsHtml+'</tbody></table>'+
-    '<script>window.onload=function(){window.print();};<\/script></body></html>';
+    '</body></html>';
   closeModal();
-  openHTMLViewer(html);
+  openHTMLViewer(html,'Reporte Antenas · '+eq.nombre);
 }
 
 // ═══════════════════════════════════════════
@@ -3411,8 +3412,8 @@ function submitRotura(){
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
 var antenas=[];
-var APP_DISPLAY_VERSION="4.2.6";
-var APP_BUILD="20/05/26 10:00";
+var APP_DISPLAY_VERSION="4.2.7";
+var APP_BUILD="20/05/26 11:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
