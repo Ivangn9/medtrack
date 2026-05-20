@@ -2145,7 +2145,7 @@ function rAntenaDetalle(){
           '<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:var(--r-md);background:rgba(52,199,89,.08);border:1px solid rgba(52,199,89,.18);">'+
             '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'+
             '<span style="flex:1;font-size:.78rem;font-weight:600;color:var(--text);">'+esc(ant.presupuestoCompraPdf.nombre||'Presupuesto')+'</span>'+
-            '<button onclick="dbGet(\''+ant.presupuestoCompraPdf.id+'\').then(function(b){if(b){var u=URL.createObjectURL(b);window.open(u,\'_blank\');}});" style="font-size:.7rem;padding:4px 10px;border-radius:14px;background:var(--accent);color:#fff;border:none;cursor:pointer;font-weight:600;">Ver</button>'+
+            '<button onclick="openPDFViewer(\''+ant.presupuestoCompraPdf.id+'\',\'\')" style="font-size:.7rem;padding:4px 10px;border-radius:14px;background:var(--accent);color:#fff;border:none;cursor:pointer;font-weight:600;">Ver</button>'+
             '<button onclick="deleteAntenaPresupuestoCompra(\''+ant.id+'\')" style="font-size:.7rem;padding:4px 8px;border-radius:14px;background:rgba(255,59,48,.10);color:var(--red);border:1px solid rgba(255,59,48,.20);cursor:pointer;font-weight:600;">✕</button>'+
           '</div>'
           :
@@ -2168,7 +2168,7 @@ function rAntenaDetalle(){
             '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'+
             '<span style="flex:1;font-size:.74rem;font-weight:600;">'+esc(p.nombre||'Reporte')+'</span>'+
             (p.fecha?'<span style="font-size:.64rem;color:var(--text3);">'+fD(p.fecha)+'</span>':'')+
-            '<button onclick="dbGet(\''+p.id+'\').then(function(b){if(b){var u=URL.createObjectURL(b);window.open(u,\'_blank\');}});" style="font-size:.68rem;padding:3px 9px;border-radius:12px;background:rgba(0,113,227,.10);color:var(--accent);border:1px solid rgba(0,113,227,.18);cursor:pointer;font-weight:600;">Ver</button>'+
+            '<button onclick="openPDFViewer(\''+p.id+'\',\'\')" style="font-size:.68rem;padding:3px 9px;border-radius:12px;background:rgba(0,113,227,.10);color:var(--accent);border:1px solid rgba(0,113,227,.18);cursor:pointer;font-weight:600;">Ver</button>'+
             '<button onclick="deleteAntenaReporte(\''+ant.id+'\',\''+p.id+'\')" style="font-size:.68rem;padding:3px 7px;border-radius:12px;background:rgba(255,59,48,.08);color:var(--red);border:1px solid rgba(255,59,48,.15);cursor:pointer;">✕</button>'+
           '</div>';}).join('')
         )+
@@ -2192,7 +2192,7 @@ function rAntenaDetalle(){
               '<div style="font-weight:700;font-size:.84rem;color:var(--text);">'+esc(r.queSeRompio||r.descripcion||'—')+'</div>'+
               (r.descripcion&&r.queSeRompio?'<div style="font-size:.72rem;color:var(--text2);margin-top:2px;">'+esc(r.descripcion)+'</div>':'')+
               '<div style="font-size:.68rem;color:var(--text3);margin-top:4px;">📅 Rotura: <span style="color:var(--red);font-weight:600;">'+fD(r.fecha)+'</span>'+(r.tecnico?' · 👷 '+esc(r.tecnico):'')+'</div>'+
-              (r.presupuestoArregloPdf?'<div style="margin-top:6px;"><button onclick="dbGet(\''+r.presupuestoArregloPdf.id+'\').then(function(b){if(b){var u=URL.createObjectURL(b);window.open(u,\'_blank\');}});" style="font-size:.66rem;padding:3px 9px;border-radius:12px;background:rgba(0,113,227,.10);color:var(--accent);border:1px solid rgba(0,113,227,.18);cursor:pointer;font-weight:600;">📄 Ver presupuesto</button></div>':'')+
+              (r.presupuestoArregloPdf?'<div style="margin-top:6px;"><button onclick="openPDFViewer(\''+r.presupuestoArregloPdf.id+'\',\'\')" style="font-size:.66rem;padding:3px 9px;border-radius:12px;background:rgba(0,113,227,.10);color:var(--accent);border:1px solid rgba(0,113,227,.18);cursor:pointer;font-weight:600;">📄 Ver presupuesto</button></div>':'')+
             '</div>'+
             '<div style="display:flex;flex-direction:column;gap:5px;flex-shrink:0;">'+
               '<button onclick="markRoturaReparada(\''+ant.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 11px;border-radius:14px;background:rgba(52,199,89,.12);border:1px solid rgba(52,199,89,.25);color:var(--green);font-weight:700;cursor:pointer;">✓ Marcar reparada</button>'+
@@ -2222,8 +2222,8 @@ function rAntenaDetalle(){
             (hh.tecnico?' · 👷 '+esc(hh.tecnico):'')+
           '</div>'+
           '<div style="display:flex;gap:5px;margin-top:6px;flex-wrap:wrap;">'+
-            (hh.presupuestoArregloPdf?'<button onclick="dbGet(\''+hh.presupuestoArregloPdf.id+'\').then(function(b){if(b){var u=URL.createObjectURL(b);window.open(u,\'_blank\');}});" style="font-size:.64rem;padding:3px 9px;border-radius:12px;background:rgba(0,113,227,.10);color:var(--accent);border:1px solid rgba(0,113,227,.18);cursor:pointer;font-weight:600;">📄 Presupuesto</button>':'')+
-            (hh.reporteArregloPdf?'<button onclick="dbGet(\''+hh.reporteArregloPdf.id+'\').then(function(b){if(b){var u=URL.createObjectURL(b);window.open(u,\'_blank\');}});" style="font-size:.64rem;padding:3px 9px;border-radius:12px;background:rgba(52,199,89,.10);color:var(--green);border:1px solid rgba(52,199,89,.18);cursor:pointer;font-weight:600;">📋 Reporte</button>':'')+
+            (hh.presupuestoArregloPdf?'<button onclick="openPDFViewer(\''+hh.presupuestoArregloPdf.id+'\',\'\')" style="font-size:.64rem;padding:3px 9px;border-radius:12px;background:rgba(0,113,227,.10);color:var(--accent);border:1px solid rgba(0,113,227,.18);cursor:pointer;font-weight:600;">📄 Presupuesto</button>':'')+
+            (hh.reporteArregloPdf?'<button onclick="openPDFViewer(\''+hh.reporteArregloPdf.id+'\',\'\')" style="font-size:.64rem;padding:3px 9px;border-radius:12px;background:rgba(52,199,89,.10);color:var(--green);border:1px solid rgba(52,199,89,.18);cursor:pointer;font-weight:600;">📋 Reporte</button>':'')+
             '<button onclick="deleteHistorialAntena(\''+ant.id+'\',\''+hh.id+'\')" style="font-size:.64rem;padding:3px 8px;border-radius:12px;background:rgba(255,59,48,.05);color:var(--red);border:1px solid rgba(255,59,48,.12);cursor:pointer;margin-left:auto;">✕ Eliminar</button>'+
           '</div>'+
         '</div>';}).join('')
@@ -2656,8 +2656,8 @@ function openAntennaDetail(antenaId,rmEquipId){
             '<div style="font-size:.68rem;color:var(--text3);margin-top:2px;">'+fD(rot.fecha)+(rot.tecnico?' · '+esc(rot.tecnico):'')+'</div>'+
           '</div>'+
           '<div style="display:flex;gap:5px;flex-shrink:0;">'+
-            (rot.presupuestoPdf?'<button onclick="dbGet(\''+rot.presupuestoPdf.id+'\').then(function(b){if(b){var u=URL.createObjectURL(b);window.open(u,\'_blank\');}});" style="font-size:.62rem;padding:3px 8px;border-radius:12px;background:rgba(0,113,227,.10);border:1px solid rgba(0,113,227,.2);color:var(--accent);cursor:pointer;">📄 Presup.</button>':'')+
-            (rot.reportePdf?'<button onclick="dbGet(\''+rot.reportePdf.id+'\').then(function(b){if(b){var u=URL.createObjectURL(b);window.open(u,\'_blank\');}});" style="font-size:.62rem;padding:3px 8px;border-radius:12px;background:rgba(52,199,89,.10);border:1px solid rgba(52,199,89,.2);color:var(--green);cursor:pointer;">📋 Reporte</button>':'')+
+            (rot.presupuestoPdf?'<button onclick="openPDFViewer(\''+rot.presupuestoPdf.id+'\',\'\')" style="font-size:.62rem;padding:3px 8px;border-radius:12px;background:rgba(0,113,227,.10);border:1px solid rgba(0,113,227,.2);color:var(--accent);cursor:pointer;">📄 Presup.</button>':'')+
+            (rot.reportePdf?'<button onclick="openPDFViewer(\''+rot.reportePdf.id+'\',\'\')" style="font-size:.62rem;padding:3px 8px;border-radius:12px;background:rgba(52,199,89,.10);border:1px solid rgba(52,199,89,.2);color:var(--green);cursor:pointer;">📋 Reporte</button>':'')+
             '<button onclick="deleteRotura(\''+ant.id+'\',\''+rot.id+'\','+(rmEquipId?'\''+rmEquipId+'\'':'null')+')" style="font-size:.68rem;padding:4px 8px;border-radius:12px;background:rgba(255,59,48,.08);border:1px solid rgba(255,59,48,.15);color:var(--red);cursor:pointer;">✕</button>'+
           '</div>'+
         '</div>'+
@@ -2743,8 +2743,9 @@ function submitAddRotura(antenaId,rmEquipId){
   var uploadFile=function(file,cb){
     if(!file){cb(null);return;}
     var fid='F-'+Date.now()+'-'+Math.random().toString(36).slice(2);
-    var blob=new Blob([file],{type:file.type});
-    dbSave(fid,blob).then(function(){cb({id:fid,nombre:file.name,tipo:file.type,tam:file.size});}).catch(function(){cb(null);});
+    var reader=new FileReader();
+    reader.onload=function(e){dbSave(fid,file.name,e.target.result,function(ok){cb(ok?{id:fid,nombre:file.name,tipo:file.type,tam:file.size}:null);});};
+    reader.readAsDataURL(file);
   };
   uploadFile(presPend,function(presRef){uploadFile(repPend,function(repRef){saveAndFinish(presRef,repRef);});});
 }
@@ -2764,14 +2765,18 @@ function removeAntennaFromEq(antenaId,rmEquipId){
 function uploadAntenaPresupuestoCompra(antenaId,file){
   if(!file)return;
   var fid='F-'+Date.now()+'-'+Math.random().toString(36).slice(2);
-  var blob=new Blob([file],{type:file.type});
-  dbSave(fid,blob).then(function(){
-    antenas=antenas.map(function(a){
-      if(a.id===antenaId)return Object.assign({},a,{presupuestoCompraPdf:{id:fid,nombre:file.name,tipo:file.type,tam:file.size}});
-      return a;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    dbSave(fid,file.name,e.target.result,function(ok){
+      if(!ok){showToast('Error al guardar PDF','err');return;}
+      antenas=antenas.map(function(a){
+        if(a.id===antenaId)return Object.assign({},a,{presupuestoCompraPdf:{id:fid,nombre:file.name,tipo:file.type,tam:file.size}});
+        return a;
+      });
+      saveData();showToast('📄 Presupuesto de compra subido','');render();
     });
-    saveData();showToast('📄 Presupuesto de compra subido','');render();
-  });
+  };
+  reader.readAsDataURL(file);
 }
 function deleteAntenaPresupuestoCompra(antenaId){
   if(!confirm('¿Eliminar el presupuesto de compra?'))return;
@@ -2781,17 +2786,21 @@ function deleteAntenaPresupuestoCompra(antenaId){
 function uploadAntenaReporte(antenaId,file){
   if(!file)return;
   var fid='F-'+Date.now()+'-'+Math.random().toString(36).slice(2);
-  var blob=new Blob([file],{type:file.type});
-  dbSave(fid,blob).then(function(){
-    antenas=antenas.map(function(a){
-      if(a.id===antenaId){
-        var newRep=(a.reportesPdfs||[]).concat({id:fid,nombre:file.name,tipo:file.type,tam:file.size,fecha:new Date().toISOString().split('T')[0]});
-        return Object.assign({},a,{reportesPdfs:newRep});
-      }
-      return a;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    dbSave(fid,file.name,e.target.result,function(ok){
+      if(!ok){showToast('Error al guardar PDF','err');return;}
+      antenas=antenas.map(function(a){
+        if(a.id===antenaId){
+          var newRep=(a.reportesPdfs||[]).concat({id:fid,nombre:file.name,tipo:file.type,tam:file.size,fecha:new Date().toISOString().split('T')[0]});
+          return Object.assign({},a,{reportesPdfs:newRep});
+        }
+        return a;
+      });
+      saveData();showToast('📄 Reporte agregado','');render();
     });
-    saveData();showToast('📄 Reporte agregado','');render();
-  });
+  };
+  reader.readAsDataURL(file);
 }
 function deleteAntenaReporte(antenaId,pdfId){
   if(!confirm('¿Eliminar este reporte?'))return;
@@ -2854,8 +2863,9 @@ function submitAddRoturaV2(antenaId){
   var presPend=window._pendRotPresArr;window._pendRotPresArr=null;
   if(!presPend){saveAndFinish(null);return;}
   var fid='F-'+Date.now()+'-'+Math.random().toString(36).slice(2);
-  var blob=new Blob([presPend],{type:presPend.type});
-  dbSave(fid,blob).then(function(){saveAndFinish({id:fid,nombre:presPend.name,tipo:presPend.type,tam:presPend.size});}).catch(function(){saveAndFinish(null);});
+  var reader=new FileReader();
+  reader.onload=function(e){dbSave(fid,presPend.name,e.target.result,function(ok){saveAndFinish(ok?{id:fid,nombre:presPend.name,tipo:presPend.type,tam:presPend.size}:null);});};
+  reader.readAsDataURL(presPend);
 }
 
 function deleteRoturaV2(antenaId,roturaId){
@@ -2932,8 +2942,9 @@ function submitMarkReparada(antenaId,roturaId){
   var repPend=window._pendRotRepArr;window._pendRotRepArr=null;
   if(!repPend){saveAndFinish(null);return;}
   var fid='F-'+Date.now()+'-'+Math.random().toString(36).slice(2);
-  var blob=new Blob([repPend],{type:repPend.type});
-  dbSave(fid,blob).then(function(){saveAndFinish({id:fid,nombre:repPend.name,tipo:repPend.type,tam:repPend.size});}).catch(function(){saveAndFinish(null);});
+  var reader=new FileReader();
+  reader.onload=function(e){dbSave(fid,repPend.name,e.target.result,function(ok){saveAndFinish(ok?{id:fid,nombre:repPend.name,tipo:repPend.type,tam:repPend.size}:null);});};
+  reader.readAsDataURL(repPend);
 }
 
 function deleteHistorialAntena(antenaId,histId){
@@ -3115,8 +3126,8 @@ function submitRotura(){
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
 var antenas=[];
-var APP_DISPLAY_VERSION="4.2.0";
-var APP_BUILD="20/05/26 03:30";
+var APP_DISPLAY_VERSION="4.2.1";
+var APP_BUILD="20/05/26 04:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
