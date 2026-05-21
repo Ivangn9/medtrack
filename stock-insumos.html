@@ -414,22 +414,43 @@
     /* ─── Gestión ────────────────────────────────────── */
     .gestion-table { border-radius: var(--r-xl); overflow: hidden; margin-bottom: 14px; }
     .gestion-col-header {
-      display: flex; align-items: center; gap: 10px; padding: 7px 18px;
-      background: rgba(255,255,255,.18);
-      border-bottom: 1.5px solid rgba(255,255,255,.38);
+      display: flex; align-items: center; gap: 10px; padding: 8px 18px;
+      background: rgba(0,113,227,.07);
+      border-bottom: 2px solid rgba(0,113,227,.12);
     }
-    .gch-name { flex:1; font-size:11px; font-weight:700; color:var(--text3); text-transform:uppercase; letter-spacing:.06em; }
-    .gch-col  { width:88px; font-size:11px; font-weight:700; color:var(--text3); text-transform:uppercase; letter-spacing:.06em; text-align:center; flex-shrink:0; }
+    .gch-name { flex:1; font-size:11px; font-weight:800; color:var(--accent); text-transform:uppercase; letter-spacing:.07em; }
+    .gch-col  { width:90px; font-size:11px; font-weight:800; color:var(--accent); text-transform:uppercase; letter-spacing:.07em; text-align:center; flex-shrink:0; }
     .gch-del  { width:32px; flex-shrink:0; }
-    .gestion-col-cell { width:88px; flex-shrink:0; display:flex; align-items:center; justify-content:center; border-left:1px solid rgba(255,255,255,.28); padding-left:8px; }
+    .gestion-col-cell { width:90px; flex-shrink:0; display:flex; align-items:center; justify-content:center; border-left:2px solid rgba(255,255,255,.35); padding-left:8px; }
     .gestion-row {
-      display: flex; align-items: center; gap: 10px; padding: 11px 18px;
-      border-bottom: 1px solid rgba(255,255,255,.18);
+      display: flex; align-items: center; gap: 10px; padding: 10px 18px;
+      border-bottom: 1px solid rgba(255,255,255,.15);
       transition: background 0.15s; position: relative; z-index: 1;
     }
+    .gestion-row:nth-child(odd)  { background: rgba(255,255,255,.10); }
+    .gestion-row:nth-child(even) { background: rgba(255,255,255,.22); }
     .gestion-row:last-child { border-bottom: none; }
-    .gestion-row:hover { background: rgba(255,255,255,.22); }
+    .gestion-row:hover { background: rgba(0,113,227,.07); }
     .gestion-info { flex: 1; min-width: 0; }
+    /* ─── Costos ─────────────────────────────────────── */
+    .costos-card { border-radius:var(--r-xl); margin-bottom:12px; overflow:hidden; }
+    .costos-row { display:flex; align-items:center; gap:12px; padding:12px 18px; border-bottom:1px solid rgba(255,255,255,.15); }
+    .costos-row:last-child { border-bottom:none; }
+    .costos-row:nth-child(odd)  { background:rgba(255,255,255,.10); }
+    .costos-row:nth-child(even) { background:rgba(255,255,255,.22); }
+    .costos-info { flex:1; min-width:0; }
+    .costos-name { font-size:14px; font-weight:600; }
+    .costos-sub  { font-size:11px; color:var(--text3); margin-top:1px; }
+    .costos-price-wrap { display:flex; align-items:center; gap:6px; flex-shrink:0; }
+    .costos-history { padding:0 18px 14px; }
+    .costos-hist-row { display:flex; gap:8px; align-items:center; padding:5px 0; border-bottom:1px solid rgba(255,255,255,.12); font-size:12px; color:var(--text2); }
+    .costos-hist-row:last-child { border-bottom:none; }
+    .costos-hist-date { color:var(--text3); width:86px; flex-shrink:0; }
+    .costos-hist-price { font-weight:700; color:var(--text); min-width:60px; }
+    .costos-hist-prov { color:var(--text3); font-size:11px; }
+    .costos-trend-up   { color:var(--red);   font-size:11px; font-weight:700; }
+    .costos-trend-down { color:var(--green); font-size:11px; font-weight:700; }
+    .costos-trend-flat { color:var(--text3); font-size:11px; }
     .gestion-name { font-size: 14px; font-weight: 600; }
     .gestion-sub  { font-size: 11px; color: var(--text2); margin-top: 1px; }
     .price-input-wrap { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
@@ -1101,10 +1122,14 @@
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="2.5" stroke="currentColor" stroke-width="1.7"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.42 1.42M14.36 14.36l1.42 1.42M4.22 15.78l1.42-1.42M14.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
       Gestión
     </button>
+    <button class="sb-btn" data-tab="costos" onclick="sidebarNav('costos')">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7.5" stroke="currentColor" stroke-width="1.7"/><path d="M10 6v1.5M10 12.5V14M7.5 8.5C7.5 7.4 8.6 6.5 10 6.5s2.5.9 2.5 2-1.1 1.7-2.5 2-2.5.9-2.5 2 1.1 2 2.5 2 2.5-.9 2.5-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Costos
+    </button>
   </nav>
   <div class="sb-footer">
     <div class="sb-version-row">
-      <span class="version-badge" id="versionBadge">V2.8.0</span>
+      <span class="version-badge" id="versionBadge">V2.9.0</span>
       <button class="sb-refresh-btn" id="refreshBtn" onclick="manualRefresh()" title="Verificar y recargar">
         <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M4 10a6 6 0 1 0 1.2-3.6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M4 5v5h5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span id="refreshIcon">Actualizar</span>
@@ -1134,6 +1159,7 @@
     <button class="tab-btn"        onclick="switchTab('movimientos',this)"><span class="ti">↕️</span><span class="label">Movimientos</span></button>
     <button class="tab-btn"        onclick="switchTab('graficas',this)"><span class="ti">📊</span><span class="label">Gráficas</span></button>
     <button class="tab-btn"        onclick="switchTab('gestion',this)"><span class="ti">⚙️</span><span class="label">Gestión</span></button>
+    <button class="tab-btn"        onclick="switchTab('costos',this)"><span class="ti">💰</span><span class="label">Costos</span></button>
   </nav>
 </div>
 
@@ -1396,6 +1422,17 @@
     </div>
   </div>
 
+  <!-- ════ COSTOS ════ -->
+  <div class="tab-pane" id="tab-costos">
+    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+      <div class="search-wrap" style="flex:1;margin-bottom:0;min-width:200px">
+        <span class="search-icon">🔍</span>
+        <input class="search-input" type="search" id="costosSearch" placeholder="Buscar insumo…" oninput="renderCostos()" autocomplete="off" />
+      </div>
+    </div>
+    <div id="costosContainer"></div>
+  </div>
+
   <div class="footer">
     <span>CIMA · Stock de Insumos · 2026</span>
   </div>
@@ -1585,7 +1622,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "2.8.0";
+const APP_VERSION = "2.9.0";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -1940,6 +1977,7 @@ function renderCurrentTab(){
   if(currentTab==="movimientos") renderMovimientos();
   if(currentTab==="graficas")    renderAllCharts();
   if(currentTab==="gestion")     renderGestion();
+  if(currentTab==="costos")      renderCostos();
 }
 
 // ─── Inventario ──────────────────────────────────────────────────────────────
@@ -2230,18 +2268,16 @@ function renderGestion(){
       <div class="cat-header-row"><div class="cat-icon-badge" style="background:${color}">${icon}</div><span class="cat-name">${escHtml(cat)}</span><span class="cat-count">${list.length} insumos</span></div>
       <div class="gestion-col-header">
         <span class="gch-name">Nombre</span>
-        <span class="gch-col">Precio unit.</span>
-        <span class="gch-col">Stock mín.</span>
-        <span class="gch-col">Stock máx.</span>
+        <span class="gch-col" style="color:#FF9500;border-left:2px solid rgba(255,149,0,.25);padding-left:8px">Stock mín.</span>
+        <span class="gch-col" style="color:#30D158;border-left:2px solid rgba(48,209,88,.25);padding-left:8px">Stock máx.</span>
         <span class="gch-del"></span>
       </div>`;
     list.forEach(s=>{
       const row=document.createElement("div"); row.className="gestion-row";
       row.innerHTML=`
         <div class="gestion-info"><div class="gestion-name">${escHtml(s.name)}</div><div class="gestion-sub">${escHtml(s.code)} · ${escHtml(s.unit)}</div></div>
-        <div class="gestion-col-cell"><div class="price-input-wrap"><span class="price-prefix">$</span><input class="price-input" type="number" min="0" step="0.01" value="${s.price||0}" onchange="updatePrice('${s.id}',this.value)" /></div></div>
-        <div class="gestion-col-cell"><input class="min-stock-input" type="number" min="0" value="${s.minStock||0}" onchange="updateMinStock('${s.id}',this.value)" /></div>
-        <div class="gestion-col-cell"><input class="min-stock-input" type="number" min="0" value="${s.maxStock||0}" onchange="updateMaxStock('${s.id}',this.value)" /></div>
+        <div class="gestion-col-cell" style="border-left:2px solid rgba(255,149,0,.18)"><input class="min-stock-input" type="number" min="0" value="${s.minStock||0}" onchange="updateMinStock('${s.id}',this.value)" style="border-color:rgba(255,149,0,.3)" /></div>
+        <div class="gestion-col-cell" style="border-left:2px solid rgba(48,209,88,.18)"><input class="min-stock-input" type="number" min="0" value="${s.maxStock||0}" onchange="updateMaxStock('${s.id}',this.value)" style="border-color:rgba(48,209,88,.3)" /></div>
         <button class="btn btn-sm btn-red" onclick="archiveSupply('${s.id}')">✕</button>`;
       block.appendChild(row);
     });
@@ -2250,6 +2286,63 @@ function renderGestion(){
   if(!el.children.length)el.innerHTML=`<div class="empty-state"><div class="es-icon">🔍</div><p>No se encontraron insumos</p></div>`;
 }
 function updatePrice(id,val){const s=supplies.find(x=>x.id===id);if(s){s.price=parseFloat(val)||0;persist();toast("Precio actualizado");}}
+
+// ─── Costos ───────────────────────────────────────────────────────────────────
+function renderCostos(){
+  const el=document.getElementById("costosContainer"); if(!el)return;
+  const q=(document.getElementById("costosSearch")?.value||"").toLowerCase().trim();
+  const active=supplies.filter(s=>s.active&&(!q||s.name.toLowerCase().includes(q)||s.code.toLowerCase().includes(q)));
+  if(!active.length){
+    el.innerHTML=`<div class="empty-state gc"><div class="es-icon">💰</div><p>Sin insumos</p></div>`;
+    return;
+  }
+  el.innerHTML="";
+  active.forEach(s=>{
+    const hist=s.priceHistory||[];
+    const card=document.createElement("div");
+    card.className="costos-card gc";
+    const trend=hist.length>=2
+      ?(hist[0].price>hist[1].price?"▲ subió":"▼ bajó")
+      :"";
+    const trendClass=hist.length>=2
+      ?(hist[0].price>hist[1].price?"costos-trend-up":"costos-trend-down")
+      :"costos-trend-flat";
+    card.innerHTML=`
+      <div class="costos-row" style="border-bottom:2px solid rgba(255,255,255,.25)">
+        <div class="costos-info">
+          <div class="costos-name">${escHtml(s.name)}</div>
+          <div class="costos-sub">${escHtml(s.code)} · ${escHtml(s.category)}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+          ${trend?`<span class="${trendClass}">${trend}</span>`:""}
+          <div class="costos-price-wrap">
+            <span style="font-size:13px;color:var(--text3)">$</span>
+            <input class="price-input" type="number" min="0" step="0.01" value="${s.price||0}"
+              onchange="updatePrice('${s.id}',this.value)"
+              style="width:88px" title="Precio actual por unidad" />
+          </div>
+          <span style="font-size:11px;color:var(--text3)">${escHtml(s.unit)}</span>
+        </div>
+      </div>
+      ${hist.length?`
+      <div class="costos-history">
+        <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;padding:8px 0 4px">Historial de precios</div>
+        ${hist.slice(0,8).map((h,i)=>{
+          const prev=hist[i+1];
+          let arrow="";
+          if(prev){arrow=h.price>prev.price?'<span class="costos-trend-up">▲</span>':h.price<prev.price?'<span class="costos-trend-down">▼</span>':'';}        
+          return `<div class="costos-hist-row">
+            <span class="costos-hist-date">${h.date||""}</span>
+            <span class="costos-hist-price">$${fmt(h.price)}</span>
+            ${arrow}
+            ${h.proveedorName?`<span class="costos-hist-prov">🚚 ${escHtml(h.proveedorName)}</span>`:""}
+          </div>`;
+        }).join("")}
+      </div>`
+      :`<div style="padding:10px 18px 14px;font-size:12px;color:var(--text3)">Sin historial de precios aún. Se registra automáticamente al cargar una entrada con precio.</div>`}`;
+    el.appendChild(card);
+  });
+}
 function updateMinStock(id,val){const s=supplies.find(x=>x.id===id);if(s){s.minStock=parseInt(val)||0;persist();}}
 function updateMaxStock(id,val){const s=supplies.find(x=>x.id===id);if(s){s.maxStock=parseInt(val)||0;persist();}}
 
