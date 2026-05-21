@@ -1147,7 +1147,7 @@
   </nav>
   <div class="sb-footer">
     <div class="sb-version-row">
-      <span class="version-badge" id="versionBadge">V2.12.0</span>
+      <span class="version-badge" id="versionBadge">V2.12.1</span>
       <button class="sb-refresh-btn" id="refreshBtn" onclick="manualRefresh()" title="Verificar y recargar">
         <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M4 10a6 6 0 1 0 1.2-3.6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M4 5v5h5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span id="refreshIcon">Actualizar</span>
@@ -2624,11 +2624,11 @@ function openSupplierModal(id){
   document.getElementById("supRepNombre").value=p?.repNombre||"";
   document.getElementById("supRepTel").value=p?.repTel||"";
   document.getElementById("supRepEmail").value=p?.repEmail||"";
-  document.getElementById("supplierModal").style.display="flex";
+  document.getElementById("supplierModal").classList.add("open");
 }
 function closeSupplierModal(e){
   if(e&&e.target!==document.getElementById("supplierModal"))return;
-  document.getElementById("supplierModal").style.display="none";
+  document.getElementById("supplierModal").classList.remove("open");
 }
 function saveSupplierModal(){
   const name=(document.getElementById("supNombre").value||"").trim();
@@ -2650,7 +2650,7 @@ function saveSupplierModal(){
     suppliers.push({id:"sup_"+Date.now(),...data});
   }
   persist();
-  document.getElementById("supplierModal").style.display="none";
+  document.getElementById("supplierModal").classList.remove("open");
   renderSuppliersList();
   toast(id?"✓ Proveedor actualizado":"✓ Proveedor agregado");
 }
@@ -3121,36 +3121,46 @@ async function generateReport(){
     let y=mg;
 
     // Try to load logo as base64
-    let logoData=null;
+    let logoData=null, logoW=0, logoH=0;
     try{
       const resp=await fetch("logo.png");
       if(resp.ok){
         const blob=await resp.blob();
         logoData=await new Promise(res=>{const r=new FileReader();r.onload=e=>res(e.target.result);r.readAsDataURL(blob);});
+        // get natural dimensions to preserve aspect ratio
+        await new Promise(res=>{
+          const img=new Image();
+          img.onload=()=>{
+            const maxH=22, maxW=50;
+            const ratio=img.naturalWidth/img.naturalHeight;
+            logoH=Math.min(maxH, maxH);
+            logoW=Math.min(maxW, logoH*ratio);
+            res();
+          };
+          img.onerror=res;
+          img.src=logoData;
+        });
       }
     }catch(e){}
 
     if(progFill)progFill.style.width="25%";
 
     // ── Header band ──────────────────────────────────────────────
+    const headerH=Math.max(34, logoH>0?logoH+12:34);
     doc.setFillColor(0,113,227);
-    doc.rect(0,0,pageW,34,"F");
-    // subtle shine
-    doc.setFillColor(255,255,255);
-    doc.setGState&&doc.setGState(new doc.GState({opacity:0.07}));
-    doc.rect(0,0,pageW,17,"F");
-    doc.setGState&&doc.setGState(new doc.GState({opacity:1}));
+    doc.rect(0,0,pageW,headerH,"F");
 
     let titleX=mg;
-    if(logoData){
-      try{doc.addImage(logoData,"PNG",mg,7,18,18,undefined,"FAST");titleX=mg+22;}catch(e){}
+    if(logoData&&logoW>0){
+      const logoY=(headerH-logoH)/2;
+      try{doc.addImage(logoData,"PNG",mg,logoY,logoW,logoH,undefined,"FAST");titleX=mg+logoW+4;}catch(e){}
     }
     doc.setTextColor(255,255,255);
     doc.setFontSize(16);doc.setFont("helvetica","bold");
-    doc.text("Stock de Insumos",titleX,16);
+    doc.text("Stock de Insumos",titleX,headerH*0.48);
     doc.setFontSize(8.5);doc.setFont("helvetica","normal");
-    doc.text("CIMA · Control de Inventario por Depósito",titleX,23);
-    y=42;
+    doc.text("CIMA - Control de Inventario por Deposito",titleX,headerH*0.72);
+    y=headerH+8;
 
     // ── Report metadata ───────────────────────────────────────────
     const centerLabel=_repCenter==="ambos"?"GN + Sarmiento":(_repCenter==="GN"?"GN · Guardias Nacionales":"Sarmiento · Sarmiento 1212");
