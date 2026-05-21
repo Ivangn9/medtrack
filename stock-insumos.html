@@ -912,7 +912,7 @@
   </nav>
   <div class="sb-footer">
     <div class="sb-version-row">
-      <span class="version-badge" id="versionBadge">V2.0.0</span>
+      <span class="version-badge" id="versionBadge">V2.0.1</span>
       <button class="sb-refresh-btn" id="refreshBtn" onclick="manualRefresh()" title="Verificar y recargar">
         <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M4 10a6 6 0 1 0 1.2-3.6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M4 5v5h5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span id="refreshIcon">Actualizar</span>
@@ -1246,7 +1246,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "2.0.0";
+const APP_VERSION = "2.0.1";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -2052,17 +2052,14 @@ function renderAdminUsers(users){
 }
 
 function openUsersModal(){
-  document.getElementById("usersModal").style.display="flex";
-  document.body.style.overflow="hidden";
-  // Re-render with current data
+  document.getElementById("usersModal").classList.add("open");
   if(_lastUsers) renderAdminUsers(_lastUsers);
   closeSidebar();
 }
 
 function closeUsersModal(e){
   if(e && e.target!==document.getElementById("usersModal")) return;
-  document.getElementById("usersModal").style.display="none";
-  document.body.style.overflow="";
+  document.getElementById("usersModal").classList.remove("open");
 }
 
 async function addAuthorizedUser2(){
