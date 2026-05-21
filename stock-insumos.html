@@ -1088,7 +1088,7 @@
   </nav>
   <div class="sb-footer">
     <div class="sb-version-row">
-      <span class="version-badge" id="versionBadge">V2.3.0</span>
+      <span class="version-badge" id="versionBadge">V2.3.1</span>
       <button class="sb-refresh-btn" id="refreshBtn" onclick="manualRefresh()" title="Verificar y recargar">
         <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M4 10a6 6 0 1 0 1.2-3.6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M4 5v5h5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span id="refreshIcon">Actualizar</span>
@@ -1542,7 +1542,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "2.3.0";
+const APP_VERSION = "2.3.1";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -2509,7 +2509,7 @@ function updateHomeStats(){
 
 
 // ─── ENTREGAS ───────────────────────────────────────────────────────────────
-const CAT_COLORS = {
+const EQUIPO_CAT_COLORS = {
   RM:   ["#818cf8","#c4b5fd"],
   TC:   ["#38bdf8","#7dd3fc"],
   MG:   ["#f472b6","#f9a8d4"],
@@ -2538,7 +2538,7 @@ let _entregasHistorial = [];
 let _medtrackEqs = null; // cache de equipos de MedTrack
 
 function entregasCatSvg(catId){
-  const cc = CAT_COLORS[catId]||["#94a3b8","#cbd5e1"];
+  const cc = EQUIPO_CAT_COLORS[catId]||["#94a3b8","#cbd5e1"];
   const c1=cc[0], c2=cc[1];
   const p = {
     RM:`<ellipse cx="18" cy="19" rx="9" ry="11" fill="none" stroke="${c1}" stroke-width="2" opacity=".6"/>
@@ -2625,7 +2625,7 @@ async function renderEntregasCats(){
   _medtrackEqs.filter(e=>!e.archived).forEach(e=>{ counts[e.cat]=(counts[e.cat]||0)+1; });
   grid.innerHTML=EQUIPO_CATS.map(cat=>{
     const count=counts[cat.id]||0;
-    const [c1]=CAT_COLORS[cat.id]||["#94a3b8"];
+    const [c1]=EQUIPO_CAT_COLORS[cat.id]||["#94a3b8"];
     return `<div class="gc tap" onclick="enterEntregasCat('${cat.id}')" style="padding:0;overflow:hidden;cursor:pointer;border:1.5px solid ${c1}40;min-height:130px;">
       <div style="height:3px;background:linear-gradient(90deg,${c1},${c1}55);border-radius:0"></div>
       <div style="padding:16px 14px 14px;display:flex;flex-direction:column;justify-content:space-between;height:calc(100% - 3px);position:relative;overflow:hidden;">
@@ -2643,7 +2643,7 @@ async function renderEntregasCats(){
 async function enterEntregasCat(catId){
   entregasActiveCat=catId;
   const cat=EQUIPO_CATS.find(c=>c.id===catId);
-  const [c1]=CAT_COLORS[catId]||["#94a3b8"];
+  const [c1]=EQUIPO_CAT_COLORS[catId]||["#94a3b8"];
   document.getElementById("entregas-cats-view").style.display="none";
   document.getElementById("entregas-equip-view").style.display="block";
   document.getElementById("entregasEquipHeader").innerHTML=`
@@ -2701,7 +2701,7 @@ async function enterEntregasHistorial(equipoId){
   entregasActiveEquipo=_entregasEquipos.find(e=>e.id===equipoId);
   if(!entregasActiveEquipo)return;
   const cat=EQUIPO_CATS.find(c=>c.id===entregasActiveEquipo.cat);
-  const [c1]=CAT_COLORS[entregasActiveEquipo.cat]||["#94a3b8"];
+  const [c1]=EQUIPO_CAT_COLORS[entregasActiveEquipo.cat]||["#94a3b8"];
   document.getElementById("entregas-equip-view").style.display="none";
   document.getElementById("entregas-historial-view").style.display="block";
   document.getElementById("entregasHistorialHeader").innerHTML=`
