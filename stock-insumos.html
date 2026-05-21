@@ -1094,7 +1094,7 @@
   </nav>
   <div class="sb-footer">
     <div class="sb-version-row">
-      <span class="version-badge" id="versionBadge">V2.4.0</span>
+      <span class="version-badge" id="versionBadge">V2.4.1</span>
       <button class="sb-refresh-btn" id="refreshBtn" onclick="manualRefresh()" title="Verificar y recargar">
         <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M4 10a6 6 0 1 0 1.2-3.6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M4 5v5h5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span id="refreshIcon">Actualizar</span>
@@ -1548,7 +1548,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "2.4.0";
+const APP_VERSION = "2.4.1";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -2727,16 +2727,15 @@ function backToEquipos(){
   document.getElementById("entregas-equip-view").style.display="block";
 }
 
+function makeEntregaId(){ return Math.random().toString(36).slice(2,10)+Date.now().toString(36); }
+
 async function loadEntregasHistorial(equipoId){
   const el=document.getElementById("entregasHistorialList");
   el.innerHTML="<p style='color:var(--text3);font-size:.85rem'>Cargando historial…</p>";
   try{
-    // Store/retrieve from insumos_cima using _type:"entrega" field
-    const snap=await _db.collection(DB_COL).where("equipoId","==",equipoId).get();
-    _entregasHistorial=snap.docs
-      .map(d=>({id:d.id,...d.data()}))
-      .filter(d=>d._type==="entrega")
-      .sort((a,b)=>(b.creadoAt||"").localeCompare(a.creadoAt||""));
+    const snap=await _db.collection(DB_COL).doc("entregas").get();
+    const raw=snap.exists?(snap.data()[equipoId]||[]):[];
+    _entregasHistorial=[...raw].sort((a,b)=>(b.creadoAt||"").localeCompare(a.creadoAt||""));
     renderEntregasHistorial();
   }catch(e){el.innerHTML="<p style='color:var(--red)'>Error: "+escHtml(e.message)+"</p>";}
 }
@@ -2789,7 +2788,7 @@ function closeNuevaEntregaModal(e){
 function onPdfSelected(input){
   const file=input.files[0];
   if(!file)return;
-  if(file.size>5*1024*1024){toast("⚠️ PDF muy grande (máx 5MB)");input.value="";return;}
+  if(file.size>600*1024){toast("⚠️ PDF muy grande (máx 600 KB para guardar en la base de datos)");input.value="";return;}
   _nuevaEntregaPdfNombre=file.name;
   document.getElementById("nuevaEntregaPdfLabel").textContent=file.name;
   const reader=new FileReader();
@@ -2806,16 +2805,15 @@ async function saveNuevaEntrega(){
   btn.disabled=true; btn.textContent="Guardando…";
   try{
     const data={
-      _type:"entrega",
-      equipoId:entregasActiveEquipo.id,
-      equipoCat:entregasActiveEquipo.cat,
-      equipoNombre:entregasActiveEquipo.name||entregasActiveEquipo.nombre||"",
+      id:makeEntregaId(),
       fecha,licenciado,obs,
       creadoAt:new Date().toISOString(),
       creadoPor:currentUser.email
     };
     if(_nuevaEntregaPdfBase64){data.pdfBase64=_nuevaEntregaPdfBase64;data.pdfNombre=_nuevaEntregaPdfNombre;}
-    await _db.collection(DB_COL).add(data);
+    const eqId=entregasActiveEquipo.id;
+    await _db.collection(DB_COL).doc("entregas").set(
+      {[eqId]:firebase.firestore.FieldValue.arrayUnion(data)},{merge:true});
     document.getElementById("nuevaEntregaModal").classList.remove("open");
     toast("✓ Entrega registrada");
     await loadEntregasHistorial(entregasActiveEquipo.id);
@@ -2827,9 +2825,12 @@ async function saveNuevaEntrega(){
 async function deleteEntrega(entregaId){
   openConfirm("Eliminar entrega","¿Eliminar este registro de entrega?",async()=>{
     try{
-      await _db.collection(DB_COL).doc(entregaId).delete();
+      const eqId=entregasActiveEquipo.id;
+      const snap=await _db.collection(DB_COL).doc("entregas").get();
+      const arr=(snap.exists?(snap.data()[eqId]||[]):[]).filter(h=>h.id!==entregaId);
+      await _db.collection(DB_COL).doc("entregas").set({[eqId]:arr},{merge:true});
       toast("✓ Entrega eliminada");
-      await loadEntregasHistorial(entregasActiveEquipo.id);
+      await loadEntregasHistorial(eqId);
     }catch(e){toast("⚠️ "+e.message);}
   });
 }
@@ -2852,9 +2853,12 @@ function closePdfViewer(){
 
 async function updateHomeStatsEntregas(){
   try{
-    const snap=await _db.collection(DB_COL).where("_type","==","entrega").get();
+    const snap=await _db.collection(DB_COL).doc("entregas").get();
+    const data=snap.exists?snap.data():{};
+    let total=0;
+    Object.values(data).forEach(arr=>{if(Array.isArray(arr))total+=arr.length;});
     const el=document.getElementById("home-stats-entregas");
-    if(el) el.innerHTML=`<span class="csp-pill csp-ok">${snap.size} entrega${snap.size!==1?"s":""} registrada${snap.size!==1?"s":""}</span>`;
+    if(el) el.innerHTML=`<span class="csp-pill csp-ok">${total} entrega${total!==1?"s":""} registrada${total!==1?"s":""}</span>`;
   }catch(e){}
 }
 
