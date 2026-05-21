@@ -859,6 +859,144 @@
 .users-row-badge{font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(0,113,227,.12);color:var(--accent);flex-shrink:0;}
 .btn-remove-user{background:rgba(255,59,48,.10);color:var(--red);border:1px solid rgba(255,59,48,.2);border-radius:var(--r-pill);padding:5px 12px;font-size:.72rem;font-weight:600;cursor:pointer;flex-shrink:0;transition:transform .15s;}
 .btn-remove-user:active{transform:scale(.92);}
+    
+    /* ══════════════════════════════════════════════
+       TABLET ANDROID (600px – 899px)
+    ══════════════════════════════════════════════ */
+    @media (min-width: 600px) and (max-width: 899px) {
+      /* Topbar más ancho y cómodo */
+      .topbar { padding: calc(env(safe-area-inset-top,0px)+10px) 24px 14px; }
+      .tab-nav { gap: 6px; padding: 6px; }
+      .tab-btn { padding: 10px 20px; font-size: 14px; }
+      .tab-btn .ti { font-size: 17px; }
+      .tab-btn span.label { display: inline; }
+
+      /* Page con más respiro */
+      .page { padding: 20px 24px env(safe-area-inset-bottom,24px); padding-top: calc(72px + env(safe-area-inset-top,0px) + 20px); }
+
+      /* Centro cards: 2 columnas en landscape, 1 en portrait */
+      .center-cards-grid { grid-template-columns: 1fr 1fr; gap: 20px; }
+      .center-card { padding: 32px 24px 24px; }
+      .center-card-icon { width: 88px; height: 88px; border-radius: 26px; }
+      .center-card-name { font-size: 1.7rem; }
+
+      /* Stats strip en fila */
+      .summary-strip { display: flex; flex-wrap: nowrap; gap: 12px; overflow-x: auto; padding: 16px 20px; }
+      .stat-card { flex: 1; min-width: 0; }
+
+      /* Combined stats */
+      .combined-stats { padding: 24px 28px; }
+      .cs-num { font-size: 2rem; }
+
+      /* Header card */
+      .header-card { padding: 22px 28px; gap: 22px; }
+      .header-logo { height: 54px !important; }
+
+      /* Gestion table más legible */
+      .gestion-row { padding: 14px 20px; }
+      .stock-table { margin-bottom: 16px; }
+
+      /* Modal más ancho */
+      .modal-sheet { max-width: 500px; padding: 4px 24px 48px; }
+
+      /* Charts en 2 col si caben */
+      .chart-grid { grid-template-columns: 1fr 1fr; }
+      .chart-card.full { grid-column: 1 / -1; }
+    }
+
+    /* Sidebar en tablet landscape (≥768px pero <900px) */
+    @media (min-width: 768px) and (max-width: 899px) {
+      /* Mostrar sidebar compacto (200px) */
+      #sidebar {
+        width: 200px;
+        transform: translateX(-100%);
+      }
+      #sidebar.open {
+        transform: translateX(0);
+      }
+      /* Topbar se corre cuando sidebar abre */
+      .sb-logo img { height: 44px; }
+      .sb-title { font-size: .68rem; }
+      .sb-btn { font-size: .82rem; padding: 11px 12px; }
+    }
+
+    /* ══════════════════════════════════════════════
+       WINDOWS / DESKTOP HOVER STATES
+    ══════════════════════════════════════════════ */
+    @media (hover: hover) and (pointer: fine) {
+      /* Botones */
+      .btn:hover { filter: brightness(1.06); }
+      .btn-primary:hover { box-shadow: 0 6px 22px rgba(0,113,227,.45); transform: translateY(-1px); }
+      .tab-btn:hover:not(.active) { background: rgba(255,255,255,.45); color: var(--text); }
+      .sb-btn:hover:not(.active) { background: rgba(0,113,227,.08); color: var(--accent); }
+      .sb-admin-btn:hover { background: rgba(0,113,227,.14); }
+      .sb-refresh-btn:hover { background: rgba(0,113,227,.14); }
+      .sb-signout:hover { opacity: .75; }
+
+      /* Tarjetas de centro */
+      .center-card:hover {
+        transform: translateY(-4px) scale(1.01);
+        box-shadow:
+          0 0 0 1px rgba(180,200,255,.35),
+          0 8px 24px rgba(140,160,220,.18),
+          0 24px 60px rgba(0,0,0,.10),
+          inset 0 2.5px 0 rgba(255,255,255,1.0);
+      }
+
+      /* Filas de inventario */
+      .stock-row:hover { background: rgba(255,255,255,.55); }
+      .gestion-row:hover { background: rgba(255,255,255,.55); cursor: pointer; }
+      .mov-row:hover { background: rgba(255,255,255,.45); }
+
+      /* Botón de quitar usuario */
+      .btn-remove-user:hover { background: rgba(255,59,48,.18); }
+
+      /* Range buttons en charts */
+      .range-btn:hover:not(.active) { background: rgba(255,255,255,.55); }
+
+      /* Center selector */
+      .center-btn:hover { background: rgba(255,255,255,.55); }
+    }
+
+    /* Cursors explícitos para desktop */
+    @media (pointer: fine) {
+      button, [onclick], .tab-btn, .sb-btn, .center-card,
+      .stock-row, .gestion-row, .range-btn, .btn-remove-user,
+      .center-btn, .chip, .mov-row { cursor: pointer; }
+    }
+
+    /* ══════════════════════════════════════════════
+       SCROLLBAR PERSONALIZADO (Windows / Chrome)
+    ══════════════════════════════════════════════ */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(140,160,200,.35);
+      border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(0,113,227,.35); }
+
+    /* ══════════════════════════════════════════════
+       WIDE DESKTOP (≥1280px) — más aire
+    ══════════════════════════════════════════════ */
+    @media (min-width: 1280px) {
+      #sidebar { width: 260px; }
+      @media (min-width: 1280px) {
+        .page {
+          padding-left: max(32px, calc((100vw - 260px - 960px) / 2));
+          padding-right: max(32px, calc((100vw - 260px - 960px) / 2));
+          margin-left: 260px;
+        }
+      }
+      .center-card { padding: 36px 28px 28px; }
+      .center-card-icon { width: 96px; height: 96px; }
+    }
+
+    /* Fondo: contain en pantallas muy anchas */
+    @media (min-width: 1600px) {
+      body { background-size: cover; }
+    }
+
     </style>
 </head>
 <body>
@@ -912,7 +1050,7 @@
   </nav>
   <div class="sb-footer">
     <div class="sb-version-row">
-      <span class="version-badge" id="versionBadge">V2.0.1</span>
+      <span class="version-badge" id="versionBadge">V2.1.0</span>
       <button class="sb-refresh-btn" id="refreshBtn" onclick="manualRefresh()" title="Verificar y recargar">
         <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M4 10a6 6 0 1 0 1.2-3.6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M4 5v5h5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span id="refreshIcon">Actualizar</span>
@@ -1246,7 +1384,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "2.0.1";
+const APP_VERSION = "2.1.0";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
