@@ -1887,6 +1887,20 @@ function updateCenterStats(){
 }
 
 // ─── Tab ─────────────────────────────────────────────────────────────────────
+function _applyTabScreens(tab){
+  const hs=document.getElementById("home-screen");
+  const cc=document.getElementById("center-content");
+  const bh=document.getElementById("center-back-header");
+  if(tab==="inventario"){
+    if(hs)hs.style.display=activeCenter?"none":"block";
+    if(cc)cc.style.display=activeCenter?"block":"none";
+    if(bh)bh.style.display=activeCenter?"flex":"none";
+  } else {
+    if(hs)hs.style.display="none";
+    if(cc)cc.style.display="none";
+    if(bh)bh.style.display="none";
+  }
+}
 function switchTab(tab,btn){
   document.querySelectorAll(".tab-pane").forEach(p=>p.classList.remove("active"));
   document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
@@ -1894,14 +1908,7 @@ function switchTab(tab,btn){
   btn.classList.add("active");
   currentTab=tab;
   document.querySelectorAll(".sb-btn").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab));
-  if(tab==="inventario"){
-    const hs=document.getElementById("home-screen");
-    const cc=document.getElementById("center-content");
-    const bh=document.getElementById("center-back-header");
-    if(hs)hs.style.display=activeCenter?"none":"block";
-    if(cc)cc.style.display=activeCenter?"block":"none";
-    if(bh)bh.style.display=activeCenter?"flex":"none";
-  }
+  _applyTabScreens(tab);
   renderCurrentTab();
 }
 function renderCurrentTab(){
@@ -2561,14 +2568,7 @@ function switchTabDirect(tab){
     if(b.getAttribute("onclick")&&b.getAttribute("onclick").includes("'"+tab+"'"))b.classList.add("active");
   });
   currentTab=tab;
-  if(tab==="inventario"){
-    const hs=document.getElementById("home-screen");
-    const cc=document.getElementById("center-content");
-    const bh=document.getElementById("center-back-header");
-    if(hs)hs.style.display=activeCenter?"none":"block";
-    if(cc)cc.style.display=activeCenter?"block":"none";
-    if(bh)bh.style.display=activeCenter?"flex":"none";
-  }
+  _applyTabScreens(tab);
   renderCurrentTab();
 }
 function sidebarNav(tab){
