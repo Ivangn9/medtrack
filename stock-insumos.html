@@ -1094,7 +1094,7 @@
   </nav>
   <div class="sb-footer">
     <div class="sb-version-row">
-      <span class="version-badge" id="versionBadge">V2.4.1</span>
+      <span class="version-badge" id="versionBadge">V2.5.0</span>
       <button class="sb-refresh-btn" id="refreshBtn" onclick="manualRefresh()" title="Verificar y recargar">
         <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M4 10a6 6 0 1 0 1.2-3.6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M4 5v5h5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span id="refreshIcon">Actualizar</span>
@@ -1548,7 +1548,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "2.4.1";
+const APP_VERSION = "2.5.0";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -2615,35 +2615,45 @@ function backFromEntregas(){
   entregasActiveCat=null; entregasActiveEquipo=null;
 }
 
-async function renderEntregasCats(){
+function renderEntregasCats(){
   const grid=document.getElementById("entregasCatGrid");
   if(!grid)return;
-  grid.innerHTML="<p style='color:var(--text3);font-size:.85rem;grid-column:1/-1'>Cargando equipos…</p>";
-  // Load MedTrack equipment data (cached)
-  if(!_medtrackEqs){
-    try{
-      const dataDoc=await _db.collection("users").doc(currentUser.uid).collection("app").doc("data").get();
-      _medtrackEqs=dataDoc.exists?(dataDoc.data().eqs||[]):[];
-    }catch(e){ _medtrackEqs=[]; }
-  }
-  // Count active equipment per category
+  // Render cards immediately with placeholder counts
   const counts={};
-  _medtrackEqs.filter(e=>!e.archived).forEach(e=>{ counts[e.cat]=(counts[e.cat]||0)+1; });
+  if(_medtrackEqs) _medtrackEqs.filter(e=>!e.archived).forEach(e=>{ counts[e.cat]=(counts[e.cat]||0)+1; });
   grid.innerHTML=EQUIPO_CATS.map(cat=>{
-    const count=counts[cat.id]||0;
+    const count=_medtrackEqs?counts[cat.id]||0:null;
     const [c1]=EQUIPO_CAT_COLORS[cat.id]||["#94a3b8"];
+    const countHtml=count===null
+      ?`<div id="equipo-count-${cat.id}" style="font-weight:900;font-size:2.6rem;color:${c1};line-height:1;letter-spacing:-2px">—</div><div style="font-size:.56rem;color:${c1}aa;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-top:1px">equipos</div>`
+      :`<div id="equipo-count-${cat.id}" style="font-weight:900;font-size:2.6rem;color:${c1};line-height:1;letter-spacing:-2px">${count}</div><div id="equipo-label-${cat.id}" style="font-size:.56rem;color:${c1}aa;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-top:1px">${count===1?"equipo":"equipos"}</div>`;
     return `<div class="gc tap" onclick="enterEntregasCat('${cat.id}')" style="padding:0;overflow:hidden;cursor:pointer;border:1.5px solid ${c1}40;min-height:130px;">
       <div style="height:3px;background:linear-gradient(90deg,${c1},${c1}55);border-radius:0"></div>
       <div style="padding:16px 14px 14px;display:flex;flex-direction:column;justify-content:space-between;height:calc(100% - 3px);position:relative;overflow:hidden;">
         <div style="position:absolute;right:-18px;top:50%;transform:translateY(-50%);width:160px;height:160px;display:flex;align-items:center;justify-content:center;opacity:.55;pointer-events:none">${entregasCatSvg(cat.id)}</div>
-        <div style="display:flex;flex-direction:column;gap:0;z-index:1">
-          <div style="font-weight:900;font-size:2.6rem;color:${c1};line-height:1;letter-spacing:-2px">${count}</div>
-          <div style="font-size:.56rem;color:${c1}aa;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-top:1px">${count===1?"equipo":"equipos"}</div>
-        </div>
+        <div style="display:flex;flex-direction:column;gap:0;z-index:1">${countHtml}</div>
         <div style="z-index:1"><div style="font-weight:800;font-size:1rem;letter-spacing:-.3px;color:var(--text)">${cat.label}</div></div>
       </div>
     </div>`;
   }).join("");
+  // Load counts from Firestore in background if not cached yet
+  if(!_medtrackEqs) _loadEntregasCounts();
+}
+
+async function _loadEntregasCounts(){
+  try{
+    const dataDoc=await _db.collection("users").doc(currentUser.uid).collection("app").doc("data").get();
+    _medtrackEqs=dataDoc.exists?(dataDoc.data().eqs||[]):[];
+  }catch(e){ _medtrackEqs=[]; }
+  const counts={};
+  _medtrackEqs.filter(e=>!e.archived).forEach(e=>{ counts[e.cat]=(counts[e.cat]||0)+1; });
+  EQUIPO_CATS.forEach(cat=>{
+    const el=document.getElementById("equipo-count-"+cat.id);
+    const lel=document.getElementById("equipo-label-"+cat.id);
+    const count=counts[cat.id]||0;
+    if(el) el.textContent=count;
+    if(lel) lel.textContent=count===1?"equipo":"equipos";
+  });
 }
 
 async function enterEntregasCat(catId){
