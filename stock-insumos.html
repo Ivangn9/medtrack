@@ -16,6 +16,8 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -1068,6 +1070,22 @@
     #pdf-viewer-title{flex:1;color:#fff;font-size:.9rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
     #pdf-viewer-body{flex:1;overflow:hidden;display:flex;flex-direction:column;}
     #pdf-viewer-frame{flex:1;border:none;width:100%;height:100%;}
+    /* ─── Report tab ────────────────────────────────── */
+    .rep-section-label { font-size:.72rem;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px; }
+    .rep-pill { padding:7px 16px;border-radius:var(--r-pill);border:1.5px solid rgba(0,113,227,.22);background:rgba(255,255,255,.18);color:var(--text2);font-size:.85rem;font-weight:650;cursor:pointer;transition:all .18s; }
+    .rep-pill.active { background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 4px 12px rgba(0,113,227,.3); }
+    .rep-check-row { display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:var(--r-md);background:rgba(255,255,255,.15);cursor:pointer;transition:background .15s;border:1.5px solid rgba(255,255,255,.28); }
+    .rep-check-row:hover { background:rgba(255,255,255,.25); }
+    .rep-check-icon { width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0; }
+    .rep-check-info { flex:1;min-width:0; }
+    .rep-check-title { font-size:.9rem;font-weight:700;color:var(--text);margin-bottom:2px; }
+    .rep-check-sub { font-size:.75rem;color:var(--text3); }
+    .rep-toggle { width:44px;height:26px;appearance:none;-webkit-appearance:none;background:rgba(120,120,128,.22);border-radius:13px;cursor:pointer;transition:background .2s;flex-shrink:0;position:relative; }
+    .rep-toggle::after { content:'';position:absolute;width:22px;height:22px;border-radius:50%;background:#fff;top:2px;left:2px;transition:transform .2s,box-shadow .2s;box-shadow:0 1px 4px rgba(0,0,0,.25); }
+    .rep-toggle:checked { background:var(--accent); }
+    .rep-toggle:checked::after { transform:translateX(18px); }
+    .rep-progress-bar { height:4px;border-radius:2px;background:rgba(0,113,227,.18);margin-bottom:16px;overflow:hidden; }
+    .rep-progress-fill { height:100%;border-radius:2px;background:var(--accent);width:0%;transition:width .3s; }
     </style>
 </head>
 <body>
@@ -1122,10 +1140,14 @@
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7.5" stroke="currentColor" stroke-width="1.7"/><path d="M10 6v1.5M10 12.5V14M7.5 8.5C7.5 7.4 8.6 6.5 10 6.5s2.5.9 2.5 2-1.1 1.7-2.5 2-2.5.9-2.5 2 1.1 2 2.5 2 2.5-.9 2.5-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
       Costos
     </button>
+    <button class="sb-btn" data-tab="reportes" onclick="sidebarNav('reportes')">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="4" y="2" width="12" height="16" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M7 7h6M7 10h6M7 13h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M13 14l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Reportes
+    </button>
   </nav>
   <div class="sb-footer">
     <div class="sb-version-row">
-      <span class="version-badge" id="versionBadge">V2.10.2</span>
+      <span class="version-badge" id="versionBadge">V2.11.0</span>
       <button class="sb-refresh-btn" id="refreshBtn" onclick="manualRefresh()" title="Verificar y recargar">
         <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M4 10a6 6 0 1 0 1.2-3.6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M4 5v5h5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span id="refreshIcon">Actualizar</span>
@@ -1156,6 +1178,7 @@
     <button class="tab-btn"        onclick="switchTab('graficas',this)"><span class="ti">📊</span><span class="label">Gráficas</span></button>
     <button class="tab-btn"        onclick="switchTab('gestion',this)"><span class="ti">⚙️</span><span class="label">Gestión</span></button>
     <button class="tab-btn"        onclick="switchTab('costos',this)"><span class="ti">💰</span><span class="label">Costos</span></button>
+    <button class="tab-btn"        onclick="switchTab('reportes',this)"><span class="ti">📄</span><span class="label">Reportes</span></button>
   </nav>
 </div>
 
@@ -1439,6 +1462,63 @@
         <span class="center-back-name" id="costos-detail-title"></span>
       </div>
       <div id="costos-detail-content"></div>
+    </div>
+  </div>
+
+  <!-- ════ REPORTES ════ -->
+  <div class="tab-pane" id="tab-reportes">
+    <div class="gc" style="padding:22px 20px;margin-bottom:14px">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:22px">
+        <div style="width:42px;height:42px;border-radius:12px;background:rgba(0,113,227,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="4" y="2" width="14" height="18" rx="2.5" stroke="#0071e3" stroke-width="1.8"/><path d="M7 8h8M7 11h8M7 14h5" stroke="#0071e3" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </div>
+        <div>
+          <div style="font-size:1.05rem;font-weight:800;color:var(--text)">Generador de Reportes</div>
+          <div style="font-size:.75rem;color:var(--text3);margin-top:1px">Exportar datos a PDF</div>
+        </div>
+      </div>
+      <div class="rep-section-label" style="margin-bottom:10px">Sucursal</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px" id="rep-center-btns">
+        <button class="rep-pill active" data-center="ambos" onclick="setRepCenter('ambos')">GN + Sarmiento</button>
+        <button class="rep-pill" data-center="GN" onclick="setRepCenter('GN')">GN</button>
+        <button class="rep-pill" data-center="Sarmiento" onclick="setRepCenter('Sarmiento')">Sarmiento</button>
+      </div>
+      <div class="rep-section-label" style="margin-bottom:10px">Período</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px">
+        <div class="date-filter-group"><label>Desde</label><input type="date" id="repDateFrom" /></div>
+        <div class="date-filter-group"><label>Hasta</label><input type="date" id="repDateTo" /></div>
+      </div>
+      <div class="rep-section-label" style="margin-bottom:10px">Incluir en el reporte</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:22px">
+        <label class="rep-check-row">
+          <div class="rep-check-icon" style="background:rgba(52,199,89,.12)">📦</div>
+          <div class="rep-check-info">
+            <div class="rep-check-title">Consumos de insumos</div>
+            <div class="rep-check-sub">Entradas, salidas y stock actual por insumo</div>
+          </div>
+          <input type="checkbox" class="rep-toggle" id="repIncConsumos" checked />
+        </label>
+        <label class="rep-check-row">
+          <div class="rep-check-icon" style="background:rgba(255,59,48,.10)">💸</div>
+          <div class="rep-check-info">
+            <div class="rep-check-title">Gastos</div>
+            <div class="rep-check-sub">Costo total de salidas por insumo en el período</div>
+          </div>
+          <input type="checkbox" class="rep-toggle" id="repIncGastos" checked />
+        </label>
+        <label class="rep-check-row">
+          <div class="rep-check-icon" style="background:rgba(0,113,227,.10)">📈</div>
+          <div class="rep-check-info">
+            <div class="rep-check-title">Evolución de precios</div>
+            <div class="rep-check-sub">Historial y variación de precios por insumo</div>
+          </div>
+          <input type="checkbox" class="rep-toggle" id="repIncPrecios" checked />
+        </label>
+      </div>
+      <div class="rep-progress-bar" id="repProgressBar" style="display:none"><div class="rep-progress-fill" id="repProgressFill"></div></div>
+      <button class="btn btn-primary" style="width:100%;height:50px;font-size:1rem;font-weight:700" id="repGenerateBtn" onclick="generateReport()">
+        <span class="btn-icon">📄</span> Generar y Exportar PDF
+      </button>
     </div>
   </div>
 
@@ -1988,6 +2068,7 @@ function renderCurrentTab(){
   if(currentTab==="graficas")    renderAllCharts();
   if(currentTab==="gestion")     renderGestion();
   if(currentTab==="costos")      renderCostos();
+  if(currentTab==="reportes")    renderReportes();
 }
 
 // ─── Inventario ──────────────────────────────────────────────────────────────
@@ -2916,6 +2997,268 @@ function updateHomeStats(){
   if(cl)cl.textContent=lowAll;
 }
 
+
+// ─── REPORTES ────────────────────────────────────────────────────────────────
+let _repCenter="ambos";
+
+function setRepCenter(c){
+  _repCenter=c;
+  document.querySelectorAll("#rep-center-btns .rep-pill").forEach(b=>b.classList.toggle("active",b.dataset.center===c));
+}
+
+function renderReportes(){
+  const today=new Date().toISOString().slice(0,10);
+  const monthAgo=new Date(Date.now()-30*24*3600000).toISOString().slice(0,10);
+  const df=document.getElementById("repDateFrom");
+  const dt=document.getElementById("repDateTo");
+  if(df&&!df.value)df.value=monthAgo;
+  if(dt&&!dt.value)dt.value=today;
+}
+
+async function generateReport(){
+  const btn=document.getElementById("repGenerateBtn");
+  const progBar=document.getElementById("repProgressBar");
+  const progFill=document.getElementById("repProgressFill");
+  const dateFrom=document.getElementById("repDateFrom")?.value||"";
+  const dateTo=document.getElementById("repDateTo")?.value||"";
+  const incConsumos=document.getElementById("repIncConsumos")?.checked;
+  const incGastos=document.getElementById("repIncGastos")?.checked;
+  const incPrecios=document.getElementById("repIncPrecios")?.checked;
+  if(!incConsumos&&!incGastos&&!incPrecios){toast("⚠️ Seleccioná al menos una sección");return;}
+  if(!window.jspdf){toast("⚠️ Librería PDF no cargada, intentá de nuevo");return;}
+
+  btn.disabled=true; btn.innerHTML='<span class="btn-icon">⏳</span> Generando...';
+  if(progBar){progBar.style.display="block";progFill.style.width="10%";}
+
+  try{
+    const {jsPDF}=window.jspdf;
+    const doc=new jsPDF({orientation:"portrait",unit:"mm",format:"a4"});
+    const pageW=doc.internal.pageSize.getWidth();
+    const pageH=doc.internal.pageSize.getHeight();
+    const mg=14;
+    let y=mg;
+
+    // Try to load logo as base64
+    let logoData=null;
+    try{
+      const resp=await fetch("logo.png");
+      if(resp.ok){
+        const blob=await resp.blob();
+        logoData=await new Promise(res=>{const r=new FileReader();r.onload=e=>res(e.target.result);r.readAsDataURL(blob);});
+      }
+    }catch(e){}
+
+    if(progFill)progFill.style.width="25%";
+
+    // ── Header band ──────────────────────────────────────────────
+    doc.setFillColor(0,113,227);
+    doc.rect(0,0,pageW,34,"F");
+    // subtle shine
+    doc.setFillColor(255,255,255);
+    doc.setGState&&doc.setGState(new doc.GState({opacity:0.07}));
+    doc.rect(0,0,pageW,17,"F");
+    doc.setGState&&doc.setGState(new doc.GState({opacity:1}));
+
+    let titleX=mg;
+    if(logoData){
+      try{doc.addImage(logoData,"PNG",mg,7,18,18,undefined,"FAST");titleX=mg+22;}catch(e){}
+    }
+    doc.setTextColor(255,255,255);
+    doc.setFontSize(16);doc.setFont("helvetica","bold");
+    doc.text("Stock de Insumos",titleX,16);
+    doc.setFontSize(8.5);doc.setFont("helvetica","normal");
+    doc.text("CIMA · Control de Inventario por Depósito",titleX,23);
+    y=42;
+
+    // ── Report metadata ───────────────────────────────────────────
+    const centerLabel=_repCenter==="ambos"?"GN + Sarmiento":(_repCenter==="GN"?"GN · Guardias Nacionales":"Sarmiento · Sarmiento 1212");
+    const dateLabel=(dateFrom&&dateTo)?`${dateFrom} → ${dateTo}`:(dateFrom?`Desde ${dateFrom}`:(dateTo?`Hasta ${dateTo}`:"Todo el período"));
+    doc.setTextColor(60,60,67);
+    doc.setFontSize(8.5);doc.setFont("helvetica","bold");
+    doc.text("Sucursal:",mg,y);doc.setFont("helvetica","normal");doc.text(centerLabel,mg+18,y);y+=5;
+    doc.setFont("helvetica","bold");doc.text("Período:",mg,y);doc.setFont("helvetica","normal");doc.text(dateLabel,mg+18,y);y+=5;
+    doc.setFont("helvetica","bold");doc.text("Generado:",mg,y);doc.setFont("helvetica","normal");doc.text(new Date().toLocaleString("es-AR"),mg+18,y);y+=10;
+
+    // ── Helper: separator line ─────────────────────────────────────
+    function sepLine(){
+      doc.setDrawColor(200,215,235);doc.setLineWidth(0.3);
+      doc.line(mg,y,pageW-mg,y);y+=5;
+    }
+    function pageCheck(needed){if(y>pageH-needed){doc.addPage();y=mg+5;}}
+    function sectionHeader(title,icon){
+      pageCheck(20);
+      doc.setFillColor(230,241,252);
+      doc.rect(mg,y-4,pageW-mg*2,11,"F");
+      doc.setTextColor(0,113,227);doc.setFontSize(10);doc.setFont("helvetica","bold");
+      doc.text(icon+" "+title,mg+3,y+4);
+      y+=13;doc.setTextColor(60,60,67);doc.setFont("helvetica","normal");
+    }
+    function subHeader(label){
+      pageCheck(10);
+      doc.setTextColor(100,100,110);doc.setFontSize(8.5);doc.setFont("helvetica","bold");
+      doc.text(label,mg,y);y+=6;doc.setFont("helvetica","normal");
+    }
+
+    const centers=_repCenter==="ambos"?["GN","Sarmiento"]:[_repCenter];
+
+    function getMovs(center){
+      return(cs[center]?.movements||[]).filter(m=>{
+        if(dateFrom&&m.date<dateFrom)return false;
+        if(dateTo&&m.date>dateTo)return false;
+        return true;
+      });
+    }
+
+    const tableHeadStyle={fillColor:[0,113,227],textColor:255,fontStyle:"bold",fontSize:8};
+    const tableBodyStyle={fontSize:8,textColor:[30,30,40]};
+    const tableAltStyle={fillColor:[240,246,255]};
+
+    if(progFill)progFill.style.width="45%";
+
+    // ── CONSUMOS ──────────────────────────────────────────────────
+    if(incConsumos){
+      sectionHeader("Consumos de Insumos","📦");
+      for(const center of centers){
+        if(centers.length>1)subHeader(center==="GN"?"GN · Guardias Nacionales":"Sarmiento · Sarmiento 1212");
+        const movs=getMovs(center);
+        const stk=cs[center]?.stock||{};
+        const rows=supplies.filter(s=>s.active).map(s=>{
+          const ent=movs.filter(m=>m.supplyId===s.id&&m.type==="entrada").reduce((a,m)=>a+m.qty,0);
+          const sal=movs.filter(m=>m.supplyId===s.id&&m.type==="salida").reduce((a,m)=>a+m.qty,0);
+          if(!ent&&!sal)return null;
+          return[s.name,s.code,s.category,ent?"+"+ent+" "+s.unit:"—",sal?sal+" "+s.unit:"—",(stk[s.id]||0)+" "+s.unit];
+        }).filter(Boolean);
+        pageCheck(30);
+        if(!rows.length){
+          doc.setTextColor(140,140,148);doc.setFontSize(8);
+          doc.text("Sin movimientos en el período.",mg+2,y);y+=8;doc.setTextColor(60,60,67);
+        }else{
+          doc.autoTable({startY:y,margin:{left:mg,right:mg},
+            head:[["Insumo","Código","Categoría","Entradas","Salidas","Stock actual"]],
+            body:rows,headStyles:tableHeadStyle,bodyStyles:tableBodyStyle,
+            alternateRowStyles:tableAltStyle,styles:{cellPadding:2.2},
+            columnStyles:{0:{cellWidth:52},1:{cellWidth:20},2:{cellWidth:30},3:{cellWidth:22},4:{cellWidth:22},5:{cellWidth:24}}
+          });
+          y=doc.lastAutoTable.finalY+9;
+        }
+      }
+    }
+
+    if(progFill)progFill.style.width="65%";
+
+    // ── GASTOS ────────────────────────────────────────────────────
+    if(incGastos){
+      pageCheck(30);sepLine();sectionHeader("Gastos por Insumo","💸");
+      for(const center of centers){
+        if(centers.length>1)subHeader(center==="GN"?"GN · Guardias Nacionales":"Sarmiento · Sarmiento 1212");
+        const movs=getMovs(center);
+        let totalGasto=0;
+        const rows=supplies.filter(s=>s.active).map(s=>{
+          const sal=movs.filter(m=>m.supplyId===s.id&&m.type==="salida").reduce((a,m)=>a+m.qty,0);
+          if(!sal)return null;
+          const precio=s.price||0;const gasto=sal*precio;totalGasto+=gasto;
+          return[s.name,s.code,sal+" "+s.unit,precio>0?"$"+fmt(precio):"—",precio>0?"$"+fmt(gasto):"—"];
+        }).filter(Boolean);
+        pageCheck(30);
+        if(!rows.length){
+          doc.setTextColor(140,140,148);doc.setFontSize(8);
+          doc.text("Sin salidas en el período.",mg+2,y);y+=8;doc.setTextColor(60,60,67);
+        }else{
+          rows.push(["","","","TOTAL","$"+fmt(totalGasto)]);
+          doc.autoTable({startY:y,margin:{left:mg,right:mg},
+            head:[["Insumo","Código","Salidas","Precio/u","Gasto total"]],
+            body:rows,headStyles:tableHeadStyle,bodyStyles:tableBodyStyle,
+            alternateRowStyles:tableAltStyle,styles:{cellPadding:2.2},
+            columnStyles:{0:{cellWidth:65},1:{cellWidth:25},2:{cellWidth:25},3:{cellWidth:26},4:{cellWidth:29}},
+            didParseCell:(data)=>{
+              if(data.row.index===rows.length-1){
+                data.cell.styles.fontStyle="bold";
+                if(!data.cell.styles.fillColor||data.cell.styles.fillColor[0]!==240)
+                  data.cell.styles.fillColor=[228,240,255];
+              }
+            }
+          });
+          y=doc.lastAutoTable.finalY+9;
+        }
+      }
+    }
+
+    if(progFill)progFill.style.width="82%";
+
+    // ── EVOLUCIÓN DE PRECIOS ──────────────────────────────────────
+    if(incPrecios){
+      pageCheck(30);sepLine();sectionHeader("Evolución de Precios","📈");
+      const activeSupplies=supplies.filter(s=>s.active&&(s.price>0||(s.priceHistory&&s.priceHistory.length)));
+      const rows=activeSupplies.map(s=>{
+        const hist=s.priceHistory||[];
+        const current=s.price||0;
+        const prev=hist.length>=2?hist[1].price:null;
+        let variacion="—";
+        if(prev&&prev>0&&current>0){const pct=((current-prev)/prev)*100;variacion=(pct>=0?"+":"")+pct.toFixed(1)+"%";}
+        const ultimaFecha=hist.length?hist[0].date:"—";
+        return[s.name,s.code,current>0?"$"+fmt(current):"—",prev?"$"+fmt(prev):"—",variacion,ultimaFecha,hist.length+" reg."];
+      });
+      pageCheck(30);
+      if(!rows.length){
+        doc.setTextColor(140,140,148);doc.setFontSize(8);
+        doc.text("Sin historial de precios registrado.",mg+2,y);y+=8;doc.setTextColor(60,60,67);
+      }else{
+        doc.autoTable({startY:y,margin:{left:mg,right:mg},
+          head:[["Insumo","Código","Precio actual","Precio ant.","Variación","Últ. actualiz.","Registros"]],
+          body:rows,headStyles:tableHeadStyle,bodyStyles:tableBodyStyle,
+          alternateRowStyles:tableAltStyle,styles:{cellPadding:2.2},
+          columnStyles:{0:{cellWidth:52},1:{cellWidth:18},2:{cellWidth:22},3:{cellWidth:20},4:{cellWidth:18},5:{cellWidth:24},6:{cellWidth:16}},
+          didParseCell:(data)=>{
+            if(data.column.index===4&&data.section==="body"){
+              const v=data.cell.text[0];
+              if(v&&v.startsWith("+"))data.cell.styles.textColor=[52,199,89];
+              else if(v&&v.startsWith("-"))data.cell.styles.textColor=[255,59,48];
+            }
+          }
+        });
+        y=doc.lastAutoTable.finalY+9;
+      }
+    }
+
+    // ── Footer on every page ──────────────────────────────────────
+    const pageCount=doc.internal.getNumberOfPages();
+    for(let i=1;i<=pageCount;i++){
+      doc.setPage(i);
+      doc.setFontSize(7);doc.setTextColor(160,160,170);
+      doc.text("CIMA · Stock de Insumos · "+new Date().toLocaleDateString("es-AR"),mg,pageH-6);
+      doc.text("Página "+i+" de "+pageCount,pageW-mg,pageH-6,{align:"right"});
+      doc.setDrawColor(200,215,235);doc.setLineWidth(0.2);
+      doc.line(mg,pageH-9,pageW-mg,pageH-9);
+    }
+
+    if(progFill)progFill.style.width="95%";
+
+    // ── Export ────────────────────────────────────────────────────
+    const filename="reporte-cima-"+new Date().toISOString().slice(0,10)+".pdf";
+    const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)&&!window.MSStream;
+    if(isIOS){
+      doc.output("dataurlnewwindow",{filename});
+    }else{
+      const blob=doc.output("blob");
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement("a");
+      a.href=url;a.download=filename;
+      document.body.appendChild(a);a.click();
+      setTimeout(()=>{URL.revokeObjectURL(url);a.remove();},2000);
+    }
+
+    if(progFill)progFill.style.width="100%";
+    toast("✓ Reporte exportado");
+    setTimeout(()=>{if(progBar)progBar.style.display="none";if(progFill)progFill.style.width="0%";},1200);
+
+  }catch(e){
+    console.error("PDF error:",e);
+    toast("⚠️ Error al generar el PDF: "+e.message);
+    if(progBar)progBar.style.display="none";
+  }finally{
+    btn.disabled=false;btn.innerHTML='<span class="btn-icon">📄</span> Generar y Exportar PDF';
+  }
+}
 
 // ─── ENTREGAS ───────────────────────────────────────────────────────────────
 const EQUIPO_CAT_COLORS = {
