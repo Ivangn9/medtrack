@@ -2301,12 +2301,36 @@ function rAntenaDetalle(){
 //  SETTINGS
 // ═══════════════════════════════════════════
 function toggleSettings(){var o=document.getElementById("settings-overlay");o.classList.toggle("hidden");updateSettingsUI();}
-function toggleSbEquiposMenu(e){if(e)e.stopPropagation();var m=document.getElementById("sb-equipos-menu");var ch=document.getElementById("sb-eq-chevron");var btn=document.getElementById("sb-equipos-btn");var open=m.style.display==="none"||m.style.display==="";if(open){var r=btn.getBoundingClientRect();m.style.left=(r.right+8)+"px";m.style.top=r.top+"px";m.style.display="block";if(ch)ch.style.transform="rotate(90deg)";setTimeout(function(){document.addEventListener("click",_sbEqOutside);},0);}else{closeSbEquiposMenu();}}
-function closeSbEquiposMenu(){var m=document.getElementById("sb-equipos-menu");var ch=document.getElementById("sb-eq-chevron");if(m)m.style.display="none";if(ch){ch.style.transform="";ch.textContent="▸";}document.removeEventListener("click",_sbEqOutside);}
-function _sbEqOutside(e){var m=document.getElementById("sb-equipos-menu");var btn=document.getElementById("sb-equipos-btn");if(m&&!m.contains(e.target)&&btn&&!btn.contains(e.target)){closeSbEquiposMenu();}}
-function toggleSbAjustesMenu(e){if(e)e.stopPropagation();var m=document.getElementById("sb-ajustes-menu");var ch=document.getElementById("sb-aj-chevron");var btn=document.getElementById("sb-ajustes-btn");var open=m.style.display==="none"||m.style.display==="";if(open){var r=btn.getBoundingClientRect();m.style.left=(r.right+8)+"px";m.style.top=r.top+"px";updateSbDarkLabel();m.style.display="block";if(ch)ch.style.transform="rotate(90deg)";setTimeout(function(){document.addEventListener("click",_sbAjOutside);},0);}else{closeSbAjustesMenu();}}
-function closeSbAjustesMenu(){var m=document.getElementById("sb-ajustes-menu");var ch=document.getElementById("sb-aj-chevron");if(m)m.style.display="none";if(ch){ch.style.transform="";ch.textContent="▸";}document.removeEventListener("click",_sbAjOutside);}
-function _sbAjOutside(e){var m=document.getElementById("sb-ajustes-menu");var btn=document.getElementById("sb-ajustes-btn");if(m&&!m.contains(e.target)&&btn&&!btn.contains(e.target)){closeSbAjustesMenu();}}
+// Sidebar popup menus: shared toggle/close/click-outside logic.
+var _sbMenus={
+  eq:{menuId:"sb-equipos-menu",chevronId:"sb-eq-chevron",btnId:"sb-equipos-btn",beforeOpen:null,outside:null},
+  aj:{menuId:"sb-ajustes-menu",chevronId:"sb-aj-chevron",btnId:"sb-ajustes-btn",beforeOpen:function(){updateSbDarkLabel();},outside:null}
+};
+function _sbToggle(key,e){
+  if(e)e.stopPropagation();
+  var c=_sbMenus[key],m=document.getElementById(c.menuId),ch=document.getElementById(c.chevronId),btn=document.getElementById(c.btnId);
+  if(!m||!btn)return;
+  var open=m.style.display==="none"||m.style.display==="";
+  if(open){
+    var r=btn.getBoundingClientRect();
+    m.style.left=(r.right+8)+"px";m.style.top=r.top+"px";
+    if(c.beforeOpen)c.beforeOpen();
+    m.style.display="block";
+    if(ch)ch.style.transform="rotate(90deg)";
+    c.outside=function(ev){if(!m.contains(ev.target)&&!btn.contains(ev.target))_sbClose(key);};
+    setTimeout(function(){document.addEventListener("click",c.outside);},0);
+  }else{_sbClose(key);}
+}
+function _sbClose(key){
+  var c=_sbMenus[key],m=document.getElementById(c.menuId),ch=document.getElementById(c.chevronId);
+  if(m)m.style.display="none";
+  if(ch){ch.style.transform="";ch.textContent="▸";}
+  if(c.outside){document.removeEventListener("click",c.outside);c.outside=null;}
+}
+function toggleSbEquiposMenu(e){_sbToggle("eq",e);}
+function closeSbEquiposMenu(){_sbClose("eq");}
+function toggleSbAjustesMenu(e){_sbToggle("aj",e);}
+function closeSbAjustesMenu(){_sbClose("aj");}
 function updateSbDarkLabel(){var p=document.getElementById("sb-dark-pill");if(p){p.textContent=darkMode?"ON":"OFF";p.style.background=darkMode?"rgba(0,113,227,.25)":"rgba(0,113,227,.1)";}}
 function toggleDarkMode(){darkMode=!darkMode;document.body.classList.toggle("dark",darkMode);try{localStorage.setItem("mt_dark",darkMode?"1":"0");}catch(e){}updateSettingsUI();}
 function updateSettingsUI(){
@@ -2639,121 +2663,6 @@ function submitAddAntenna(rmEquipId){
   eqs=eqs.map(function(e){if(e.id===rmEquipId)return Object.assign({},e,{antenaIds:(e.antenaIds||[]).concat(ant.id)});return e;});
   saveData();closeModal();showToast('📡 Antena agregada','');
   render();
-}
-function openAntennaDetail(antenaId,rmEquipId){
-  var ant=antenas.find(function(a){return a.id===antenaId;});
-  if(!ant)return;
-  var roturas=ant.roturas||[];
-  var roturasHtml='';
-  if(roturas.length===0){
-    roturasHtml='<div style="text-align:center;padding:20px 16px;color:var(--text3);font-size:.8rem;">Sin roturas registradas.</div>';
-  }else{
-    roturas.forEach(function(rot){
-      roturasHtml+='<div style="padding:10px 14px;border-bottom:1px solid rgba(120,120,128,.08);last-child:border-none;">'+
-        '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">'+
-          '<div style="flex:1;min-width:0;">'+
-            '<div style="font-weight:600;font-size:.82rem;">'+esc(rot.descripcion||'—')+'</div>'+
-            '<div style="font-size:.68rem;color:var(--text3);margin-top:2px;">'+fD(rot.fecha)+(rot.tecnico?' · '+esc(rot.tecnico):'')+'</div>'+
-          '</div>'+
-          '<div style="display:flex;gap:5px;flex-shrink:0;">'+
-            (rot.presupuestoPdf?'<button onclick="openPDFViewer(\''+rot.presupuestoPdf.id+'\',\'\')" style="font-size:.62rem;padding:3px 8px;border-radius:12px;background:rgba(0,113,227,.10);border:1px solid rgba(0,113,227,.2);color:var(--accent);cursor:pointer;">📄 Presup.</button>':'')+
-            (rot.reportePdf?'<button onclick="openPDFViewer(\''+rot.reportePdf.id+'\',\'\')" style="font-size:.62rem;padding:3px 8px;border-radius:12px;background:rgba(52,199,89,.10);border:1px solid rgba(52,199,89,.2);color:var(--green);cursor:pointer;">📋 Reporte</button>':'')+
-            '<button onclick="deleteRotura(\''+ant.id+'\',\''+rot.id+'\','+(rmEquipId?'\''+rmEquipId+'\'':'null')+')" style="font-size:.68rem;padding:4px 8px;border-radius:12px;background:rgba(255,59,48,.08);border:1px solid rgba(255,59,48,.15);color:var(--red);cursor:pointer;">✕</button>'+
-          '</div>'+
-        '</div>'+
-      '</div>';
-    });
-  }
-  openModal(
-    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">'+
-      '<div style="flex-shrink:0;">'+antenaSvgIcon(36)+'</div>'+
-      '<div style="flex:1;min-width:0;">'+
-        '<div style="font-weight:800;font-size:.95rem;">'+esc(ant.nombre)+'</div>'+
-        '<div style="font-size:.65rem;color:var(--text3);">Origen: '+esc(ant.nombreOrigen||'—')+(ant.cantidadCanales?' · '+ant.cantidadCanales+' canales':'')+(ant.fechaCompra?' · '+fD(ant.fechaCompra):'')+'</div>'+
-      '</div>'+
-      (rmEquipId?'<button onclick="closeModal();" style="width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.85rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">‹</button>':'')+
-      '<button onclick="closeModal()" style="width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">✕</button>'+
-    '</div>'+
-    '<button onclick="closeModal();setTimeout(function(){openAddRoturaModal(\''+antenaId+'\','+(rmEquipId?'\''+rmEquipId+'\'':"''")+');},80);" style="width:100%;padding:11px;border-radius:var(--r-pill);background:rgba(239,68,68,.10);border:1.5px solid rgba(239,68,68,.22);color:#dc2626;font-weight:700;font-size:.82rem;cursor:pointer;margin:10px 0;display:flex;align-items:center;justify-content:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Registrar Rotura</button>'+
-    '<div style="border-radius:var(--r-md);border:1.5px solid rgba(255,255,255,.75);border-top-color:rgba(255,255,255,1.0);background:rgba(255,255,255,.38);-webkit-backdrop-filter:saturate(280%) blur(16px);backdrop-filter:saturate(280%) blur(16px);box-shadow:inset 0 2px 0 rgba(255,255,255,1.0),0 2px 8px rgba(0,0,0,.04);overflow:hidden;">'+
-      roturasHtml+
-    '</div>'+
-    (ant.notas?'<div style="margin-top:10px;font-size:.75rem;color:var(--text3);padding:8px 12px;background:rgba(120,120,128,.06);border-radius:var(--r-md);">📝 '+esc(ant.notas)+'</div>':'')+
-    (rmEquipId?'<button onclick="if(confirm(\'¿Quitar esta antena del equipo?\'))removeAntennaFromEq(\''+antenaId+'\',\''+rmEquipId+'\')" style="width:100%;padding:11px;border-radius:var(--r-pill);background:rgba(255,59,48,.08);border:1.5px solid rgba(255,59,48,.15);color:var(--red);font-weight:600;font-size:.78rem;cursor:pointer;margin-top:10px;">Quitar del equipo</button>':'')
-  );
-}
-function openAddRoturaModal(antenaId,rmEquipId){
-  var ant=antenas.find(function(a){return a.id===antenaId;});
-  if(!ant)return;
-  window._pendRotPres=null;window._pendRotRep=null;
-  openModal(
-    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">'+
-      '<div style="width:36px;height:36px;border-radius:10px;background:rgba(239,68,68,.12);display:flex;align-items:center;justify-content:center;">'+
-        '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'+
-      '</div>'+
-      '<div>'+
-        '<div style="font-weight:800;font-size:1rem;">Registrar Rotura</div>'+
-        '<div style="font-size:.65rem;color:var(--text3);">'+esc(ant.nombre)+'</div>'+
-      '</div>'+
-      '<button onclick="closeModal();setTimeout(function(){openAntennaDetail(\''+antenaId+'\','+(rmEquipId?'\''+rmEquipId+'\'':"''")+');},80);" style="margin-left:auto;width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.85rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">‹</button>'+
-    '</div>'+
-    '<div class="ff"><div class="ff-label">Fecha de rotura *</div>'+
-      '<input class="inp" id="rot-fecha" type="date" value="'+new Date().toISOString().split("T")[0]+'">'+
-    '</div>'+
-    '<div class="ff"><div class="ff-label">Descripción *</div>'+
-      '<textarea class="inp" id="rot-desc" rows="2" placeholder="¿Qué parte de la antena se rompió?"></textarea>'+
-    '</div>'+
-    '<div class="ff"><div class="ff-label">Técnico / Empresa</div>'+
-      '<input class="inp" id="rot-tec" placeholder="Nombre del técnico o empresa">'+
-    '</div>'+
-    '<div class="g2">'+
-      '<div class="ff"><div class="ff-label">Presupuesto PDF</div>'+
-        '<div id="rot-pres-name" style="font-size:.7rem;color:var(--green);margin-bottom:4px;min-height:16px;"></div>'+
-        '<label style="display:flex;align-items:center;gap:6px;padding:9px 12px;border-radius:var(--r-md);background:rgba(0,113,227,.08);border:1.5px dashed rgba(0,113,227,.25);cursor:pointer;font-size:.75rem;color:var(--accent);font-weight:600;">'+
-          '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Subir PDF'+
-          '<input type="file" accept=".pdf,application/pdf" style="display:none;" onchange="var f=this.files[0];if(f){window._pendRotPres=f;document.getElementById(\'rot-pres-name\').textContent=\'✅ \'+f.name;}">'+
-        '</label>'+
-      '</div>'+
-      '<div class="ff"><div class="ff-label">Reporte de arreglo PDF</div>'+
-        '<div id="rot-rep-name" style="font-size:.7rem;color:var(--green);margin-bottom:4px;min-height:16px;"></div>'+
-        '<label style="display:flex;align-items:center;gap:6px;padding:9px 12px;border-radius:var(--r-md);background:rgba(52,199,89,.08);border:1.5px dashed rgba(52,199,89,.25);cursor:pointer;font-size:.75rem;color:var(--green);font-weight:600;">'+
-          '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Subir PDF'+
-          '<input type="file" accept=".pdf,application/pdf" style="display:none;" onchange="var f=this.files[0];if(f){window._pendRotRep=f;document.getElementById(\'rot-rep-name\').textContent=\'✅ \'+f.name;}">'+
-        '</label>'+
-      '</div>'+
-    '</div>'+
-    '<button class="btn-grad btn-grad-red" onclick="submitAddRotura(\''+antenaId+'\','+(rmEquipId?'\''+rmEquipId+'\'':"''")+');">Registrar Rotura</button>'
-  );
-}
-function submitAddRotura(antenaId,rmEquipId){
-  var fecha=(document.getElementById('rot-fecha')||{}).value||'';
-  var desc=(document.getElementById('rot-desc')||{}).value||'';
-  var tec=(document.getElementById('rot-tec')||{}).value||'';
-  if(!fecha){alert('Ingresá la fecha de rotura');return;}
-  if(!desc.trim()){alert('Ingresá una descripción');return;}
-  var rotId='ROT-'+Date.now();
-  var saveAndFinish=function(presRef,repRef){
-    var rot={id:rotId,fecha:fecha,descripcion:desc.trim(),tecnico:tec.trim(),presupuestoPdf:presRef||null,reportePdf:repRef||null,creadoEn:new Date().toISOString()};
-    antenas=antenas.map(function(a){if(a.id===antenaId)return Object.assign({},a,{roturas:(a.roturas||[]).concat(rot)});return a;});
-    saveData();closeModal();showToast('⚠️ Rotura registrada','warn');
-    setTimeout(function(){openAntennaDetail(antenaId,rmEquipId);},80);
-  };
-  var presPend=window._pendRotPres;var repPend=window._pendRotRep;
-  window._pendRotPres=null;window._pendRotRep=null;
-  var uploadFile=function(file,cb){
-    if(!file){cb(null);return;}
-    var fid='F-'+Date.now()+'-'+Math.random().toString(36).slice(2);
-    var reader=new FileReader();
-    reader.onload=function(e){dbSave(fid,file.name,e.target.result,function(ok){cb(ok?{id:fid,nombre:file.name,tipo:file.type,tam:file.size}:null);});};
-    reader.readAsDataURL(file);
-  };
-  uploadFile(presPend,function(presRef){uploadFile(repPend,function(repRef){saveAndFinish(presRef,repRef);});});
-}
-function deleteRotura(antenaId,roturaId,rmEquipId){
-  if(!confirm('¿Eliminar esta rotura?'))return;
-  antenas=antenas.map(function(a){if(a.id===antenaId)return Object.assign({},a,{roturas:(a.roturas||[]).filter(function(r){return r.id!==roturaId;})});return a;});
-  saveData();showToast('Rotura eliminada','warn');
-  if(rmEquipId)openAntennaDetail(antenaId,rmEquipId);else closeModal();
 }
 function removeAntennaFromEq(antenaId,rmEquipId){
   eqs=eqs.map(function(e){if(e.id===rmEquipId)return Object.assign({},e,{antenaIds:(e.antenaIds||[]).filter(function(id){return id!==antenaId;})});return e;});
@@ -3345,8 +3254,8 @@ function submitRotura(){
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
 var antenas=[];
-var APP_DISPLAY_VERSION="4.2.9";
-var APP_BUILD="20/05/26 13:00";
+var APP_DISPLAY_VERSION="4.3.0";
+var APP_BUILD="20/05/26 14:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
