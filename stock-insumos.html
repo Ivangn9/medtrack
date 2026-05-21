@@ -53,14 +53,14 @@
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', sans-serif;
-      background: #d6e8f5 url('Fondo.png') center center / cover fixed; color: var(--text); min-height: 100vh; min-height: 100dvh;
+      background: #d6e8f5; color: var(--text); min-height: 100vh; min-height: 100dvh;
       overscroll-behavior: none; -webkit-font-smoothing: antialiased;
       overflow-x: hidden;
     }
-
+    /* Fondo fijo — funciona en iOS/Safari donde background-attachment:fixed falla */
     body::before {
-      content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
-      background: rgba(220,235,248,.12);
+      content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+      background: #d6e8f5 url('Fondo.png') center center / cover;
     }
     body::after { display: none; }
 
@@ -1029,10 +1029,6 @@
       .center-card-icon { width: 96px; height: 96px; }
     }
 
-    /* Fondo: contain en pantallas muy anchas */
-    @media (min-width: 1600px) {
-      body { background-size: cover; }
-    }
 
 
     /* ── Form fields (ff/inp) ── */
@@ -1129,7 +1125,7 @@
   </nav>
   <div class="sb-footer">
     <div class="sb-version-row">
-      <span class="version-badge" id="versionBadge">V2.10.0</span>
+      <span class="version-badge" id="versionBadge">V2.10.1</span>
       <button class="sb-refresh-btn" id="refreshBtn" onclick="manualRefresh()" title="Verificar y recargar">
         <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M4 10a6 6 0 1 0 1.2-3.6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M4 5v5h5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span id="refreshIcon">Actualizar</span>
@@ -1635,7 +1631,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "2.10.0";
+const APP_VERSION = "2.10.1";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
