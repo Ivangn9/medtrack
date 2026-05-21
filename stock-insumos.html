@@ -1,3 +1,2085 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Stock CIMA" />
+  <meta name="theme-color" content="#e2e4f0" />
+  <title>Stock de Insumos · CIMA</title>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --glass:rgba(255,255,255,.20);
+      --glass2:rgba(255,255,255,.82);
+      --glass-tint:rgba(232,234,244,.58);
+      --glass-border:rgba(255,255,255,.72);
+      --glass-border-top:rgba(255,255,255,1.0);
+      --blur:saturate(320%) contrast(108%) brightness(110%) blur(30px);
+      --blur-heavy:saturate(360%) contrast(110%) brightness(112%) blur(44px);
+      --r-sm:14px; --r-md:18px; --r-lg:24px; --r-xl:30px; --r-pill:50px;
+      --accent:#0071e3; --accent2:#0058b0;
+      --red:#ff3b30; --orange:#ff9500; --green:#34c759; --purple:#af52de;
+      --bg:#e2e4f0;
+      --text:#1c1c1e; --text2:#3a3a3c; --text3:#8e8e93;
+      --sep:rgba(60,60,67,.08);
+      --spring:cubic-bezier(0.34,1.56,0.64,1);
+      --spring-fast:cubic-bezier(0.34,1.4,0.64,1);
+      --ease-out:cubic-bezier(0.16,1,0.3,1);
+      --lg-shadow:0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.06),0 12px 40px rgba(0,0,0,.06),inset 0 1.5px 0 rgba(255,255,255,.95),inset 0 -1px 0 rgba(0,0,0,.04);
+      --lg-shadow-float:0 2px 4px rgba(0,0,0,.04),0 8px 24px rgba(0,0,0,.08),0 24px 64px rgba(0,0,0,.08),inset 0 1.5px 0 rgba(255,255,255,.95),inset 0 -1px 0 rgba(0,0,0,.04);
+      --lg-shimmer:linear-gradient(135deg,rgba(255,215,235,.14) 0%,rgba(215,195,255,.10) 30%,rgba(185,225,255,.09) 60%,rgba(205,255,220,.07) 100%);
+      --specular:linear-gradient(180deg,rgba(255,255,255,.75) 0%,rgba(255,255,255,.25) 45%,rgba(255,255,255,.0) 68%);
+
+      /* Legacy aliases for JS-generated HTML */
+      --text-primary: var(--text);
+      --text-secondary: var(--text2);
+      --text-tertiary: var(--text3);
+      --blue: var(--accent);
+      --teal: var(--green);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', sans-serif;
+      background: #cce8f5 url('bg.jpg') center center / cover fixed; color: var(--text); min-height: 100vh; min-height: 100dvh;
+      overscroll-behavior: none; -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background: rgba(255,255,255,.18);
+    }
+    body::after { display: none; }
+
+    @keyframes bgShift {
+      0%   { filter: hue-rotate(0deg); }
+      50%  { filter: hue-rotate(8deg); }
+      100% { filter: hue-rotate(-6deg); }
+    }
+
+    /* ── LIQUID GLASS CARD ── */
+    .gc {
+      background: rgba(255,255,255,.38);
+      -webkit-backdrop-filter: saturate(320%) contrast(108%) brightness(110%) blur(30px);
+      backdrop-filter: saturate(320%) contrast(108%) brightness(110%) blur(30px);
+      border: 1.5px solid rgba(255,255,255,.90);
+      border-top-color: rgba(255,255,255,1.0);
+      border-radius: var(--r-lg);
+      box-shadow:
+        0 0 0 1px rgba(180,200,255,.28),
+        0 2px 8px rgba(140,160,220,.12),
+        0 8px 28px rgba(140,160,220,.10),
+        0 20px 48px rgba(0,0,0,.06),
+        inset 0 2.5px 0 rgba(255,255,255,1.0),
+        inset 0 0 0 1px rgba(255,255,255,.55),
+        inset 0 -1px 4px rgba(0,0,0,.03);
+      position: relative; overflow: hidden;
+      transition: transform .32s var(--spring), box-shadow .28s var(--ease-out);
+    }
+    .gc::before {
+      content: ''; position: absolute; inset: 0; border-radius: inherit;
+      background: var(--lg-shimmer); pointer-events: none; z-index: 0;
+    }
+    .gc::after {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 62%; border-radius: inherit;
+      background: linear-gradient(180deg, rgba(255,255,255,.82) 0%, rgba(255,255,255,.35) 30%, rgba(255,255,255,.08) 65%, rgba(255,255,255,.0) 100%);
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ─── Topbar ──────────────────────────────────────── */
+    .topbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: center;
+      padding: calc(env(safe-area-inset-top, 0px) + 8px) 16px 12px;
+      background: transparent;
+    }
+    .tab-nav {
+      display: flex; gap: 4px; padding: 5px;
+      background: rgba(255,255,255,.20);
+      -webkit-backdrop-filter: saturate(360%) contrast(110%) brightness(112%) blur(44px);
+      backdrop-filter: saturate(360%) contrast(110%) brightness(112%) blur(44px);
+      border: 1.5px solid rgba(255,255,255,.78);
+      border-top-color: rgba(255,255,255,1.0);
+      border-radius: var(--r-pill);
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,.22),
+        0 2px 6px rgba(0,0,0,.05),
+        0 8px 28px rgba(0,0,0,.09),
+        inset 0 2.5px 0 rgba(255,255,255,1.0),
+        inset 0 0 0 1px rgba(255,255,255,.42);
+      position: relative; overflow: hidden;
+    }
+    .tab-btn {
+      display: flex; align-items: center; gap: 6px;
+      padding: 9px 18px; border: none; border-radius: var(--r-pill);
+      font-size: 13px; font-weight: 600; color: var(--text2);
+      background: transparent; cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.25s var(--spring), color 0.2s, box-shadow 0.2s;
+      white-space: nowrap; position: relative; z-index: 1;
+    }
+    .tab-btn .ti { font-size: 15px; }
+    .tab-btn.active {
+      background: rgba(255,255,255,.78);
+      color: var(--accent);
+      box-shadow: 0 1px 4px rgba(0,0,0,.10), 0 2px 12px rgba(0,0,0,.06), inset 0 1px 0 rgba(255,255,255,.96);
+    }
+    .tab-btn:active { transform: scale(0.97); }
+
+    /* ─── Page ────────────────────────────────────────── */
+    .page {
+      position: relative; z-index: 1; max-width: 920px; margin: 0 auto;
+      padding: 16px 16px env(safe-area-inset-bottom, 20px);
+      padding-top: calc(64px + env(safe-area-inset-top, 0px) + 16px);
+    }
+
+    /* ─── Header card ────────────────────────────────── */
+    .header-card {
+      background: rgba(255,255,255,.42);
+      -webkit-backdrop-filter: saturate(360%) contrast(110%) brightness(112%) blur(44px);
+      backdrop-filter: saturate(360%) contrast(110%) brightness(112%) blur(44px);
+      border: 1.5px solid rgba(255,255,255,.92);
+      border-top-color: rgba(255,255,255,1.0);
+      border-radius: var(--r-xl);
+      padding: 20px 24px;
+      box-shadow:
+        0 0 0 1px rgba(180,200,255,.22),
+        0 2px 8px rgba(140,160,220,.10),
+        0 8px 32px rgba(0,0,0,.07),
+        inset 0 2.5px 0 rgba(255,255,255,1.0),
+        inset 0 0 0 1px rgba(255,255,255,.60);
+      position: relative; overflow: hidden;
+      display: flex; align-items: center; gap: 20px; margin-bottom: 14px;
+    }
+    .header-card::before {
+      content: ''; position: absolute; inset: 0; border-radius: inherit;
+      background: var(--lg-shimmer); pointer-events: none; z-index: 0;
+    }
+    .header-card::after {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 58%;
+      background: linear-gradient(180deg, rgba(255,255,255,.82) 0%, rgba(255,255,255,.30) 40%, transparent 100%);
+      pointer-events: none; z-index: 0;
+    }
+    .header-logo-wrap {
+      flex-shrink: 0; background: white; border-radius: 18px;
+      box-shadow: 0 4px 20px rgba(0,113,227,.18), inset 0 1px 0 rgba(255,255,255,.5);
+      padding: 10px 18px;
+      display: flex; align-items: center; justify-content: center;
+      position: relative; z-index: 1;
+    }
+    .header-logo { height: 54px; width: auto; object-fit: contain; display: block; }
+    .header-text { position: relative; z-index: 1; }
+    .header-text h1 { font-size: 22px; font-weight: 760; letter-spacing: -0.7px; color: var(--text); line-height: 1.1; }
+    .header-text p  { font-size: 12px; font-weight: 500; color: var(--text2); margin-top: 3px; }
+
+    /* ─── Center selector ────────────────────────────── */
+    .center-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+    .center-btn {
+      display: flex; align-items: center; gap: 14px;
+      padding: 16px 20px; border-radius: var(--r-xl);
+      border: 1.5px solid rgba(255,255,255,.72);
+      background: rgba(255,255,255,.28);
+      -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
+      box-shadow: 0 2px 8px rgba(140,160,220,.10), 0 8px 28px rgba(140,160,220,.08), inset 0 1.5px 0 rgba(255,255,255,1.0);
+      cursor: pointer; text-align: left;
+      -webkit-tap-highlight-color: transparent;
+      transition: border-color 0.2s, background 0.2s, box-shadow 0.2s, transform 0.15s;
+    }
+    .center-btn:active { transform: scale(0.98); }
+    .center-btn.active {
+      border-color: var(--accent);
+      background: rgba(0,113,227,.09);
+      box-shadow: 0 6px 24px rgba(0,113,227,.22), inset 0 1.5px 0 rgba(255,255,255,1.0);
+    }
+    .center-icon {
+      width: 46px; height: 46px; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0;
+      background: rgba(255,255,255,.55); box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      transition: background 0.2s;
+    }
+    .center-btn.active .center-icon { background: rgba(0,113,227,.14); }
+    .center-info { flex: 1; min-width: 0; }
+    .center-name { font-size: 20px; font-weight: 780; letter-spacing: -0.6px; color: var(--text); line-height: 1; transition: color 0.2s; }
+    .center-btn.active .center-name { color: var(--accent); }
+    .center-sub  { font-size: 11px; font-weight: 500; color: var(--text2); margin-top: 2px; }
+    .center-stats { display: flex; gap: 7px; margin-top: 7px; flex-wrap: wrap; }
+    .center-stat-pill { font-size: 11px; font-weight: 650; padding: 2px 9px; border-radius: 20px; }
+    .csp-ok   { background: rgba(52,199,89,.14);  color: #1a8f3c; }
+    .csp-warn { background: rgba(255,149,0,.14);  color: #b86800; }
+    .center-check {
+      width: 22px; height: 22px; border-radius: 50%;
+      border: 2px solid rgba(0,0,0,.14);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; font-size: 12px; color: transparent; transition: all 0.2s;
+    }
+    .center-btn.active .center-check { background: var(--accent); border-color: var(--accent); color: white; }
+
+    /* ─── Tab panes ──────────────────────────────────── */
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+
+    /* ─── Summary strip ──────────────────────────────── */
+    .summary-strip {
+      display: flex; gap: 10px; padding: 14px 16px;
+      border-radius: var(--r-lg); margin-bottom: 16px; flex-wrap: wrap;
+      position: relative; z-index: 1;
+    }
+    .stat-card {
+      display: flex; align-items: center; gap: 10px; padding: 10px 16px;
+      background: rgba(255,255,255,.35);
+      border: 1px solid rgba(255,255,255,.55);
+      border-radius: 16px; flex: 1; min-width: 120px;
+      position: relative; z-index: 1;
+    }
+    .stat-icon { width: 38px; height: 38px; border-radius: 11px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+    .stat-icon.blue   { background: rgba(0,113,227,.14); }
+    .stat-icon.green  { background: rgba(52,199,89,.14); }
+    .stat-icon.orange { background: rgba(255,149,0,.14); }
+    .stat-icon.red    { background: rgba(255,59,48,.14); }
+    .stat-icon.purple { background: rgba(175,82,222,.14); }
+    .stat-info .stat-num { font-size: 22px; font-weight: 750; letter-spacing: -0.8px; line-height: 1; }
+    .stat-info .stat-lbl { font-size: 11px; font-weight: 580; color: var(--text2); margin-top: 2px; }
+
+    /* ─── Buttons ─────────────────────────────────────── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 10px 17px; border-radius: var(--r-pill); border: none;
+      font-size: 14px; font-weight: 620; cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 0.2s var(--spring), box-shadow 0.2s;
+      user-select: none; white-space: nowrap;
+    }
+    .btn:active { transform: scale(0.96); }
+    .btn-primary {
+      background: var(--accent); color: #fff;
+      box-shadow: 0 4px 16px rgba(0,113,227,.38);
+    }
+    .btn-secondary {
+      background: rgba(255,255,255,.65);
+      border: 1px solid rgba(255,255,255,.72);
+      color: var(--text);
+      box-shadow: 0 1px 4px rgba(0,0,0,.05), inset 0 1px 0 rgba(255,255,255,.9);
+    }
+    .btn-green {
+      background: rgba(52,199,89,.14);
+      border: 1px solid rgba(52,199,89,.30);
+      color: #1a8f3c;
+    }
+    .btn-red {
+      background: rgba(255,59,48,.10);
+      border: 1px solid rgba(255,59,48,.20);
+      color: var(--red);
+    }
+    .btn-sm { padding: 6px 12px; font-size: 13px; border-radius: var(--r-sm); }
+    .btn-icon { font-size: 16px; line-height: 1; }
+
+    /* ─── Search ─────────────────────────────────────── */
+    .search-wrap { position: relative; margin-bottom: 14px; }
+    .search-icon { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); font-size: 15px; pointer-events: none; }
+    .search-input {
+      width: 100%; padding: 11px 14px 11px 38px;
+      background: rgba(255,255,255,.55);
+      border: 1px solid rgba(255,255,255,.72);
+      border-top-color: rgba(255,255,255,.90);
+      border-radius: var(--r-md); font-size: 14px; font-family: inherit;
+      color: var(--text); outline: none;
+      box-shadow: inset 0 2px 6px rgba(0,0,0,.04), inset 0 1px 0 rgba(255,255,255,.8);
+      transition: border-color 0.2s, box-shadow 0.2s;
+      -webkit-appearance: none;
+    }
+    .search-input:focus {
+      border-color: rgba(0,113,227,.35);
+      box-shadow: 0 0 0 3.5px rgba(0,113,227,.15), inset 0 2px 6px rgba(0,0,0,.03), inset 0 1px 0 rgba(255,255,255,.8);
+      background: rgba(255,255,255,.75);
+    }
+
+    /* ─── Cat filter pills ───────────────────────────── */
+    .cat-filters { display: flex; gap: 7px; margin-bottom: 14px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+    .cat-filters::-webkit-scrollbar { display: none; }
+    .cat-pill {
+      display: flex; align-items: center; gap: 5px; padding: 6px 13px;
+      border-radius: var(--r-pill);
+      border: 1px solid rgba(255,255,255,.60);
+      background: rgba(255,255,255,.35);
+      font-size: 12px; font-weight: 600; color: var(--text2);
+      cursor: pointer; white-space: nowrap;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.2s, color 0.2s;
+    }
+    .cat-pill.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+    /* ─── Stock table ─────────────────────────────────── */
+    .stock-table { border-radius: var(--r-xl); overflow: hidden; margin-bottom: 14px; }
+    .cat-header-row {
+      display: flex; align-items: center; gap: 10px; padding: 12px 18px;
+      background: rgba(255,255,255,.35);
+      border-bottom: 1px solid rgba(255,255,255,.42);
+      position: relative; z-index: 1;
+    }
+    .cat-icon-badge { width: 30px; height: 30px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+    .cat-header-row .cat-name { font-size: 13px; font-weight: 700; }
+    .cat-count {
+      margin-left: auto; font-size: 11px; font-weight: 600; color: var(--text2);
+      background: rgba(0,0,0,.06); padding: 2px 8px; border-radius: 20px;
+    }
+    .stock-row {
+      display: flex; align-items: center; gap: 12px; padding: 11px 18px;
+      border-bottom: 1px solid rgba(255,255,255,.28);
+      transition: background 0.15s;
+      position: relative; z-index: 1;
+    }
+    .stock-row:last-child { border-bottom: none; }
+    .stock-row:hover { background: rgba(255,255,255,.22); }
+    .stock-info { flex: 1; min-width: 0; }
+    .stock-name { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .stock-meta { display: flex; align-items: center; gap: 8px; margin-top: 2px; }
+    .stock-code { font-size: 11px; color: var(--text2); font-weight: 500; }
+    .stock-price-tag { font-size: 11px; font-weight: 600; color: #1a8f3c; background: rgba(52,199,89,.12); padding: 1px 7px; border-radius: 20px; }
+    .stock-controls { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .stock-level-badge { min-width: 54px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 15px; font-weight: 750; padding: 0 10px; }
+    .slb-ok    { background: rgba(52,199,89,.14);  color: #1a8f3c; }
+    .slb-warn  { background: rgba(255,149,0,.14);  color: #b86800; }
+    .slb-low   { background: rgba(255,59,48,.14);  color: #c0271f; }
+    .slb-empty { background: rgba(0,0,0,.07);      color: var(--text2); }
+    .stock-unit-label { font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.4px; min-width: 28px; }
+    .stock-bar-wrap { width: 54px; height: 5px; border-radius: 3px; background: rgba(0,0,0,.08); overflow: hidden; }
+    .stock-bar-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
+    .qty-btn {
+      width: 30px; height: 30px; border-radius: 8px; border: none;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; font-weight: 500; cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.15s, transform 0.1s; flex-shrink: 0;
+    }
+    .qty-btn:active { transform: scale(0.88); }
+    .qty-btn.minus { background: rgba(255,59,48,.10); color: var(--red); border: 1px solid rgba(255,59,48,.20); }
+    .qty-btn.plus  { background: rgba(52,199,89,.12);  color: #1a8f3c; border: 1px solid rgba(52,199,89,.24); }
+
+    /* ─── Movement log ───────────────────────────────── */
+    .mov-toolbar { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+    .date-filter-group { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 170px; }
+    .date-filter-group label { font-size: 12px; font-weight: 580; color: var(--text2); white-space: nowrap; }
+    .date-filter-group input[type="date"],
+    .date-filter-group select {
+      padding: 8px 10px;
+      background: rgba(255,255,255,.55);
+      border: 1px solid rgba(255,255,255,.72);
+      border-radius: var(--r-sm);
+      font-size: 13px; font-family: inherit; color: var(--text);
+      outline: none; -webkit-appearance: none; flex: 1;
+    }
+    .mov-list { display: flex; flex-direction: column; gap: 8px; }
+    .mov-card { display: flex; align-items: center; gap: 12px; padding: 13px 18px; border-radius: var(--r-lg); }
+    .mov-type-icon { width: 38px; height: 38px; border-radius: 11px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; position: relative; z-index: 1; }
+    .mov-type-icon.entrada { background: rgba(52,199,89,.14); }
+    .mov-type-icon.salida  { background: rgba(255,59,48,.12); }
+    .mov-info { flex: 1; min-width: 0; position: relative; z-index: 1; }
+    .mov-supply-name { font-size: 14px; font-weight: 620; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mov-details { display: flex; align-items: center; gap: 8px; margin-top: 3px; flex-wrap: wrap; }
+    .mov-date { font-size: 11px; color: var(--text2); }
+    .mov-note { font-size: 11px; color: var(--text2); font-style: italic; }
+    .mov-qty-badge { font-size: 15px; font-weight: 750; padding: 4px 12px; border-radius: 20px; flex-shrink: 0; position: relative; z-index: 1; }
+    .mov-qty-badge.entrada { background: rgba(52,199,89,.14); color: #1a8f3c; }
+    .mov-qty-badge.salida  { background: rgba(255,59,48,.12); color: #c0271f; }
+
+    /* ─── Charts ─────────────────────────────────────── */
+    .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+    .chart-card { padding: 20px; border-radius: var(--r-xl); }
+    .chart-card.full { grid-column: 1 / -1; }
+    .chart-title { font-size: 14px; font-weight: 700; margin-bottom: 4px; position: relative; z-index: 1; }
+    .chart-subtitle { font-size: 11px; color: var(--text2); margin-bottom: 16px; position: relative; z-index: 1; }
+    .chart-range-btns { display: flex; gap: 5px; margin-bottom: 14px; position: relative; z-index: 1; }
+    .range-btn {
+      padding: 5px 11px; border-radius: var(--r-pill);
+      border: 1px solid rgba(255,255,255,.60);
+      background: rgba(255,255,255,.38);
+      font-size: 12px; font-weight: 600; color: var(--text2);
+      cursor: pointer; transition: all 0.18s;
+    }
+    .range-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+    /* ─── Gestión ────────────────────────────────────── */
+    .gestion-table { border-radius: var(--r-xl); overflow: hidden; margin-bottom: 14px; }
+    .gestion-row {
+      display: flex; align-items: center; gap: 10px; padding: 11px 18px;
+      border-bottom: 1px solid rgba(255,255,255,.28);
+      transition: background 0.15s; position: relative; z-index: 1;
+    }
+    .gestion-row:last-child { border-bottom: none; }
+    .gestion-row:hover { background: rgba(255,255,255,.22); }
+    .gestion-info { flex: 1; min-width: 0; }
+    .gestion-name { font-size: 14px; font-weight: 600; }
+    .gestion-sub  { font-size: 11px; color: var(--text2); margin-top: 1px; }
+    .price-input-wrap { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
+    .price-prefix { font-size: 13px; color: var(--text2); }
+    .price-input {
+      width: 88px; padding: 6px 9px;
+      background: rgba(255,255,255,.55);
+      border: 1px solid rgba(255,255,255,.72);
+      border-radius: 9px; font-size: 14px; font-weight: 600;
+      font-family: inherit; color: var(--text); text-align: right; outline: none;
+    }
+    .price-input:focus { border-color: rgba(0,113,227,.40); }
+    .min-stock-input {
+      width: 60px; padding: 6px 9px;
+      background: rgba(255,255,255,.55);
+      border: 1px solid rgba(255,255,255,.72);
+      border-radius: 9px; font-size: 14px; font-weight: 600;
+      font-family: inherit; color: var(--text); text-align: center; outline: none;
+    }
+
+    /* ─── Modals ─────────────────────────────────────── */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(10,20,40,.45);
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      display: flex; align-items: flex-end; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity 0.25s;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal-sheet {
+      width: 100%; max-width: 560px;
+      background: rgba(255,255,255,.88);
+      -webkit-backdrop-filter: saturate(360%) contrast(110%) brightness(112%) blur(44px);
+      backdrop-filter: saturate(360%) contrast(110%) brightness(112%) blur(44px);
+      border: 1.5px solid rgba(255,255,255,.92);
+      border-top-color: rgba(255,255,255,1.0);
+      border-radius: 28px 28px 0 0;
+      box-shadow: 0 -4px 32px rgba(0,0,0,.12), inset 0 2px 0 rgba(255,255,255,1.0);
+      padding: 8px 0 env(safe-area-inset-bottom, 24px);
+      transform: translateY(100%);
+      transition: transform 0.32s cubic-bezier(0.32,0.72,0,1);
+      max-height: 90dvh; overflow-y: auto;
+    }
+    .modal-overlay.open .modal-sheet { transform: translateY(0); }
+    .modal-handle { width: 36px; height: 4px; border-radius: 2px; background: rgba(0,0,0,.15); margin: 10px auto 18px; }
+    .modal-title { font-size: 18px; font-weight: 750; letter-spacing: -0.5px; padding: 0 24px; margin-bottom: 20px; }
+    .modal-body { padding: 0 24px; }
+    .form-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+    .form-group label { font-size: 12px; font-weight: 580; color: var(--text2); }
+    .form-group input, .form-group textarea, .form-group select {
+      padding: 10px 13px;
+      background: rgba(255,255,255,.65);
+      border: 1px solid rgba(255,255,255,.80);
+      border-radius: var(--r-md);
+      font-size: 14px; color: var(--text); font-family: inherit;
+      outline: none; -webkit-appearance: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+      border-color: rgba(0,113,227,.40);
+      box-shadow: 0 0 0 3px rgba(0,113,227,.12);
+      background: rgba(255,255,255,.85);
+    }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .mov-type-toggle { display: flex; gap: 8px; }
+    .type-toggle-btn {
+      flex: 1; padding: 11px; border-radius: var(--r-pill);
+      border: 1.5px solid transparent;
+      font-size: 14px; font-weight: 650; cursor: pointer;
+      text-align: center; transition: all 0.18s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .type-toggle-btn.entrada { background: rgba(52,199,89,.10); border-color: rgba(52,199,89,.22); color: #1a8f3c; }
+    .type-toggle-btn.entrada.selected { background: var(--green); border-color: var(--green); color: white; box-shadow: 0 4px 12px rgba(52,199,89,.35); }
+    .type-toggle-btn.salida  { background: rgba(255,59,48,.10); border-color: rgba(255,59,48,.18); color: #c0271f; }
+    .type-toggle-btn.salida.selected  { background: var(--red); border-color: var(--red); color: white; box-shadow: 0 4px 12px rgba(255,59,48,.35); }
+    .modal-footer { display: flex; gap: 8px; padding: 16px 24px 0; }
+    .modal-footer .btn { flex: 1; justify-content: center; }
+
+    /* ─── Confirm ────────────────────────────────────── */
+    .confirm-overlay {
+      position: fixed; inset: 0; z-index: 250;
+      background: rgba(10,20,40,.50);
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.2s;
+    }
+    .confirm-overlay.open { opacity: 1; pointer-events: all; }
+    .confirm-box {
+      background: rgba(255,255,255,.88);
+      -webkit-backdrop-filter: saturate(360%) contrast(110%) brightness(112%) blur(44px);
+      backdrop-filter: saturate(360%) contrast(110%) brightness(112%) blur(44px);
+      border: 1.5px solid rgba(255,255,255,.92);
+      border-top-color: rgba(255,255,255,1.0);
+      border-radius: var(--r-xl); padding: 28px 24px 20px;
+      max-width: 340px; width: 100%; text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,.18), inset 0 2px 0 rgba(255,255,255,1.0);
+      transform: scale(0.90); transition: transform 0.2s;
+    }
+    .confirm-overlay.open .confirm-box { transform: scale(1); }
+    .confirm-box h3 { font-size: 17px; font-weight: 750; margin-bottom: 8px; }
+    .confirm-box p  { font-size: 14px; color: var(--text2); margin-bottom: 20px; }
+    .confirm-box .btn-row { display: flex; gap: 8px; }
+    .confirm-box .btn-row .btn { flex: 1; justify-content: center; }
+
+    /* ─── Empty / toast / footer ─────────────────────── */
+    .empty-state { text-align: center; padding: 48px 24px; color: var(--text2); position: relative; z-index: 1; }
+    .empty-state .es-icon { font-size: 48px; margin-bottom: 12px; }
+    .empty-state p { font-size: 14px; }
+    .toast-container {
+      position: fixed; bottom: calc(env(safe-area-inset-bottom, 0px) + 24px);
+      left: 50%; transform: translateX(-50%); z-index: 300;
+      display: flex; flex-direction: column; gap: 8px;
+      pointer-events: none; align-items: center;
+    }
+    .toast {
+      display: flex; align-items: center; gap: 8px; padding: 11px 18px;
+      border-radius: var(--r-pill);
+      background: rgba(30,40,60,.90);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      color: white; font-size: 13px; font-weight: 580;
+      box-shadow: 0 4px 20px rgba(0,0,0,.28);
+      animation: toastIn 0.25s ease, toastOut 0.3s ease 2.4s forwards;
+      white-space: nowrap;
+    }
+    @keyframes toastIn  { from { opacity:0; transform:translateY(10px) } to { opacity:1; transform:translateY(0) } }
+    @keyframes toastOut { from { opacity:1 } to { opacity:0 } }
+    .footer {
+      text-align: center; padding: 28px 0 8px;
+      font-size: 11px; color: var(--text3);
+      display: flex; align-items: center; justify-content: center;
+      gap: 10px; flex-wrap: wrap;
+      position: relative; z-index: 1;
+    }
+    .version-badge {
+      display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px;
+      border-radius: 20px; background: rgba(0,113,227,.10);
+      border: 1px solid rgba(0,113,227,.20);
+      color: var(--accent); font-size: 11px; font-weight: 650; letter-spacing: 0.2px;
+    }
+    .btn-refresh {
+      display: inline-flex; align-items: center; gap: 5px; padding: 5px 13px;
+      border-radius: 20px; border: 1px solid rgba(0,113,227,.28);
+      background: rgba(0,113,227,.08); color: var(--accent);
+      font-size: 11px; font-weight: 650; cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .btn-refresh:active { transform: scale(0.96); background: rgba(0,113,227,.16); }
+    .btn-refresh.spin .refresh-icon { animation: spin 0.7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ─── Login overlay ──────────────────────────────── */
+    .login-overlay {
+      position: fixed; inset: 0; z-index: 500;
+      display: flex; align-items: center; justify-content: center;
+      background:
+        radial-gradient(ellipse 80% 60% at 15% 20%, rgba(180,200,255,.55) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 70% at 85% 10%, rgba(200,180,255,.40) 0%, transparent 55%),
+        radial-gradient(ellipse 70% 50% at 50% 85%, rgba(170,220,255,.45) 0%, transparent 60%),
+        linear-gradient(160deg, #dde0f0 0%, #e4e2f4 35%, #dde8f2 65%, #e0e8f8 100%);
+      opacity: 0; pointer-events: none; transition: opacity 0.3s;
+    }
+    .login-overlay.visible { opacity: 1; pointer-events: auto; }
+    .login-card {
+      width: min(380px, 90vw); padding: 40px 32px;
+      border-radius: var(--r-xl); text-align: center;
+    }
+    .login-logo-wrap {
+      width: 90px; height: 90px; background: white; border-radius: 22px;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 22px;
+      box-shadow: 0 6px 28px rgba(0,113,227,.18), inset 0 1.5px 0 rgba(255,255,255,1.0);
+    }
+    .login-logo { height: 60px; width: auto; object-fit: contain; }
+    .login-title { font-size: 22px; font-weight: 760; letter-spacing: -0.6px; color: var(--text); margin-bottom: 6px; position: relative; z-index: 1; }
+    .login-sub { font-size: 13px; color: var(--text2); margin-bottom: 28px; position: relative; z-index: 1; }
+    .btn-google {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      width: 100%; padding: 14px; border-radius: var(--r-pill);
+      border: 1.5px solid rgba(255,255,255,.80);
+      background: rgba(255,255,255,.88); cursor: pointer;
+      font-size: 15px; font-weight: 650; color: var(--text);
+      box-shadow: 0 4px 16px rgba(0,0,0,.08), inset 0 1px 0 rgba(255,255,255,.95);
+      transition: transform 0.15s var(--spring), box-shadow 0.15s;
+      -webkit-tap-highlight-color: transparent;
+      position: relative; z-index: 1;
+    }
+    .btn-google:active { transform: scale(0.97); }
+    .btn-google img { width: 20px; height: 20px; }
+    .unauthorized-msg {
+      margin-top: 18px; padding: 14px; border-radius: var(--r-md);
+      background: rgba(255,59,48,.10); border: 1px solid rgba(255,59,48,.22);
+      color: var(--red); font-size: 13px; font-weight: 580;
+      display: none; position: relative; z-index: 1;
+    }
+    .login-signout { margin-top: 12px; font-size: 12px; color: var(--text2); cursor: pointer; text-decoration: underline; position: relative; z-index: 1; }
+
+    /* ─── User bar ───────────────────────────────────── */
+    .user-bar {
+      display: flex; align-items: center; gap: 8px; padding: 8px 14px;
+      border-radius: var(--r-pill);
+      background: rgba(255,255,255,.45);
+      border: 1px solid rgba(255,255,255,.70);
+      box-shadow: 0 1px 4px rgba(0,0,0,.05), inset 0 1px 0 rgba(255,255,255,.9);
+      margin-left: auto; flex-wrap: wrap;
+      position: relative; z-index: 1;
+    }
+    .user-bar img { width: 28px; height: 28px; border-radius: 50%; border: 2px solid rgba(255,255,255,.80); flex-shrink: 0; }
+    .user-name { font-size: 12px; font-weight: 600; color: var(--text); }
+    .user-role-badge { font-size: 10px; padding: 2px 7px; border-radius: 10px; background: rgba(0,113,227,.12); color: var(--accent); font-weight: 700; }
+    .btn-signout {
+      padding: 4px 11px; border-radius: var(--r-pill);
+      border: 1px solid rgba(0,0,0,.10);
+      background: rgba(255,255,255,.60);
+      font-size: 11px; font-weight: 600; color: var(--text2);
+      cursor: pointer; -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ─── Admin section ──────────────────────────────── */
+    .admin-section { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--sep); }
+    .admin-section-title { font-size: 16px; font-weight: 720; color: var(--text); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+    .admin-user-row {
+      display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+      border-radius: 14px;
+      background: rgba(255,255,255,.42);
+      border: 1px solid rgba(255,255,255,.65);
+      box-shadow: 0 1px 4px rgba(0,0,0,.04), inset 0 1px 0 rgba(255,255,255,.9);
+      margin-bottom: 8px;
+    }
+    .admin-user-email { flex: 1; font-size: 13px; font-weight: 580; color: var(--text); }
+    .admin-user-role { font-size: 11px; padding: 2px 8px; border-radius: 10px; background: rgba(0,113,227,.10); color: var(--accent); font-weight: 680; }
+    .btn-remove-user {
+      padding: 4px 10px; border-radius: 10px;
+      border: 1px solid rgba(255,59,48,.25);
+      background: rgba(255,59,48,.08);
+      color: var(--red); font-size: 11px; font-weight: 650; cursor: pointer;
+    }
+    .admin-add-row { display: flex; gap: 8px; margin-top: 12px; }
+    .admin-add-row input {
+      flex: 1; padding: 10px 14px; border-radius: var(--r-md);
+      border: 1px solid rgba(255,255,255,.72);
+      background: rgba(255,255,255,.65);
+      font-size: 13px; font-family: inherit; outline: none;
+    }
+
+    /* ─── Update banner ──────────────────────────────── */
+    .update-banner {
+      position: fixed; top: calc(env(safe-area-inset-top, 0px) + 56px);
+      left: 50%; transform: translateX(-50%) translateY(-80px);
+      z-index: 200; display: flex; align-items: center; gap: 10px;
+      padding: 10px 16px 10px 14px; border-radius: var(--r-pill);
+      background: rgba(30,40,60,.92);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      color: white; font-size: 13px; font-weight: 580;
+      box-shadow: 0 6px 28px rgba(0,0,0,.28);
+      white-space: nowrap;
+      transition: transform 0.35s var(--spring), opacity 0.3s;
+      opacity: 0; pointer-events: none;
+    }
+    .update-banner.visible { transform: translateX(-50%) translateY(0); opacity: 1; pointer-events: auto; }
+    .update-banner-btn {
+      padding: 5px 13px; border-radius: var(--r-pill);
+      background: var(--accent); border: none;
+      color: white; font-size: 12px; font-weight: 680; cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ─── Responsive ─────────────────────────────────── */
+    @media (max-width: 600px) {
+      .tab-btn span.label { display: none; }
+      .tab-btn { padding: 9px 12px; }
+      .tab-btn .ti { font-size: 18px; }
+      .chart-grid { grid-template-columns: 1fr; }
+      .form-row { grid-template-columns: 1fr; }
+      .stock-controls .stock-bar-wrap { display: none; }
+      .header-logo { height: 40px; }
+      .center-name { font-size: 17px; }
+    }
+    @media (max-width: 380px) {
+      .center-selector { grid-template-columns: 1fr; }
+    }
+
+    /* ─── Sidebar ────────────────────────────────────────── */
+    #sidebar {
+      position: fixed; left: 0; top: 0; bottom: 0; width: 280px; z-index: 300;
+      background: rgba(255,255,255,.28);
+      -webkit-backdrop-filter: saturate(320%) contrast(108%) brightness(110%) blur(40px);
+      backdrop-filter: saturate(320%) contrast(108%) brightness(110%) blur(40px);
+      border-right: 1.5px solid rgba(255,255,255,.85);
+      box-shadow: 2px 0 32px rgba(140,160,220,.12), inset -1px 0 0 rgba(255,255,255,.9);
+      display: flex; flex-direction: column;
+      padding: calc(env(safe-area-inset-top,0px) + 20px) 16px calc(env(safe-area-inset-bottom,0px) + 20px);
+      transition: transform .38s cubic-bezier(0.34,1.56,0.64,1);
+      overflow-y: auto;
+    }
+    @media (max-width: 899px) {
+      #sidebar { transform: translateX(-100%); }
+      #sidebar.open { transform: translateX(0); }
+    }
+    @media (min-width: 900px) {
+      #sidebar { transform: translateX(0); }
+      .topbar { display: none !important; }
+      .page { margin-left: 280px; padding-top: 16px; }
+      #hamburger-btn { display: none; }
+      #sidebar-overlay { display: none !important; }
+    }
+    #sidebar-overlay {
+      display: none; position: fixed; inset: 0; z-index: 299;
+      background: rgba(0,0,0,.22);
+      -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+    }
+    .sb-logo { text-align: center; padding: 8px 0 20px; }
+    .sb-logo img { height: 60px; width: auto; object-fit: contain; }
+    .sb-title { font-size: .75rem; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: .8px; text-align: center; margin-top: 4px; }
+    .sb-sep { height: 1px; background: var(--sep); margin: 12px 0; }
+    .sb-nav { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+    .sb-btn {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 16px; border-radius: var(--r-md);
+      border: none; background: transparent; cursor: pointer;
+      font-size: .9rem; font-weight: 600; color: var(--text2);
+      text-align: left; width: 100%;
+      transition: background .2s, color .2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .sb-btn svg { flex-shrink: 0; }
+    .sb-btn.active { background: rgba(0,113,227,.10); color: var(--accent); }
+    .sb-btn:active { transform: scale(.97); }
+    .sb-footer { margin-top: auto; padding-top: 16px; border-top: 1px solid var(--sep); }
+    .sb-user { display: flex; align-items: center; gap: 10px; padding: 8px 0; }
+    .sb-user-name { font-size: .82rem; font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+    .sb-signout { font-size: .75rem; color: var(--red); cursor: pointer; background: none; border: none; font-weight: 600; padding: 4px 0; }
+    #hamburger-btn {
+      width: 44px; height: 44px; border-radius: 50%;
+      background: rgba(255,255,255,.55);
+      -webkit-backdrop-filter: saturate(320%) blur(20px);
+      backdrop-filter: saturate(320%) blur(20px);
+      border: 1.5px solid rgba(255,255,255,.80);
+      box-shadow: 0 2px 8px rgba(0,0,0,.08), inset 0 1px 0 rgba(255,255,255,.9);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; flex-shrink: 0; margin-right: 8px;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform .15s var(--spring);
+    }
+    #hamburger-btn:active { transform: scale(.92); }
+    /* ─── Center cards ───────────────────────────────────── */
+    .home-hero { text-align: center; padding: 24px 0 20px; position: relative; z-index: 1; }
+    .home-title { font-size: 1.6rem; font-weight: 800; letter-spacing: -.6px; color: var(--text); }
+    .home-sub { font-size: .85rem; color: var(--text3); margin-top: 6px; }
+    .center-cards-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    @media (max-width: 480px) { .center-cards-grid { grid-template-columns: 1fr; } }
+    .center-card {
+      padding: 28px 20px 20px;
+      display: flex; flex-direction: column; align-items: center;
+      gap: 8px; text-align: center; cursor: pointer; border: none;
+      position: relative; overflow: hidden;
+      transition: transform .3s var(--spring);
+    }
+    .center-card:active { transform: scale(.96); }
+    .center-card-icon {
+      width: 80px; height: 80px; border-radius: 24px;
+      display: flex; align-items: center; justify-content: center; margin-bottom: 4px;
+      border: 1.5px solid rgba(255,255,255,.7);
+      box-shadow: 0 2px 12px rgba(0,0,0,.06), inset 0 1px 0 rgba(255,255,255,.9);
+    }
+    .center-card-name { font-size: 1.5rem; font-weight: 800; letter-spacing: -.5px; color: var(--text); }
+    .center-card-address { font-size: .75rem; color: var(--text3); font-weight: 500; }
+    .center-card-stats { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin-top: 4px; }
+    .center-card-arrow { position: absolute; top: 16px; right: 16px; color: var(--text3); }
+    .csp-pill { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: .65rem; font-weight: 700; }
+    .csp-ok  { background: rgba(52,199,89,.15); color: #1a8a3a; }
+    .csp-warn { background: rgba(255,149,0,.15); color: #b85c00; }
+    .combined-stats { display: flex; justify-content: space-around; padding: 20px; border-radius: var(--r-xl); }
+    .combined-stat { text-align: center; }
+    .cs-num { font-size: 1.8rem; font-weight: 800; letter-spacing: -.5px; color: var(--text); }
+    .cs-lbl { font-size: .65rem; color: var(--text3); text-transform: uppercase; letter-spacing: .5px; margin-top: 2px; }
+    /* ─── Center back header ─────────────────────────────── */
+    .center-back-header {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 0 14px; margin-bottom: 4px; position: relative; z-index: 1;
+    }
+    .center-back-btn {
+      display: flex; align-items: center; justify-content: center;
+      width: 36px; height: 36px; border-radius: 50%;
+      background: rgba(255,255,255,.55);
+      border: 1.5px solid rgba(255,255,255,.80);
+      box-shadow: 0 1px 4px rgba(0,0,0,.06), inset 0 1px 0 rgba(255,255,255,.9);
+      cursor: pointer; flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform .15s var(--spring);
+    }
+    .center-back-btn:active { transform: scale(.93); }
+    .center-back-name { font-size: .95rem; font-weight: 700; color: var(--text); }
+    /* ─── Chart center toggle ────────────────────────────── */
+    .chart-center-toggle { display: flex; gap: 5px; margin-bottom: 10px; position: relative; z-index: 1; }
+    .cct-btn {
+      padding: 5px 11px; border-radius: var(--r-pill);
+      border: 1px solid rgba(255,255,255,.60);
+      background: rgba(255,255,255,.38);
+      font-size: 12px; font-weight: 600; color: var(--text2);
+      cursor: pointer; transition: all .18s;
+    }
+    .cct-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+  </style>
+</head>
+<body>
+
+<!-- ─── Login overlay ────────────────────────────────── -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-card gc">
+    <div class="login-logo-wrap">
+      <img src="logo.png" alt="CIMA" class="login-logo" />
+    </div>
+    <div class="login-title">Stock de Insumos</div>
+    <div class="login-sub">CIMA · Acceso exclusivo para personal autorizado</div>
+    <button class="btn-google" id="loginBtn" onclick="signIn()">
+      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" />
+      Iniciar sesión con Google
+    </button>
+    <div class="unauthorized-msg" id="unauthorizedMsg">
+      ⛔ Tu cuenta no está autorizada para acceder a este sistema.<br>Contactá al administrador para solicitar acceso.
+    </div>
+    <div class="login-signout" id="loginSignout" style="display:none" onclick="signOut()">Usar otra cuenta</div>
+  </div>
+</div>
+
+<!-- ─── Sidebar overlay ──────────────────────────────── -->
+<div id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+<!-- ─── Sidebar ──────────────────────────────────────── -->
+<div id="sidebar">
+  <div class="sb-logo">
+    <img src="logo.png" alt="CIMA" />
+    <div class="sb-title">Stock de Insumos</div>
+  </div>
+  <div class="sb-sep"></div>
+  <nav class="sb-nav">
+    <button class="sb-btn active" data-tab="inventario" onclick="sidebarNav('inventario')">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="2" y="2" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.7"/><rect x="11" y="2" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.7"/><rect x="2" y="11" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.7"/><rect x="11" y="11" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.7"/></svg>
+      Inventario
+    </button>
+    <button class="sb-btn" data-tab="movimientos" onclick="sidebarNav('movimientos')">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 3v14M5 8l5-5 5 5M5 12l5 5 5-5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Movimientos
+    </button>
+    <button class="sb-btn" data-tab="graficas" onclick="sidebarNav('graficas')">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 14l4-5 4 3 4-6 2 2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 17h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Gráficas
+    </button>
+    <button class="sb-btn" data-tab="gestion" onclick="sidebarNav('gestion')">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="2.5" stroke="currentColor" stroke-width="1.7"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.42 1.42M14.36 14.36l1.42 1.42M4.22 15.78l1.42-1.42M14.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Gestión
+    </button>
+  </nav>
+  <div class="sb-footer">
+    <div class="sb-user">
+      <span class="sb-user-name" id="sbUserName">—</span>
+    </div>
+    <button class="sb-signout" onclick="signOut()">Cerrar sesión</button>
+  </div>
+</div>
+
+<!-- ─── Main App (visible solo cuando autenticado) ───── -->
+<div id="mainApp" style="display:none">
+
+<!-- ─── Topbar ───────────────────────────────────────── -->
+<div class="topbar">
+  <button id="hamburger-btn" onclick="toggleSidebar()" aria-label="Menu"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+  <nav class="tab-nav" role="tablist">
+    <button class="tab-btn active" onclick="switchTab('inventario',this)"><span class="ti">📦</span><span class="label">Inventario</span></button>
+    <button class="tab-btn"        onclick="switchTab('movimientos',this)"><span class="ti">↕️</span><span class="label">Movimientos</span></button>
+    <button class="tab-btn"        onclick="switchTab('graficas',this)"><span class="ti">📊</span><span class="label">Gráficas</span></button>
+    <button class="tab-btn"        onclick="switchTab('gestion',this)"><span class="ti">⚙️</span><span class="label">Gestión</span></button>
+  </nav>
+</div>
+
+<div class="page">
+
+  <!-- Header con logo grande -->
+  <header class="header-card gc">
+    <div class="header-logo-wrap">
+      <img src="logo.png" alt="CIMA" class="header-logo" />
+    </div>
+    <div class="header-text">
+      <h1>Stock de Insumos</h1>
+      <p>CIMA · Control de Inventario por Depósito</p>
+    </div>
+    <div class="user-bar" id="userBar"></div>
+  </header>
+
+  <!-- Home screen: selección de centro -->
+  <div id="home-screen">
+    <div class="home-hero">
+      <h2 class="home-title">Seleccioná un centro</h2>
+      <p class="home-sub">Accedé al stock de insumos por sede</p>
+    </div>
+    <div class="center-cards-grid">
+      <button class="center-card gc" onclick="enterCenter('GN')">
+        <div class="center-card-icon" style="background:rgba(0,113,227,.12)">
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+            <rect x="8" y="16" width="32" height="28" rx="3" fill="#0071e3" opacity=".18"/>
+            <rect x="8" y="16" width="32" height="28" rx="3" stroke="#0071e3" stroke-width="2.5"/>
+            <rect x="20" y="28" width="8" height="16" rx="1.5" fill="#0071e3" opacity=".5"/>
+            <rect x="13" y="22" width="6" height="5" rx="1" fill="#0071e3" opacity=".6"/>
+            <rect x="29" y="22" width="6" height="5" rx="1" fill="#0071e3" opacity=".6"/>
+            <path d="M4 16 L24 4 L44 16" stroke="#0071e3" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M22 10 h4 M24 8 v4" stroke="#0071e3" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="center-card-name">GN</div>
+        <div class="center-card-address">Guardias Nacionales 1380</div>
+        <div class="center-card-stats" id="home-stats-GN">
+          <span class="csp-pill csp-ok">Cargando…</span>
+        </div>
+        <div class="center-card-arrow">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M8 5l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </button>
+      <button class="center-card gc" onclick="enterCenter('Sarmiento')">
+        <div class="center-card-icon" style="background:rgba(48,209,88,.12)">
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+            <rect x="8" y="16" width="32" height="28" rx="3" fill="#34c759" opacity=".18"/>
+            <rect x="8" y="16" width="32" height="28" rx="3" stroke="#34c759" stroke-width="2.5"/>
+            <rect x="20" y="28" width="8" height="16" rx="1.5" fill="#34c759" opacity=".5"/>
+            <rect x="13" y="22" width="6" height="5" rx="1" fill="#34c759" opacity=".6"/>
+            <rect x="29" y="22" width="6" height="5" rx="1" fill="#34c759" opacity=".6"/>
+            <path d="M4 16 L24 4 L44 16" stroke="#34c759" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M22 10 h4 M24 8 v4" stroke="#34c759" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="center-card-name">Sarmiento</div>
+        <div class="center-card-address">Sarmiento 1212</div>
+        <div class="center-card-stats" id="home-stats-Sarmiento">
+          <span class="csp-pill csp-ok">Cargando…</span>
+        </div>
+        <div class="center-card-arrow">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M8 5l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </button>
+    </div>
+    <div class="combined-stats gc">
+      <div class="combined-stat"><div class="cs-num" id="combined-total">—</div><div class="cs-lbl">Insumos totales</div></div>
+      <div class="combined-stat"><div class="cs-num" id="combined-ok">—</div><div class="cs-lbl">Stock OK</div></div>
+      <div class="combined-stat"><div class="cs-num" id="combined-low">—</div><div class="cs-lbl">Stock bajo</div></div>
+    </div>
+  </div>
+
+  <!-- Center content wrapper -->
+  <div id="center-content" style="display:none">
+    <div class="center-back-header" id="center-back-header" style="display:none">
+      <button class="center-back-btn" onclick="backToHome()">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M11 4l-5 5 5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <span class="center-back-name" id="center-back-name"></span>
+    </div>
+
+  <!-- ════ INVENTARIO ════ -->
+  <div class="tab-pane active" id="tab-inventario">
+    <div class="summary-strip gc">
+      <div class="stat-card"><div class="stat-icon blue">📦</div><div class="stat-info"><div class="stat-num" id="stat-total">0</div><div class="stat-lbl">Tipos de insumo</div></div></div>
+      <div class="stat-card"><div class="stat-icon green">✅</div><div class="stat-info"><div class="stat-num" id="stat-ok">0</div><div class="stat-lbl">Stock OK</div></div></div>
+      <div class="stat-card"><div class="stat-icon orange">⚠️</div><div class="stat-info"><div class="stat-num" id="stat-low">0</div><div class="stat-lbl">Stock bajo</div></div></div>
+      <div class="stat-card"><div class="stat-icon purple">💰</div><div class="stat-info"><div class="stat-num" id="stat-valor">$0</div><div class="stat-lbl">Valor en stock</div></div></div>
+    </div>
+    <div class="search-wrap"><span class="search-icon">🔍</span><input class="search-input" type="search" id="invSearch" placeholder="Buscar insumo…" oninput="renderInventario()" autocomplete="off" /></div>
+    <div class="cat-filters" id="invCatFilters"></div>
+    <div id="invContainer"></div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:16px" onclick="openMovModal(null,'entrada')"><span class="btn-icon">+</span> Registrar entrada de stock</button>
+  </div>
+
+  <!-- ════ MOVIMIENTOS ════ -->
+  <div class="tab-pane" id="tab-movimientos">
+    <div class="mov-toolbar">
+      <button class="btn btn-primary" onclick="openMovModal(null,'entrada')"><span class="btn-icon">📥</span> Entrada</button>
+      <button class="btn btn-red"     onclick="openMovModal(null,'salida')"><span class="btn-icon">📤</span> Salida</button>
+      <div class="date-filter-group"><label>Desde</label><input type="date" id="movDateFrom" onchange="renderMovimientos()" /></div>
+      <div class="date-filter-group"><label>Hasta</label><input type="date" id="movDateTo"   onchange="renderMovimientos()" /></div>
+      <div class="date-filter-group"><select id="movTypeFilter" onchange="renderMovimientos()"><option value="">Todos</option><option value="entrada">Solo entradas</option><option value="salida">Solo salidas</option></select></div>
+    </div>
+    <div class="summary-strip gc" style="margin-bottom:16px">
+      <div class="stat-card"><div class="stat-icon green">📥</div><div class="stat-info"><div class="stat-num" id="mov-stat-entradas">0</div><div class="stat-lbl">Entradas (período)</div></div></div>
+      <div class="stat-card"><div class="stat-icon red">📤</div><div class="stat-info"><div class="stat-num" id="mov-stat-salidas">0</div><div class="stat-lbl">Salidas (período)</div></div></div>
+      <div class="stat-card"><div class="stat-icon orange">💸</div><div class="stat-info"><div class="stat-num" id="mov-stat-gasto">$0</div><div class="stat-lbl">Gasto período</div></div></div>
+    </div>
+    <div class="mov-list" id="movContainer"></div>
+  </div>
+
+  </div><!-- /center-content -->
+
+  <!-- ════ GRÁFICAS ════ -->
+  <div class="tab-pane" id="tab-graficas">
+    <div class="chart-grid">
+      <div class="chart-card gc full">
+        <div class="chart-title">Salidas por día</div>
+        <div class="chart-subtitle" id="chart-center-label">Unidades totales salidas del depósito</div>
+        <div class="chart-center-toggle">
+          <button class="cct-btn active" onclick="setChartCenter('GN',this)">GN</button>
+          <button class="cct-btn" onclick="setChartCenter('Sarmiento',this)">Sarmiento</button>
+          <button class="cct-btn" onclick="setChartCenter('ambos',this)">Ambos</button>
+        </div>
+        <div class="chart-range-btns">
+          <button class="range-btn active" onclick="setChartRange(7,this)">7 días</button>
+          <button class="range-btn"        onclick="setChartRange(14,this)">14 días</button>
+          <button class="range-btn"        onclick="setChartRange(30,this)">30 días</button>
+        </div>
+        <canvas id="chartSalidasDia" height="180"></canvas>
+      </div>
+      <div class="chart-card gc">
+        <div class="chart-title">Gasto por categoría</div>
+        <div class="chart-subtitle">Distribución del gasto total</div>
+        <div class="chart-center-toggle">
+          <button class="cct-btn active" onclick="setChartCenter2('GN',this)">GN</button>
+          <button class="cct-btn" onclick="setChartCenter2('Sarmiento',this)">Sarmiento</button>
+          <button class="cct-btn" onclick="setChartCenter2('ambos',this)">Ambos</button>
+        </div>
+        <canvas id="chartGastoCategoria" height="220"></canvas>
+      </div>
+      <div class="chart-card gc">
+        <div class="chart-title">Top insumos por costo</div>
+        <div class="chart-subtitle">Los 10 con mayor gasto acumulado</div>
+        <canvas id="chartTopInsumos" height="220"></canvas>
+      </div>
+      <div class="chart-card gc full">
+        <div class="chart-title">Evolución de stock</div>
+        <div class="chart-subtitle">Historial de nivel de un insumo</div>
+        <div style="margin-bottom:12px">
+          <select id="chartSupplySelect" onchange="renderStockChart()" style="padding:8px 12px;background:rgba(255,255,255,0.55);border:1px solid rgba(255,255,255,0.72);border-radius:var(--r-md);font-size:13px;font-family:inherit;outline:none;width:100%;max-width:400px;color:var(--text)"></select>
+        </div>
+        <canvas id="chartStockEvol" height="160"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ GESTIÓN ════ -->
+  <div class="tab-pane" id="tab-gestion">
+    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+      <div class="search-wrap" style="flex:1;margin-bottom:0;min-width:200px">
+        <span class="search-icon">🔍</span>
+        <input class="search-input" type="search" id="gestionSearch" placeholder="Buscar insumo…" oninput="renderGestion()" autocomplete="off" />
+      </div>
+      <button class="btn btn-primary" onclick="openAddModal()"><span class="btn-icon">+</span> Nuevo insumo</button>
+    </div>
+    <div id="gestionContainer"></div>
+
+    <!-- Sección admin (solo visible para administradores) -->
+    <div class="admin-section" id="adminSection" style="display:none">
+      <div class="admin-section-title">👥 Gestión de usuarios</div>
+      <div id="adminUserList"><p style="font-size:13px;color:var(--text-secondary)">Cargando usuarios…</p></div>
+      <div class="admin-add-row">
+        <input type="email" id="adminNewEmail" placeholder="Email del nuevo usuario…" />
+        <button class="btn btn-primary" onclick="addAuthorizedUser()" style="white-space:nowrap"><span class="btn-icon">+</span> Agregar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>CIMA · Stock de Insumos · 2026</span>
+    <span class="version-badge" id="versionBadge">V1.0.0</span>
+    <button class="btn-refresh" id="refreshBtn" onclick="manualRefresh()" title="Verificar actualización">
+      <span class="refresh-icon" id="refreshIcon">↻</span> Actualizar
+    </button>
+  </div>
+</div>
+
+<!-- ─── Modal Movimiento ─────────────────────────────── -->
+<div class="modal-overlay" id="movModal" onclick="closeMovModal(event)">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="movModalTitle">Registrar Movimiento</div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Tipo</label>
+        <div class="mov-type-toggle">
+          <button class="type-toggle-btn entrada selected" id="togEntrada" onclick="selectMovType('entrada')">📥 Entrada</button>
+          <button class="type-toggle-btn salida"           id="togSalida"  onclick="selectMovType('salida')">📤 Salida</button>
+        </div>
+      </div>
+      <div class="form-group"><label>Insumo</label><select id="movSupplySelect"><option value="">— Seleccionar —</option></select></div>
+      <div class="form-row">
+        <div class="form-group"><label>Cantidad</label><input type="number" id="movQty" min="1" placeholder="0" /></div>
+        <div class="form-group"><label>Fecha</label><input type="date" id="movDate" /></div>
+      </div>
+      <div class="form-group"><label>Nota (opcional)</label><input type="text" id="movNote" placeholder="Ej: Pedido semanal…" /></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeMovModal()">Cancelar</button>
+      <button class="btn btn-primary"   onclick="saveMovimiento()"><span class="btn-icon">✓</span> Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Modal Agregar Insumo ─────────────────────────── -->
+<div class="modal-overlay" id="addModal" onclick="closeAddModal(event)">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="addModalTitle">Nuevo insumo</div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label>Nombre</label><input type="text" id="addName" placeholder="Nombre completo…" /></div>
+        <div class="form-group"><label>Código</label><input type="text" id="addCode" placeholder="DES-001" /></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Categoría</label>
+          <select id="addCategory">
+            <option value="Descartables">💉 Descartables</option>
+            <option value="Punción">🔬 Punción</option>
+            <option value="Ginecología e Instrumental">🩺 Ginecología e Instrumental</option>
+            <option value="Medicamentos">💊 Medicamentos</option>
+            <option value="Contrastes y Otros">🩻 Contrastes y Otros</option>
+            <option value="Impresiones y Oficina">🖨️ Impresiones y Oficina</option>
+            <option value="Otros">📋 Otros</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Unidad</label>
+          <select id="addUnit">
+            <option value="UND">Unidad (UND)</option><option value="CAJA">Caja</option>
+            <option value="PACK">Pack</option><option value="LT">Litro</option><option value="KG">Kilogramo</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Precio por unidad ($)</label><input type="number" id="addPrice" min="0" step="0.01" placeholder="0.00" /></div>
+        <div class="form-group"><label>Stock mínimo alerta</label><input type="number" id="addMinStock" min="0" placeholder="0" /></div>
+      </div>
+      <div class="form-group"><label>Stock inicial</label><input type="number" id="addInitStock" min="0" placeholder="0" /></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeAddModal()">Cancelar</button>
+      <button class="btn btn-primary"   onclick="saveSupply()"><span class="btn-icon">✓</span> Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Confirm ──────────────────────────────────────── -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <h3 id="confirmTitle">Confirmar</h3><p id="confirmMsg">¿Seguro?</p>
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="closeConfirm()">Cancelar</button>
+      <button class="btn btn-red"       id="confirmOkBtn">Aceptar</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- /mainApp -->
+
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ─── Update banner ─────────────────────────────── -->
+<div class="update-banner" id="updateBanner">
+  🆕 Nueva versión disponible
+  <button class="update-banner-btn" onclick="applyUpdate()">Actualizar ahora</button>
+  <button style="background:transparent;border:none;color:rgba(255,255,255,0.55);cursor:pointer;font-size:16px;padding:0 0 0 4px;line-height:1" onclick="dismissUpdateBanner()">×</button>
+</div>
+
+<script>
+// ─── Version & Auto-Update ────────────────────────────────────────────────────
+const APP_VERSION = "2.0.0";
+
+(function initVersion(){
+  const el = document.getElementById("versionBadge");
+  if(el) el.textContent = "V" + APP_VERSION;
+})();
+
+function checkForUpdates(silent){
+  const btn = document.getElementById("refreshBtn");
+  const icon = document.getElementById("refreshIcon");
+  if(!silent){ btn && btn.classList.add("spin"); icon && (icon.style.display="inline-block"); }
+  fetch(location.pathname + "?_nocache=" + Date.now(), {cache:"no-store"})
+    .then(r => r.text())
+    .then(html => {
+      const m = html.match(/APP_VERSION\s*=\s*"([^"]+)"/);
+      if(m && m[1] !== APP_VERSION){
+        showUpdateBanner(m[1]);
+      } else if(!silent){
+        toast("✓ Ya tenés la versión más reciente (V" + APP_VERSION + ")");
+      }
+    })
+    .catch(()=>{ if(!silent) toast("⚠️ Sin conexión para verificar actualización"); })
+    .finally(()=>{ if(!silent){ btn && btn.classList.remove("spin"); } });
+}
+
+function showUpdateBanner(newVer){
+  const b = document.getElementById("updateBanner");
+  if(b){
+    b.querySelector(".update-banner-btn") && (b.innerHTML = `🆕 Nueva versión V${newVer} disponible <button class="update-banner-btn" onclick="applyUpdate()">Actualizar ahora</button> <button style="background:transparent;border:none;color:rgba(255,255,255,0.55);cursor:pointer;font-size:16px;padding:0 0 0 4px;line-height:1" onclick="dismissUpdateBanner()">×</button>`);
+    b.classList.add("visible");
+  }
+}
+
+function dismissUpdateBanner(){ document.getElementById("updateBanner").classList.remove("visible"); }
+function applyUpdate(){ location.reload(true); }
+function manualRefresh(){ checkForUpdates(false); }
+
+// Verificar actualizaciones cada 5 minutos
+setInterval(()=>checkForUpdates(true), 5 * 60 * 1000);
+
+// ─── Catalog ─────────────────────────────────────────────────────────────────
+const CATALOG = {
+  "Descartables":{icon:"💉",color:"rgba(0,122,255,0.14)",items:[
+    {id:"des001",name:"Abbocath JELCO 14G",code:"DES-001"},{id:"des002",name:"Abbocath JELCO 16G",code:"DES-002"},
+    {id:"des003",name:"Abbocath JELCO 18G",code:"DES-003"},{id:"des004",name:"Abbocath JELCO 20G",code:"DES-004"},
+    {id:"des005",name:"Abbocath JELCO 22G",code:"DES-005"},{id:"des006",name:"Abbocath JELCO 24G",code:"DES-006"},
+    {id:"des007",name:"Jeringas Tomey descartables sin aguja x 60ml",code:"DES-007"},
+    {id:"des008",name:"Jeringa/Agujas hip. estériles Tuberculina con aguja x 1ml",code:"DES-008"},
+    {id:"des009",name:'Agujas hipodérmica estéril 30G - 13/3 (1")',code:"DES-009"},
+    {id:"des010",name:"Agujas hipodérmica estéril 25G - 16/5",code:"DES-010"},
+    {id:"des011",name:'Agujas hipodérmica estéril 21G - 50/8 (2")',code:"DES-011"},
+    {id:"des012",name:'Agujas hipodérmica estéril 21G - 40/8 (1½")',code:"DES-012"},
+    {id:"des013",name:'Agujas hipodérmica estéril 21G - 25/8 (1")',code:"DES-013"},
+    {id:"des014",name:'Agujas hipodérmica estéril 18G - 40/12 (1½")',code:"DES-014"},
+    {id:"des015",name:"Alcohol en gel neutro",code:"DES-015"},{id:"des016",name:"Alcohol líquido x 1 Lt 96%",code:"DES-016"},
+    {id:"des017",name:"Alcohol líquido x Lt (70%)",code:"DES-017"},{id:"des018",name:"Algodón (Pack)",code:"DES-018"},
+    {id:"des019",name:"Apósito Transparente con marco de aplicación",code:"DES-019"},
+    {id:"des020",name:"Apósitos estériles (7 x 20cm)",code:"DES-020"},
+    {id:"des021",name:"Apósitos hipoalergénicos (x250un)",code:"DES-021"},
+    {id:"des022",name:"Apósitos protectores (Curitas) (x10Un)",code:"DES-022"},
+    {id:"des023",name:"Barbijos (Pack x50)",code:"DES-023"},{id:"des024",name:"Barbijos NK95",code:"DES-024"},
+    {id:"des025",name:"Batas cortas sin mangas",code:"DES-025"},{id:"des026",name:"Batas largas con puño",code:"DES-026"},
+    {id:"des027",name:"Cubre Camilla",code:"DES-027"},{id:"des028",name:"Bisturi N11",code:"DES-028"},
+    {id:"des029",name:"Bisturi N15",code:"DES-029"},{id:"des030",name:"Bisturi N22",code:"DES-030"},
+    {id:"des031",name:"Butterfly 19",code:"DES-031"},{id:"des032",name:"Butterfly 21",code:"DES-032"},
+    {id:"des033",name:"Butterfly 23",code:"DES-033"},{id:"des034",name:"Butterfly 25",code:"DES-034"},
+    {id:"des035",name:"Campos quirúrgicos estériles (50x50)",code:"DES-035"},
+    {id:"des036",name:"Cánula nasal para adulto (Tipo K-27)",code:"DES-036"},
+    {id:"des037",name:"Cinta hipoalergénica Transpore 3M x Rollo",code:"DES-037"},
+    {id:"des038",name:"Cinta hipoalergénica Micropore 3M x Rollo (PAPEL)",code:"DES-038"},
+    {id:"des039",name:"Cotonetes (x200un)",code:"DES-039"},{id:"des040",name:"Envase estéril descartable",code:"DES-040"},
+    {id:"des041",name:"Electrodos cardiacos 3M (x50)",code:"DES-041"},
+    {id:"des042",name:"Electrodos para RMI con punta de Carbón (x50)",code:"DES-042"},
+    {id:"des043",name:"Etiqueta",code:"DES-043"},
+    {id:"des044",name:"Fundas ecográficas / Preservativos (x144 un)",code:"DES-044"},
+    {id:"des045",name:"Gasa estéril",code:"DES-045"},{id:"des046",name:"Gel x 250ml",code:"DES-046"},
+    {id:"des047",name:"Vaselina sólida x1kg.",code:"DES-047"},{id:"des048",name:"Gel x 3 Lt (5kg)",code:"DES-048"},
+    {id:"des049",name:"Gel x 500ml",code:"DES-049"},{id:"des050",name:"Goma para ligar",code:"DES-050"},
+    {id:"des051",name:"Guantes estériles (6½) xUn",code:"DES-051"},
+    {id:"des052",name:"Guantes estériles pares (7) xUn",code:"DES-052"},
+    {id:"des053",name:"Guantes estériles pares (7½) xUn",code:"DES-053"},
+    {id:"des054",name:"Guantes estériles pares (8) xUn",code:"DES-054"},
+    {id:"des055",name:"Guantes estériles pares (8½) xUn",code:"DES-055"},
+    {id:"des056",name:"Guantes Estériles Polietileno",code:"DES-056"},
+    {id:"des057",name:"Guantes Nitrilo",code:"DES-057"},
+    {id:"des058",name:'Guantes latex talle PAR "M" y "S"',code:"DES-058"},
+    {id:"des059",name:"Guantes Manoplas de Nylon",code:"DES-059"},
+    {id:"des060",name:"Jeringa dual con Espiga TAC (x20) Stellant",code:"DES-060"},
+    {id:"des061",name:"Jeringa dual con espiga y tubo RESO (x50) Spectris",code:"DES-061"},
+    {id:"des062",name:"Jeringas desechables x 10ml",code:"DES-062"},{id:"des063",name:"Jeringas desechables x 20ml",code:"DES-063"},
+    {id:"des064",name:"Jeringas hipodérmicas estériles x 5ml",code:"DES-064"},
+    {id:"des065",name:"Jeringas hipodérmicas estériles x 60ml",code:"DES-065"},
+    {id:"des066",name:"Jeringas Pico a rosca 20ml",code:"DES-066"},{id:"des067",name:"Jeringas Pico a rosca 10ml",code:"DES-067"},
+    {id:"des068",name:"Jeringas Pico a rosca 5ml",code:"DES-068"},
+    {id:"des069",name:'Agujas espinales 22G (3½")',code:"DES-069"},
+    {id:"des070",name:"Llaves 3 vias",code:"DES-070"},{id:"des071",name:"Llaves 3 vias C/ extensión 50Cm",code:"DES-071"},
+    {id:"des072",name:"Máscaras protectoras Faciales",code:"DES-072"},
+    {id:"des073",name:"Media Sábana (0,66 x 1,55mts)",code:"DES-073"},
+    {id:"des074",name:"Pañales descartables (XXL)",code:"DES-074"},
+    {id:"des075",name:"Pasta conductora de EEG",code:"DES-075"},{id:"des076",name:"Pasta conductora TEN20",code:"DES-076"},
+    {id:"des077",name:"Prolongador bifurcado (2 Vías) PB-1000",code:"DES-077"},
+    {id:"des078",name:"Prolongador/Extensor 50 Cm.",code:"DES-078"},
+    {id:"des079",name:"Protectores auditivos descartables",code:"DES-079"},
+    {id:"des080",name:"Rollo de Papel",code:"DES-080"},{id:"des081",name:"Parches Oculares",code:"DES-081"},
+    {id:"des082",name:"Inhalador de oxígeno pediátrico (Tipo K-27) 2m",code:"DES-082"},
+    {id:"des083",name:"Pilas AA",code:"DES-083"},{id:"des084",name:"Pilas AAA",code:"DES-084"},
+    {id:"des085",name:"Sonda Tipo K-33 (Seriografo)",code:"DES-085"},
+    {id:"des086",name:"Sonda Nelaton K-92 - N° 8 - (Seriografo)",code:"DES-086"},
+    {id:"des087",name:"Sonda Foley N° 10 FR",code:"DES-087"},{id:"des088",name:"Sonda Foley N° 12 FR",code:"DES-088"},
+    {id:"des089",name:"Sonda Foley N° 16 FR",code:"DES-089"},{id:"des090",name:"Sonda Foley N° 20 FR",code:"DES-090"},
+    {id:"des091",name:"Sonda gástrica N° 16 (Tipo K10)",code:"DES-091"},
+    {id:"des092",name:"Sonda para alimentación nasogástrica (adultos)",code:"DES-092"},
+    {id:"des093",name:"Sonda para alimentación nasogástrica (prematuros)",code:"DES-093"},
+    {id:"des094",name:"Tubo conector de baja presión RESO-TAC (x50)",code:"DES-094"},
+    {id:"des095",name:"Venda Elástica (10 x 3Mts)",code:"DES-095"},
+    {id:"des096",name:"Sonda K33",code:"DES-096"},{id:"des097",name:"Sonda K92",code:"DES-097"},
+    {id:"des098",name:"Sábanas para camillas con elástico",code:"DES-098"},
+    {id:"des099",name:"Set de infusión, equipo V14",code:"DES-099"},
+    {id:"des100",name:"Venda Cambric (7 Cm)",code:"DES-100"},
+    {id:"des101",name:"Hilo Monofilament Nylon - 3.0",code:"DES-101"},{id:"des102",name:"Hilo Monofilament Nylon - 4.0",code:"DES-102"},
+    {id:"des103",name:"Hilo Monofilament Nylon - 5.0",code:"DES-103"},{id:"des104",name:"Hilo Monofilament Nylon - 6.0",code:"DES-104"},
+    {id:"des105",name:"Hilo Synthetic - 3.0",code:"DES-105"},{id:"des106",name:"Hilo Synthetic - 4.0",code:"DES-106"},
+    {id:"des107",name:"Hilo Synthetic - 5.0",code:"DES-107"},
+    {id:"des108",name:"Caja Acero Inox.",code:"DES-108"},{id:"des109",name:"Material de Esterilización",code:"DES-109"},
+    {id:"des110",name:"Esterilización",code:"DES-110"},{id:"des111",name:"Guía con filtro 0.2 micrones",code:"DES-111"},
+  ]},
+  "Punción":{icon:"🔬",color:"rgba(191,90,242,0.10)",items:[
+    {id:"pun001",name:"Catéter de histerosona 5FRx40cm",code:"PUN-001"},
+    {id:"pun002",name:"Catéter de histerosona 7FRx40",code:"PUN-002"},
+    {id:"pun003",name:"Cateter Trocar Torácico 18FG",code:"PUN-003"},
+    {id:"pun004",name:'Agujas espinales 20G (3½")',code:"PUN-004"},
+    {id:"pun005",name:'Agujas espinales 19G (3½")',code:"PUN-005"},
+    {id:"pun006",name:'Agujas espinales 18G (3½")',code:"PUN-006"},
+    {id:"pun007",name:"Aguja Punta Fina (Punción mama) (5.5 x 40cm)",code:"PUN-007"},
+    {id:"pun008",name:"Aguja Punta Fina (Punción mama) (18GA x 10cm) Argon",code:"PUN-008"},
+    {id:"pun009",name:"Aguja Punta Fina (Punción mama) (14GA x 10cm)",code:"PUN-009"},
+    {id:"pun010",name:"Aguja Huber 19/20G",code:"PUN-010"},
+    {id:"pun011",name:"Aguja (Punción) (18GA x 20cm) Biocore II BR",code:"PUN-011"},
+    {id:"pun012",name:"Aguja (Punción) (16GA x 20cm) Biocore II BR",code:"PUN-012"},
+    {id:"pun013",name:"Aguja (Punción) (14GA x 20cm) Biocore II BR",code:"PUN-013"},
+    {id:"pun014",name:"Marcador Mamawire Fix (18Ga x 10) Histo",code:"PUN-014"},
+    {id:"pun015",name:"Marcador Mamawire (20Ga x 0,7) Histo",code:"PUN-015"},
+    {id:"pun016",name:"Porta Objetos (x50un)",code:"PUN-016"},
+    {id:"pun017",name:"Cepillo Endovaginal",code:"PUN-017"},
+    {id:"pun018",name:"Hisopos Ginecología",code:"PUN-018"},
+  ]},
+  "Ginecología e Instrumental":{icon:"🩺",color:"rgba(255,45,85,0.10)",items:[
+    {id:"gin001",name:"Espátula de madera de AYRE",code:"GIN-001"},{id:"gin002",name:"Pinzas MAIER",code:"GIN-002"},
+    {id:"gin003",name:"Espéculo Vaginal Chico",code:"GIN-003"},{id:"gin004",name:"Espéculo Vaginal Grande",code:"GIN-004"},
+    {id:"gin005",name:"Espéculo Vaginal Mediano",code:"GIN-005"},{id:"gin006",name:"Tijera Quirúrgica",code:"GIN-006"},
+    {id:"gin007",name:"Pinza Maier Recta x 25Cm.",code:"GIN-007"},{id:"gin008",name:"Pinza Halster Bertola x 26Cm",code:"GIN-008"},
+    {id:"gin009",name:"Pinza Kocher Recta x 24Cm",code:"GIN-009"},{id:"gin010",name:"Pinza Foester Recta x 25Cm",code:"GIN-010"},
+    {id:"gin011",name:"Histerómetro Sim",code:"GIN-011"},{id:"gin012",name:"Tijera Sims Uterina Recta x 24Cm",code:"GIN-012"},
+    {id:"gin013",name:"Espéculo Chico",code:"GIN-013"},{id:"gin014",name:"Espéculo Mediano",code:"GIN-014"},
+    {id:"gin015",name:"Espéculo Grande",code:"GIN-015"},{id:"gin016",name:"Caja Porta Materiales",code:"GIN-016"},
+    {id:"gin017",name:"Pinza Adson con Dientes",code:"GIN-017"},{id:"gin018",name:"Pinza Adson SIN Dientes",code:"GIN-018"},
+    {id:"gin019",name:"Mango N°3 - Porta Bisturí N°15",code:"GIN-019"},{id:"gin020",name:"Pinza Halstead Mosquito",code:"GIN-020"},
+    {id:"gin021",name:"Pinza Halstead Mediana",code:"GIN-021"},{id:"gin022",name:"Tijera de Mayo",code:"GIN-022"},
+    {id:"gin023",name:"Tijera Metzenbaum",code:"GIN-023"},{id:"gin024",name:"Separadores Farabeuf Chico",code:"GIN-024"},
+    {id:"gin025",name:"Kit Ginecología",code:"GIN-025"},
+  ]},
+  "Contrastes y Otros":{icon:"🩻",color:"rgba(90,200,250,0.12)",items:[
+    {id:"con001",name:"Contrastes EZCAT / TRIYOSOM",code:"CON-001"},{id:"con002",name:"Contrastes Gadovist Gadolinio",code:"CON-002"},
+    {id:"con003",name:"Contrastes Primovist Bayer",code:"CON-003"},
+    {id:"con004",name:"Contrastes ULTRAVIST 300 BAYER 50ml x48",code:"CON-004"},
+    {id:"con005",name:"Contrastes ULTRAVIST 370 BAYER 50ml x48",code:"CON-005"},
+    {id:"con006",name:"Contrastes ULTRAVIST 370 x 100ml BAYER x36",code:"CON-006"},
+    {id:"con007",name:"Contrastes ULTRAVIST 300 x 100ml BAYER x36",code:"CON-007"},
+    {id:"con008",name:"Accesorio para contraste Colon",code:"CON-008"},
+    {id:"con009",name:"Gastropaque F - 500 Ml.",code:"CON-009"},
+    {id:"con010",name:"Gastropaque S - 340 Gr. c/ Efervecente",code:"CON-010"},
+    {id:"con011",name:"Gastropaque S - 300 Gr. s/ Efervecente",code:"CON-011"},
+    {id:"con012",name:"Xenetic - 350x100",code:"CON-012"},{id:"con013",name:"Xenetrix 350x50",code:"CON-013"},
+    {id:"con014",name:"Xenetrix 300x50",code:"CON-014"},
+  ]},
+  "Medicamentos":{icon:"💊",color:"rgba(48,209,88,0.10)",items:[
+    {id:"med001",name:"Triamcinolona 6 mg/ml",code:"MED-001"},{id:"med002",name:"Lidocaína Gel pomo (25ml)",code:"MED-002"},
+    {id:"med003",name:"Dipirona 1 Amp. 1 Ml.",code:"MED-003"},{id:"med004",name:"Ketorolac 30mg. 2Ml.",code:"MED-004"},
+    {id:"med005",name:"Metoclopramida ampolla (2ml)",code:"MED-005"},{id:"med006",name:"Ondansetron (8ml)",code:"MED-006"},
+    {id:"med007",name:"Heparina sódica (5ml)",code:"MED-007"},{id:"med008",name:"Hidrocortisona crema (15mg)",code:"MED-008"},
+    {id:"med009",name:"Hioscina – Buscapina ampolla (1ml)",code:"MED-009"},{id:"med010",name:"Dexametasona ampolla (2ml)",code:"MED-010"},
+    {id:"med011",name:"Propofol 10 Ml. Ampolla",code:"MED-011"},{id:"med012",name:"Hidrocortisona ampolla/polvo (100mg)",code:"MED-012"},
+    {id:"med013",name:"Hidrocortisona ampolla/polvo (500mg)",code:"MED-013"},{id:"med014",name:"Lidocaína ampolla LAVIMAR (5ml)",code:"MED-014"},
+    {id:"med015",name:"Lidocaína Amp. C/Epinefrina",code:"MED-015"},{id:"med016",name:"Iodopovidona en Spray (Pervinox)",code:"MED-016"},
+    {id:"med017",name:"Iodopovidona x 100 ml.",code:"MED-017"},{id:"med018",name:"Iodopovidona x 5Lt",code:"MED-018"},
+    {id:"med019",name:"Difenhidramina clorhidrato ampolla (10mg)",code:"MED-019"},{id:"med020",name:"Atropina Sulfato (1ml)",code:"MED-020"},
+    {id:"med021",name:"Ranitidina 50mg",code:"MED-021"},{id:"med022",name:"Diclofenac 75mg",code:"MED-022"},
+    {id:"med023",name:"Sevorane / Sevoflurano",code:"MED-023"},
+    {id:"med024",name:"Percloruro Férrico (Solución Monsel) 10 Ml.",code:"MED-024"},
+    {id:"med025",name:"Solución de ácido acético (500ml)",code:"MED-025"},{id:"med026",name:"Solución de Dextrosa 5%",code:"MED-026"},
+    {id:"med027",name:"Solución de Lugol (500ml)",code:"MED-027"},{id:"med028",name:"Solución de manitol al 15% (500ml)",code:"MED-028"},
+    {id:"med029",name:"Solución Fisiológica ampolla",code:"MED-029"},
+    {id:"med030",name:"Spray Sanitizante de piel con Clorhexidina (x120ml)",code:"MED-030"},
+    {id:"med031",name:"Solución Ringer Lactato",code:"MED-031"},
+    {id:"med032",name:"Suero (solución cloruro de sodio) (100ml)",code:"MED-032"},
+    {id:"med033",name:"Suero (solución cloruro de sodio) (250ml)",code:"MED-033"},
+    {id:"med034",name:"Corteroid Retard ampolla (2ml)",code:"MED-034"},{id:"med035",name:"Adrenalina ampolla (1ml)",code:"MED-035"},
+    {id:"med036",name:"Agua destilada 500 Ml.",code:"MED-036"},{id:"med037",name:"Agua destilada ampolla",code:"MED-037"},
+    {id:"med038",name:"Agua oxigenada x 1 Lt.",code:"MED-038"},{id:"med039",name:"Novaxil",code:"MED-039"},
+    {id:"med040",name:"Ácido Tricloroacético 3% 250 Ml.",code:"MED-040"},
+    {id:"med041",name:"Suero (solución cloruro de sodio) (500ml)",code:"MED-041"},
+    {id:"med042",name:"Midazolam 15Mg. - Amp.",code:"MED-042"},{id:"med043",name:"Fentanilo",code:"MED-043"},
+    {id:"med044",name:"Mamografía Iny. Carbón Activado",code:"MED-044"},{id:"med045",name:"Carbón Activado al 4%",code:"MED-045"},
+  ]},
+  "Impresiones y Oficina":{icon:"🖨️",color:"rgba(255,149,0,0.12)",items:[
+    {id:"imp001",name:"Hoja membretada/QR",code:"IMP-001"},{id:"imp002",name:"Sobre 19×24 (x250)",code:"IMP-002"},
+    {id:"imp003",name:"Sobre 12×35 (x500)",code:"IMP-003"},{id:"imp004",name:"Sobres Oficio",code:"IMP-004"},
+    {id:"imp005",name:"Pen Drive",code:"IMP-005"},{id:"imp006",name:"Entrega Digital – Keyra",code:"IMP-006"},
+    {id:"imp007",name:"Cajas de resmas (x12)",code:"IMP-007"},{id:"imp008",name:"CD 8 Gb.",code:"IMP-008"},
+  ]},
+};
+
+const CAT_COLORS = {"Descartables":"rgba(0,122,255,0.14)","Punción":"rgba(191,90,242,0.10)","Ginecología e Instrumental":"rgba(255,45,85,0.10)","Medicamentos":"rgba(48,209,88,0.10)","Contrastes y Otros":"rgba(90,200,250,0.12)","Impresiones y Oficina":"rgba(255,149,0,0.12)","Otros":"rgba(0,0,0,0.07)"};
+const CAT_ICONS  = {"Descartables":"💉","Punción":"🔬","Ginecología e Instrumental":"🩺","Medicamentos":"💊","Contrastes y Otros":"🩻","Impresiones y Oficina":"🖨️","Otros":"📋"};
+const CAT_SVG = {
+  "Descartables": `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" width="22" height="22"><rect x="6" y="18" width="28" height="8" rx="4" fill="#0071e3" opacity=".2"/><rect x="6" y="18" width="28" height="8" rx="4" stroke="#0071e3" stroke-width="2"/><rect x="28" y="20" width="8" height="4" rx="2" fill="#0071e3"/><path d="M6 22 L3 22" stroke="#0071e3" stroke-width="2" stroke-linecap="round"/><path d="M20 10 v6 M17 13 h6" stroke="#0071e3" stroke-width="2" stroke-linecap="round"/></svg>`,
+  "Punción": `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" width="22" height="22"><path d="M10 30 L28 12" stroke="#af52de" stroke-width="3" stroke-linecap="round"/><path d="M28 12 L32 8" stroke="#af52de" stroke-width="2" stroke-linecap="round"/><circle cx="14" cy="26" r="3" fill="#af52de" opacity=".3" stroke="#af52de" stroke-width="1.5"/><path d="M20 20 Q24 18 26 14" stroke="#af52de" stroke-width="1.5" stroke-linecap="round" opacity=".5"/></svg>`,
+  "Ginecología e Instrumental": `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" width="22" height="22"><circle cx="20" cy="16" r="7" stroke="#ff2d55" stroke-width="2" fill="rgba(255,45,85,.1)"/><path d="M20 23 v10" stroke="#ff2d55" stroke-width="2" stroke-linecap="round"/><path d="M15 28 h10" stroke="#ff2d55" stroke-width="2" stroke-linecap="round"/><path d="M16 10 Q20 6 24 10" stroke="#ff2d55" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>`,
+  "Medicamentos": `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" width="22" height="22"><rect x="14" y="8" width="12" height="18" rx="6" fill="rgba(52,199,89,.15)" stroke="#34c759" stroke-width="2"/><path d="M14 20 h12" stroke="#34c759" stroke-width="1.5"/><rect x="14" y="8" width="12" height="12" rx="6" fill="rgba(52,199,89,.25)"/><circle cx="28" cy="28" r="5" fill="rgba(0,113,227,.15)" stroke="#0071e3" stroke-width="1.5"/><path d="M26 28 h4 M28 26 v4" stroke="#0071e3" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+  "Contrastes y Otros": `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" width="22" height="22"><path d="M16 8 L14 24 Q14 32 20 32 Q26 32 26 24 L24 8 Z" fill="rgba(90,200,250,.15)" stroke="#5ac8fa" stroke-width="2" stroke-linejoin="round"/><path d="M14 22 Q17 20 20 22 Q23 24 26 22" stroke="#5ac8fa" stroke-width="1.5" fill="none"/><line x1="16" y1="8" x2="24" y2="8" stroke="#5ac8fa" stroke-width="2" stroke-linecap="round"/></svg>`,
+  "Impresiones y Oficina": `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" width="22" height="22"><rect x="8" y="14" width="24" height="16" rx="3" fill="rgba(255,149,0,.12)" stroke="#ff9500" stroke-width="2"/><rect x="12" y="8" width="16" height="8" rx="2" fill="rgba(255,149,0,.08)" stroke="#ff9500" stroke-width="1.5"/><rect x="12" y="26" width="16" height="6" rx="1.5" fill="rgba(255,149,0,.2)" stroke="#ff9500" stroke-width="1.5"/><circle cx="28" cy="20" r="2" fill="#ff9500"/></svg>`,
+  "Otros": `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" width="22" height="22"><circle cx="20" cy="20" r="12" fill="rgba(142,142,147,.1)" stroke="#8e8e93" stroke-width="2"/><circle cx="14" cy="20" r="2" fill="#8e8e93"/><circle cx="20" cy="20" r="2" fill="#8e8e93"/><circle cx="26" cy="20" r="2" fill="#8e8e93"/></svg>`
+};
+const CENTERS    = ["GN","Sarmiento"];
+
+// ─── Firebase ─────────────────────────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyDpzlN1gaJUH6XGAWv5GRW_suk7zcqKeJE",
+  authDomain: "medtrack-cima-3e9c1.firebaseapp.com",
+  projectId: "medtrack-cima-3e9c1",
+  storageBucket: "medtrack-cima-3e9c1.firebasestorage.app",
+  messagingSenderId: "110780335014",
+  appId: "1:110780335014:web:b991d26e01637bdc884567"
+};
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+const _auth = firebase.auth();
+const _db   = firebase.firestore();
+_db.enablePersistence().catch(()=>{});
+
+const ADMIN_EMAIL = "ivangarcian@gmail.com";
+const DB_COL      = "insumos_cima";
+const DB_USERS    = "insumos_users";
+
+let currentUser = null, isAdmin = false;
+let _unsubSupplies, _unsubGN, _unsubSarm, _unsubUsers;
+
+// ─── State ───────────────────────────────────────────────────────────────────
+function buildDefaultSupplies(){
+  const list=[];
+  Object.entries(CATALOG).forEach(([cat,data])=>data.items.forEach(item=>list.push({id:item.id,name:item.name,code:item.code,category:cat,unit:"UND",price:0,minStock:0,active:true})));
+  return list;
+}
+
+let supplies = buildDefaultSupplies();
+let cs = {GN:{stock:{},movements:[]},Sarmiento:{stock:{},movements:[]}};
+
+function persist(){
+  const batch = _db.batch();
+  batch.set(_db.collection(DB_COL).doc("supplies"), {data: supplies});
+  batch.set(_db.collection(DB_COL).doc("center_GN"), cs.GN);
+  batch.set(_db.collection(DB_COL).doc("center_Sarmiento"), cs.Sarmiento);
+  return batch.commit().catch(e=>toast("⚠️ Error guardando: "+e.message));
+}
+function persistCenter(c){
+  const key = c==="GN"?"center_GN":"center_Sarmiento";
+  return _db.collection(DB_COL).doc(key).set(cs[c]).catch(e=>toast("⚠️ Error guardando"));
+}
+function persistSupplies(){
+  return _db.collection(DB_COL).doc("supplies").set({data:supplies}).catch(e=>toast("⚠️ Error guardando"));
+}
+
+let activeCenter=null, activeCat="Todos", chartDays=7, _charts={}, currentTab="inventario";
+let chartCenter="GN", chartCenter2="GN";
+const curStock=()=>(activeCenter?cs[activeCenter].stock:{});
+const curMov=()=>(activeCenter?cs[activeCenter].movements:[]);
+
+// ─── Center ──────────────────────────────────────────────────────────────────
+function switchCenter(c){
+  activeCenter=c;
+  document.querySelectorAll(".center-btn").forEach(b=>b.classList.toggle("active",b.dataset.center===c));
+  updateCenterStats();
+  renderCurrentTab();
+}
+
+function updateCenterStats(){
+  CENTERS.forEach(c=>{
+    const stk=cs[c].stock;
+    let ok=0,low=0;
+    supplies.filter(s=>s.active).forEach(s=>{
+      const cur=stk[s.id]||0;
+      if(s.minStock>0){if(cur>=s.minStock)ok++;else low++;}
+      else if(cur>0)ok++;
+    });
+    const el=document.getElementById("cs-"+c);
+    if(!el)return;
+    el.innerHTML=`<span class="center-stat-pill csp-ok">${ok} OK</span>${low?`<span class="center-stat-pill csp-warn">${low} bajo</span>`:""}`;
+  });
+}
+
+// ─── Tab ─────────────────────────────────────────────────────────────────────
+function switchTab(tab,btn){
+  document.querySelectorAll(".tab-pane").forEach(p=>p.classList.remove("active"));
+  document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+  document.getElementById("tab-"+tab).classList.add("active");
+  btn.classList.add("active");
+  currentTab=tab;
+  document.querySelectorAll(".sb-btn").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab));
+  if(tab==="inventario"){
+    const hs=document.getElementById("home-screen");
+    const cc=document.getElementById("center-content");
+    const bh=document.getElementById("center-back-header");
+    if(hs)hs.style.display=activeCenter?"none":"block";
+    if(cc)cc.style.display=activeCenter?"block":"none";
+    if(bh)bh.style.display=activeCenter?"flex":"none";
+  }
+  renderCurrentTab();
+}
+function renderCurrentTab(){
+  if(currentTab==="inventario")  renderInventario();
+  if(currentTab==="movimientos") renderMovimientos();
+  if(currentTab==="graficas")    renderAllCharts();
+  if(currentTab==="gestion")     renderGestion();
+}
+
+// ─── Inventario ──────────────────────────────────────────────────────────────
+function buildCatFilters(){
+  const el=document.getElementById("invCatFilters"); if(!el)return;
+  const cats=["Todos",...Object.keys(CATALOG),"Otros"];
+  el.innerHTML=cats.map(c=>`<button class="cat-pill${c===activeCat?" active":""}" onclick="setCat('${escAttr(c)}')">${c==="Todos"?"🌐 Todos":(CAT_ICONS[c]||"📋")+" "+c}</button>`).join("");
+}
+function setCat(cat){activeCat=cat;buildCatFilters();renderInventario();}
+
+function renderInventario(){
+  if(!activeCenter)return;
+  buildCatFilters();
+  const q=(document.getElementById("invSearch")?.value||"").toLowerCase().trim();
+  const container=document.getElementById("invContainer");
+  if(!container)return;
+  container.innerHTML="";
+  const stk=curStock();
+  let totalItems=0,okItems=0,lowItems=0,totalValue=0;
+  getCategories().forEach(cat=>{
+    if(activeCat!=="Todos"&&activeCat!==cat)return;
+    const catSupplies=supplies.filter(s=>s.active&&s.category===cat&&(!q||s.name.toLowerCase().includes(q)||s.code.toLowerCase().includes(q)));
+    if(!catSupplies.length)return;
+    const icon=CAT_SVG[cat]||CAT_ICONS[cat]||"📋",color=CAT_COLORS[cat]||"rgba(0,0,0,0.07)";
+    const block=document.createElement("div");
+    block.className="stock-table gc"; block.style.marginBottom="14px";
+    block.innerHTML=`<div class="cat-header-row"><div class="cat-icon-badge" style="background:${color}">${icon}</div><span class="cat-name">${escHtml(cat)}</span><span class="cat-count">${catSupplies.length} insumos</span></div>`;
+    catSupplies.forEach(s=>{
+      const cur=stk[s.id]||0;
+      const pct=s.minStock>0?Math.min(cur/(s.minStock*2),1):(cur>0?0.6:0);
+      let lvlClass="slb-empty",barColor="#ddd";
+      totalItems++;
+      if(s.minStock>0){if(cur>=s.minStock){lvlClass="slb-ok";barColor="#30D158";okItems++;}else if(cur>0){lvlClass="slb-warn";barColor="#FF9500";lowItems++;}else{lvlClass="slb-low";barColor="#FF3B30";lowItems++;}}
+      else{if(cur>0){lvlClass="slb-ok";barColor="#30D158";okItems++;}else lowItems++;}
+      totalValue+=cur*(s.price||0);
+      const row=document.createElement("div");
+      row.className="stock-row";
+      row.innerHTML=`
+        <div class="stock-info">
+          <div class="stock-name">${escHtml(s.name)}</div>
+          <div class="stock-meta">
+            <span class="stock-code">${escHtml(s.code)}</span>
+            ${s.price>0?`<span class="stock-price-tag">$${fmt(s.price)}</span>`:""}
+          </div>
+        </div>
+        <div class="stock-controls">
+          <div class="stock-bar-wrap"><div class="stock-bar-fill" style="width:${Math.round(pct*100)}%;background:${barColor}"></div></div>
+          <span class="stock-level-badge ${lvlClass}">${cur}</span>
+          <span class="stock-unit-label">${escHtml(s.unit)}</span>
+          <button class="qty-btn minus" onclick="quickMov('${s.id}','salida')"  title="Salida">−</button>
+          <button class="qty-btn plus"  onclick="quickMov('${s.id}','entrada')" title="Entrada">+</button>
+        </div>`;
+      block.appendChild(row);
+    });
+    container.appendChild(block);
+  });
+  if(!container.children.length)container.innerHTML=`<div class="empty-state"><div class="es-icon">🔍</div><p>No se encontraron insumos</p></div>`;
+  document.getElementById("stat-total").textContent=totalItems;
+  document.getElementById("stat-ok").textContent=okItems;
+  document.getElementById("stat-low").textContent=lowItems;
+  const v=totalValue>=1000?"$"+(totalValue/1000).toFixed(1)+"k":"$"+Math.round(totalValue);
+  document.getElementById("stat-valor").textContent=v;
+  updateCenterStats();
+}
+function quickMov(id,type){if(navigator.vibrate)navigator.vibrate(8);openMovModal(id,type);}
+
+// ─── Movimientos ─────────────────────────────────────────────────────────────
+function renderMovimientos(){
+  const container=document.getElementById("movContainer"); if(!container)return;
+  const from=document.getElementById("movDateFrom")?.value||"";
+  const to=document.getElementById("movDateTo")?.value||"";
+  const ttype=document.getElementById("movTypeFilter")?.value||"";
+  const filtered=curMov().filter(m=>{
+    if(from&&m.date<from)return false;
+    if(to&&m.date>to)return false;
+    if(ttype&&m.type!==ttype)return false;
+    return true;
+  }).sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
+  let ent=0,sal=0,gasto=0;
+  filtered.forEach(m=>{const s=supplies.find(x=>x.id===m.supplyId);if(m.type==="entrada")ent+=m.qty;else{sal+=m.qty;gasto+=m.qty*(s?.price||0);}});
+  document.getElementById("mov-stat-entradas").textContent=ent;
+  document.getElementById("mov-stat-salidas").textContent=sal;
+  document.getElementById("mov-stat-gasto").textContent="$"+fmt(gasto);
+  if(!filtered.length){container.innerHTML=`<div class="empty-state gc" style="border-radius:var(--r-xl)"><div class="es-icon">📋</div><p>Sin movimientos en el período</p></div>`;return;}
+  container.innerHTML=filtered.map(m=>{
+    const s=supplies.find(x=>x.id===m.supplyId);
+    const unit=s?.unit||"UND";
+    const sign=m.type==="entrada"?"+":"−";
+    const icon=m.type==="entrada"?"📥":"📤";
+    const gastoTag=m.type==="salida"&&s?.price?` · $${fmt(m.qty*s.price)}`:"";
+    return `<div class="mov-card gc">
+      <div class="mov-type-icon ${m.type}">${icon}</div>
+      <div class="mov-info">
+        <div class="mov-supply-name">${escHtml(m.supplyName)}</div>
+        <div class="mov-details">
+          <span class="mov-date">${fmtDate(m.date)} ${m.time||""}</span>
+          ${m.note?`<span class="mov-note">${escHtml(m.note)}</span>`:""}
+          ${gastoTag?`<span class="mov-note" style="color:#1a8f3c">${gastoTag}</span>`:""}
+        </div>
+      </div>
+      <span class="mov-qty-badge ${m.type}">${sign}${m.qty} ${escHtml(unit)}</span>
+      <button class="btn btn-sm btn-red" onclick="deleteMov('${m.id}')">✕</button>
+    </div>`;
+  }).join("");
+}
+function deleteMov(id){
+  openConfirm("¿Eliminar movimiento?","El stock se revertirá.",()=>{
+    const movs=curMov();
+    const m=movs.find(x=>x.id===id);
+    if(m){cs[activeCenter].stock[m.supplyId]=(cs[activeCenter].stock[m.supplyId]||0)+(m.type==="entrada"?-m.qty:m.qty);cs[activeCenter].movements=movs.filter(x=>x.id!==id);}
+    persist();renderMovimientos();toast("Movimiento eliminado");
+  });
+}
+
+// ─── Charts ──────────────────────────────────────────────────────────────────
+function setChartRange(d,btn){chartDays=d;document.querySelectorAll(".range-btn").forEach(b=>b.classList.remove("active"));btn.classList.add("active");renderSalidasChart();}
+function renderAllCharts(){
+  const lbl=document.getElementById("chart-center-label");
+  if(lbl)lbl.textContent=chartCenter==="ambos"?"Unidades salidas – Ambos centros":`Unidades salidas del depósito ${chartCenter}`;
+  renderSalidasChart();renderGastoCategoria();renderTopInsumos();buildSupplySelectChart();renderStockChart();
+}
+function setChartCenter(c,btn){
+  chartCenter=c;
+  btn.parentElement.querySelectorAll(".cct-btn").forEach(b=>b.classList.toggle("active",b===btn));
+  const lbl=document.getElementById("chart-center-label");
+  if(lbl)lbl.textContent=c==="ambos"?"Unidades salidas – Ambos centros":`Unidades salidas del depósito ${c}`;
+  renderSalidasChart();
+}
+function setChartCenter2(c,btn){
+  chartCenter2=c;
+  btn.parentElement.querySelectorAll(".cct-btn").forEach(b=>b.classList.toggle("active",b===btn));
+  renderGastoCategoria();renderTopInsumos();
+}
+function renderSalidasChart(){
+  const labels=[],now=new Date();
+  for(let i=chartDays-1;i>=0;i--){const d=new Date(now);d.setDate(d.getDate()-i);labels.push(fmtDateShort(d.toISOString().slice(0,10)));}
+  const ctx=document.getElementById("chartSalidasDia")?.getContext("2d"); if(!ctx)return;
+  if(_charts.sd)_charts.sd.destroy();
+  if(chartCenter==="ambos"){
+    const dGN=[],dSarm=[];
+    for(let i=chartDays-1;i>=0;i--){
+      const d=new Date(now);d.setDate(d.getDate()-i);const key=d.toISOString().slice(0,10);
+      dGN.push((cs.GN.movements||[]).filter(m=>m.type==="salida"&&m.date===key).reduce((s,m)=>s+m.qty,0));
+      dSarm.push((cs.Sarmiento.movements||[]).filter(m=>m.type==="salida"&&m.date===key).reduce((s,m)=>s+m.qty,0));
+    }
+    _charts.sd=new Chart(ctx,{type:"bar",data:{labels,datasets:[
+      {label:"GN",data:dGN,backgroundColor:"rgba(0,113,227,0.55)",borderRadius:5,borderSkipped:false},
+      {label:"Sarmiento",data:dSarm,backgroundColor:"rgba(52,199,89,0.55)",borderRadius:5,borderSkipped:false}
+    ]},options:{responsive:true,plugins:{legend:{display:true,position:"top",labels:{font:{size:11}}}},scales:{x:{grid:{display:false},ticks:{font:{size:11}}},y:{grid:{color:"rgba(0,0,0,0.06)"},ticks:{font:{size:11}},beginAtZero:true}}}});
+  }else{
+    const movs=(cs[chartCenter]?.movements)||[];
+    const data=[];
+    for(let i=chartDays-1;i>=0;i--){const d=new Date(now);d.setDate(d.getDate()-i);const key=d.toISOString().slice(0,10);data.push(movs.filter(m=>m.type==="salida"&&m.date===key).reduce((s,m)=>s+m.qty,0));}
+    _charts.sd=new Chart(ctx,{type:"bar",data:{labels,datasets:[{label:"Unidades",data,backgroundColor:"rgba(0,113,227,0.55)",borderRadius:7,borderSkipped:false}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:11}}},y:{grid:{color:"rgba(0,0,0,0.06)"},ticks:{font:{size:11}},beginAtZero:true}}}});
+  }
+}
+function renderGastoCategoria(){
+  const palette=["#0071e3","#34c759","#ff9500","#ff3b30","#af52de","#5ac8fa","#ff2d55","#A2845E"];
+  const getCatTotal=(movs,cat)=>movs.filter(m=>m.type==="salida").reduce((s,m)=>{const sup=supplies.find(x=>x.id===m.supplyId&&x.category===cat);return s+(sup?m.qty*(sup.price||0):0);},0);
+  const ctx=document.getElementById("chartGastoCategoria")?.getContext("2d"); if(!ctx)return;
+  if(_charts.gc)_charts.gc.destroy();
+  if(chartCenter2==="ambos"){
+    const labels=[],dataGN=[],dataSarm=[],colors=[];
+    getCategories().forEach((cat,i)=>{
+      const tGN=getCatTotal(cs.GN.movements||[],cat);
+      const tS=getCatTotal(cs.Sarmiento.movements||[],cat);
+      if(tGN>0||tS>0){labels.push(cat);dataGN.push(tGN);dataSarm.push(tS);colors.push(palette[i%palette.length]);}
+    });
+    if(!labels.length){ctx.clearRect(0,0,500,500);return;}
+    _charts.gc=new Chart(ctx,{type:"bar",data:{labels,datasets:[
+      {label:"GN",data:dataGN,backgroundColor:"rgba(0,113,227,0.55)",borderRadius:4,borderSkipped:false},
+      {label:"Sarmiento",data:dataSarm,backgroundColor:"rgba(52,199,89,0.55)",borderRadius:4,borderSkipped:false}
+    ]},options:{indexAxis:"y",responsive:true,plugins:{legend:{display:true,position:"top",labels:{font:{size:11}}},tooltip:{callbacks:{label:c=>` $${fmt(c.raw)}`}}},scales:{x:{grid:{color:"rgba(0,0,0,0.06)"},ticks:{font:{size:11},callback:v=>"$"+fmt(v)},beginAtZero:true},y:{grid:{display:false},ticks:{font:{size:11}}}}}});
+  }else{
+    const movs=(cs[chartCenter2]?.movements)||[];
+    const labels=[],data=[],colors=[];
+    getCategories().forEach((cat,i)=>{
+      const total=getCatTotal(movs,cat);
+      if(total>0){labels.push(cat);data.push(total);colors.push(palette[i%palette.length]);}
+    });
+    if(!data.length){ctx.clearRect(0,0,500,500);return;}
+    _charts.gc=new Chart(ctx,{type:"doughnut",data:{labels,datasets:[{data,backgroundColor:colors,borderWidth:2,borderColor:"rgba(255,255,255,0.8)"}]},options:{responsive:true,plugins:{legend:{position:"bottom",labels:{font:{size:11},padding:10}},tooltip:{callbacks:{label:c=>` $${fmt(c.raw)}`}}}}});
+  }
+}
+function renderTopInsumos(){
+  const movsArr=chartCenter2==="ambos"?[...(cs.GN.movements||[]),...(cs.Sarmiento.movements||[])]:(cs[chartCenter2]?.movements||[]);
+  const movs=movsArr,totals={};
+  movs.filter(m=>m.type==="salida").forEach(m=>{const s=supplies.find(x=>x.id===m.supplyId);if(!s)return;totals[m.supplyId]=(totals[m.supplyId]||0)+m.qty*(s.price||0);});
+  const sorted=Object.entries(totals).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const labels=sorted.map(([id])=>{const s=supplies.find(x=>x.id===id);return s?(s.name.length>24?s.name.slice(0,21)+"…":s.name):id;});
+  const data=sorted.map(([,v])=>v);
+  const ctx=document.getElementById("chartTopInsumos")?.getContext("2d"); if(!ctx)return;
+  if(_charts.ti)_charts.ti.destroy();
+  if(!data.length){ctx.clearRect(0,0,500,500);return;}
+  _charts.ti=new Chart(ctx,{type:"bar",data:{labels,datasets:[{label:"Gasto ($)",data,backgroundColor:"rgba(175,82,222,0.55)",borderRadius:6,borderSkipped:false}]},options:{indexAxis:"y",responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` $${fmt(c.raw)}`}}},scales:{x:{grid:{color:"rgba(0,0,0,0.06)"},ticks:{font:{size:11},callback:v=>"$"+fmt(v)},beginAtZero:true},y:{grid:{display:false},ticks:{font:{size:11}}}}}});
+}
+function buildSupplySelectChart(){
+  const sel=document.getElementById("chartSupplySelect"); if(!sel)return;
+  sel.innerHTML=supplies.filter(s=>s.active).map(s=>`<option value="${escAttr(s.id)}">${escHtml(s.name)} (${escHtml(s.code)})</option>`).join("");
+  renderStockChart();
+}
+function renderStockChart(){
+  const sel=document.getElementById("chartSupplySelect"); if(!sel||!sel.value)return;
+  const sid=sel.value;
+  const movs=curMov().filter(m=>m.supplyId===sid).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+  const ctx=document.getElementById("chartStockEvol")?.getContext("2d"); if(!ctx)return;
+  if(_charts.se)_charts.se.destroy();
+  if(!movs.length){ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);return;}
+  let run=curStock()[sid]||0;
+  [...movs].reverse().forEach(m=>{run+=m.type==="entrada"?-m.qty:m.qty;});
+  const labels=[],data=[];
+  movs.forEach(m=>{run+=m.type==="entrada"?m.qty:-m.qty;labels.push(fmtDate(m.date));data.push(run);});
+  _charts.se=new Chart(ctx,{type:"line",data:{labels,datasets:[{label:"Stock",data,borderColor:"#0071e3",backgroundColor:"rgba(0,113,227,0.10)",borderWidth:2,pointRadius:4,pointBackgroundColor:"#0071e3",fill:true,tension:0.3}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:11}}},y:{grid:{color:"rgba(0,0,0,0.06)"},ticks:{font:{size:11}}}}}});
+}
+
+// ─── Gestión ─────────────────────────────────────────────────────────────────
+function renderGestion(){
+  const q=(document.getElementById("gestionSearch")?.value||"").toLowerCase();
+  const el=document.getElementById("gestionContainer"); if(!el)return;
+  el.innerHTML="";
+  getCategories().forEach(cat=>{
+    const list=supplies.filter(s=>s.category===cat&&s.active&&(!q||s.name.toLowerCase().includes(q)||s.code.toLowerCase().includes(q)));
+    if(!list.length)return;
+    const icon=CAT_SVG[cat]||CAT_ICONS[cat]||"📋",color=CAT_COLORS[cat]||"rgba(0,0,0,0.07)";
+    const block=document.createElement("div"); block.className="gestion-table gc"; block.style.marginBottom="14px";
+    block.innerHTML=`<div class="cat-header-row"><div class="cat-icon-badge" style="background:${color}">${icon}</div><span class="cat-name">${escHtml(cat)}</span><span class="cat-count">${list.length} insumos</span></div>`;
+    list.forEach(s=>{
+      const row=document.createElement("div"); row.className="gestion-row";
+      row.innerHTML=`
+        <div class="gestion-info"><div class="gestion-name">${escHtml(s.name)}</div><div class="gestion-sub">${escHtml(s.code)} · ${escHtml(s.unit)}</div></div>
+        <div class="price-input-wrap"><span class="price-prefix">$</span><input class="price-input" type="number" min="0" step="0.01" value="${s.price||0}" onchange="updatePrice('${s.id}',this.value)" title="Precio por unidad" /></div>
+        <div style="display:flex;align-items:center;gap:4px"><span style="font-size:11px;color:var(--text-secondary)">Mín:</span><input class="min-stock-input" type="number" min="0" value="${s.minStock||0}" onchange="updateMinStock('${s.id}',this.value)" /></div>
+        <button class="btn btn-sm btn-red" onclick="archiveSupply('${s.id}')">✕</button>`;
+      block.appendChild(row);
+    });
+    el.appendChild(block);
+  });
+  if(!el.children.length)el.innerHTML=`<div class="empty-state"><div class="es-icon">🔍</div><p>No se encontraron insumos</p></div>`;
+}
+function updatePrice(id,val){const s=supplies.find(x=>x.id===id);if(s){s.price=parseFloat(val)||0;persist();toast("Precio actualizado");}}
+function updateMinStock(id,val){const s=supplies.find(x=>x.id===id);if(s){s.minStock=parseInt(val)||0;persist();}}
+function archiveSupply(id){
+  const s=supplies.find(x=>x.id===id);
+  openConfirm(`¿Archivar "${s?.name}"?`,"Se ocultará del inventario.",()=>{
+    const f=supplies.find(x=>x.id===id);if(f)f.active=false;
+    persist();renderGestion();if(currentTab==="inventario")renderInventario();toast("Insumo archivado");
+  });
+}
+
+// ─── Modal Movimiento ─────────────────────────────────────────────────────────
+let _movType="entrada";
+function openMovModal(supplyId,type){
+  _movType=type||"entrada";
+  document.getElementById("movModalTitle").textContent=type==="entrada"?"Registrar Entrada":"Registrar Salida";
+  const sel=document.getElementById("movSupplySelect");
+  const actv=supplies.filter(s=>s.active).sort((a,b)=>a.name.localeCompare(b.name));
+  sel.innerHTML=`<option value="">— Seleccionar insumo —</option>`+actv.map(s=>`<option value="${escAttr(s.id)}">${escHtml(s.name)} (${escHtml(s.code)})</option>`).join("");
+  if(supplyId)sel.value=supplyId;
+  document.getElementById("movQty").value="";
+  document.getElementById("movDate").valueAsDate=new Date();
+  document.getElementById("movNote").value="";
+  selectMovType(_movType);
+  document.getElementById("movModal").classList.add("open");
+}
+function closeMovModal(e){if(e&&e.target!==document.getElementById("movModal"))return;document.getElementById("movModal").classList.remove("open");}
+function selectMovType(type){_movType=type;document.getElementById("togEntrada").classList.toggle("selected",type==="entrada");document.getElementById("togSalida").classList.toggle("selected",type==="salida");}
+function saveMovimiento(){
+  const supplyId=document.getElementById("movSupplySelect").value;
+  const qty=parseInt(document.getElementById("movQty").value);
+  const date=document.getElementById("movDate").value;
+  const note=document.getElementById("movNote").value.trim();
+  if(!supplyId){toast("⚠️ Seleccioná un insumo");return;}
+  if(!qty||qty<=0){toast("⚠️ Ingresá una cantidad válida");return;}
+  if(!date){toast("⚠️ Seleccioná una fecha");return;}
+  const s=supplies.find(x=>x.id===supplyId); if(!s)return;
+  const mov={id:"mov_"+Date.now(),supplyId,supplyName:s.name,type:_movType,qty,date,time:new Date().toTimeString().slice(0,5),note};
+  cs[activeCenter].movements.push(mov);
+  cs[activeCenter].stock[supplyId]=(cs[activeCenter].stock[supplyId]||0)+(_movType==="entrada"?qty:-qty);
+  persist();
+  document.getElementById("movModal").classList.remove("open");
+  toast(`✓ ${_movType==="entrada"?"Entrada":"Salida"} registrada: ${qty} ${s.unit} de ${s.name}`);
+  if(navigator.vibrate)navigator.vibrate([8,50,8]);
+  renderCurrentTab();
+}
+
+// ─── Modal Agregar ────────────────────────────────────────────────────────────
+let _editId=null;
+function openAddModal(id){
+  _editId=id||null;
+  document.getElementById("addModalTitle").textContent=id?"Editar insumo":"Nuevo insumo";
+  if(id){const s=supplies.find(x=>x.id===id);if(s){document.getElementById("addName").value=s.name;document.getElementById("addCode").value=s.code;document.getElementById("addCategory").value=s.category;document.getElementById("addUnit").value=s.unit;document.getElementById("addPrice").value=s.price||0;document.getElementById("addMinStock").value=s.minStock||0;document.getElementById("addInitStock").value=cs[activeCenter].stock[id]||0;}}
+  else{["addName","addCode","addPrice","addMinStock","addInitStock"].forEach(i=>document.getElementById(i).value="");document.getElementById("addCategory").value="Descartables";document.getElementById("addUnit").value="UND";}
+  document.getElementById("addModal").classList.add("open");
+}
+function closeAddModal(e){if(e&&e.target!==document.getElementById("addModal"))return;document.getElementById("addModal").classList.remove("open");}
+function saveSupply(){
+  const name=document.getElementById("addName").value.trim();
+  const code=document.getElementById("addCode").value.trim();
+  const category=document.getElementById("addCategory").value;
+  const unit=document.getElementById("addUnit").value;
+  const price=parseFloat(document.getElementById("addPrice").value)||0;
+  const minStock=parseInt(document.getElementById("addMinStock").value)||0;
+  const initStk=parseInt(document.getElementById("addInitStock").value)||0;
+  if(!name){toast("⚠️ Ingresá el nombre del insumo");return;}
+  if(_editId){
+    const s=supplies.find(x=>x.id===_editId);
+    if(s){Object.assign(s,{name,code,category,unit,price,minStock});cs[activeCenter].stock[s.id]=initStk;}
+    toast("✓ Insumo actualizado");
+  }else{
+    const id="cus_"+Date.now();
+    supplies.push({id,name,code:code||"USR-"+supplies.length,category,unit,price,minStock,active:true});
+    CENTERS.forEach(c=>{if(!cs[c].stock[id])cs[c].stock[id]=0;});
+    cs[activeCenter].stock[id]=initStk;
+    if(initStk>0)cs[activeCenter].movements.push({id:"mov_init_"+id,supplyId:id,supplyName:name,type:"entrada",qty:initStk,date:new Date().toISOString().slice(0,10),time:new Date().toTimeString().slice(0,5),note:"Stock inicial"});
+    toast("✓ Insumo agregado");
+  }
+  persist();
+  document.getElementById("addModal").classList.remove("open");
+  renderGestion();
+  if(currentTab==="inventario")renderInventario();
+}
+
+// ─── Confirm ─────────────────────────────────────────────────────────────────
+function openConfirm(title,msg,cb){document.getElementById("confirmTitle").textContent=title;document.getElementById("confirmMsg").textContent=msg;document.getElementById("confirmOkBtn").onclick=()=>{closeConfirm();cb();};document.getElementById("confirmOverlay").classList.add("open");}
+function closeConfirm(){document.getElementById("confirmOverlay").classList.remove("open");}
+
+// ─── Toast ───────────────────────────────────────────────────────────────────
+function toast(msg){const c=document.getElementById("toastContainer");const t=document.createElement("div");t.className="toast";t.textContent=msg;c.appendChild(t);setTimeout(()=>t.remove(),2800);}
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+function escHtml(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function escAttr(s){return escHtml(s);}
+function fmt(n){return Number(n||0).toLocaleString("es-AR",{minimumFractionDigits:0,maximumFractionDigits:2});}
+function fmtDate(d){if(!d)return"";const[y,m,day]=d.split("-");return`${day}/${m}/${y}`;}
+function fmtDateShort(d){if(!d)return"";const[,m,day]=d.split("-");return`${day}/${m}`;}
+function getCategories(){const fc=Object.keys(CATALOG);const cu=[...new Set(supplies.filter(s=>s.active&&!fc.includes(s.category)).map(s=>s.category))];return[...fc,...cu];}
+
+// ─── Auth ─────────────────────────────────────────────────────────────────────
+function signIn(){
+  const p=new firebase.auth.GoogleAuthProvider();
+  _auth.signInWithPopup(p).catch(e=>toast("⚠️ Error al iniciar sesión: "+e.message));
+}
+function signOut(){
+  _auth.signOut();
+  if(_unsubSupplies) _unsubSupplies();
+  if(_unsubGN) _unsubGN();
+  if(_unsubSarm) _unsubSarm();
+  if(_unsubUsers) _unsubUsers();
+}
+
+function showLogin(unauthorized){
+  document.getElementById("mainApp").style.display="none";
+  document.getElementById("loginOverlay").classList.add("visible");
+  document.getElementById("unauthorizedMsg").style.display=unauthorized?"block":"none";
+  document.getElementById("loginBtn").style.display=unauthorized?"none":"flex";
+  document.getElementById("loginSignout").style.display=unauthorized?"block":"none";
+}
+function showApp(){
+  document.getElementById("loginOverlay").classList.remove("visible");
+  document.getElementById("mainApp").style.display="";
+  renderUserBar();
+  if(isAdmin) document.getElementById("adminSection").style.display="block";
+  // Sidebar user name
+  const sbUser=document.getElementById("sbUserName");
+  if(sbUser&&currentUser)sbUser.textContent=currentUser.displayName||currentUser.email||"—";
+  // Show home screen
+  activeCenter=null;
+  const hs=document.getElementById("home-screen");
+  const cc=document.getElementById("center-content");
+  const bh=document.getElementById("center-back-header");
+  if(hs)hs.style.display="block";
+  if(cc)cc.style.display="none";
+  if(bh)bh.style.display="none";
+  setTimeout(updateHomeStats,200);
+}
+
+function renderUserBar(){
+  if(!currentUser)return;
+  const bar=document.getElementById("userBar");
+  bar.innerHTML=`
+    ${currentUser.photoURL?`<img src="${currentUser.photoURL}" alt="" onerror="this.remove()" />`:""}
+    <span class="user-name">${currentUser.displayName||currentUser.email}</span>
+    ${isAdmin?'<span class="user-role-badge">Admin</span>':""}
+    <button class="btn-signout" onclick="signOut()">Salir</button>
+  `;
+}
+
+// ─── Firestore listeners ──────────────────────────────────────────────────────
+function startListeners(){
+  _unsubSupplies = _db.collection(DB_COL).doc("supplies").onSnapshot(snap=>{
+    if(snap.exists && snap.data().data){
+      supplies = snap.data().data;
+      // Ensure all catalog items exist
+      buildDefaultSupplies().forEach(def=>{
+        if(!supplies.find(s=>s.id===def.id)) supplies.push(def);
+      });
+    }
+    CENTERS.forEach(c=>{
+      if(!cs[c]) cs[c]={stock:{},movements:[]};
+      supplies.forEach(s=>{if(cs[c].stock[s.id]===undefined)cs[c].stock[s.id]=0;});
+    });
+    updateCenterStats();
+    if(currentTab==="inventario") renderInventario();
+    if(currentTab==="gestion") renderGestion();
+  });
+
+  _unsubGN = _db.collection(DB_COL).doc("center_GN").onSnapshot(snap=>{
+    if(snap.exists){ cs.GN=snap.data(); if(!cs.GN.stock)cs.GN.stock={}; if(!cs.GN.movements)cs.GN.movements=[]; }
+    updateCenterStats();
+    if(!activeCenter)setTimeout(updateHomeStats,0);
+    if(activeCenter==="GN") renderCurrentTab();
+  });
+
+  _unsubSarm = _db.collection(DB_COL).doc("center_Sarmiento").onSnapshot(snap=>{
+    if(snap.exists){ cs.Sarmiento=snap.data(); if(!cs.Sarmiento.stock)cs.Sarmiento.stock={}; if(!cs.Sarmiento.movements)cs.Sarmiento.movements=[]; }
+    updateCenterStats();
+    if(!activeCenter)setTimeout(updateHomeStats,0);
+    if(activeCenter==="Sarmiento") renderCurrentTab();
+  });
+
+  if(isAdmin) startUsersListener();
+}
+
+function startUsersListener(){
+  _unsubUsers = _db.collection(DB_USERS).onSnapshot(snap=>{
+    const users=[];
+    snap.forEach(doc=>users.push(doc.data()));
+    renderAdminUsers(users);
+  });
+}
+
+// ─── Admin user management ────────────────────────────────────────────────────
+function renderAdminUsers(users){
+  const el=document.getElementById("adminUserList");
+  if(!el)return;
+  if(!users.length){el.innerHTML='<p style="font-size:13px;color:var(--text-secondary)">No hay usuarios autorizados aún.</p>';return;}
+  el.innerHTML=users.map(u=>`
+    <div class="admin-user-row">
+      <span class="admin-user-email">${escHtml(u.email)}</span>
+      <span class="admin-user-role">${escHtml(u.name||"Usuario")}</span>
+      <button class="btn-remove-user" onclick="removeUser('${escAttr(u.email)}')">Quitar</button>
+    </div>
+  `).join("");
+}
+
+async function addAuthorizedUser(){
+  const email=(document.getElementById("adminNewEmail").value||"").trim().toLowerCase();
+  if(!email||!email.includes("@")){toast("⚠️ Ingresá un email válido");return;}
+  try{
+    await _db.collection(DB_USERS).doc(email).set({email,name:email,addedAt:new Date().toISOString(),addedBy:currentUser.email});
+    document.getElementById("adminNewEmail").value="";
+    toast("✓ Usuario agregado: "+email);
+  }catch(e){toast("⚠️ Error: "+e.message);}
+}
+
+async function removeUser(email){
+  openConfirm("Quitar usuario","¿Quitar acceso a "+email+"?",async()=>{
+    try{
+      await _db.collection(DB_USERS).doc(email).delete();
+      toast("✓ Acceso revocado: "+email);
+    }catch(e){toast("⚠️ Error: "+e.message);}
+  });
+}
+
+// ─── Init ────────────────────────────────────────────────────────────────────
+const today=new Date().toISOString().slice(0,10);
+const d30=new Date(Date.now()-30*86400000).toISOString().slice(0,10);
+const fe=document.getElementById("movDateFrom"),te=document.getElementById("movDateTo");
+if(fe)fe.value=d30; if(te)te.value=today;
+
+showLogin(false); // show login screen while firebase loads
+
+_auth.onAuthStateChanged(async user=>{
+  if(!user){ showLogin(false); currentUser=null; isAdmin=false; return; }
+  const email=user.email.toLowerCase();
+  currentUser=user;
+  if(email===ADMIN_EMAIL){ isAdmin=true; showApp(); startListeners(); return; }
+  try{
+    const doc=await _db.collection(DB_USERS).doc(email).get();
+    if(doc.exists){ isAdmin=false; showApp(); startListeners(); }
+    else{ showLogin(true); }
+  }catch(e){ toast("⚠️ Error verificando acceso"); showLogin(false); }
+});
+// ─── Sidebar ─────────────────────────────────────────────────────────────────
+function toggleSidebar(){
+  document.getElementById("sidebar").classList.toggle("open");
+  document.getElementById("sidebar-overlay").style.display=document.getElementById("sidebar").classList.contains("open")?"block":"none";
+  document.body.style.overflow=document.getElementById("sidebar").classList.contains("open")?"hidden":"";
+}
+function closeSidebar(){
+  document.getElementById("sidebar").classList.remove("open");
+  const ov=document.getElementById("sidebar-overlay");
+  if(ov)ov.style.display="none";
+  document.body.style.overflow="";
+}
+function switchTabDirect(tab){
+  document.querySelectorAll(".tab-pane").forEach(p=>p.classList.remove("active"));
+  document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+  const pane=document.getElementById("tab-"+tab);
+  if(pane)pane.classList.add("active");
+  document.querySelectorAll(".tab-btn").forEach(b=>{
+    if(b.getAttribute("onclick")&&b.getAttribute("onclick").includes("'"+tab+"'"))b.classList.add("active");
+  });
+  currentTab=tab;
+  if(tab==="inventario"){
+    const hs=document.getElementById("home-screen");
+    const cc=document.getElementById("center-content");
+    const bh=document.getElementById("center-back-header");
+    if(hs)hs.style.display=activeCenter?"none":"block";
+    if(cc)cc.style.display=activeCenter?"block":"none";
+    if(bh)bh.style.display=activeCenter?"flex":"none";
+  }
+  renderCurrentTab();
+}
+function sidebarNav(tab){
+  document.querySelectorAll(".sb-btn").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab));
+  switchTabDirect(tab);
+  closeSidebar();
+}
+
+// ─── Center selection ─────────────────────────────────────────────────────────
+function enterCenter(c){
+  activeCenter=c;
+  const hs=document.getElementById("home-screen");
+  const cc=document.getElementById("center-content");
+  const bh=document.getElementById("center-back-header");
+  const bn=document.getElementById("center-back-name");
+  if(hs)hs.style.display="none";
+  if(cc)cc.style.display="block";
+  if(bh)bh.style.display="flex";
+  if(bn)bn.textContent=c==="GN"?"GN · Guardias Nacionales 1380":"Sarmiento · Sarmiento 1212";
+  if(currentTab!=="inventario"){
+    document.querySelectorAll(".tab-pane").forEach(p=>p.classList.remove("active"));
+    const inv=document.getElementById("tab-inventario");
+    if(inv)inv.classList.add("active");
+    document.querySelectorAll(".tab-btn").forEach(b=>b.classList.toggle("active",b.getAttribute("onclick")&&b.getAttribute("onclick").includes("'inventario'")));
+    document.querySelectorAll(".sb-btn").forEach(b=>b.classList.toggle("active",b.dataset.tab==="inventario"));
+    currentTab="inventario";
+  }
+  renderInventario();
+  renderMovimientos();
+}
+function backToHome(){
+  activeCenter=null;
+  const hs=document.getElementById("home-screen");
+  const cc=document.getElementById("center-content");
+  const bh=document.getElementById("center-back-header");
+  if(hs)hs.style.display="block";
+  if(cc)cc.style.display="none";
+  if(bh)bh.style.display="none";
+  updateHomeStats();
+}
+function updateHomeStats(){
+  CENTERS.forEach(c=>{
+    const stk=cs[c]?.stock||{};
+    let ok=0,low=0;
+    supplies.filter(s=>s.active).forEach(s=>{
+      const cur=stk[s.id]||0;
+      if(s.minStock>0){if(cur>=s.minStock)ok++;else low++;}
+      else if(cur>0)ok++;
+    });
+    const el=document.getElementById("home-stats-"+c);
+    if(el)el.innerHTML=`<span class="csp-pill csp-ok">${ok} OK</span>${low?`<span class="csp-pill csp-warn">${low} bajo</span>`:""}`;
+  });
+  const u=supplies.filter(s=>s.active).length;
+  let okAll=0,lowAll=0;
+  CENTERS.forEach(c=>{
+    const stk=cs[c]?.stock||{};
+    supplies.filter(s=>s.active).forEach(s=>{
+      const cur=stk[s.id]||0;
+      if(s.minStock>0){if(cur>=s.minStock)okAll++;else lowAll++;}
+      else if(cur>0)okAll++;
+    });
+  });
+  const ct=document.getElementById("combined-total");
+  const co=document.getElementById("combined-ok");
+  const cl=document.getElementById("combined-low");
+  if(ct)ct.textContent=u;
+  if(co)co.textContent=okAll;
+  if(cl)cl.textContent=lowAll;
+}
+
+</script>
+</body>
+</html>
