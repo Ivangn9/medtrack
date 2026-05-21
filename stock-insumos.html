@@ -852,6 +852,24 @@
     }
     .center-back-btn:active { transform: scale(.93); }
     .center-back-name { font-size: .95rem; font-weight: 700; color: var(--text); }
+    /* ─── Floating back button ──────────────────────────── */
+    #floatingBackBtn {
+      position: fixed; bottom: 28px; right: 24px; z-index: 290;
+      display: none; align-items: center; gap: 8px;
+      padding: 12px 20px 12px 14px;
+      background: rgba(255,255,255,.82);
+      -webkit-backdrop-filter: saturate(220%) blur(24px); backdrop-filter: saturate(220%) blur(24px);
+      border: 1.5px solid rgba(255,255,255,.88);
+      box-shadow: 0 4px 20px rgba(0,0,0,.10), 0 1px 2px rgba(0,0,0,.04), inset 0 1.5px 0 rgba(255,255,255,.95);
+      border-radius: 50px;
+      font-size: .9rem; font-weight: 700; color: var(--text);
+      cursor: pointer;
+      transition: transform .18s var(--spring), opacity .18s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #floatingBackBtn.visible { display: flex; }
+    #floatingBackBtn:active { transform: scale(.93); }
+    #floatingBackBtn svg { flex-shrink:0; opacity:.7; }
     /* ─── Chart center toggle ────────────────────────────── */
     .chart-center-toggle { display: flex; gap: 5px; margin-bottom: 10px; position: relative; z-index: 1; }
     .cct-btn {
@@ -1103,7 +1121,7 @@
   </nav>
   <div class="sb-footer">
     <div class="sb-version-row">
-      <span class="version-badge" id="versionBadge">V2.7.0</span>
+      <span class="version-badge" id="versionBadge">V2.7.1</span>
       <button class="sb-refresh-btn" id="refreshBtn" onclick="manualRefresh()" title="Verificar y recargar">
         <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M4 10a6 6 0 1 0 1.2-3.6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M4 5v5h5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span id="refreshIcon">Actualizar</span>
@@ -1570,7 +1588,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "2.7.0";
+const APP_VERSION = "2.7.1";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -1909,6 +1927,7 @@ function _applyTabScreens(tab){
     if(cc)cc.style.display="none";
     if(bh)bh.style.display="none";
   }
+  _updateFloatingBack();
 }
 function switchTab(tab,btn){
   document.querySelectorAll(".tab-pane").forEach(p=>p.classList.remove("active"));
@@ -2617,6 +2636,7 @@ function enterCenter(c){
     document.querySelectorAll(".sb-btn").forEach(b=>b.classList.toggle("active",b.dataset.tab==="inventario"));
     currentTab="inventario";
   }
+  _updateFloatingBack();
   renderInventario();
   renderMovimientos();
 }
@@ -2628,7 +2648,21 @@ function backToHome(){
   if(hs)hs.style.display="block";
   if(cc)cc.style.display="none";
   if(bh)bh.style.display="none";
+  _updateFloatingBack();
   updateHomeStats();
+}
+function _updateFloatingBack(){
+  const btn=document.getElementById("floatingBackBtn");
+  const lbl=document.getElementById("floatingBackLabel");
+  if(!btn)return;
+  const show=activeCenter&&currentTab!=="inventario";
+  btn.classList.toggle("visible",!!show);
+  if(lbl&&activeCenter)lbl.textContent="← "+activeCenter;
+}
+function floatingBack(){
+  backToHome();
+  const tabBtn=document.querySelector('.tab-btn[onclick*="\'inventario\'"]');
+  if(tabBtn)switchTab("inventario",tabBtn);
 }
 function updateHomeStats(){
   CENTERS.forEach(c=>{
@@ -3020,5 +3054,10 @@ async function updateHomeStatsEntregas(){
 }
 
 </script>
+
+<button id="floatingBackBtn" onclick="floatingBack()">
+  <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M11 4l-5 5 5 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  <span id="floatingBackLabel">Volver</span>
+</button>
 </body>
 </html>
