@@ -264,6 +264,18 @@ body::before{
   box-shadow:0 1px 4px rgba(0,0,0,.06),inset 0 1px 0 rgba(255,255,255,.9);}
 .btn-sm{padding:6px 12px;font-size:.72rem;font-weight:600;border-radius:var(--r-sm);}
 
+/* Gradient action buttons (full-width modal submits) */
+.btn-grad{width:100%;padding:14px;color:#fff;border:none;border-radius:var(--r-pill);
+  font-weight:700;font-size:.9rem;cursor:pointer;margin-top:8px;
+  transition:transform .2s var(--spring);}
+.btn-grad:active{transform:scale(.97);}
+.btn-grad-blue{background:linear-gradient(135deg,#4f78e0,#6366f1);
+  box-shadow:0 4px 16px rgba(79,120,224,.35),inset 0 1px 0 rgba(255,255,255,.25);}
+.btn-grad-red{background:linear-gradient(135deg,#dc2626,#ef4444);
+  box-shadow:0 4px 16px rgba(220,38,38,.30),inset 0 1px 0 rgba(255,255,255,.2);}
+.btn-grad-green{background:linear-gradient(135deg,#16a34a,#22c55e);
+  box-shadow:0 4px 16px rgba(22,163,74,.30),inset 0 1px 0 rgba(255,255,255,.2);}
+
 /* ── INPUTS ── */
 .inp{width:100%;
   background:rgba(255,255,255,.55);
@@ -967,21 +979,6 @@ const EQ0=[
 // ═══════════════════════════════════════════
 var eqs=[],view="dash",selId=null,selAntenaEqId=null,selAntenaId=null,filtCat="TODOS",toastTimer=null,darkMode=false,fontScale=100;
 
-function loadData(){
-  eqs=JSON.parse(JSON.stringify(EQ0));
-  try{var s=localStorage.getItem("mt_v4");if(s){var p=JSON.parse(s);if(Array.isArray(p)&&p.length>0)eqs=p;}}catch(e){}
-  try{var sa=localStorage.getItem("mt_antenas");if(sa){var pa=JSON.parse(sa);if(Array.isArray(pa))antenas=pa;}}catch(e){}
-  var dirty=false;
-  eqs=eqs.map(function(e){
-    e=Object.assign({marca:""},e);
-    // Remove any part that is ok AND has fechaArreglo (already repaired)
-    var before=(e.partes||[]).length;
-    e.partes=(e.partes||[]).filter(function(p){return!(p.estado==="ok"&&p.fechaArreglo);});
-    if(e.partes.length!==before)dirty=true;
-    return e;
-  });
-  if(dirty)saveData();
-}
 function saveData(){
   try{localStorage.setItem("mt_v4",JSON.stringify(eqs));localStorage.setItem("mt_antenas",JSON.stringify(antenas));}catch(e){}
   firestoreSave();
@@ -1392,7 +1389,6 @@ function openModalEq(eq){
     '</div></div>'+
     '<button class="btn-primary" style="width:100%;padding:14px;font-size:.92rem;" onclick="submitEq(\''+((f.id)||"")+'\')">'+(n?"✅ Agregar":"💾 Guardar")+'</button>');
 }
-function recalcP(){var d=document.getElementById("eq-um").value,f=document.getElementById("eq-fr").value;if(d&&f!=="ninguna")document.getElementById("eq-pm").value=calcP(d,f);}
 function submitEq(eid){
   var n=document.getElementById("eq-n").value.trim();if(!n)return alert("Nombre obligatorio");
   var grEl=document.getElementById("eq-gr");var svEl=document.getElementById("eq-sv");
@@ -2374,23 +2370,6 @@ function exportAllPDF(){
 }
 
 // ── EXPORT SINGLE PDF ──
-function exportPDF(eqId){
-  var eq=eqs.find(function(e){return e.id===eqId;});if(!eq)return;var ci=catById(eq.cat);
-  var hist=(eq.historialMant||[]).slice().reverse();
-  var histRows="";if(hist.length){hist.forEach(function(h){histRows+="<tr><td>"+fmtD(h.fecha)+"</td><td>"+(h.tipo==="mantenimiento"?"Mantenimiento":"Reparación")+"</td><td>"+(h.nombre||"—")+"</td><td>"+(h.tecnico||"—")+"</td><td>"+(h.notas||"—")+"</td></tr>";});}else{histRows='<tr><td colspan="5" style="text-align:center;color:#8e8e93;">Sin historial</td></tr>';}
-  var partesRows="";if(eq.partes.length){eq.partes.forEach(function(p){partesRows+="<tr><td>"+esc(p.nombre)+"</td><td>"+({ok:"OK",pendiente:"Pendiente",roto:"Roto",mejora:"Mejora"}[p.estado]||p.estado)+"</td><td>"+(fmtD(p.fechaRotura)||"—")+"</td><td>"+(fmtD(p.fechaArreglo)||"—")+"</td><td>"+(esc(p.tecnicoReparacion)||"—")+"</td><td>"+(esc(p.marca)||"—")+"</td></tr>";});}else{partesRows='<tr><td colspan="6" style="text-align:center;color:#8e8e93;">Sin partes</td></tr>';}
-  var infoItems=[{l:"Equipo",v:eq.nombre},{l:"Categoría",v:ci.label},{l:"Estado",v:estLabel(eq.estado)},{l:"Centro",v:eq.ubicacion||"—"},{l:"SystemID",v:eq.serie||"—"},{l:"Instalación",v:fmtD(eq.instalacion)},{l:"Ingeniero",v:eq.tecnico||"—"},{l:"Contrato",v:eq.contrato||"—"},{l:"Frecuencia",v:eq.frecuencia},{l:"Último Mant.",v:fmtD(eq.ultimoMant)},{l:"Próximo Mant.",v:fmtD(eq.proximoMant)}];
-  var infoHtml='';infoItems.forEach(function(x){infoHtml+='<div class="ib"><div class="ib-l">'+x.l+'</div><div class="ib-v">'+esc(x.v)+'</div></div>';});
-  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+esc(eq.nombre)+'</title><style>'+_reportCSS+'</style></head><body>'+
-    '<div class="nav-bar"><button class="btn-print" onclick="window.print()">🖨 Imprimir</button></div>'+
-    '<div class="h"><div class="h1">CIMA — '+esc(eq.nombre)+'</div><div class="h-sub">'+new Date().toLocaleString("es-AR")+'</div></div>'+
-    '<div class="b"><h2>Información</h2><div class="ig">'+infoHtml+'</div>'+
-    '<h2>Historial</h2><table><thead><tr><th>Fecha</th><th>Tipo</th><th>Parte</th><th>Ingeniero</th><th>Notas</th></tr></thead><tbody>'+histRows+'</tbody></table>'+
-    '<h2 style="margin-top:16px;">Partes</h2><table><thead><tr><th>Nombre</th><th>Estado</th><th>Rotura</th><th>Arreglo</th><th>Reparó</th><th>Marca</th></tr></thead><tbody>'+partesRows+'</tbody></table>'+
-    '<div class="ft"><span>CIMA Investigaciones Avanzadas</span><span>'+new Date().toLocaleDateString("es-AR")+'</span></div></div></body></html>';
-  openHTMLViewer(html);
-}
-
 
 function expFiltered(){
   var desde=document.getElementById("r-desde").value,hasta=document.getElementById("r-hasta").value;
@@ -2607,53 +2586,6 @@ function antenaSvgIcon(size){
     '<path d="M2 28 L3.5 32 L22 32 L22.5 28 Z" fill="'+c1+'" opacity=".22"/>'+
     '</svg>';
 }
-function openAntennasPanel(rmEquipId){
-  var eq=eqs.find(function(e){return e.id===rmEquipId;});
-  if(!eq)return;
-  var assignedIds=eq.antenaIds||[];
-  var assigned=antenas.filter(function(a){return assignedIds.indexOf(a.id)!==-1;});
-  var antenasHtml='';
-  if(assigned.length===0){
-    antenasHtml='<div style="text-align:center;padding:28px 16px;color:var(--text3);font-size:.82rem;">No hay antenas asignadas a este equipo.<br>Usá <strong>Agregar Antena</strong> para comenzar.</div>';
-  }else{
-    assigned.forEach(function(a){
-      var rotCount=(a.roturas||[]).length;
-      var rotColor=rotCount>0?'var(--orange)':'var(--green)';
-      antenasHtml+='<div class="gc" style="padding:0;overflow:hidden;margin-bottom:8px;">'+
-        '<div style="padding:12px 14px;display:flex;align-items:center;gap:10px;">'+
-          '<div style="flex-shrink:0;">'+antenaSvgIcon(40)+'</div>'+
-          '<div style="flex:1;min-width:0;">'+
-            '<div style="font-weight:700;font-size:.88rem;">'+esc(a.nombre)+'</div>'+
-            '<div style="font-size:.7rem;color:var(--text3);margin-top:2px;">'+
-              (a.cantidadCanales?a.cantidadCanales+' canales · ':'')+
-              'Origen: '+esc(a.nombreOrigen||'—')+
-              (a.fechaCompra?' · Compra: '+fD(a.fechaCompra):'')+
-            '</div>'+
-          '</div>'+
-          '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">'+
-            '<span style="font-size:.64rem;padding:2px 8px;border-radius:20px;font-weight:700;background:'+(rotCount>0?'rgba(255,149,0,.12)':'rgba(52,199,89,.12)')+';color:'+rotColor+';">'+(rotCount>0?rotCount+' rotura(s)':'Sin roturas')+'</span>'+
-            '<button onclick="openAntennaDetail(\''+a.id+'\',\''+rmEquipId+'\')" style="font-size:.7rem;padding:5px 12px;border-radius:20px;background:rgba(0,113,227,.10);border:1px solid rgba(0,113,227,.2);color:var(--accent);font-weight:600;cursor:pointer;">Ver detalles</button>'+
-          '</div>'+
-        '</div>'+
-      '</div>';
-    });
-  }
-  openModal(
-    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">'+
-      '<div style="flex-shrink:0;">'+antenaSvgIcon(40)+'</div>'+
-      '<div>'+
-        '<div style="font-weight:800;font-size:1.05rem;letter-spacing:-.3px;">Antenas RF</div>'+
-        '<div style="font-size:.65rem;color:var(--text3);margin-top:1px;">'+esc(eq.nombre)+' · '+assigned.length+' asignada(s)</div>'+
-      '</div>'+
-      '<button onclick="closeModal()" style="margin-left:auto;width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">✕</button>'+
-    '</div>'+
-    '<div style="display:flex;gap:6px;flex-wrap:wrap;margin:10px 0;">'+
-      '<button onclick="closeModal();setTimeout(function(){openAddAntennaModal(\''+rmEquipId+'\');},80);" style="flex:1;padding:10px;border-radius:var(--r-pill);background:rgba(0,113,227,.12);border:1.5px solid rgba(0,113,227,.25);color:var(--accent);font-weight:700;font-size:.8rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Agregar Antena</button>'+
-      '<button onclick="closeModal();setTimeout(function(){openAntennasReportPanel(\''+rmEquipId+'\');},80);" style="flex:1;padding:10px;border-radius:var(--r-pill);background:rgba(99,102,241,.10);border:1.5px solid rgba(99,102,241,.22);color:#6366f1;font-weight:700;font-size:.8rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Reporte PDF</button>'+
-    '</div>'+
-    antenasHtml
-  );
-}
 function openAddAntennaModal(rmEquipId){
   var rmEqs=eqs.filter(function(e){return e.cat==='RM';});
   var origenOpts=rmEqs.map(function(e){return'<option value="'+esc(e.nombre)+'">'+esc(e.nombre)+'</option>';}).join('')+
@@ -2691,7 +2623,7 @@ function openAddAntennaModal(rmEquipId){
     '<div class="ff"><div class="ff-label">Notas</div>'+
       '<textarea class="inp" id="ant-notas" rows="2" placeholder="Observaciones opcionales..."></textarea>'+
     '</div>'+
-    '<button onclick="submitAddAntenna(\''+rmEquipId+'\')" style="width:100%;padding:14px;background:linear-gradient(135deg,#4f78e0,#6366f1);color:#fff;border:none;border-radius:var(--r-pill);font-weight:700;font-size:.9rem;cursor:pointer;box-shadow:0 4px 16px rgba(79,120,224,.35),inset 0 1px 0 rgba(255,255,255,.25);margin-top:8px;">Agregar Antena</button>'
+    '<button class="btn-grad btn-grad-blue" onclick="submitAddAntenna(\''+rmEquipId+'\')">Agregar Antena</button>'
   );
 }
 function submitAddAntenna(rmEquipId){
@@ -2790,7 +2722,7 @@ function openAddRoturaModal(antenaId,rmEquipId){
         '</label>'+
       '</div>'+
     '</div>'+
-    '<button onclick="submitAddRotura(\''+antenaId+'\','+(rmEquipId?'\''+rmEquipId+'\'':"''")+');" style="width:100%;padding:14px;background:linear-gradient(135deg,#dc2626,#ef4444);color:#fff;border:none;border-radius:var(--r-pill);font-weight:700;font-size:.9rem;cursor:pointer;box-shadow:0 4px 16px rgba(220,38,38,.30),inset 0 1px 0 rgba(255,255,255,.2);margin-top:8px;">Registrar Rotura</button>'
+    '<button class="btn-grad btn-grad-red" onclick="submitAddRotura(\''+antenaId+'\','+(rmEquipId?'\''+rmEquipId+'\'':"''")+');">Registrar Rotura</button>'
   );
 }
 function submitAddRotura(antenaId,rmEquipId){
@@ -2911,7 +2843,7 @@ function openAddRoturaModalV2(antenaId){
         '<input type="file" accept=".pdf,application/pdf" style="display:none;" onchange="var f=this.files[0];if(f){window._pendRotPresArr=f;document.getElementById(\'rotv2-pres-name\').textContent=\'✅ \'+f.name;}">'+
       '</label>'+
     '</div>'+
-    '<button onclick="submitAddRoturaV2(\''+antenaId+'\')" style="width:100%;padding:14px;background:linear-gradient(135deg,#dc2626,#ef4444);color:#fff;border:none;border-radius:var(--r-pill);font-weight:700;font-size:.9rem;cursor:pointer;box-shadow:0 4px 16px rgba(220,38,38,.30),inset 0 1px 0 rgba(255,255,255,.2);margin-top:8px;">Registrar Rotura</button>'
+    '<button class="btn-grad btn-grad-red" onclick="submitAddRoturaV2(\''+antenaId+'\')">Registrar Rotura</button>'
   );
 }
 
@@ -2982,7 +2914,7 @@ function markRoturaReparada(antenaId,roturaId){
         '<input type="file" accept=".pdf,application/pdf" style="display:none;" onchange="var f=this.files[0];if(f){window._pendRotRepArr=f;document.getElementById(\'rep-rep-name-v2\').textContent=\'✅ \'+f.name;}">'+
       '</label>'+
     '</div>'+
-    '<button onclick="submitMarkReparada(\''+antenaId+'\',\''+roturaId+'\')" style="width:100%;padding:14px;background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;border:none;border-radius:var(--r-pill);font-weight:700;font-size:.9rem;cursor:pointer;box-shadow:0 4px 16px rgba(22,163,74,.30),inset 0 1px 0 rgba(255,255,255,.2);margin-top:8px;">✓ Confirmar Reparación</button>'
+    '<button class="btn-grad btn-grad-green" onclick="submitMarkReparada(\''+antenaId+'\',\''+roturaId+'\')">✓ Confirmar Reparación</button>'
   );
 }
 
@@ -3083,7 +3015,7 @@ function openEditAntennaModal(antenaId){
     '<div class="ff"><div class="ff-label">Notas</div>'+
       '<textarea class="inp" id="edit-ant-notas" rows="2" placeholder="Observaciones opcionales...">'+esc(ant.notas||'')+'</textarea>'+
     '</div>'+
-    '<button onclick="submitEditAntenna(\''+antenaId+'\')" style="width:100%;padding:14px;background:linear-gradient(135deg,#4f78e0,#6366f1);color:#fff;border:none;border-radius:var(--r-pill);font-weight:700;font-size:.9rem;cursor:pointer;box-shadow:0 4px 16px rgba(79,120,224,.35),inset 0 1px 0 rgba(255,255,255,.25);margin-top:8px;">Guardar cambios</button>'
+    '<button class="btn-grad btn-grad-blue" onclick="submitEditAntenna(\''+antenaId+'\')">Guardar cambios</button>'
   );
 }
 function submitEditAntenna(antenaId){
@@ -3138,7 +3070,7 @@ function openEditRoturaModal(antenaId,roturaId){
         '<input type="file" accept=".pdf,application/pdf" style="display:none;" onchange="var f=this.files[0];if(f){window._pendEditRotPres=f;var n=document.getElementById(\'editrot-pres-name\');if(n)n.textContent=\'✅ \'+f.name;}">'+
       '</label>'+
     '</div>'+
-    '<button onclick="submitEditRotura(\''+antenaId+'\',\''+roturaId+'\')" style="width:100%;padding:14px;background:linear-gradient(135deg,#dc2626,#ef4444);color:#fff;border:none;border-radius:var(--r-pill);font-weight:700;font-size:.9rem;cursor:pointer;box-shadow:0 4px 16px rgba(220,38,38,.30),inset 0 1px 0 rgba(255,255,255,.2);margin-top:8px;">Guardar cambios</button>'
+    '<button class="btn-grad btn-grad-red" onclick="submitEditRotura(\''+antenaId+'\',\''+roturaId+'\')">Guardar cambios</button>'
   );
 }
 function submitEditRotura(antenaId,roturaId){
@@ -3210,7 +3142,7 @@ function openEditHistorialModal(antenaId,histId){
         '<input type="file" accept=".pdf,application/pdf" style="display:none;" onchange="var f=this.files[0];if(f){window._pendEditHistRep=f;var n=document.getElementById(\'edithist-rep-name\');if(n)n.textContent=\'✅ \'+f.name;}">'+
       '</label>'+
     '</div>'+
-    '<button onclick="submitEditHistorial(\''+antenaId+'\',\''+histId+'\')" style="width:100%;padding:14px;background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;border:none;border-radius:var(--r-pill);font-weight:700;font-size:.9rem;cursor:pointer;box-shadow:0 4px 16px rgba(22,163,74,.30),inset 0 1px 0 rgba(255,255,255,.2);margin-top:8px;">Guardar cambios</button>'
+    '<button class="btn-grad btn-grad-green" onclick="submitEditHistorial(\''+antenaId+'\',\''+histId+'\')">Guardar cambios</button>'
   );
 }
 function submitEditHistorial(antenaId,histId){
@@ -3413,15 +3345,14 @@ function submitRotura(){
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
 var antenas=[];
-var APP_DISPLAY_VERSION="4.2.8";
-var APP_BUILD="20/05/26 12:00";
+var APP_DISPLAY_VERSION="4.2.9";
+var APP_BUILD="20/05/26 13:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
     window.location.href=window.location.href.split('?')[0].split('#')[0]+'?v='+Date.now();
   },400);
 }
-function hardRefresh(){doUpdate();}
 function checkForUpdates(){
   var base=window.location.href.split('?')[0].split('#')[0];
   fetch(base+'?_chk='+Date.now(),{cache:'no-store',method:'GET'})
@@ -3613,16 +3544,6 @@ function init(){
   }
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
-function donutSVG(segs,size){
-  var r=size/2-7,cx=size/2,cy=size/2,circ=2*Math.PI*r,total=segs.reduce(function(a,s){return a+s.v;},0)||1;
-  var offset=0,paths='';
-  segs.forEach(function(s){
-    var dash=(s.v/total)*circ,gap=circ-dash;
-    paths+='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="'+s.c+'" stroke-width="7" stroke-dasharray="'+dash+' '+gap+'" stroke-dashoffset="'+(-offset)+'" transform="rotate(-90 '+cx+' '+cy+')" stroke-linecap="butt"/>';
-    offset+=dash;
-  });
-  return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 '+size+' '+size+'"><circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="rgba(120,120,128,.12)" stroke-width="7"/>'+paths+'</svg>';
-}
 function sbGlassDonut(ok,fuera,total){
   var s=148,r=50,cx=74,cy=74,sw=14,circ=2*Math.PI*r;
   var t=total||1;
