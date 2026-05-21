@@ -4,7 +4,13 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Stock CIMA" />
-  <meta name="theme-color" content="#e2e4f0" />
+  <meta name="theme-color" content="#0071e3" />
+  <meta name="application-name" content="Insumos CIMA" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="msapplication-TileColor" content="#0071e3" />
+  <meta name="msapplication-config" content="none" />
+  <link rel="manifest" href="/medtrack/manifest-insumos.json" />
+  <link rel="icon" type="image/svg+xml" href="/medtrack/icons/insumos-icon.svg" />
   <title>Stock de Insumos · CIMA</title>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -1088,7 +1094,7 @@
   </nav>
   <div class="sb-footer">
     <div class="sb-version-row">
-      <span class="version-badge" id="versionBadge">V2.3.1</span>
+      <span class="version-badge" id="versionBadge">V2.4.0</span>
       <button class="sb-refresh-btn" id="refreshBtn" onclick="manualRefresh()" title="Verificar y recargar">
         <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M4 10a6 6 0 1 0 1.2-3.6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M4 5v5h5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span id="refreshIcon">Actualizar</span>
@@ -1542,7 +1548,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "2.3.1";
+const APP_VERSION = "2.4.0";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
