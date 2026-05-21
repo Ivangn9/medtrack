@@ -852,24 +852,7 @@
     }
     .center-back-btn:active { transform: scale(.93); }
     .center-back-name { font-size: .95rem; font-weight: 700; color: var(--text); }
-    /* ─── Floating back button ──────────────────────────── */
-    #floatingBackBtn {
-      position: fixed; bottom: 28px; right: 24px; z-index: 290;
-      display: none; align-items: center; gap: 8px;
-      padding: 12px 20px 12px 14px;
-      background: rgba(255,255,255,.82);
-      -webkit-backdrop-filter: saturate(220%) blur(24px); backdrop-filter: saturate(220%) blur(24px);
-      border: 1.5px solid rgba(255,255,255,.88);
-      box-shadow: 0 4px 20px rgba(0,0,0,.10), 0 1px 2px rgba(0,0,0,.04), inset 0 1.5px 0 rgba(255,255,255,.95);
-      border-radius: 50px;
-      font-size: .9rem; font-weight: 700; color: var(--text);
-      cursor: pointer;
-      transition: transform .18s var(--spring), opacity .18s;
-      -webkit-tap-highlight-color: transparent;
-    }
-    #floatingBackBtn.visible { display: flex; }
-    #floatingBackBtn:active { transform: scale(.93); }
-    #floatingBackBtn svg { flex-shrink:0; opacity:.7; }
+
     /* ─── Chart center toggle ────────────────────────────── */
     .chart-center-toggle { display: flex; gap: 5px; margin-bottom: 10px; position: relative; z-index: 1; }
     .cct-btn {
@@ -1121,7 +1104,7 @@
   </nav>
   <div class="sb-footer">
     <div class="sb-version-row">
-      <span class="version-badge" id="versionBadge">V2.7.1</span>
+      <span class="version-badge" id="versionBadge">V2.8.0</span>
       <button class="sb-refresh-btn" id="refreshBtn" onclick="manualRefresh()" title="Verificar y recargar">
         <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M4 10a6 6 0 1 0 1.2-3.6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M4 5v5h5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span id="refreshIcon">Actualizar</span>
@@ -1267,6 +1250,13 @@
 
   <!-- ════ MOVIMIENTOS ════ -->
   <div class="tab-pane" id="tab-movimientos">
+    <div class="center-back-header" id="mov-back-header" style="display:none;margin-bottom:14px">
+      <button class="center-back-btn" onclick="backFromMovimientos()">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M11 4l-5 5 5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <span class="center-back-name" id="mov-back-name"></span>
+    </div>
+    <div id="movToolbar" style="display:none">
     <div class="mov-toolbar">
       <button class="btn btn-primary" onclick="openMovModal(null,'entrada')"><span class="btn-icon">📥</span> Entrada</button>
       <button class="btn btn-red"     onclick="openMovModal(null,'salida')"><span class="btn-icon">📤</span> Salida</button>
@@ -1274,7 +1264,8 @@
       <div class="date-filter-group"><label>Hasta</label><input type="date" id="movDateTo"   onchange="renderMovimientos()" /></div>
       <div class="date-filter-group"><select id="movTypeFilter" onchange="renderMovimientos()"><option value="">Todos</option><option value="entrada">Solo entradas</option><option value="salida">Solo salidas</option></select></div>
     </div>
-    <div class="summary-strip gc" style="margin-bottom:16px">
+    </div><!-- /movToolbar -->
+    <div class="summary-strip gc" id="movStatsStrip" style="margin-bottom:16px">
       <div class="stat-card"><div class="stat-icon green">📥</div><div class="stat-info"><div class="stat-num" id="mov-stat-entradas">0</div><div class="stat-lbl">Entradas (período)</div></div></div>
       <div class="stat-card"><div class="stat-icon red">📤</div><div class="stat-info"><div class="stat-num" id="mov-stat-salidas">0</div><div class="stat-lbl">Salidas (período)</div></div></div>
       <div class="stat-card"><div class="stat-icon orange">💸</div><div class="stat-info"><div class="stat-num" id="mov-stat-gasto">$0</div><div class="stat-lbl">Gasto período</div></div></div>
@@ -1369,6 +1360,12 @@
 
   <!-- ════ GESTIÓN ════ -->
   <div class="tab-pane" id="tab-gestion">
+    <div class="center-back-header" id="ges-back-header" style="display:none;margin-bottom:14px">
+      <button class="center-back-btn" onclick="backFromGestion()">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M11 4l-5 5 5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <span class="center-back-name" id="ges-back-name"></span>
+    </div>
     <div id="gestionToolbar" style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
       <div class="search-wrap" style="flex:1;margin-bottom:0;min-width:200px">
         <span class="search-icon">🔍</span>
@@ -1588,7 +1585,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "2.7.1";
+const APP_VERSION = "2.8.0";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -1927,7 +1924,6 @@ function _applyTabScreens(tab){
     if(cc)cc.style.display="none";
     if(bh)bh.style.display="none";
   }
-  _updateFloatingBack();
 }
 function switchTab(tab,btn){
   document.querySelectorAll(".tab-pane").forEach(p=>p.classList.remove("active"));
@@ -2019,24 +2015,33 @@ function quickMov(id,type){if(navigator.vibrate)navigator.vibrate(8);openMovModa
 // ─── Movimientos ─────────────────────────────────────────────────────────────
 function renderMovimientos(){
   const container=document.getElementById("movContainer"); if(!container)return;
+  const bh=document.getElementById("mov-back-header");
+  const bn=document.getElementById("mov-back-name");
+  const tb=document.getElementById("movToolbar");
+  const ss=document.getElementById("movStatsStrip");
   if(!activeCenter){
-    container.innerHTML=`<div class="gc" style="text-align:center;padding:32px 16px">
-      <div style="font-weight:700;font-size:1rem;margin-bottom:16px;color:var(--text)">Seleccioná una sucursal</div>
-      <div style="display:flex;gap:12px;justify-content:center">
-        <button class="center-card gc tap" onclick="pickCenterForTab('GN')" style="flex:1;max-width:180px;padding:20px 16px;cursor:pointer">
-          <div style="font-size:1.4rem;font-weight:900;color:var(--accent)">GN</div>
-          <div style="font-size:.78rem;color:var(--text3);margin-top:4px">Guardias Nacionales</div>
+    if(bh)bh.style.display="none";
+    if(tb)tb.style.display="none";
+    if(ss)ss.style.display="none";
+    container.innerHTML=`<div class="gc" style="text-align:center;padding:40px 16px">
+      <div style="font-weight:700;font-size:1.05rem;margin-bottom:20px;color:var(--text)">Seleccioná una sucursal</div>
+      <div style="display:flex;gap:14px;justify-content:center">
+        <button class="center-card gc tap" onclick="pickCenterForTab('GN')" style="flex:1;max-width:200px;padding:24px 18px;cursor:pointer">
+          <div style="font-size:1.6rem;font-weight:900;color:var(--accent)">GN</div>
+          <div style="font-size:.82rem;color:var(--text3);margin-top:6px">Guardias Nacionales</div>
         </button>
-        <button class="center-card gc tap" onclick="pickCenterForTab('Sarmiento')" style="flex:1;max-width:180px;padding:20px 16px;cursor:pointer">
-          <div style="font-size:1.4rem;font-weight:900;color:var(--green)">Sarmiento</div>
-          <div style="font-size:.78rem;color:var(--text3);margin-top:4px">Sarmiento</div>
+        <button class="center-card gc tap" onclick="pickCenterForTab('Sarmiento')" style="flex:1;max-width:200px;padding:24px 18px;cursor:pointer">
+          <div style="font-size:1.6rem;font-weight:900;color:var(--green)">Sarmiento</div>
+          <div style="font-size:.82rem;color:var(--text3);margin-top:6px">Sarmiento</div>
         </button>
       </div>
     </div>`;
-    // Clear stats
     ['mov-stat-entradas','mov-stat-salidas','mov-stat-gasto'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='—';});
     return;
   }
+  if(bh){bh.style.display="flex";if(bn)bn.textContent=(activeCenter==="GN"?"GN · Guardias Nacionales":"Sarmiento · Sarmiento 1212");}
+  if(tb)tb.style.display="block";
+  if(ss)ss.style.display="";
   const from=document.getElementById("movDateFrom")?.value||"";
   const to=document.getElementById("movDateTo")?.value||"";
   const ttype=document.getElementById("movTypeFilter")?.value||"";
@@ -2190,7 +2195,10 @@ function renderGestion(){
   const el=document.getElementById("gestionContainer"); if(!el)return;
   const toolbar=document.getElementById("gestionToolbar");
   const suppSec=document.getElementById("suppliersSection");
+  const bh=document.getElementById("ges-back-header");
+  const bn=document.getElementById("ges-back-name");
   if(!activeCenter){
+    if(bh)bh.style.display="none";
     if(toolbar)toolbar.style.display="none";
     if(suppSec)suppSec.style.display="none";
     el.innerHTML=`<div class="gc" style="text-align:center;padding:40px 16px">
@@ -2208,6 +2216,7 @@ function renderGestion(){
     </div>`;
     return;
   }
+  if(bh){bh.style.display="flex";if(bn)bn.textContent=(activeCenter==="GN"?"GN · Guardias Nacionales":"Sarmiento · Sarmiento 1212");}
   if(toolbar)toolbar.style.display="flex";
   if(suppSec)suppSec.style.display=isAdmin?"block":"none";
   if(isAdmin)renderSuppliersList();
@@ -2267,11 +2276,8 @@ function removeSupplier(id){
 }
 
 function pickCenterForTab(c){
-  const tab=currentTab;
-  enterCenter(c);
-  // enterCenter switches to inventario tab, switch back
-  const tabBtn=document.querySelector(`.tab-btn[onclick*="'${tab}'"]`);
-  if(tabBtn) switchTab(tab, tabBtn);
+  activeCenter=c;
+  renderCurrentTab();
 }
 function archiveSupply(id){
   const s=supplies.find(x=>x.id===id);
@@ -2636,7 +2642,6 @@ function enterCenter(c){
     document.querySelectorAll(".sb-btn").forEach(b=>b.classList.toggle("active",b.dataset.tab==="inventario"));
     currentTab="inventario";
   }
-  _updateFloatingBack();
   renderInventario();
   renderMovimientos();
 }
@@ -2648,21 +2653,15 @@ function backToHome(){
   if(hs)hs.style.display="block";
   if(cc)cc.style.display="none";
   if(bh)bh.style.display="none";
-  _updateFloatingBack();
   updateHomeStats();
 }
-function _updateFloatingBack(){
-  const btn=document.getElementById("floatingBackBtn");
-  const lbl=document.getElementById("floatingBackLabel");
-  if(!btn)return;
-  const show=activeCenter&&currentTab!=="inventario";
-  btn.classList.toggle("visible",!!show);
-  if(lbl&&activeCenter)lbl.textContent="← "+activeCenter;
+function backFromMovimientos(){
+  activeCenter=null;
+  renderMovimientos();
 }
-function floatingBack(){
-  backToHome();
-  const tabBtn=document.querySelector('.tab-btn[onclick*="\'inventario\'"]');
-  if(tabBtn)switchTab("inventario",tabBtn);
+function backFromGestion(){
+  activeCenter=null;
+  renderGestion();
 }
 function updateHomeStats(){
   CENTERS.forEach(c=>{
@@ -3055,9 +3054,5 @@ async function updateHomeStatsEntregas(){
 
 </script>
 
-<button id="floatingBackBtn" onclick="floatingBack()">
-  <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M11 4l-5 5 5 5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-  <span id="floatingBackLabel">Volver</span>
-</button>
 </body>
 </html>
