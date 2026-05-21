@@ -1,6 +1,6 @@
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Stock CIMA" />
@@ -717,11 +717,11 @@
       transition: transform .38s cubic-bezier(0.34,1.56,0.64,1);
       overflow-y: auto;
     }
-    @media (max-width: 899px) {
+    @media (max-width: 1099px) {
       #sidebar { transform: translateX(-100%); }
       #sidebar.open { transform: translateX(0); }
     }
-    @media (min-width: 900px) {
+    @media (min-width: 1100px) {
       #sidebar { transform: translateX(0); }
       .topbar { display: none !important; }
       .page {
@@ -910,8 +910,8 @@
       .chart-card.full { grid-column: 1 / -1; }
     }
 
-    /* Sidebar en tablet landscape (≥768px pero <900px) */
-    @media (min-width: 768px) and (max-width: 899px) {
+    /* Sidebar en tablet landscape (≥768px pero <1100px) */
+    @media (min-width: 768px) and (max-width: 1099px) {
       /* Mostrar sidebar compacto (200px) */
       #sidebar {
         width: 200px;
@@ -1094,7 +1094,7 @@
   </nav>
   <div class="sb-footer">
     <div class="sb-version-row">
-      <span class="version-badge" id="versionBadge">V2.5.0</span>
+      <span class="version-badge" id="versionBadge">V2.6.0</span>
       <button class="sb-refresh-btn" id="refreshBtn" onclick="manualRefresh()" title="Verificar y recargar">
         <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M4 10a6 6 0 1 0 1.2-3.6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M4 5v5h5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span id="refreshIcon">Actualizar</span>
@@ -1236,6 +1236,8 @@
     <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:16px" onclick="openMovModal(null,'entrada')"><span class="btn-icon">+</span> Registrar entrada de stock</button>
   </div>
 
+  </div><!-- /center-content -->
+
   <!-- ════ MOVIMIENTOS ════ -->
   <div class="tab-pane" id="tab-movimientos">
     <div class="mov-toolbar">
@@ -1252,8 +1254,6 @@
     </div>
     <div class="mov-list" id="movContainer"></div>
   </div>
-
-  </div><!-- /center-content -->
 
   <!-- ═══ CONTROL DE ENTREGAS ═══ -->
   <div id="entregas-screen" style="display:none">
@@ -1351,6 +1351,16 @@
     </div>
     <div id="gestionContainer"></div>
 
+    <!-- Sección proveedores -->
+    <div id="suppliersSection" style="margin-top:24px;display:none">
+      <div class="admin-section-title" style="margin-bottom:12px">🚚 Proveedores</div>
+      <div id="suppliersList" style="margin-bottom:12px"></div>
+      <div class="admin-add-row">
+        <input type="text" id="supplierNewName" placeholder="Nombre del proveedor…" class="modal-input" />
+        <button class="btn btn-primary" onclick="addSupplier()"><span>+ Agregar</span></button>
+      </div>
+    </div>
+
     <!-- Sección admin (solo visible para administradores) -->
     <div class="admin-section" id="adminSection" style="display:none">
       <div class="admin-section-title">👥 Gestión de usuarios</div>
@@ -1407,8 +1417,10 @@
       <div class="form-row">
         <div class="form-group"><label>Cantidad</label><input type="number" id="movQty" min="1" placeholder="0" /></div>
         <div class="form-group"><label>Fecha</label><input type="date" id="movDate" /></div>
+        <div class="form-group" id="movUnitPriceGroup"><label>Precio/unidad ($)</label><input type="number" id="movUnitPrice" min="0" step="0.01" placeholder="0.00" /></div>
       </div>
       <div class="form-group"><label>Nota (opcional)</label><input type="text" id="movNote" placeholder="Ej: Pedido semanal…" /></div>
+      <div class="form-group" id="movProveedorGroup"><label>Proveedor (solo entradas)</label><select id="movProveedor"><option value="">— Sin proveedor —</option></select></div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeMovModal()">Cancelar</button>
@@ -1549,7 +1561,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "2.5.0";
+const APP_VERSION = "2.6.0";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -1812,7 +1824,6 @@ const firebaseConfig = {
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const _auth = firebase.auth();
 const _db   = firebase.firestore();
-_db.enablePersistence().catch(()=>{});
 
 const ADMIN_EMAIL = "ivangarcian@gmail.com";
 const DB_COL      = "insumos_cima";
@@ -1829,11 +1840,12 @@ function buildDefaultSupplies(){
 }
 
 let supplies = buildDefaultSupplies();
+let suppliers = []; // [{id, name, contact}]
 let cs = {GN:{stock:{},movements:[]},Sarmiento:{stock:{},movements:[]}};
 
 function persist(){
   const batch = _db.batch();
-  batch.set(_db.collection(DB_COL).doc("supplies"), {data: supplies});
+  batch.set(_db.collection(DB_COL).doc("supplies"), {data: supplies, suppliers: suppliers});
   batch.set(_db.collection(DB_COL).doc("center_GN"), cs.GN);
   batch.set(_db.collection(DB_COL).doc("center_Sarmiento"), cs.Sarmiento);
   return batch.commit().catch(e=>toast("⚠️ Error guardando: "+e.message));
@@ -1926,11 +1938,17 @@ function renderInventario(){
     block.innerHTML=`<div class="cat-header-row"><div class="cat-icon-badge" style="background:${color}">${icon}</div><span class="cat-name">${escHtml(cat)}</span><span class="cat-count">${catSupplies.length} insumos</span></div>`;
     catSupplies.forEach(s=>{
       const cur=stk[s.id]||0;
-      const pct=s.minStock>0?Math.min(cur/(s.minStock*2),1):(cur>0?0.6:0);
       let lvlClass="slb-empty",barColor="#ddd";
       totalItems++;
-      if(s.minStock>0){if(cur>=s.minStock){lvlClass="slb-ok";barColor="#30D158";okItems++;}else if(cur>0){lvlClass="slb-warn";barColor="#FF9500";lowItems++;}else{lvlClass="slb-low";barColor="#FF3B30";lowItems++;}}
-      else{if(cur>0){lvlClass="slb-ok";barColor="#30D158";okItems++;}else lowItems++;}
+      const warnThreshold = s.maxStock>0 ? s.maxStock*0.2 : (s.minStock||0);
+      if(warnThreshold>0){
+        if(cur<=0){lvlClass="slb-low";barColor="#FF3B30";lowItems++;}
+        else if(cur<=warnThreshold){lvlClass="slb-warn";barColor="#FF9500";lowItems++;}
+        else{lvlClass="slb-ok";barColor="#30D158";okItems++;}
+      } else {
+        if(cur>0){lvlClass="slb-ok";barColor="#30D158";okItems++;}else lowItems++;
+      }
+      const pct = s.maxStock>0 ? Math.min(cur/s.maxStock,1) : (s.minStock>0?Math.min(cur/(s.minStock*2),1):(cur>0?0.6:0));
       totalValue+=cur*(s.price||0);
       const row=document.createElement("div");
       row.className="stock-row";
@@ -1966,6 +1984,24 @@ function quickMov(id,type){if(navigator.vibrate)navigator.vibrate(8);openMovModa
 // ─── Movimientos ─────────────────────────────────────────────────────────────
 function renderMovimientos(){
   const container=document.getElementById("movContainer"); if(!container)return;
+  if(!activeCenter){
+    container.innerHTML=`<div class="gc" style="text-align:center;padding:32px 16px">
+      <div style="font-weight:700;font-size:1rem;margin-bottom:16px;color:var(--text)">Seleccioná una sucursal</div>
+      <div style="display:flex;gap:12px;justify-content:center">
+        <button class="center-card gc tap" onclick="pickCenterForTab('GN')" style="flex:1;max-width:180px;padding:20px 16px;cursor:pointer">
+          <div style="font-size:1.4rem;font-weight:900;color:var(--accent)">GN</div>
+          <div style="font-size:.78rem;color:var(--text3);margin-top:4px">Guardias Nacionales</div>
+        </button>
+        <button class="center-card gc tap" onclick="pickCenterForTab('Sarmiento')" style="flex:1;max-width:180px;padding:20px 16px;cursor:pointer">
+          <div style="font-size:1.4rem;font-weight:900;color:var(--green)">Sarmiento</div>
+          <div style="font-size:.78rem;color:var(--text3);margin-top:4px">Sarmiento</div>
+        </button>
+      </div>
+    </div>`;
+    // Clear stats
+    ['mov-stat-entradas','mov-stat-salidas','mov-stat-gasto'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='—';});
+    return;
+  }
   const from=document.getElementById("movDateFrom")?.value||"";
   const to=document.getElementById("movDateTo")?.value||"";
   const ttype=document.getElementById("movTypeFilter")?.value||"";
@@ -1995,6 +2031,7 @@ function renderMovimientos(){
           <span class="mov-date">${fmtDate(m.date)} ${m.time||""}</span>
           ${m.note?`<span class="mov-note">${escHtml(m.note)}</span>`:""}
           ${gastoTag?`<span class="mov-note" style="color:#1a8f3c">${gastoTag}</span>`:""}
+          ${m.proveedorName?`<span class="mov-tag">🚚 ${escHtml(m.proveedorName)}</span>`:""}
         </div>
       </div>
       <span class="mov-qty-badge ${m.type}">${sign}${m.qty} ${escHtml(unit)}</span>
@@ -2116,6 +2153,25 @@ function renderStockChart(){
 function renderGestion(){
   const q=(document.getElementById("gestionSearch")?.value||"").toLowerCase();
   const el=document.getElementById("gestionContainer"); if(!el)return;
+  if(!activeCenter){
+    el.innerHTML=`<div class="gc" style="text-align:center;padding:32px 16px">
+      <div style="font-weight:700;font-size:1rem;margin-bottom:16px;color:var(--text)">Seleccioná una sucursal</div>
+      <div style="display:flex;gap:12px;justify-content:center">
+        <button class="center-card gc tap" onclick="pickCenterForTab('GN')" style="flex:1;max-width:180px;padding:20px 16px;cursor:pointer">
+          <div style="font-size:1.4rem;font-weight:900;color:var(--accent)">GN</div>
+          <div style="font-size:.78rem;color:var(--text3);margin-top:4px">Guardias Nacionales</div>
+        </button>
+        <button class="center-card gc tap" onclick="pickCenterForTab('Sarmiento')" style="flex:1;max-width:180px;padding:20px 16px;cursor:pointer">
+          <div style="font-size:1.4rem;font-weight:900;color:var(--green)">Sarmiento</div>
+          <div style="font-size:.78rem;color:var(--text3);margin-top:4px">Sarmiento</div>
+        </button>
+      </div>
+    </div>`;
+    return;
+  }
+  const suppSec=document.getElementById("suppliersSection");
+  if(suppSec)suppSec.style.display=isAdmin?"block":"none";
+  if(isAdmin)renderSuppliersList();
   el.innerHTML="";
   getCategories().forEach(cat=>{
     const list=supplies.filter(s=>s.category===cat&&s.active&&(!q||s.name.toLowerCase().includes(q)||s.code.toLowerCase().includes(q)));
@@ -2129,6 +2185,7 @@ function renderGestion(){
         <div class="gestion-info"><div class="gestion-name">${escHtml(s.name)}</div><div class="gestion-sub">${escHtml(s.code)} · ${escHtml(s.unit)}</div></div>
         <div class="price-input-wrap"><span class="price-prefix">$</span><input class="price-input" type="number" min="0" step="0.01" value="${s.price||0}" onchange="updatePrice('${s.id}',this.value)" title="Precio por unidad" /></div>
         <div style="display:flex;align-items:center;gap:4px"><span style="font-size:11px;color:var(--text-secondary)">Mín:</span><input class="min-stock-input" type="number" min="0" value="${s.minStock||0}" onchange="updateMinStock('${s.id}',this.value)" /></div>
+        <div style="display:flex;align-items:center;gap:4px"><span style="font-size:11px;color:var(--text-secondary)">Máx:</span><input class="min-stock-input" type="number" min="0" value="${s.maxStock||0}" onchange="updateMaxStock('${s.id}',this.value)" /></div>
         <button class="btn btn-sm btn-red" onclick="archiveSupply('${s.id}')">✕</button>`;
       block.appendChild(row);
     });
@@ -2138,6 +2195,37 @@ function renderGestion(){
 }
 function updatePrice(id,val){const s=supplies.find(x=>x.id===id);if(s){s.price=parseFloat(val)||0;persist();toast("Precio actualizado");}}
 function updateMinStock(id,val){const s=supplies.find(x=>x.id===id);if(s){s.minStock=parseInt(val)||0;persist();}}
+function updateMaxStock(id,val){const s=supplies.find(x=>x.id===id);if(s){s.maxStock=parseInt(val)||0;persist();}}
+
+function renderSuppliersList(){
+  const el=document.getElementById("suppliersList"); if(!el)return;
+  if(!suppliers.length){el.innerHTML='<p style="font-size:.85rem;color:var(--text3)">Sin proveedores cargados.</p>';return;}
+  el.innerHTML=suppliers.map(p=>`<div class="users-row"><span class="users-row-email">${escHtml(p.name)}</span><button class="btn-remove-user" onclick="removeSupplier('${escAttr(p.id)}')">Quitar</button></div>`).join("");
+}
+function addSupplier(){
+  const input=document.getElementById("supplierNewName");
+  const name=(input.value||"").trim();
+  if(!name){toast("⚠️ Ingresá un nombre");return;}
+  suppliers.push({id:"sup_"+Date.now(),name});
+  input.value="";
+  persist();
+  renderSuppliersList();
+  toast("✓ Proveedor agregado");
+}
+function removeSupplier(id){
+  openConfirm("Quitar proveedor","¿Eliminar este proveedor?",()=>{
+    suppliers=suppliers.filter(x=>x.id!==id);
+    persist();renderSuppliersList();toast("✓ Proveedor eliminado");
+  });
+}
+
+function pickCenterForTab(c){
+  const tab=currentTab;
+  enterCenter(c);
+  // enterCenter switches to inventario tab, switch back
+  const tabBtn=document.querySelector(`.tab-btn[onclick*="'${tab}'"]`);
+  if(tabBtn) switchTab(tab, tabBtn);
+}
 function archiveSupply(id){
   const s=supplies.find(x=>x.id===id);
   openConfirm(`¿Archivar "${s?.name}"?`,"Se ocultará del inventario.",()=>{
@@ -2158,11 +2246,25 @@ function openMovModal(supplyId,type){
   document.getElementById("movQty").value="";
   document.getElementById("movDate").valueAsDate=new Date();
   document.getElementById("movNote").value="";
+  const provSel=document.getElementById("movProveedor");
+  if(provSel){
+    provSel.innerHTML=`<option value="">— Sin proveedor —</option>`+suppliers.map(p=>`<option value="${escAttr(p.id)}">${escHtml(p.name)}</option>`).join("");
+  }
+  const upEl=document.getElementById("movUnitPrice");
+  if(upEl)upEl.value="";
   selectMovType(_movType);
   document.getElementById("movModal").classList.add("open");
 }
 function closeMovModal(e){if(e&&e.target!==document.getElementById("movModal"))return;document.getElementById("movModal").classList.remove("open");}
-function selectMovType(type){_movType=type;document.getElementById("togEntrada").classList.toggle("selected",type==="entrada");document.getElementById("togSalida").classList.toggle("selected",type==="salida");}
+function selectMovType(type){
+  _movType=type;
+  document.getElementById("togEntrada").classList.toggle("selected",type==="entrada");
+  document.getElementById("togSalida").classList.toggle("selected",type==="salida");
+  const pg=document.getElementById("movProveedorGroup");
+  if(pg)pg.style.display=type==="entrada"?"block":"none";
+  const upg=document.getElementById("movUnitPriceGroup");
+  if(upg)upg.style.display=type==="entrada"?"block":"none";
+}
 function saveMovimiento(){
   const supplyId=document.getElementById("movSupplySelect").value;
   const qty=parseInt(document.getElementById("movQty").value);
@@ -2172,7 +2274,18 @@ function saveMovimiento(){
   if(!qty||qty<=0){toast("⚠️ Ingresá una cantidad válida");return;}
   if(!date){toast("⚠️ Seleccioná una fecha");return;}
   const s=supplies.find(x=>x.id===supplyId); if(!s)return;
-  const mov={id:"mov_"+Date.now(),supplyId,supplyName:s.name,type:_movType,qty,date,time:new Date().toTimeString().slice(0,5),note};
+  const proveedorId=document.getElementById("movProveedor")?.value||"";
+  const proveedor=suppliers.find(x=>x.id===proveedorId);
+  const unitPrice=parseFloat(document.getElementById("movUnitPrice")?.value)||0;
+  if(_movType==="entrada"&&unitPrice>0){
+    s.price=unitPrice;
+    if(!s.priceHistory)s.priceHistory=[];
+    s.priceHistory.unshift({price:unitPrice,date,proveedorName:proveedor?.name||""});
+    if(s.priceHistory.length>10)s.priceHistory.length=10;
+  }
+  const mov={id:"mov_"+Date.now(),supplyId,supplyName:s.name,type:_movType,qty,date,time:new Date().toTimeString().slice(0,5),note,
+    ...(proveedorId&&{proveedorId,proveedorName:proveedor?.name||""})
+  };
   cs[activeCenter].movements.push(mov);
   cs[activeCenter].stock[supplyId]=(cs[activeCenter].stock[supplyId]||0)+(_movType==="entrada"?qty:-qty);
   persist();
@@ -2293,6 +2406,7 @@ function startListeners(){
   _unsubSupplies = _db.collection(DB_COL).doc("supplies").onSnapshot(snap=>{
     if(snap.exists && snap.data().data){
       supplies = snap.data().data;
+      suppliers = snap.data().suppliers || [];
       // Ensure all catalog items exist
       buildDefaultSupplies().forEach(def=>{
         if(!supplies.find(s=>s.id===def.id)) supplies.push(def);
