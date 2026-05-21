@@ -54,7 +54,7 @@
 
     body::before {
       content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
-      background: rgba(235,243,252,.28);
+      background: rgba(220,235,248,.12);
     }
     body::after { display: none; }
 
@@ -66,9 +66,9 @@
 
     /* ── LIQUID GLASS CARD ── */
     .gc {
-      background: rgba(255,255,255,.38);
-      -webkit-backdrop-filter: saturate(320%) contrast(108%) brightness(110%) blur(30px);
-      backdrop-filter: saturate(320%) contrast(108%) brightness(110%) blur(30px);
+      background: rgba(255,255,255,.16);
+      -webkit-backdrop-filter: saturate(180%) contrast(104%) brightness(106%) blur(20px);
+      backdrop-filter: saturate(180%) contrast(104%) brightness(106%) blur(20px);
       border: 1.5px solid rgba(255,255,255,.90);
       border-top-color: rgba(255,255,255,1.0);
       border-radius: var(--r-lg);
@@ -142,9 +142,9 @@
 
     /* ─── Header card ────────────────────────────────── */
     .header-card {
-      background: rgba(255,255,255,.42);
-      -webkit-backdrop-filter: saturate(360%) contrast(110%) brightness(112%) blur(44px);
-      backdrop-filter: saturate(360%) contrast(110%) brightness(112%) blur(44px);
+      background: rgba(255,255,255,.22);
+      -webkit-backdrop-filter: saturate(200%) contrast(104%) brightness(108%) blur(24px);
+      backdrop-filter: saturate(200%) contrast(104%) brightness(108%) blur(24px);
       border: 1.5px solid rgba(255,255,255,.92);
       border-top-color: rgba(255,255,255,1.0);
       border-radius: var(--r-xl);
@@ -701,9 +701,9 @@
     /* ─── Sidebar ────────────────────────────────────────── */
     #sidebar {
       position: fixed; left: 0; top: 0; bottom: 0; width: 280px; z-index: 300;
-      background: rgba(255,255,255,.28);
-      -webkit-backdrop-filter: saturate(320%) contrast(108%) brightness(110%) blur(40px);
-      backdrop-filter: saturate(320%) contrast(108%) brightness(110%) blur(40px);
+      background: rgba(255,255,255,.18);
+      -webkit-backdrop-filter: saturate(180%) contrast(104%) brightness(106%) blur(32px);
+      backdrop-filter: saturate(180%) contrast(104%) brightness(106%) blur(32px);
       border-right: 1.5px solid rgba(255,255,255,.85);
       box-shadow: 2px 0 32px rgba(140,160,220,.12), inset -1px 0 0 rgba(255,255,255,.9);
       display: flex; flex-direction: column;
@@ -1050,7 +1050,7 @@
   </nav>
   <div class="sb-footer">
     <div class="sb-version-row">
-      <span class="version-badge" id="versionBadge">V2.1.0</span>
+      <span class="version-badge" id="versionBadge">V2.1.1</span>
       <button class="sb-refresh-btn" id="refreshBtn" onclick="manualRefresh()" title="Verificar y recargar">
         <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M4 10a6 6 0 1 0 1.2-3.6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M4 5v5h5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span id="refreshIcon">Actualizar</span>
@@ -1384,7 +1384,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "2.1.0";
+const APP_VERSION = "2.1.1";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
