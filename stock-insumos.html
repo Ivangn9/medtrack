@@ -1147,7 +1147,7 @@
   </nav>
   <div class="sb-footer">
     <div class="sb-version-row">
-      <span class="version-badge" id="versionBadge">V2.11.0</span>
+      <span class="version-badge" id="versionBadge">V2.12.0</span>
       <button class="sb-refresh-btn" id="refreshBtn" onclick="manualRefresh()" title="Verificar y recargar">
         <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M4 10a6 6 0 1 0 1.2-3.6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M4 5v5h5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span id="refreshIcon">Actualizar</span>
@@ -1422,11 +1422,12 @@
 
     <!-- Sección proveedores -->
     <div id="suppliersSection" style="margin-top:24px;display:none">
-      <div class="admin-section-title" style="margin-bottom:12px">🚚 Proveedores</div>
-      <div id="suppliersList" style="margin-bottom:12px"></div>
-      <div class="admin-add-row">
-        <input type="text" id="supplierNewName" placeholder="Nombre del proveedor…" class="modal-input" />
-        <button class="btn btn-primary" onclick="addSupplier()"><span>+ Agregar</span></button>
+      <div class="gc" style="overflow:hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px 10px">
+          <div style="font-size:.82rem;font-weight:800;color:var(--text2);text-transform:uppercase;letter-spacing:.06em">Proveedores</div>
+          <button class="btn btn-primary" style="padding:6px 14px;font-size:.82rem" onclick="openSupplierModal()"><span class="btn-icon">+</span> Nuevo</button>
+        </div>
+        <div id="suppliersList" style="padding:0 8px 10px"></div>
       </div>
     </div>
 
@@ -1575,6 +1576,37 @@
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeMovModal()">Cancelar</button>
       <button class="btn btn-primary"   onclick="saveMovimiento()"><span class="btn-icon">✓</span> Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Modal Proveedor ──────────────────────────────── -->
+<div class="modal-overlay" id="supplierModal" onclick="closeSupplierModal(event)">
+  <div class="modal-sheet" onclick="event.stopPropagation()" style="max-width:540px">
+    <div class="modal-handle"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+      <div class="modal-title" id="supplierModalTitle">Nuevo Proveedor</div>
+      <button class="modal-close-btn" onclick="closeSupplierModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="supplierEditId" value="" />
+      <div style="font-size:.72rem;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">Datos del proveedor</div>
+      <div class="form-group"><label>Nombre del proveedor *</label><input type="text" id="supNombre" placeholder="Ej: Distribuidora Médica SA" /></div>
+      <div class="form-row">
+        <div class="form-group" style="flex:2"><label>Razón social</label><input type="text" id="supRazonSocial" placeholder="Razón social…" /></div>
+        <div class="form-group" style="flex:1"><label>CUIT</label><input type="text" id="supCuit" placeholder="00-00000000-0" /></div>
+      </div>
+      <div class="form-group"><label>Domicilio</label><input type="text" id="supDomicilio" placeholder="Dirección del proveedor…" /></div>
+      <div style="font-size:.72rem;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin:16px 0 10px">Representante</div>
+      <div class="form-row">
+        <div class="form-group" style="flex:2"><label>Nombre y apellido</label><input type="text" id="supRepNombre" placeholder="Nombre del representante…" /></div>
+        <div class="form-group" style="flex:1"><label>Teléfono</label><input type="text" id="supRepTel" placeholder="+54 9 …" /></div>
+      </div>
+      <div class="form-group"><label>Correo electrónico</label><input type="email" id="supRepEmail" placeholder="correo@ejemplo.com" /></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeSupplierModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveSupplierModal()"><span class="btn-icon">✓</span> Guardar</button>
     </div>
   </div>
 </div>
@@ -2326,10 +2358,11 @@ function renderGestion(){
   const suppSec=document.getElementById("suppliersSection");
   const bh=document.getElementById("ges-back-header");
   const bn=document.getElementById("ges-back-name");
+  if(suppSec)suppSec.style.display="block";
+  renderSuppliersList();
   if(!activeCenter){
     if(bh)bh.style.display="none";
     if(toolbar)toolbar.style.display="none";
-    if(suppSec)suppSec.style.display="none";
     el.innerHTML=`<div class="gc" style="text-align:center;padding:40px 16px">
       <div style="font-weight:700;font-size:1.05rem;margin-bottom:20px;color:var(--text)">Seleccioná una sucursal para Gestión</div>
       <div style="display:flex;gap:14px;justify-content:center">
@@ -2347,8 +2380,6 @@ function renderGestion(){
   }
   if(bh){bh.style.display="flex";if(bn)bn.textContent=(activeCenter==="GN"?"GN · Guardias Nacionales":"Sarmiento · Sarmiento 1212");}
   if(toolbar)toolbar.style.display="flex";
-  if(suppSec)suppSec.style.display=isAdmin?"block":"none";
-  if(isAdmin)renderSuppliersList();
   el.innerHTML="";
   getCategories().forEach(cat=>{
     const list=supplies.filter(s=>s.category===cat&&s.active&&(!q||s.name.toLowerCase().includes(q)||s.code.toLowerCase().includes(q)));
@@ -2559,18 +2590,69 @@ function updateMaxStock(id,val){const s=supplies.find(x=>x.id===id);if(s){s.maxS
 
 function renderSuppliersList(){
   const el=document.getElementById("suppliersList"); if(!el)return;
-  if(!suppliers.length){el.innerHTML='<p style="font-size:.85rem;color:var(--text3)">Sin proveedores cargados.</p>';return;}
-  el.innerHTML=suppliers.map(p=>`<div class="users-row"><span class="users-row-email">${escHtml(p.name)}</span><button class="btn-remove-user" onclick="removeSupplier('${escAttr(p.id)}')">Quitar</button></div>`).join("");
+  if(!suppliers.length){
+    el.innerHTML=`<div style="padding:14px 10px;font-size:.85rem;color:var(--text3);text-align:center">Sin proveedores cargados. Tocá "+ Nuevo" para agregar.</div>`;
+    return;
+  }
+  el.innerHTML=suppliers.map(p=>`
+    <div class="gc" style="margin:0 0 10px;padding:14px 16px;border-radius:var(--r-md)">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:${(p.razonSocial||p.cuit||p.domicilio||p.repNombre||p.repTel||p.repEmail)?"8px":"0"}">
+        <div style="font-size:.95rem;font-weight:800;color:var(--text)">${escHtml(p.name)}</div>
+        <div style="display:flex;gap:6px;flex-shrink:0">
+          <button onclick="openSupplierModal('${escAttr(p.id)}')" style="background:rgba(0,113,227,.12);border:none;border-radius:7px;padding:4px 10px;font-size:.78rem;color:var(--accent);cursor:pointer;font-weight:650">✎ Editar</button>
+          <button onclick="removeSupplier('${escAttr(p.id)}')" style="background:rgba(255,59,48,.10);border:none;border-radius:7px;padding:4px 9px;font-size:.78rem;color:var(--red);cursor:pointer">✕</button>
+        </div>
+      </div>
+      ${p.razonSocial||p.cuit?`<div style="font-size:.8rem;color:var(--text2);margin-bottom:4px">${p.razonSocial?escHtml(p.razonSocial):""}${p.razonSocial&&p.cuit?" · ":""}${p.cuit?"CUIT: "+escHtml(p.cuit):""}</div>`:""}
+      ${p.domicilio?`<div style="font-size:.8rem;color:var(--text3);margin-bottom:4px">📍 ${escHtml(p.domicilio)}</div>`:""}
+      ${p.repNombre||p.repTel||p.repEmail?`<div style="border-top:1px solid rgba(255,255,255,.22);margin-top:8px;padding-top:8px;font-size:.78rem;color:var(--text3)">
+        <span style="font-weight:700;color:var(--text2)">Representante:</span>
+        ${p.repNombre?" "+escHtml(p.repNombre):""}
+        ${p.repTel?` · Tel: ${escHtml(p.repTel)}`:""}
+        ${p.repEmail?` · ${escHtml(p.repEmail)}`:""}
+      </div>`:""}
+    </div>`).join("");
 }
-function addSupplier(){
-  const input=document.getElementById("supplierNewName");
-  const name=(input.value||"").trim();
-  if(!name){toast("⚠️ Ingresá un nombre");return;}
-  suppliers.push({id:"sup_"+Date.now(),name});
-  input.value="";
+function openSupplierModal(id){
+  const p=id?suppliers.find(x=>x.id===id):null;
+  document.getElementById("supplierModalTitle").textContent=p?"Editar Proveedor":"Nuevo Proveedor";
+  document.getElementById("supplierEditId").value=id||"";
+  document.getElementById("supNombre").value=p?.name||"";
+  document.getElementById("supRazonSocial").value=p?.razonSocial||"";
+  document.getElementById("supCuit").value=p?.cuit||"";
+  document.getElementById("supDomicilio").value=p?.domicilio||"";
+  document.getElementById("supRepNombre").value=p?.repNombre||"";
+  document.getElementById("supRepTel").value=p?.repTel||"";
+  document.getElementById("supRepEmail").value=p?.repEmail||"";
+  document.getElementById("supplierModal").style.display="flex";
+}
+function closeSupplierModal(e){
+  if(e&&e.target!==document.getElementById("supplierModal"))return;
+  document.getElementById("supplierModal").style.display="none";
+}
+function saveSupplierModal(){
+  const name=(document.getElementById("supNombre").value||"").trim();
+  if(!name){toast("⚠️ Ingresá el nombre del proveedor");return;}
+  const id=document.getElementById("supplierEditId").value;
+  const data={
+    name,
+    razonSocial:(document.getElementById("supRazonSocial").value||"").trim(),
+    cuit:(document.getElementById("supCuit").value||"").trim(),
+    domicilio:(document.getElementById("supDomicilio").value||"").trim(),
+    repNombre:(document.getElementById("supRepNombre").value||"").trim(),
+    repTel:(document.getElementById("supRepTel").value||"").trim(),
+    repEmail:(document.getElementById("supRepEmail").value||"").trim()
+  };
+  if(id){
+    const idx=suppliers.findIndex(x=>x.id===id);
+    if(idx>=0)suppliers[idx]={...suppliers[idx],...data};
+  }else{
+    suppliers.push({id:"sup_"+Date.now(),...data});
+  }
   persist();
+  document.getElementById("supplierModal").style.display="none";
   renderSuppliersList();
-  toast("✓ Proveedor agregado");
+  toast(id?"✓ Proveedor actualizado":"✓ Proveedor agregado");
 }
 function removeSupplier(id){
   openConfirm("Quitar proveedor","¿Eliminar este proveedor?",()=>{
@@ -3072,7 +3154,7 @@ async function generateReport(){
 
     // ── Report metadata ───────────────────────────────────────────
     const centerLabel=_repCenter==="ambos"?"GN + Sarmiento":(_repCenter==="GN"?"GN · Guardias Nacionales":"Sarmiento · Sarmiento 1212");
-    const dateLabel=(dateFrom&&dateTo)?`${dateFrom} → ${dateTo}`:(dateFrom?`Desde ${dateFrom}`:(dateTo?`Hasta ${dateTo}`:"Todo el período"));
+    const dateLabel=(dateFrom&&dateTo)?`${dateFrom} al ${dateTo}`:(dateFrom?`Desde ${dateFrom}`:(dateTo?`Hasta ${dateTo}`:"Todo el periodo"));
     doc.setTextColor(60,60,67);
     doc.setFontSize(8.5);doc.setFont("helvetica","bold");
     doc.text("Sucursal:",mg,y);doc.setFont("helvetica","normal");doc.text(centerLabel,mg+18,y);y+=5;
@@ -3090,7 +3172,7 @@ async function generateReport(){
       doc.setFillColor(230,241,252);
       doc.rect(mg,y-4,pageW-mg*2,11,"F");
       doc.setTextColor(0,113,227);doc.setFontSize(10);doc.setFont("helvetica","bold");
-      doc.text(icon+" "+title,mg+3,y+4);
+      doc.text(title,mg+3,y+4);
       y+=13;doc.setTextColor(60,60,67);doc.setFont("helvetica","normal");
     }
     function subHeader(label){
