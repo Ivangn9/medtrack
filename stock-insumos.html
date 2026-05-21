@@ -413,9 +413,18 @@
 
     /* ─── Gestión ────────────────────────────────────── */
     .gestion-table { border-radius: var(--r-xl); overflow: hidden; margin-bottom: 14px; }
+    .gestion-col-header {
+      display: flex; align-items: center; gap: 10px; padding: 7px 18px;
+      background: rgba(255,255,255,.18);
+      border-bottom: 1.5px solid rgba(255,255,255,.38);
+    }
+    .gch-name { flex:1; font-size:11px; font-weight:700; color:var(--text3); text-transform:uppercase; letter-spacing:.06em; }
+    .gch-col  { width:88px; font-size:11px; font-weight:700; color:var(--text3); text-transform:uppercase; letter-spacing:.06em; text-align:center; flex-shrink:0; }
+    .gch-del  { width:32px; flex-shrink:0; }
+    .gestion-col-cell { width:88px; flex-shrink:0; display:flex; align-items:center; justify-content:center; border-left:1px solid rgba(255,255,255,.28); padding-left:8px; }
     .gestion-row {
       display: flex; align-items: center; gap: 10px; padding: 11px 18px;
-      border-bottom: 1px solid rgba(255,255,255,.28);
+      border-bottom: 1px solid rgba(255,255,255,.18);
       transition: background 0.15s; position: relative; z-index: 1;
     }
     .gestion-row:last-child { border-bottom: none; }
@@ -1094,7 +1103,7 @@
   </nav>
   <div class="sb-footer">
     <div class="sb-version-row">
-      <span class="version-badge" id="versionBadge">V2.6.0</span>
+      <span class="version-badge" id="versionBadge">V2.7.0</span>
       <button class="sb-refresh-btn" id="refreshBtn" onclick="manualRefresh()" title="Verificar y recargar">
         <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M4 10a6 6 0 1 0 1.2-3.6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M4 5v5h5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span id="refreshIcon">Actualizar</span>
@@ -1342,7 +1351,7 @@
 
   <!-- ════ GESTIÓN ════ -->
   <div class="tab-pane" id="tab-gestion">
-    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+    <div id="gestionToolbar" style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
       <div class="search-wrap" style="flex:1;margin-bottom:0;min-width:200px">
         <span class="search-icon">🔍</span>
         <input class="search-input" type="search" id="gestionSearch" placeholder="Buscar insumo…" oninput="renderGestion()" autocomplete="off" />
@@ -1561,7 +1570,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "2.6.0";
+const APP_VERSION = "2.7.0";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -2160,23 +2169,27 @@ function renderStockChart(){
 function renderGestion(){
   const q=(document.getElementById("gestionSearch")?.value||"").toLowerCase();
   const el=document.getElementById("gestionContainer"); if(!el)return;
+  const toolbar=document.getElementById("gestionToolbar");
+  const suppSec=document.getElementById("suppliersSection");
   if(!activeCenter){
-    el.innerHTML=`<div class="gc" style="text-align:center;padding:32px 16px">
-      <div style="font-weight:700;font-size:1rem;margin-bottom:16px;color:var(--text)">Seleccioná una sucursal</div>
-      <div style="display:flex;gap:12px;justify-content:center">
-        <button class="center-card gc tap" onclick="pickCenterForTab('GN')" style="flex:1;max-width:180px;padding:20px 16px;cursor:pointer">
-          <div style="font-size:1.4rem;font-weight:900;color:var(--accent)">GN</div>
-          <div style="font-size:.78rem;color:var(--text3);margin-top:4px">Guardias Nacionales</div>
+    if(toolbar)toolbar.style.display="none";
+    if(suppSec)suppSec.style.display="none";
+    el.innerHTML=`<div class="gc" style="text-align:center;padding:40px 16px">
+      <div style="font-weight:700;font-size:1.05rem;margin-bottom:20px;color:var(--text)">Seleccioná una sucursal para Gestión</div>
+      <div style="display:flex;gap:14px;justify-content:center">
+        <button class="center-card gc tap" onclick="pickCenterForTab('GN')" style="flex:1;max-width:200px;padding:24px 18px;cursor:pointer">
+          <div style="font-size:1.6rem;font-weight:900;color:var(--accent)">GN</div>
+          <div style="font-size:.82rem;color:var(--text3);margin-top:6px">Guardias Nacionales</div>
         </button>
-        <button class="center-card gc tap" onclick="pickCenterForTab('Sarmiento')" style="flex:1;max-width:180px;padding:20px 16px;cursor:pointer">
-          <div style="font-size:1.4rem;font-weight:900;color:var(--green)">Sarmiento</div>
-          <div style="font-size:.78rem;color:var(--text3);margin-top:4px">Sarmiento</div>
+        <button class="center-card gc tap" onclick="pickCenterForTab('Sarmiento')" style="flex:1;max-width:200px;padding:24px 18px;cursor:pointer">
+          <div style="font-size:1.6rem;font-weight:900;color:var(--green)">Sarmiento</div>
+          <div style="font-size:.82rem;color:var(--text3);margin-top:6px">Sarmiento</div>
         </button>
       </div>
     </div>`;
     return;
   }
-  const suppSec=document.getElementById("suppliersSection");
+  if(toolbar)toolbar.style.display="flex";
   if(suppSec)suppSec.style.display=isAdmin?"block":"none";
   if(isAdmin)renderSuppliersList();
   el.innerHTML="";
@@ -2185,14 +2198,22 @@ function renderGestion(){
     if(!list.length)return;
     const icon=CAT_SVG[cat]||CAT_ICONS[cat]||"📋",color=CAT_COLORS[cat]||"rgba(0,0,0,0.07)";
     const block=document.createElement("div"); block.className="gestion-table gc"; block.style.marginBottom="14px";
-    block.innerHTML=`<div class="cat-header-row"><div class="cat-icon-badge" style="background:${color}">${icon}</div><span class="cat-name">${escHtml(cat)}</span><span class="cat-count">${list.length} insumos</span></div>`;
+    block.innerHTML=`
+      <div class="cat-header-row"><div class="cat-icon-badge" style="background:${color}">${icon}</div><span class="cat-name">${escHtml(cat)}</span><span class="cat-count">${list.length} insumos</span></div>
+      <div class="gestion-col-header">
+        <span class="gch-name">Nombre</span>
+        <span class="gch-col">Precio unit.</span>
+        <span class="gch-col">Stock mín.</span>
+        <span class="gch-col">Stock máx.</span>
+        <span class="gch-del"></span>
+      </div>`;
     list.forEach(s=>{
       const row=document.createElement("div"); row.className="gestion-row";
       row.innerHTML=`
         <div class="gestion-info"><div class="gestion-name">${escHtml(s.name)}</div><div class="gestion-sub">${escHtml(s.code)} · ${escHtml(s.unit)}</div></div>
-        <div class="price-input-wrap"><span class="price-prefix">$</span><input class="price-input" type="number" min="0" step="0.01" value="${s.price||0}" onchange="updatePrice('${s.id}',this.value)" title="Precio por unidad" /></div>
-        <div style="display:flex;align-items:center;gap:4px"><span style="font-size:11px;color:var(--text-secondary)">Mín:</span><input class="min-stock-input" type="number" min="0" value="${s.minStock||0}" onchange="updateMinStock('${s.id}',this.value)" /></div>
-        <div style="display:flex;align-items:center;gap:4px"><span style="font-size:11px;color:var(--text-secondary)">Máx:</span><input class="min-stock-input" type="number" min="0" value="${s.maxStock||0}" onchange="updateMaxStock('${s.id}',this.value)" /></div>
+        <div class="gestion-col-cell"><div class="price-input-wrap"><span class="price-prefix">$</span><input class="price-input" type="number" min="0" step="0.01" value="${s.price||0}" onchange="updatePrice('${s.id}',this.value)" /></div></div>
+        <div class="gestion-col-cell"><input class="min-stock-input" type="number" min="0" value="${s.minStock||0}" onchange="updateMinStock('${s.id}',this.value)" /></div>
+        <div class="gestion-col-cell"><input class="min-stock-input" type="number" min="0" value="${s.maxStock||0}" onchange="updateMaxStock('${s.id}',this.value)" /></div>
         <button class="btn btn-sm btn-red" onclick="archiveSupply('${s.id}')">✕</button>`;
       block.appendChild(row);
     });
