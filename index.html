@@ -1025,7 +1025,7 @@ function iconFor(eq,size){
   var catSvg=catSvgIcon(eq.cat,s);
   var bslug=_brandSlug(eq.marca||eq.contrato);
   var imgOverlay=_logoImgHTML(bslug,r);
-  var brandStyle=bslug?'display:none;':'';
+  var brandStyle=(bslug&&imgOverlay)?'display:none;':'';
 
   if(brand&&catSvg){
     return '<div style="position:relative;width:'+s+'px;height:'+s+'px;flex-shrink:0;">'+
@@ -3258,8 +3258,8 @@ function submitRotura(){
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
 var antenas=[];
-var APP_DISPLAY_VERSION="4.3.2";
-var APP_BUILD="20/05/26 15:30";
+var APP_DISPLAY_VERSION="4.3.3";
+var APP_BUILD="20/05/26 16:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
