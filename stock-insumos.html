@@ -1006,9 +1006,7 @@
     textarea.inp{resize:vertical;}
 
     /* ── ENTREGAS ── */
-    .entregas-cats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;}
-    @media(max-width:600px){.entregas-cats-grid{grid-template-columns:repeat(2,1fr);}}
-    @media(min-width:601px) and (max-width:899px){.entregas-cats-grid{grid-template-columns:repeat(4,1fr);}}
+    .entregas-cats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
     .entregas-cat-card{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:20px 12px;border:none;cursor:pointer;text-align:center;transition:transform .25s var(--spring);}
     .entregas-cat-card:active{transform:scale(.96);}
     .entregas-cat-icon{font-size:2.2rem;width:60px;height:60px;border-radius:18px;display:flex;align-items:center;justify-content:center;border:1.5px solid rgba(255,255,255,.7);box-shadow:0 2px 8px rgba(0,0,0,.06),inset 0 1px 0 rgba(255,255,255,.9);}
@@ -1090,7 +1088,7 @@
   </nav>
   <div class="sb-footer">
     <div class="sb-version-row">
-      <span class="version-badge" id="versionBadge">V2.2.0</span>
+      <span class="version-badge" id="versionBadge">V2.3.0</span>
       <button class="sb-refresh-btn" id="refreshBtn" onclick="manualRefresh()" title="Verificar y recargar">
         <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M4 10a6 6 0 1 0 1.2-3.6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M4 5v5h5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span id="refreshIcon">Actualizar</span>
@@ -1253,7 +1251,6 @@
 
   <!-- ═══ CONTROL DE ENTREGAS ═══ -->
   <div id="entregas-screen" style="display:none">
-    <div class="page" style="padding-top:0">
 
       <!-- Header con back -->
       <div class="center-back-header" style="display:flex;margin-bottom:16px">
@@ -1277,7 +1274,6 @@
           Categorías
         </button>
         <div id="entregasEquipHeader" style="margin-bottom:14px"></div>
-        <button class="btn btn-primary" onclick="openAddEquipoModal()" style="margin-bottom:16px">+ Agregar equipo</button>
         <div id="entregasEquipList"></div>
       </div>
 
@@ -1292,7 +1288,6 @@
         <div id="entregasHistorialList"></div>
       </div>
 
-    </div>
   </div>
 
   <!-- ════ GRÁFICAS ════ -->
@@ -1547,7 +1542,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "2.2.0";
+const APP_VERSION = "2.3.0";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -2514,22 +2509,89 @@ function updateHomeStats(){
 
 
 // ─── ENTREGAS ───────────────────────────────────────────────────────────────
-const DB_ENTREGAS = "insumos_entregas";
+const CAT_COLORS = {
+  RM:   ["#818cf8","#c4b5fd"],
+  TC:   ["#38bdf8","#7dd3fc"],
+  MG:   ["#f472b6","#f9a8d4"],
+  RX:   ["#fb923c","#fdba74"],
+  DM:   ["#34d399","#6ee7b7"],
+  AW:   ["#a78bfa","#c4b5fd"],
+  BOMBA:["#f87171","#fca5a5"],
+  OD:   ["#2dd4bf","#5eead4"]
+};
+
+const EQUIPO_CATS = [
+  {id:"RM",   label:"Resonancia Magnética"},
+  {id:"TC",   label:"Tomografía Computada"},
+  {id:"MG",   label:"Mamografía"},
+  {id:"RX",   label:"Radiología"},
+  {id:"DM",   label:"Densitometría"},
+  {id:"AW",   label:"AW Server"},
+  {id:"BOMBA",label:"Bombas"},
+  {id:"OD",   label:"Odontología"}
+];
+
 let entregasActiveCat = null;
 let entregasActiveEquipo = null;
 let _entregasEquipos = [];
 let _entregasHistorial = [];
+let _medtrackEqs = null; // cache de equipos de MedTrack
 
-const EQUIPO_CATS = [
-  {id:"RM",   label:"Resonancia Magnética", icon:"🧲", color:"rgba(129,140,248,.2)"},
-  {id:"TC",   label:"Tomografía Computada",  icon:"☢️", color:"rgba(56,189,248,.2)"},
-  {id:"MG",   label:"Mamografía",            icon:"🩻", color:"rgba(244,114,182,.2)"},
-  {id:"RX",   label:"Radiología",            icon:"💀", color:"rgba(251,146,60,.2)"},
-  {id:"DM",   label:"Densitometría",         icon:"🦴", color:"rgba(52,211,153,.2)"},
-  {id:"AW",   label:"AW Server",             icon:"🖥️", color:"rgba(167,139,250,.2)"},
-  {id:"BOMBA",label:"Bombas",                icon:"💉", color:"rgba(248,113,113,.2)"},
-  {id:"OD",   label:"Odontología",           icon:"🦷", color:"rgba(45,212,191,.2)"}
-];
+function entregasCatSvg(catId){
+  const cc = CAT_COLORS[catId]||["#94a3b8","#cbd5e1"];
+  const c1=cc[0], c2=cc[1];
+  const p = {
+    RM:`<ellipse cx="18" cy="19" rx="9" ry="11" fill="none" stroke="${c1}" stroke-width="2" opacity=".6"/>
+        <ellipse cx="18" cy="19" rx="4.5" ry="6" fill="${c2}" opacity=".25"/>
+        <circle cx="18" cy="19" r="2" fill="${c1}" opacity=".4"/>
+        <rect x="18" y="16" width="13" height="6" rx="2.5" fill="${c2}" opacity=".2"/>
+        <rect x="18" y="18" width="13" height="2" rx="1" fill="${c1}" opacity=".3"/>`,
+    TC:`<circle cx="18" cy="18" r="11" fill="none" stroke="${c1}" stroke-width="2" opacity=".5"/>
+        <circle cx="18" cy="18" r="5.5" fill="${c2}" opacity=".2"/>
+        <circle cx="18" cy="18" r="2.5" fill="${c1}" opacity=".35"/>
+        <line x1="18" y1="5" x2="18" y2="11" stroke="${c1}" stroke-width="1.8" opacity=".35"/>
+        <line x1="18" y1="25" x2="18" y2="31" stroke="${c1}" stroke-width="1.8" opacity=".35"/>
+        <line x1="5" y1="18" x2="11" y2="18" stroke="${c1}" stroke-width="1.8" opacity=".35"/>
+        <line x1="25" y1="18" x2="31" y2="18" stroke="${c1}" stroke-width="1.8" opacity=".35"/>`,
+    MG:`<rect x="10" y="6" width="6" height="25" rx="2.5" fill="${c1}" opacity=".25"/>
+        <rect x="16" y="13" width="9" height="4" rx="1.5" fill="${c2}" opacity=".35"/>
+        <rect x="16" y="20" width="9" height="4" rx="1.5" fill="${c2}" opacity=".35"/>
+        <rect x="11" y="8" width="9" height="5" rx="2" fill="${c1}" opacity=".35"/>
+        <circle cx="28" cy="26" r="5" fill="${c2}" opacity=".15" stroke="${c1}" stroke-width="1.2"/>`,
+    RX:`<rect x="9" y="12" width="18" height="17" rx="2.5" fill="${c1}" opacity=".12"/>
+        <line x1="18" y1="14" x2="18" y2="27" stroke="${c2}" stroke-width="1.8" opacity=".6"/>
+        <line x1="12" y1="17" x2="18" y2="19.5" stroke="${c2}" stroke-width="1.2" opacity=".5"/>
+        <line x1="24" y1="17" x2="18" y2="19.5" stroke="${c2}" stroke-width="1.2" opacity=".5"/>
+        <line x1="12" y1="22" x2="18" y2="23.5" stroke="${c2}" stroke-width="1.2" opacity=".5"/>
+        <line x1="24" y1="22" x2="18" y2="23.5" stroke="${c2}" stroke-width="1.2" opacity=".5"/>
+        <ellipse cx="18" cy="9" rx="4" ry="4.5" fill="none" stroke="${c1}" stroke-width="1.8" opacity=".3"/>`,
+    DM:`<ellipse cx="15" cy="12" rx="5" ry="5.5" fill="none" stroke="${c1}" stroke-width="1.8" opacity=".35"/>
+        <line x1="15" y1="17.5" x2="15" y2="23" stroke="${c1}" stroke-width="3" stroke-linecap="round" opacity=".3"/>
+        <rect x="6" y="24" width="24" height="7" rx="3" fill="${c2}" opacity=".2" stroke="${c1}" stroke-width="1.2"/>`,
+    AW:`<rect x="7" y="7" width="22" height="15" rx="2.5" fill="${c2}" opacity=".15" stroke="${c1}" stroke-width="1.8"/>
+        <rect x="11" y="10" width="14" height="9" rx="1.5" fill="${c1}" opacity=".08"/>
+        <line x1="14" y1="13" x2="22" y2="13" stroke="${c1}" stroke-width="1" opacity=".3"/>
+        <line x1="14" y1="16" x2="20" y2="16" stroke="${c1}" stroke-width="1" opacity=".2"/>
+        <rect x="15" y="22" width="6" height="2.5" rx="1" fill="${c1}" opacity=".25"/>
+        <rect x="12" y="24.5" width="12" height="2" rx="1" fill="${c1}" opacity=".2"/>
+        <circle cx="25" cy="10" r="1.2" fill="${c1}" opacity=".3"/>`,
+    BOMBA:`<rect x="12" y="5" width="12" height="16" rx="4" fill="${c2}" opacity=".15" stroke="${c1}" stroke-width="1.5"/>
+           <rect x="14" y="9" width="8" height="5" rx="1" fill="${c1}" opacity=".1"/>
+           <line x1="15" y1="11" x2="21" y2="11" stroke="${c1}" stroke-width=".8" opacity=".3"/>
+           <line x1="15" y1="12.5" x2="19" y2="12.5" stroke="${c1}" stroke-width=".8" opacity=".2"/>
+           <line x1="15" y1="21" x2="12" y2="28" stroke="${c1}" stroke-width="1.8" stroke-linecap="round" opacity=".3"/>
+           <line x1="21" y1="21" x2="24" y2="28" stroke="${c1}" stroke-width="1.8" stroke-linecap="round" opacity=".3"/>
+           <circle cx="12" cy="28.5" r="1.5" fill="${c1}" opacity=".2"/>
+           <circle cx="24" cy="28.5" r="1.5" fill="${c1}" opacity=".2"/>
+           <path d="M14 5 Q15 2 18 2 Q21 2 22 5" fill="none" stroke="${c1}" stroke-width="1.5" opacity=".3"/>`,
+    OD:`<path d="M9 16 Q11 8 14 8 Q16 8 17 10 Q18 8 19 8 Q20 8 21 10 Q22 8 24 8 Q27 8 29 16 Q31 23 29 28 Q27 31 25 28 Q24 31 21 28 Q18 31 15 28 Q12 31 9 28 Q7 23 9 16 Z" fill="none" stroke="${c1}" stroke-width="1.5" opacity=".35"/>
+        <line x1="13" y1="13" x2="13" y2="19" stroke="${c2}" stroke-width="1" opacity=".35"/>
+        <line x1="17" y1="11" x2="17" y2="18" stroke="${c2}" stroke-width="1" opacity=".35"/>
+        <line x1="21" y1="11" x2="21" y2="18" stroke="${c2}" stroke-width="1" opacity=".35"/>
+        <line x1="25" y1="13" x2="25" y2="19" stroke="${c2}" stroke-width="1" opacity=".35"/>`
+  };
+  return `<svg width="160" height="160" viewBox="0 0 36 36" fill="none">${p[catId]||""}</svg>`;
+}
 
 function enterEntregas(){
   document.getElementById("home-screen").style.display="none";
@@ -2547,28 +2609,49 @@ function backFromEntregas(){
   entregasActiveCat=null; entregasActiveEquipo=null;
 }
 
-function renderEntregasCats(){
+async function renderEntregasCats(){
   const grid=document.getElementById("entregasCatGrid");
   if(!grid)return;
-  grid.innerHTML=EQUIPO_CATS.map(cat=>`
-    <button class="entregas-cat-card gc" onclick="enterEntregasCat('${cat.id}')">
-      <div class="entregas-cat-icon" style="background:${cat.color}">${cat.icon}</div>
-      <div class="entregas-cat-label">${cat.label}</div>
-    </button>
-  `).join("");
+  grid.innerHTML="<p style='color:var(--text3);font-size:.85rem;grid-column:1/-1'>Cargando equipos…</p>";
+  // Load MedTrack equipment data (cached)
+  if(!_medtrackEqs){
+    try{
+      const dataDoc=await _db.collection("users").doc(currentUser.uid).collection("app").doc("data").get();
+      _medtrackEqs=dataDoc.exists?(dataDoc.data().eqs||[]):[];
+    }catch(e){ _medtrackEqs=[]; }
+  }
+  // Count active equipment per category
+  const counts={};
+  _medtrackEqs.filter(e=>!e.archived).forEach(e=>{ counts[e.cat]=(counts[e.cat]||0)+1; });
+  grid.innerHTML=EQUIPO_CATS.map(cat=>{
+    const count=counts[cat.id]||0;
+    const [c1]=CAT_COLORS[cat.id]||["#94a3b8"];
+    return `<div class="gc tap" onclick="enterEntregasCat('${cat.id}')" style="padding:0;overflow:hidden;cursor:pointer;border:1.5px solid ${c1}40;min-height:130px;">
+      <div style="height:3px;background:linear-gradient(90deg,${c1},${c1}55);border-radius:0"></div>
+      <div style="padding:16px 14px 14px;display:flex;flex-direction:column;justify-content:space-between;height:calc(100% - 3px);position:relative;overflow:hidden;">
+        <div style="position:absolute;right:-18px;top:50%;transform:translateY(-50%);width:160px;height:160px;display:flex;align-items:center;justify-content:center;opacity:.55;pointer-events:none">${entregasCatSvg(cat.id)}</div>
+        <div style="display:flex;flex-direction:column;gap:0;z-index:1">
+          <div style="font-weight:900;font-size:2.6rem;color:${c1};line-height:1;letter-spacing:-2px">${count}</div>
+          <div style="font-size:.56rem;color:${c1}aa;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-top:1px">${count===1?"equipo":"equipos"}</div>
+        </div>
+        <div style="z-index:1"><div style="font-weight:800;font-size:1rem;letter-spacing:-.3px;color:var(--text)">${cat.label}</div></div>
+      </div>
+    </div>`;
+  }).join("");
 }
 
 async function enterEntregasCat(catId){
   entregasActiveCat=catId;
   const cat=EQUIPO_CATS.find(c=>c.id===catId);
+  const [c1]=CAT_COLORS[catId]||["#94a3b8"];
   document.getElementById("entregas-cats-view").style.display="none";
   document.getElementById("entregas-equip-view").style.display="block";
   document.getElementById("entregasEquipHeader").innerHTML=`
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
-      <div style="font-size:2rem">${cat.icon}</div>
+    <div class="gc" style="padding:16px 20px;margin-bottom:14px;display:flex;align-items:center;gap:14px;border:1.5px solid ${c1}40">
+      <div style="width:52px;height:52px;border-radius:16px;background:${c1}18;display:flex;align-items:center;justify-content:center;flex-shrink:0">${entregasCatSvg(catId)}</div>
       <div>
-        <div style="font-size:1.1rem;font-weight:800">${cat.label}</div>
-        <div style="font-size:.78rem;color:var(--text3)">Equipos registrados</div>
+        <div style="font-weight:800;font-size:1.1rem">${cat.label}</div>
+        <div style="font-size:.78rem;color:var(--text3)">Equipos de MedTrack</div>
       </div>
     </div>`;
   await loadEntregasEquipos(catId);
@@ -2583,24 +2666,31 @@ function backToCats(){
 async function loadEntregasEquipos(catId){
   const el=document.getElementById("entregasEquipList");
   el.innerHTML="<p style='color:var(--text3);font-size:.85rem'>Cargando…</p>";
-  try{
-    const snap=await _db.collection(DB_ENTREGAS).where("cat","==",catId).orderBy("nombre").get();
-    _entregasEquipos=snap.docs.map(d=>({id:d.id,...d.data()}));
-    renderEntregasEquipos();
-  }catch(e){el.innerHTML="<p style='color:var(--red)'>Error: "+e.message+"</p>";}
+  // Use cached MedTrack data
+  if(!_medtrackEqs){
+    try{
+      const dataDoc=await _db.collection("users").doc(currentUser.uid).collection("app").doc("data").get();
+      _medtrackEqs=dataDoc.exists?(dataDoc.data().eqs||[]):[];
+    }catch(e){
+      el.innerHTML="<p style='color:var(--red)'>Error al leer datos de MedTrack: "+escHtml(e.message)+"</p>";
+      return;
+    }
+  }
+  _entregasEquipos=_medtrackEqs.filter(e=>e.cat===catId&&!e.archived).sort((a,b)=>(a.name||"").localeCompare(b.name||""));
+  renderEntregasEquipos();
 }
 
 function renderEntregasEquipos(){
   const el=document.getElementById("entregasEquipList");
   if(!_entregasEquipos.length){
-    el.innerHTML="<div class='gc' style='padding:24px;text-align:center;color:var(--text3)'>No hay equipos aún. Agregá el primero.</div>";
+    el.innerHTML="<div class='gc' style='padding:24px;text-align:center;color:var(--text3)'>No hay equipos de esta categoría en MedTrack.</div>";
     return;
   }
   el.innerHTML=_entregasEquipos.map(eq=>`
-    <div class="gc entregas-equip-row" onclick="enterEntregasHistorial('${eq.id}')">
+    <div class="gc entregas-equip-row" onclick="enterEntregasHistorial('${escAttr(eq.id)}')">
       <div class="entregas-equip-info">
-        <div class="entregas-equip-name">${escHtml(eq.nombre)}</div>
-        <div class="entregas-equip-sub">${escHtml(eq.cat)} · Toca para ver historial</div>
+        <div class="entregas-equip-name">${escHtml(eq.name||eq.nombre||"Sin nombre")}</div>
+        <div class="entregas-equip-sub">${escHtml(eq.serial||eq.serialNumber||"")}${(eq.serial||eq.serialNumber)?" · ":""}Ver historial de entregas</div>
       </div>
       <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M8 5l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </div>
@@ -2610,14 +2700,16 @@ function renderEntregasEquipos(){
 async function enterEntregasHistorial(equipoId){
   entregasActiveEquipo=_entregasEquipos.find(e=>e.id===equipoId);
   if(!entregasActiveEquipo)return;
+  const cat=EQUIPO_CATS.find(c=>c.id===entregasActiveEquipo.cat);
+  const [c1]=CAT_COLORS[entregasActiveEquipo.cat]||["#94a3b8"];
   document.getElementById("entregas-equip-view").style.display="none";
   document.getElementById("entregas-historial-view").style.display="block";
   document.getElementById("entregasHistorialHeader").innerHTML=`
-    <div class="gc" style="padding:16px 20px;margin-bottom:14px;display:flex;align-items:center;gap:14px">
-      <div style="font-size:1.8rem">${EQUIPO_CATS.find(c=>c.id===entregasActiveEquipo.cat)?.icon||"🔧"}</div>
+    <div class="gc" style="padding:16px 20px;margin-bottom:14px;display:flex;align-items:center;gap:14px;border:1.5px solid ${c1}40">
+      <div style="width:48px;height:48px;border-radius:14px;background:${c1}18;display:flex;align-items:center;justify-content:center;flex-shrink:0">${entregasCatSvg(entregasActiveEquipo.cat)}</div>
       <div>
-        <div style="font-weight:800;font-size:1rem">${escHtml(entregasActiveEquipo.nombre)}</div>
-        <div style="font-size:.75rem;color:var(--text3)">${EQUIPO_CATS.find(c=>c.id===entregasActiveEquipo.cat)?.label||entregasActiveEquipo.cat}</div>
+        <div style="font-weight:800;font-size:1rem">${escHtml(entregasActiveEquipo.name||entregasActiveEquipo.nombre||"")}</div>
+        <div style="font-size:.75rem;color:var(--text3)">${cat?cat.label:entregasActiveEquipo.cat}</div>
       </div>
     </div>`;
   await loadEntregasHistorial(equipoId);
@@ -2633,10 +2725,14 @@ async function loadEntregasHistorial(equipoId){
   const el=document.getElementById("entregasHistorialList");
   el.innerHTML="<p style='color:var(--text3);font-size:.85rem'>Cargando historial…</p>";
   try{
-    const snap=await _db.collection(DB_ENTREGAS).doc(equipoId).collection("historial").orderBy("creadoAt","desc").get();
-    _entregasHistorial=snap.docs.map(d=>({id:d.id,...d.data()}));
+    // Store/retrieve from insumos_cima using _type:"entrega" field
+    const snap=await _db.collection(DB_COL).where("equipoId","==",equipoId).get();
+    _entregasHistorial=snap.docs
+      .map(d=>({id:d.id,...d.data()}))
+      .filter(d=>d._type==="entrega")
+      .sort((a,b)=>(b.creadoAt||"").localeCompare(a.creadoAt||""));
     renderEntregasHistorial();
-  }catch(e){el.innerHTML="<p style='color:var(--red)'>Error: "+e.message+"</p>";}
+  }catch(e){el.innerHTML="<p style='color:var(--red)'>Error: "+escHtml(e.message)+"</p>";}
 }
 
 function renderEntregasHistorial(){
@@ -2653,11 +2749,11 @@ function renderEntregasHistorial(){
           <div class="entregas-hist-lic">👤 ${escHtml(h.licenciado||"—")}</div>
         </div>
         <div style="display:flex;gap:8px;flex-shrink:0">
-          ${h.pdfBase64?`<button class="btn-pdf" onclick="openPdfViewer('${h.id}','${escAttr(h.pdfNombre||"documento.pdf")}')">📄 Ver PDF</button>`:""}
-          <button class="btn-del-entrega" onclick="deleteEntrega('${h.id}')">🗑</button>
+          ${h.pdfBase64?`<button class="btn-pdf" onclick="openEntregaPdf('${escAttr(h.id)}','${escAttr(h.pdfNombre||"documento.pdf")}')">PDF</button>`:""}
+          <button class="btn-del-entrega" onclick="deleteEntrega('${escAttr(h.id)}')">&#128465;</button>
         </div>
       </div>
-      ${h.obs?`<div class="entregas-hist-obs"><span style="color:var(--orange);font-size:.85rem">⚠️</span> ${escHtml(h.obs)}</div>`:""}
+      ${h.obs?`<div class="entregas-hist-obs"><span style="color:var(--orange);font-size:.85rem">&#9888;&#65039;</span> ${escHtml(h.obs)}</div>`:""}
     </div>
   `).join("");
 }
@@ -2667,27 +2763,6 @@ function formatFecha(f){
   const [y,m,d]=f.split("-");
   const meses=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
   return `${d} ${meses[parseInt(m)-1]} ${y}`;
-}
-
-// Modal: Agregar equipo
-function openAddEquipoModal(){
-  document.getElementById("addEquipoModal").classList.add("open");
-  document.getElementById("addEquipoNombre").value="";
-  setTimeout(()=>document.getElementById("addEquipoNombre").focus(),200);
-}
-function closeAddEquipoModal(e){
-  if(e&&e.target!==document.getElementById("addEquipoModal"))return;
-  document.getElementById("addEquipoModal").classList.remove("open");
-}
-async function saveNuevoEquipo(){
-  const nombre=(document.getElementById("addEquipoNombre").value||"").trim();
-  if(!nombre){toast("⚠️ Ingresá el nombre del equipo");return;}
-  try{
-    await _db.collection(DB_ENTREGAS).add({cat:entregasActiveCat,nombre,creadoAt:new Date().toISOString(),creadoPor:currentUser.email});
-    document.getElementById("addEquipoModal").classList.remove("open");
-    toast("✓ Equipo agregado");
-    await loadEntregasEquipos(entregasActiveCat);
-  }catch(e){toast("⚠️ Error: "+e.message);}
 }
 
 // Modal: Nueva entrega
@@ -2724,9 +2799,17 @@ async function saveNuevaEntrega(){
   const btn=document.getElementById("saveEntregaBtn");
   btn.disabled=true; btn.textContent="Guardando…";
   try{
-    const data={fecha,licenciado,obs,creadoAt:new Date().toISOString(),creadoPor:currentUser.email};
+    const data={
+      _type:"entrega",
+      equipoId:entregasActiveEquipo.id,
+      equipoCat:entregasActiveEquipo.cat,
+      equipoNombre:entregasActiveEquipo.name||entregasActiveEquipo.nombre||"",
+      fecha,licenciado,obs,
+      creadoAt:new Date().toISOString(),
+      creadoPor:currentUser.email
+    };
     if(_nuevaEntregaPdfBase64){data.pdfBase64=_nuevaEntregaPdfBase64;data.pdfNombre=_nuevaEntregaPdfNombre;}
-    await _db.collection(DB_ENTREGAS).doc(entregasActiveEquipo.id).collection("historial").add(data);
+    await _db.collection(DB_COL).add(data);
     document.getElementById("nuevaEntregaModal").classList.remove("open");
     toast("✓ Entrega registrada");
     await loadEntregasHistorial(entregasActiveEquipo.id);
@@ -2738,7 +2821,7 @@ async function saveNuevaEntrega(){
 async function deleteEntrega(entregaId){
   openConfirm("Eliminar entrega","¿Eliminar este registro de entrega?",async()=>{
     try{
-      await _db.collection(DB_ENTREGAS).doc(entregasActiveEquipo.id).collection("historial").doc(entregaId).delete();
+      await _db.collection(DB_COL).doc(entregaId).delete();
       toast("✓ Entrega eliminada");
       await loadEntregasHistorial(entregasActiveEquipo.id);
     }catch(e){toast("⚠️ "+e.message);}
@@ -2746,7 +2829,7 @@ async function deleteEntrega(entregaId){
 }
 
 // PDF viewer
-async function openPdfViewer(entregaId, nombre){
+function openEntregaPdf(entregaId, nombre){
   const h=_entregasHistorial.find(x=>x.id===entregaId);
   if(!h||!h.pdfBase64){toast("⚠️ PDF no disponible");return;}
   const overlay=document.getElementById("pdf-viewer-overlay");
@@ -2763,10 +2846,11 @@ function closePdfViewer(){
 
 async function updateHomeStatsEntregas(){
   try{
-    const snap=await _db.collection(DB_ENTREGAS).get();
+    const snap=await _db.collection(DB_COL).where("_type","==","entrega").get();
     const el=document.getElementById("home-stats-entregas");
-    if(el) el.innerHTML=`<span class="csp-pill csp-ok">${snap.size} equipos registrados</span>`;
+    if(el) el.innerHTML=`<span class="csp-pill csp-ok">${snap.size} entrega${snap.size!==1?"s":""} registrada${snap.size!==1?"s":""}</span>`;
   }catch(e){}
+}catch(e){}
 }
 
 </script>
