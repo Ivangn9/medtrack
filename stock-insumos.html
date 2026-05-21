@@ -1379,11 +1379,12 @@
     <div class="admin-add-row">
       <input type="email" id="usersNewEmail" placeholder="Email del nuevo usuario…" class="modal-input"
         onkeydown="if(event.key==='Enter') addAuthorizedUser2()" autocomplete="off" />
-      <button class="btn btn-primary" onclick="addAuthorizedUser2()" style="white-space:nowrap;flex-shrink:0">
+      <button id="usersAddBtn" class="btn btn-primary" onclick="addAuthorizedUser2()" style="white-space:nowrap;flex-shrink:0">
         <span>+ Agregar</span>
       </button>
     </div>
-    <p style="font-size:.72rem;color:var(--text3);margin-top:10px">
+    <div id="usersModalMsg" style="font-size:.8rem;min-height:1.4em;margin-top:6px"></div>
+    <p style="font-size:.72rem;color:var(--text3);margin-top:4px">
       Los usuarios agregados pueden iniciar sesión con su cuenta de Google.
     </p>
   </div>
@@ -2355,6 +2356,8 @@ function renderAdminUsers(users){
 
 function openUsersModal(){
   document.getElementById("usersModal").classList.add("open");
+  const msg=document.getElementById("usersModalMsg");
+  if(msg)msg.textContent="";
   if(_lastUsers) renderAdminUsers(_lastUsers);
   closeSidebar();
 }
@@ -2366,14 +2369,23 @@ function closeUsersModal(e){
 
 async function addAuthorizedUser2(){
   const input=document.getElementById("usersNewEmail");
+  const btn=document.getElementById("usersAddBtn");
+  const msg=document.getElementById("usersModalMsg");
   const email=(input.value||"").trim().toLowerCase();
-  if(!email||!email.includes("@")){toast("⚠️ Ingresá un email válido");return;}
-  if(email===ADMIN_EMAIL){toast("⚠️ Ese email ya es administrador");return;}
+  if(msg)msg.textContent="";
+  if(!email||!email.includes("@")){if(msg){msg.style.color="var(--red)";msg.textContent="⚠️ Ingresá un email válido";}return;}
+  if(email===ADMIN_EMAIL){if(msg){msg.style.color="var(--text3)";msg.textContent="ℹ️ Ese email ya es administrador";}return;}
+  if(btn){btn.disabled=true;btn.textContent="Guardando…";}
   try{
     await _db.collection(DB_USERS).doc(email).set({email,name:email,addedAt:new Date().toISOString(),addedBy:currentUser.email});
     input.value="";
+    if(msg){msg.style.color="var(--green,#22c55e)";msg.textContent="✓ Usuario agregado: "+email;}
     toast("✓ Usuario agregado: "+email);
-  }catch(err){toast("⚠️ Error: "+err.message);}
+  }catch(err){
+    if(msg){msg.style.color="var(--red)";msg.textContent="⚠️ Error: "+err.message;}
+    toast("⚠️ Error: "+err.message);
+  }
+  if(btn){btn.disabled=false;btn.innerHTML="<span>+ Agregar</span>";}
 }
 
 async function addAuthorizedUser(){
