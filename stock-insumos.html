@@ -1,4 +1,3 @@
-<html lang="es">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
@@ -704,6 +703,129 @@
     @media (max-width: 380px) {
       .center-selector { grid-template-columns: 1fr; }
     }
+
+    /* ─── Sidebar ────────────────────────────────────────── */
+    #sidebar {
+      position: fixed; left: 0; top: 0; bottom: 0; width: 280px; z-index: 300;
+      background: rgba(255,255,255,.28);
+      -webkit-backdrop-filter: saturate(320%) contrast(108%) brightness(110%) blur(40px);
+      backdrop-filter: saturate(320%) contrast(108%) brightness(110%) blur(40px);
+      border-right: 1.5px solid rgba(255,255,255,.85);
+      box-shadow: 2px 0 32px rgba(140,160,220,.12), inset -1px 0 0 rgba(255,255,255,.9);
+      display: flex; flex-direction: column;
+      padding: calc(env(safe-area-inset-top,0px) + 20px) 16px calc(env(safe-area-inset-bottom,0px) + 20px);
+      transition: transform .38s cubic-bezier(0.34,1.56,0.64,1);
+      overflow-y: auto;
+    }
+    @media (max-width: 899px) {
+      #sidebar { transform: translateX(-100%); }
+      #sidebar.open { transform: translateX(0); }
+    }
+    @media (min-width: 900px) {
+      #sidebar { transform: translateX(0); }
+      .page { margin-left: 280px; }
+      .topbar { left: 280px; }
+      #hamburger-btn { display: none; }
+      #sidebar-overlay { display: none !important; }
+    }
+    #sidebar-overlay {
+      display: none; position: fixed; inset: 0; z-index: 299;
+      background: rgba(0,0,0,.22);
+      -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+    }
+    .sb-logo { text-align: center; padding: 8px 0 20px; }
+    .sb-logo img { height: 60px; width: auto; object-fit: contain; }
+    .sb-title { font-size: .75rem; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: .8px; text-align: center; margin-top: 4px; }
+    .sb-sep { height: 1px; background: var(--sep); margin: 12px 0; }
+    .sb-nav { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+    .sb-btn {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 16px; border-radius: var(--r-md);
+      border: none; background: transparent; cursor: pointer;
+      font-size: .9rem; font-weight: 600; color: var(--text2);
+      text-align: left; width: 100%;
+      transition: background .2s, color .2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .sb-btn svg { flex-shrink: 0; }
+    .sb-btn.active { background: rgba(0,113,227,.10); color: var(--accent); }
+    .sb-btn:active { transform: scale(.97); }
+    .sb-footer { margin-top: auto; padding-top: 16px; border-top: 1px solid var(--sep); }
+    .sb-user { display: flex; align-items: center; gap: 10px; padding: 8px 0; }
+    .sb-user-name { font-size: .82rem; font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+    .sb-signout { font-size: .75rem; color: var(--red); cursor: pointer; background: none; border: none; font-weight: 600; padding: 4px 0; }
+    #hamburger-btn {
+      width: 44px; height: 44px; border-radius: 50%;
+      background: rgba(255,255,255,.55);
+      -webkit-backdrop-filter: saturate(320%) blur(20px);
+      backdrop-filter: saturate(320%) blur(20px);
+      border: 1.5px solid rgba(255,255,255,.80);
+      box-shadow: 0 2px 8px rgba(0,0,0,.08), inset 0 1px 0 rgba(255,255,255,.9);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; flex-shrink: 0; margin-right: 8px;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform .15s var(--spring);
+    }
+    #hamburger-btn:active { transform: scale(.92); }
+    /* ─── Center cards ───────────────────────────────────── */
+    .home-hero { text-align: center; padding: 24px 0 20px; position: relative; z-index: 1; }
+    .home-title { font-size: 1.6rem; font-weight: 800; letter-spacing: -.6px; color: var(--text); }
+    .home-sub { font-size: .85rem; color: var(--text3); margin-top: 6px; }
+    .center-cards-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    @media (max-width: 480px) { .center-cards-grid { grid-template-columns: 1fr; } }
+    .center-card {
+      padding: 28px 20px 20px;
+      display: flex; flex-direction: column; align-items: center;
+      gap: 8px; text-align: center; cursor: pointer; border: none;
+      position: relative; overflow: hidden;
+      transition: transform .3s var(--spring);
+    }
+    .center-card:active { transform: scale(.96); }
+    .center-card-icon {
+      width: 80px; height: 80px; border-radius: 24px;
+      display: flex; align-items: center; justify-content: center; margin-bottom: 4px;
+      border: 1.5px solid rgba(255,255,255,.7);
+      box-shadow: 0 2px 12px rgba(0,0,0,.06), inset 0 1px 0 rgba(255,255,255,.9);
+    }
+    .center-card-name { font-size: 1.5rem; font-weight: 800; letter-spacing: -.5px; color: var(--text); }
+    .center-card-address { font-size: .75rem; color: var(--text3); font-weight: 500; }
+    .center-card-stats { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin-top: 4px; }
+    .center-card-arrow { position: absolute; top: 16px; right: 16px; color: var(--text3); }
+    .csp-pill { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: .65rem; font-weight: 700; }
+    .csp-ok  { background: rgba(52,199,89,.15); color: #1a8a3a; }
+    .csp-warn { background: rgba(255,149,0,.15); color: #b85c00; }
+    .combined-stats { display: flex; justify-content: space-around; padding: 20px; border-radius: var(--r-xl); }
+    .combined-stat { text-align: center; }
+    .cs-num { font-size: 1.8rem; font-weight: 800; letter-spacing: -.5px; color: var(--text); }
+    .cs-lbl { font-size: .65rem; color: var(--text3); text-transform: uppercase; letter-spacing: .5px; margin-top: 2px; }
+    /* ─── Center back header ─────────────────────────────── */
+    .center-back-header {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 0 14px; margin-bottom: 4px; position: relative; z-index: 1;
+    }
+    .center-back-btn {
+      display: flex; align-items: center; justify-content: center;
+      width: 36px; height: 36px; border-radius: 50%;
+      background: rgba(255,255,255,.55);
+      border: 1.5px solid rgba(255,255,255,.80);
+      box-shadow: 0 1px 4px rgba(0,0,0,.06), inset 0 1px 0 rgba(255,255,255,.9);
+      cursor: pointer; flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform .15s var(--spring);
+    }
+    .center-back-btn:active { transform: scale(.93); }
+    .center-back-name { font-size: .95rem; font-weight: 700; color: var(--text); }
+    /* ─── Chart center toggle ────────────────────────────── */
+    .chart-center-toggle { display: flex; gap: 5px; margin-bottom: 10px; position: relative; z-index: 1; }
+    .cct-btn {
+      padding: 5px 11px; border-radius: var(--r-pill);
+      border: 1px solid rgba(255,255,255,.60);
+      background: rgba(255,255,255,.38);
+      font-size: 12px; font-weight: 600; color: var(--text2);
+      cursor: pointer; transition: all .18s;
+    }
+    .cct-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+
   </style>
 </head>
 <body>
@@ -727,11 +849,48 @@
   </div>
 </div>
 
+<!-- ─── Sidebar overlay ──────────────────────────────── -->
+<div id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+<!-- ─── Sidebar ──────────────────────────────────────── -->
+<div id="sidebar">
+  <div class="sb-logo">
+    <img src="logo.png" alt="CIMA" />
+    <div class="sb-title">Stock de Insumos</div>
+  </div>
+  <div class="sb-sep"></div>
+  <nav class="sb-nav">
+    <button class="sb-btn active" data-tab="inventario" onclick="sidebarNav('inventario')">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="2" y="2" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.7"/><rect x="11" y="2" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.7"/><rect x="2" y="11" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.7"/><rect x="11" y="11" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.7"/></svg>
+      Inventario
+    </button>
+    <button class="sb-btn" data-tab="movimientos" onclick="sidebarNav('movimientos')">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 3v14M5 8l5-5 5 5M5 12l5 5 5-5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Movimientos
+    </button>
+    <button class="sb-btn" data-tab="graficas" onclick="sidebarNav('graficas')">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 14l4-5 4 3 4-6 2 2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 17h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Gráficas
+    </button>
+    <button class="sb-btn" data-tab="gestion" onclick="sidebarNav('gestion')">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="2.5" stroke="currentColor" stroke-width="1.7"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.42 1.42M14.36 14.36l1.42 1.42M4.22 15.78l1.42-1.42M14.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Gestión
+    </button>
+  </nav>
+  <div class="sb-footer">
+    <div class="sb-user">
+      <span class="sb-user-name" id="sbUserName">—</span>
+    </div>
+    <button class="sb-signout" onclick="signOut()">Cerrar sesión</button>
+  </div>
+</div>
+
 <!-- ─── Main App (visible solo cuando autenticado) ───── -->
 <div id="mainApp" style="display:none">
 
 <!-- ─── Topbar ───────────────────────────────────────── -->
 <div class="topbar">
+  <button id="hamburger-btn" onclick="toggleSidebar()" aria-label="Menu"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
   <nav class="tab-nav" role="tablist">
     <button class="tab-btn active" onclick="switchTab('inventario',this)"><span class="ti">📦</span><span class="label">Inventario</span></button>
     <button class="tab-btn"        onclick="switchTab('movimientos',this)"><span class="ti">↕️</span><span class="label">Movimientos</span></button>
@@ -754,27 +913,71 @@
     <div class="user-bar" id="userBar"></div>
   </header>
 
-  <!-- Selector de centro -->
-  <div class="center-selector">
-    <button class="center-btn active" data-center="GN" onclick="switchCenter('GN')">
-      <div class="center-icon">🏥</div>
-      <div class="center-info">
-        <div class="center-name">GN</div>
-        <div class="center-sub">General Paz</div>
-        <div class="center-stats" id="cs-GN"><span class="center-stat-pill csp-ok">—</span></div>
-      </div>
-      <div class="center-check">✓</div>
-    </button>
-    <button class="center-btn" data-center="Sarmiento" onclick="switchCenter('Sarmiento')">
-      <div class="center-icon">🏨</div>
-      <div class="center-info">
-        <div class="center-name">Sarmiento</div>
-        <div class="center-sub">Centro Sarmiento</div>
-        <div class="center-stats" id="cs-Sarmiento"><span class="center-stat-pill csp-ok">—</span></div>
-      </div>
-      <div class="center-check">✓</div>
-    </button>
+  <!-- Home screen: selección de centro -->
+  <div id="home-screen">
+    <div class="home-hero">
+      <h2 class="home-title">Seleccioná un centro</h2>
+      <p class="home-sub">Accedé al stock de insumos por sede</p>
+    </div>
+    <div class="center-cards-grid">
+      <button class="center-card gc" onclick="enterCenter('GN')">
+        <div class="center-card-icon" style="background:rgba(0,113,227,.12)">
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+            <rect x="8" y="16" width="32" height="28" rx="3" fill="#0071e3" opacity=".18"/>
+            <rect x="8" y="16" width="32" height="28" rx="3" stroke="#0071e3" stroke-width="2.5"/>
+            <rect x="20" y="28" width="8" height="16" rx="1.5" fill="#0071e3" opacity=".5"/>
+            <rect x="13" y="22" width="6" height="5" rx="1" fill="#0071e3" opacity=".6"/>
+            <rect x="29" y="22" width="6" height="5" rx="1" fill="#0071e3" opacity=".6"/>
+            <path d="M4 16 L24 4 L44 16" stroke="#0071e3" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M22 10 h4 M24 8 v4" stroke="#0071e3" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="center-card-name">GN</div>
+        <div class="center-card-address">Guardias Nacionales 1380</div>
+        <div class="center-card-stats" id="home-stats-GN">
+          <span class="csp-pill csp-ok">Cargando…</span>
+        </div>
+        <div class="center-card-arrow">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M8 5l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </button>
+      <button class="center-card gc" onclick="enterCenter('Sarmiento')">
+        <div class="center-card-icon" style="background:rgba(48,209,88,.12)">
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+            <rect x="8" y="16" width="32" height="28" rx="3" fill="#34c759" opacity=".18"/>
+            <rect x="8" y="16" width="32" height="28" rx="3" stroke="#34c759" stroke-width="2.5"/>
+            <rect x="20" y="28" width="8" height="16" rx="1.5" fill="#34c759" opacity=".5"/>
+            <rect x="13" y="22" width="6" height="5" rx="1" fill="#34c759" opacity=".6"/>
+            <rect x="29" y="22" width="6" height="5" rx="1" fill="#34c759" opacity=".6"/>
+            <path d="M4 16 L24 4 L44 16" stroke="#34c759" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M22 10 h4 M24 8 v4" stroke="#34c759" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="center-card-name">Sarmiento</div>
+        <div class="center-card-address">Sarmiento 1212</div>
+        <div class="center-card-stats" id="home-stats-Sarmiento">
+          <span class="csp-pill csp-ok">Cargando…</span>
+        </div>
+        <div class="center-card-arrow">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M8 5l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </button>
+    </div>
+    <div class="combined-stats gc">
+      <div class="combined-stat"><div class="cs-num" id="combined-total">—</div><div class="cs-lbl">Insumos totales</div></div>
+      <div class="combined-stat"><div class="cs-num" id="combined-ok">—</div><div class="cs-lbl">Stock OK</div></div>
+      <div class="combined-stat"><div class="cs-num" id="combined-low">—</div><div class="cs-lbl">Stock bajo</div></div>
+    </div>
   </div>
+
+  <!-- Center content wrapper -->
+  <div id="center-content" style="display:none">
+    <div class="center-back-header" id="center-back-header" style="display:none">
+      <button class="center-back-btn" onclick="backToHome()">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M11 4l-5 5 5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <span class="center-back-name" id="center-back-name"></span>
+    </div>
 
   <!-- ════ INVENTARIO ════ -->
   <div class="tab-pane active" id="tab-inventario">
@@ -807,12 +1010,19 @@
     <div class="mov-list" id="movContainer"></div>
   </div>
 
+  </div><!-- /center-content -->
+
   <!-- ════ GRÁFICAS ════ -->
   <div class="tab-pane" id="tab-graficas">
     <div class="chart-grid">
       <div class="chart-card gc full">
         <div class="chart-title">Salidas por día</div>
         <div class="chart-subtitle" id="chart-center-label">Unidades totales salidas del depósito</div>
+        <div class="chart-center-toggle">
+          <button class="cct-btn active" onclick="setChartCenter('GN',this)">GN</button>
+          <button class="cct-btn" onclick="setChartCenter('Sarmiento',this)">Sarmiento</button>
+          <button class="cct-btn" onclick="setChartCenter('ambos',this)">Ambos</button>
+        </div>
         <div class="chart-range-btns">
           <button class="range-btn active" onclick="setChartRange(7,this)">7 días</button>
           <button class="range-btn"        onclick="setChartRange(14,this)">14 días</button>
@@ -823,6 +1033,11 @@
       <div class="chart-card gc">
         <div class="chart-title">Gasto por categoría</div>
         <div class="chart-subtitle">Distribución del gasto total</div>
+        <div class="chart-center-toggle">
+          <button class="cct-btn active" onclick="setChartCenter2('GN',this)">GN</button>
+          <button class="cct-btn" onclick="setChartCenter2('Sarmiento',this)">Sarmiento</button>
+          <button class="cct-btn" onclick="setChartCenter2('ambos',this)">Ambos</button>
+        </div>
         <canvas id="chartGastoCategoria" height="220"></canvas>
       </div>
       <div class="chart-card gc">
@@ -1181,6 +1396,15 @@ const CATALOG = {
 
 const CAT_COLORS = {"Descartables":"rgba(0,122,255,0.14)","Punción":"rgba(191,90,242,0.10)","Ginecología e Instrumental":"rgba(255,45,85,0.10)","Medicamentos":"rgba(48,209,88,0.10)","Contrastes y Otros":"rgba(90,200,250,0.12)","Impresiones y Oficina":"rgba(255,149,0,0.12)","Otros":"rgba(0,0,0,0.07)"};
 const CAT_ICONS  = {"Descartables":"💉","Punción":"🔬","Ginecología e Instrumental":"🩺","Medicamentos":"💊","Contrastes y Otros":"🩻","Impresiones y Oficina":"🖨️","Otros":"📋"};
+const CAT_SVG = {
+  "Descartables": `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" width="22" height="22"><rect x="6" y="18" width="28" height="8" rx="4" fill="#0071e3" opacity=".2"/><rect x="6" y="18" width="28" height="8" rx="4" stroke="#0071e3" stroke-width="2"/><rect x="28" y="20" width="8" height="4" rx="2" fill="#0071e3"/><path d="M6 22 L3 22" stroke="#0071e3" stroke-width="2" stroke-linecap="round"/><path d="M20 10 v6 M17 13 h6" stroke="#0071e3" stroke-width="2" stroke-linecap="round"/></svg>`,
+  "Punción": `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" width="22" height="22"><path d="M10 30 L28 12" stroke="#af52de" stroke-width="3" stroke-linecap="round"/><path d="M28 12 L32 8" stroke="#af52de" stroke-width="2" stroke-linecap="round"/><circle cx="14" cy="26" r="3" fill="#af52de" opacity=".3" stroke="#af52de" stroke-width="1.5"/><path d="M20 20 Q24 18 26 14" stroke="#af52de" stroke-width="1.5" stroke-linecap="round" opacity=".5"/></svg>`,
+  "Ginecología e Instrumental": `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" width="22" height="22"><circle cx="20" cy="16" r="7" stroke="#ff2d55" stroke-width="2" fill="rgba(255,45,85,.1)"/><path d="M20 23 v10" stroke="#ff2d55" stroke-width="2" stroke-linecap="round"/><path d="M15 28 h10" stroke="#ff2d55" stroke-width="2" stroke-linecap="round"/><path d="M16 10 Q20 6 24 10" stroke="#ff2d55" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>`,
+  "Medicamentos": `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" width="22" height="22"><rect x="14" y="8" width="12" height="18" rx="6" fill="rgba(52,199,89,.15)" stroke="#34c759" stroke-width="2"/><path d="M14 20 h12" stroke="#34c759" stroke-width="1.5"/><rect x="14" y="8" width="12" height="12" rx="6" fill="rgba(52,199,89,.25)"/><circle cx="28" cy="28" r="5" fill="rgba(0,113,227,.15)" stroke="#0071e3" stroke-width="1.5"/><path d="M26 28 h4 M28 26 v4" stroke="#0071e3" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+  "Contrastes y Otros": `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" width="22" height="22"><path d="M16 8 L14 24 Q14 32 20 32 Q26 32 26 24 L24 8 Z" fill="rgba(90,200,250,.15)" stroke="#5ac8fa" stroke-width="2" stroke-linejoin="round"/><path d="M14 22 Q17 20 20 22 Q23 24 26 22" stroke="#5ac8fa" stroke-width="1.5" fill="none"/><line x1="16" y1="8" x2="24" y2="8" stroke="#5ac8fa" stroke-width="2" stroke-linecap="round"/></svg>`,
+  "Impresiones y Oficina": `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" width="22" height="22"><rect x="8" y="14" width="24" height="16" rx="3" fill="rgba(255,149,0,.12)" stroke="#ff9500" stroke-width="2"/><rect x="12" y="8" width="16" height="8" rx="2" fill="rgba(255,149,0,.08)" stroke="#ff9500" stroke-width="1.5"/><rect x="12" y="26" width="16" height="6" rx="1.5" fill="rgba(255,149,0,.2)" stroke="#ff9500" stroke-width="1.5"/><circle cx="28" cy="20" r="2" fill="#ff9500"/></svg>`,
+  "Otros": `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" width="22" height="22"><circle cx="20" cy="20" r="12" fill="rgba(142,142,147,.1)" stroke="#8e8e93" stroke-width="2"/><circle cx="14" cy="20" r="2" fill="#8e8e93"/><circle cx="20" cy="20" r="2" fill="#8e8e93"/><circle cx="26" cy="20" r="2" fill="#8e8e93"/></svg>`
+};
 const CENTERS    = ["GN","Sarmiento"];
 
 // ─── Firebase ─────────────────────────────────────────────────────────────────
@@ -1229,9 +1453,10 @@ function persistSupplies(){
   return _db.collection(DB_COL).doc("supplies").set({data:supplies}).catch(e=>toast("⚠️ Error guardando"));
 }
 
-let activeCenter="GN", activeCat="Todos", chartDays=7, _charts={}, currentTab="inventario";
-const curStock=()=>cs[activeCenter].stock;
-const curMov=()=>cs[activeCenter].movements;
+let activeCenter=null, activeCat="Todos", chartDays=7, _charts={}, currentTab="inventario";
+let chartCenter="GN", chartCenter2="GN";
+const curStock=()=>(activeCenter?cs[activeCenter].stock:{});
+const curMov=()=>(activeCenter?cs[activeCenter].movements:[]);
 
 // ─── Center ──────────────────────────────────────────────────────────────────
 function switchCenter(c){
@@ -1263,6 +1488,15 @@ function switchTab(tab,btn){
   document.getElementById("tab-"+tab).classList.add("active");
   btn.classList.add("active");
   currentTab=tab;
+  document.querySelectorAll(".sb-btn").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab));
+  if(tab==="inventario"){
+    const hs=document.getElementById("home-screen");
+    const cc=document.getElementById("center-content");
+    const bh=document.getElementById("center-back-header");
+    if(hs)hs.style.display=activeCenter?"none":"block";
+    if(cc)cc.style.display=activeCenter?"block":"none";
+    if(bh)bh.style.display=activeCenter?"flex":"none";
+  }
   renderCurrentTab();
 }
 function renderCurrentTab(){
@@ -1281,6 +1515,7 @@ function buildCatFilters(){
 function setCat(cat){activeCat=cat;buildCatFilters();renderInventario();}
 
 function renderInventario(){
+  if(!activeCenter)return;
   buildCatFilters();
   const q=(document.getElementById("invSearch")?.value||"").toLowerCase().trim();
   const container=document.getElementById("invContainer");
@@ -1292,7 +1527,7 @@ function renderInventario(){
     if(activeCat!=="Todos"&&activeCat!==cat)return;
     const catSupplies=supplies.filter(s=>s.active&&s.category===cat&&(!q||s.name.toLowerCase().includes(q)||s.code.toLowerCase().includes(q)));
     if(!catSupplies.length)return;
-    const icon=CAT_ICONS[cat]||"📋",color=CAT_COLORS[cat]||"rgba(0,0,0,0.07)";
+    const icon=CAT_SVG[cat]||CAT_ICONS[cat]||"📋",color=CAT_COLORS[cat]||"rgba(0,0,0,0.07)";
     const block=document.createElement("div");
     block.className="stock-table gc"; block.style.marginBottom="14px";
     block.innerHTML=`<div class="cat-header-row"><div class="cat-icon-badge" style="background:${color}">${icon}</div><span class="cat-name">${escHtml(cat)}</span><span class="cat-count">${catSupplies.length} insumos</span></div>`;
@@ -1387,30 +1622,75 @@ function deleteMov(id){
 function setChartRange(d,btn){chartDays=d;document.querySelectorAll(".range-btn").forEach(b=>b.classList.remove("active"));btn.classList.add("active");renderSalidasChart();}
 function renderAllCharts(){
   const lbl=document.getElementById("chart-center-label");
-  if(lbl)lbl.textContent=`Unidades salidas del depósito ${activeCenter}`;
+  if(lbl)lbl.textContent=chartCenter==="ambos"?"Unidades salidas – Ambos centros":`Unidades salidas del depósito ${chartCenter}`;
   renderSalidasChart();renderGastoCategoria();renderTopInsumos();buildSupplySelectChart();renderStockChart();
 }
+function setChartCenter(c,btn){
+  chartCenter=c;
+  btn.parentElement.querySelectorAll(".cct-btn").forEach(b=>b.classList.toggle("active",b===btn));
+  const lbl=document.getElementById("chart-center-label");
+  if(lbl)lbl.textContent=c==="ambos"?"Unidades salidas – Ambos centros":`Unidades salidas del depósito ${c}`;
+  renderSalidasChart();
+}
+function setChartCenter2(c,btn){
+  chartCenter2=c;
+  btn.parentElement.querySelectorAll(".cct-btn").forEach(b=>b.classList.toggle("active",b===btn));
+  renderGastoCategoria();renderTopInsumos();
+}
 function renderSalidasChart(){
-  const labels=[],data=[],now=new Date(),movs=curMov();
-  for(let i=chartDays-1;i>=0;i--){const d=new Date(now);d.setDate(d.getDate()-i);const key=d.toISOString().slice(0,10);labels.push(fmtDateShort(key));data.push(movs.filter(m=>m.type==="salida"&&m.date===key).reduce((s,m)=>s+m.qty,0));}
+  const labels=[],now=new Date();
+  for(let i=chartDays-1;i>=0;i--){const d=new Date(now);d.setDate(d.getDate()-i);labels.push(fmtDateShort(d.toISOString().slice(0,10)));}
   const ctx=document.getElementById("chartSalidasDia")?.getContext("2d"); if(!ctx)return;
   if(_charts.sd)_charts.sd.destroy();
-  _charts.sd=new Chart(ctx,{type:"bar",data:{labels,datasets:[{label:"Unidades",data,backgroundColor:"rgba(0,113,227,0.55)",borderRadius:7,borderSkipped:false}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:11}}},y:{grid:{color:"rgba(0,0,0,0.06)"},ticks:{font:{size:11}},beginAtZero:true}}}});
+  if(chartCenter==="ambos"){
+    const dGN=[],dSarm=[];
+    for(let i=chartDays-1;i>=0;i--){
+      const d=new Date(now);d.setDate(d.getDate()-i);const key=d.toISOString().slice(0,10);
+      dGN.push((cs.GN.movements||[]).filter(m=>m.type==="salida"&&m.date===key).reduce((s,m)=>s+m.qty,0));
+      dSarm.push((cs.Sarmiento.movements||[]).filter(m=>m.type==="salida"&&m.date===key).reduce((s,m)=>s+m.qty,0));
+    }
+    _charts.sd=new Chart(ctx,{type:"bar",data:{labels,datasets:[
+      {label:"GN",data:dGN,backgroundColor:"rgba(0,113,227,0.55)",borderRadius:5,borderSkipped:false},
+      {label:"Sarmiento",data:dSarm,backgroundColor:"rgba(52,199,89,0.55)",borderRadius:5,borderSkipped:false}
+    ]},options:{responsive:true,plugins:{legend:{display:true,position:"top",labels:{font:{size:11}}}},scales:{x:{grid:{display:false},ticks:{font:{size:11}}},y:{grid:{color:"rgba(0,0,0,0.06)"},ticks:{font:{size:11}},beginAtZero:true}}}});
+  }else{
+    const movs=(cs[chartCenter]?.movements)||[];
+    const data=[];
+    for(let i=chartDays-1;i>=0;i--){const d=new Date(now);d.setDate(d.getDate()-i);const key=d.toISOString().slice(0,10);data.push(movs.filter(m=>m.type==="salida"&&m.date===key).reduce((s,m)=>s+m.qty,0));}
+    _charts.sd=new Chart(ctx,{type:"bar",data:{labels,datasets:[{label:"Unidades",data,backgroundColor:"rgba(0,113,227,0.55)",borderRadius:7,borderSkipped:false}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:11}}},y:{grid:{color:"rgba(0,0,0,0.06)"},ticks:{font:{size:11}},beginAtZero:true}}}});
+  }
 }
 function renderGastoCategoria(){
-  const movs=curMov(),labels=[],data=[],colors=[];
   const palette=["#0071e3","#34c759","#ff9500","#ff3b30","#af52de","#5ac8fa","#ff2d55","#A2845E"];
-  getCategories().forEach((cat,i)=>{
-    const total=movs.filter(m=>m.type==="salida").reduce((s,m)=>{const sup=supplies.find(x=>x.id===m.supplyId&&x.category===cat);return s+(sup?m.qty*(sup.price||0):0);},0);
-    if(total>0){labels.push(cat);data.push(total);colors.push(palette[i%palette.length]);}
-  });
+  const getCatTotal=(movs,cat)=>movs.filter(m=>m.type==="salida").reduce((s,m)=>{const sup=supplies.find(x=>x.id===m.supplyId&&x.category===cat);return s+(sup?m.qty*(sup.price||0):0);},0);
   const ctx=document.getElementById("chartGastoCategoria")?.getContext("2d"); if(!ctx)return;
   if(_charts.gc)_charts.gc.destroy();
-  if(!data.length){ctx.clearRect(0,0,500,500);return;}
-  _charts.gc=new Chart(ctx,{type:"doughnut",data:{labels,datasets:[{data,backgroundColor:colors,borderWidth:2,borderColor:"rgba(255,255,255,0.8)"}]},options:{responsive:true,plugins:{legend:{position:"bottom",labels:{font:{size:11},padding:10}},tooltip:{callbacks:{label:c=>` $${fmt(c.raw)}`}}}}});
+  if(chartCenter2==="ambos"){
+    const labels=[],dataGN=[],dataSarm=[],colors=[];
+    getCategories().forEach((cat,i)=>{
+      const tGN=getCatTotal(cs.GN.movements||[],cat);
+      const tS=getCatTotal(cs.Sarmiento.movements||[],cat);
+      if(tGN>0||tS>0){labels.push(cat);dataGN.push(tGN);dataSarm.push(tS);colors.push(palette[i%palette.length]);}
+    });
+    if(!labels.length){ctx.clearRect(0,0,500,500);return;}
+    _charts.gc=new Chart(ctx,{type:"bar",data:{labels,datasets:[
+      {label:"GN",data:dataGN,backgroundColor:"rgba(0,113,227,0.55)",borderRadius:4,borderSkipped:false},
+      {label:"Sarmiento",data:dataSarm,backgroundColor:"rgba(52,199,89,0.55)",borderRadius:4,borderSkipped:false}
+    ]},options:{indexAxis:"y",responsive:true,plugins:{legend:{display:true,position:"top",labels:{font:{size:11}}},tooltip:{callbacks:{label:c=>` $${fmt(c.raw)}`}}},scales:{x:{grid:{color:"rgba(0,0,0,0.06)"},ticks:{font:{size:11},callback:v=>"$"+fmt(v)},beginAtZero:true},y:{grid:{display:false},ticks:{font:{size:11}}}}}});
+  }else{
+    const movs=(cs[chartCenter2]?.movements)||[];
+    const labels=[],data=[],colors=[];
+    getCategories().forEach((cat,i)=>{
+      const total=getCatTotal(movs,cat);
+      if(total>0){labels.push(cat);data.push(total);colors.push(palette[i%palette.length]);}
+    });
+    if(!data.length){ctx.clearRect(0,0,500,500);return;}
+    _charts.gc=new Chart(ctx,{type:"doughnut",data:{labels,datasets:[{data,backgroundColor:colors,borderWidth:2,borderColor:"rgba(255,255,255,0.8)"}]},options:{responsive:true,plugins:{legend:{position:"bottom",labels:{font:{size:11},padding:10}},tooltip:{callbacks:{label:c=>` $${fmt(c.raw)}`}}}}});
+  }
 }
 function renderTopInsumos(){
-  const movs=curMov(),totals={};
+  const movsArr=chartCenter2==="ambos"?[...(cs.GN.movements||[]),...(cs.Sarmiento.movements||[])]:(cs[chartCenter2]?.movements||[]);
+  const movs=movsArr,totals={};
   movs.filter(m=>m.type==="salida").forEach(m=>{const s=supplies.find(x=>x.id===m.supplyId);if(!s)return;totals[m.supplyId]=(totals[m.supplyId]||0)+m.qty*(s.price||0);});
   const sorted=Object.entries(totals).sort((a,b)=>b[1]-a[1]).slice(0,10);
   const labels=sorted.map(([id])=>{const s=supplies.find(x=>x.id===id);return s?(s.name.length>24?s.name.slice(0,21)+"…":s.name):id;});
@@ -1447,7 +1727,7 @@ function renderGestion(){
   getCategories().forEach(cat=>{
     const list=supplies.filter(s=>s.category===cat&&s.active&&(!q||s.name.toLowerCase().includes(q)||s.code.toLowerCase().includes(q)));
     if(!list.length)return;
-    const icon=CAT_ICONS[cat]||"📋",color=CAT_COLORS[cat]||"rgba(0,0,0,0.07)";
+    const icon=CAT_SVG[cat]||CAT_ICONS[cat]||"📋",color=CAT_COLORS[cat]||"rgba(0,0,0,0.07)";
     const block=document.createElement("div"); block.className="gestion-table gc"; block.style.marginBottom="14px";
     block.innerHTML=`<div class="cat-header-row"><div class="cat-icon-badge" style="background:${color}">${icon}</div><span class="cat-name">${escHtml(cat)}</span><span class="cat-count">${list.length} insumos</span></div>`;
     list.forEach(s=>{
@@ -1586,6 +1866,18 @@ function showApp(){
   document.getElementById("mainApp").style.display="";
   renderUserBar();
   if(isAdmin) document.getElementById("adminSection").style.display="block";
+  // Sidebar user name
+  const sbUser=document.getElementById("sbUserName");
+  if(sbUser&&currentUser)sbUser.textContent=currentUser.displayName||currentUser.email||"—";
+  // Show home screen
+  activeCenter=null;
+  const hs=document.getElementById("home-screen");
+  const cc=document.getElementById("center-content");
+  const bh=document.getElementById("center-back-header");
+  if(hs)hs.style.display="block";
+  if(cc)cc.style.display="none";
+  if(bh)bh.style.display="none";
+  setTimeout(updateHomeStats,200);
 }
 
 function renderUserBar(){
@@ -1621,12 +1913,14 @@ function startListeners(){
   _unsubGN = _db.collection(DB_COL).doc("center_GN").onSnapshot(snap=>{
     if(snap.exists){ cs.GN=snap.data(); if(!cs.GN.stock)cs.GN.stock={}; if(!cs.GN.movements)cs.GN.movements=[]; }
     updateCenterStats();
+    if(!activeCenter)setTimeout(updateHomeStats,0);
     if(activeCenter==="GN") renderCurrentTab();
   });
 
   _unsubSarm = _db.collection(DB_COL).doc("center_Sarmiento").onSnapshot(snap=>{
     if(snap.exists){ cs.Sarmiento=snap.data(); if(!cs.Sarmiento.stock)cs.Sarmiento.stock={}; if(!cs.Sarmiento.movements)cs.Sarmiento.movements=[]; }
     updateCenterStats();
+    if(!activeCenter)setTimeout(updateHomeStats,0);
     if(activeCenter==="Sarmiento") renderCurrentTab();
   });
 
@@ -1693,6 +1987,105 @@ _auth.onAuthStateChanged(async user=>{
     else{ showLogin(true); }
   }catch(e){ toast("⚠️ Error verificando acceso"); showLogin(false); }
 });
+// ─── Sidebar ─────────────────────────────────────────────────────────────────
+function toggleSidebar(){
+  document.getElementById("sidebar").classList.toggle("open");
+  document.getElementById("sidebar-overlay").style.display=document.getElementById("sidebar").classList.contains("open")?"block":"none";
+  document.body.style.overflow=document.getElementById("sidebar").classList.contains("open")?"hidden":"";
+}
+function closeSidebar(){
+  document.getElementById("sidebar").classList.remove("open");
+  const ov=document.getElementById("sidebar-overlay");
+  if(ov)ov.style.display="none";
+  document.body.style.overflow="";
+}
+function switchTabDirect(tab){
+  document.querySelectorAll(".tab-pane").forEach(p=>p.classList.remove("active"));
+  document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+  const pane=document.getElementById("tab-"+tab);
+  if(pane)pane.classList.add("active");
+  document.querySelectorAll(".tab-btn").forEach(b=>{
+    if(b.getAttribute("onclick")&&b.getAttribute("onclick").includes("'"+tab+"'"))b.classList.add("active");
+  });
+  currentTab=tab;
+  if(tab==="inventario"){
+    const hs=document.getElementById("home-screen");
+    const cc=document.getElementById("center-content");
+    const bh=document.getElementById("center-back-header");
+    if(hs)hs.style.display=activeCenter?"none":"block";
+    if(cc)cc.style.display=activeCenter?"block":"none";
+    if(bh)bh.style.display=activeCenter?"flex":"none";
+  }
+  renderCurrentTab();
+}
+function sidebarNav(tab){
+  document.querySelectorAll(".sb-btn").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab));
+  switchTabDirect(tab);
+  closeSidebar();
+}
+
+// ─── Center selection ─────────────────────────────────────────────────────────
+function enterCenter(c){
+  activeCenter=c;
+  const hs=document.getElementById("home-screen");
+  const cc=document.getElementById("center-content");
+  const bh=document.getElementById("center-back-header");
+  const bn=document.getElementById("center-back-name");
+  if(hs)hs.style.display="none";
+  if(cc)cc.style.display="block";
+  if(bh)bh.style.display="flex";
+  if(bn)bn.textContent=c==="GN"?"GN · Guardias Nacionales 1380":"Sarmiento · Sarmiento 1212";
+  if(currentTab!=="inventario"){
+    document.querySelectorAll(".tab-pane").forEach(p=>p.classList.remove("active"));
+    const inv=document.getElementById("tab-inventario");
+    if(inv)inv.classList.add("active");
+    document.querySelectorAll(".tab-btn").forEach(b=>b.classList.toggle("active",b.getAttribute("onclick")&&b.getAttribute("onclick").includes("'inventario'")));
+    document.querySelectorAll(".sb-btn").forEach(b=>b.classList.toggle("active",b.dataset.tab==="inventario"));
+    currentTab="inventario";
+  }
+  renderInventario();
+  renderMovimientos();
+}
+function backToHome(){
+  activeCenter=null;
+  const hs=document.getElementById("home-screen");
+  const cc=document.getElementById("center-content");
+  const bh=document.getElementById("center-back-header");
+  if(hs)hs.style.display="block";
+  if(cc)cc.style.display="none";
+  if(bh)bh.style.display="none";
+  updateHomeStats();
+}
+function updateHomeStats(){
+  CENTERS.forEach(c=>{
+    const stk=cs[c]?.stock||{};
+    let ok=0,low=0;
+    supplies.filter(s=>s.active).forEach(s=>{
+      const cur=stk[s.id]||0;
+      if(s.minStock>0){if(cur>=s.minStock)ok++;else low++;}
+      else if(cur>0)ok++;
+    });
+    const el=document.getElementById("home-stats-"+c);
+    if(el)el.innerHTML=`<span class="csp-pill csp-ok">${ok} OK</span>${low?`<span class="csp-pill csp-warn">${low} bajo</span>`:""}`;
+  });
+  const u=supplies.filter(s=>s.active).length;
+  let okAll=0,lowAll=0;
+  CENTERS.forEach(c=>{
+    const stk=cs[c]?.stock||{};
+    supplies.filter(s=>s.active).forEach(s=>{
+      const cur=stk[s.id]||0;
+      if(s.minStock>0){if(cur>=s.minStock)okAll++;else lowAll++;}
+      else if(cur>0)okAll++;
+    });
+  });
+  const ct=document.getElementById("combined-total");
+  const co=document.getElementById("combined-ok");
+  const cl=document.getElementById("combined-low");
+  if(ct)ct.textContent=u;
+  if(co)co.textContent=okAll;
+  if(cl)cl.textContent=lowAll;
+}
+
 </script>
 </body>
 </html>
