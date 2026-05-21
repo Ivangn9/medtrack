@@ -2244,12 +2244,13 @@ function rAntenaDetalle(){
       (roturasActivas.length===0?
         '<div style="text-align:center;padding:14px;font-size:.74rem;color:var(--text3);">Sin roturas activas ✅</div>'
         :
-        roturasActivas.map(function(r){return '<div style="padding:10px 12px;margin-bottom:8px;border-radius:var(--r-md);background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);">'+
+        (function(){var _lEq=eqs.find(function(e){return(e.antenaIds||[]).indexOf(ant.id)!==-1;});return roturasActivas.map(function(r){return '<div style="padding:10px 12px;margin-bottom:8px;border-radius:var(--r-md);background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);">'+
           '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">'+
             '<div style="flex:1;min-width:0;">'+
               '<div style="font-weight:700;font-size:.84rem;color:var(--text);">'+esc(r.queSeRompio||r.descripcion||'—')+'</div>'+
               (r.descripcion&&r.queSeRompio?'<div style="font-size:.72rem;color:var(--text2);margin-top:2px;">'+esc(r.descripcion)+'</div>':'')+
               '<div style="font-size:.68rem;color:var(--text3);margin-top:4px;">📅 Rotura: <span style="color:var(--red);font-weight:600;">'+fD(r.fecha)+'</span>'+(r.tecnico?' · 👷 '+esc(r.tecnico):'')+'</div>'+
+              (_lEq?'<div style="font-size:.65rem;color:var(--accent);margin-top:3px;font-weight:600;">🔗 Parte en: '+esc(_lEq.nombre)+'</div>':'')+
               (r.presupuestoArregloPdf?'<div style="margin-top:6px;"><button onclick="openPDFViewer(\''+r.presupuestoArregloPdf.id+'\',\'\')" style="font-size:.66rem;padding:3px 9px;border-radius:12px;background:rgba(0,113,227,.10);color:var(--accent);border:1px solid rgba(0,113,227,.18);cursor:pointer;font-weight:600;">📄 Ver presupuesto</button></div>':'')+
             '</div>'+
             '<div style="display:flex;flex-direction:column;gap:5px;flex-shrink:0;">'+
@@ -2258,7 +2259,7 @@ function rAntenaDetalle(){
               '<button onclick="deleteRoturaV2(\''+ant.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(255,59,48,.08);border:1px solid rgba(255,59,48,.15);color:var(--red);cursor:pointer;font-weight:600;">✕</button>'+
             '</div>'+
           '</div>'+
-        '</div>';}).join('')
+        '</div>';}).join('');})()
       )+
     '</div>'+
   '</div>';
@@ -2726,6 +2727,16 @@ function openAddRoturaModalV2(antenaId){
   var ant=antenas.find(function(a){return a.id===antenaId;});
   if(!ant)return;
   window._pendRotPresArr=null;
+  var linkedEqForModal=eqs.find(function(e){return(e.antenaIds||[]).indexOf(antenaId)!==-1;});
+  var eqBanner=linkedEqForModal
+    ?'<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:var(--r-md);background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.22);margin-bottom:14px;font-size:.73rem;">'+
+        '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 12h6M12 9v6"/></svg>'+
+        '<span>Se creará una parte rota automáticamente en <b>'+esc(linkedEqForModal.nombre)+'</b></span>'+
+      '</div>'
+    :'<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:var(--r-md);background:rgba(255,159,10,.07);border:1px solid rgba(255,159,10,.3);margin-bottom:14px;font-size:.73rem;color:var(--orange,#f59e0b);">'+
+        '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'+
+        '<span>Esta antena no está vinculada a ningún equipo — la rotura solo quedará en la antena</span>'+
+      '</div>';
   openModal(
     '<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">'+
       '<div style="width:36px;height:36px;border-radius:10px;background:rgba(239,68,68,.12);display:flex;align-items:center;justify-content:center;">'+
@@ -2737,6 +2748,7 @@ function openAddRoturaModalV2(antenaId){
       '</div>'+
       '<button onclick="closeModal()" style="margin-left:auto;width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">✕</button>'+
     '</div>'+
+    eqBanner+
     '<div class="ff"><div class="ff-label">Fecha de rotura *</div>'+
       '<input class="inp" id="rotv2-fecha" type="date" value="'+new Date().toISOString().split('T')[0]+'">'+
     '</div>'+
@@ -2779,7 +2791,9 @@ function submitAddRoturaV2(antenaId){
       var nuevaParte={id:parteId,nombre:(ant?'[Antena] '+ant.nombre+' — ':'')+que.trim(),descripcion:desc.trim(),estado:'roto',fechaRotura:fecha,tecnicoReparacion:tec.trim(),marca:'',nroSerie:'',notas:'',archivos:[],_antenaRoturaId:rotId,_antenaId:antenaId,creadoEn:new Date().toISOString()};
       eqs=eqs.map(function(e){if(e.id!==linkedEq.id)return e;return Object.assign({},e,{partes:(e.partes||[]).concat(nuevaParte)});});
     }
-    saveData();closeModal();showToast('⚠️ Rotura registrada en antena y equipo','warn');render();
+    saveData();closeModal();
+    showToast(linkedEq?'⚠️ Rotura en antena · parte creada en '+linkedEq.nombre:'⚠️ Rotura registrada (antena sin equipo vinculado)','warn');
+    render();
   };
   var presPend=window._pendRotPresArr;window._pendRotPresArr=null;
   if(!presPend){saveAndFinish(null);return;}
@@ -2873,7 +2887,9 @@ function submitMarkReparada(antenaId,roturaId){
         });
       });
     }
-    saveData();closeModal();showToast('✅ Reparación registrada en antena y equipo','');render();
+    saveData();closeModal();
+    showToast(linkedEq?'✅ Reparación registrada · historial actualizado en '+linkedEq.nombre:'✅ Reparación registrada en historial de antena','');
+    render();
   };
   var repPend=window._pendRotRepArr;window._pendRotRepArr=null;
   if(!repPend){saveAndFinish(null);return;}
@@ -3258,8 +3274,8 @@ function submitRotura(){
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
 var antenas=[];
-var APP_DISPLAY_VERSION="4.3.3";
-var APP_BUILD="20/05/26 16:00";
+var APP_DISPLAY_VERSION="4.3.4";
+var APP_BUILD="21/05/26 10:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
