@@ -1009,7 +1009,7 @@ function showToast(msg,tp){
 function pillH(c,txt){return'<span class="pill" style="background:'+c+'18;color:'+c+';">'+txt+'</span>';}
 
 function normBrand(s){return(s||'').toLowerCase().trim().replace(/[áàä]/g,'a').replace(/[éèë]/g,'e').replace(/[íìï]/g,'i').replace(/[óòö]/g,'o').replace(/[úùü]/g,'u').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');}
-var _LOGO_EXTS=['png','jpg','svg'];
+var _LOGO_EXTS=['png','PNG','jpg','JPG','jpeg','JPEG','svg','SVG'];
 var _logoExtCache={};
 function _logoErr(img){var slug=img.dataset.slug;var i=parseInt(img.dataset.li||0)+1;if(i<_LOGO_EXTS.length){img.dataset.li=i;img.src='logos/'+slug+'.'+_LOGO_EXTS[i];}else{_logoExtCache[slug]='';var p=img.previousElementSibling;if(p)p.style.display='';img.remove();}}
 function _logoCacheOk(img){var slug=img.dataset.slug;if(slug)_logoExtCache[slug]=_LOGO_EXTS[parseInt(img.dataset.li||0)];img.style.opacity='1';}
@@ -3258,8 +3258,8 @@ function submitRotura(){
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
 var antenas=[];
-var APP_DISPLAY_VERSION="4.3.1";
-var APP_BUILD="20/05/26 15:00";
+var APP_DISPLAY_VERSION="4.3.2";
+var APP_BUILD="20/05/26 15:30";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
