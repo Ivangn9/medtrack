@@ -1086,7 +1086,16 @@
     .rep-toggle:checked::after { transform:translateX(18px); }
     .rep-progress-bar { height:4px;border-radius:2px;background:rgba(0,113,227,.18);margin-bottom:16px;overflow:hidden; }
     .rep-progress-fill { height:100%;border-radius:2px;background:var(--accent);width:0%;transition:width .3s; }
-    </style>
+  
+    /* ─── Solicitudes ───────────────────────────────── */
+    .sol-badge { min-width:18px;height:18px;border-radius:9px;background:#ff3b30;color:#fff;font-size:.65rem;font-weight:800;display:none;align-items:center;justify-content:center;padding:0 5px;margin-left:6px;flex-shrink:0; }
+    .sol-card { transition:background .15s;cursor:pointer; }
+    .sol-card:hover { background:rgba(255,255,255,.32)!important; }
+    .sol-card.sol-new { border-left:3px solid var(--red); }
+    .sol-prioridad-urgente { color:var(--orange); }
+    .sol-prioridad-muy { color:var(--red); }
+    .sol-prioridad-normal { color:var(--green); }
+  </style>
 </head>
 <body>
 
@@ -1144,10 +1153,15 @@
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="4" y="2" width="12" height="16" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M7 7h6M7 10h6M7 13h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M13 14l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
       Reportes
     </button>
+    <button class="sb-btn" data-tab="solicitudes" onclick="sidebarNav('solicitudes')" style="position:relative">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 4h14v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4z" stroke="currentColor" stroke-width="1.7"/><path d="M3 4l7 7 7-7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+      Solicitudes
+      <span class="sol-badge" id="sol-badge-sb"></span>
+    </button>
   </nav>
   <div class="sb-footer">
     <div class="sb-version-row">
-      <span class="version-badge" id="versionBadge">V3</span>
+      <span class="version-badge" id="versionBadge">V3.1</span>
       <button class="sb-refresh-btn" id="refreshBtn" onclick="manualRefresh()" title="Verificar y recargar">
         <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M4 10a6 6 0 1 0 1.2-3.6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M4 5v5h5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span id="refreshIcon">Actualizar</span>
@@ -1179,6 +1193,7 @@
     <button class="tab-btn"        onclick="switchTab('gestion',this)"><span class="ti">⚙️</span><span class="label">Gestión</span></button>
     <button class="tab-btn"        onclick="switchTab('costos',this)"><span class="ti">💰</span><span class="label">Costos</span></button>
     <button class="tab-btn"        onclick="switchTab('reportes',this)"><span class="ti">📄</span><span class="label">Reportes</span></button>
+    <button class="tab-btn"        onclick="switchTab('solicitudes',this)" style="position:relative"><span class="ti">📬</span><span class="label">Solicitudes</span><span class="sol-badge" id="sol-badge-tab"></span></button>
   </nav>
 </div>
 
@@ -1523,6 +1538,18 @@
     </div>
   </div>
 
+  <!-- ════ SOLICITUDES ════ -->
+  <div class="tab-pane" id="tab-solicitudes">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+      <div>
+        <div style="font-size:1.05rem;font-weight:800">Solicitudes de Pedido</div>
+        <div style="font-size:.75rem;color:var(--text3);margin-top:2px">Pedidos recibidos desde Pedido de Insumos</div>
+      </div>
+      <button class="btn btn-secondary" style="padding:6px 14px;font-size:.82rem" onclick="marcarTodasLeidas()">✓ Marcar leídas</button>
+    </div>
+    <div id="solicitudesContainer"></div>
+  </div>
+
   <div class="footer">
     <span>CIMA · Stock de Insumos · 2026</span>
   </div>
@@ -1743,7 +1770,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "3";
+const APP_VERSION = "3.1";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -2012,7 +2039,8 @@ const DB_COL      = "insumos_cima";
 const DB_USERS    = "insumos_users";
 
 let currentUser = null, isAdmin = false, _lastUsers = [];
-let _unsubSupplies, _unsubGN, _unsubSarm, _unsubUsers;
+let _unsubSupplies, _unsubGN, _unsubSarm, _unsubUsers, _unsubSolicitudes;
+let solicitudes = [];
 
 // ─── State ───────────────────────────────────────────────────────────────────
 function buildDefaultSupplies(){
@@ -2101,6 +2129,7 @@ function renderCurrentTab(){
   if(currentTab==="gestion")     renderGestion();
   if(currentTab==="costos")      renderCostos();
   if(currentTab==="reportes")    renderReportes();
+  if(currentTab==="solicitudes") renderSolicitudes();
 }
 
 // ─── Inventario ──────────────────────────────────────────────────────────────
@@ -2867,6 +2896,12 @@ function startListeners(){
     if(activeCenter==="GN") renderCurrentTab();
   });
 
+  _unsubSolicitudes = _db.collection("solicitudes").orderBy("timestamp","desc").onSnapshot(snap=>{
+    solicitudes=snap.docs.map(d=>({id:d.id,...d.data()}));
+    updateSolicitudesBadge();
+    if(currentTab==="solicitudes")renderSolicitudes();
+  },e=>console.warn("sol:",e));
+
   _unsubSarm = _db.collection(DB_COL).doc("center_Sarmiento").onSnapshot(snap=>{
     if(snap.exists){ cs.Sarmiento=snap.data(); if(!cs.Sarmiento.stock)cs.Sarmiento.stock={}; if(!cs.Sarmiento.movements)cs.Sarmiento.movements=[]; }
     updateCenterStats();
@@ -3350,6 +3385,65 @@ async function generateReport(){
   }finally{
     btn.disabled=false;btn.innerHTML='<span class="btn-icon">📄</span> Generar y Exportar PDF';
   }
+}
+
+// ─── SOLICITUDES ─────────────────────────────────────────────────────────────
+function updateSolicitudesBadge(){
+  const count=solicitudes.filter(s=>!s.leido).length;
+  document.querySelectorAll(".sol-badge").forEach(el=>{
+    el.textContent=count;
+    el.style.display=count>0?"flex":"none";
+  });
+}
+function renderSolicitudes(){
+  const container=document.getElementById("solicitudesContainer"); if(!container)return;
+  if(!solicitudes.length){
+    container.innerHTML=`<div class="gc" style="text-align:center;padding:40px 20px;color:var(--text3)">
+      <div style="font-size:2rem;margin-bottom:12px">📬</div>
+      <div style="font-weight:600;margin-bottom:6px">Sin solicitudes aún</div>
+      <div style="font-size:.82rem">Los pedidos generados desde "Pedido de Insumos" aparecerán aquí</div>
+    </div>`;
+    return;
+  }
+  container.innerHTML=solicitudes.map(s=>{
+    const isNew=!s.leido;
+    const prioMap={"Muy urgente":"sol-prioridad-muy","Urgente":"sol-prioridad-urgente","Normal":"sol-prioridad-normal"};
+    const prioClass=prioMap[s.prioridad]||"sol-prioridad-normal";
+    const fechaFmt=s.fecha?fmtDate(s.fecha):(s.timestamp?.toDate?fmtDate(s.timestamp.toDate().toISOString().slice(0,10)):"");
+    return `<div class="gc sol-card${isNew?" sol-new":""}" onclick="openSolicitudPdf('${escAttr(s.id)}')" style="padding:14px 18px;margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+        ${isNew?`<span style="width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0;display:inline-block"></span>`:""}
+        <span class="${prioClass}" style="font-size:.72rem;font-weight:800;text-transform:uppercase">${escHtml(s.prioridad||"Normal")}</span>
+        <span style="color:var(--text3);font-size:.78rem;margin-left:auto">${fechaFmt}</span>
+      </div>
+      <div style="font-size:.95rem;font-weight:800;color:var(--text);margin-bottom:3px">${escHtml(s.solicitante||"Sin nombre")}</div>
+      <div style="font-size:.8rem;color:var(--text2)">${escHtml(s.sector||"")}${s.equipo?` · ${escHtml(s.equipo)}`:""}${s.totalItems?` · ${s.totalItems} insumos`:""}</div>
+      ${s.observaciones?`<div style="font-size:.75rem;color:var(--text3);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(s.observaciones.slice(0,100))}</div>`:""}
+      <div style="margin-top:8px">
+        <span style="font-size:.72rem;background:rgba(0,113,227,.12);color:var(--accent);padding:3px 10px;border-radius:20px;font-weight:650">Ver PDF</span>
+      </div>
+    </div>`;
+  }).join("");
+}
+function openSolicitudPdf(id){
+  const s=solicitudes.find(x=>x.id===id); if(!s)return;
+  if(!s.pdfBase64){toast("⚠️ PDF no disponible");return;}
+  const overlay=document.getElementById("pdf-viewer-overlay");
+  document.getElementById("pdf-viewer-title").textContent=(s.solicitante||"Solicitud")+" · "+(s.fecha||"");
+  document.getElementById("pdf-viewer-frame").src=s.pdfBase64;
+  overlay.style.display="flex";
+  document.body.style.overflow="hidden";
+  if(!s.leido)markSolicitudRead(id);
+}
+function markSolicitudRead(id){
+  _db.collection("solicitudes").doc(id).update({leido:true}).catch(e=>console.warn(e));
+}
+function marcarTodasLeidas(){
+  const batch=_db.batch();
+  solicitudes.filter(s=>!s.leido).forEach(s=>{
+    batch.update(_db.collection("solicitudes").doc(s.id),{leido:true});
+  });
+  batch.commit().catch(e=>console.warn(e));
 }
 
 // ─── ENTREGAS ───────────────────────────────────────────────────────────────
