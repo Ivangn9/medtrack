@@ -1091,7 +1091,8 @@
     .sol-badge { min-width:18px;height:18px;border-radius:9px;background:#ff3b30;color:#fff;font-size:.65rem;font-weight:800;display:none;align-items:center;justify-content:center;padding:0 5px;margin-left:6px;flex-shrink:0; }
     .sol-card { transition:background .15s;cursor:pointer; }
     .sol-card:hover { background:rgba(255,255,255,.32)!important; }
-    .sol-card.sol-new { border-left:3px solid var(--red); }
+    .sol-card.sol-new { border-left:3px solid var(--red); background:rgba(0,122,255,0.05)!important; }
+    .sol-card.sol-entregado { border-left:3px solid var(--green); background:rgba(48,209,88,0.07)!important; }
     .sol-prioridad-urgente { color:var(--orange); }
     .sol-prioridad-muy { color:var(--red); }
     .sol-prioridad-normal { color:var(--green); }
@@ -1741,6 +1742,47 @@
       <div style="display:flex;gap:10px;margin-top:16px;padding-bottom:24px">
         <button class="btn btn-secondary" onclick="closeNuevaEntregaModal()">Cancelar</button>
         <button class="btn btn-primary" id="saveEntregaBtn" onclick="saveNuevaEntrega()">Guardar entrega</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Edit Supply Modal ────────────────────────────── -->
+<div class="modal-overlay" id="editSupplyOverlay" onclick="if(event.target===this)closeEditSupplyModal()">
+  <div class="modal-sheet" onclick="event.stopPropagation()" style="max-width:440px">
+    <div class="modal-handle"></div>
+    <div class="modal-title" style="margin-bottom:18px">Editar insumo</div>
+    <div style="padding:0 24px 24px">
+      <div class="ff">
+        <div class="ff-label">Nombre del insumo</div>
+        <input class="inp" id="editSupplyName" type="text" maxlength="120" placeholder="Nombre del insumo…" />
+      </div>
+      <div class="ff">
+        <div class="ff-label">Código</div>
+        <input class="inp" id="editSupplyCode" type="text" maxlength="40" placeholder="COD-001" />
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="ff">
+          <div class="ff-label">Unidad</div>
+          <select class="inp" id="editSupplyUnit">
+            <option value="UND">UND</option>
+            <option value="CAJA">CAJA</option>
+            <option value="PACK">PACK</option>
+            <option value="LT">LT</option>
+            <option value="KG">KG</option>
+            <option value="ML">ML</option>
+            <option value="ROLLO">ROLLO</option>
+          </select>
+        </div>
+        <div class="ff">
+          <div class="ff-label">Categoría</div>
+          <select class="inp" id="editSupplyCategory"></select>
+        </div>
+      </div>
+      <input type="hidden" id="editSupplyId" />
+      <div style="display:flex;gap:10px;margin-top:20px">
+        <button class="btn btn-secondary" onclick="closeEditSupplyModal()" style="flex:1">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveEditSupply()" style="flex:1">Guardar cambios</button>
       </div>
     </div>
   </div>
@@ -2429,6 +2471,7 @@ function renderGestion(){
         <div class="gestion-info"><div class="gestion-name">${escHtml(s.name)}</div><div class="gestion-sub">${escHtml(s.code)} · ${escHtml(s.unit)}</div></div>
         <div class="gestion-col-cell" style="border-left:2px solid rgba(255,149,0,.18)"><input class="min-stock-input" type="number" min="0" value="${s.minStock||0}" onchange="updateMinStock('${s.id}',this.value)" style="border-color:rgba(255,149,0,.3)" /></div>
         <div class="gestion-col-cell" style="border-left:2px solid rgba(48,209,88,.18)"><input class="min-stock-input" type="number" min="0" value="${s.maxStock||0}" onchange="updateMaxStock('${s.id}',this.value)" style="border-color:rgba(48,209,88,.3)" /></div>
+        <button class="btn btn-sm" onclick="openEditSupplyModal('${s.id}')" title="Editar insumo" style="background:rgba(0,122,255,0.12);color:var(--accent);border:1px solid rgba(0,122,255,0.2)">✏️</button>
         <button class="btn btn-sm btn-red" onclick="archiveSupply('${s.id}')">✕</button>`;
       block.appendChild(row);
     });
@@ -2437,6 +2480,36 @@ function renderGestion(){
   if(!el.children.length)el.innerHTML=`<div class="empty-state"><div class="es-icon">🔍</div><p>No se encontraron insumos</p></div>`;
 }
 function updatePrice(id,val){const s=supplies.find(x=>x.id===id);if(s){s.price=parseFloat(val)||0;persist();toast("Precio actualizado");}}
+
+// ─── Edit Supply ──────────────────────────────────────────────────────────────
+function openEditSupplyModal(id){
+  const s=supplies.find(x=>x.id===id); if(!s)return;
+  document.getElementById("editSupplyId").value=id;
+  document.getElementById("editSupplyName").value=s.name||"";
+  document.getElementById("editSupplyCode").value=s.code||"";
+  document.getElementById("editSupplyUnit").value=s.unit||"UND";
+  const catSel=document.getElementById("editSupplyCategory");
+  catSel.innerHTML=getCategories().map(c=>`<option value="${escAttr(c)}"${c===s.category?" selected":""}>${escHtml(c)}</option>`).join("");
+  document.getElementById("editSupplyOverlay").classList.add("open");
+  setTimeout(()=>document.getElementById("editSupplyName").focus(),80);
+}
+function closeEditSupplyModal(){
+  document.getElementById("editSupplyOverlay").classList.remove("open");
+}
+function saveEditSupply(){
+  const id=document.getElementById("editSupplyId").value;
+  const name=document.getElementById("editSupplyName").value.trim();
+  const code=document.getElementById("editSupplyCode").value.trim();
+  const unit=document.getElementById("editSupplyUnit").value;
+  const category=document.getElementById("editSupplyCategory").value;
+  if(!name){toast("⚠️ El nombre es obligatorio");return;}
+  const s=supplies.find(x=>x.id===id); if(!s)return;
+  s.name=name; s.code=code; s.unit=unit; s.category=category;
+  persist();
+  closeEditSupplyModal();
+  renderGestion();
+  toast("✓ Insumo actualizado");
+}
 
 // ─── Costos ───────────────────────────────────────────────────────────────────
 let _costosDetailId=null;
@@ -3411,15 +3484,21 @@ function renderSolicitudes(){
     return;
   }
   container.innerHTML=solicitudes.map(s=>{
-    const isNew=!s.leido;
+    const isEntregado=!!s.entregado;
+    const isNew=!s.leido&&!isEntregado;
+    const cardClass=isEntregado?"sol-entregado":(isNew?"sol-new":"");
     const prioColors={"Muy urgente":"var(--red)","Urgente":"var(--orange)","Normal":"var(--green)"};
     const prioColor=prioColors[s.prioridad]||"var(--green)";
     const fechaFmt=s.fecha?fmtDate(s.fecha):(s.timestamp?.toDate?fmtDate(s.timestamp.toDate().toISOString().slice(0,10)):"");
-    return `<div class="gc sol-card${isNew?" sol-new":""}" onclick="openSolicitudDetalle('${escAttr(s.id)}')" style="padding:14px 18px;margin-bottom:10px">
+    let statusChip="";
+    if(isEntregado) statusChip=`<span style="display:inline-flex;align-items:center;gap:3px;background:rgba(48,209,88,0.18);color:#1a8f3c;font-size:.68rem;font-weight:800;padding:2px 8px;border-radius:20px;margin-left:auto">✓ Entregado</span>`;
+    else if(isNew) statusChip=`<span style="width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0;display:inline-block"></span>`;
+    return `<div class="gc sol-card${cardClass?" "+cardClass:""}" onclick="openSolicitudDetalle('${escAttr(s.id)}')" style="padding:14px 18px;margin-bottom:10px">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-        ${isNew?`<span style="width:9px;height:9px;border-radius:50%;background:var(--red);flex-shrink:0;display:inline-block"></span>`:""}
+        ${isNew?statusChip:""}
         <span style="font-size:.72rem;font-weight:800;text-transform:uppercase;color:${prioColor}">${escHtml(s.prioridad||"Normal")}</span>
-        <span style="color:var(--text3);font-size:.78rem;margin-left:auto">${fechaFmt}</span>
+        ${isEntregado?statusChip:`<span style="color:var(--text3);font-size:.78rem;margin-left:auto">${fechaFmt}</span>`}
+        ${isEntregado?`<span style="color:var(--text3);font-size:.78rem">${fechaFmt}</span>`:""}
       </div>
       <div style="font-size:.95rem;font-weight:800;color:var(--text);margin-bottom:3px">${escHtml(s.solicitante||"Sin nombre")}</div>
       <div style="font-size:.8rem;color:var(--text2);margin-bottom:4px">${escHtml(s.sector||"")}${s.equipo?` · ${escHtml(s.equipo)}`:""}${s.totalItems?` · ${s.totalItems} insumo${s.totalItems!==1?"s":""}`:""}</div>
@@ -3458,7 +3537,13 @@ function openSolicitudDetalle(id){
         </div>
       </div>`).join(""):`<div style="padding:16px;text-align:center;color:#8e8e93;font-size:.85rem">Sin insumos</div>`}
     </div>
-    <button onclick="exportarSolicitudPDF('${escAttr(id)}')" style="width:100%;padding:13px;border-radius:12px;background:#0071e3;color:#fff;border:none;font-size:.95rem;font-weight:700;cursor:pointer">Exportar PDF</button>
+    <div style="display:flex;gap:10px;margin-bottom:8px">
+      ${!s.entregado
+        ? `<button onclick="markSolicitudEntregado('${escAttr(id)}')" style="flex:1;padding:13px;border-radius:12px;background:#34c759;color:#fff;border:none;font-size:.95rem;font-weight:700;cursor:pointer">✓ Marcar como entregado</button>`
+        : `<div style="flex:1;padding:13px;border-radius:12px;background:rgba(48,209,88,0.15);color:#1a8f3c;text-align:center;font-size:.92rem;font-weight:700;border:1.5px solid rgba(48,209,88,0.35)">✓ Pedido entregado</div>`
+      }
+      <button onclick="exportarSolicitudPDF('${escAttr(id)}')" style="padding:13px 16px;border-radius:12px;background:#0071e3;color:#fff;border:none;font-size:.95rem;font-weight:700;cursor:pointer">PDF</button>
+    </div>
   </div>`;
   // hide iframe
   const frame=document.getElementById("pdf-viewer-frame");
@@ -3522,6 +3607,15 @@ function marcarTodasLeidas(){
       .collection("items").doc(s.id),{leido:true});
   });
   batch.commit().catch(e=>console.warn(e));
+}
+function markSolicitudEntregado(id){
+  _db.collection("insumos_cima").doc("solicitudes_log").collection("items")
+    .doc(id).update({entregado:true,leido:true,fechaEntrega:firebase.firestore.FieldValue.serverTimestamp()})
+    .then(()=>{
+      toast("✓ Pedido marcado como entregado");
+      closePdfViewer();
+    })
+    .catch(e=>{console.warn(e);toast("⚠️ Error al actualizar");});
 }
 
 // ─── ENTREGAS ───────────────────────────────────────────────────────────────
