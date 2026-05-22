@@ -1161,7 +1161,7 @@
   </nav>
   <div class="sb-footer">
     <div class="sb-version-row">
-      <span class="version-badge" id="versionBadge">V3.1</span>
+      <span class="version-badge" id="versionBadge">V3.2</span>
       <button class="sb-refresh-btn" id="refreshBtn" onclick="manualRefresh()" title="Verificar y recargar">
         <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M4 10a6 6 0 1 0 1.2-3.6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M4 5v5h5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span id="refreshIcon">Actualizar</span>
@@ -1770,7 +1770,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "3.1";
+const APP_VERSION = "3.2";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -2896,11 +2896,16 @@ function startListeners(){
     if(activeCenter==="GN") renderCurrentTab();
   });
 
-  _unsubSolicitudes = _db.collection("solicitudes").orderBy("timestamp","desc").onSnapshot(snap=>{
-    solicitudes=snap.docs.map(d=>({id:d.id,...d.data()}));
-    updateSolicitudesBadge();
-    if(currentTab==="solicitudes")renderSolicitudes();
-  },e=>console.warn("sol:",e));
+  _unsubSolicitudes = _db.collection("insumos_cima").doc("solicitudes_log")
+    .collection("items").onSnapshot(snap=>{
+      solicitudes=snap.docs.map(d=>({id:d.id,...d.data()}))
+        .sort((a,b)=>{
+          const ta=a.timestamp?.seconds||0,tb=b.timestamp?.seconds||0;
+          return tb-ta;
+        });
+      updateSolicitudesBadge();
+      if(currentTab==="solicitudes")renderSolicitudes();
+    },e=>console.warn("solicitudes error:",e));
 
   _unsubSarm = _db.collection(DB_COL).doc("center_Sarmiento").onSnapshot(snap=>{
     if(snap.exists){ cs.Sarmiento=snap.data(); if(!cs.Sarmiento.stock)cs.Sarmiento.stock={}; if(!cs.Sarmiento.movements)cs.Sarmiento.movements=[]; }
@@ -3401,47 +3406,120 @@ function renderSolicitudes(){
     container.innerHTML=`<div class="gc" style="text-align:center;padding:40px 20px;color:var(--text3)">
       <div style="font-size:2rem;margin-bottom:12px">📬</div>
       <div style="font-weight:600;margin-bottom:6px">Sin solicitudes aún</div>
-      <div style="font-size:.82rem">Los pedidos generados desde "Pedido de Insumos" aparecerán aquí</div>
+      <div style="font-size:.82rem">Los pedidos enviados desde "Pedido de Insumos" aparecerán aquí</div>
     </div>`;
     return;
   }
   container.innerHTML=solicitudes.map(s=>{
     const isNew=!s.leido;
-    const prioMap={"Muy urgente":"sol-prioridad-muy","Urgente":"sol-prioridad-urgente","Normal":"sol-prioridad-normal"};
-    const prioClass=prioMap[s.prioridad]||"sol-prioridad-normal";
+    const prioColors={"Muy urgente":"var(--red)","Urgente":"var(--orange)","Normal":"var(--green)"};
+    const prioColor=prioColors[s.prioridad]||"var(--green)";
     const fechaFmt=s.fecha?fmtDate(s.fecha):(s.timestamp?.toDate?fmtDate(s.timestamp.toDate().toISOString().slice(0,10)):"");
-    return `<div class="gc sol-card${isNew?" sol-new":""}" onclick="openSolicitudPdf('${escAttr(s.id)}')" style="padding:14px 18px;margin-bottom:10px">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
-        ${isNew?`<span style="width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0;display:inline-block"></span>`:""}
-        <span class="${prioClass}" style="font-size:.72rem;font-weight:800;text-transform:uppercase">${escHtml(s.prioridad||"Normal")}</span>
+    return `<div class="gc sol-card${isNew?" sol-new":""}" onclick="openSolicitudDetalle('${escAttr(s.id)}')" style="padding:14px 18px;margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        ${isNew?`<span style="width:9px;height:9px;border-radius:50%;background:var(--red);flex-shrink:0;display:inline-block"></span>`:""}
+        <span style="font-size:.72rem;font-weight:800;text-transform:uppercase;color:${prioColor}">${escHtml(s.prioridad||"Normal")}</span>
         <span style="color:var(--text3);font-size:.78rem;margin-left:auto">${fechaFmt}</span>
       </div>
       <div style="font-size:.95rem;font-weight:800;color:var(--text);margin-bottom:3px">${escHtml(s.solicitante||"Sin nombre")}</div>
-      <div style="font-size:.8rem;color:var(--text2)">${escHtml(s.sector||"")}${s.equipo?` · ${escHtml(s.equipo)}`:""}${s.totalItems?` · ${s.totalItems} insumos`:""}</div>
-      ${s.observaciones?`<div style="font-size:.75rem;color:var(--text3);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(s.observaciones.slice(0,100))}</div>`:""}
-      <div style="margin-top:8px">
-        <span style="font-size:.72rem;background:rgba(0,113,227,.12);color:var(--accent);padding:3px 10px;border-radius:20px;font-weight:650">Ver PDF</span>
-      </div>
+      <div style="font-size:.8rem;color:var(--text2);margin-bottom:4px">${escHtml(s.sector||"")}${s.equipo?` · ${escHtml(s.equipo)}`:""}${s.totalItems?` · ${s.totalItems} insumo${s.totalItems!==1?"s":""}`:""}</div>
+      ${s.observaciones?`<div style="font-size:.75rem;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(s.observaciones.slice(0,100))}</div>`:""}
     </div>`;
   }).join("");
 }
-function openSolicitudPdf(id){
+function openSolicitudDetalle(id){
   const s=solicitudes.find(x=>x.id===id); if(!s)return;
-  if(!s.pdfBase64){toast("⚠️ PDF no disponible");return;}
+  if(!s.leido)markSolicitudRead(id);
+  const prioColors={"Muy urgente":"var(--red)","Urgente":"var(--orange)","Normal":"var(--green)"};
+  const prioColor=prioColors[s.prioridad]||"var(--green)";
   const overlay=document.getElementById("pdf-viewer-overlay");
   document.getElementById("pdf-viewer-title").textContent=(s.solicitante||"Solicitud")+" · "+(s.fecha||"");
-  document.getElementById("pdf-viewer-frame").src=s.pdfBase64;
+  const body=document.getElementById("pdf-viewer-body");
+  const items=s.items||[];
+  body.innerHTML=`<div style="padding:16px;overflow-y:auto;flex:1;background:#f2f2f7">
+    <div style="background:#fff;border-radius:14px;padding:14px 18px;margin-bottom:12px">
+      <div style="display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:.83rem">
+        <span style="color:#8e8e93;font-weight:600">Solicitante</span><span style="font-weight:700">${escHtml(s.solicitante||"")}</span>
+        <span style="color:#8e8e93;font-weight:600">Fecha</span><span>${escHtml(s.fecha||"")}</span>
+        <span style="color:#8e8e93;font-weight:600">Sector</span><span>${escHtml(s.sector||"")}</span>
+        <span style="color:#8e8e93;font-weight:600">Equipo</span><span>${escHtml(s.equipo||"—")}</span>
+        <span style="color:#8e8e93;font-weight:600">Prioridad</span><span style="font-weight:700;color:${prioColor}">${escHtml(s.prioridad||"Normal")}</span>
+      </div>
+      ${s.observaciones?`<div style="margin-top:10px;padding-top:10px;border-top:1px solid #e5e5ea;font-size:.82rem;color:#636366">${escHtml(s.observaciones)}</div>`:""}
+    </div>
+    <div style="font-size:.75rem;font-weight:700;color:#8e8e93;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;padding-left:4px">Insumos solicitados</div>
+    <div style="background:#fff;border-radius:14px;overflow:hidden;margin-bottom:14px">
+      ${items.length?items.map((item,i)=>`<div style="padding:10px 16px;display:flex;align-items:center;gap:10px;${i<items.length-1?"border-bottom:1px solid #f2f2f7":""}">
+        <div style="flex:1;font-size:.87rem;font-weight:600;color:#1c1c1e">${escHtml(item.name||"")}</div>
+        <div style="font-size:.8rem;color:#636366;display:flex;gap:8px">
+          ${item.cantidad?`<span><b>${item.cantidad}</b> und</span>`:""}
+          ${item.caja?`<span><b>${item.caja}</b> caja</span>`:""}
+          ${item.pack?`<span><b>${item.pack}</b> pack</span>`:""}
+        </div>
+      </div>`).join(""):`<div style="padding:16px;text-align:center;color:#8e8e93;font-size:.85rem">Sin insumos</div>`}
+    </div>
+    <button onclick="exportarSolicitudPDF('${escAttr(id)}')" style="width:100%;padding:13px;border-radius:12px;background:#0071e3;color:#fff;border:none;font-size:.95rem;font-weight:700;cursor:pointer">Exportar PDF</button>
+  </div>`;
+  // hide iframe
+  const frame=document.getElementById("pdf-viewer-frame");
+  if(frame){frame.style.display="none";}
   overlay.style.display="flex";
   document.body.style.overflow="hidden";
-  if(!s.leido)markSolicitudRead(id);
+}
+function exportarSolicitudPDF(id){
+  const s=solicitudes.find(x=>x.id===id); if(!s)return;
+  if(!window.jspdf){toast("⚠️ Librería PDF no cargada");return;}
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:"portrait",unit:"mm",format:"a4"});
+  const pageW=doc.internal.pageSize.getWidth(),mg=14;let y=mg;
+  doc.setFillColor(5,22,68);doc.rect(0,0,pageW,36,"F");
+  doc.setFillColor(0,122,255);doc.rect(0,0,pageW,3,"F");
+  doc.setTextColor(255,255,255);doc.setFontSize(17);doc.setFont("helvetica","bold");
+  doc.text("Pedido de Insumos",mg,20);
+  doc.setFontSize(8.5);doc.setFont("helvetica","normal");
+  doc.text("CIMA · Sistema de Gestion",mg,28);
+  y=44;
+  const prioColors2={"Muy urgente":[255,59,48],"Urgente":[255,149,0],"Normal":[52,199,89]};
+  const pc=prioColors2[s.prioridad]||[52,199,89];
+  doc.setFontSize(8.5);doc.setTextColor(60,60,67);
+  const meta=[["Solicitante",s.solicitante||""],["Fecha",s.fecha||""],["Sector",s.sector||""],["Equipo",s.equipo||"—"],["Prioridad",s.prioridad||"Normal"]];
+  meta.forEach(([k,v])=>{doc.setFont("helvetica","bold");doc.text(k+":",mg,y);doc.setFont("helvetica","normal");doc.text(v,mg+26,y);y+=5;});
+  y+=4;
+  const items=s.items||[];
+  doc.autoTable({startY:y,margin:{left:mg,right:mg},
+    head:[["Insumo","Categoria","Cant.","Caja","Pack"]],
+    body:items.map(item=>[item.name||"",item.cat||"",item.cantidad||0,item.caja||0,item.pack||0]),
+    headStyles:{fillColor:[5,22,68],textColor:255,fontStyle:"bold",fontSize:8},
+    bodyStyles:{fontSize:8},alternateRowStyles:{fillColor:[240,246,255]},
+    styles:{cellPadding:2.5},
+    columnStyles:{0:{cellWidth:75},1:{cellWidth:38},2:{cellWidth:18},3:{cellWidth:18},4:{cellWidth:18}}
+  });
+  y=doc.lastAutoTable.finalY+8;
+  if(s.observaciones){
+    doc.setFontSize(8);doc.setFont("helvetica","bold");doc.setTextColor(60,60,67);
+    doc.text("Observaciones:",mg,y);y+=5;doc.setFont("helvetica","normal");
+    const lines=doc.splitTextToSize(s.observaciones,pageW-mg*2);doc.text(lines,mg,y);
+  }
+  const pageCount=doc.internal.getNumberOfPages();
+  for(let i=1;i<=pageCount;i++){
+    doc.setPage(i);doc.setFontSize(7);doc.setTextColor(160,160,170);
+    doc.text("CIMA · Pedido de Insumos · "+new Date().toLocaleDateString("es-AR"),mg,290);
+    doc.text("Pagina "+i+" de "+pageCount,pageW-mg,290,{align:"right"});
+  }
+  const fname="pedido-"+escHtml(s.solicitante||"cima")+"-"+s.fecha+".pdf";
+  const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)&&!window.MSStream;
+  if(isIOS){doc.output("dataurlnewwindow",{filename:fname});}
+  else{doc.save(fname);}
 }
 function markSolicitudRead(id){
-  _db.collection("solicitudes").doc(id).update({leido:true}).catch(e=>console.warn(e));
+  _db.collection("insumos_cima").doc("solicitudes_log").collection("items")
+    .doc(id).update({leido:true}).catch(e=>console.warn(e));
 }
 function marcarTodasLeidas(){
   const batch=_db.batch();
   solicitudes.filter(s=>!s.leido).forEach(s=>{
-    batch.update(_db.collection("solicitudes").doc(s.id),{leido:true});
+    batch.update(_db.collection("insumos_cima").doc("solicitudes_log")
+      .collection("items").doc(s.id),{leido:true});
   });
   batch.commit().catch(e=>console.warn(e));
 }
@@ -3789,7 +3867,10 @@ function openEntregaPdf(entregaId, nombre){
 }
 function closePdfViewer(){
   document.getElementById("pdf-viewer-overlay").style.display="none";
-  document.getElementById("pdf-viewer-frame").src="about:blank";
+  const frame=document.getElementById("pdf-viewer-frame");
+  if(frame){frame.style.display="flex";frame.src="about:blank";}
+  const body=document.getElementById("pdf-viewer-body");
+  if(body)body.innerHTML='<iframe id="pdf-viewer-frame" src="about:blank" style="flex:1;border:none;width:100%;height:100%"></iframe>';
   document.body.style.overflow="";
 }
 
