@@ -3576,6 +3576,7 @@ function openSolicitudDetalle(id){
       }
       <button onclick="exportarSolicitudPDF('${escAttr(id)}')" style="padding:13px 16px;border-radius:12px;background:#0071e3;color:#fff;border:none;font-size:.95rem;font-weight:700;cursor:pointer">PDF</button>
     </div>
+    <button onclick="deleteSolicitud('${escAttr(id)}')" style="width:100%;padding:12px;border-radius:12px;background:rgba(255,59,48,0.10);color:#ff3b30;border:1.5px solid rgba(255,59,48,0.22);font-size:.9rem;font-weight:700;cursor:pointer;margin-bottom:4px">🗑 Eliminar pedido</button>
   </div>`;
   const frame=document.getElementById("pdf-viewer-frame");
   if(frame){frame.style.display="none";}
@@ -3683,6 +3684,20 @@ function markSolicitudEntregado(id){
       closePdfViewer();
     })
     .catch(e=>{console.warn(e);toast("⚠️ Error al actualizar");});
+}
+function deleteSolicitud(id){
+  const s=solicitudes.find(x=>x.id===id);
+  const label=s?(s.solicitante||"Sin nombre")+" · "+(s.fecha||""):"este pedido";
+  openConfirm(
+    "Eliminar pedido",
+    `¿Eliminar el pedido de ${label}? Esta acción no se puede deshacer.`,
+    ()=>{
+      _db.collection("insumos_cima").doc("solicitudes_log").collection("items")
+        .doc(id).delete()
+        .then(()=>{ toast("Pedido eliminado"); closePdfViewer(); })
+        .catch(e=>{ console.warn(e); toast("⚠️ Error al eliminar"); });
+    }
+  );
 }
 
 // ─── ENTREGAS ───────────────────────────────────────────────────────────────
