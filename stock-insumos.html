@@ -1812,7 +1812,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "3.5";
+const APP_VERSION = "3.6";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -3493,15 +3493,23 @@ function renderSolicitudes(){
     let statusChip="";
     if(isEntregado) statusChip=`<span style="display:inline-flex;align-items:center;gap:3px;background:rgba(48,209,88,0.18);color:#1a8f3c;font-size:.68rem;font-weight:800;padding:2px 8px;border-radius:20px;margin-left:auto">✓ Entregado</span>`;
     else if(isNew) statusChip=`<span style="width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0;display:inline-block"></span>`;
-    return `<div class="gc sol-card${cardClass?" "+cardClass:""}" onclick="openSolicitudDetalle('${escAttr(s.id)}')" style="padding:14px 18px;margin-bottom:10px;position:relative">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-        ${isNew?statusChip:""}
-        <span style="font-size:.72rem;font-weight:800;text-transform:uppercase;color:${prioColor}">${escHtml(s.prioridad||"Normal")}</span>
-        ${isEntregado?statusChip:`<span style="color:var(--text3);font-size:.78rem;margin-left:auto">${fechaFmt}</span>`}
-        ${isEntregado?`<span style="color:var(--text3);font-size:.78rem">${fechaFmt}</span>`:""}
-        <button onclick="event.stopPropagation();deleteSolicitud('${escAttr(s.id)}')"
-          style="margin-left:auto;width:28px;height:28px;border-radius:8px;border:none;background:rgba(255,59,48,0.12);color:#ff3b30;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;-webkit-tap-highlight-color:transparent"
-          title="Eliminar pedido">🗑</button>
+    return `<div class="gc sol-card${cardClass?" "+cardClass:""}" onclick="openSolicitudDetalle('${escAttr(s.id)}')" style="padding:14px 18px;margin-bottom:10px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px">
+        <div style="display:flex;align-items:center;gap:6px;min-width:0">
+          ${isNew?statusChip:""}
+          <span style="font-size:.72rem;font-weight:800;text-transform:uppercase;color:${prioColor}">${escHtml(s.prioridad||"Normal")}</span>
+          ${isEntregado?statusChip:""}
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+          <span style="color:var(--text3);font-size:.78rem">${fechaFmt}</span>
+          <button onclick="event.stopPropagation();deleteSolicitud('${escAttr(s.id)}')"
+            style="width:28px;height:28px;border-radius:8px;border:none;background:rgba(255,59,48,0.13);color:#ff3b30;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;-webkit-tap-highlight-color:transparent;padding:0"
+            title="Eliminar pedido">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+            </svg>
+          </button>
+        </div>
       </div>
       <div style="font-size:.95rem;font-weight:800;color:var(--text);margin-bottom:3px">${escHtml(s.solicitante||"Sin nombre")}</div>
       <div style="font-size:.8rem;color:var(--text2);margin-bottom:4px">${escHtml(s.sector||"")}${s.equipo?` · ${escHtml(s.equipo)}`:""}${s.totalItems?` · ${s.totalItems} insumo${s.totalItems!==1?"s":""}`:""}</div>
