@@ -1,22 +1,27 @@
 {
-  "name": "Stock de Insumos — CIMA",
+  "name": "Gestión de Insumos CIMA",
   "short_name": "Insumos CIMA",
-  "description": "Control de inventario de insumos médicos por depósito",
-  "start_url": "/medtrack/stock-insumos.html",
-  "scope": "/medtrack/",
+  "description": "Sistema de gestión de insumos médicos - CIMA",
+  "start_url": "stock-insumos.html",
+  "scope": ".",
   "display": "standalone",
-  "orientation": "any",
-  "background_color": "#d6e8f5",
+  "orientation": "portrait-primary",
+  "background_color": "#f5f7fa",
   "theme_color": "#0071e3",
   "lang": "es",
   "icons": [
     {
-      "src": "/medtrack/icons/insumos-icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "src": "Iconogestioninsumos.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "Iconogestioninsumos.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
-  "categories": ["medical", "productivity"],
-  "screenshots": []
+  "categories": ["medical", "health", "productivity"]
 }
