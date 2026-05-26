@@ -640,6 +640,8 @@ body.dark .sb-card{background:rgba(255,255,255,.07);border-color:rgba(255,255,25
     <div style="padding:0 0 14px;border-bottom:1px solid rgba(0,0,0,.08);margin-bottom:14px;">
       <button onclick="doUpdate()" style="width:100%;padding:11px;background:rgba(100,200,255,.15);color:#0071e3;border:1px solid rgba(0,113,227,.2);border-radius:50px;font-weight:600;font-size:.82rem;cursor:pointer;">⚡ Actualizar Aplicación</button>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-top:7px;"><div style="font-size:.65rem;color:var(--text3);">Recarga sin caché del navegador</div><div id="ver-label" style="font-size:.6rem;color:var(--text3);font-family:monospace;"></div></div>
+      <button onclick="doClearCache()" style="width:100%;padding:11px;margin-top:8px;background:rgba(255,149,0,.12);color:#b45309;border:1px solid rgba(255,149,0,.28);border-radius:50px;font-weight:600;font-size:.82rem;cursor:pointer;">🗑 Limpiar caché</button>
+      <div style="font-size:.65rem;color:var(--text3);margin-top:5px;text-align:center;">Borra datos temporales y recarga la app</div>
     </div>
     <div class="settings-item">
       <div style="display:flex;justify-content:space-between;align-items:center;">
@@ -3314,13 +3316,26 @@ function submitRotura(){
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
 var antenas=[];
-var APP_DISPLAY_VERSION="4.3.5";
-var APP_BUILD="21/05/26 11:30";
+var APP_DISPLAY_VERSION="4.3.6";
+var APP_BUILD="26/05/26 15:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
     window.location.href=window.location.href.split('?')[0].split('#')[0]+'?v='+Date.now();
   },400);
+}
+function doClearCache(){
+  showToast("🗑 Limpiando caché...");
+  setTimeout(function(){
+    // Limpiar Cache API si está disponible
+    if(window.caches){
+      caches.keys().then(function(keys){
+        keys.forEach(function(k){caches.delete(k);});
+      });
+    }
+    // Recargar forzado sin caché
+    window.location.href=window.location.href.split('?')[0].split('#')[0]+'?nocache='+Date.now();
+  },500);
 }
 function checkForUpdates(){
   var base=window.location.href.split('?')[0].split('#')[0];
