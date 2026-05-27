@@ -35,17 +35,17 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>MedTrack — CIMA</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.05.08.61">
+<meta name="app-version" content="v2026.05.27.62">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <style>
 :root{
-  --glass:rgba(255,255,255,.10);
-  --glass2:rgba(255,255,255,.82);
-  --glass-tint:rgba(232,234,244,.58);
-  --glass-border:rgba(255,255,255,.72);
-  --glass-border-top:rgba(255,255,255,1.0);
+  --glass:rgba(255,255,255,.07);
+  --glass2:rgba(255,255,255,.55);
+  --glass-tint:rgba(232,234,244,.35);
+  --glass-border:rgba(255,255,255,.60);
+  --glass-border-top:rgba(255,255,255,.90);
   --blur:saturate(320%) contrast(108%) brightness(110%) blur(30px);
   --blur-heavy:saturate(360%) contrast(110%) brightness(112%) blur(44px);
   --r-sm:14px; --r-md:18px; --r-lg:24px; --r-xl:30px; --r-pill:50px;
@@ -90,10 +90,10 @@ body::before{
 
 /* ── LIQUID GLASS CARD ── */
 .gc{
-  background:rgba(255,255,255,.28);
+  background:rgba(255,255,255,.14);
   -webkit-backdrop-filter:saturate(320%) contrast(108%) brightness(110%) blur(30px);
   backdrop-filter:saturate(320%) contrast(108%) brightness(110%) blur(30px);
-  border:1.5px solid rgba(255,255,255,.90);
+  border:1.5px solid rgba(255,255,255,.75);
   border-top-color:rgba(255,255,255,1.0);
   border-radius:var(--r-lg);
   box-shadow:
@@ -124,8 +124,8 @@ body::before{
 #app{position:relative;z-index:1;}
 #header{position:sticky;top:0;z-index:100;background:transparent;border-bottom:none;padding:calc(env(safe-area-inset-top,0px)+12px) 20px 28px;}
 #header-inner{display:flex;align-items:center;justify-content:space-between;max-width:1040px;margin:0 auto;
-  background:rgba(255,255,255,.32);-webkit-backdrop-filter:var(--blur-heavy);backdrop-filter:var(--blur-heavy);
-  border:1.5px solid rgba(255,255,255,.92);border-top-color:rgba(255,255,255,1.0);
+  background:rgba(255,255,255,.16);-webkit-backdrop-filter:var(--blur-heavy);backdrop-filter:var(--blur-heavy);
+  border:1.5px solid rgba(255,255,255,.78);border-top-color:rgba(255,255,255,.95);
   border-radius:var(--r-xl);padding:20px 20px 20px 28px;
   box-shadow:0 0 0 1px rgba(180,200,255,.22),0 2px 8px rgba(140,160,220,.10),0 8px 32px rgba(0,0,0,.07),inset 0 2.5px 0 rgba(255,255,255,1.0),inset 0 0 0 1px rgba(255,255,255,.60);
   position:relative;overflow:hidden;min-height:96px;}
@@ -349,7 +349,7 @@ textarea.inp{resize:vertical;}
 /* ── MODAL ── */
 .modal-bg{position:fixed;inset:0;background:rgba(15,18,40,.32);-webkit-backdrop-filter:saturate(140%) blur(16px);backdrop-filter:saturate(140%) blur(16px);z-index:500;display:flex;align-items:flex-end;justify-content:center;animation:modalFadeIn .22s var(--ease-out);}
 .modal-box{
-  background:rgba(236,238,255,.32);
+  background:rgba(236,238,255,.18);
   -webkit-backdrop-filter:saturate(340%) contrast(110%) brightness(112%) blur(48px);
   backdrop-filter:saturate(340%) contrast(110%) brightness(112%) blur(48px);
   border:1px solid rgba(255,255,255,.65);border-top-color:rgba(255,255,255,1.0);
@@ -364,7 +364,7 @@ textarea.inp{resize:vertical;}
 
 /* ── DETAIL ── */
 .det-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
-.ibox{background:rgba(255,255,255,.45);border:1px solid rgba(255,255,255,.72);border-top-color:rgba(255,255,255,.92);
+.ibox{background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.58);border-top-color:rgba(255,255,255,.78);
   border-radius:var(--r-md);padding:10px 12px;
   box-shadow:0 1px 3px rgba(0,0,0,.04),inset 0 1px 0 rgba(255,255,255,.9);}
 .ibox-l{font-size:.58rem;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px;font-weight:600;}
@@ -514,7 +514,7 @@ body.dark .ibox{background:rgba(50,50,58,.5);border-color:rgba(80,80,90,.4);}
 }
 /* ── SIDEBAR ── */
 #sidebar{display:none;position:fixed;left:0;top:0;bottom:0;width:320px;z-index:50;
-  background:rgba(248,249,255,.38);
+  background:rgba(248,249,255,.20);
   -webkit-backdrop-filter:saturate(220%) blur(48px);backdrop-filter:saturate(220%) blur(48px);
   border-right:1px solid rgba(255,255,255,.9);
   flex-direction:column;overflow-y:auto;overflow-x:hidden;
@@ -549,7 +549,7 @@ body.dark .sb-nav-btn.on{background:rgba(0,113,227,.2);color:#60aaff;box-shadow:
 .sb-sub-btn:last-child{margin-bottom:0;}
 body.dark .sb-sub-btn{color:rgba(255,255,255,.55);}
 body.dark .sb-sub-btn:hover{background:rgba(255,255,255,.1);color:#fff;}
-.sb-card{background:rgba(255,255,255,.45);border:1.5px solid rgba(255,255,255,.92);border-top-color:rgba(255,255,255,1.0);border-radius:16px;padding:12px;margin-bottom:10px;box-shadow:0 0 0 1px rgba(180,200,255,.22),0 2px 12px rgba(140,160,220,.10),inset 0 2px 0 rgba(255,255,255,1.0),inset 0 0 0 1px rgba(255,255,255,.50);}
+.sb-card{background:rgba(255,255,255,.22);border:1.5px solid rgba(255,255,255,.75);border-top-color:rgba(255,255,255,.92);border-radius:16px;padding:12px;margin-bottom:10px;box-shadow:0 0 0 1px rgba(180,200,255,.22),0 2px 12px rgba(140,160,220,.10),inset 0 2px 0 rgba(255,255,255,1.0),inset 0 0 0 1px rgba(255,255,255,.50);}
 body.dark .sb-card{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.12);box-shadow:0 2px 8px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.08);}
 .sb-lbl{font-size:.58rem;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);font-weight:600;margin-bottom:6px;}
 .sb-val{font-size:1.5rem;font-weight:800;line-height:1;}
@@ -3508,8 +3508,8 @@ function submitRotura(){
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
 var antenas=[];
-var APP_DISPLAY_VERSION="4.4.3";
-var APP_BUILD="27/05/26 18:00";
+var APP_DISPLAY_VERSION="4.4.4";
+var APP_BUILD="27/05/26 18:30";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
