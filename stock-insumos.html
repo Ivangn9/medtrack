@@ -1170,6 +1170,11 @@
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="4" y="2" width="12" height="16" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M7 7h6M7 10h6M7 13h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M13 14l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
       Reportes
     </button>
+    <button class="sb-btn" data-tab="vencimientos" onclick="sidebarNav('vencimientos')" style="position:relative">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="4" width="14" height="13" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M7 2v3M13 2v3M3 8h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M7 12h2M11 12h2M7 15h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Vencimientos
+      <span class="sol-badge" id="venc-badge-sb" style="background:#ff9500"></span>
+    </button>
     <button class="sb-btn" data-tab="solicitudes" onclick="sidebarNav('solicitudes')" style="position:relative">
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 4h14v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4z" stroke="currentColor" stroke-width="1.7"/><path d="M3 4l7 7 7-7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
       Solicitudes
@@ -1556,6 +1561,27 @@
   </div>
 
   <!-- ════ SOLICITUDES ════ -->
+  <!-- ─── Tab Vencimientos ──────────────────────────────── -->
+  <div class="tab-pane" id="tab-vencimientos">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+      <div>
+        <div style="font-size:1.05rem;font-weight:800">Control de Vencimientos</div>
+        <div style="font-size:.75rem;color:var(--text3);margin-top:2px">Lotes cargados por fecha de vencimiento</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <select id="vencCenterFilter" onchange="renderVencimientos()" style="font-size:.82rem;padding:6px 10px;border-radius:var(--r-pill);border:1px solid rgba(0,0,0,.1);background:var(--glass2)">
+          <option value="ambos">Ambas sucursales</option>
+          <option value="GN">GN · Guardias Nacionales</option>
+          <option value="Sarmiento">Sarmiento</option>
+        </select>
+      </div>
+    </div>
+    <!-- Resumen chips -->
+    <div id="vencSummary" style="display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap"></div>
+    <!-- Lista de lotes -->
+    <div id="vencContainer"></div>
+  </div>
+
   <div class="tab-pane" id="tab-solicitudes">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
       <div>
@@ -1608,11 +1634,29 @@
           <button class="type-toggle-btn salida"           id="togSalida"  onclick="selectMovType('salida')">📤 Salida</button>
         </div>
       </div>
-      <div class="form-group"><label>Insumo</label><select id="movSupplySelect"><option value="">— Seleccionar —</option></select></div>
+      <div class="form-group"><label>Insumo</label><select id="movSupplySelect" onchange="onMovSupplyChange()"><option value="">— Seleccionar —</option></select></div>
+      <!-- Lotes disponibles (solo salida, cuando el insumo tiene lotes cargados) -->
+      <div class="form-group" id="movLotesGroup" style="display:none">
+        <label style="display:flex;align-items:center;gap:6px">
+          <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><rect x="3" y="4" width="14" height="13" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M7 2v3M13 2v3M3 8h14" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          Vencimiento a consumir
+        </label>
+        <select id="movLoteSelect" onchange="onLoteSelectChange()" style="font-size:.85rem"></select>
+        <div id="movLoteInfo" style="font-size:.75rem;color:var(--text3);margin-top:4px"></div>
+      </div>
       <div class="form-row">
         <div class="form-group"><label>Cantidad</label><input type="number" id="movQty" min="1" placeholder="0" /></div>
         <div class="form-group"><label>Fecha</label><input type="date" id="movDate" /></div>
         <div class="form-group" id="movUnitPriceGroup"><label>Precio/unidad ($)</label><input type="number" id="movUnitPrice" min="0" step="0.01" placeholder="0.00" /></div>
+      </div>
+      <!-- Fecha de vencimiento (solo entrada) -->
+      <div class="form-group" id="movFechaVencGroup" style="display:none">
+        <label style="display:flex;align-items:center;gap:6px">
+          <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><rect x="3" y="4" width="14" height="13" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M7 2v3M13 2v3M3 8h14" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          Fecha de vencimiento del lote
+          <span style="font-size:.7rem;font-weight:400;color:var(--text3)">(opcional)</span>
+        </label>
+        <input type="date" id="movFechaVenc" style="font-size:.9rem" />
       </div>
       <div class="form-group"><label>Nota (opcional)</label><input type="text" id="movNote" placeholder="Ej: Pedido semanal…" /></div>
       <div class="form-group" id="movProveedorGroup"><label>Proveedor (solo entradas)</label><select id="movProveedor"><option value="">— Sin proveedor —</option></select></div>
@@ -1828,7 +1872,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "3.9";
+const APP_VERSION = "4.0";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -2109,7 +2153,7 @@ function buildDefaultSupplies(){
 
 let supplies = buildDefaultSupplies();
 let suppliers = []; // [{id, name, contact}]
-let cs = {GN:{stock:{},movements:[]},Sarmiento:{stock:{},movements:[]}};
+let cs = {GN:{stock:{},movements:[],lotes:{}},Sarmiento:{stock:{},movements:[],lotes:{}}};
 
 function persist(){
   const batch = _db.batch();
@@ -2187,6 +2231,7 @@ function renderCurrentTab(){
   if(currentTab==="gestion")     renderGestion();
   if(currentTab==="costos")      renderCostos();
   if(currentTab==="reportes")    renderReportes();
+  if(currentTab==="vencimientos")renderVencimientos();
   if(currentTab==="solicitudes") renderSolicitudes();
 }
 
@@ -2231,12 +2276,29 @@ function renderInventario(){
       totalValue+=cur*(s.price||0);
       const row=document.createElement("div");
       row.className="stock-row";
+      // Badge de vencimiento del lote más próximo
+      const lotesInv=(cs[activeCenter]?.lotes||{})[s.id]?.filter(l=>l.qty>0)||[];
+      let vencBadge="";
+      if(lotesInv.length){
+        const soonest=lotesInv[0]; // ya están ordenados FEFO
+        const daysLeft=Math.floor((new Date(soonest.fechaVenc)-new Date())/(1000*60*60*24));
+        if(daysLeft<0){
+          vencBadge=`<span style="font-size:.62rem;font-weight:700;padding:1px 6px;border-radius:10px;background:rgba(255,59,48,0.15);color:#d92b20;border:1px solid rgba(255,59,48,0.2)">VENCIDO ${fmtDate(soonest.fechaVenc)}</span>`;
+        } else if(daysLeft<=30){
+          vencBadge=`<span style="font-size:.62rem;font-weight:700;padding:1px 6px;border-radius:10px;background:rgba(255,149,0,0.15);color:#b86e00;border:1px solid rgba(255,149,0,0.2)">Vence ${fmtDate(soonest.fechaVenc)}</span>`;
+        } else if(daysLeft<=90){
+          vencBadge=`<span style="font-size:.62rem;font-weight:600;padding:1px 6px;border-radius:10px;background:rgba(255,214,0,0.15);color:#7a6000;border:1px solid rgba(255,214,0,0.25)">Vence ${fmtDate(soonest.fechaVenc)}</span>`;
+        } else {
+          vencBadge=`<span style="font-size:.62rem;font-weight:600;padding:1px 6px;border-radius:10px;background:rgba(52,199,89,0.12);color:#1a8a38;border:1px solid rgba(52,199,89,0.2)">Vence ${fmtDate(soonest.fechaVenc)}</span>`;
+        }
+      }
       row.innerHTML=`
         <div class="stock-info">
           <div class="stock-name">${escHtml(s.name)}</div>
           <div class="stock-meta">
             <span class="stock-code">${escHtml(s.code)}</span>
             ${s.price>0?`<span class="stock-price-tag">$${fmt(s.price)}</span>`:""}
+            ${vencBadge}
           </div>
         </div>
         <div class="stock-controls">
@@ -2809,7 +2871,10 @@ function openMovModal(supplyId,type){
   }
   const upEl=document.getElementById("movUnitPrice");
   if(upEl)upEl.value="";
+  const fvEl=document.getElementById("movFechaVenc");
+  if(fvEl)fvEl.value="";
   selectMovType(_movType);
+  if(supplyId) onMovSupplyChange();
   document.getElementById("movModal").classList.add("open");
 }
 function closeMovModal(e){if(e&&e.target!==document.getElementById("movModal"))return;document.getElementById("movModal").classList.remove("open");}
@@ -2821,6 +2886,48 @@ function selectMovType(type){
   if(pg)pg.style.display=type==="entrada"?"block":"none";
   const upg=document.getElementById("movUnitPriceGroup");
   if(upg)upg.style.display=type==="entrada"?"block":"none";
+  const fvg=document.getElementById("movFechaVencGroup");
+  if(fvg)fvg.style.display=type==="entrada"?"block":"none";
+  // Actualizar lotes al cambiar tipo
+  onMovSupplyChange();
+}
+function onMovSupplyChange(){
+  const supplyId=document.getElementById("movSupplySelect").value;
+  const lotesGroup=document.getElementById("movLotesGroup");
+  const loteSelect=document.getElementById("movLoteSelect");
+  const loteInfo=document.getElementById("movLoteInfo");
+  if(!lotesGroup)return;
+  if(_movType!=="salida"||!supplyId){lotesGroup.style.display="none";return;}
+  const lotes=(cs[activeCenter]?.lotes||{})[supplyId]?.filter(l=>l.qty>0)||[];
+  if(!lotes.length){lotesGroup.style.display="none";return;}
+  const today=new Date();
+  loteSelect.innerHTML=`<option value="fefo">🔄 FEFO — Automático (más próximo a vencer primero)</option>`+
+    lotes.map(l=>{
+      const daysLeft=Math.floor((new Date(l.fechaVenc)-today)/(1000*60*60*24));
+      const icon=daysLeft<0?"🔴":daysLeft<=30?"🟠":daysLeft<=90?"🟡":"🟢";
+      const label=daysLeft<0?"VENCIDO":daysLeft===0?"Vence HOY":`${daysLeft}d restantes`;
+      return `<option value="${escAttr(l.id)}">${icon} Vence ${fmtDate(l.fechaVenc)} — ${l.qty} disponibles (${label})</option>`;
+    }).join("");
+  lotesGroup.style.display="block";
+  onLoteSelectChange();
+}
+function onLoteSelectChange(){
+  const supplyId=document.getElementById("movSupplySelect").value;
+  const loteId=document.getElementById("movLoteSelect")?.value;
+  const loteInfo=document.getElementById("movLoteInfo");
+  if(!loteInfo||!supplyId)return;
+  if(loteId==="fefo"){
+    const lotes=(cs[activeCenter]?.lotes||{})[supplyId]?.filter(l=>l.qty>0)||[];
+    if(lotes.length){loteInfo.textContent=`FEFO: se consumirá del lote que vence ${fmtDate(lotes[0].fechaVenc)} (${lotes[0].qty} disp.)`;}
+    return;
+  }
+  const lote=(cs[activeCenter]?.lotes||{})[supplyId]?.find(l=>l.id===loteId);
+  if(lote){
+    const daysLeft=Math.floor((new Date(lote.fechaVenc)-new Date())/(1000*60*60*24));
+    const status=daysLeft<0?"⚠️ VENCIDO":daysLeft===0?"⚠️ Vence hoy":`${daysLeft} días hasta el vencimiento`;
+    loteInfo.textContent=`${status} · ${lote.qty} unidades disponibles`;
+    loteInfo.style.color=daysLeft<0?"var(--red)":daysLeft<=30?"var(--orange)":"var(--text3)";
+  }
 }
 function saveMovimiento(){
   const supplyId=document.getElementById("movSupplySelect").value;
@@ -2834,22 +2941,64 @@ function saveMovimiento(){
   const proveedorId=document.getElementById("movProveedor")?.value||"";
   const proveedor=suppliers.find(x=>x.id===proveedorId);
   const unitPrice=parseFloat(document.getElementById("movUnitPrice")?.value)||0;
+  const fechaVenc=document.getElementById("movFechaVenc")?.value||"";
+
   if(_movType==="entrada"&&unitPrice>0){
     s.price=unitPrice;
     if(!s.priceHistory)s.priceHistory=[];
     s.priceHistory.unshift({price:unitPrice,date,proveedorName:proveedor?.name||""});
     if(s.priceHistory.length>10)s.priceHistory.length=10;
   }
+
+  // ── Gestión de LOTES ─────────────────────────────────────
+  if(!cs[activeCenter].lotes)cs[activeCenter].lotes={};
+  let loteDetail="";
+  if(_movType==="entrada"&&fechaVenc){
+    // Agregar o actualizar lote en entrada
+    if(!cs[activeCenter].lotes[supplyId])cs[activeCenter].lotes[supplyId]=[];
+    const existing=cs[activeCenter].lotes[supplyId].find(l=>l.fechaVenc===fechaVenc);
+    if(existing){existing.qty+=qty;}
+    else{cs[activeCenter].lotes[supplyId].push({id:"lot_"+Date.now(),fechaVenc,qty,fechaEntrada:date});}
+    cs[activeCenter].lotes[supplyId].sort((a,b)=>a.fechaVenc.localeCompare(b.fechaVenc));
+    loteDetail=` · Vence ${fmtDate(fechaVenc)}`;
+  } else if(_movType==="salida"){
+    // Descontar de lotes (FEFO o seleccionado)
+    const lotes=cs[activeCenter].lotes[supplyId]?.filter(l=>l.qty>0)||[];
+    if(lotes.length){
+      const loteId=document.getElementById("movLoteSelect")?.value||"fefo";
+      let toRemove=qty, consumed=[];
+      if(loteId!=="fefo"){
+        // Consumir de lote específico
+        const lote=lotes.find(l=>l.id===loteId);
+        if(lote){lote.qty=Math.max(0,lote.qty-toRemove);consumed.push(`Vence ${fmtDate(lote.fechaVenc)}`);}
+      } else {
+        // FEFO: consumir de más próximo a vencer primero
+        for(const lote of lotes){
+          if(toRemove<=0)break;
+          const take=Math.min(toRemove,lote.qty);
+          lote.qty-=take;toRemove-=take;
+          consumed.push(`${fmtDate(lote.fechaVenc)}:${take}`);
+        }
+      }
+      // Limpiar lotes vacíos
+      cs[activeCenter].lotes[supplyId]=cs[activeCenter].lotes[supplyId].filter(l=>l.qty>0);
+      if(!cs[activeCenter].lotes[supplyId].length)delete cs[activeCenter].lotes[supplyId];
+      if(consumed.length)loteDetail=` · Lote ${consumed[0]}`;
+    }
+  }
+
   const mov={id:"mov_"+Date.now(),supplyId,supplyName:s.name,type:_movType,qty,date,time:new Date().toTimeString().slice(0,5),note,
-    ...(proveedorId&&{proveedorId,proveedorName:proveedor?.name||""})
+    ...(proveedorId&&{proveedorId,proveedorName:proveedor?.name||""}),
+    ...(fechaVenc&&_movType==="entrada"&&{fechaVenc})
   };
   cs[activeCenter].movements.push(mov);
   cs[activeCenter].stock[supplyId]=(cs[activeCenter].stock[supplyId]||0)+(_movType==="entrada"?qty:-qty);
   persist();
   document.getElementById("movModal").classList.remove("open");
-  toast(`✓ ${_movType==="entrada"?"Entrada":"Salida"} registrada: ${qty} ${s.unit} de ${s.name}`);
+  toast(`✓ ${_movType==="entrada"?"Entrada":"Salida"} registrada: ${qty} ${s.unit} de ${s.name}${loteDetail}`);
   if(navigator.vibrate)navigator.vibrate([8,50,8]);
   renderCurrentTab();
+  updateVencBadge();
 }
 
 // ─── Modal Agregar ────────────────────────────────────────────────────────────
@@ -2970,7 +3119,8 @@ function startListeners(){
       });
     }
     CENTERS.forEach(c=>{
-      if(!cs[c]) cs[c]={stock:{},movements:[]};
+      if(!cs[c]) cs[c]={stock:{},movements:[],lotes:{}};
+      if(!cs[c].lotes) cs[c].lotes={};
       supplies.forEach(s=>{if(cs[c].stock[s.id]===undefined)cs[c].stock[s.id]=0;});
     });
     updateCenterStats();
@@ -2979,8 +3129,8 @@ function startListeners(){
   });
 
   _unsubGN = _db.collection(DB_COL).doc("center_GN").onSnapshot(snap=>{
-    if(snap.exists){ cs.GN=snap.data(); if(!cs.GN.stock)cs.GN.stock={}; if(!cs.GN.movements)cs.GN.movements=[]; }
-    updateCenterStats();
+    if(snap.exists){ cs.GN=snap.data(); if(!cs.GN.stock)cs.GN.stock={}; if(!cs.GN.movements)cs.GN.movements=[]; if(!cs.GN.lotes)cs.GN.lotes={}; }
+    updateCenterStats(); updateVencBadge();
     if(!activeCenter)setTimeout(updateHomeStats,0);
     if(activeCenter==="GN") renderCurrentTab();
   });
@@ -2997,8 +3147,8 @@ function startListeners(){
     },e=>console.warn("solicitudes error:",e));
 
   _unsubSarm = _db.collection(DB_COL).doc("center_Sarmiento").onSnapshot(snap=>{
-    if(snap.exists){ cs.Sarmiento=snap.data(); if(!cs.Sarmiento.stock)cs.Sarmiento.stock={}; if(!cs.Sarmiento.movements)cs.Sarmiento.movements=[]; }
-    updateCenterStats();
+    if(snap.exists){ cs.Sarmiento=snap.data(); if(!cs.Sarmiento.stock)cs.Sarmiento.stock={}; if(!cs.Sarmiento.movements)cs.Sarmiento.movements=[]; if(!cs.Sarmiento.lotes)cs.Sarmiento.lotes={}; }
+    updateCenterStats(); updateVencBadge();
     if(!activeCenter)setTimeout(updateHomeStats,0);
     if(activeCenter==="Sarmiento") renderCurrentTab();
   });
@@ -3539,6 +3689,98 @@ async function generateReport(){
   }finally{
     btn.disabled=false;btn.innerHTML='<span class="btn-icon">📄</span> Generar y Exportar PDF';
   }
+}
+
+// ─── VENCIMIENTOS ────────────────────────────────────────────────────────────
+function getAllLotes(){
+  const today=new Date();
+  const rows=[];
+  const centers=["GN","Sarmiento"];
+  const centerLabels={GN:"GN · Guard. Nac.",Sarmiento:"Sarmiento"};
+  for(const center of centers){
+    const loteMap=cs[center]?.lotes||{};
+    for(const [supplyId,lotes] of Object.entries(loteMap)){
+      const supply=supplies.find(s=>s.id===supplyId);
+      if(!supply)continue;
+      for(const lote of (lotes||[])){
+        if(lote.qty<=0)continue;
+        const daysLeft=Math.floor((new Date(lote.fechaVenc)-today)/(1000*60*60*24));
+        rows.push({...lote,supplyId,supplyName:supply.name,supplyCode:supply.code,unit:supply.unit,center,centerLabel:centerLabels[center],daysLeft});
+      }
+    }
+  }
+  rows.sort((a,b)=>a.fechaVenc.localeCompare(b.fechaVenc));
+  return rows;
+}
+function updateVencBadge(){
+  const lotes=getAllLotes();
+  const alertCount=lotes.filter(l=>l.daysLeft<=30).length;
+  document.querySelectorAll("#venc-badge-sb").forEach(el=>{
+    el.textContent=alertCount;
+    el.style.display=alertCount>0?"flex":"none";
+  });
+}
+function renderVencimientos(){
+  const summary=document.getElementById("vencSummary");
+  const container=document.getElementById("vencContainer");
+  if(!summary||!container)return;
+
+  const filterCenter=document.getElementById("vencCenterFilter")?.value||"ambos";
+  let rows=getAllLotes();
+  if(filterCenter!=="ambos")rows=rows.filter(r=>r.center===filterCenter);
+
+  const expired=rows.filter(r=>r.daysLeft<0);
+  const soon=rows.filter(r=>r.daysLeft>=0&&r.daysLeft<=30);
+  const medium=rows.filter(r=>r.daysLeft>30&&r.daysLeft<=90);
+  const ok=rows.filter(r=>r.daysLeft>90);
+
+  summary.innerHTML=[
+    {label:"Vencidos",count:expired.length,bg:"rgba(255,59,48,0.12)",color:"#d92b20",border:"rgba(255,59,48,0.22)"},
+    {label:"Vencen en 30d",count:soon.length,bg:"rgba(255,149,0,0.12)",color:"#b86e00",border:"rgba(255,149,0,0.22)"},
+    {label:"Vencen en 90d",count:medium.length,bg:"rgba(255,214,0,0.15)",color:"#8a7000",border:"rgba(255,214,0,0.25)"},
+    {label:"OK (>90d)",count:ok.length,bg:"rgba(52,199,89,0.12)",color:"#1a8a38",border:"rgba(52,199,89,0.22)"},
+  ].map(c=>`<div style="display:inline-flex;align-items:center;gap:7px;padding:8px 14px;border-radius:var(--r-pill);background:${c.bg};border:1px solid ${c.border};cursor:default">
+    <span style="font-size:1.1rem;font-weight:800;color:${c.color}">${c.count}</span>
+    <span style="font-size:.75rem;font-weight:600;color:${c.color}">${c.label}</span>
+  </div>`).join("");
+
+  if(!rows.length){
+    container.innerHTML=`<div class="gc" style="text-align:center;padding:40px 20px;color:var(--text3)">
+      <div style="font-size:2rem;margin-bottom:12px">📦</div>
+      <div style="font-weight:600;margin-bottom:6px">Sin lotes cargados</div>
+      <div style="font-size:.82rem">Al registrar entradas con fecha de vencimiento, aparecerán aquí</div>
+    </div>`;
+    return;
+  }
+
+  // Agrupar por estado
+  const groups=[
+    {title:"🔴 Vencidos",items:expired,bg:"rgba(255,59,48,0.06)",border:"#ff3b30",color:"#d92b20"},
+    {title:"🟠 Vencen dentro de 30 días",items:soon,bg:"rgba(255,149,0,0.06)",border:"#ff9500",color:"#b86e00"},
+    {title:"🟡 Vencen entre 30 y 90 días",items:medium,bg:"rgba(255,214,0,0.05)",border:"#ffd60a",color:"#7a6000"},
+    {title:"🟢 Vigentes (más de 90 días)",items:ok,bg:"rgba(52,199,89,0.05)",border:"#30d158",color:"#1a8a38"},
+  ];
+
+  container.innerHTML=groups.filter(g=>g.items.length>0).map(g=>`
+    <div style="margin-bottom:20px">
+      <div style="font-size:.82rem;font-weight:800;color:${g.color};margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em">${g.title}</div>
+      ${g.items.map(lote=>{
+        const daysLabel=lote.daysLeft<0?`Venció hace ${Math.abs(lote.daysLeft)}d`:lote.daysLeft===0?"Vence HOY":`Vence en ${lote.daysLeft}d`;
+        return `<div class="gc" style="padding:12px 16px;margin-bottom:8px;border-left:4px solid ${g.border};background:${g.bg}">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px">
+            <div style="font-size:.9rem;font-weight:800;color:var(--text)">${escHtml(lote.supplyName)}</div>
+            <span style="font-size:.7rem;font-weight:700;color:${g.color};background:${g.bg};border:1px solid ${g.border};padding:2px 8px;border-radius:20px;flex-shrink:0">${daysLabel}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <span style="font-size:.78rem;color:var(--text2)">📅 <strong>${fmtDate(lote.fechaVenc)}</strong></span>
+            <span style="font-size:.78rem;color:var(--text2)">📦 ${lote.qty} ${escHtml(lote.unit)}</span>
+            <span style="font-size:.78rem;color:var(--text3)">${escHtml(lote.centerLabel)}</span>
+            <span style="font-size:.72rem;color:var(--text3)">${escHtml(lote.supplyCode)}</span>
+          </div>
+          ${lote.fechaEntrada?`<div style="font-size:.72rem;color:var(--text3);margin-top:3px">Ingresado: ${fmtDate(lote.fechaEntrada)}</div>`:""}
+        </div>`;
+      }).join("")}
+    </div>`).join("");
 }
 
 // ─── SOLICITUDES ─────────────────────────────────────────────────────────────
