@@ -1828,7 +1828,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "3.8";
+const APP_VERSION = "3.9";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -3256,68 +3256,120 @@ async function generateReport(){
       if(resp.ok){
         const blob=await resp.blob();
         logoData=await new Promise(res=>{const r=new FileReader();r.onload=e=>res(e.target.result);r.readAsDataURL(blob);});
-        // get natural dimensions to preserve aspect ratio
         await new Promise(res=>{
           const img=new Image();
           img.onload=()=>{
-            const maxH=22, maxW=50;
+            const maxH=16, maxW=42;
             const ratio=img.naturalWidth/img.naturalHeight;
-            logoH=Math.min(maxH, maxH);
-            logoW=Math.min(maxW, logoH*ratio);
+            logoH=maxH; logoW=Math.min(maxW,logoH*ratio);
             res();
           };
-          img.onerror=res;
-          img.src=logoData;
+          img.onerror=res; img.src=logoData;
         });
       }
     }catch(e){}
 
     if(progFill)progFill.style.width="25%";
 
-    // ── Header band ──────────────────────────────────────────────
-    const headerH=Math.max(34, logoH>0?logoH+12:34);
-    doc.setFillColor(0,113,227);
+    // Paleta de colores (coincide con la app)
+    const C={
+      navy:[15,35,80],      // header oscuro
+      blue:[0,113,227],     // acento principal
+      blueLight:[0,90,180], // azul medio
+      dark:[28,28,30],
+      gray1:[55,55,65],
+      gray2:[100,100,112],
+      gray3:[155,155,168],
+      bgLight:[245,247,252],
+      bgBlue:[236,244,255],
+      border:[208,220,238],
+      green:[34,170,68],
+      red:[220,50,40],
+      white:[255,255,255],
+    };
+    const rgb=arr=>arr; // alias legible
+
+    // ── HEADER ────────────────────────────────────────────────────
+    const headerH=32;
+    doc.setFillColor(...C.navy);
     doc.rect(0,0,pageW,headerH,"F");
+    // Línea de acento azul inferior
+    doc.setFillColor(...C.blue);
+    doc.rect(0,headerH-1.8,pageW,1.8,"F");
 
     let titleX=mg;
     if(logoData&&logoW>0){
-      const logoY=(headerH-logoH)/2;
-      try{doc.addImage(logoData,"PNG",mg,logoY,logoW,logoH,undefined,"FAST");titleX=mg+logoW+4;}catch(e){}
+      const logoY=(headerH-1.8-logoH)/2;
+      try{doc.addImage(logoData,"PNG",mg,logoY,logoW,logoH,undefined,"FAST");titleX=mg+logoW+7;}catch(e){}
     }
-    doc.setTextColor(255,255,255);
-    doc.setFontSize(16);doc.setFont("helvetica","bold");
-    doc.text("Stock de Insumos",titleX,headerH*0.48);
-    doc.setFontSize(8.5);doc.setFont("helvetica","normal");
-    doc.text("CIMA - Control de Inventario por Deposito",titleX,headerH*0.72);
-    y=headerH+8;
 
-    // ── Report metadata ───────────────────────────────────────────
+    // Título principal
+    doc.setTextColor(...C.white);
+    doc.setFontSize(15.5);doc.setFont("helvetica","bold");
+    doc.text("Stock de Insumos",titleX,headerH*0.43);
+    // Subtítulo
+    doc.setFontSize(7.5);doc.setFont("helvetica","normal");
+    doc.setTextColor(170,200,240);
+    doc.text("CIMA · Control de Inventario por Depósito",titleX,headerH*0.71);
+    // Fecha arriba derecha
+    doc.setFontSize(7);doc.setTextColor(130,170,220);
+    doc.text(new Date().toLocaleDateString("es-AR"),pageW-mg,headerH*0.55,{align:"right"});
+
+    y=headerH+9;
+
+    // ── METADATA BOX ──────────────────────────────────────────────
     const centerLabel=_repCenter==="ambos"?"GN + Sarmiento":(_repCenter==="GN"?"GN · Guardias Nacionales":"Sarmiento · Sarmiento 1212");
-    const dateLabel=(dateFrom&&dateTo)?`${dateFrom} al ${dateTo}`:(dateFrom?`Desde ${dateFrom}`:(dateTo?`Hasta ${dateTo}`:"Todo el periodo"));
-    doc.setTextColor(60,60,67);
-    doc.setFontSize(8.5);doc.setFont("helvetica","bold");
-    doc.text("Sucursal:",mg,y);doc.setFont("helvetica","normal");doc.text(centerLabel,mg+18,y);y+=5;
-    doc.setFont("helvetica","bold");doc.text("Período:",mg,y);doc.setFont("helvetica","normal");doc.text(dateLabel,mg+18,y);y+=5;
-    doc.setFont("helvetica","bold");doc.text("Generado:",mg,y);doc.setFont("helvetica","normal");doc.text(new Date().toLocaleString("es-AR"),mg+18,y);y+=10;
+    const dateLabel=(dateFrom&&dateTo)?`${dateFrom} al ${dateTo}`:(dateFrom?`Desde ${dateFrom}`:(dateTo?`Hasta ${dateTo}`:"Todo el período"));
+    const metaBoxH=20;
+    doc.setFillColor(...C.bgLight);
+    doc.setDrawColor(...C.border);doc.setLineWidth(0.3);
+    doc.roundedRect(mg,y,pageW-mg*2,metaBoxH,2,2,"FD");
+    const colW=(pageW-mg*2)/3;
+    const metaItems=[
+      {label:"SUCURSAL",val:centerLabel},
+      {label:"PERÍODO",val:dateLabel},
+      {label:"GENERADO",val:new Date().toLocaleString("es-AR")},
+    ];
+    metaItems.forEach((item,i)=>{
+      const ix=mg+i*colW+5;
+      doc.setFontSize(6);doc.setFont("helvetica","bold");doc.setTextColor(...C.blue);
+      doc.text(item.label,ix,y+6.5);
+      doc.setFontSize(7.8);doc.setFont("helvetica","normal");doc.setTextColor(...C.dark);
+      doc.text(item.val,ix,y+13.5,{maxWidth:colW-8});
+      if(i<metaItems.length-1){
+        doc.setDrawColor(...C.border);doc.setLineWidth(0.3);
+        doc.line(mg+colW*(i+1),y+4,mg+colW*(i+1),y+metaBoxH-4);
+      }
+    });
+    y+=metaBoxH+10;
 
-    // ── Helper: separator line ─────────────────────────────────────
+    // ── HELPERS ───────────────────────────────────────────────────
     function sepLine(){
-      doc.setDrawColor(200,215,235);doc.setLineWidth(0.3);
-      doc.line(mg,y,pageW-mg,y);y+=5;
+      doc.setDrawColor(...C.border);doc.setLineWidth(0.25);
+      doc.line(mg,y,pageW-mg,y);y+=6;
     }
     function pageCheck(needed){if(y>pageH-needed){doc.addPage();y=mg+5;}}
-    function sectionHeader(title,icon){
-      pageCheck(20);
-      doc.setFillColor(230,241,252);
-      doc.rect(mg,y-4,pageW-mg*2,11,"F");
-      doc.setTextColor(0,113,227);doc.setFontSize(10);doc.setFont("helvetica","bold");
-      doc.text(title,mg+3,y+4);
-      y+=13;doc.setTextColor(60,60,67);doc.setFont("helvetica","normal");
+    function sectionHeader(title){
+      pageCheck(22);
+      // Barra izquierda de acento
+      doc.setFillColor(...C.blue);
+      doc.rect(mg,y-2,3.5,9,"F");
+      // Título
+      doc.setTextColor(...C.dark);doc.setFontSize(10.5);doc.setFont("helvetica","bold");
+      doc.text(title,mg+7,y+5);
+      // Línea decorativa
+      const tw=doc.getTextWidth(title);
+      doc.setDrawColor(...C.border);doc.setLineWidth(0.3);
+      doc.line(mg+8+tw,y+2,pageW-mg,y+2);
+      y+=14;doc.setTextColor(...C.gray1);doc.setFont("helvetica","normal");
     }
     function subHeader(label){
       pageCheck(10);
-      doc.setTextColor(100,100,110);doc.setFontSize(8.5);doc.setFont("helvetica","bold");
-      doc.text(label,mg,y);y+=6;doc.setFont("helvetica","normal");
+      doc.setFillColor(...C.bgBlue);
+      doc.rect(mg,y-1,pageW-mg*2,7.5,"F");
+      doc.setTextColor(...C.blueLight);doc.setFontSize(8);doc.setFont("helvetica","bold");
+      doc.text(label,mg+3,y+4.5);
+      y+=10;doc.setFont("helvetica","normal");doc.setTextColor(...C.gray1);
     }
 
     const centers=_repCenter==="ambos"?["GN","Sarmiento"]:[_repCenter];
@@ -3330,15 +3382,15 @@ async function generateReport(){
       });
     }
 
-    const tableHeadStyle={fillColor:[0,113,227],textColor:255,fontStyle:"bold",fontSize:8};
-    const tableBodyStyle={fontSize:8,textColor:[30,30,40]};
-    const tableAltStyle={fillColor:[240,246,255]};
+    const tableHeadStyle={fillColor:C.navy,textColor:255,fontStyle:"bold",fontSize:7.8,cellPadding:3.2};
+    const tableBodyStyle={fontSize:7.5,textColor:C.dark,cellPadding:2.8};
+    const tableAltStyle={fillColor:C.bgBlue};
 
     if(progFill)progFill.style.width="45%";
 
     // ── CONSUMOS ──────────────────────────────────────────────────
     if(incConsumos){
-      sectionHeader("Consumos de Insumos","📦");
+      sectionHeader("Consumos de Insumos");
       for(const center of centers){
         if(centers.length>1)subHeader(center==="GN"?"GN · Guardias Nacionales":"Sarmiento · Sarmiento 1212");
         const movs=getMovs(center);
@@ -3369,7 +3421,7 @@ async function generateReport(){
 
     // ── GASTOS ────────────────────────────────────────────────────
     if(incGastos){
-      pageCheck(30);sepLine();sectionHeader("Gastos por Insumo","💸");
+      pageCheck(30);sepLine();sectionHeader("Gastos por Insumo");
       for(const center of centers){
         if(centers.length>1)subHeader(center==="GN"?"GN · Guardias Nacionales":"Sarmiento · Sarmiento 1212");
         const movs=getMovs(center);
@@ -3408,7 +3460,7 @@ async function generateReport(){
 
     // ── EVOLUCIÓN DE PRECIOS ──────────────────────────────────────
     if(incPrecios){
-      pageCheck(30);sepLine();sectionHeader("Evolución de Precios","📈");
+      pageCheck(30);sepLine();sectionHeader("Evolución de Precios");
       const activeSupplies=supplies.filter(s=>s.active&&(s.price>0||(s.priceHistory&&s.priceHistory.length)));
       const rows=activeSupplies.map(s=>{
         const hist=s.priceHistory||[];
@@ -3441,15 +3493,23 @@ async function generateReport(){
       }
     }
 
-    // ── Footer on every page ──────────────────────────────────────
+    // ── FOOTER en cada página ─────────────────────────────────────
     const pageCount=doc.internal.getNumberOfPages();
     for(let i=1;i<=pageCount;i++){
       doc.setPage(i);
-      doc.setFontSize(7);doc.setTextColor(160,160,170);
-      doc.text("CIMA · Stock de Insumos · "+new Date().toLocaleDateString("es-AR"),mg,pageH-6);
-      doc.text("Página "+i+" de "+pageCount,pageW-mg,pageH-6,{align:"right"});
-      doc.setDrawColor(200,215,235);doc.setLineWidth(0.2);
-      doc.line(mg,pageH-9,pageW-mg,pageH-9);
+      // Línea separadora footer
+      doc.setFillColor(...C.blue);
+      doc.rect(mg,pageH-10,4,0.8,"F");
+      doc.setDrawColor(...C.border);doc.setLineWidth(0.25);
+      doc.line(mg+6,pageH-9.6,pageW-mg,pageH-9.6);
+      // Texto izquierda: marca CIMA
+      doc.setFontSize(7);doc.setFont("helvetica","bold");doc.setTextColor(...C.blue);
+      doc.text("CIMA",mg,pageH-5.5);
+      doc.setFont("helvetica","normal");doc.setTextColor(...C.gray3);
+      doc.text(" · Stock de Insumos · "+new Date().getFullYear(),mg+8.5,pageH-5.5);
+      // Texto derecha: paginación
+      doc.setFont("helvetica","bold");doc.setTextColor(...C.gray2);
+      doc.text(`Página ${i} de ${pageCount}`,pageW-mg,pageH-5.5,{align:"right"});
     }
 
     if(progFill)progFill.style.width="95%";
