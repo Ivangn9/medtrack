@@ -14,70 +14,68 @@
     </radialGradient>
   </defs>
 
-  <!-- Background -->
+  <!-- Background tile -->
   <rect width="256" height="256" rx="56" fill="url(#rmBg)"/>
   <rect width="256" height="256" rx="56" fill="url(#rmShine)"/>
 
-  <!-- ── OUTER HOUSING — wide dome with narrow waist and flared feet ── -->
-  <path d="M 28 218
-           L 28 200
-           Q 28 184 44 180
-           L 64 174
-           Q 76 170 76 156
-           L 76 116
-           Q 76 30 128 30
-           Q 180 30 180 116
-           L 180 156
-           Q 180 170 192 174
-           L 212 180
-           Q 228 184 228 200
-           L 228 218
-           L 28 218 Z"
+  <!-- ── OUTER HOUSING ── dome with integrated wide base feet -->
+  <path d="M 30 218
+           L 30 196
+           Q 30 188 42 188
+           L 56 188
+           L 56 132
+           Q 56 36 128 36
+           Q 200 36 200 132
+           L 200 188
+           L 214 188
+           Q 226 188 226 196
+           L 226 218
+           L 30 218 Z"
         fill="rgba(255,255,255,0.18)"
         stroke="white" stroke-width="7"
         stroke-linejoin="round" stroke-linecap="round"/>
 
-  <!-- ── INNER ARCH — second tunnel mouth around the bore ── -->
-  <path d="M 90 180
-           L 90 130
-           Q 90 70 128 70
-           Q 166 70 166 130
-           L 166 180"
+  <!-- ── INNER ARCH ── concentric tunnel mouth around the bore -->
+  <path d="M 80 184
+           L 80 134
+           Q 80 78 128 78
+           Q 176 78 176 134
+           L 176 184"
         fill="none"
         stroke="white" stroke-width="6"
         stroke-linejoin="round" stroke-linecap="round"/>
 
-  <!-- ── BORE — deep dark circle in the center of inner arch ── -->
-  <circle cx="128" cy="118" r="32" fill="url(#rmBoreDeep)"/>
-  <circle cx="128" cy="118" r="32" fill="none"
+  <!-- ── BORE ── deep dark circular opening -->
+  <circle cx="128" cy="128" r="34" fill="url(#rmBoreDeep)"/>
+  <circle cx="128" cy="128" r="34" fill="none"
           stroke="white" stroke-width="6"/>
 
-  <!-- Top status LEDs (two dashes) -->
-  <rect x="108" y="54" width="16" height="6" rx="3" fill="white"/>
-  <rect x="132" y="54" width="16" height="6" rx="3" fill="white"/>
+  <!-- Top LEDs inside dome -->
+  <rect x="108" y="84" width="16" height="6" rx="3" fill="white"/>
+  <rect x="132" y="84" width="16" height="6" rx="3" fill="white"/>
 
-  <!-- Side control panel (2×2 dots on left of housing) -->
+  <!-- Side control panel (2×2 dots on left of dome) -->
   <g fill="white">
-    <circle cx="46" cy="124" r="4"/>
-    <circle cx="58" cy="124" r="4"/>
-    <circle cx="46" cy="138" r="4"/>
-    <circle cx="58" cy="138" r="4"/>
+    <circle cx="64" cy="120" r="3.5"/>
+    <circle cx="74" cy="120" r="3.5"/>
+    <circle cx="64" cy="132" r="3.5"/>
+    <circle cx="74" cy="132" r="3.5"/>
   </g>
 
-  <!-- ── PATIENT BED — perspective trapezoid coming forward ── -->
-  <path d="M 100 180
-           L 156 180
-           L 184 218
-           L 72 218 Z"
+  <!-- ── PATIENT BED ── perspective trapezoid coming forward from bore -->
+  <path d="M 88 184
+           L 168 184
+           L 196 218
+           L 60 218 Z"
         fill="rgba(255,255,255,0.55)"
         stroke="white" stroke-width="7"
         stroke-linejoin="round"/>
 
-  <!-- Bed top edge (where it meets the bore) -->
-  <rect x="100" y="176" width="56" height="6" rx="3" fill="white"/>
+  <!-- Bed top edge highlight -->
+  <rect x="88" y="180" width="80" height="6" rx="3" fill="white"/>
 
   <!-- Base bar -->
-  <rect x="54" y="218" width="148" height="14" rx="3"
+  <rect x="50" y="218" width="156" height="14" rx="3"
         fill="rgba(255,255,255,0.88)"
         stroke="white" stroke-width="5"/>
 
