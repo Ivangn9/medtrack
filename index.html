@@ -731,6 +731,8 @@ body.dark .sb-card{background:rgba(255,255,255,.07);border-color:rgba(255,255,25
       <div id="sb-donut" style="display:flex;justify-content:center;margin-bottom:14px;filter:drop-shadow(0 4px 16px rgba(0,0,0,.08));"></div>
       <div id="sb-donut-legend" style="display:flex;gap:8px;justify-content:stretch;"></div>
     </div>
+    <div class="sb-lbl" style="margin-top:2px;color:#ff3b30;">🔴 Estado Crítico</div>
+    <div id="sb-critico" class="sb-card"></div>
     <div class="sb-lbl" style="margin-top:2px;">Próximos Servicios</div>
     <div id="sb-upcoming" class="sb-card"></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
@@ -3316,8 +3318,8 @@ function submitRotura(){
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
 var antenas=[];
-var APP_DISPLAY_VERSION="4.3.7";
-var APP_BUILD="27/05/26 09:00";
+var APP_DISPLAY_VERSION="4.3.8";
+var APP_BUILD="27/05/26 10:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
@@ -3646,6 +3648,56 @@ function rSidebar(){
       '<div style="font-size:1.05rem;font-weight:900;color:#ff3b30;line-height:1.1;letter-spacing:-.5px;">'+pF+'%</div></div></div>';
   }
   // Upcoming
+  // ── Críticos ──
+  var critEl=document.getElementById("sb-critico");
+  if(critEl){
+    var criticos=eqs.filter(function(e){return semafo(e)==="vencido";}).sort(function(a,b){return new Date(a.proximoMant)-new Date(b.proximoMant);});
+    // Equipos con rotura en partes
+    var conRotas=eqs.filter(function(e){return(e.partes||[]).some(function(p){return p.estado==="roto";});});
+    // Antenas con roturas activas
+    var antRot=antenas.filter(function(a){return(a.roturas||[]).some(function(r){return r.estado!=='reparado';});});
+    if(!criticos.length&&!conRotas.length&&!antRot.length){
+      critEl.innerHTML='<div style="font-size:.72rem;color:var(--text3);text-align:center;padding:4px 0;">Sin alertas críticas ✅</div>';
+    }else{
+      var rows='';
+      criticos.forEach(function(e){
+        var d=diasH(e.proximoMant);
+        rows+='<div onclick="goDetalle(\''+e.id+'\')" style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,59,48,.10);cursor:pointer;">'+
+          iconFor(e,24)+
+          '<div style="flex:1;min-width:0;">'+
+            '<div style="font-size:.72rem;color:var(--text);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+esc(e.nombre)+'</div>'+
+            '<div style="font-size:.59rem;color:#ff3b30;">Mant. vencido '+fD(e.proximoMant)+'</div>'+
+          '</div>'+
+          '<div style="font-size:.68rem;font-weight:700;color:#ff3b30;flex-shrink:0;">'+(d===0?"HOY":Math.abs(d)+"d")+'</div>'+
+        '</div>';
+      });
+      conRotas.forEach(function(e){
+        var n=(e.partes||[]).filter(function(p){return p.estado==="roto";}).length;
+        rows+='<div onclick="goDetalle(\''+e.id+'\')" style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,59,48,.10);cursor:pointer;">'+
+          iconFor(e,24)+
+          '<div style="flex:1;min-width:0;">'+
+            '<div style="font-size:.72rem;color:var(--text);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+esc(e.nombre)+'</div>'+
+            '<div style="font-size:.59rem;color:#ff3b30;">'+n+' parte'+(n>1?'s':'')+' rota'+(n>1?'s':'')+'</div>'+
+          '</div>'+
+          '<div style="font-size:.78rem;flex-shrink:0;">🔧</div>'+
+        '</div>';
+      });
+      antRot.forEach(function(a){
+        var n=(a.roturas||[]).filter(function(r){return r.estado!=='reparado';}).length;
+        var linkedEq=eqs.find(function(e){return(e.antenaIds||[]).indexOf(a.id)!==-1;});
+        rows+='<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,59,48,.10);">'+
+          '<div style="width:24px;height:24px;flex-shrink:0;display:flex;align-items:center;justify-content:center;">'+antenaSvgIcon(22)+'</div>'+
+          '<div style="flex:1;min-width:0;">'+
+            '<div style="font-size:.72rem;color:var(--text);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+esc(a.nombre)+'</div>'+
+            '<div style="font-size:.59rem;color:#ff3b30;">'+n+' rotura'+(n>1?'s':'')+' activa'+(n>1?'s':'')+(linkedEq?' · '+esc(linkedEq.nombre):'')+'</div>'+
+          '</div>'+
+          '<div style="font-size:.78rem;flex-shrink:0;">📡</div>'+
+        '</div>';
+      });
+      critEl.innerHTML=rows||'<div style="font-size:.72rem;color:var(--text3);text-align:center;padding:4px 0;">Sin alertas críticas ✅</div>';
+    }
+  }
+
   var upEl=document.getElementById("sb-upcoming");
   if(upEl){
     var sorted=eqs.filter(function(e){return e.proximoMant&&e.estado!=="fuera-de-servicio";}).sort(function(a,b){return new Date(a.proximoMant)-new Date(b.proximoMant);}).slice(0,4);
