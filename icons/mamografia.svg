@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <defs>
+    <linearGradient id="mgBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f9a8d4"/>
+      <stop offset="100%" stop-color="#be185d"/>
+    </linearGradient>
+    <linearGradient id="mgShine" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="white" stop-opacity="0.25"/>
+      <stop offset="55%" stop-color="white" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="mgGlass" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="white" stop-opacity="0.90"/>
+      <stop offset="100%" stop-color="white" stop-opacity="0.55"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="256" height="256" rx="56" fill="url(#mgBg)"/>
+  <rect width="256" height="256" rx="56" fill="url(#mgShine)"/>
+
+  <!-- Vertical column (left) -->
+  <rect x="30" y="24" width="28" height="208" rx="8" fill="rgba(255,255,255,0.55)"/>
+  <rect x="30" y="24" width="9" height="208" rx="4" fill="rgba(255,255,255,0.85)"/>
+
+  <!-- Tube head (top horizontal arm) -->
+  <rect x="58" y="36" width="116" height="46" rx="12"
+        fill="rgba(255,255,255,0.18)" stroke="url(#mgGlass)" stroke-width="5"/>
+  <rect x="68" y="44" width="98" height="12" rx="5" fill="rgba(255,255,255,0.30)"/>
+  <!-- Tube focal spot indicator -->
+  <circle cx="148" cy="68" r="6" fill="rgba(255,255,255,0.85)"/>
+
+  <!-- Upper compression paddle (acrylic) -->
+  <rect x="62" y="118" width="116" height="10" rx="3"
+        fill="rgba(255,255,255,0.45)" stroke="rgba(255,255,255,0.85)" stroke-width="2"/>
+
+  <!-- Breast silhouette (between paddles, compressed) -->
+  <ellipse cx="118" cy="139" rx="40" ry="9" fill="rgba(255,255,255,0.55)"/>
+
+  <!-- Lower bucky / detector -->
+  <rect x="58" y="148" width="124" height="30" rx="8"
+        fill="rgba(255,255,255,0.18)" stroke="url(#mgGlass)" stroke-width="5"/>
+  <rect x="68" y="156" width="104" height="14" rx="4" fill="rgba(255,255,255,0.60)"/>
+
+  <!-- Control panel on right -->
+  <rect x="186" y="160" width="44" height="56" rx="8"
+        fill="rgba(255,255,255,0.45)" stroke="url(#mgGlass)" stroke-width="3"/>
+  <!-- Screen -->
+  <rect x="192" y="166" width="32" height="22" rx="3" fill="rgba(0,0,0,0.18)"/>
+  <!-- Tiny waveform on screen -->
+  <path d="M196 178 L200 172 L204 182 L208 174 L212 180 L216 173 L220 178"
+        fill="none" stroke="rgba(255,255,255,0.9)" stroke-width="1.5"/>
+  <!-- Buttons -->
+  <circle cx="196" cy="200" r="3" fill="rgba(255,255,255,0.85)"/>
+  <circle cx="208" cy="200" r="3" fill="rgba(255,255,255,0.65)"/>
+  <circle cx="220" cy="200" r="3" fill="rgba(255,255,255,0.65)"/>
+  <rect x="192" y="208" width="32" height="3" rx="1" fill="rgba(255,255,255,0.65)"/>
+
+  <!-- Base of column -->
+  <rect x="50" y="220" width="100" height="14" rx="5" fill="rgba(255,255,255,0.55)"/>
+</svg>

@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <defs>
+    <linearGradient id="bmBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fca5a5"/>
+      <stop offset="100%" stop-color="#dc2626"/>
+    </linearGradient>
+    <linearGradient id="bmShine" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="white" stop-opacity="0.25"/>
+      <stop offset="55%" stop-color="white" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="bmGlass" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="white" stop-opacity="0.90"/>
+      <stop offset="100%" stop-color="white" stop-opacity="0.55"/>
+    </linearGradient>
+    <linearGradient id="bmFluid" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="white" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="white" stop-opacity="0.75"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="256" height="256" rx="56" fill="url(#bmBg)"/>
+  <rect width="256" height="256" rx="56" fill="url(#bmShine)"/>
+
+  <!-- Top mounting head / control panel -->
+  <rect x="36" y="22" width="184" height="34" rx="10"
+        fill="rgba(255,255,255,0.50)" stroke="url(#bmGlass)" stroke-width="3"/>
+  <!-- Status LEDs -->
+  <circle cx="60" cy="39" r="5" fill="#34d399"/>
+  <circle cx="78" cy="39" r="5" fill="rgba(255,255,255,0.85)"/>
+  <!-- Display -->
+  <rect x="96" y="30" width="80" height="18" rx="3" fill="rgba(0,0,0,0.18)"/>
+  <text x="136" y="44" text-anchor="middle"
+        font-family="-apple-system,Arial,sans-serif"
+        font-size="13" font-weight="800" fill="white">120 mL/s</text>
+  <!-- Side knob -->
+  <circle cx="200" cy="39" r="9" fill="rgba(255,255,255,0.85)"/>
+  <circle cx="200" cy="39" r="3.5" fill="#dc2626"/>
+
+  <!-- Connector neck between head and syringes -->
+  <rect x="118" y="56" width="20" height="14" rx="3" fill="rgba(255,255,255,0.55)"/>
+
+  <!-- Left syringe (saline / contrast A) -->
+  <rect x="44" y="70" width="64" height="128" rx="14"
+        fill="rgba(255,255,255,0.18)" stroke="url(#bmGlass)" stroke-width="5"/>
+  <!-- Fluid level -->
+  <rect x="52" y="110" width="48" height="84" rx="9" fill="url(#bmFluid)"/>
+  <!-- Plunger top -->
+  <rect x="52" y="76" width="48" height="10" rx="4" fill="rgba(255,255,255,0.85)"/>
+  <!-- Graduation marks -->
+  <g stroke="rgba(255,255,255,0.7)" stroke-width="2" stroke-linecap="round">
+    <line x1="106" y1="100" x2="110" y2="100"/>
+    <line x1="106" y1="125" x2="110" y2="125"/>
+    <line x1="106" y1="150" x2="110" y2="150"/>
+    <line x1="106" y1="175" x2="110" y2="175"/>
+  </g>
+
+  <!-- Right syringe (contrast B) -->
+  <rect x="148" y="70" width="64" height="128" rx="14"
+        fill="rgba(255,255,255,0.18)" stroke="url(#bmGlass)" stroke-width="5"/>
+  <!-- Fluid (less full to show pumping) -->
+  <rect x="156" y="140" width="48" height="54" rx="9" fill="url(#bmFluid)"/>
+  <!-- Plunger top -->
+  <rect x="156" y="76" width="48" height="10" rx="4" fill="rgba(255,255,255,0.85)"/>
+
+  <!-- Tubes joining at the bottom -->
+  <path d="M76 198 Q76 220 110 224 Q128 226 128 240" fill="none"
+        stroke="rgba(255,255,255,0.75)" stroke-width="5" stroke-linecap="round"/>
+  <path d="M180 198 Q180 220 146 224 Q128 226 128 240" fill="none"
+        stroke="rgba(255,255,255,0.75)" stroke-width="5" stroke-linecap="round"/>
+
+  <!-- Drop at end -->
+  <ellipse cx="128" cy="244" rx="6" ry="8" fill="rgba(255,255,255,0.95)"/>
+</svg>

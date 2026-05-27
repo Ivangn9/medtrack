@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <defs>
+    <linearGradient id="rxBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fdba74"/>
+      <stop offset="100%" stop-color="#ea580c"/>
+    </linearGradient>
+    <linearGradient id="rxShine" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="white" stop-opacity="0.25"/>
+      <stop offset="55%" stop-color="white" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="rxGlass" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="white" stop-opacity="0.90"/>
+      <stop offset="100%" stop-color="white" stop-opacity="0.55"/>
+    </linearGradient>
+    <linearGradient id="rxBeam" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="white" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="white" stop-opacity="0.1"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="256" height="256" rx="56" fill="url(#rxBg)"/>
+  <rect width="256" height="256" rx="56" fill="url(#rxShine)"/>
+
+  <!-- Vertical column / stand -->
+  <rect x="24" y="32" width="20" height="178" rx="5" fill="rgba(255,255,255,0.55)"/>
+  <rect x="24" y="32" width="6" height="178" rx="3" fill="rgba(255,255,255,0.85)"/>
+
+  <!-- Horizontal arm to tube -->
+  <rect x="44" y="52" width="46" height="14" rx="4" fill="rgba(255,255,255,0.50)"/>
+
+  <!-- Tube head -->
+  <rect x="84" y="30" width="106" height="56" rx="14"
+        fill="rgba(255,255,255,0.18)" stroke="url(#rxGlass)" stroke-width="5"/>
+  <rect x="92" y="38" width="90" height="14" rx="6" fill="rgba(255,255,255,0.30)"/>
+  <!-- Collimator (square at bottom of tube) -->
+  <rect x="116" y="86" width="42" height="14" rx="3" fill="rgba(255,255,255,0.70)"/>
+
+  <!-- X-ray beam cone -->
+  <polygon points="137,100 60,212 214,212" fill="url(#rxBeam)" opacity="0.65"/>
+  <polygon points="137,100 60,212 214,212"
+           fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="2"
+           stroke-dasharray="4,4"/>
+  <line x1="137" y1="100" x2="137" y2="212"
+        stroke="rgba(255,255,255,0.55)" stroke-width="1.5" stroke-dasharray="3,4"/>
+
+  <!-- "X" radiation symbol inside tube head -->
+  <text x="137" y="75" text-anchor="middle"
+        font-family="-apple-system,Arial,sans-serif"
+        font-size="30" font-weight="900" fill="rgba(255,255,255,0.85)">X</text>
+
+  <!-- Detector / image plate -->
+  <rect x="46" y="212" width="184" height="24" rx="6"
+        fill="rgba(255,255,255,0.18)" stroke="url(#rxGlass)" stroke-width="4"/>
+  <rect x="54" y="218" width="168" height="11" rx="3" fill="rgba(255,255,255,0.60)"/>
+</svg>

@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <defs>
+    <linearGradient id="tcBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7dd3fc"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+    <linearGradient id="tcShine" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="white" stop-opacity="0.25"/>
+      <stop offset="55%" stop-color="white" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="tcGlass" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="white" stop-opacity="0.90"/>
+      <stop offset="100%" stop-color="white" stop-opacity="0.55"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="256" height="256" rx="56" fill="url(#tcBg)"/>
+  <rect width="256" height="256" rx="56" fill="url(#tcShine)"/>
+
+  <!-- Outer gantry ring -->
+  <circle cx="128" cy="118" r="78"
+          fill="rgba(255,255,255,0.18)"
+          stroke="url(#tcGlass)" stroke-width="6"/>
+  <!-- Specular highlight on gantry -->
+  <path d="M70 80 A78 78 0 0 1 186 80"
+        fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- Inner bore -->
+  <circle cx="128" cy="118" r="46"
+          fill="rgba(0,0,0,0.20)"
+          stroke="rgba(255,255,255,0.78)" stroke-width="3"/>
+
+  <!-- Rotation markers around ring -->
+  <g fill="white" opacity="0.85">
+    <circle cx="128" cy="46" r="4.5"/>
+    <circle cx="200" cy="118" r="4.5"/>
+    <circle cx="56" cy="118" r="4.5"/>
+    <circle cx="128" cy="190" r="4.5"/>
+  </g>
+
+  <!-- Patient body in middle -->
+  <circle cx="128" cy="118" r="18" fill="rgba(255,255,255,0.55)"/>
+  <circle cx="128" cy="114" r="11" fill="rgba(255,255,255,0.90)"/>
+
+  <!-- Patient bed extending out bottom -->
+  <rect x="92" y="196" width="72" height="14" rx="5" fill="rgba(255,255,255,0.55)"/>
+  <rect x="64" y="210" width="128" height="12" rx="5" fill="rgba(255,255,255,0.45)"/>
+  <rect x="80" y="222" width="96" height="8" rx="3" fill="rgba(255,255,255,0.35)"/>
+</svg>

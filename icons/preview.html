@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Iconos · Categorías MedTrack</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+      background: linear-gradient(135deg, #e2e4f0, #d6e8f5);
+      min-height: 100vh;
+      padding: 40px 20px;
+      color: #1c1c1e;
+    }
+    h1 { font-size: 1.8rem; text-align: center; margin-bottom: 8px; font-weight: 800; letter-spacing: -.5px; }
+    .sub { text-align: center; color: #6b7280; margin-bottom: 40px; font-size: .95rem; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 22px;
+      max-width: 1180px;
+      margin: 0 auto;
+    }
+    .card {
+      background: rgba(255,255,255,.7);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1.5px solid rgba(255,255,255,.85);
+      border-radius: 22px;
+      padding: 24px 16px;
+      text-align: center;
+      box-shadow:
+        0 2px 6px rgba(0,0,0,.05),
+        0 12px 32px rgba(0,0,0,.06),
+        inset 0 1.5px 0 rgba(255,255,255,1);
+    }
+    .card img {
+      width: 140px;
+      height: 140px;
+      display: block;
+      margin: 0 auto 16px;
+      border-radius: 30px;
+      box-shadow: 0 6px 18px rgba(0,0,0,.12);
+    }
+    .label { font-size: 1.05rem; font-weight: 700; letter-spacing: -.2px; }
+    .file { font-size: .72rem; color: #6b7280; margin-top: 4px; font-family: 'SF Mono', Menlo, monospace; }
+    .sizes { display: flex; justify-content: center; gap: 10px; margin-top: 14px; align-items: center; }
+    .sizes img { box-shadow: 0 2px 6px rgba(0,0,0,.1); margin: 0; border-radius: 12px; }
+    .sizes img.s32 { width: 32px; height: 32px; border-radius: 7px; }
+    .sizes img.s48 { width: 48px; height: 48px; border-radius: 11px; }
+    .sizes img.s64 { width: 64px; height: 64px; border-radius: 14px; }
+  </style>
+</head>
+<body>
+  <h1>Iconos · Categorías MedTrack</h1>
+  <p class="sub">SVG standalone · 256×256 viewBox · estilo liquid glass</p>
+  <div class="grid">
+
+    <div class="card">
+      <img src="resonancia.svg" alt="Resonancia Magnética"/>
+      <div class="label">Resonancia Magnética</div>
+      <div class="file">resonancia.svg</div>
+      <div class="sizes">
+        <img src="resonancia.svg" class="s32"/>
+        <img src="resonancia.svg" class="s48"/>
+        <img src="resonancia.svg" class="s64"/>
+      </div>
+    </div>
+
+    <div class="card">
+      <img src="tomografia.svg" alt="Tomografía"/>
+      <div class="label">Tomografía</div>
+      <div class="file">tomografia.svg</div>
+      <div class="sizes">
+        <img src="tomografia.svg" class="s32"/>
+        <img src="tomografia.svg" class="s48"/>
+        <img src="tomografia.svg" class="s64"/>
+      </div>
+    </div>
+
+    <div class="card">
+      <img src="rayos-x.svg" alt="Rayos X"/>
+      <div class="label">Equipos de Rayos X</div>
+      <div class="file">rayos-x.svg</div>
+      <div class="sizes">
+        <img src="rayos-x.svg" class="s32"/>
+        <img src="rayos-x.svg" class="s48"/>
+        <img src="rayos-x.svg" class="s64"/>
+      </div>
+    </div>
+
+    <div class="card">
+      <img src="bomba-contraste.svg" alt="Bomba de inyección de contraste"/>
+      <div class="label">Bombas de Contraste</div>
+      <div class="file">bomba-contraste.svg</div>
+      <div class="sizes">
+        <img src="bomba-contraste.svg" class="s32"/>
+        <img src="bomba-contraste.svg" class="s48"/>
+        <img src="bomba-contraste.svg" class="s64"/>
+      </div>
+    </div>
+
+    <div class="card">
+      <img src="mamografia.svg" alt="Mamografía"/>
+      <div class="label">Mamografía</div>
+      <div class="file">mamografia.svg</div>
+      <div class="sizes">
+        <img src="mamografia.svg" class="s32"/>
+        <img src="mamografia.svg" class="s48"/>
+        <img src="mamografia.svg" class="s64"/>
+      </div>
+    </div>
+
+    <div class="card">
+      <img src="densitometria.svg" alt="Densitometría"/>
+      <div class="label">Densitometría</div>
+      <div class="file">densitometria.svg</div>
+      <div class="sizes">
+        <img src="densitometria.svg" class="s32"/>
+        <img src="densitometria.svg" class="s48"/>
+        <img src="densitometria.svg" class="s64"/>
+      </div>
+    </div>
+
+    <div class="card">
+      <img src="postproceso.svg" alt="Computadora de Postproceso"/>
+      <div class="label">Computadora de Postproceso</div>
+      <div class="file">postproceso.svg</div>
+      <div class="sizes">
+        <img src="postproceso.svg" class="s32"/>
+        <img src="postproceso.svg" class="s48"/>
+        <img src="postproceso.svg" class="s64"/>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

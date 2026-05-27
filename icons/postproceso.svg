@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <defs>
+    <linearGradient id="awBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#c4b5fd"/>
+      <stop offset="100%" stop-color="#6d28d9"/>
+    </linearGradient>
+    <linearGradient id="awShine" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="white" stop-opacity="0.25"/>
+      <stop offset="55%" stop-color="white" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="awGlass" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="white" stop-opacity="0.90"/>
+      <stop offset="100%" stop-color="white" stop-opacity="0.55"/>
+    </linearGradient>
+    <radialGradient id="awBrain" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="white" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="white" stop-opacity="0.30"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="256" height="256" rx="56" fill="url(#awBg)"/>
+  <rect width="256" height="256" rx="56" fill="url(#awShine)"/>
+
+  <!-- Monitor frame -->
+  <rect x="20" y="32" width="216" height="148" rx="14"
+        fill="rgba(255,255,255,0.18)" stroke="url(#awGlass)" stroke-width="5"/>
+
+  <!-- Inner screen -->
+  <rect x="32" y="44" width="192" height="124" rx="6" fill="rgba(0,0,0,0.30)"/>
+
+  <!-- 4-quadrant DICOM layout dividers -->
+  <line x1="128" y1="44" x2="128" y2="168" stroke="rgba(255,255,255,0.55)" stroke-width="1.5"/>
+  <line x1="32" y1="106" x2="224" y2="106" stroke="rgba(255,255,255,0.55)" stroke-width="1.5"/>
+
+  <!-- Top-left: Axial brain slice -->
+  <ellipse cx="80" cy="75" rx="32" ry="22" fill="url(#awBrain)"/>
+  <path d="M80 53 L80 97" stroke="rgba(109,40,217,0.55)" stroke-width="1.5"/>
+  <path d="M62 65 Q70 78 78 65" fill="none" stroke="rgba(109,40,217,0.45)" stroke-width="1.4"/>
+  <path d="M82 65 Q90 78 98 65" fill="none" stroke="rgba(109,40,217,0.45)" stroke-width="1.4"/>
+  <path d="M62 83 Q70 70 78 83" fill="none" stroke="rgba(109,40,217,0.45)" stroke-width="1.4"/>
+  <path d="M82 83 Q90 70 98 83" fill="none" stroke="rgba(109,40,217,0.45)" stroke-width="1.4"/>
+
+  <!-- Top-right: Coronal cross-section with crosshair -->
+  <circle cx="176" cy="75" r="24" fill="url(#awBrain)"/>
+  <line x1="146" y1="75" x2="206" y2="75" stroke="rgba(109,40,217,0.7)" stroke-width="1.5" stroke-dasharray="3,3"/>
+  <line x1="176" y1="50" x2="176" y2="100" stroke="rgba(109,40,217,0.7)" stroke-width="1.5" stroke-dasharray="3,3"/>
+  <circle cx="176" cy="75" r="3" fill="rgba(109,40,217,0.9)"/>
+
+  <!-- Bottom-left: 3D bone reconstruction -->
+  <rect x="52" y="120" width="56" height="40" rx="3" fill="rgba(255,255,255,0.10)"/>
+  <path d="M65 158 L65 138 Q65 130 75 130 L82 130 Q88 130 88 138 L88 152 Q92 152 92 156 L92 158"
+        fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M75 130 L75 122 Q75 118 80 118 L84 118" fill="none"
+        stroke="rgba(255,255,255,0.70)" stroke-width="2"/>
+  <path d="M95 130 L95 138" stroke="rgba(255,255,255,0.55)" stroke-width="2"/>
+
+  <!-- Bottom-right: Histogram / measurement panel -->
+  <rect x="148" y="120" width="56" height="40" rx="3" fill="rgba(255,255,255,0.10)"/>
+  <g fill="rgba(255,255,255,0.85)">
+    <rect x="154" y="148" width="5" height="10" rx="1"/>
+    <rect x="162" y="142" width="5" height="16" rx="1"/>
+    <rect x="170" y="134" width="5" height="24" rx="1"/>
+    <rect x="178" y="140" width="5" height="18" rx="1"/>
+    <rect x="186" y="146" width="5" height="12" rx="1"/>
+    <rect x="194" y="150" width="5" height="8" rx="1"/>
+  </g>
+  <path d="M154 145 L162 138 L170 132 L178 137 L186 144 L194 148"
+        fill="none" stroke="rgba(196,181,253,0.95)" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Camera/status LED on monitor top -->
+  <circle cx="128" cy="38" r="2.5" fill="rgba(255,255,255,0.85)"/>
+
+  <!-- Stand neck -->
+  <path d="M108 180 L120 200 L136 200 L148 180 Z"
+        fill="rgba(255,255,255,0.55)"/>
+
+  <!-- Base -->
+  <rect x="68" y="200" width="120" height="14" rx="6" fill="rgba(255,255,255,0.55)"/>
+  <rect x="68" y="200" width="120" height="5" rx="3" fill="rgba(255,255,255,0.85)"/>
+
+  <!-- Keyboard hint -->
+  <rect x="80" y="220" width="96" height="10" rx="2" fill="rgba(255,255,255,0.40)"/>
+  <g fill="rgba(255,255,255,0.85)">
+    <rect x="84" y="223" width="6" height="4" rx="1"/>
+    <rect x="92" y="223" width="6" height="4" rx="1"/>
+    <rect x="100" y="223" width="6" height="4" rx="1"/>
+    <rect x="108" y="223" width="6" height="4" rx="1"/>
+    <rect x="116" y="223" width="32" height="4" rx="1"/>
+    <rect x="150" y="223" width="6" height="4" rx="1"/>
+    <rect x="158" y="223" width="6" height="4" rx="1"/>
+    <rect x="166" y="223" width="6" height="4" rx="1"/>
+  </g>
+</svg>
