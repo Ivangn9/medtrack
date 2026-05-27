@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.27.63 -->
+<!-- v2026.05.27.64 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>MedTrack — CIMA</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.05.27.63">
+<meta name="app-version" content="v2026.05.27.64">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1822,11 +1822,13 @@ function rLista(){
     h+='<div style="font-size:.72rem;color:var(--text3);margin-bottom:10px;">'+resultados.length+' resultado'+(resultados.length!==1?'s':'')+'</div>';
     resultados.forEach(function(r){
       var e=r.eq;var ms=semafo(e);var d=diasH(e.proximoMant);var rot=e.partes.filter(function(p){return p.estado==="roto";}).length;
+      var rfChipS='';if(e.cat==='RM'){var _rf2=_refrigData(e);var _rp2=_rf2.helioLiqPorcentaje;var _rs2=_rf2.helioLiqPresion;if(_rp2||_rs2){rfChipS='<div style="display:flex;gap:6px;margin-top:5px;align-items:center;">'+(_rp2?'<span style="font-size:.65rem;font-weight:700;color:#0891b2;background:rgba(8,145,178,.10);border:1px solid rgba(8,145,178,.22);border-radius:20px;padding:2px 7px;">❄️ '+esc(_rp2)+'%</span>':'')+(_rs2?'<span style="font-size:.65rem;font-weight:700;color:#0891b2;background:rgba(8,145,178,.10);border:1px solid rgba(8,145,178,.22);border-radius:20px;padding:2px 7px;">📊 '+esc(_rs2)+' psi</span>':'')+'</div>';}}
       h+='<div class="gc li-eq tap" onclick="goDetalle(\''+e.id+'\')" style="border-left-color:'+(CE[e.estado]||"var(--green)")+';"><div style="display:flex;align-items:center;gap:16px;">'+
         '<div class="li-icon">'+iconFor(e,58)+'</div>'+
         '<div style="flex:1;min-width:0;">'+
         '<div class="li-name">'+esc(e.nombre)+'</div>'+
         '<div class="li-sub">'+(e.ubicacion?'📍 '+esc(e.ubicacion):'')+(e.serie?' · SID: '+esc(e.serie):'')+'</div>'+
+        rfChipS+
         '<div style="display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;">'+
           pillH(CE[e.estado]||"var(--green)",e.estado==="operativo"?"✅ OK":e.estado==="con-rotura"?"🔧 Con rotura":e.estado==="advertencia"?"⚠️ Adv":"🚫 Fuera de servicio")+
           (sinMant(e)?pillH("#8e8e93","⚫ Sin mant."):pillH(CM[ms],"🔧 "+(ms==="vencido"?"VENC":ms==="urgente"?d+"d URG":ms==="proximo"?d+"d prox":d+"d")))+
@@ -1853,11 +1855,13 @@ function rLista(){
   if(!lista.length){h+='<div style="text-align:center;color:var(--text3);padding:40px 0;font-size:.88rem;">Sin equipos</div>';return h;}
   lista.forEach(function(e){
     var ms=semafo(e);var d=diasH(e.proximoMant);var rot=e.partes.filter(function(p){return p.estado==="roto";}).length;
+    var rfChip='';if(e.cat==='RM'){var _rf=_refrigData(e);var _rp=_rf.helioLiqPorcentaje;var _rs=_rf.helioLiqPresion;if(_rp||_rs){rfChip='<div style="display:flex;gap:6px;margin-top:5px;align-items:center;">'+(_rp?'<span style="font-size:.65rem;font-weight:700;color:#0891b2;background:rgba(8,145,178,.10);border:1px solid rgba(8,145,178,.22);border-radius:20px;padding:2px 7px;">❄️ '+esc(_rp)+'%</span>':'')+(_rs?'<span style="font-size:.65rem;font-weight:700;color:#0891b2;background:rgba(8,145,178,.10);border:1px solid rgba(8,145,178,.22);border-radius:20px;padding:2px 7px;">📊 '+esc(_rs)+' psi</span>':'')+'</div>';}}
     h+='<div class="gc li-eq tap" onclick="goDetalle(\''+e.id+'\')" style="border-left-color:'+(CE[e.estado]||"var(--green)")+';"><div style="display:flex;align-items:center;gap:16px;">'+
       '<div class="li-icon">'+iconFor(e,58)+'</div>'+
       '<div style="flex:1;min-width:0;">'+
       '<div class="li-name">'+esc(e.nombre)+'</div>'+
       '<div class="li-sub">'+(e.ubicacion?'📍 '+esc(e.ubicacion):'')+(e.serie?' · SID: '+esc(e.serie):'')+'</div>'+
+      rfChip+
       '<div style="display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;">'+
         pillH(CE[e.estado]||"var(--green)",e.estado==="operativo"?"✅ OK":e.estado==="con-rotura"?"🔧 Con rotura":e.estado==="advertencia"?"⚠️ Adv":"🚫 Fuera de servicio")+
         (sinMant(e)?pillH("#8e8e93","⚫ Sin mant."):pillH(CM[ms],"🔧 "+(ms==="vencido"?"VENC":ms==="urgente"?d+"d URG":ms==="proximo"?d+"d prox":d+"d")))+
@@ -3508,8 +3512,8 @@ function submitRotura(){
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
 var antenas=[];
-var APP_DISPLAY_VERSION="4.4.6";
-var APP_BUILD="27/05/26 19:30";
+var APP_DISPLAY_VERSION="4.4.7";
+var APP_BUILD="27/05/26 20:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
