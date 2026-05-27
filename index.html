@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.27.62 -->
+<!-- v2026.05.27.63 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>MedTrack — CIMA</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.05.27.62">
+<meta name="app-version" content="v2026.05.27.63">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -75,11 +75,11 @@ body{
 body::before{
   content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
   background:
-    radial-gradient(ellipse 80% 60% at 15% 20%,rgba(180,200,255,.55) 0%,transparent 60%),
-    radial-gradient(ellipse 60% 70% at 85% 10%,rgba(200,180,255,.40) 0%,transparent 55%),
-    radial-gradient(ellipse 70% 50% at 50% 85%,rgba(170,220,255,.45) 0%,transparent 60%),
-    radial-gradient(ellipse 50% 60% at 90% 70%,rgba(210,240,200,.35) 0%,transparent 55%),
-    linear-gradient(160deg,#dde0f0 0%,#e4e2f4 35%,#dde8f2 65%,#e0e8f8 100%);
+    radial-gradient(ellipse 80% 60% at 15% 20%,rgba(160,185,255,.75) 0%,transparent 60%),
+    radial-gradient(ellipse 60% 70% at 85% 10%,rgba(190,160,255,.60) 0%,transparent 55%),
+    radial-gradient(ellipse 70% 50% at 50% 85%,rgba(140,210,255,.65) 0%,transparent 60%),
+    radial-gradient(ellipse 50% 60% at 90% 70%,rgba(190,235,180,.55) 0%,transparent 55%),
+    linear-gradient(160deg,#cdd2ee 0%,#d8d4f0 35%,#ccdaea 65%,#d0dcf4 100%);
   animation:bgShift 20s ease-in-out infinite alternate;}
 @keyframes bgShift{
   0%{filter:hue-rotate(0deg);}
@@ -761,7 +761,7 @@ body.dark .sb-card{background:rgba(255,255,255,.07);border-color:rgba(255,255,25
 
 <!-- APP -->
 <!-- MEDICAL ILLUSTRATIONS OVERLAY -->
-<div style="position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;background-image:url('bg.jpg');background-size:cover;background-position:center center;background-repeat:no-repeat;opacity:0.28;"></div>
+<div style="position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;background-image:url('bg.jpg');background-size:cover;background-position:center center;background-repeat:no-repeat;opacity:0.06;"></div>
 <div id="app">
   <div id="header"><div id="header-inner">
     <div id="header-left">
@@ -3508,8 +3508,8 @@ function submitRotura(){
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
 var antenas=[];
-var APP_DISPLAY_VERSION="4.4.5";
-var APP_BUILD="27/05/26 19:00";
+var APP_DISPLAY_VERSION="4.4.6";
+var APP_BUILD="27/05/26 19:30";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
