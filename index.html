@@ -3316,8 +3316,8 @@ function submitRotura(){
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
 var antenas=[];
-var APP_DISPLAY_VERSION="4.3.6";
-var APP_BUILD="26/05/26 15:00";
+var APP_DISPLAY_VERSION="4.3.7";
+var APP_BUILD="27/05/26 09:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
@@ -3650,7 +3650,7 @@ function rSidebar(){
   if(upEl){
     var sorted=eqs.filter(function(e){return e.proximoMant&&e.estado!=="fuera-de-servicio";}).sort(function(a,b){return new Date(a.proximoMant)-new Date(b.proximoMant);}).slice(0,4);
     if(!sorted.length){upEl.innerHTML='<div style="font-size:.72rem;color:var(--text3);text-align:center;padding:4px 0;">Sin servicios programados</div>';}
-    else{upEl.innerHTML=sorted.map(function(e){var d=diasH(e.proximoMant);var col=d<0?"#ff3b30":d<=7?"#ff9500":d<=30?"#ffcc00":"#34c759";return'<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(120,120,128,.1);">'+iconFor(e,24)+'<div style="flex:1;min-width:0;"><div style="font-size:.72rem;color:var(--text);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+esc(e.nombre)+'</div><div style="font-size:.6rem;color:var(--text3);">'+fD(e.proximoMant)+'</div></div><div style="font-size:.68rem;font-weight:700;color:'+col+';flex-shrink:0;">'+(d<0?"VENC.":d===0?"HOY":d+"d")+'</div></div>';}).join('');}
+    else{upEl.innerHTML=sorted.map(function(e){var d=diasH(e.proximoMant);var col=d<0?"#ff3b30":d<=7?"#ff9500":d<=30?"#ffcc00":"#34c759";var ci=catById(e.cat);var desc=(e.ubicacion?esc(e.ubicacion):ci.label)+(e.frecuencia&&e.frecuencia!=='ninguna'?' · '+e.frecuencia:'');return'<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(120,120,128,.1);">'+iconFor(e,24)+'<div style="flex:1;min-width:0;"><div style="font-size:.72rem;color:var(--text);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+esc(e.nombre)+'</div><div style="font-size:.59rem;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+desc+'</div><div style="font-size:.59rem;color:var(--text3);">'+fD(e.proximoMant)+'</div></div><div style="font-size:.68rem;font-weight:700;color:'+col+';flex-shrink:0;">'+(d<0?"VENC.":d===0?"HOY":d+"d")+'</div></div>';}).join('');}
   }
   // Stats
   var rot=0,pend=0;eqs.forEach(function(e){e.partes.forEach(function(p){if(p.estado==="roto")rot++;if(p.estado==="pendiente")pend++;});});
