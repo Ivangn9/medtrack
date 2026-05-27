@@ -1649,6 +1649,12 @@
         <div class="form-group"><label>Fecha</label><input type="date" id="movDate" /></div>
         <div class="form-group" id="movUnitPriceGroup"><label>Precio/unidad ($)</label><input type="number" id="movUnitPrice" min="0" step="0.01" placeholder="0.00" /></div>
       </div>
+      <!-- Caja helper (solo entrada cuando presentacion=caja) -->
+      <div class="form-group" id="movCajaGroup" style="display:none">
+        <label style="display:flex;align-items:center;gap:6px">🗃️ Cantidad en cajas</label>
+        <input type="number" id="movCajas" min="1" placeholder="Nº cajas" oninput="onCajasInput()" style="font-size:.9rem" />
+        <div id="movCajaCalc" style="font-size:.75rem;color:var(--text3);margin-top:4px"></div>
+      </div>
       <!-- Fecha de vencimiento (solo entrada) -->
       <div class="form-group" id="movFechaVencGroup" style="display:none">
         <label style="display:flex;align-items:center;gap:6px">
@@ -1723,12 +1729,25 @@
           </select>
         </div>
         <div class="form-group">
-          <label>Unidad</label>
+          <label>Unidad base</label>
           <select id="addUnit">
             <option value="UND">Unidad (UND)</option><option value="CAJA">Caja</option>
             <option value="PACK">Pack</option><option value="LT">Litro</option><option value="KG">Kilogramo</option>
           </select>
         </div>
+      </div>
+      <!-- Presentación: unitario o por caja -->
+      <div class="form-group">
+        <label>Presentación</label>
+        <div class="mov-type-toggle" style="width:100%">
+          <button id="addTogUnitario" class="type-toggle-btn entrada selected" style="flex:1" onclick="selectAddPresentacion('unitario')">📦 Unitario</button>
+          <button id="addTogCaja"     class="type-toggle-btn salida"           style="flex:1" onclick="selectAddPresentacion('caja')">🗃️ Caja</button>
+        </div>
+      </div>
+      <div class="form-group" id="addCajaGroup" style="display:none">
+        <label>Unidades por caja</label>
+        <input type="number" id="addUnidadesPorCaja" min="1" placeholder="Ej: 50" />
+        <div style="font-size:.72rem;color:var(--text3);margin-top:4px">Al registrar entradas podrás ingresar cantidad de cajas y el sistema calculará las unidades automáticamente.</div>
       </div>
       <div class="form-row">
         <div class="form-group"><label>Precio por unidad ($)</label><input type="number" id="addPrice" min="0" step="0.01" placeholder="0.00" /></div>
@@ -1823,15 +1842,11 @@
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
         <div class="ff">
-          <div class="ff-label">Unidad</div>
+          <div class="ff-label">Unidad base</div>
           <select class="inp" id="editSupplyUnit">
-            <option value="UND">UND</option>
-            <option value="CAJA">CAJA</option>
-            <option value="PACK">PACK</option>
-            <option value="LT">LT</option>
-            <option value="KG">KG</option>
-            <option value="ML">ML</option>
-            <option value="ROLLO">ROLLO</option>
+            <option value="UND">UND</option><option value="CAJA">CAJA</option>
+            <option value="PACK">PACK</option><option value="LT">LT</option>
+            <option value="KG">KG</option><option value="ML">ML</option><option value="ROLLO">ROLLO</option>
           </select>
         </div>
         <div class="ff">
@@ -1839,11 +1854,46 @@
           <select class="inp" id="editSupplyCategory"></select>
         </div>
       </div>
+      <div class="ff">
+        <div class="ff-label">Presentación</div>
+        <div class="mov-type-toggle" style="width:100%;margin-top:4px">
+          <button id="editTogUnitario" class="type-toggle-btn entrada selected" style="flex:1" onclick="selectEditPresentacion('unitario')">📦 Unitario</button>
+          <button id="editTogCaja"     class="type-toggle-btn salida"           style="flex:1" onclick="selectEditPresentacion('caja')">🗃️ Caja</button>
+        </div>
+      </div>
+      <div class="ff" id="editCajaGroup" style="display:none">
+        <div class="ff-label">Unidades por caja</div>
+        <input class="inp" type="number" id="editUnidadesPorCaja" min="1" placeholder="Ej: 50" />
+      </div>
       <input type="hidden" id="editSupplyId" />
       <div style="display:flex;gap:10px;margin-top:20px">
         <button class="btn btn-secondary" onclick="closeEditSupplyModal()" style="flex:1">Cancelar</button>
         <button class="btn btn-primary" onclick="saveEditSupply()" style="flex:1">Guardar cambios</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Supply Detail Modal ──────────────────────────── -->
+<div class="modal-overlay" id="supplyDetailOverlay" onclick="if(event.target===this)closeSupplyDetail()">
+  <div class="modal-sheet" onclick="event.stopPropagation()" style="max-width:480px">
+    <div class="modal-handle"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:0 0 16px">
+      <div>
+        <div class="modal-title" id="sdTitle" style="margin-bottom:2px"></div>
+        <div id="sdMeta" style="font-size:.78rem;color:var(--text3)"></div>
+      </div>
+      <button onclick="closeSupplyDetail()" style="background:rgba(120,120,128,.12);width:32px;height:32px;border-radius:50%;border:none;font-size:.9rem;cursor:pointer;color:var(--text3)">✕</button>
+    </div>
+    <!-- Resumen de stock -->
+    <div id="sdStockBox" style="background:var(--glass2);border-radius:var(--r-md);padding:14px 16px;margin-bottom:16px;border:1px solid var(--glass-border)"></div>
+    <!-- Lotes -->
+    <div style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:8px">Lotes por vencimiento</div>
+    <div id="sdLotes" style="margin-bottom:16px"></div>
+    <!-- Acciones -->
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-secondary" style="flex:1" onclick="closeSupplyDetail();openMovModal(_sdSupplyId,'salida')">📤 Registrar salida</button>
+      <button class="btn btn-primary"   style="flex:1" onclick="closeSupplyDetail();openMovModal(_sdSupplyId,'entrada')">📥 Registrar entrada</button>
     </div>
   </div>
 </div>
@@ -1872,7 +1922,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "4.0";
+const APP_VERSION = "4.1";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -2304,10 +2354,13 @@ function renderInventario(){
         <div class="stock-controls">
           <div class="stock-bar-wrap"><div class="stock-bar-fill" style="width:${Math.round(pct*100)}%;background:${barColor}"></div></div>
           <span class="stock-level-badge ${lvlClass}">${cur}</span>
-          <span class="stock-unit-label">${escHtml(s.unit)}</span>
-          <button class="qty-btn minus" onclick="quickMov('${s.id}','salida')"  title="Salida">−</button>
-          <button class="qty-btn plus"  onclick="quickMov('${s.id}','entrada')" title="Entrada">+</button>
+          <span class="stock-unit-label">${s.presentacion==="caja"&&s.unidadesPorCaja>1?`<span style="font-size:.65rem;color:var(--text3)">${Math.floor(cur/s.unidadesPorCaja)}cj</span>`:escHtml(s.unit)}</span>
+          <button class="qty-btn minus" onclick="event.stopPropagation();quickMov('${s.id}','salida')"  title="Salida">−</button>
+          <button class="qty-btn plus"  onclick="event.stopPropagation();quickMov('${s.id}','entrada')" title="Entrada">+</button>
+          <button style="width:26px;height:26px;border-radius:8px;border:none;background:rgba(0,113,227,0.1);color:var(--accent);cursor:pointer;font-size:.8rem;display:inline-flex;align-items:center;justify-content:center" onclick="event.stopPropagation();openSupplyDetail('${s.id}')" title="Ver detalle">›</button>
         </div>`;
+      row.style.cursor="pointer";
+      row.onclick=()=>openSupplyDetail(s.id);
       block.appendChild(row);
     });
     container.appendChild(block);
@@ -2560,32 +2613,42 @@ function renderGestion(){
 function updatePrice(id,val){const s=supplies.find(x=>x.id===id);if(s){s.price=parseFloat(val)||0;persist();toast("Precio actualizado");}}
 
 // ─── Edit Supply ──────────────────────────────────────────────────────────────
+let _editPresentacion="unitario";
+function selectEditPresentacion(p){
+  _editPresentacion=p;
+  document.getElementById("editTogUnitario").classList.toggle("selected",p==="unitario");
+  document.getElementById("editTogCaja").classList.toggle("selected",p==="caja");
+  document.getElementById("editCajaGroup").style.display=p==="caja"?"block":"none";
+}
 function openEditSupplyModal(id){
   const s=supplies.find(x=>x.id===id); if(!s)return;
   document.getElementById("editSupplyId").value=id;
   document.getElementById("editSupplyName").value=s.name||"";
   document.getElementById("editSupplyCode").value=s.code||"";
   document.getElementById("editSupplyUnit").value=s.unit||"UND";
+  document.getElementById("editUnidadesPorCaja").value=s.unidadesPorCaja||"";
   const catSel=document.getElementById("editSupplyCategory");
   catSel.innerHTML=getCategories().map(c=>`<option value="${escAttr(c)}"${c===s.category?" selected":""}>${escHtml(c)}</option>`).join("");
+  selectEditPresentacion(s.presentacion||"unitario");
   document.getElementById("editSupplyOverlay").classList.add("open");
   setTimeout(()=>document.getElementById("editSupplyName").focus(),80);
 }
-function closeEditSupplyModal(){
-  document.getElementById("editSupplyOverlay").classList.remove("open");
-}
+function closeEditSupplyModal(){document.getElementById("editSupplyOverlay").classList.remove("open");}
 function saveEditSupply(){
   const id=document.getElementById("editSupplyId").value;
   const name=document.getElementById("editSupplyName").value.trim();
   const code=document.getElementById("editSupplyCode").value.trim();
   const unit=document.getElementById("editSupplyUnit").value;
   const category=document.getElementById("editSupplyCategory").value;
+  const presentacion=_editPresentacion||"unitario";
+  const unidadesPorCaja=presentacion==="caja"?(parseInt(document.getElementById("editUnidadesPorCaja").value)||1):1;
   if(!name){toast("⚠️ El nombre es obligatorio");return;}
   const s=supplies.find(x=>x.id===id); if(!s)return;
-  s.name=name; s.code=code; s.unit=unit; s.category=category;
+  Object.assign(s,{name,code,unit,category,presentacion,unidadesPorCaja});
   persist();
   closeEditSupplyModal();
   renderGestion();
+  if(currentTab==="inventario")renderInventario();
   toast("✓ Insumo actualizado");
 }
 
@@ -2888,15 +2951,30 @@ function selectMovType(type){
   if(upg)upg.style.display=type==="entrada"?"block":"none";
   const fvg=document.getElementById("movFechaVencGroup");
   if(fvg)fvg.style.display=type==="entrada"?"block":"none";
-  // Actualizar lotes al cambiar tipo
+  const cg=document.getElementById("movCajaGroup");
+  if(cg&&type!=="entrada")cg.style.display="none";
+  // Actualizar lotes/caja al cambiar tipo
   onMovSupplyChange();
 }
 function onMovSupplyChange(){
   const supplyId=document.getElementById("movSupplySelect").value;
   const lotesGroup=document.getElementById("movLotesGroup");
   const loteSelect=document.getElementById("movLoteSelect");
-  const loteInfo=document.getElementById("movLoteInfo");
+  const cajaGroup=document.getElementById("movCajaGroup");
   if(!lotesGroup)return;
+
+  // Caja helper — solo en entrada
+  if(cajaGroup){
+    const s=supplyId?supplies.find(x=>x.id===supplyId):null;
+    const isCaja=s&&s.presentacion==="caja"&&(s.unidadesPorCaja||1)>1;
+    cajaGroup.style.display=(isCaja&&_movType==="entrada")?"block":"none";
+    if(cajaGroup.style.display==="block"){
+      document.getElementById("movCajas").value="";
+      document.getElementById("movCajaCalc").textContent=`1 caja = ${s.unidadesPorCaja} ${escHtml(s.unit||"UND")}`;
+    }
+  }
+
+  // Lotes salida picker
   if(_movType!=="salida"||!supplyId){lotesGroup.style.display="none";return;}
   const lotes=(cs[activeCenter]?.lotes||{})[supplyId]?.filter(l=>l.qty>0)||[];
   if(!lotes.length){lotesGroup.style.display="none";return;}
@@ -2910,6 +2988,17 @@ function onMovSupplyChange(){
     }).join("");
   lotesGroup.style.display="block";
   onLoteSelectChange();
+}
+function onCajasInput(){
+  const supplyId=document.getElementById("movSupplySelect").value;
+  const s=supplyId?supplies.find(x=>x.id===supplyId):null;
+  if(!s||s.presentacion!=="caja")return;
+  const upc=s.unidadesPorCaja||1;
+  const cajas=parseInt(document.getElementById("movCajas").value)||0;
+  const total=cajas*upc;
+  document.getElementById("movQty").value=total||"";
+  const calc=document.getElementById("movCajaCalc");
+  if(calc)calc.textContent=cajas>0?`${cajas} caja${cajas!==1?"s":""} × ${upc} = ${total} ${escHtml(s.unit||"UND")}`:`1 caja = ${upc} ${escHtml(s.unit||"UND")}`;
 }
 function onLoteSelectChange(){
   const supplyId=document.getElementById("movSupplySelect").value;
@@ -3003,11 +3092,36 @@ function saveMovimiento(){
 
 // ─── Modal Agregar ────────────────────────────────────────────────────────────
 let _editId=null;
+let _addPresentacion="unitario";
+function selectAddPresentacion(p){
+  _addPresentacion=p;
+  document.getElementById("addTogUnitario").classList.toggle("selected",p==="unitario");
+  document.getElementById("addTogCaja").classList.toggle("selected",p==="caja");
+  document.getElementById("addCajaGroup").style.display=p==="caja"?"block":"none";
+}
 function openAddModal(id){
   _editId=id||null;
   document.getElementById("addModalTitle").textContent=id?"Editar insumo":"Nuevo insumo";
-  if(id){const s=supplies.find(x=>x.id===id);if(s){document.getElementById("addName").value=s.name;document.getElementById("addCode").value=s.code;document.getElementById("addCategory").value=s.category;document.getElementById("addUnit").value=s.unit;document.getElementById("addPrice").value=s.price||0;document.getElementById("addMinStock").value=s.minStock||0;document.getElementById("addInitStock").value=cs[activeCenter].stock[id]||0;}}
-  else{["addName","addCode","addPrice","addMinStock","addInitStock"].forEach(i=>document.getElementById(i).value="");document.getElementById("addCategory").value="Descartables";document.getElementById("addUnit").value="UND";}
+  if(id){
+    const s=supplies.find(x=>x.id===id);
+    if(s){
+      document.getElementById("addName").value=s.name;
+      document.getElementById("addCode").value=s.code;
+      document.getElementById("addCategory").value=s.category;
+      document.getElementById("addUnit").value=s.unit;
+      document.getElementById("addPrice").value=s.price||0;
+      document.getElementById("addMinStock").value=s.minStock||0;
+      document.getElementById("addInitStock").value=cs[activeCenter].stock[id]||0;
+      const pres=s.presentacion||"unitario";
+      document.getElementById("addUnidadesPorCaja").value=s.unidadesPorCaja||"";
+      selectAddPresentacion(pres);
+    }
+  } else {
+    ["addName","addCode","addPrice","addMinStock","addInitStock","addUnidadesPorCaja"].forEach(i=>document.getElementById(i).value="");
+    document.getElementById("addCategory").value="Descartables";
+    document.getElementById("addUnit").value="UND";
+    selectAddPresentacion("unitario");
+  }
   document.getElementById("addModal").classList.add("open");
 }
 function closeAddModal(e){if(e&&e.target!==document.getElementById("addModal"))return;document.getElementById("addModal").classList.remove("open");}
@@ -3019,14 +3133,17 @@ function saveSupply(){
   const price=parseFloat(document.getElementById("addPrice").value)||0;
   const minStock=parseInt(document.getElementById("addMinStock").value)||0;
   const initStk=parseInt(document.getElementById("addInitStock").value)||0;
+  const presentacion=_addPresentacion||"unitario";
+  const unidadesPorCaja=presentacion==="caja"?(parseInt(document.getElementById("addUnidadesPorCaja").value)||1):1;
   if(!name){toast("⚠️ Ingresá el nombre del insumo");return;}
+  if(presentacion==="caja"&&unidadesPorCaja<1){toast("⚠️ Ingresá las unidades por caja");return;}
   if(_editId){
     const s=supplies.find(x=>x.id===_editId);
-    if(s){Object.assign(s,{name,code,category,unit,price,minStock});cs[activeCenter].stock[s.id]=initStk;}
+    if(s){Object.assign(s,{name,code,category,unit,price,minStock,presentacion,unidadesPorCaja});cs[activeCenter].stock[s.id]=initStk;}
     toast("✓ Insumo actualizado");
   }else{
     const id="cus_"+Date.now();
-    supplies.push({id,name,code:code||"USR-"+supplies.length,category,unit,price,minStock,active:true});
+    supplies.push({id,name,code:code||"USR-"+supplies.length,category,unit,price,minStock,active:true,presentacion,unidadesPorCaja});
     CENTERS.forEach(c=>{if(!cs[c].stock[id])cs[c].stock[id]=0;});
     cs[activeCenter].stock[id]=initStk;
     if(initStk>0)cs[activeCenter].movements.push({id:"mov_init_"+id,supplyId:id,supplyName:name,type:"entrada",qty:initStk,date:new Date().toISOString().slice(0,10),time:new Date().toTimeString().slice(0,5),note:"Stock inicial"});
@@ -3690,6 +3807,65 @@ async function generateReport(){
     btn.disabled=false;btn.innerHTML='<span class="btn-icon">📄</span> Generar y Exportar PDF';
   }
 }
+
+// ─── SUPPLY DETAIL ───────────────────────────────────────────────────────────
+let _sdSupplyId=null;
+function openSupplyDetail(supplyId){
+  const s=supplies.find(x=>x.id===supplyId); if(!s)return;
+  _sdSupplyId=supplyId;
+  const cur=(cs[activeCenter]?.stock||{})[supplyId]||0;
+  const lotes=(cs[activeCenter]?.lotes||{})[supplyId]?.filter(l=>l.qty>0)||[];
+  const isCaja=s.presentacion==="caja"&&(s.unidadesPorCaja||1)>1;
+  const upc=s.unidadesPorCaja||1;
+
+  document.getElementById("sdTitle").textContent=s.name;
+  document.getElementById("sdMeta").textContent=[s.code,s.category,isCaja?`Caja × ${upc} ${s.unit||"UND"}`:"Unitario"].filter(Boolean).join(" · ");
+
+  // Stock box
+  const cajas=isCaja?Math.floor(cur/upc):0;
+  const resto=isCaja?cur%upc:0;
+  let stockHtml=`<div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+    <div>
+      <div style="font-size:1.8rem;font-weight:800;color:var(--accent);line-height:1">${cur}</div>
+      <div style="font-size:.75rem;color:var(--text3);margin-top:2px">${escHtml(s.unit||"UND")} en total</div>
+    </div>`;
+  if(isCaja&&cur>0){
+    stockHtml+=`<div style="text-align:right">
+      <div style="font-size:1.3rem;font-weight:700;color:var(--text)">${cajas} caja${cajas!==1?"s":""}</div>
+      <div style="font-size:.75rem;color:var(--text3)">${cajas} × ${upc}${resto>0?` + ${resto} sueltos`:""}</div>
+    </div>`;
+  }
+  stockHtml+=`</div>`;
+  document.getElementById("sdStockBox").innerHTML=stockHtml;
+
+  // Lotes
+  const today=new Date();
+  if(!lotes.length){
+    document.getElementById("sdLotes").innerHTML=`<div style="text-align:center;padding:20px;color:var(--text3);font-size:.85rem">Sin lotes cargados con fecha de vencimiento.<br><span style="font-size:.75rem">Registrá una entrada con fecha de vencimiento para verlos aquí.</span></div>`;
+  } else {
+    document.getElementById("sdLotes").innerHTML=lotes.map(l=>{
+      const daysLeft=Math.floor((new Date(l.fechaVenc)-today)/(1000*60*60*24));
+      const icon=daysLeft<0?"🔴":daysLeft<=30?"🟠":daysLeft<=90?"🟡":"🟢";
+      const label=daysLeft<0?`Venció hace ${Math.abs(daysLeft)}d`:daysLeft===0?"Vence HOY":`${daysLeft}d restantes`;
+      const borderC=daysLeft<0?"#ff3b30":daysLeft<=30?"#ff9500":daysLeft<=90?"#ffd60a":"#30d158";
+      const loteCajas=isCaja?Math.floor(l.qty/upc):0;
+      const loteResto=isCaja?l.qty%upc:0;
+      return `<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;margin-bottom:8px;border-radius:var(--r-md);border:1px solid rgba(0,0,0,.08);border-left:4px solid ${borderC};background:var(--glass2)">
+        <div>
+          <div style="font-size:.85rem;font-weight:700;color:var(--text)">📅 ${fmtDate(l.fechaVenc)}</div>
+          <div style="font-size:.72rem;color:var(--text3);margin-top:2px">${icon} ${label}${l.fechaEntrada?` · Ingresado ${fmtDate(l.fechaEntrada)}`:""}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-size:1rem;font-weight:800;color:var(--text)">${l.qty} ${escHtml(s.unit||"UND")}</div>
+          ${isCaja&&loteCajas>0?`<div style="font-size:.72rem;color:var(--text3)">${loteCajas} caja${loteCajas!==1?"s":""}${loteResto>0?` + ${loteResto}`:""}</div>`:""}
+        </div>
+      </div>`;
+    }).join("");
+  }
+
+  document.getElementById("supplyDetailOverlay").classList.add("open");
+}
+function closeSupplyDetail(){document.getElementById("supplyDetailOverlay").classList.remove("open");}
 
 // ─── VENCIMIENTOS ────────────────────────────────────────────────────────────
 function getAllLotes(){
