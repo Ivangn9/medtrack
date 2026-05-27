@@ -2019,7 +2019,7 @@ function rDetalle(){
     h+='<div style="background:rgba(99,179,237,.06);border:1px solid rgba(99,179,237,.18);border-radius:var(--r-md);padding:10px 12px;">';
     h+='<div style="font-size:.7rem;font-weight:700;color:var(--text2);margin-bottom:7px;">Helio Líquido</div>';
     h+='<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;">';
-    if(rf.helioLiqPresion)h+='<span style="background:rgba(8,145,178,.10);border:1px solid rgba(8,145,178,.25);border-radius:var(--r-pill);padding:3px 9px;font-size:.72rem;font-weight:700;color:#0891b2;">📊 '+esc(rf.helioLiqPresion)+'</span>';
+    if(rf.helioLiqPresion)h+='<span style="background:rgba(8,145,178,.10);border:1px solid rgba(8,145,178,.25);border-radius:var(--r-pill);padding:3px 9px;font-size:.72rem;font-weight:700;color:#0891b2;">📊 '+esc(rf.helioLiqPresion)+' psi</span>';
     if(rf.helioLiqPorcentaje)h+='<span style="background:rgba(8,145,178,.10);border:1px solid rgba(8,145,178,.25);border-radius:var(--r-pill);padding:3px 9px;font-size:.72rem;font-weight:700;color:#0891b2;">🔋 '+esc(rf.helioLiqPorcentaje)+'%</span>';
     if(!rf.helioLiqPresion&&!rf.helioLiqPorcentaje)h+='<span style="font-size:.72rem;color:var(--text3);">Sin datos registrados</span>';
     h+='<button onclick="openActualizarHelioLiquido(\''+eq.id+'\')" style="padding:5px 11px;border-radius:var(--r-pill);font-size:.73rem;font-weight:700;cursor:pointer;border:1.5px solid rgba(8,145,178,.35);background:rgba(8,145,178,.09);color:#0891b2;margin-left:auto;">📝 Actualizar</button>';
@@ -2156,10 +2156,10 @@ function rDetalle(){
     h+='<div style="position:relative;padding-left:20px;">';
     h+='<div style="position:absolute;left:8px;top:8px;bottom:8px;width:2px;background:linear-gradient(180deg,rgba(0,113,227,.3),rgba(52,199,89,.2),rgba(120,120,128,.1));border-radius:2px;"></div>';
     hist.forEach(function(hh){
-      var isMant=hh.tipo==="mantenimiento";var isMej=hh.tipo==="mejora";
-      var c=isMant?"var(--accent)":isMej?"#8b5cf6":"var(--green)";
-      var dotBg=isMant?"rgba(0,113,227,.15)":isMej?"rgba(139,92,246,.15)":"rgba(52,199,89,.15)";
-      var label=isMant?"Mantenimiento":isMej?"Mejora":"Reparación";
+      var isMant=hh.tipo==="mantenimiento";var isMej=hh.tipo==="mejora";var isRefrig=hh.tipo==="refrigeracion";
+      var c=isMant?"var(--accent)":isMej?"#8b5cf6":isRefrig?"#0891b2":"var(--green)";
+      var dotBg=isMant?"rgba(0,113,227,.15)":isMej?"rgba(139,92,246,.15)":isRefrig?"rgba(8,145,178,.15)":"rgba(52,199,89,.15)";
+      var label=isMant?"Mantenimiento":isMej?"Mejora":isRefrig?"❄️ Refrigeración":"Reparación";
       var hasPdf=(hh.archivos&&hh.archivos.length>0);
       h+='<div style="position:relative;margin-bottom:10px;">';
       h+='<div style="position:absolute;left:-16px;top:10px;width:10px;height:10px;border-radius:50%;background:'+c+';box-shadow:0 0 0 3px '+dotBg+';"></div>';
@@ -2804,7 +2804,7 @@ function _saveRefrig(eqId,rfUpdate,histEntry){
     var newRf=Object.assign({},rf,rfUpdate);
     if(histEntry){
       newRf.historial=(rf.historial||[]).concat(histEntry);
-      var mantEntry={id:'HRM-'+Date.now(),fecha:histEntry.fecha||today(),tipo:'mantenimiento',
+      var mantEntry={id:'HRM-'+Date.now(),fecha:histEntry.fecha||today(),tipo:'refrigeracion',
         nombre:'[Refrig] '+histEntry.descripcion,descripcion:histEntry.notas||'',
         tecnico:histEntry.tecnico||'',notas:histEntry.notas||'',archivos:[],
         registradoEn:new Date().toISOString()};
@@ -2855,7 +2855,7 @@ function openActualizarHelioLiquido(eqId){
       '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/></svg>'+
       '<span style="font-size:.82rem;font-weight:700;color:#0891b2;">Actualizar Helio Líquido</span>'+
     '</div>'+
-    '<div class="ff"><div class="ff-label">Presión</div><input class="inp" id="rhl-pres" value="'+esc(rf.helioLiqPresion||'')+'" placeholder="Ej: 0.5 bar"></div>'+
+    '<div class="ff"><div class="ff-label">Presión (psi)</div><input class="inp" id="rhl-pres" type="number" value="'+esc(rf.helioLiqPresion||'')+'" placeholder="Ej: 4.5"></div>'+
     '<div class="ff"><div class="ff-label">% Carga de Helio</div><input class="inp" id="rhl-porc" type="number" min="0" max="100" value="'+esc(rf.helioLiqPorcentaje||'')+'" placeholder="0-100"></div>'+
     '<div class="ff"><div class="ff-label">Fecha de carga *</div><input class="inp" id="rhl-fecha" type="date" value="'+today()+'"></div>'+
     '<div class="ff"><div class="ff-label">Técnico</div><input class="inp" id="rhl-tec" placeholder="Nombre"></div>'+
@@ -3485,8 +3485,8 @@ function submitRotura(){
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
 var antenas=[];
-var APP_DISPLAY_VERSION="4.4.0";
-var APP_BUILD="27/05/26 14:00";
+var APP_DISPLAY_VERSION="4.4.1";
+var APP_BUILD="27/05/26 15:30";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
