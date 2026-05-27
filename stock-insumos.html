@@ -1096,13 +1096,22 @@
   
     /* ─── Solicitudes ───────────────────────────────── */
     .sol-badge { min-width:18px;height:18px;border-radius:9px;background:#ff3b30;color:#fff;font-size:.65rem;font-weight:800;display:none;align-items:center;justify-content:center;padding:0 5px;margin-left:6px;flex-shrink:0; }
-    .sol-card { transition:background .15s;cursor:pointer; }
-    .sol-card:hover { background:rgba(255,255,255,.32)!important; }
-    .sol-card.sol-new { border-left:3px solid var(--red); background:rgba(0,122,255,0.05)!important; }
-    .sol-card.sol-entregado { border-left:3px solid var(--green); background:rgba(48,209,88,0.07)!important; }
-    .sol-prioridad-urgente { color:var(--orange); }
-    .sol-prioridad-muy { color:var(--red); }
-    .sol-prioridad-normal { color:var(--green); }
+    .sol-card { transition:background .15s,box-shadow .15s;cursor:pointer;border-left:4px solid transparent; }
+    .sol-card:hover { background:rgba(255,255,255,.38)!important; }
+    /* Sin leer por prioridad */
+    .sol-card.sol-new-muy    { border-left:5px solid #ff3b30;background:rgba(255,59,48,0.07)!important;box-shadow:0 2px 12px rgba(255,59,48,0.10); }
+    .sol-card.sol-new-urgente{ border-left:5px solid #ff9500;background:rgba(255,149,0,0.07)!important;box-shadow:0 2px 12px rgba(255,149,0,0.10); }
+    .sol-card.sol-new-normal { border-left:5px solid #0071e3;background:rgba(0,113,227,0.06)!important;box-shadow:0 2px 10px rgba(0,113,227,0.08); }
+    /* Leído por prioridad */
+    .sol-card.sol-read-muy   { border-left:4px solid rgba(255,59,48,0.45);background:rgba(255,59,48,0.03)!important; }
+    .sol-card.sol-read-urgente{ border-left:4px solid rgba(255,149,0,0.45);background:rgba(255,149,0,0.03)!important; }
+    .sol-card.sol-read-normal { border-left:4px solid rgba(180,180,190,0.5); }
+    /* Entregado */
+    .sol-card.sol-entregado  { border-left:5px solid #30d158;background:rgba(48,209,88,0.08)!important; }
+    /* Animación punto sin leer */
+    @keyframes sol-dot-pulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.4);opacity:.6} }
+    .sol-dot { width:9px;height:9px;border-radius:50%;flex-shrink:0;display:inline-block; }
+    .sol-dot-anim { animation:sol-dot-pulse 1.8s ease-in-out infinite; }
   </style>
 </head>
 <body>
@@ -1819,7 +1828,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "3.7";
+const APP_VERSION = "3.8";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -3493,19 +3502,49 @@ function renderSolicitudes(){
   container.innerHTML=solicitudes.map(s=>{
     const isEntregado=!!s.entregado;
     const isNew=!s.leido&&!isEntregado;
-    const cardClass=isEntregado?"sol-entregado":(isNew?"sol-new":"");
-    const prioColors={"Muy urgente":"var(--red)","Urgente":"var(--orange)","Normal":"var(--green)"};
-    const prioColor=prioColors[s.prioridad]||"var(--green)";
+    const prio=s.prioridad||"Normal";
+
+    // Card class: combina estado de lectura + prioridad
+    let cardClass="";
+    if(isEntregado){
+      cardClass="sol-entregado";
+    } else if(isNew){
+      cardClass=prio==="Muy urgente"?"sol-new-muy":prio==="Urgente"?"sol-new-urgente":"sol-new-normal";
+    } else {
+      cardClass=prio==="Muy urgente"?"sol-read-muy":prio==="Urgente"?"sol-read-urgente":"sol-read-normal";
+    }
+
     const fechaFmt=s.fecha?fmtDate(s.fecha):(s.timestamp?.toDate?fmtDate(s.timestamp.toDate().toISOString().slice(0,10)):"");
-    let statusChip="";
-    if(isEntregado) statusChip=`<span style="display:inline-flex;align-items:center;gap:3px;background:rgba(48,209,88,0.18);color:#1a8f3c;font-size:.68rem;font-weight:800;padding:2px 8px;border-radius:20px;margin-left:auto">✓ Entregado</span>`;
-    else if(isNew) statusChip=`<span style="width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0;display:inline-block"></span>`;
-    return `<div class="gc sol-card${cardClass?" "+cardClass:""}" onclick="openSolicitudDetalle('${escAttr(s.id)}')" style="padding:14px 18px;margin-bottom:10px">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px">
-        <div style="display:flex;align-items:center;gap:6px;min-width:0">
-          ${isNew?statusChip:""}
-          <span style="font-size:.72rem;font-weight:800;text-transform:uppercase;color:${prioColor}">${escHtml(s.prioridad||"Normal")}</span>
-          ${isEntregado?statusChip:""}
+
+    // Chip de prioridad: pill con color de fondo según urgencia
+    const prioStyles={
+      "Muy urgente":{bg:"rgba(255,59,48,0.14)",color:"#d92b20",border:"rgba(255,59,48,0.22)"},
+      "Urgente"    :{bg:"rgba(255,149,0,0.14)",color:"#b86e00",border:"rgba(255,149,0,0.22)"},
+      "Normal"     :{bg:"rgba(52,199,89,0.13)",color:"#1a8a38",border:"rgba(52,199,89,0.22)"}
+    };
+    const ps=prioStyles[prio]||prioStyles["Normal"];
+    const prioChip=`<span style="display:inline-flex;align-items:center;font-size:.65rem;font-weight:800;padding:3px 9px;border-radius:20px;text-transform:uppercase;letter-spacing:.04em;background:${ps.bg};color:${ps.color};border:1px solid ${ps.border}">${escHtml(prio)}</span>`;
+
+    // Indicador de estado (izquierda del chip de prioridad)
+    let stateChip="";
+    if(isEntregado){
+      stateChip=`<span style="display:inline-flex;align-items:center;gap:3px;background:rgba(48,209,88,0.16);color:#1a8a38;font-size:.65rem;font-weight:800;padding:3px 9px;border-radius:20px;border:1px solid rgba(48,209,88,0.25)">
+        <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><polyline points="1.5 6 4.5 9.5 10.5 2.5" stroke="#1a8a38" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Entregado</span>`;
+    } else if(isNew){
+      const dotColor=prio==="Muy urgente"?"#ff3b30":prio==="Urgente"?"#ff9500":"#0071e3";
+      stateChip=`<span style="display:inline-flex;align-items:center;gap:5px;font-size:.65rem;font-weight:800;padding:3px 8px;border-radius:20px;background:${dotColor};color:#fff;letter-spacing:.03em">
+        <span class="sol-dot sol-dot-anim" style="background:#fff;width:6px;height:6px"></span>NUEVO</span>`;
+    } else {
+      // Leído: ícono sutil de check
+      stateChip=`<span style="display:inline-flex;align-items:center;gap:3px;color:var(--text3);font-size:.63rem">
+        <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><polyline points="1.5 6 4.5 9.5 10.5 2.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Leído</span>`;
+    }
+
+    return `<div class="gc sol-card ${cardClass}" onclick="openSolicitudDetalle('${escAttr(s.id)}')" style="padding:14px 18px;margin-bottom:10px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0">
+          ${stateChip}
+          ${prioChip}
         </div>
         <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
           <span style="color:var(--text3);font-size:.78rem">${fechaFmt}</span>
