@@ -15,7 +15,14 @@ const messaging = firebase.messaging();
 // Contador de notificaciones no leídas en el globo del ícono
 let _badgeCount = 0;
 
-messaging.onBackgroundMessage(payload => {
+messaging.onBackgroundMessage(async payload => {
+  // Si la app está visible en primer plano, el banner in-app ya cubre la notificación
+  const windowClients = await clients.matchAll({ type: 'window', includeUncontrolled: true });
+  const appVisible = windowClients.some(c =>
+    c.url.includes('stock-insumos') && c.visibilityState === 'visible'
+  );
+  if (appVisible) return;
+
   const title = payload.notification?.title || '📬 Nueva solicitud';
   const body  = payload.notification?.body  || '';
 
