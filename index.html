@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.27.69 -->
+<!-- v2026.05.28.70 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>MedTrack — CIMA</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.05.27.69">
+<meta name="app-version" content="v2026.05.28.70">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -722,6 +722,7 @@ body.dark .sb-card{background:rgba(255,255,255,.07);border-color:rgba(255,255,25
     <button class="sb-nav-btn on" data-sb="dash" onclick="setView('dash')"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="8" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="15" width="7" height="6" rx="1.5"/></svg></span>Panel</button>
     <button class="sb-nav-btn" id="sb-equipos-btn" data-sb="lista" onclick="toggleSbEquiposMenu(event)"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg></span>Equipos<span style="margin-left:auto;font-size:.65rem;opacity:.5;transition:transform .2s;" id="sb-eq-chevron">▸</span></button>
     <button class="sb-nav-btn" data-sb="alertas" onclick="setView('alertas')"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></span>Alertas<span id="sb-alert-badge" style="display:none;background:var(--red);color:#fff;border-radius:10px;padding:1px 6px;font-size:.6rem;font-weight:700;margin-left:auto;"></span></button>
+    <button class="sb-nav-btn" data-sb="aires" onclick="setView('aires')"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="10" rx="3"/><path d="M6 11h12M6 14h4"/><circle cx="17" cy="14" r="1" fill="currentColor"/><path d="M2 10c0-1.1.9-3 3-3M22 10c0-1.1-.9-3-3-3"/></svg></span>Aires</button>
     <button class="sb-nav-btn" id="sb-ajustes-btn" onclick="toggleSbAjustesMenu(event)"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span>Ajustes<span style="margin-left:auto;font-size:.65rem;opacity:.5;transition:transform .2s;" id="sb-aj-chevron">▸</span></button>
   </div>
   <!-- Charts section -->
@@ -985,7 +986,7 @@ const EQ0=[
 var eqs=[],view="dash",selId=null,selAntenaEqId=null,selAntenaId=null,filtCat="TODOS",toastTimer=null,darkMode=false,fontScale=100;
 
 function saveData(){
-  try{localStorage.setItem("mt_v4",JSON.stringify(eqs));localStorage.setItem("mt_antenas",JSON.stringify(antenas));}catch(e){}
+  try{localStorage.setItem("mt_v4",JSON.stringify(eqs));localStorage.setItem("mt_antenas",JSON.stringify(antenas));localStorage.setItem("mt_aires",JSON.stringify(aires));}catch(e){}
   firestoreSave();
 }
 var _fsSaveTimer=null;
@@ -994,7 +995,7 @@ function firestoreSave(){
   if(_fsSaveTimer)clearTimeout(_fsSaveTimer);
   _fsSaveTimer=setTimeout(function(){
     window._fbdb.collection("users").doc(window._fbUser.uid).collection("app").doc("data")
-      .set({eqs:eqs,antenas:antenas,updatedAt:new Date().toISOString()},{merge:true})
+      .set({eqs:eqs,antenas:antenas,aires:aires,updatedAt:new Date().toISOString()},{merge:true})
       .catch(function(e){console.warn("Firestore save:",e);});
   },1500);
 }
@@ -1076,6 +1077,7 @@ function goDetalle(id){selId=id;view="detalle";_detalleQ="";_detalleSearchOpen=f
 function goBack(){
   if(view==="antenaDetalle"){view="antenas";render();}
   else if(view==="antenas"){selId=selAntenaEqId;view="detalle";_detalleQ="";_detalleSearchOpen=false;render();}
+  else if(view==="aireDetalle"){view="aires";render();}
   else setView("lista");
 }
 function goAntenas(rmEquipId){selAntenaEqId=rmEquipId;view="antenas";document.getElementById("back-btn").classList.remove("hidden");render();}
@@ -1634,6 +1636,8 @@ function render(){
     else if(view==="detalle")d.innerHTML=rDetalle();
     else if(view==="antenas")d.innerHTML=rAntenas();
     else if(view==="antenaDetalle")d.innerHTML=rAntenaDetalle();
+    else if(view==="aires")d.innerHTML=rAires();
+    else if(view==="aireDetalle")d.innerHTML=rAireDetalle();
     m.appendChild(d);
     var spacer=document.createElement("div");spacer.style.height="80px";spacer.style.flexShrink="0";m.appendChild(spacer);
   }catch(err){
@@ -1688,6 +1692,29 @@ function rDash(){
       '</div>'+
     '</div>';
   });
+  if(aires.length>0||true){ // always show
+    var aireFallas=aires.filter(function(a){return a.estado==='falla'||a.estado==='fuera_servicio';}).length;
+    var aireColor='#06b6d4';
+    var aireStatus=aireFallas>0?'⚠️ '+aireFallas+' con falla':'✅ Operativos';
+    var aireStatusColor=aireFallas>0?'#f59e0b':'#34c759';
+    var aireSvg='<svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect x="20" y="55" width="160" height="90" rx="22" fill="'+aireColor+'" fill-opacity=".18" stroke="'+aireColor+'" stroke-width="3"/><rect x="35" y="68" width="130" height="64" rx="14" fill="'+aireColor+'" fill-opacity=".10"/><line x1="50" y1="95" x2="150" y2="95" stroke="'+aireColor+'" stroke-width="3" stroke-linecap="round"/><line x1="50" y1="108" x2="120" y2="108" stroke="'+aireColor+'" stroke-width="2.5" stroke-linecap="round"/><circle cx="148" cy="108" r="7" fill="'+aireColor+'" fill-opacity=".3" stroke="'+aireColor+'" stroke-width="2"/><path d="M60 55 Q60 35 80 35 Q100 35 100 20" stroke="'+aireColor+'" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="4 3" fill="none"/><path d="M90 55 Q90 30 110 30 Q130 30 130 15" stroke="'+aireColor+'" stroke-width="2" stroke-linecap="round" stroke-dasharray="4 3" fill="none" opacity=".6"/><path d="M120 55 Q120 38 135 38 Q148 38 148 25" stroke="'+aireColor+'" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="4 3" fill="none" opacity=".4"/></svg>';
+    h+='<div class="gc tap" onclick="setView(\'aires\');" style="padding:0;overflow:hidden;cursor:pointer;border:1.5px solid '+aireColor+'40;min-height:130px;">'+
+      '<div style="height:3px;background:linear-gradient(90deg,'+aireColor+','+aireColor+'55);border-radius:0;"></div>'+
+      '<div style="padding:16px 14px 14px;display:flex;flex-direction:column;justify-content:space-between;height:calc(100% - 3px);position:relative;overflow:hidden;">'+
+        '<div style="position:absolute;right:-18px;top:50%;transform:translateY(-50%);width:210px;height:210px;display:flex;align-items:center;justify-content:center;opacity:.55;pointer-events:none;">'+aireSvg+'</div>'+
+        '<div style="display:flex;flex-direction:column;gap:0;z-index:1;">'+
+          '<div style="font-weight:900;font-size:2.6rem;color:'+aireColor+';line-height:1;letter-spacing:-2px;">'+aires.length+'</div>'+
+          '<div style="font-size:.56rem;color:'+aireColor+'aa;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-top:1px;">unidad'+(aires.length!==1?'es':'')+'</div>'+
+        '</div>'+
+        '<div style="z-index:1;">'+
+          '<div style="font-weight:800;font-size:1.05rem;letter-spacing:-.3px;color:var(--text);margin-bottom:7px;">Aires Acondicionados</div>'+
+          '<div style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:20px;background:'+aireStatusColor+'16;border:1px solid '+aireStatusColor+'30;">'+
+            '<span style="font-size:.72rem;font-weight:600;color:'+aireStatusColor+';">'+aireStatus+'</span>'+
+          '</div>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  }
   h+='</div>';
 
   h+='<div class="sec">Próximos Mantenimientos</div>';
@@ -3530,12 +3557,254 @@ function submitRotura(){
 }
 
 // ═══════════════════════════════════════════
+//  AIRES ACONDICIONADOS
+// ═══════════════════════════════════════════
+var selAireId=null;
+function goAireDetalle(id){selAireId=id;view='aireDetalle';document.getElementById('back-btn').classList.remove('hidden');render();}
+
+function rAires(){
+  var h='';
+  var aC='#06b6d4';
+  h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">'+
+    '<div style="font-size:1.1rem;font-weight:800;color:var(--text);">❄️ Aires Acondicionados</div>'+
+    '<button class="btn-grad" style="background:linear-gradient(135deg,#06b6d4,#0891b2);color:#fff;font-size:.78rem;padding:8px 14px;" onclick="openAddAire()">+ Agregar</button>'+
+  '</div>';
+  if(!aires.length){
+    h+='<div class="gc" style="padding:28px 20px;text-align:center;">'+
+      '<div style="font-size:2rem;margin-bottom:8px;">❄️</div>'+
+      '<div style="font-weight:700;color:var(--text);margin-bottom:4px;">Sin unidades registradas</div>'+
+      '<div style="font-size:.78rem;color:var(--text3);">Agregá los aires acondicionados de la institución</div>'+
+    '</div>';
+    return h;
+  }
+  // Group by equipoCat
+  var cats=['RM','TC','MG','RX','DM','AW Server','Bombas','Odontología','General'];
+  var grouped={};
+  aires.forEach(function(a){var c=a.equipoCat||'General';if(!grouped[c])grouped[c]=[];grouped[c].push(a);});
+  Object.keys(grouped).sort(function(a,b){return cats.indexOf(a)-cats.indexOf(b);}).forEach(function(cat){
+    h+='<div style="font-size:.66rem;font-weight:800;color:'+aC+';text-transform:uppercase;letter-spacing:.08em;margin:14px 0 6px;">'+esc(cat)+'</div>';
+    grouped[cat].forEach(function(a){
+      var stColor=a.estado==='operativo'?'var(--green)':a.estado==='falla'?'var(--orange)':'var(--red)';
+      var stLabel=a.estado==='operativo'?'✅ Operativo':a.estado==='falla'?'⚠️ Con falla':'🔴 Fuera de servicio';
+      var lastSvc=a.ultimoService?'Últ. service: '+fD(a.ultimoService):'Sin service registrado';
+      h+='<div class="gc tap" onclick="goAireDetalle(\''+a.id+'\')" style="padding:14px 16px;margin-bottom:8px;cursor:pointer;border-left:3px solid '+aC+';display:flex;align-items:center;gap:12px;">'+
+        '<div style="width:42px;height:42px;border-radius:12px;background:rgba(6,182,212,.12);border:1.5px solid rgba(6,182,212,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.4rem;">❄️</div>'+
+        '<div style="flex:1;min-width:0;">'+
+          '<div style="font-weight:700;font-size:.92rem;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(a.nombre)+'</div>'+
+          '<div style="font-size:.72rem;color:var(--text3);margin-top:2px;">'+(a.modelo?'📦 '+esc(a.modelo):'')+((a.modelo&&a.ubicacion)?' · ':'')+( a.ubicacion?'📍 '+esc(a.ubicacion):'')+'</div>'+
+          '<div style="font-size:.68rem;color:var(--text3);margin-top:2px;">'+lastSvc+'</div>'+
+        '</div>'+
+        '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0;">'+
+          '<span style="font-size:.65rem;font-weight:700;padding:3px 9px;border-radius:20px;background:'+stColor+'18;color:'+stColor+';">'+stLabel+'</span>'+
+          '<div style="color:var(--text3);font-size:1.1rem;">›</div>'+
+        '</div>'+
+      '</div>';
+    });
+  });
+  return h;
+}
+
+function rAireDetalle(){
+  var a=aires.find(function(x){return x.id===selAireId;});
+  if(!a)return'<div style="padding:20px;color:var(--text3);">Unidad no encontrada</div>';
+  var aC='#06b6d4';
+  var stColor=a.estado==='operativo'?'var(--green)':a.estado==='falla'?'var(--orange)':'var(--red)';
+  var stLabel=a.estado==='operativo'?'✅ Operativo':a.estado==='falla'?'⚠️ Con falla':'🔴 Fuera de servicio';
+  var h='';
+  // Header card
+  h+='<div class="gc" style="padding:0;margin-bottom:12px;overflow:hidden;border-top:3px solid '+aC+';">'+
+    '<div style="padding:16px 16px 14px;display:flex;align-items:center;gap:12px;">'+
+      '<div style="width:52px;height:52px;border-radius:14px;background:rgba(6,182,212,.12);border:1.5px solid rgba(6,182,212,.3);display:flex;align-items:center;justify-content:center;font-size:1.8rem;flex-shrink:0;">❄️</div>'+
+      '<div style="flex:1;min-width:0;">'+
+        '<div style="font-weight:800;font-size:1.05rem;color:var(--text);">'+esc(a.nombre)+'</div>'+
+        (a.equipoCat?'<div style="font-size:.72rem;color:'+aC+';font-weight:700;margin-top:2px;">'+esc(a.equipoCat)+'</div>':'')+
+      '</div>'+
+      '<span style="font-size:.72rem;font-weight:700;padding:5px 12px;border-radius:20px;background:'+stColor+'18;color:'+stColor+';">'+stLabel+'</span>'+
+    '</div>'+
+  '</div>';
+  // Info grid
+  h+='<div class="gc" style="padding:14px 16px;margin-bottom:12px;">'+
+    '<div class="det-grid">'+
+      (a.modelo?'<div class="ibox"><div class="ibox-l">Modelo</div><div class="ibox-v">'+esc(a.modelo)+'</div></div>':'')+
+      (a.marca?'<div class="ibox"><div class="ibox-l">Marca</div><div class="ibox-v">'+esc(a.marca)+'</div></div>':'')+
+      (a.ubicacion?'<div class="ibox"><div class="ibox-l">Ubicación</div><div class="ibox-v">'+esc(a.ubicacion)+'</div></div>':'')+
+      (a.equipoCat?'<div class="ibox"><div class="ibox-l">Equipo asociado</div><div class="ibox-v">'+esc(a.equipoCat)+'</div></div>':'')+
+      (a.instalador?'<div class="ibox"><div class="ibox-l">Instalador</div><div class="ibox-v">'+esc(a.instalador)+'</div></div>':'')+
+      (a.fechaInstalacion?'<div class="ibox"><div class="ibox-l">Fecha instalación</div><div class="ibox-v">'+fD(a.fechaInstalacion)+'</div></div>':'')+
+      (a.ultimoService?'<div class="ibox"><div class="ibox-l">Último service</div><div class="ibox-v" style="color:'+aC+';">'+fD(a.ultimoService)+'</div></div>':'')+
+    '</div>'+
+    (a.notas?'<div style="font-size:.78rem;color:var(--text2);margin-top:8px;padding-top:8px;border-top:1px solid rgba(120,120,128,.12);">'+esc(a.notas)+'</div>':'')+
+  '</div>';
+  // Action buttons
+  h+='<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">'+
+    '<button class="btn-grad" style="background:linear-gradient(135deg,#06b6d4,#0891b2);color:#fff;font-size:.8rem;padding:10px 18px;flex:1;" onclick="openEditAire(\''+a.id+'\')">✏️ Editar</button>'+
+    '<button class="btn-grad" style="background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;font-size:.8rem;padding:10px 18px;flex:1;" onclick="openServiceAire(\''+a.id+'\')">🔧 Registrar service</button>'+
+    '<button onclick="deleteAire(\''+a.id+'\')" style="background:rgba(239,68,68,.10);color:var(--red);border:1.5px solid rgba(239,68,68,.25);border-radius:var(--r-pill);padding:10px 14px;font-size:.8rem;font-weight:600;cursor:pointer;">🗑</button>'+
+  '</div>';
+  // Estado buttons
+  h+='<div class="gc" style="padding:14px 16px;margin-bottom:12px;">'+
+    '<div style="font-size:.66rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Estado</div>'+
+    '<div style="display:flex;gap:7px;flex-wrap:wrap;">'+
+      '<button onclick="setAireEstado(\''+a.id+'\',\'operativo\')" style="padding:6px 14px;border-radius:var(--r-pill);font-size:.75rem;font-weight:700;cursor:pointer;border:2px solid '+(a.estado==='operativo'?'#16a34a':'rgba(120,120,128,.25)')+';background:'+(a.estado==='operativo'?'rgba(52,199,89,.15)':'rgba(120,120,128,.07)')+';color:'+(a.estado==='operativo'?'#16a34a':'var(--text3)')+';">✅ Operativo</button>'+
+      '<button onclick="setAireEstado(\''+a.id+'\',\'falla\')" style="padding:6px 14px;border-radius:var(--r-pill);font-size:.75rem;font-weight:700;cursor:pointer;border:2px solid '+(a.estado==='falla'?'#d97706':'rgba(120,120,128,.25)')+';background:'+(a.estado==='falla'?'rgba(255,149,0,.15)':'rgba(120,120,128,.07)')+';color:'+(a.estado==='falla'?'#d97706':'var(--text3)')+';">⚠️ Con falla</button>'+
+      '<button onclick="setAireEstado(\''+a.id+'\',\'fuera_servicio\')" style="padding:6px 14px;border-radius:var(--r-pill);font-size:.75rem;font-weight:700;cursor:pointer;border:2px solid '+(a.estado==='fuera_servicio'?'#dc2626':'rgba(120,120,128,.25)')+';background:'+(a.estado==='fuera_servicio'?'rgba(239,68,68,.15)':'rgba(120,120,128,.07)')+';color:'+(a.estado==='fuera_servicio'?'#dc2626':'var(--text3)')+';">🔴 Fuera de servicio</button>'+
+    '</div>'+
+  '</div>';
+  // Historial
+  var hist=(a.historial||[]).slice().reverse();
+  h+='<div class="gc" style="padding:14px 16px;margin-bottom:12px;">'+
+    '<div style="font-size:.7rem;font-weight:700;color:'+aC+';text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;">Historial de Services</div>';
+  if(!hist.length){
+    h+='<div style="text-align:center;color:var(--text3);font-size:.78rem;padding:10px 0;">Sin eventos registrados</div>';
+  } else {
+    hist.forEach(function(ev){
+      h+='<div style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:1px solid rgba(6,182,212,.10);">'+
+        '<div style="flex:1;">'+
+          '<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">'+
+            '<span style="font-size:.68rem;font-weight:700;background:rgba(6,182,212,.10);color:'+aC+';border-radius:var(--r-pill);padding:2px 7px;">🔧 Service</span>'+
+            '<span style="font-size:.68rem;color:var(--text3);">'+fD(ev.fecha)+'</span>'+
+          '</div>'+
+          '<div style="font-size:.78rem;color:var(--text2);">'+esc(ev.descripcion||'')+'</div>'+
+          (ev.tecnico?'<div style="font-size:.68rem;color:var(--text3);">👷 '+esc(ev.tecnico)+'</div>':'')+
+          (ev.notas?'<div style="font-size:.68rem;color:var(--text3);">'+esc(ev.notas)+'</div>':'')+
+        '</div>'+
+        '<button onclick="deleteAireHistEntry(\''+a.id+'\',\''+ev.id+'\')" style="background:none;border:none;cursor:pointer;font-size:.78rem;color:var(--text3);padding:2px 5px;" title="Eliminar">🗑</button>'+
+      '</div>';
+    });
+  }
+  h+='</div>';
+  return h;
+}
+
+function openAddAire(){
+  openModal(
+    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;"><span style="font-size:1.4rem;">❄️</span><span style="font-size:.85rem;font-weight:700;color:#06b6d4;">Agregar Aire Acondicionado</span></div>'+
+    '<div class="ff"><div class="ff-label">Nombre *</div><input class="inp" id="ai-nom" placeholder="Ej: Aire RM GN"></div>'+
+    '<div class="ff"><div class="ff-label">Equipo asociado</div><select class="inp" id="ai-cat"><option value="">-- Seleccionar --</option><option>RM</option><option>TC</option><option>MG</option><option>RX</option><option>DM</option><option>AW Server</option><option>Bombas</option><option>Odontología</option><option>General</option></select></div>'+
+    '<div class="ff"><div class="ff-label">Ubicación / Sala</div><input class="inp" id="ai-ub" placeholder="Ej: GN, Pedernera, CRS"></div>'+
+    '<div class="ff"><div class="ff-label">Marca</div><input class="inp" id="ai-marca" placeholder="Samsung, LG, Carrier..."></div>'+
+    '<div class="ff"><div class="ff-label">Modelo</div><input class="inp" id="ai-mod" placeholder="Modelo del equipo"></div>'+
+    '<div class="ff"><div class="ff-label">Instalador / Empresa</div><input class="inp" id="ai-inst" placeholder="Quién lo instaló"></div>'+
+    '<div class="ff"><div class="ff-label">Fecha de instalación</div><input class="inp" id="ai-finst" type="date"></div>'+
+    '<div class="ff"><div class="ff-label">Fecha último service</div><input class="inp" id="ai-fsvc" type="date"></div>'+
+    '<div class="ff"><div class="ff-label">Notas</div><textarea class="inp" id="ai-notas" rows="2"></textarea></div>'+
+    '<button class="btn-grad" style="background:linear-gradient(135deg,#06b6d4,#0891b2);color:#fff;" onclick="submitAddAire()">Guardar</button>'
+  );
+}
+
+function submitAddAire(){
+  var nom=(document.getElementById('ai-nom')||{}).value||'';
+  if(!nom.trim()){alert('Nombre obligatorio');return;}
+  var a={
+    id:'AIRE-'+Date.now(),
+    nombre:nom.trim(),
+    equipoCat:((document.getElementById('ai-cat')||{}).value||'').trim(),
+    ubicacion:((document.getElementById('ai-ub')||{}).value||'').trim(),
+    marca:((document.getElementById('ai-marca')||{}).value||'').trim(),
+    modelo:((document.getElementById('ai-mod')||{}).value||'').trim(),
+    instalador:((document.getElementById('ai-inst')||{}).value||'').trim(),
+    fechaInstalacion:((document.getElementById('ai-finst')||{}).value||'').trim(),
+    ultimoService:((document.getElementById('ai-fsvc')||{}).value||'').trim(),
+    estado:'operativo',
+    notas:((document.getElementById('ai-notas')||{}).value||'').trim(),
+    historial:[],
+    creadoEn:new Date().toISOString()
+  };
+  aires=aires.concat(a);
+  saveData();closeModal();showToast('✅ Aire agregado','');render();
+}
+
+function openEditAire(id){
+  var a=aires.find(function(x){return x.id===id;});if(!a)return;
+  openModal(
+    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;"><span style="font-size:1.4rem;">✏️</span><span style="font-size:.85rem;font-weight:700;color:#06b6d4;">Editar Aire Acondicionado</span></div>'+
+    '<div class="ff"><div class="ff-label">Nombre *</div><input class="inp" id="ai-nom" value="'+esc(a.nombre)+'"></div>'+
+    '<div class="ff"><div class="ff-label">Equipo asociado</div><select class="inp" id="ai-cat"><option value="">-- Seleccionar --</option>'+['RM','TC','MG','RX','DM','AW Server','Bombas','Odontología','General'].map(function(c){return'<option'+(a.equipoCat===c?' selected':'')+'>'+c+'</option>';}).join('')+'</select></div>'+
+    '<div class="ff"><div class="ff-label">Ubicación / Sala</div><input class="inp" id="ai-ub" value="'+esc(a.ubicacion||'')+'"></div>'+
+    '<div class="ff"><div class="ff-label">Marca</div><input class="inp" id="ai-marca" value="'+esc(a.marca||'')+'"></div>'+
+    '<div class="ff"><div class="ff-label">Modelo</div><input class="inp" id="ai-mod" value="'+esc(a.modelo||'')+'"></div>'+
+    '<div class="ff"><div class="ff-label">Instalador / Empresa</div><input class="inp" id="ai-inst" value="'+esc(a.instalador||'')+'"></div>'+
+    '<div class="ff"><div class="ff-label">Fecha de instalación</div><input class="inp" id="ai-finst" type="date" value="'+esc(a.fechaInstalacion||'')+'"></div>'+
+    '<div class="ff"><div class="ff-label">Fecha último service</div><input class="inp" id="ai-fsvc" type="date" value="'+esc(a.ultimoService||'')+'"></div>'+
+    '<div class="ff"><div class="ff-label">Notas</div><textarea class="inp" id="ai-notas" rows="2">'+esc(a.notas||'')+'</textarea></div>'+
+    '<button class="btn-grad" style="background:linear-gradient(135deg,#06b6d4,#0891b2);color:#fff;" onclick="submitEditAire(\''+id+'\')">Guardar cambios</button>'
+  );
+}
+
+function submitEditAire(id){
+  var nom=(document.getElementById('ai-nom')||{}).value||'';
+  if(!nom.trim()){alert('Nombre obligatorio');return;}
+  aires=aires.map(function(a){
+    if(a.id!==id)return a;
+    return Object.assign({},a,{
+      nombre:nom.trim(),
+      equipoCat:((document.getElementById('ai-cat')||{}).value||'').trim(),
+      ubicacion:((document.getElementById('ai-ub')||{}).value||'').trim(),
+      marca:((document.getElementById('ai-marca')||{}).value||'').trim(),
+      modelo:((document.getElementById('ai-mod')||{}).value||'').trim(),
+      instalador:((document.getElementById('ai-inst')||{}).value||'').trim(),
+      fechaInstalacion:((document.getElementById('ai-finst')||{}).value||'').trim(),
+      ultimoService:((document.getElementById('ai-fsvc')||{}).value||'').trim(),
+      notas:((document.getElementById('ai-notas')||{}).value||'').trim()
+    });
+  });
+  saveData();closeModal();showToast('✅ Aire actualizado','');render();
+}
+
+function openServiceAire(id){
+  openModal(
+    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;"><span style="font-size:1.4rem;">🔧</span><span style="font-size:.85rem;font-weight:700;color:#06b6d4;">Registrar Service</span></div>'+
+    '<div class="ff"><div class="ff-label">Fecha del service *</div><input class="inp" id="asv-fecha" type="date" value="'+today()+'"></div>'+
+    '<div class="ff"><div class="ff-label">Empresa / Técnico</div><input class="inp" id="asv-tec" placeholder="Nombre de empresa o técnico"></div>'+
+    '<div class="ff"><div class="ff-label">Descripción</div><input class="inp" id="asv-desc" placeholder="Limpieza, carga de gas, etc."></div>'+
+    '<div class="ff"><div class="ff-label">Notas</div><textarea class="inp" id="asv-notas" rows="2" placeholder="Observaciones..."></textarea></div>'+
+    '<button class="btn-grad" style="background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;" onclick="submitServiceAire(\''+id+'\')">🔧 Registrar</button>'
+  );
+}
+
+function submitServiceAire(id){
+  var fecha=(document.getElementById('asv-fecha')||{}).value||'';
+  if(!fecha){alert('Fecha obligatoria');return;}
+  var tec=((document.getElementById('asv-tec')||{}).value||'').trim();
+  var desc=((document.getElementById('asv-desc')||{}).value||'').trim()||'Service registrado';
+  var notas=((document.getElementById('asv-notas')||{}).value||'').trim();
+  var entry={id:'AS-'+Date.now(),fecha:fecha,descripcion:desc,tecnico:tec,notas:notas,registradoEn:new Date().toISOString()};
+  aires=aires.map(function(a){
+    if(a.id!==id)return a;
+    return Object.assign({},a,{ultimoService:fecha,historial:(a.historial||[]).concat(entry)});
+  });
+  saveData();closeModal();showToast('✅ Service registrado','');render();
+}
+
+function setAireEstado(id,estado){
+  aires=aires.map(function(a){return a.id!==id?a:Object.assign({},a,{estado:estado});});
+  var lbl={operativo:'✅ Operativo',falla:'⚠️ Con falla',fuera_servicio:'🔴 Fuera de servicio'}[estado]||estado;
+  saveData();showToast(lbl,'');render();
+}
+
+function deleteAire(id){
+  if(!confirm('¿Eliminar esta unidad?'))return;
+  aires=aires.filter(function(a){return a.id!==id;});
+  saveData();showToast('Eliminado','warn');setView('aires');
+}
+
+function deleteAireHistEntry(aireId,entryId){
+  if(!confirm('¿Eliminar este registro?'))return;
+  aires=aires.map(function(a){
+    if(a.id!==aireId)return a;
+    return Object.assign({},a,{historial:(a.historial||[]).filter(function(h){return h.id!==entryId;})});
+  });
+  saveData();showToast('Registro eliminado','warn');render();
+}
+
+// ═══════════════════════════════════════════
 //  HARD REFRESH
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
 var antenas=[];
-var APP_DISPLAY_VERSION="4.6.1";
-var APP_BUILD="28/05/26 00:00";
+var aires=[];
+var APP_DISPLAY_VERSION="4.6.2";
+var APP_BUILD="28/05/26 01:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
@@ -3732,9 +4001,11 @@ function init(){
             if(doc.exists&&Array.isArray(doc.data().eqs)&&doc.data().eqs.length>0){
               eqs=doc.data().eqs;
               if(Array.isArray(doc.data().antenas))antenas=doc.data().antenas;
+              if(Array.isArray(doc.data().aires))aires=doc.data().aires;
             } else {
               try{var s=localStorage.getItem("mt_v4");if(s){var p=JSON.parse(s);if(Array.isArray(p)&&p.length>0)eqs=p;}}catch(e){}
               try{var sa=localStorage.getItem("mt_antenas");if(sa){var pa=JSON.parse(sa);if(Array.isArray(pa))antenas=pa;}}catch(e){}
+              try{var sai=localStorage.getItem("mt_aires");if(sai){var pai=JSON.parse(sai);if(Array.isArray(pai))aires=pai;}}catch(e){}
             }
             render();
             setTimeout(checkForUpdates,3000);
