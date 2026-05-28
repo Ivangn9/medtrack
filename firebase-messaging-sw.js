@@ -33,17 +33,20 @@ messaging.onBackgroundMessage(payload => {
     vibrate: [200, 100, 200, 100, 200],
     tag:     'solicitud-nueva',
     renotify: true,
-    data:    { url: 'https://ivangn9.github.io/medtrack/stock-insumos.html', count: _badgeCount }
+    data:    { url: 'https://ivangn9.github.io/medtrack/stock-insumos.html?tab=solicitudes', count: _badgeCount }
   });
 });
 
 self.addEventListener('notificationclick', event => {
   event.notification.close();
-  const url = event.notification.data?.url || 'https://ivangn9.github.io/medtrack/stock-insumos.html';
+  const url = event.notification.data?.url || 'https://ivangn9.github.io/medtrack/stock-insumos.html?tab=solicitudes';
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
       for (const c of list) {
-        if (c.url.includes('stock-insumos') && 'focus' in c) return c.focus();
+        if (c.url.includes('stock-insumos') && 'focus' in c) {
+          c.postMessage({ type: 'switchTab', tab: 'solicitudes' });
+          return c.focus();
+        }
       }
       return clients.openWindow(url);
     })
