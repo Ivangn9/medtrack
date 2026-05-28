@@ -10,10 +10,10 @@
   <meta name="msapplication-TileColor" content="#0071e3" />
   <meta name="msapplication-TileImage" content="Iconogestioninsumos.png" />
   <!-- iOS / iPadOS: ícono de pantalla inicio -->
-  <link rel="apple-touch-icon" href="Iconogestioninsumos.png" />
-  <link rel="apple-touch-icon" sizes="180x180" href="Iconogestioninsumos.png" />
-  <link rel="apple-touch-icon" sizes="167x167" href="Iconogestioninsumos.png" />
-  <link rel="apple-touch-icon" sizes="152x152" href="Iconogestioninsumos.png" />
+  <link rel="apple-touch-icon" href="icon_backup.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="icon_backup.png" />
+  <link rel="apple-touch-icon" sizes="167x167" href="icon_backup.png" />
+  <link rel="apple-touch-icon" sizes="152x152" href="icon_backup.png" />
   <!-- Android PWA / Windows -->
   <link rel="manifest" href="manifest-insumos.json" />
   <link rel="icon" type="image/png" sizes="512x512" href="Iconogestioninsumos.png" />
@@ -131,7 +131,9 @@
         inset 0 2.5px 0 rgba(255,255,255,1.0),
         inset 0 0 0 1px rgba(255,255,255,.42);
       position: relative; overflow: hidden;
+      scrollbar-width: none;
     }
+    .tab-nav::-webkit-scrollbar { display: none; }
     .tab-btn {
       display: flex; align-items: center; gap: 6px;
       padding: 9px 18px; border: none; border-radius: var(--r-pill);
@@ -752,6 +754,8 @@
       .stock-controls .stock-bar-wrap { display: none; }
       .header-logo { height: 40px; }
       .center-name { font-size: 17px; }
+      .topbar { justify-content: flex-start; padding-left: 10px; padding-right: 10px; }
+      .tab-nav { flex: 1; min-width: 0; overflow-x: auto; overflow-y: hidden; }
     }
     @media (max-width: 380px) {
       .center-selector { grid-template-columns: 1fr; }
@@ -3545,13 +3549,24 @@ _auth.onAuthStateChanged(async user=>{
   if(!user){ showLogin(false); currentUser=null; isAdmin=false; return; }
   const email=user.email.toLowerCase();
   currentUser=user;
-  if(email===ADMIN_EMAIL){ isAdmin=true; showApp(); startListeners(); initPushNotifications(); return; }
+  if(email===ADMIN_EMAIL){ isAdmin=true; showApp(); startListeners(); initPushNotifications(); _handleNotifTabParam(); return; }
   try{
     const doc=await _db.collection(DB_USERS).doc(email).get();
-    if(doc.exists){ isAdmin=false; showApp(); startListeners(); initPushNotifications(); }
+    if(doc.exists){ isAdmin=false; showApp(); startListeners(); initPushNotifications(); _handleNotifTabParam(); }
     else{ showLogin(true); }
   }catch(e){ toast("⚠️ Error verificando acceso"); showLogin(false); }
 });
+// ─── Notification tab navigation ─────────────────────────────────────────────
+function _handleNotifTabParam(){
+  const tab=new URLSearchParams(location.search).get('tab');
+  const valid=['inventario','movimientos','graficas','gestion','costos','reportes','solicitudes','vencimientos'];
+  if(tab&&valid.includes(tab)) setTimeout(()=>switchTabDirect(tab),400);
+}
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.addEventListener('message',evt=>{
+    if(evt.data?.type==='switchTab'&&evt.data?.tab) switchTabDirect(evt.data.tab);
+  });
+}
 // ─── Sidebar ─────────────────────────────────────────────────────────────────
 function toggleSidebar(){
   document.getElementById("sidebar").classList.toggle("open");
