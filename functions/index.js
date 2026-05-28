@@ -12,9 +12,12 @@ exports.notifySolicitud = functions.firestore
       .collection("insumos_cima").doc("push_tokens").get();
     if (!tokensDoc.exists) return null;
 
-    const tokens = Object.values(tokensDoc.data())
-      .map(v => v.token)
-      .filter(Boolean);
+    // Deduplicar tokens: el mismo dispositivo puede estar registrado bajo varios UIDs
+    const tokens = [...new Set(
+      Object.values(tokensDoc.data())
+        .map(v => v.token)
+        .filter(Boolean)
+    )];
     if (!tokens.length) return null;
 
     const itemCount = (sol.items || []).length;
@@ -32,7 +35,7 @@ exports.notifySolicitud = functions.firestore
           requireInteraction: false,
         },
         fcmOptions: {
-          link: "https://ivangn9.github.io/medtrack/stock-insumos.html",
+          link: "https://ivangn9.github.io/medtrack/stock-insumos.html?tab=solicitudes",
         },
       },
     };
