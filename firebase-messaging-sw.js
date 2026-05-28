@@ -12,9 +12,20 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
+// Contador de notificaciones no leídas en el globo del ícono
+let _badgeCount = 0;
+
 messaging.onBackgroundMessage(payload => {
   const title = payload.notification?.title || '📬 Nueva solicitud';
   const body  = payload.notification?.body  || '';
+
+  _badgeCount++;
+
+  // Globo numérico en el ícono de la app (iOS 16.4+ / Android)
+  if ('setAppBadge' in self.navigator) {
+    self.navigator.setAppBadge(_badgeCount).catch(()=>{});
+  }
+
   self.registration.showNotification(title, {
     body,
     icon:    '/medtrack/Iconogestioninsumos.png',
@@ -22,7 +33,7 @@ messaging.onBackgroundMessage(payload => {
     vibrate: [200, 100, 200, 100, 200],
     tag:     'solicitud-nueva',
     renotify: true,
-    data: { url: 'https://ivangn9.github.io/medtrack/stock-insumos.html' }
+    data:    { url: 'https://ivangn9.github.io/medtrack/stock-insumos.html', count: _badgeCount }
   });
 });
 
@@ -37,4 +48,14 @@ self.addEventListener('notificationclick', event => {
       return clients.openWindow(url);
     })
   );
+});
+
+// Limpiar globo cuando el usuario abre la app
+self.addEventListener('message', event => {
+  if (event.data === 'clearBadge') {
+    _badgeCount = 0;
+    if ('clearAppBadge' in self.navigator) {
+      self.navigator.clearAppBadge().catch(()=>{});
+    }
+  }
 });
