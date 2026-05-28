@@ -1966,7 +1966,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "4.11";
+const APP_VERSION = "4.12";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -4202,6 +4202,10 @@ function showInAppNotif(icon,title,body,onClick){
   }
 }
 function notifyNuevaSolicitud(s){
+  // Ignorar solicitudes con más de 60 s — son catch-up del background, ya cubiertas por push notification
+  const tsSeconds = s.timestamp?.seconds ?? (s.timestamp?.toDate?.()?.getTime?.() / 1000) ?? 0;
+  if(tsSeconds > 0 && (Date.now()/1000 - tsSeconds) > 60) return;
+
   playNotifSound();
   const prio=s.prioridad||"Normal";
   const body=`${s.solicitante||"—"} · ${prio} · ${s.sector||""} · ${(s.items||[]).length} insumos`;
