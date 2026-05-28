@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.27.68 -->
+<!-- v2026.05.27.69 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>MedTrack — CIMA</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.05.27.68">
+<meta name="app-version" content="v2026.05.27.69">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -2001,6 +2001,7 @@ function rDetalle(){
     h+='<button onclick="setChillerEstado(\''+eq.id+'\',\'operativo\')" style="padding:6px 12px;border-radius:var(--r-pill);font-size:.75rem;font-weight:700;cursor:pointer;border:2px solid '+(_chOp?'#16a34a':'rgba(120,120,128,.25)')+';background:'+(_chOp?'rgba(52,199,89,.15)':'rgba(120,120,128,.07)')+';color:'+(_chOp?'#16a34a':'var(--text3)')+';">✅ Operativo</button>';
     h+='<button onclick="setChillerEstado(\''+eq.id+'\',\'service\')" style="padding:6px 12px;border-radius:var(--r-pill);font-size:.75rem;font-weight:700;cursor:pointer;border:2px solid '+(_chSv?'#c2410c':'rgba(120,120,128,.25)')+';background:'+(_chSv?'rgba(255,149,0,.15)':'rgba(120,120,128,.07)')+';color:'+(_chSv?'#c2410c':'var(--text3)')+';">🔧 Service</button>';
     h+='<button onclick="setChillerEstado(\''+eq.id+'\',\'rotura\')" style="padding:6px 12px;border-radius:var(--r-pill);font-size:.75rem;font-weight:700;cursor:pointer;border:2px solid '+(_chRt?'#dc2626':'rgba(120,120,128,.25)')+';background:'+(_chRt?'rgba(239,68,68,.15)':'rgba(120,120,128,.07)')+';color:'+(_chRt?'#dc2626':'var(--text3)')+';">🔴 Rotura</button>';
+    h+='<button onclick="openRegistrarServiceChiller(\''+eq.id+'\')" style="padding:6px 12px;border-radius:var(--r-pill);font-size:.75rem;font-weight:700;cursor:pointer;border:1.5px solid rgba(8,145,178,.35);background:rgba(8,145,178,.09);color:#0891b2;margin-left:auto;">📋 Registrar service</button>';
     h+='</div>';
     h+=(_chLastEvt?'<div style="font-size:.68rem;color:var(--text3);">Último evento: '+fD(_chLastEvt.fecha)+'</div>':'');
     h+='</div>';
@@ -2824,6 +2825,28 @@ function setChillerEstado(eqId,estado){
   _saveRefrig(eqId,{chiller:estado},entry);
   showToast(labels[estado],'');
 }
+function openRegistrarServiceChiller(eqId){
+  openModal(
+    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">'+
+      '<span style="font-size:1.4rem;">🔧</span>'+
+      '<span style="font-size:.82rem;font-weight:700;color:#0891b2;">Registrar Service de Chiller</span>'+
+    '</div>'+
+    '<div class="ff"><div class="ff-label">Fecha del service *</div><input class="inp" id="rsc-fecha" type="date" value="'+today()+'"></div>'+
+    '<div class="ff"><div class="ff-label">Empresa / Técnico</div><input class="inp" id="rsc-tec" placeholder="Nombre de la empresa o técnico"></div>'+
+    '<div class="ff"><div class="ff-label">Notas</div><textarea class="inp" id="rsc-notas" rows="3" placeholder="Tareas realizadas, observaciones..."></textarea></div>'+
+    '<button class="btn-grad btn-grad-blue" onclick="submitServiceChiller(\''+eqId+'\')">📋 Registrar</button>'
+  );
+}
+function submitServiceChiller(eqId){
+  var fecha=document.getElementById('rsc-fecha').value;
+  if(!fecha){alert('Fecha obligatoria');return;}
+  var tec=((document.getElementById('rsc-tec')||{}).value||'').trim();
+  var notas=((document.getElementById('rsc-notas')||{}).value||'').trim();
+  var desc='Service Chiller'+(tec?' — '+tec:'');
+  var entry={id:'RH-'+Date.now(),fecha:fecha,tipo:'chiller',descripcion:desc,valor:'service',tecnico:tec,notas:notas,registradoEn:new Date().toISOString()};
+  _saveRefrig(eqId,{chiller:'service'},entry);
+  closeModal();showToast('✅ Service de Chiller registrado','');
+}
 function setHelioGaseoso(eqId,estado){
   var labels={ok:'✅ OK',presion_baja:'⚠️ Presión Baja'};
   var entry={id:'RH-'+Date.now(),fecha:today(),tipo:'helio_gaseoso',descripcion:'Helio Gaseoso: '+labels[estado],valor:estado,tecnico:'',notas:'',registradoEn:new Date().toISOString()};
@@ -3511,8 +3534,8 @@ function submitRotura(){
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
 var antenas=[];
-var APP_DISPLAY_VERSION="4.6.0";
-var APP_BUILD="27/05/26 23:30";
+var APP_DISPLAY_VERSION="4.6.1";
+var APP_BUILD="28/05/26 00:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
