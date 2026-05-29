@@ -1601,6 +1601,7 @@ function removeParteFile(fid){
   _deletedParteFiles.push(fid);
   var row=document.getElementById('pt-file-row-'+fid);if(row)row.style.display='none';
 }
+function attachPDF(tipo){
   var input=document.createElement('input');input.type='file';input.accept='application/pdf';input.multiple=true;
   input.onchange=function(){
     Array.from(input.files).forEach(function(file){
