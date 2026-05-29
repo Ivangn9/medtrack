@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.29.87 -->
+<!-- v2026.05.29.88 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>MedTrack — CIMA</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.05.29.87">
+<meta name="app-version" content="v2026.05.29.88">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -2829,60 +2829,168 @@ function _buildRM3D(cc,eq){
   var pc=rmHelioPct(eq);if(pc===null)pc=85;
   var W=cc.clientWidth||cc.offsetWidth||600,H=cc.clientHeight||340;
   var scene=new T.Scene();
-  var camera=new T.PerspectiveCamera(42,W/H,0.1,100);
-  var dist=11;camera.position.set(0,2.4,dist);camera.lookAt(0,0,0);
+  var camera=new T.PerspectiveCamera(40,W/H,0.1,100);
+  var dist=13;camera.position.set(0,2.5,dist);camera.lookAt(0,0.5,0);
   var renderer=new T.WebGLRenderer({antialias:true,alpha:true});
   renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
   renderer.setSize(W,H);
   cc.innerHTML='';cc.appendChild(renderer.domElement);
   renderer.domElement.style.display='block';renderer.domElement.style.touchAction='none';
-  // luces
-  scene.add(new T.AmbientLight(0x8aa6ff,0.65));
-  var dl=new T.DirectionalLight(0xffffff,0.95);dl.position.set(6,9,7);scene.add(dl);
-  var pl=new T.PointLight(0x66ccff,0.55,40);pl.position.set(-5,3,5);scene.add(pl);
+  scene.add(new T.AmbientLight(0x8aa6ff,0.72));
+  var dl=new T.DirectionalLight(0xffffff,1.0);dl.position.set(5,8,6);scene.add(dl);
+  var dl2=new T.DirectionalLight(0x9ab0ff,0.42);dl2.position.set(-5,3,-5);scene.add(dl2);
+  var pl=new T.PointLight(0x66ccff,0.5,40);pl.position.set(-4,3,5);scene.add(pl);
   var g=new T.Group();scene.add(g);
-  function std(c,o){return new T.MeshStandardMaterial(Object.assign({color:c,metalness:0.35,roughness:0.5},o||{}));}
-  var bodyMat=std(0xdfe6f5);
-  // housing
-  var housing=new T.Mesh(new T.CylinderGeometry(2.4,2.4,3,48),bodyMat);housing.rotation.x=Math.PI/2;g.add(housing);
-  var bezel=new T.Mesh(new T.TorusGeometry(2.4,0.26,16,48),bodyMat);bezel.position.z=1.5;g.add(bezel);
-  var bore=new T.Mesh(new T.CylinderGeometry(1.25,1.25,3.2,48,1,true),std(0x0a1322,{roughness:0.9,metalness:0.1,side:T.DoubleSide}));bore.rotation.x=Math.PI/2;g.add(bore);
-  var shRing=new T.Mesh(new T.TorusGeometry(1.25,0.07,12,48),std(cSh,{emissive:cSh,emissiveIntensity:0.8}));shRing.position.z=1.56;g.add(shRing);
-  // coldhead
-  var cold=new T.Mesh(new T.BoxGeometry(0.85,0.85,0.85),std(cHead,{emissive:cHead,emissiveIntensity:0.15}));cold.position.set(0,2.6,0);g.add(cold);
-  var coldDisc=new T.Mesh(new T.CylinderGeometry(0.5,0.5,0.14,24),std(cHead,{metalness:0.6,roughness:0.3}));coldDisc.position.set(0,3.15,0);g.add(coldDisc);
-  // camilla
-  var table=new T.Mesh(new T.BoxGeometry(1,0.13,3.4),std(cCam,{roughness:0.6}));table.position.set(0,-0.25,2);g.add(table);
-  // tanque helio
-  var tank=new T.Mesh(new T.CylinderGeometry(0.72,0.72,2.4,24),std(0xcdd8ee,{transparent:true,opacity:0.45,roughness:0.3}));tank.position.set(-3.5,0,0);g.add(tank);
-  var hLevel=Math.max(0.05,(pc/100)*2.2);
-  var heLiq=new T.Mesh(new T.CylinderGeometry(0.62,0.62,hLevel,24),std(cTank,{emissive:0x1fa9d6,emissiveIntensity:0.3,roughness:0.3}));heLiq.position.set(-3.5,-1.1+hLevel/2,0);g.add(heLiq);
-  // conectores
-  var conn=new T.Mesh(new T.BoxGeometry(1.5,0.5,0.22),std(cCon,{roughness:0.5}));conn.position.set(0,-1.75,1.55);g.add(conn);
-  // gabinete gradientes
-  var cab=new T.Mesh(new T.BoxGeometry(1.5,2.5,1.5),std(0x9aa6c4));cab.position.set(3.6,0,-0.4);g.add(cab);
-  var gcols=[cGx,cGy,cGz,cGg],boards=[];
-  for(var i=0;i<4;i++){var b=new T.Mesh(new T.BoxGeometry(1.6,0.34,0.12),std(gcols[i],{emissive:gcols[i],emissiveIntensity:0.25}));b.position.set(3.6,0.85-i*0.52,0.45);g.add(b);boards.push(b);}
-  // compresor
-  var comp=new T.Mesh(new T.BoxGeometry(1.3,1.7,1.3),std(cComp,{roughness:0.5}));comp.position.set(2.3,-0.1,-3.2);g.add(comp);
-  var compFan=new T.Mesh(new T.CylinderGeometry(0.42,0.42,0.12,20),std(0x222a3a));compFan.rotation.x=Math.PI/2;compFan.position.set(2.3,-0.1,-2.5);g.add(compFan);
-  // chiller
-  var chil=new T.Mesh(new T.BoxGeometry(1.05,1.45,1.05),std(cChil,{roughness:0.5}));chil.position.set(4.2,-0.2,-3.2);g.add(chil);
-  // linea de helio compresor → scanner
-  var dx=0-2.3,dz=-1-(-3.2),len=Math.sqrt(dx*dx+dz*dz);
-  var tube=new T.Mesh(new T.BoxGeometry(0.12,0.12,len),std(cComp,{emissive:cComp,emissiveIntensity:0.35}));tube.position.set(1.15,-0.1,-2.1);tube.rotation.y=Math.atan2(dx,dz);g.add(tube);
-  // interacción rotación / zoom
-  var rot={x:0.12,y:-0.55},drag=false,lastX=0,lastY=0,pinch=0;
+  function m(c,o){return new T.MeshStandardMaterial(Object.assign({color:c,metalness:0.3,roughness:0.5},o||{}));}
+  function txtTex(text,bg,fg,w,h){
+    var cv=document.createElement('canvas');cv.width=w||256;cv.height=h||48;
+    var cx=cv.getContext('2d');var fs=Math.round((h||48)*0.42);
+    cx.font='bold '+fs+'px monospace';
+    var tw=cx.measureText(text).width;
+    if(tw>(w||256)-14){fs=Math.floor(fs*((w||256)-14)/tw);}
+    cx.fillStyle=bg||'#1a2030';cx.fillRect(0,0,cv.width,cv.height);
+    cx.fillStyle=fg||'#fff';cx.font='bold '+fs+'px monospace';
+    cx.textAlign='center';cx.textBaseline='middle';cx.shadowColor='rgba(0,0,0,0.55)';cx.shadowBlur=3;
+    cx.fillText(text,(w||256)/2,(h||48)/2);
+    return new T.CanvasTexture(cv);
+  }
+  // ── RESONADOR (cuerpo cuadrado con bore circular) ──
+  var bodyMat=m(0xcde0f0,{metalness:0.18,roughness:0.36});
+  var sideMat=m(0xa5b8cc,{metalness:0.32,roughness:0.3});
+  // Cilindro central (da el aspecto redondeado del frente/dorso)
+  var housing=new T.Mesh(new T.CylinderGeometry(1.55,1.55,3.5,56),bodyMat);
+  housing.rotation.x=Math.PI/2;g.add(housing);
+  // Extensiones rectangulares arriba/abajo para dar forma cuadrada
+  var topExt=new T.Mesh(new T.BoxGeometry(2.85,0.9,3.5),bodyMat);topExt.position.y=1.55;g.add(topExt);
+  var botExt=new T.Mesh(new T.BoxGeometry(2.85,0.9,3.5),bodyMat);botExt.position.y=-1.55;g.add(botExt);
+  var lExt=new T.Mesh(new T.BoxGeometry(0.9,3.1,3.5),bodyMat);lExt.position.x=-1.55;g.add(lExt);
+  var rExt=new T.Mesh(new T.BoxGeometry(0.9,3.1,3.5),bodyMat);rExt.position.x=1.55;g.add(rExt);
+  // Anillo frontal del bore
+  var bezel=new T.Mesh(new T.TorusGeometry(1.18,0.16,16,56),sideMat);bezel.position.z=1.77;g.add(bezel);
+  var bezelB=new T.Mesh(new T.TorusGeometry(1.18,0.1,12,48),sideMat);bezelB.position.z=-1.77;g.add(bezelB);
+  // Túnel oscuro
+  var bore=new T.Mesh(new T.CylinderGeometry(1.06,1.06,3.54,48,1,true),m(0x060c18,{roughness:0.95,metalness:0.04,side:T.BackSide}));
+  bore.rotation.x=Math.PI/2;g.add(bore);
+  // Paneles laterales oscuros (madera/carbono - visibles en las fotos)
+  var dpMat=m(0x3a2e22,{metalness:0.1,roughness:0.75});
+  var lpanel=new T.Mesh(new T.BoxGeometry(0.13,2.1,1.9),dpMat);lpanel.position.set(-2.52,0,0.1);g.add(lpanel);
+  var rpanel=new T.Mesh(new T.BoxGeometry(0.13,2.1,1.9),dpMat);rpanel.position.set(2.52,0,0.1);g.add(rpanel);
+  // Shimming rings (indicadores del estado)
+  var shMat=m(cSh,{emissive:cSh,emissiveIntensity:0.82,metalness:0.1,roughness:0.3});
+  var shRing=new T.Mesh(new T.TorusGeometry(1.06,0.055,10,48),shMat);shRing.position.z=1.78;g.add(shRing);
+  var shRing2=new T.Mesh(new T.TorusGeometry(1.06,0.04,10,48),shMat);shRing2.position.z=-1.78;g.add(shRing2);
+  // Panel de control frontal
+  var cpanel=new T.Mesh(new T.BoxGeometry(0.62,0.2,0.07),m(0x181d28));cpanel.position.set(0,1.1,1.8);g.add(cpanel);
+  var scrn=new T.Mesh(new T.BoxGeometry(0.48,0.14,0.02),m(0x0d3249,{emissive:0x0a5a80,emissiveIntensity:0.7}));scrn.position.set(0,1.1,1.84);g.add(scrn);
+  // Indicadores de peligro (puntos rojos)
+  var hazMat=m(0xff1a1a,{emissive:0xdd0000,emissiveIntensity:0.75});
+  [-0.44,0.44].forEach(function(x){var hz=new T.Mesh(new T.CircleGeometry(0.048,10),hazMat);hz.position.set(x,0.2,1.8);g.add(hz);});
+  // ── COLDHEAD ──
+  var chMat=m(cHead,{emissive:cHead,emissiveIntensity:0.13});
+  var coldBody=new T.Mesh(new T.CylinderGeometry(0.3,0.36,0.52,20),chMat);coldBody.position.set(0,2.6,0.2);g.add(coldBody);
+  var coldNeck=new T.Mesh(new T.CylinderGeometry(0.2,0.3,0.3,20),chMat);coldNeck.position.set(0,3.0,0.2);g.add(coldNeck);
+  var coldDisc=new T.Mesh(new T.CylinderGeometry(0.26,0.26,0.09,20),m(0x28384a,{metalness:0.72,roughness:0.2}));coldDisc.position.set(0,3.18,0.2);g.add(coldDisc);
+  // ── CAMILLA (grupo animado) ──
+  var tg=new T.Group();g.add(tg);
+  var track=new T.Mesh(new T.BoxGeometry(0.36,0.26,4.8),m(0x8898aa,{metalness:0.5,roughness:0.3}));track.position.set(0,-1.88,1.5);tg.add(track);
+  [-0.35,0.35].forEach(function(x){var rail=new T.Mesh(new T.BoxGeometry(0.07,0.09,4.8),m(0xaabace,{metalness:0.72,roughness:0.18}));rail.position.set(x,-1.7,1.5);tg.add(rail);});
+  var cMat=m(cCam,{roughness:0.66,metalness:0.0});
+  var arch=new T.Mesh(new T.TorusGeometry(0.21,0.038,10,24,Math.PI),m(0x889aaa,{metalness:0.4}));
+  arch.rotation.z=Math.PI/2;arch.position.set(0,-1.57,-0.7);tg.add(arch);
+  var headPad=new T.Mesh(new T.BoxGeometry(0.7,0.1,0.48),cMat);headPad.position.set(0,-1.62,-0.65);tg.add(headPad);
+  var pad1=new T.Mesh(new T.BoxGeometry(0.76,0.12,1.65),cMat);pad1.position.set(0,-1.62,0.5);tg.add(pad1);
+  var pad2=new T.Mesh(new T.BoxGeometry(0.76,0.12,1.85),cMat);pad2.position.set(0,-1.62,2.22);tg.add(pad2);
+  var divider=new T.Mesh(new T.BoxGeometry(0.76,0.07,0.06),m(0x3a4a5a));divider.position.set(0,-1.6,1.32);tg.add(divider);
+  [-0.4,0.22,0.82,1.62,2.5].forEach(function(z){var s=new T.Mesh(new T.BoxGeometry(0.76,0.04,0.05),m(0x1e2833));s.position.set(0,-1.55,z);tg.add(s);});
+  var whl=new T.Mesh(new T.BoxGeometry(0.48,0.12,0.12),m(0x3a3a3a,{metalness:0.6}));whl.position.set(0,-2.02,3.6);tg.add(whl);
+  // ── CONECTORES RF ──
+  var conMat=m(cCon,{roughness:0.5});
+  [-0.5,0.5].forEach(function(x){
+    var cb=new T.Mesh(new T.BoxGeometry(0.15,0.7,0.11),conMat);cb.position.set(x,-1.32,1.83);g.add(cb);
+    var ct=new T.Mesh(new T.CylinderGeometry(0.05,0.05,0.17,10),m(0x3a4a5a,{metalness:0.62}));ct.rotation.x=Math.PI/2;ct.position.set(x,-1.1,1.94);g.add(ct);
+  });
+  // ── TANQUE HELIO ──
+  var tkMat=m(0xb0c8e8,{transparent:true,opacity:0.46,roughness:0.25,metalness:0.15});
+  var tank=new T.Mesh(new T.CylinderGeometry(0.6,0.6,2.75,30),tkMat);tank.position.set(-4.1,0,0);g.add(tank);
+  var tkCT=new T.Mesh(new T.SphereGeometry(0.6,30,15,0,Math.PI*2,0,Math.PI/2),m(0x9eb8d8,{roughness:0.35}));tkCT.position.set(-4.1,1.38,0);g.add(tkCT);
+  var tkCB=new T.Mesh(new T.SphereGeometry(0.6,30,15,0,Math.PI*2,Math.PI/2,Math.PI/2),m(0x9eb8d8,{roughness:0.35}));tkCB.position.set(-4.1,-1.38,0);g.add(tkCB);
+  var hLev=Math.max(0.1,(pc/100)*2.55);
+  var heLiq=new T.Mesh(new T.CylinderGeometry(0.52,0.52,hLev,28),m(cTank,{emissive:0x10a8d6,emissiveIntensity:0.38,roughness:0.2}));
+  heLiq.position.set(-4.1,-1.27+hLev/2,0);g.add(heLiq);
+  var band=new T.Mesh(new T.CylinderGeometry(0.62,0.62,0.17,28),m(0x2255bb,{metalness:0.5}));band.position.set(-4.1,0.48,0);g.add(band);
+  var hePipe=new T.Mesh(new T.CylinderGeometry(0.048,0.048,1.2,12),m(0x3388cc,{metalness:0.62,roughness:0.3}));
+  hePipe.rotation.z=Math.PI/2;hePipe.position.set(-3.2,0.48,0);g.add(hePipe);
+  // ── GABINETE GRADIENTES (rack de servidor) ──
+  var rackMat=m(0x12161e,{roughness:0.65,metalness:0.42});
+  var rack=new T.Mesh(new T.BoxGeometry(1.55,3.45,0.88),rackMat);rack.position.set(3.9,0,-0.48);g.add(rack);
+  var frmMat=m(0x505868,{metalness:0.82,roughness:0.18});
+  [-0.7,0.7].forEach(function(x){var fr=new T.Mesh(new T.BoxGeometry(0.07,3.45,0.06),frmMat);fr.position.set(3.9+x,0,-0.03);g.add(fr);});
+  // Header del rack
+  var hdrTex=txtTex('MODULO GRADIENTES','#0c1420','#7aacff',256,34);
+  var hdr=new T.Mesh(new T.PlaneGeometry(1.42,0.27),new T.MeshBasicMaterial({map:hdrTex,transparent:true}));
+  hdr.position.set(3.9,1.56,-0.03);g.add(hdr);
+  // Placas de gradiente con etiquetas de texto
+  var gDefs=[{c:cGx,lbl:'Eje  X'},{c:cGy,lbl:'Eje  Y'},{c:cGz,lbl:'Eje  Z'},{c:cGg,lbl:'Mod. Gradientes'}];
+  var boards=[];
+  gDefs.forEach(function(def,i){
+    var bMat=m(def.c,{emissive:def.c,emissiveIntensity:0.2,roughness:0.42,metalness:0.52});
+    var board=new T.Mesh(new T.BoxGeometry(1.28,0.46,0.12),bMat);
+    board.position.set(3.9,0.95-i*0.64,-0.05);g.add(board);boards.push(board);
+    var tex=txtTex(def.lbl,def.c,'#fff',256,46);
+    var lp=new T.Mesh(new T.PlaneGeometry(1.18,0.38),new T.MeshBasicMaterial({map:tex,transparent:true}));
+    lp.position.set(3.9,0.95-i*0.64,0.02);g.add(lp);
+  });
+  // ── COMPRESOR HELIO ──
+  var compBody=new T.Mesh(new T.BoxGeometry(1.12,1.62,1.08),m(cComp,{roughness:0.5}));compBody.position.set(2.2,-0.1,-3.7);g.add(compBody);
+  var compFH=new T.Mesh(new T.CylinderGeometry(0.34,0.34,0.09,22),m(0x1e2832));compFH.rotation.x=Math.PI/2;compFH.position.set(2.2,0.1,-3.14);g.add(compFH);
+  var compFan=new T.Mesh(new T.CylinderGeometry(0.26,0.26,0.06,8),m(0x3a4a5a,{metalness:0.62}));compFan.rotation.x=Math.PI/2;compFan.position.set(2.2,0.1,-3.08);g.add(compFan);
+  var compPipe=new T.Mesh(new T.CylinderGeometry(0.052,0.052,1.45,12),m(0x3388cc,{metalness:0.62}));compPipe.rotation.z=Math.PI/2;compPipe.position.set(3.1,0,-3.7);g.add(compPipe);
+  // Línea He compresor → resonador
+  var dxH=0-2.2,dzH=0-(-3.7),hl=Math.sqrt(dxH*dxH+dzH*dzH);
+  var heTube=new T.Mesh(new T.BoxGeometry(0.09,0.09,hl),m(cComp,{emissive:cComp,emissiveIntensity:0.3}));
+  heTube.position.set(1.1,0,-1.85);heTube.rotation.y=Math.atan2(dxH,dzH);g.add(heTube);
+  // ── CHILLER (unidad industrial con ventiladores en la parte superior) ──
+  var cBMat=m(0x252830,{roughness:0.58,metalness:0.4});
+  var chilBody=new T.Mesh(new T.BoxGeometry(2.65,0.88,1.85),cBMat);chilBody.position.set(5.3,-0.56,-3.6);g.add(chilBody);
+  // Paneles de rejilla laterales
+  var grMat=m(0x1a1e24,{roughness:0.72,metalness:0.28});
+  var grL=new T.Mesh(new T.BoxGeometry(0.07,0.8,1.75),grMat);grL.position.set(3.98,-0.56,-3.6);g.add(grL);
+  var grR=new T.Mesh(new T.BoxGeometry(0.07,0.8,1.75),grMat);grR.position.set(6.62,-0.56,-3.6);g.add(grR);
+  // Base/patas del chiller
+  var baseMat=m(0x1a1e24,{metalness:0.5});
+  [-0.9,0.9].forEach(function(x){[-0.7,0.7].forEach(function(z){
+    var leg=new T.Mesh(new T.BoxGeometry(0.12,0.22,0.12),baseMat);leg.position.set(5.3+x,-1.06,z-3.6);g.add(leg);
+  });});
+  // Ventiladores en la parte superior (2 filas × 4 columnas = 8 fans)
+  var fans=[];
+  for(var fi=0;fi<2;fi++){for(var fj=0;fj<4;fj++){
+    var fx=4.2+fj*0.58,fz=-4.36+fi*0.6;
+    var fRing=new T.Mesh(new T.TorusGeometry(0.22,0.042,8,24),m(0x252830,{roughness:0.6}));
+    fRing.rotation.x=Math.PI/2;fRing.position.set(fx,-0.1,fz);g.add(fRing);
+    var fHub=new T.Mesh(new T.CylinderGeometry(0.05,0.05,0.06,10),m(0x1a1e24,{metalness:0.7}));
+    fHub.rotation.x=Math.PI/2;fHub.position.set(fx,-0.09,fz);g.add(fHub);
+    var fBlade=new T.Mesh(new T.CylinderGeometry(0.18,0.18,0.04,7),m(cChil,{emissive:cChil,emissiveIntensity:0.35}));
+    fBlade.rotation.x=Math.PI/2;fBlade.position.set(fx,-0.08,fz);g.add(fBlade);fans.push(fBlade);
+  }}
+  // Tubería de agua azul con válvula roja
+  var wPipe=new T.Mesh(new T.CylinderGeometry(0.055,0.055,2.45,12),m(0x2288cc,{metalness:0.65,roughness:0.28}));
+  wPipe.rotation.z=Math.PI/2;wPipe.position.set(4.38,-0.56,-4.32);g.add(wPipe);
+  var wValve=new T.Mesh(new T.BoxGeometry(0.09,0.14,0.14),m(0xcc1111,{emissive:0x880000,emissiveIntensity:0.4}));
+  wValve.position.set(3.5,-0.56,-4.32);g.add(wValve);
+  var wCap=new T.Mesh(new T.CylinderGeometry(0.065,0.065,0.1,10),m(0xdddddd,{metalness:0.8}));
+  wCap.rotation.z=Math.PI/2;wCap.position.set(3.35,-0.56,-4.32);g.add(wCap);
+  // ── INTERACCIÓN ──
+  var rot={x:0.12,y:-0.5},drag=false,lastX=0,lastY=0,pinch=0;
   var dom=renderer.domElement;
   function pDown(e){drag=true;var t=e.touches?e.touches[0]:e;lastX=t.clientX;lastY=t.clientY;}
   function pMove(e){
-    if(e.touches&&e.touches.length===2){var d2=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);if(pinch)dist=Math.max(6,Math.min(18,dist-(d2-pinch)*0.03));pinch=d2;e.preventDefault&&e.preventDefault();return;}
+    if(e.touches&&e.touches.length===2){var d2=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);if(pinch)dist=Math.max(7,Math.min(20,dist-(d2-pinch)*0.03));pinch=d2;e.preventDefault&&e.preventDefault();return;}
     if(!drag)return;var t=e.touches?e.touches[0]:e;
     rot.y+=(t.clientX-lastX)*0.01;rot.x+=(t.clientY-lastY)*0.01;rot.x=Math.max(-0.9,Math.min(1.2,rot.x));
     lastX=t.clientX;lastY=t.clientY;e.preventDefault&&e.preventDefault();
   }
   function pUp(){drag=false;pinch=0;}
-  function onWheel(e){dist=Math.max(6,Math.min(18,dist+(e.deltaY>0?0.6:-0.6)));e.preventDefault&&e.preventDefault();}
+  function onWheel(e){dist=Math.max(7,Math.min(20,dist+(e.deltaY>0?0.6:-0.6)));e.preventDefault&&e.preventDefault();}
   dom.addEventListener('mousedown',pDown);window.addEventListener('mousemove',pMove);window.addEventListener('mouseup',pUp);
   dom.addEventListener('touchstart',pDown,{passive:false});dom.addEventListener('touchmove',pMove,{passive:false});dom.addEventListener('touchend',pUp);
   dom.addEventListener('wheel',onWheel,{passive:false});
@@ -2893,14 +3001,15 @@ function _buildRM3D(cc,eq){
   function loop(){
     if(view!=='estadorm'||!document.body.contains(dom)){_disposeRM3D();return;}
     clock+=0.016;
-    if(!drag)rot.y+=0.0022;
+    if(!drag)rot.y+=0.002;
     g.rotation.y=rot.y;g.rotation.x=rot.x;
-    camera.position.set(0,2.4,dist);camera.lookAt(0,0,0);
+    camera.position.set(0,2.5,dist);camera.lookAt(0,0.5,0);
     coldDisc.rotation.y+=0.09;
-    compFan.rotation.z+=compRed?0.04:0.22;
-    shRing.material.emissiveIntensity=0.5+0.4*Math.sin(clock*2.5);
-    for(var k=0;k<boards.length;k++){boards[k].material.emissiveIntensity=0.15+0.3*Math.abs(Math.sin(clock*2+k));}
-    table.position.z=2+Math.sin(clock*0.55)*0.85;
+    compFan.rotation.z+=compRed?0.03:0.22;
+    fans.forEach(function(f){f.rotation.z+=0.15;});
+    shMat.emissiveIntensity=0.5+0.4*Math.sin(clock*2.5);
+    boards.forEach(function(b,k){b.material.emissiveIntensity=0.1+0.2*Math.abs(Math.sin(clock*1.8+k*0.7));});
+    tg.position.z=Math.sin(clock*0.45)*0.95;
     renderer.render(scene,camera);
     _rm3d.raf=requestAnimationFrame(loop);
   }
@@ -4822,8 +4931,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="4.9.0";
-var APP_BUILD="29/05/26 18:00";
+var APP_DISPLAY_VERSION="4.9.1";
+var APP_BUILD="29/05/26 19:30";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
