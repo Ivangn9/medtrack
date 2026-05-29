@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.29.80 -->
+<!-- v2026.05.29.81 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>MedTrack — CIMA</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.05.29.80">
+<meta name="app-version" content="v2026.05.29.81">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -832,7 +832,7 @@ var CATS=[
 ];
 var CATS_SIN_MANT=["DM","AW","OD","DES"];
 function catById(id){return CATS.find(function(c){return c.id===id;})||{icon:"🔧",color:"#64748b",label:id};}
-function sinMant(eq){return CATS_SIN_MANT.indexOf(eq.cat)!==-1;}
+function sinMant(eq){return CATS_SIN_MANT.indexOf(eq.cat)!==-1||eq.frecuencia==="ninguna";}
 
 // ═══════════════════════════════════════════
 //  HELPERS
@@ -1758,7 +1758,8 @@ function submitEditMantConfig(eqId){
   eqs=eqs.map(function(e){
     if(e.id!==eqId)return e;
     var upd=Object.assign({},e,{frecuencia:frec,tecnico:tec});
-    if(ultimo){upd.ultimoMant=ultimo;upd.proximoMant=calcP(ultimo,frec);}
+    if(frec==="ninguna"){upd.proximoMant="";}
+    else if(ultimo){upd.ultimoMant=ultimo;upd.proximoMant=calcP(ultimo,frec);}
     return upd;
   });
   saveData();closeModal();render();showToast('✅ Mantenimiento actualizado','');
@@ -4421,8 +4422,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="4.7.2";
-var APP_BUILD="29/05/26 11:00";
+var APP_DISPLAY_VERSION="4.7.3";
+var APP_BUILD="29/05/26 12:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
