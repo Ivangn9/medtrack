@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.29.77 -->
+<!-- v2026.05.29.78 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>MedTrack — CIMA</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.05.29.77">
+<meta name="app-version" content="v2026.05.29.78">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -722,6 +722,7 @@ body.dark .sb-card{background:rgba(255,255,255,.07);border-color:rgba(255,255,25
     <button class="sb-nav-btn on" data-sb="dash" onclick="setView('dash')"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="8" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="15" width="7" height="6" rx="1.5"/></svg></span>Panel</button>
     <button class="sb-nav-btn" id="sb-equipos-btn" data-sb="lista" onclick="toggleSbEquiposMenu(event)"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg></span>Equipos<span style="margin-left:auto;font-size:.65rem;opacity:.5;transition:transform .2s;" id="sb-eq-chevron">▸</span></button>
     <button class="sb-nav-btn" data-sb="alertas" onclick="setView('alertas')"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></span>Alertas<span id="sb-alert-badge" style="display:none;background:var(--red);color:#fff;border-radius:10px;padding:1px 6px;font-size:.6rem;font-weight:700;margin-left:auto;"></span></button>
+    <button class="sb-nav-btn" data-sb="bajas" onclick="setView('bajas')"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></span>Bajas</button>
     <button class="sb-nav-btn" id="sb-ajustes-btn" onclick="toggleSbAjustesMenu(event)"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span>Ajustes<span style="margin-left:auto;font-size:.65rem;opacity:.5;transition:transform .2s;" id="sb-aj-chevron">▸</span></button>
   </div>
   <!-- Charts section -->
@@ -1750,6 +1751,7 @@ function render(){
     else if(view==="aireDetalle")d.innerHTML=rAireDetalle();
     else if(view==="transductores")d.innerHTML=rTransductores();
     else if(view==="transductorDetalle")d.innerHTML=rTransductorDetalle();
+    else if(view==="bajas")d.innerHTML=rBajas();
     m.appendChild(d);
     var spacer=document.createElement("div");spacer.style.height="80px";spacer.style.flexShrink="0";m.appendChild(spacer);
   }catch(err){
@@ -1778,7 +1780,7 @@ function rDash(){
 
   h+='<div class="sec">Por Categoría</div><div class="g2cat" style="margin-bottom:18px;">';
   CATS.forEach(function(cat){
-    var ces=eqs.filter(function(e){return e.cat===cat.id;});if(!ces.length)return;
+    var ces=eqs.filter(function(e){return e.cat===cat.id&&!e.baja;});if(!ces.length)return;
     var fuera=ces.filter(function(e){return e.estado==="fuera-de-servicio";}).length;
     var urg=ces.filter(function(e){return!sinMant(e)&&(semafo(e)==="vencido"||semafo(e)==="urgente");}).length;
     var statusColor=fuera?"#ff3b30":urg?"#ff9500":"#34c759";
@@ -1927,6 +1929,7 @@ function rLista(){
 
   var q=_busqueda.toLowerCase().trim();
   var lista=eqs.filter(function(e){
+    if(e.baja)return false;
     if(_filtDash&&_filtDash!=="total"){
       if(_filtDash==="operativo")return e.estado==="operativo";
       if(_filtDash==="fuera")return e.estado==="fuera-de-servicio";
@@ -1944,6 +1947,7 @@ function rLista(){
     // Al buscar: respetar filtros de centro y marca pero ignorar categoría
     var resultados=[];
     eqs.forEach(function(e){
+      if(e.baja)return;
       if(_filtCentro&&((e.ubicacion||"").toLowerCase()!==_filtCentro.toLowerCase()))return;
       if(_filtMarca&&((e.marca||"").toLowerCase()!==_filtMarca.toLowerCase()))return;
       var matchEq=(e.nombre||"").toLowerCase().includes(q)||(e.ubicacion||"").toLowerCase().includes(q)||(e.serie||"").toLowerCase().includes(q)||(e.marca||"").toLowerCase().includes(q);
@@ -2082,7 +2086,11 @@ function rDetalle(){
       '</div>'+
     '</div>';
   }
-  h+='<div style="display:flex;gap:8px;"><button class="btn-secondary" style="flex:1;" onclick="openModalEq('+JSON.stringify(eq).replace(/"/g,"&quot;")+')">✏️ Editar</button><button class="btn-danger" onclick="delEq(\''+eq.id+'\')">🗑</button></div></div></div></div>';
+  h+='<div style="display:flex;gap:8px;margin-bottom:8px;"><button class="btn-secondary" style="flex:1;" onclick="openModalEq('+JSON.stringify(eq).replace(/"/g,"&quot;")+')">✏️ Editar</button><button class="btn-danger" onclick="delEq(\''+eq.id+'\')">🗑</button></div>'+
+  '<button onclick="openDarDeBajaModal(\''+eq.id+'\')" style="width:100%;padding:11px;border-radius:var(--r-pill);background:rgba(120,120,128,.08);border:1.5px solid rgba(120,120,128,.22);color:var(--text2);font-weight:600;font-size:.8rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;">'+
+    '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>Dar de baja equipo'+
+  '</button>'+
+  '</div></div></div></div>';
 
   // ── CARD 2: MANTENIMIENTO ──
   h+='<div class="gc" style="padding:0;margin-bottom:14px;overflow:hidden;border-left:4px solid rgba(255,149,0,.45);background:linear-gradient(135deg,rgba(255,149,0,.08) 0%,rgba(255,204,0,.04) 100%);">'+
@@ -2372,6 +2380,95 @@ function rDetalle(){
 }
 
 // ── ANTENAS VIEW ──
+function rBajas(){
+  var bajas=eqs.filter(function(e){return!!e.baja;}).sort(function(a,b){
+    return (b.baja.fecha||'') > (a.baja.fecha||'') ? 1 : -1;
+  });
+  var h='';
+  h+='<div class="gc" style="padding:0;margin-bottom:14px;overflow:hidden;border-left:4px solid rgba(120,120,128,.5);background:linear-gradient(135deg,rgba(120,120,128,.07) 0%,transparent 100%);">'+
+    '<div style="background:linear-gradient(90deg,rgba(120,120,128,.12),rgba(120,120,128,.05));padding:9px 16px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(120,120,128,.10);">'+
+      '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(120,120,128,.9)" stroke-width="2" stroke-linecap="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>'+
+      '<span style="font-size:.72rem;font-weight:700;color:rgba(120,120,128,.9);text-transform:uppercase;letter-spacing:.06em;">Equipos dados de baja</span>'+
+      '<span style="margin-left:auto;font-size:.72rem;font-weight:700;color:var(--text3);">'+bajas.length+' equipo'+(bajas.length!==1?'s':'')+'</span>'+
+    '</div>'+
+    '<div style="padding:14px 16px;font-size:.75rem;color:var(--text3);">Estos equipos fueron retirados del servicio activo y no aparecen en el panel ni en la lista.</div>'+
+  '</div>';
+  if(bajas.length===0){
+    h+='<div class="gc" style="padding:40px 20px;text-align:center;">'+
+      '<div style="font-size:2.5rem;opacity:.25;margin-bottom:12px;">🗃️</div>'+
+      '<div style="font-weight:600;font-size:.9rem;color:var(--text2);">Sin equipos dados de baja</div>'+
+      '<div style="font-size:.75rem;color:var(--text3);margin-top:4px;">Cuando des de baja un equipo aparecerá aquí</div>'+
+    '</div>';
+    return h;
+  }
+  bajas.forEach(function(eq){
+    var ci=CATS.find(function(c){return c.id===eq.cat;})||{label:eq.cat,color:'#94a3b8'};
+    var b=eq.baja;
+    var motivoLabel={'venta':'🤝 Venta','falla_irreparable':'💥 Falla irreparable','obsolescencia':'⏳ Obsolescencia','reemplazo':'🔄 Reemplazo','otro':'📝 Otro'}[b.motivo]||(b.motivo||'—');
+    h+='<div class="gc" style="padding:0;overflow:hidden;margin-bottom:10px;opacity:.9;">'+
+      '<div style="padding:14px 16px;">'+
+        '<div style="display:flex;align-items:flex-start;gap:10px;">'+
+          '<div style="flex:1;min-width:0;">'+
+            '<div style="font-weight:700;font-size:.92rem;color:var(--text);">'+esc(eq.nombre)+'</div>'+
+            '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:5px;">'+
+              '<span style="font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:20px;background:'+ci.color+'18;color:'+ci.color+';">'+ci.label+'</span>'+
+              (eq.ubicacion?'<span style="font-size:.65rem;padding:2px 8px;border-radius:20px;background:rgba(120,120,128,.10);color:var(--text3);">'+esc(eq.ubicacion)+'</span>':'')+
+              '<span style="font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(120,120,128,.12);color:var(--text2);">'+motivoLabel+'</span>'+
+            '</div>'+
+            (b.fecha?'<div style="font-size:.68rem;color:var(--text3);margin-top:5px;">Baja: '+fD(b.fecha)+'</div>':'')+
+            (b.observacion?'<div style="font-size:.75rem;color:var(--text2);margin-top:7px;padding:8px 10px;background:rgba(120,120,128,.07);border-radius:var(--r-md);border-left:3px solid rgba(120,120,128,.25);">'+esc(b.observacion)+'</div>':'')+
+          '</div>'+
+        '</div>'+
+        '<div style="display:flex;gap:8px;margin-top:12px;">'+
+          '<button onclick="reactivarEquipo(\''+eq.id+'\')" style="flex:1;padding:9px;border-radius:var(--r-pill);background:rgba(52,199,89,.10);border:1.5px solid rgba(52,199,89,.25);color:var(--green);font-weight:700;font-size:.78rem;cursor:pointer;">↩ Reactivar equipo</button>'+
+          '<button onclick="goDetalle(\''+eq.id+'\')" style="padding:9px 14px;border-radius:var(--r-pill);background:rgba(120,120,128,.08);border:1.5px solid rgba(120,120,128,.18);color:var(--text2);font-weight:600;font-size:.78rem;cursor:pointer;">Ver detalle</button>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  });
+  return h;
+}
+function openDarDeBajaModal(eqId){
+  var eq=eqs.find(function(e){return e.id===eqId;});if(!eq)return;
+  openModal(
+    '<div style="font-weight:800;font-size:1.05rem;margin-bottom:4px;">Dar de baja equipo</div>'+
+    '<div style="font-size:.75rem;color:var(--text3);margin-bottom:16px;">'+esc(eq.nombre)+'</div>'+
+    '<div class="ff"><div class="ff-label">Fecha de baja</div>'+
+      '<input class="inp" id="baja-fecha" type="date" value="'+new Date().toISOString().split("T")[0]+'">'+
+    '</div>'+
+    '<div class="ff"><div class="ff-label">Motivo</div>'+
+      '<select class="inp" id="baja-motivo">'+
+        '<option value="venta">🤝 Venta</option>'+
+        '<option value="falla_irreparable">💥 Falla irreparable</option>'+
+        '<option value="obsolescencia">⏳ Obsolescencia</option>'+
+        '<option value="reemplazo">🔄 Reemplazo por nuevo equipo</option>'+
+        '<option value="otro">📝 Otro</option>'+
+      '</select>'+
+    '</div>'+
+    '<div class="ff"><div class="ff-label">Observación</div>'+
+      '<textarea class="inp" id="baja-obs" rows="3" placeholder="Detallá el motivo, destino del equipo, etc..."></textarea>'+
+    '</div>'+
+    '<button onclick="submitDarDeBaja(\''+eqId+'\')" style="width:100%;padding:13px;border-radius:var(--r-pill);background:rgba(120,120,128,.15);border:1.5px solid rgba(120,120,128,.30);color:var(--text2);font-weight:700;font-size:.88rem;cursor:pointer;margin-top:4px;">Confirmar baja</button>'
+  );
+}
+function submitDarDeBaja(eqId){
+  var fecha=((document.getElementById('baja-fecha')||{}).value||'');
+  var motivo=((document.getElementById('baja-motivo')||{}).value||'otro');
+  var obs=((document.getElementById('baja-obs')||{}).value||'').trim();
+  eqs=eqs.map(function(e){
+    if(e.id!==eqId)return e;
+    return Object.assign({},e,{baja:{fecha:fecha,motivo:motivo,observacion:obs,creadoEn:new Date().toISOString()}});
+  });
+  saveData();closeModal();setView('bajas');showToast('Equipo dado de baja','warn');
+}
+function reactivarEquipo(eqId){
+  if(!confirm('¿Reactivar este equipo? Volverá a aparecer en el panel y la lista.'))return;
+  eqs=eqs.map(function(e){
+    if(e.id!==eqId)return e;
+    var r=Object.assign({},e);delete r.baja;return r;
+  });
+  saveData();render();showToast('✅ Equipo reactivado','');
+}
 function rAntenas(){
   var eq=eqs.find(function(e){return e.id===selAntenaEqId;});if(!eq)return'';
   var assignedIds=eq.antenaIds||[];
@@ -4286,7 +4383,7 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="4.7.0";
+var APP_DISPLAY_VERSION="4.7.1";
 var APP_BUILD="29/05/26 10:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
