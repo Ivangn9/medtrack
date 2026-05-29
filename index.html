@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.29.89 -->
+<!-- v2026.05.29.90 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>MedTrack — CIMA</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.05.29.89">
+<meta name="app-version" content="v2026.05.29.90">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -2875,7 +2875,7 @@ function _buildRM3D(cc,eq){
   var bfF=new T.Mesh(new T.CircleGeometry(1.07,48),bfMat);bfF.position.z=1.76;g.add(bfF);
   var bfB=new T.Mesh(new T.CircleGeometry(1.07,48),bfMat);bfB.rotation.y=Math.PI;bfB.position.z=-1.76;g.add(bfB);
   // tunel interior
-  var bore=new T.Mesh(new T.CylinderGeometry(1.06,1.06,3.54,48,1,true),m(0x060c18,{roughness:0.95,metalness:0.04,side:T.BackSide}));
+  var bore=new T.Mesh(new T.CylinderGeometry(1.06,1.06,3.54,48,1,true),m(cSh,{emissive:cSh,emissiveIntensity:0.45,roughness:0.65,metalness:0.08,side:T.BackSide}));
   bore.rotation.x=Math.PI/2;g.add(bore);
   // anillos bezel
   var bezel=new T.Mesh(new T.TorusGeometry(1.08,0.14,16,56),sideMat);bezel.position.z=1.77;g.add(bezel);
@@ -2926,8 +2926,17 @@ function _buildRM3D(cc,eq){
   heLiq.position.set(-1.8,-1.27+hLev/2,-5.0);g.add(heLiq);
   var band=new T.Mesh(new T.CylinderGeometry(0.62,0.62,0.17,28),m(cTank,{metalness:0.5,emissive:cTank,emissiveIntensity:0.3}));band.position.set(-1.8,0.5,-5.0);g.add(band);
   var heTex=txtTex('He','#061830','#7ad8ff',80,80);
-  var heLbl=new T.Mesh(new T.PlaneGeometry(0.65,0.65),new T.MeshBasicMaterial({map:heTex,transparent:true}));
+  var heLbl=new T.Mesh(new T.PlaneGeometry(0.65,0.65),new T.MeshBasicMaterial({map:heTex,transparent:true,side:T.DoubleSide}));
   heLbl.position.set(-1.8,0.1,-4.39);g.add(heLbl);
+  // niveles He: % y psi flotando sobre el tanque
+  var rf3d=_refrigData(eq);
+  var heLevStr='';
+  if(rf3d.helioLiqPorcentaje)heLevStr+=rf3d.helioLiqPorcentaje+'%';
+  if(rf3d.helioLiqPresion)heLevStr+=(heLevStr?' · ':'')+rf3d.helioLiqPresion+' psi';
+  if(!heLevStr)heLevStr='Sin datos';
+  var heLevTex=txtTex(heLevStr,'#051525','#7ad8ff',200,38);
+  var heLevLbl=new T.Mesh(new T.PlaneGeometry(1.3,0.42),new T.MeshBasicMaterial({map:heLevTex,transparent:true,side:T.DoubleSide}));
+  heLevLbl.position.set(-1.8,-0.55,-4.39);g.add(heLevLbl);
   // tuberia He: sala de maquinas -> traves pared -> resonador
   var hePipeA=new T.Mesh(new T.CylinderGeometry(0.048,0.048,2.3,12),m(0x3388cc,{metalness:0.65,roughness:0.28}));
   hePipeA.rotation.x=Math.PI/2;hePipeA.position.set(-0.3,0,-3.7);g.add(hePipeA);
@@ -2935,21 +2944,21 @@ function _buildRM3D(cc,eq){
   hePipeB.rotation.x=Math.PI/2;hePipeB.position.set(-0.3,0,-2.22);g.add(hePipeB);
   // gabinete gradientes (rack de servidor)
   var rackMat=m(0x12161e,{roughness:0.65,metalness:0.42});
-  var rack=new T.Mesh(new T.BoxGeometry(1.55,3.45,0.88),rackMat);rack.position.set(3.9,0,-0.48);g.add(rack);
+  var rack=new T.Mesh(new T.BoxGeometry(1.55,3.45,0.88),rackMat);rack.position.set(3.9,0,-4.8);g.add(rack);
   var frmMat=m(0x505868,{metalness:0.82,roughness:0.18});
-  [-0.7,0.7].forEach(function(x){var fr=new T.Mesh(new T.BoxGeometry(0.07,3.45,0.06),frmMat);fr.position.set(3.9+x,0,-0.03);g.add(fr);});
+  [-0.7,0.7].forEach(function(x){var fr=new T.Mesh(new T.BoxGeometry(0.07,3.45,0.06),frmMat);fr.position.set(3.9+x,0,-4.35);g.add(fr);});
   var hdrTex=txtTex('MODULO GRADIENTES','#0c1420','#7aacff',256,34);
-  var hdr=new T.Mesh(new T.PlaneGeometry(1.42,0.27),new T.MeshBasicMaterial({map:hdrTex,transparent:true}));
-  hdr.position.set(3.9,1.56,-0.03);g.add(hdr);
+  var hdr=new T.Mesh(new T.PlaneGeometry(1.42,0.27),new T.MeshBasicMaterial({map:hdrTex,transparent:true,side:T.DoubleSide}));
+  hdr.position.set(3.9,1.56,-4.35);g.add(hdr);
   var gDefs=[{c:cGx,lbl:'Eje  X'},{c:cGy,lbl:'Eje  Y'},{c:cGz,lbl:'Eje  Z'},{c:cGg,lbl:'Mod.Gradientes'}];
   var boards=[];
   gDefs.forEach(function(def,i){
     var bMat=m(def.c,{emissive:def.c,emissiveIntensity:0.2,roughness:0.42,metalness:0.52});
     var board=new T.Mesh(new T.BoxGeometry(1.28,0.46,0.12),bMat);
-    board.position.set(3.9,0.95-i*0.64,-0.05);g.add(board);boards.push(board);
+    board.position.set(3.9,0.95-i*0.64,-4.37);g.add(board);boards.push(board);
     var tex=txtTex(def.lbl,def.c,'#fff',256,46);
-    var lp=new T.Mesh(new T.PlaneGeometry(1.18,0.38),new T.MeshBasicMaterial({map:tex,transparent:true}));
-    lp.position.set(3.9,0.95-i*0.64,0.02);g.add(lp);
+    var lp=new T.Mesh(new T.PlaneGeometry(1.18,0.38),new T.MeshBasicMaterial({map:tex,transparent:true,side:T.DoubleSide}));
+    lp.position.set(3.9,0.95-i*0.64,-4.30);g.add(lp);
   });
   // compresor helio (sala de maquinas)
   var compBody=new T.Mesh(new T.BoxGeometry(1.12,1.62,1.08),m(cComp,{roughness:0.5}));compBody.position.set(1.4,-0.1,-5.2);g.add(compBody);
@@ -4929,8 +4938,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="4.9.2";
-var APP_BUILD="29/05/26 20:30";
+var APP_DISPLAY_VERSION="4.9.3";
+var APP_BUILD="29/05/26 21:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
