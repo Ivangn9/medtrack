@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.29.79 -->
+<!-- v2026.05.29.80 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>MedTrack — CIMA</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.05.29.79">
+<meta name="app-version" content="v2026.05.29.80">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1199,14 +1199,15 @@ function closeModal(){document.getElementById("modal-overlay").classList.add("hi
 // ═══════════════════════════════════════════
 function getAlertas(){
   var a=[];
-  eqs.forEach(function(e){if(e.estado==="fuera-de-servicio")a.push({k:e.id+"fs",niv:"critico",tit:e.nombre,desc:"Fuera de servicio",eid:e.id});});
-  eqs.forEach(function(e){if(!sinMant(e)&&semafo(e)==="vencido")a.push({k:e.id+"mv",niv:"critico",tit:e.nombre,desc:"Mant. VENCIDO — "+fD(e.proximoMant),eid:e.id});});
-  eqs.forEach(function(e){e.partes.forEach(function(p){if(p.estado==="roto")a.push({k:e.id+p.id+"r",niv:"critico",tit:e.nombre,desc:"Parte rota: "+p.nombre,eid:e.id});});});
-  eqs.forEach(function(e){if(!sinMant(e)&&semafo(e)==="urgente")a.push({k:e.id+"mu",niv:"advertencia",tit:e.nombre,desc:"Mant. en "+diasH(e.proximoMant)+" días",eid:e.id});});
-  eqs.forEach(function(e){if(e.estado==="advertencia")a.push({k:e.id+"ea",niv:"advertencia",tit:e.nombre,desc:"Equipo en advertencia",eid:e.id});});
-  eqs.forEach(function(e){e.partes.forEach(function(p){if(p.estado==="pendiente")a.push({k:e.id+p.id+"p",niv:"advertencia",tit:e.nombre,desc:"Parte pendiente: "+p.nombre,eid:e.id});});});
-  eqs.forEach(function(e){if(!sinMant(e)&&semafo(e)==="proximo")a.push({k:e.id+"mp",niv:"info",tit:e.nombre,desc:"Mant. en "+diasH(e.proximoMant)+"d — "+fD(e.proximoMant),eid:e.id});});
-  eqs.forEach(function(e){if(e.cat!=='DES')return;if(e.parches_vencimiento){var dp=diasH(e.parches_vencimiento);if(dp<0)a.push({k:e.id+"pv",niv:"critico",tit:e.nombre,desc:"⚡ Parches VENCIDOS — "+fD(e.parches_vencimiento),eid:e.id});else if(dp<=60)a.push({k:e.id+"pp",niv:"advertencia",tit:e.nombre,desc:"⚡ Parches vencen en "+dp+"d — "+fD(e.parches_vencimiento),eid:e.id});}if(e.bateria_vencimiento){var db=diasH(e.bateria_vencimiento);if(db<0)a.push({k:e.id+"bv",niv:"critico",tit:e.nombre,desc:"⚡ Batería VENCIDA — "+fD(e.bateria_vencimiento),eid:e.id});else if(db<=60)a.push({k:e.id+"bp",niv:"advertencia",tit:e.nombre,desc:"⚡ Batería vence en "+db+"d — "+fD(e.bateria_vencimiento),eid:e.id});}});
+  var activeEqs=eqs.filter(function(e){return !e.baja;});
+  activeEqs.forEach(function(e){if(e.estado==="fuera-de-servicio")a.push({k:e.id+"fs",niv:"critico",tit:e.nombre,desc:"Fuera de servicio",eid:e.id});});
+  activeEqs.forEach(function(e){if(!sinMant(e)&&semafo(e)==="vencido")a.push({k:e.id+"mv",niv:"critico",tit:e.nombre,desc:"Mant. VENCIDO — "+fD(e.proximoMant),eid:e.id});});
+  activeEqs.forEach(function(e){e.partes.forEach(function(p){if(p.estado==="roto")a.push({k:e.id+p.id+"r",niv:"critico",tit:e.nombre,desc:"Parte rota: "+p.nombre,eid:e.id});});});
+  activeEqs.forEach(function(e){if(!sinMant(e)&&semafo(e)==="urgente")a.push({k:e.id+"mu",niv:"advertencia",tit:e.nombre,desc:"Mant. en "+diasH(e.proximoMant)+" días",eid:e.id});});
+  activeEqs.forEach(function(e){if(e.estado==="advertencia")a.push({k:e.id+"ea",niv:"advertencia",tit:e.nombre,desc:"Equipo en advertencia",eid:e.id});});
+  activeEqs.forEach(function(e){e.partes.forEach(function(p){if(p.estado==="pendiente")a.push({k:e.id+p.id+"p",niv:"advertencia",tit:e.nombre,desc:"Parte pendiente: "+p.nombre,eid:e.id});});});
+  activeEqs.forEach(function(e){if(!sinMant(e)&&semafo(e)==="proximo")a.push({k:e.id+"mp",niv:"info",tit:e.nombre,desc:"Mant. en "+diasH(e.proximoMant)+"d — "+fD(e.proximoMant),eid:e.id});});
+  activeEqs.forEach(function(e){if(e.cat!=='DES')return;if(e.parches_vencimiento){var dp=diasH(e.parches_vencimiento);if(dp<0)a.push({k:e.id+"pv",niv:"critico",tit:e.nombre,desc:"⚡ Parches VENCIDOS — "+fD(e.parches_vencimiento),eid:e.id});else if(dp<=60)a.push({k:e.id+"pp",niv:"advertencia",tit:e.nombre,desc:"⚡ Parches vencen en "+dp+"d — "+fD(e.parches_vencimiento),eid:e.id});}if(e.bateria_vencimiento){var db=diasH(e.bateria_vencimiento);if(db<0)a.push({k:e.id+"bv",niv:"critico",tit:e.nombre,desc:"⚡ Batería VENCIDA — "+fD(e.bateria_vencimiento),eid:e.id});else if(db<=60)a.push({k:e.id+"bp",niv:"advertencia",tit:e.nombre,desc:"⚡ Batería vence en "+db+"d — "+fD(e.bateria_vencimiento),eid:e.id});}});
   return a;
 }
 
@@ -1725,6 +1726,43 @@ function submitMant(eqId){
   };
   reader.readAsDataURL(pdf);
 }
+function openEditMantConfigModal(eqId){
+  var eq=eqs.find(function(e){return e.id===eqId;});if(!eq)return;
+  openModal(
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">'+
+      '<div class="modal-title">Configuración de mantenimiento</div>'+
+      '<button class="modal-close" onclick="closeModal()">✕</button>'+
+    '</div>'+
+    '<div style="font-size:.75rem;color:var(--text3);margin-bottom:14px;">'+esc(eq.nombre)+'</div>'+
+    '<div class="ff"><div class="ff-label">Frecuencia</div>'+
+      '<select class="inp" id="emc-frec">'+
+        ['trimestral','semestral','anual','ninguna'].map(function(v){
+          return'<option value="'+v+'"'+(eq.frecuencia===v?' selected':'')+'>'+
+            {trimestral:'Trimestral',semestral:'Semestral',anual:'Anual',ninguna:'Sin mantenimiento'}[v]+'</option>';
+        }).join('')+
+      '</select>'+
+    '</div>'+
+    '<div class="ff"><div class="ff-label">Técnico / Empresa</div>'+
+      '<input class="inp" id="emc-tec" value="'+esc(eq.tecnico||'')+'" placeholder="Nombre del técnico o empresa">'+
+    '</div>'+
+    '<div class="ff"><div class="ff-label">Último mantenimiento</div>'+
+      '<input class="inp" type="date" id="emc-ultimo" value="'+esc(eq.ultimoMant||'')+'">'+
+    '</div>'+
+    '<button class="btn-primary" style="width:100%;padding:13px;margin-top:4px;" onclick="submitEditMantConfig(\''+eqId+'\')">💾 Guardar</button>'
+  );
+}
+function submitEditMantConfig(eqId){
+  var frec=((document.getElementById('emc-frec')||{}).value||'semestral');
+  var tec=((document.getElementById('emc-tec')||{}).value||'').trim();
+  var ultimo=((document.getElementById('emc-ultimo')||{}).value||'');
+  eqs=eqs.map(function(e){
+    if(e.id!==eqId)return e;
+    var upd=Object.assign({},e,{frecuencia:frec,tecnico:tec});
+    if(ultimo){upd.ultimoMant=ultimo;upd.proximoMant=calcP(ultimo,frec);}
+    return upd;
+  });
+  saveData();closeModal();render();showToast('✅ Mantenimiento actualizado','');
+}
 
 // ═══════════════════════════════════════════
 //  RENDER ENGINE
@@ -2096,7 +2134,7 @@ function rDetalle(){
   h+='<div class="gc" style="padding:0;margin-bottom:14px;overflow:hidden;border-left:4px solid rgba(255,149,0,.45);background:linear-gradient(135deg,rgba(255,149,0,.08) 0%,rgba(255,204,0,.04) 100%);">'+
     '<div style="background:linear-gradient(90deg,rgba(255,149,0,.12),rgba(255,204,0,.07));padding:9px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,149,0,.10);">'+
     '<div style="display:flex;align-items:center;gap:7px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(200,110,0,.9)" stroke-width="2.2" stroke-linecap="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg><span style="font-size:.72rem;font-weight:700;color:rgba(200,110,0,.9);text-transform:uppercase;letter-spacing:.06em;">Mantenimiento</span></div>'+
-    '<button onclick="openModalEq('+JSON.stringify(eq).replace(/"/g,"&quot;")+')" style="font-size:.7rem;padding:4px 10px;border-radius:12px;background:rgba(255,149,0,.10);border:1px solid rgba(255,149,0,.28);color:rgba(160,90,0,.9);cursor:pointer;font-weight:600;box-shadow:inset 0 1px 0 rgba(255,255,255,.8);">✏️ Editar</button></div>'+
+    '<button onclick="openEditMantConfigModal(\''+eq.id+'\')" style="font-size:.7rem;padding:4px 10px;border-radius:12px;background:rgba(255,149,0,.10);border:1px solid rgba(255,149,0,.28);color:rgba(160,90,0,.9);cursor:pointer;font-weight:600;box-shadow:inset 0 1px 0 rgba(255,255,255,.8);">✏️ Editar</button></div>'+
     '<div style="padding:14px 16px;">';
   h+='<div class="det-grid" style="margin-bottom:10px;">';
   h+='<div class="ibox"><div class="ibox-l">Frecuencia</div><div class="ibox-v">'+esc(eq.frecuencia)+'</div></div>';
@@ -4383,8 +4421,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="4.7.1";
-var APP_BUILD="29/05/26 10:00";
+var APP_DISPLAY_VERSION="4.7.2";
+var APP_BUILD="29/05/26 11:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
@@ -4712,19 +4750,20 @@ function rSidebar(){
   // Nav active state
   document.querySelectorAll('.sb-nav-btn[data-sb]').forEach(function(b){b.classList.toggle('on',b.dataset.sb===view);});
   // Alert badge
+  var activeEqs=eqs.filter(function(e){return !e.baja;});
   var alertCount=0;
-  eqs.forEach(function(e){if(e.estado==="fuera-de-servicio")alertCount++;e.partes.forEach(function(p){if(p.estado==="roto")alertCount++;});});
+  activeEqs.forEach(function(e){if(e.estado==="fuera-de-servicio")alertCount++;e.partes.forEach(function(p){if(p.estado==="roto")alertCount++;});});
   var sbb=document.getElementById("sb-alert-badge");
   if(sbb){sbb.style.display=alertCount>0?"inline":"none";sbb.textContent=alertCount;}
   // Donut chart
-  var opF=eqs.filter(function(e){return e.estado==="fuera-de-servicio";}).length;
-  var opOK=eqs.length-opF;
+  var opF=activeEqs.filter(function(e){return e.estado==="fuera-de-servicio";}).length;
+  var opOK=activeEqs.length-opF;
   var donutEl=document.getElementById("sb-donut");
   var legendEl=document.getElementById("sb-donut-legend");
-  if(donutEl){donutEl.innerHTML=sbGlassDonut(opOK,opF,eqs.length);}
+  if(donutEl){donutEl.innerHTML=sbGlassDonut(opOK,opF,activeEqs.length);}
   if(legendEl){
-    var pOk=eqs.length>0?Math.round((opOK/eqs.length)*100):0;
-    var pF=eqs.length>0?Math.round((opF/eqs.length)*100):0;
+    var pOk=activeEqs.length>0?Math.round((opOK/activeEqs.length)*100):0;
+    var pF=activeEqs.length>0?Math.round((opF/activeEqs.length)*100):0;
     legendEl.innerHTML=
       '<div style="display:flex;align-items:center;gap:8px;flex:1;background:rgba(52,199,89,.10);border:1.5px solid rgba(52,199,89,.28);border-top-color:rgba(255,255,255,.70);border-radius:18px;padding:8px 12px;box-shadow:0 0 0 1px rgba(52,199,89,.10),inset 0 1.5px 0 rgba(255,255,255,.70);">'+
       '<div style="width:9px;height:9px;border-radius:50%;background:#34c759;box-shadow:0 0 8px rgba(52,199,89,.8),0 0 16px rgba(52,199,89,.4);flex-shrink:0;"></div>'+
@@ -4739,9 +4778,9 @@ function rSidebar(){
   // ── Críticos ──
   var critEl=document.getElementById("sb-critico");
   if(critEl){
-    var criticos=eqs.filter(function(e){return semafo(e)==="vencido";}).sort(function(a,b){return new Date(a.proximoMant)-new Date(b.proximoMant);});
+    var criticos=activeEqs.filter(function(e){return semafo(e)==="vencido";}).sort(function(a,b){return new Date(a.proximoMant)-new Date(b.proximoMant);});
     // Equipos con rotura en partes
-    var conRotas=eqs.filter(function(e){return(e.partes||[]).some(function(p){return p.estado==="roto";});});
+    var conRotas=activeEqs.filter(function(e){return(e.partes||[]).some(function(p){return p.estado==="roto";});});
     // Antenas con roturas activas
     var antRot=antenas.filter(function(a){return(a.roturas||[]).some(function(r){return r.estado!=='reparado';});});
     if(!criticos.length&&!conRotas.length&&!antRot.length){
@@ -4788,12 +4827,12 @@ function rSidebar(){
 
   var upEl=document.getElementById("sb-upcoming");
   if(upEl){
-    var sorted=eqs.filter(function(e){return e.proximoMant&&e.estado!=="fuera-de-servicio";}).sort(function(a,b){return new Date(a.proximoMant)-new Date(b.proximoMant);}).slice(0,4);
+    var sorted=activeEqs.filter(function(e){return e.proximoMant&&e.estado!=="fuera-de-servicio";}).sort(function(a,b){return new Date(a.proximoMant)-new Date(b.proximoMant);}).slice(0,4);
     if(!sorted.length){upEl.innerHTML='<div style="font-size:.72rem;color:var(--text3);text-align:center;padding:4px 0;">Sin servicios programados</div>';}
     else{upEl.innerHTML=sorted.map(function(e){var d=diasH(e.proximoMant);var col=d<0?"#ff3b30":d<=7?"#ff9500":d<=30?"#ffcc00":"#34c759";var ci=catById(e.cat);var desc=(e.ubicacion?esc(e.ubicacion):ci.label)+(e.frecuencia&&e.frecuencia!=='ninguna'?' · '+e.frecuencia:'');return'<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(120,120,128,.1);">'+iconFor(e,24)+'<div style="flex:1;min-width:0;"><div style="font-size:.72rem;color:var(--text);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+esc(e.nombre)+'</div><div style="font-size:.59rem;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+desc+'</div><div style="font-size:.59rem;color:var(--text3);">'+fD(e.proximoMant)+'</div></div><div style="font-size:.68rem;font-weight:700;color:'+col+';flex-shrink:0;">'+(d<0?"VENC.":d===0?"HOY":d+"d")+'</div></div>';}).join('');}
   }
   // Stats
-  var rot=0,pend=0;eqs.forEach(function(e){e.partes.forEach(function(p){if(p.estado==="roto")rot++;if(p.estado==="pendiente")pend++;});});
+  var rot=0,pend=0;activeEqs.forEach(function(e){e.partes.forEach(function(p){if(p.estado==="roto")rot++;if(p.estado==="pendiente")pend++;});});
   var rotEl=document.getElementById("sb-rotos");var pendEl=document.getElementById("sb-pend");
   if(rotEl)rotEl.textContent=rot;if(pendEl)pendEl.textContent=pend;
   renderSbCalendar();
@@ -4810,6 +4849,7 @@ function buildCalEvents(){
   var ev={};
   function add(date,type,label){if(!date)return;if(!ev[date])ev[date]=[];ev[date].push({type:type,label:label});}
   eqs.forEach(function(e){
+    if(e.baja)return;
     if(e.proximoMant)add(e.proximoMant,"service",e.nombre);
     if(e.ultimoMant)add(e.ultimoMant,"mant",e.nombre);
     if(e.garantiaHasta)add(e.garantiaHasta,"garantia",e.nombre+" (Garantía)");
