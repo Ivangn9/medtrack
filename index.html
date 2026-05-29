@@ -722,6 +722,7 @@ body.dark .sb-card{background:rgba(255,255,255,.07);border-color:rgba(255,255,25
     <button class="sb-nav-btn on" data-sb="dash" onclick="setView('dash')"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="8" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="15" width="7" height="6" rx="1.5"/></svg></span>Panel</button>
     <button class="sb-nav-btn" id="sb-equipos-btn" data-sb="lista" onclick="toggleSbEquiposMenu(event)"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg></span>Equipos<span style="margin-left:auto;font-size:.65rem;opacity:.5;transition:transform .2s;" id="sb-eq-chevron">▸</span></button>
     <button class="sb-nav-btn" data-sb="alertas" onclick="setView('alertas')"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></span>Alertas<span id="sb-alert-badge" style="display:none;background:var(--red);color:#fff;border-radius:10px;padding:1px 6px;font-size:.6rem;font-weight:700;margin-left:auto;"></span></button>
+    <button class="sb-nav-btn" data-sb="estadorm" onclick="setView('estadorm')"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="12" rx="9" ry="7"/><ellipse cx="12" cy="12" rx="4" ry="3.2"/><path d="M3 12h2M19 12h2"/></svg></span>Estado de RM</button>
     <button class="sb-nav-btn" data-sb="bajas" onclick="setView('bajas')"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></span>Bajas</button>
     <button class="sb-nav-btn" id="sb-ajustes-btn" onclick="toggleSbAjustesMenu(event)"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span>Ajustes<span style="margin-left:auto;font-size:.65rem;opacity:.5;transition:transform .2s;" id="sb-aj-chevron">▸</span></button>
   </div>
@@ -1843,8 +1844,10 @@ function render(){
     else if(view==="transductores")d.innerHTML=rTransductores();
     else if(view==="transductorDetalle")d.innerHTML=rTransductorDetalle();
     else if(view==="bajas")d.innerHTML=rBajas();
+    else if(view==="estadorm")d.innerHTML=rEstadoRM();
     m.appendChild(d);
     var spacer=document.createElement("div");spacer.style.height="80px";spacer.style.flexShrink="0";m.appendChild(spacer);
+    if(view==="estadorm")setTimeout(mountRM3D,30);
   }catch(err){
     var m=document.getElementById("main");
     if(m)m.innerHTML='<div style="padding:20px;color:var(--red);font-size:.85rem;">Error: '+err.message+'</div>';
@@ -2560,6 +2563,231 @@ function reactivarEquipo(eqId){
     var r=Object.assign({},e);delete r.baja;return r;
   });
   saveData();render();showToast('✅ Equipo reactivado','');
+}
+
+// ══════════════════════════════════════════════
+//  ESTADO DE RM — visualización interactiva
+// ══════════════════════════════════════════════
+var selRM="";
+function rmNivelColor(n){return n==='roto'?'#ff3b30':n==='warn'?'#ff9500':'#34c759';}
+function rmNivelLabel(n){return n==='roto'?'Falla / Rotura':n==='warn'?'Advertencia':'Operativo';}
+// Estado computado de un componente del RM (combina refrig + roturas activas con componenteRM)
+function rmCompEstado(eq,compId){
+  var rf=_refrigData(eq);var nivel='ok',detalle='Operativo';
+  if(compId==='compresor'){if(rf.helioGaseoso==='presion_baja'){nivel='warn';detalle='Presión baja';}}
+  else if(compId==='chiller'){if(rf.chiller==='rotura'){nivel='roto';detalle='Rotura';}else if(rf.chiller==='service'){nivel='warn';detalle='En service';}}
+  else if(compId==='tanque_helio'){var pc=parseFloat(rf.helioLiqPorcentaje);if(!isNaN(pc)){if(pc<60){nivel='roto';detalle=pc+'% — crítico';}else if(pc<75){nivel='warn';detalle=pc+'% — bajo';}else{detalle=pc+'%'+(rf.helioLiqPresion?' · '+rf.helioLiqPresion+' psi':'');}}else if(rf.helioLiqPresion){detalle=rf.helioLiqPresion+' psi';}}
+  else if(compId==='shimming'){if(rf.shimming==='falta'){nivel='warn';detalle='Falta homogeneización';}else{detalle='Homogéneo';}}
+  var rots=(eq.partes||[]).filter(function(p){return p.componenteRM===compId&&(p.estado==='roto'||p.estado==='pendiente');});
+  if(rots.length){
+    var hayRoto=rots.some(function(p){return p.estado==='roto';});
+    if(hayRoto)nivel='roto';else if(nivel!=='roto')nivel='warn';
+    detalle=rots.length+' falla'+(rots.length>1?'s':'')+' activa'+(rots.length>1?'s':'');
+  }
+  return {nivel:nivel,detalle:detalle,roturas:rots};
+}
+function rmHelioPct(eq){var pc=parseFloat(_refrigData(eq).helioLiqPorcentaje);return isNaN(pc)?null:Math.max(0,Math.min(100,pc));}
+function setShimming(eqId,val){
+  var labels={ok:'✅ Homogéneo',falta:'⚠️ Falta homogeneización'};
+  var entry={id:'RH-'+Date.now(),fecha:today(),tipo:'shimming',descripcion:'Shimming: '+labels[val],valor:val,tecnico:'',notas:'',registradoEn:new Date().toISOString()};
+  _saveRefrig(eqId,{shimming:val},entry);
+  showToast(labels[val],'');
+}
+function selectRM(id){selRM=id;render();}
+function rmCurrentEq(){
+  var rms=eqs.filter(function(e){return e.cat==='RM'&&!e.baja;});
+  if(!rms.length)return null;
+  var cur=rms.find(function(e){return e.id===selRM;});
+  if(!cur){cur=rms[0];selRM=cur.id;}
+  return cur;
+}
+function rEstadoRM(){
+  var rms=eqs.filter(function(e){return e.cat==='RM'&&!e.baja;});
+  if(!rms.length){
+    return '<div class="gc" style="text-align:center;padding:40px 20px;"><div style="font-size:2.4rem;margin-bottom:8px;">🧲</div><div style="font-weight:700;font-size:1.05rem;margin-bottom:4px;">Sin resonadores</div><div style="color:var(--text3);font-size:.82rem;">No hay equipos de RM cargados en el sistema.</div></div>';
+  }
+  var eq=rmCurrentEq();
+  var h='';
+  // ── Selector de resonador ──
+  h+='<div class="sec" style="margin-bottom:8px;">Estado de RM</div>';
+  h+='<div style="display:flex;gap:7px;overflow-x:auto;padding-bottom:8px;margin-bottom:14px;scrollbar-width:none;">';
+  rms.forEach(function(r){
+    var on=r.id===eq.id;
+    // peor nivel del equipo para el color del chip
+    var worst='ok';RM_COMPONENTES.forEach(function(c){var n=rmCompEstado(r,c.id).nivel;if(n==='roto')worst='roto';else if(n==='warn'&&worst!=='roto')worst='warn';});
+    var col=rmNivelColor(worst);
+    h+='<button onclick="selectRM(\''+r.id+'\')" style="flex-shrink:0;display:flex;align-items:center;gap:7px;padding:8px 14px;border-radius:var(--r-pill);cursor:pointer;font-size:.78rem;font-weight:700;border:1.5px solid '+(on?col:'rgba(120,120,128,.2)')+';background:'+(on?col+'18':'rgba(120,120,128,.06)')+';color:'+(on?col:'var(--text2)')+';'+(on?'box-shadow:0 0 0 2px '+col+'30;':'')+'transition:all .15s;">'+
+      '<span style="width:8px;height:8px;border-radius:50%;background:'+col+';box-shadow:0 0 7px '+col+';flex-shrink:0;"></span>'+esc(r.nombre)+'</button>';
+  });
+  h+='</div>';
+  // ── Escena (3D WebGL o fallback SVG, montada por mountRM3D) ──
+  h+='<div id="rm3d-wrap" style="position:relative;border-radius:var(--r-lg);overflow:hidden;margin-bottom:14px;background:linear-gradient(160deg,#0b1220,#111a2e 60%,#0d1424);border:1px solid rgba(120,140,200,.18);box-shadow:0 10px 30px rgba(0,0,0,.25);">';
+  h+='<div id="rm3d-container" style="width:100%;height:340px;position:relative;"></div>';
+  h+='<div id="rm3d-hint" style="position:absolute;bottom:8px;left:0;right:0;text-align:center;font-size:.6rem;color:rgba(200,215,255,.55);pointer-events:none;letter-spacing:.04em;">Arrastrá para rotar · pellizcá para zoom</div>';
+  h+='</div>';
+  // ── Panel de estado por grupos ──
+  function compCard(c){
+    var st=rmCompEstado(eq,c.id);var col=rmNivelColor(st.nivel);
+    var extra='';
+    if(c.id==='tanque_helio'){var pc=rmHelioPct(eq);if(pc!==null)extra='<div style="margin-top:6px;height:6px;border-radius:6px;background:rgba(120,120,128,.18);overflow:hidden;"><div style="height:100%;width:'+pc+'%;background:linear-gradient(90deg,'+col+'cc,'+col+');border-radius:6px;"></div></div>';}
+    return '<div onclick="goDetalle(\''+eq.id+'\')" style="cursor:pointer;background:var(--card,#fff);border:1px solid '+col+'33;border-left:3px solid '+col+';border-radius:var(--r-md);padding:10px 12px;transition:transform .12s;" onmousedown="this.style.transform=\'scale(.98)\'" onmouseup="this.style.transform=\'\'">'+
+      '<div style="display:flex;align-items:center;gap:8px;">'+
+        '<span style="width:9px;height:9px;border-radius:50%;background:'+col+';box-shadow:0 0 8px '+col+';flex-shrink:0;"></span>'+
+        '<div style="flex:1;min-width:0;"><div style="font-size:.78rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+esc(c.label)+'</div>'+
+        '<div style="font-size:.64rem;color:'+col+';font-weight:600;">'+esc(st.detalle)+'</div></div>'+
+      '</div>'+extra+'</div>';
+  }
+  function grupo(titulo,ids){
+    var comps=RM_COMPONENTES.filter(function(c){return ids.indexOf(c.id)!==-1;});
+    var hh='<div class="sec" style="margin:14px 0 8px;font-size:.7rem;">'+titulo+'</div>';
+    hh+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;">';
+    comps.forEach(function(c){hh+=compCard(c);});
+    hh+='</div>';return hh;
+  }
+  h+=grupo('🧲 Resonador',['coldhead','camilla','conectores','tanque_helio']);
+  // ── Shimming con control ──
+  var stSh=rmCompEstado(eq,'shimming');var colSh=rmNivelColor(stSh.nivel);
+  h+='<div class="sec" style="margin:14px 0 8px;font-size:.7rem;">🌀 Túnel — Shimming</div>';
+  h+='<div style="background:var(--card,#fff);border:1px solid '+colSh+'33;border-left:3px solid '+colSh+';border-radius:var(--r-md);padding:12px;">';
+  h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;"><span style="width:9px;height:9px;border-radius:50%;background:'+colSh+';box-shadow:0 0 8px '+colSh+';"></span><div style="font-size:.82rem;font-weight:700;">Homogeneización del campo</div><div style="margin-left:auto;font-size:.66rem;font-weight:700;color:'+colSh+';">'+esc(stSh.detalle)+'</div></div>';
+  h+='<div style="display:flex;gap:7px;">';
+  h+='<button onclick="setShimming(\''+eq.id+'\',\'ok\')" style="flex:1;padding:9px;border-radius:var(--r-sm);font-size:.74rem;font-weight:700;cursor:pointer;border:1.5px solid '+(_refrigData(eq).shimming!=='falta'?'#34c759':'rgba(120,120,128,.2)')+';background:'+(_refrigData(eq).shimming!=='falta'?'rgba(52,199,89,.12)':'rgba(120,120,128,.06)')+';color:'+(_refrigData(eq).shimming!=='falta'?'#34c759':'var(--text3)')+';">✅ Homogéneo</button>';
+  h+='<button onclick="setShimming(\''+eq.id+'\',\'falta\')" style="flex:1;padding:9px;border-radius:var(--r-sm);font-size:.74rem;font-weight:700;cursor:pointer;border:1.5px solid '+(_refrigData(eq).shimming==='falta'?'#ff9500':'rgba(120,120,128,.2)')+';background:'+(_refrigData(eq).shimming==='falta'?'rgba(255,149,0,.12)':'rgba(120,120,128,.06)')+';color:'+(_refrigData(eq).shimming==='falta'?'#ff9500':'var(--text3)')+';">⚠️ Falta homogeneización</button>';
+  h+='</div></div>';
+  h+=grupo('🔌 Gabinete de Gradientes',['grad_x','grad_y','grad_z','grad_gen']);
+  h+=grupo('🏭 Sala de Máquinas',['compresor','chiller']);
+  // ── Antenas vinculadas ──
+  var ants=antenas.filter(function(a){return(eq.antenaIds||[]).indexOf(a.id)!==-1;});
+  h+='<div class="sec" style="margin:14px 0 8px;font-size:.7rem;">📡 Antenas ('+ants.length+')</div>';
+  if(!ants.length){h+='<div style="color:var(--text3);font-size:.76rem;padding:6px 2px;">Este resonador no tiene antenas vinculadas. <span onclick="goAntenas(\''+eq.id+'\')" style="color:var(--accent);cursor:pointer;font-weight:600;">Gestionar antenas →</span></div>';}
+  else{
+    h+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;">';
+    ants.forEach(function(a){
+      var rotAct=(a.roturas||[]).filter(function(r){return r.estado!=='reparado';}).length;
+      var nivel=a.estado==='fuera_servicio'?'roto':(a.estado==='con_fallas'||rotAct>0)?'warn':'ok';
+      var col=rmNivelColor(nivel);
+      h+='<div onclick="goAntenaDetalle(\''+a.id+'\',\''+eq.id+'\')" style="cursor:pointer;background:var(--card,#fff);border:1px solid '+col+'33;border-left:3px solid '+col+';border-radius:var(--r-md);padding:10px 12px;">'+
+        '<div style="display:flex;align-items:center;gap:8px;"><span style="width:9px;height:9px;border-radius:50%;background:'+col+';box-shadow:0 0 8px '+col+';flex-shrink:0;"></span>'+
+        '<div style="flex:1;min-width:0;"><div style="font-size:.76rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+esc(a.nombre)+'</div>'+
+        '<div style="font-size:.63rem;color:'+col+';font-weight:600;">'+(rotAct>0?rotAct+' rotura'+(rotAct>1?'s':'')+' activa'+(rotAct>1?'s':''):'Operativa')+(a.cantidadCanales?' · '+a.cantidadCanales+' canales':'')+'</div></div></div></div>';
+    });
+    h+='</div>';
+  }
+  return h;
+}
+// ── Escena 2.5D SVG del resonador (fallback / base) ──
+function rmSceneSVG(eq){
+  function col(id){return rmNivelColor(rmCompEstado(eq,id).nivel);}
+  var cHead=col('coldhead'),cCam=col('camilla'),cCon=col('conectores'),cTank=col('tanque_helio');
+  var cGx=col('grad_x'),cGy=col('grad_y'),cGz=col('grad_z'),cGg=col('grad_gen');
+  var cComp=col('compresor'),cChil=col('chiller');
+  var shN=rmCompEstado(eq,'shimming').nivel,cSh=rmNivelColor(shN);
+  var pc=rmHelioPct(eq);if(pc===null)pc=85;
+  var fillY=86-( (pc/100)*46 ); // tank liquid top (y) within 40..86
+  var s='<svg viewBox="0 0 800 340" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" style="display:block;">';
+  s+='<defs>'+
+    '<radialGradient id="rmFloor" cx="50%" cy="20%" r="90%"><stop offset="0%" stop-color="#1b2942"/><stop offset="100%" stop-color="#0a1120"/></radialGradient>'+
+    '<linearGradient id="rmBody" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#e8eefc"/><stop offset="50%" stop-color="#c2cde6"/><stop offset="100%" stop-color="#8c99b8"/></linearGradient>'+
+    '<radialGradient id="rmBore" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#05080f"/><stop offset="70%" stop-color="#0c1626"/><stop offset="100%" stop-color="#22324f"/></radialGradient>'+
+    '<linearGradient id="rmTank" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#dfe7f5"/><stop offset="100%" stop-color="#9fb0cf"/></linearGradient>'+
+    '<linearGradient id="rmHel" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#7fe3ff"/><stop offset="100%" stop-color="#1fa9d6"/></linearGradient>'+
+  '</defs>';
+  s+='<rect x="0" y="0" width="800" height="340" fill="url(#rmFloor)"/>';
+  // perspective floor lines
+  s+='<g stroke="rgba(120,150,210,.10)" stroke-width="1">';
+  for(var i=0;i<7;i++){s+='<line x1="'+(i*130)+'" y1="340" x2="'+(120+i*90)+'" y2="200"/>';}
+  s+='<line x1="0" y1="250" x2="800" y2="250"/><line x1="0" y1="290" x2="800" y2="290"/></g>';
+  // ── label sala de máquinas ──
+  s+='<text x="612" y="40" fill="rgba(180,200,250,.55)" font-size="11" font-family="sans-serif" font-weight="700" letter-spacing="1">SALA DE MÁQUINAS</text>';
+  // ── helium gas line compressor → scanner (animated flow) ──
+  s+='<path d="M610 120 C 470 150, 420 150, 320 150" fill="none" stroke="'+cComp+'" stroke-width="3" stroke-linecap="round" opacity=".55" stroke-dasharray="6 10"><animate attributeName="stroke-dashoffset" from="32" to="0" dur="1.1s" repeatCount="indefinite"/></path>';
+  // ── COMPRESOR (Helio Gaseoso) ──
+  s+='<g>'+
+    '<rect x="600" y="70" width="80" height="100" rx="8" fill="url(#rmBody)" stroke="'+cComp+'" stroke-width="2.5"/>'+
+    '<rect x="612" y="84" width="56" height="22" rx="4" fill="#0c1626"/>'+
+    '<circle cx="640" cy="135" r="16" fill="none" stroke="'+cComp+'" stroke-width="3"/>'+
+    '<line x1="640" y1="135" x2="640" y2="122" stroke="'+cComp+'" stroke-width="3" stroke-linecap="round"><animateTransform attributeName="transform" type="rotate" from="0 640 135" to="360 640 135" dur="'+(cComp==='#ff3b30'?'4s':'1.4s')+'" repeatCount="indefinite"/></line>'+
+    '<circle cx="640" cy="135" r="3" fill="'+cComp+'"/>'+
+    '<text x="640" y="186" fill="rgba(200,215,255,.7)" font-size="9" font-family="sans-serif" text-anchor="middle">Compresor</text>'+
+  '</g>';
+  // ── CHILLER ──
+  s+='<g>'+
+    '<rect x="700" y="180" width="70" height="90" rx="8" fill="url(#rmBody)" stroke="'+cChil+'" stroke-width="2.5"/>'+
+    '<g stroke="'+cChil+'" stroke-width="2.5" stroke-linecap="round" opacity=".8">'+
+      '<line x1="714" y1="196" x2="756" y2="196"><animate attributeName="opacity" values=".3;1;.3" dur="2s" repeatCount="indefinite"/></line>'+
+      '<line x1="714" y1="208" x2="756" y2="208"><animate attributeName="opacity" values=".3;1;.3" dur="2s" begin=".4s" repeatCount="indefinite"/></line>'+
+      '<line x1="714" y1="220" x2="756" y2="220"><animate attributeName="opacity" values=".3;1;.3" dur="2s" begin=".8s" repeatCount="indefinite"/></line>'+
+    '</g>'+
+    '<circle cx="735" cy="244" r="11" fill="none" stroke="'+cChil+'" stroke-width="2.5"/>'+
+    '<text x="735" y="285" fill="rgba(200,215,255,.7)" font-size="9" font-family="sans-serif" text-anchor="middle">Chiller</text>'+
+  '</g>';
+  // ── GRADIENT CABINET (rack X/Y/Z/Gen) ──
+  s+='<g>'+
+    '<rect x="470" y="180" width="100" height="120" rx="8" fill="url(#rmBody)" stroke="rgba(120,140,190,.6)" stroke-width="2"/>';
+  var boards=[{y:192,c:cGx,l:'X'},{y:218,c:cGy,l:'Y'},{y:244,c:cGz,l:'Z'},{y:270,c:cGg,l:'GEN'}];
+  boards.forEach(function(b,bi){
+    s+='<rect x="482" y="'+b.y+'" width="76" height="20" rx="3" fill="#0c1626" stroke="'+b.c+'" stroke-width="1.8"/>';
+    s+='<rect x="482" y="'+b.y+'" width="76" height="20" rx="3" fill="'+b.c+'" opacity="0"><animate attributeName="opacity" values="0;.35;0" dur="'+(1+bi*.2)+'s" repeatCount="indefinite"/></rect>';
+    s+='<text x="490" y="'+(b.y+14)+'" fill="'+b.c+'" font-size="10" font-weight="700" font-family="sans-serif">'+b.l+'</text>';
+    s+='<line x1="516" y1="'+(b.y+10)+'" x2="552" y2="'+(b.y+10)+'" stroke="'+b.c+'" stroke-width="1.5" stroke-dasharray="3 4"><animate attributeName="stroke-dashoffset" from="14" to="0" dur=".7s" repeatCount="indefinite"/></line>';
+  });
+  s+='<text x="520" y="316" fill="rgba(200,215,255,.7)" font-size="9" font-family="sans-serif" text-anchor="middle">Gabinete Gradientes</text></g>';
+  // ── RESONATOR BODY (3/4 view bore) ──
+  s+='<g>'+
+    // back ring
+    '<ellipse cx="180" cy="160" rx="58" ry="92" fill="url(#rmBody)" stroke="rgba(140,160,210,.5)" stroke-width="2"/>'+
+    // body
+    '<rect x="120" y="68" width="120" height="184" fill="url(#rmBody)"/>'+
+    '<path d="M120 68 L120 252" stroke="rgba(140,160,210,.4)" stroke-width="1.5"/>'+
+    // front ring
+    '<ellipse cx="120" cy="160" rx="58" ry="92" fill="url(#rmBody)" stroke="rgba(140,160,210,.7)" stroke-width="2.5"/>'+
+    // bore hole
+    '<ellipse cx="120" cy="160" rx="34" ry="58" fill="url(#rmBore)"/>'+
+    // bore inner glow ring (shimming)
+    '<ellipse cx="120" cy="160" rx="34" ry="58" fill="none" stroke="'+cSh+'" stroke-width="3" opacity=".85"><animate attributeName="opacity" values="'+(shN==='ok'?'.5;.95;.5':'.25;.8;.25')+'" dur="'+(shN==='ok'?'2.4s':'.8s')+'" repeatCount="indefinite"/></ellipse>'+
+    '<ellipse cx="120" cy="160" rx="22" ry="40" fill="none" stroke="'+cSh+'" stroke-width="1.5" opacity=".4"/>'+
+    '<text x="120" y="262" fill="rgba(200,215,255,.85)" font-size="10" font-family="sans-serif" text-anchor="middle" font-weight="700">Túnel · Shimming</text>'+
+  '</g>';
+  // ── PATIENT TABLE (camilla) sliding ──
+  s+='<g>'+
+    '<rect x="112" y="196" width="150" height="14" rx="6" fill="url(#rmBody)" stroke="'+cCam+'" stroke-width="2"><animate attributeName="x" values="112;150;112" dur="6s" repeatCount="indefinite"/></rect>'+
+    '<rect x="236" y="210" width="10" height="40" fill="#8c99b8"/>'+
+    '<text x="250" y="200" fill="'+cCam+'" font-size="9" font-family="sans-serif">Camilla</text>'+
+  '</g>';
+  // ── COLDHEAD (top) ──
+  s+='<g>'+
+    '<rect x="150" y="40" width="34" height="34" rx="5" fill="url(#rmBody)" stroke="'+cHead+'" stroke-width="2.5"/>'+
+    '<rect x="160" y="30" width="14" height="14" rx="3" fill="url(#rmBody)" stroke="'+cHead+'" stroke-width="2"/>'+
+    '<circle cx="167" cy="57" r="6" fill="none" stroke="'+cHead+'" stroke-width="2"><animate attributeName="r" values="4;7;4" dur="1.6s" repeatCount="indefinite"/></circle>'+
+    '<line x1="167" y1="74" x2="167" y2="92" stroke="'+cHead+'" stroke-width="2.5"/>'+
+    '<text x="194" y="58" fill="'+cHead+'" font-size="9" font-family="sans-serif">ColdHead</text>'+
+  '</g>';
+  // ── HELIUM TANK with liquid level ──
+  s+='<g>'+
+    '<rect x="40" y="40" width="46" height="120" rx="20" fill="url(#rmTank)" stroke="'+cTank+'" stroke-width="2.5"/>'+
+    '<clipPath id="rmTankClip"><rect x="43" y="43" width="40" height="114" rx="18"/></clipPath>'+
+    '<g clip-path="url(#rmTankClip)">'+
+      '<rect x="43" y="'+fillY+'" width="40" height="120" fill="url(#rmHel)" opacity=".9"/>'+
+      '<ellipse cx="63" cy="'+fillY+'" rx="20" ry="4" fill="#bff0ff" opacity=".8"><animate attributeName="cy" values="'+fillY+';'+(fillY-3)+';'+fillY+'" dur="2.6s" repeatCount="indefinite"/></ellipse>'+
+      // rising bubbles
+      '<circle cx="55" cy="150" r="2.5" fill="#cdf3ff" opacity=".8"><animate attributeName="cy" values="150;'+fillY+'" dur="2.2s" repeatCount="indefinite"/><animate attributeName="opacity" values=".8;0" dur="2.2s" repeatCount="indefinite"/></circle>'+
+      '<circle cx="70" cy="150" r="2" fill="#cdf3ff" opacity=".7"><animate attributeName="cy" values="150;'+fillY+'" dur="2.8s" begin=".6s" repeatCount="indefinite"/><animate attributeName="opacity" values=".7;0" dur="2.8s" begin=".6s" repeatCount="indefinite"/></circle>'+
+    '</g>'+
+    '<text x="63" y="174" fill="'+cTank+'" font-size="9" font-family="sans-serif" text-anchor="middle" font-weight="700">He '+Math.round(pc)+'%</text>'+
+  '</g>';
+  // ── CONNECTORS panel (front face) ──
+  s+='<g>'+
+    '<rect x="86" y="252" width="68" height="26" rx="5" fill="url(#rmBody)" stroke="'+cCon+'" stroke-width="2"/>';
+  for(var k=0;k<4;k++){s+='<circle cx="'+(98+k*16)+'" cy="265" r="5" fill="#0c1626" stroke="'+cCon+'" stroke-width="1.8"/>';}
+  s+='<text x="120" y="294" fill="'+cCon+'" font-size="9" font-family="sans-serif" text-anchor="middle">Conectores</text></g>';
+  s+='</svg>';
+  return s;
+}
+function mountRM3D(){
+  var c=document.getElementById('rm3d-container');if(!c)return;
+  var eq=rmCurrentEq();if(!eq)return;
+  // Increment 3 enriquece esto con WebGL; por ahora render SVG 2.5D
+  c.innerHTML=rmSceneSVG(eq);
 }
 function rAntenas(){
   var eq=eqs.find(function(e){return e.id===selAntenaEqId;});if(!eq)return'';
