@@ -1629,10 +1629,27 @@ function renderPendingFiles(tipo){
 }
 function removePending(tipo,i){if(tipo==='presupuesto'){_pendingPresupuestos.splice(i,1);}else{_pendingReportes.splice(i,1);}renderPendingFiles(tipo);}
 
+var RM_COMPONENTES=[
+  {id:"coldhead",label:"ColdHead",grupo:"resonador"},
+  {id:"camilla",label:"Camilla",grupo:"resonador"},
+  {id:"conectores",label:"Conectores (antenas)",grupo:"resonador"},
+  {id:"tanque_helio",label:"Tanque Helio Líquido",grupo:"resonador"},
+  {id:"shimming",label:"Shimming",grupo:"tunel"},
+  {id:"grad_x",label:"Placa de Gradiente X",grupo:"gabinete"},
+  {id:"grad_y",label:"Placa de Gradiente Y",grupo:"gabinete"},
+  {id:"grad_z",label:"Placa de Gradiente Z",grupo:"gabinete"},
+  {id:"grad_gen",label:"Placa general de Gradientes",grupo:"gabinete"},
+  {id:"compresor",label:"Compresor Helio Gaseoso",grupo:"sala"},
+  {id:"chiller",label:"Chiller",grupo:"sala"}
+];
+function rmCompLabel(id){var c=RM_COMPONENTES.find(function(x){return x.id===id;});return c?c.label:"";}
 function openModalParte(eqId,pt){
   _pendingPresupuestos=[];_pendingReportes=[];_deletedParteFiles=[];
   var n=!pt;var f=pt||{nombre:"",descripcion:"",estado:"roto",fechaRotura:"",fechaArreglo:"",marca:"",nroSerie:"",notas:"",precio:"",archivos:[]};
   if(!f.archivos)f.archivos=[];
+  var _eqObj=eqs.find(function(e){return e.id===eqId;});
+  var _esRM=!!(_eqObj&&_eqObj.cat==="RM");
+  var _compOpts='<option value="">— Sin componente específico —</option>'+RM_COMPONENTES.map(function(c){return'<option value="'+c.id+'"'+(f.componenteRM===c.id?' selected':'')+'>'+esc(c.label)+'</option>';}).join('');
   var estBtns=["ok","pendiente","roto","mejora"].map(function(e){var a=f.estado===e;return'<button data-est="'+e+'" style="flex:1;padding:10px;border-radius:var(--r-sm);font-size:.68rem;font-weight:700;border:none;cursor:pointer;background:'+(a?CP[e]+"20":"rgba(120,120,128,.08)")+';color:'+(a?CP[e]:"var(--text3)")+';'+(a?"box-shadow:0 0 0 2px "+CP[e]+"40;":"")+'" onclick="setPtEst(\''+e+'\')">'+(e==="ok"?"✅ OK":e==="pendiente"?"⚠️ Pend.":e==="roto"?"🔴 Roto":"🎨 Mejora")+'</button>';}).join("");
   function pdfSection(tipo,label){
     var existHtml=f.archivos.filter(function(a){return a.tipo===tipo||(tipo==='presupuesto'&&!a.tipo);}).map(function(a){return'<div id="pt-file-row-'+a.id+'" style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(0,0,0,.05);"><span style="font-size:1.1rem;">📄</span><span style="font-size:.74rem;flex:1;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(a.nombre)+'</span><button onclick="openPDFViewer(\''+a.id+'\',\''+esc(a.nombre)+'\')" style="background:rgba(0,113,227,.1);color:var(--accent);border:none;border-radius:8px;padding:3px 10px;font-size:.68rem;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;">Abrir</button><button onclick="removeParteFile(\''+a.id+'\')" style="background:none;border:none;color:var(--red);font-size:.9rem;cursor:pointer;padding:2px 6px;" title="Eliminar PDF">🗑</button></div>';}).join('');
@@ -1643,6 +1660,7 @@ function openModalParte(eqId,pt){
     '<div class="ff"><div class="ff-label">Nombre *</div><input class="inp" id="pt-n" value="'+esc(f.nombre)+'" placeholder="Tubo de RX / Pintar sala..."></div>'+
     '<div class="ff"><div class="ff-label">Descripción</div><input class="inp" id="pt-d" value="'+esc(f.descripcion)+'"></div>'+
     '<div class="ff"><div class="ff-label">Estado</div><div style="display:flex;gap:6px;">'+estBtns+'</div><input type="hidden" id="pt-es" value="'+f.estado+'"></div>'+
+    (_esRM?'<div class="ff"><div class="ff-label">🧲 Componente del resonador</div><select class="inp" id="pt-comp">'+_compOpts+'</select><div style="font-size:.62rem;color:var(--text3);margin-top:4px;">Vinculá esta rotura/falla a una parte del RM para verla en <b>Estado de RM</b>.</div></div>':'')+
     '<div id="pt-rotura-fields" style="display:'+(isMejora?'none':'block')+'">'+
       '<div class="g2"><div class="ff"><div class="ff-label">Fecha Rotura</div><input class="inp" type="date" id="pt-fr" value="'+f.fechaRotura+'"></div><div class="ff"><div class="ff-label">Fecha Arreglo</div><input class="inp" type="date" id="pt-fa" value="'+f.fechaArreglo+'"></div></div>'+
       '<div class="ff"><div class="ff-label">Canal de Reclamo</div><div style="display:flex;gap:5px;flex-wrap:wrap;">'+canalBtnsHTML('pt-canal',f.canalReclamo||'')+'</div><input type="hidden" id="pt-canal" value="'+(f.canalReclamo||'')+'"></div>'+
@@ -1723,7 +1741,8 @@ function submitPt(eqId,ptId){
   _pendingReportes.forEach(function(f){dbSave(f.id,f.nombre,f.data);});
   var esEl=document.getElementById("pt-es");var esMej=esEl&&esEl.value==="mejora";
   var presOkEl=document.getElementById("pt-pres-ok");var presFechaEl=document.getElementById("pt-pres-fecha");
-  saveParte(eqId,{id:ptId||"",nombre:n,descripcion:document.getElementById("pt-d").value,estado:esEl?esEl.value:"roto",fechaRotura:esMej?"":document.getElementById("pt-fr").value,fechaArreglo:esMej?"":document.getElementById("pt-fa").value,canalReclamo:esMej?"":(document.getElementById("pt-canal")||{value:""}).value||"",tecnicoReparacion:esMej?"":(document.getElementById("pt-tec")||{value:""}).value||"",asignadoA:esMej?(document.getElementById("pt-asig")||{}).value||"":"",fechaMejora:esMej?(document.getElementById("pt-fmej")||{}).value||"":"",marca:document.getElementById("pt-mk").value,nroSerie:document.getElementById("pt-sn").value,notas:document.getElementById("pt-nt").value,precio:esMej?"":(document.getElementById("pt-pc")||{}).value||"",presupuestoAprobado:esMej?false:!!(presOkEl&&presOkEl.checked),fechaAprobacion:esMej?"":(presFechaEl&&presOkEl&&presOkEl.checked?presFechaEl.value:""),archivos:archivosExist.concat(newPresRefs).concat(newRepRefs)});
+  var compEl=document.getElementById("pt-comp");
+  saveParte(eqId,{id:ptId||"",nombre:n,descripcion:document.getElementById("pt-d").value,estado:esEl?esEl.value:"roto",componenteRM:compEl?compEl.value:"",fechaRotura:esMej?"":document.getElementById("pt-fr").value,fechaArreglo:esMej?"":document.getElementById("pt-fa").value,canalReclamo:esMej?"":(document.getElementById("pt-canal")||{value:""}).value||"",tecnicoReparacion:esMej?"":(document.getElementById("pt-tec")||{value:""}).value||"",asignadoA:esMej?(document.getElementById("pt-asig")||{}).value||"":"",fechaMejora:esMej?(document.getElementById("pt-fmej")||{}).value||"":"",marca:document.getElementById("pt-mk").value,nroSerie:document.getElementById("pt-sn").value,notas:document.getElementById("pt-nt").value,precio:esMej?"":(document.getElementById("pt-pc")||{}).value||"",presupuestoAprobado:esMej?false:!!(presOkEl&&presOkEl.checked),fechaAprobacion:esMej?"":(presFechaEl&&presOkEl&&presOkEl.checked?presFechaEl.value:""),archivos:archivosExist.concat(newPresRefs).concat(newRepRefs)});
   _pendingPresupuestos=[];_pendingReportes=[];_deletedParteFiles=[];
 }
 function openModalMant(eqId){
@@ -3323,7 +3342,9 @@ function removeAntennaFromEq(antenaId,rmEquipId){
 
 // ─── REFRIGERACIÓN (RM) ───
 function _refrigData(eq){
-  return eq.refrig||{chiller:'operativo',helioGaseoso:'ok',helioLiqPresion:'',helioLiqPorcentaje:'',historial:[]};
+  var rf=eq.refrig||{chiller:'operativo',helioGaseoso:'ok',helioLiqPresion:'',helioLiqPorcentaje:'',shimming:'ok',historial:[]};
+  if(rf.shimming===undefined)rf.shimming='ok';
+  return rf;
 }
 function _saveRefrig(eqId,rfUpdate,histEntry){
   eqs=eqs.map(function(e){
