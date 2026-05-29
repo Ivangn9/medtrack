@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.29.85 -->
+<!-- v2026.05.29.86 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>MedTrack — CIMA</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.05.29.85">
+<meta name="app-version" content="v2026.05.29.86">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1203,7 +1203,7 @@ function getAlertas(){
   var activeEqs=eqs.filter(function(e){return !e.baja;});
   activeEqs.forEach(function(e){if(e.estado==="fuera-de-servicio")a.push({k:e.id+"fs",niv:"critico",tit:e.nombre,desc:"Fuera de servicio",eid:e.id});});
   activeEqs.forEach(function(e){if(!sinMant(e)&&semafo(e)==="vencido")a.push({k:e.id+"mv",niv:"critico",tit:e.nombre,desc:"Mant. VENCIDO — "+fD(e.proximoMant),eid:e.id});});
-  activeEqs.forEach(function(e){e.partes.forEach(function(p){if(p.estado==="roto")a.push({k:e.id+p.id+"r",niv:"critico",tit:e.nombre,desc:"Parte rota: "+p.nombre,eid:e.id});});});
+  activeEqs.forEach(function(e){e.partes.forEach(function(p){if(p.estado==="roto")a.push({k:e.id+p.id+"r",niv:"critico",tit:e.nombre,desc:"Falla/Rotura: "+p.nombre,eid:e.id});});});
   activeEqs.forEach(function(e){if(!sinMant(e)&&semafo(e)==="urgente")a.push({k:e.id+"mu",niv:"advertencia",tit:e.nombre,desc:"Mant. en "+diasH(e.proximoMant)+" días",eid:e.id});});
   activeEqs.forEach(function(e){if(e.estado==="advertencia")a.push({k:e.id+"ea",niv:"advertencia",tit:e.nombre,desc:"Equipo en advertencia",eid:e.id});});
   activeEqs.forEach(function(e){e.partes.forEach(function(p){if(p.estado==="pendiente")a.push({k:e.id+p.id+"p",niv:"advertencia",tit:e.nombre,desc:"Parte pendiente: "+p.nombre,eid:e.id});});});
@@ -1639,7 +1639,7 @@ function openModalParte(eqId,pt){
     return '<div class="ff" style="background:rgba(0,0,0,.02);border-radius:var(--r-sm);padding:10px;margin-bottom:4px;"><div class="ff-label" style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;">'+label+'</div>'+(existHtml?'<div style="margin-bottom:6px;">'+existHtml+'</div>':'')+'<div id="pdf-list-'+tipo+'"></div><button onclick="attachPDF(\''+tipo+'\')" type="button" style="margin-top:6px;width:100%;padding:8px;border:1.5px dashed rgba(0,113,227,.4);border-radius:var(--r-md);background:rgba(0,113,227,.05);color:var(--accent);font-size:.78rem;font-weight:600;cursor:pointer;">📎 Adjuntar '+label+'</button></div>';
   }
   var isMejora=f.estado==="mejora";
-  openModal('<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><div class="modal-title">'+(n?"Nueva Parte / Mejora":"Editar Parte / Mejora")+'</div><button class="modal-close" onclick="closeModal()">✕</button></div>'+
+  openModal('<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><div class="modal-title">'+(n?"Nueva Rotura / Falla":"Editar Rotura / Falla")+'</div><button class="modal-close" onclick="closeModal()">✕</button></div>'+
     '<div class="ff"><div class="ff-label">Nombre *</div><input class="inp" id="pt-n" value="'+esc(f.nombre)+'" placeholder="Tubo de RX / Pintar sala..."></div>'+
     '<div class="ff"><div class="ff-label">Descripción</div><input class="inp" id="pt-d" value="'+esc(f.descripcion)+'"></div>'+
     '<div class="ff"><div class="ff-label">Estado</div><div style="display:flex;gap:6px;">'+estBtns+'</div><input type="hidden" id="pt-es" value="'+f.estado+'"></div>'+
@@ -1842,7 +1842,7 @@ function rDash(){
   var rot=0,pend=0;activeEqs.forEach(function(e){e.partes.forEach(function(p){if(p.estado==="roto")rot++;if(p.estado==="pendiente")pend++;});});
   
   var h='<div class="g3" style="margin-bottom:16px;">';
-  [{l:"Total",v:activeEqs.length,c:"var(--accent)",k:"total"},{l:"Operativos",v:opOK,c:"var(--green)",k:"operativo"},{l:"F. de servicio",v:opF,c:"var(--red)",k:"fuera"},{l:"Mant. Urg.",v:mU,c:"var(--red)",k:"manturg"},{l:"Comp. Rotos",v:rot,c:"var(--red)",k:"rotos"},{l:"Pendientes",v:pend,c:"var(--orange)",k:"pendientes"}].forEach(function(s){
+  [{l:"Total",v:activeEqs.length,c:"var(--accent)",k:"total"},{l:"Operativos",v:opOK,c:"var(--green)",k:"operativo"},{l:"F. de servicio",v:opF,c:"var(--red)",k:"fuera"},{l:"Mant. Urg.",v:mU,c:"var(--red)",k:"manturg"},{l:"Fallas/Roturas",v:rot,c:"var(--red)",k:"rotos"},{l:"Pendientes",v:pend,c:"var(--orange)",k:"pendientes"}].forEach(function(s){
     h+='<div class="gc stat tap" onclick="applyDashFilter(\''+s.k+'\')" style="cursor:pointer;border-bottom:3px solid '+s.c+'40;transition:transform .18s,box-shadow .18s;">'+
       '<div class="stat-lbl">'+s.l+'</div>'+
       '<div class="stat-val" style="color:'+s.c+';">'+s.v+'</div>'+
@@ -1939,7 +1939,7 @@ var FDASH={
   fuera:     {l:"Fuera de servicio",     c:"var(--red)"},
   manturg:   {l:"Mantenimiento urgente", c:"var(--red)"},
   rotos:     {l:"Con componentes rotos", c:"var(--red)"},
-  pendientes:{l:"Con partes pendientes", c:"var(--orange)"}
+  pendientes:{l:"Con fallas pendientes", c:"var(--orange)"}
 };
 function applyDashFilter(key){_filtDash=key;filtCat="TODOS";_busqueda="";_filtMarca="";_filtCentro="";setView("lista");}
 function openListaSearch(){setView("lista");setTimeout(function(){var i=document.getElementById("busq-inp");if(i){i.focus();i.scrollIntoView({behavior:"smooth",block:"center"});}},120);}
@@ -2323,11 +2323,11 @@ function rDetalle(){
   h+='<div class="gc" style="padding:0;margin-bottom:14px;overflow:hidden;border-left:4px solid rgba(255,59,48,.45);background:linear-gradient(135deg,rgba(255,59,48,.08) 0%,rgba(255,69,58,.04) 100%);">';
   h+='<div style="background:linear-gradient(90deg,rgba(255,59,48,.12),rgba(255,69,58,.07));padding:9px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(255,59,48,.10);">';
   h+='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(220,38,38,.9)" stroke-width="2.2" stroke-linecap="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>';
-  h+='<span style="font-size:.72rem;font-weight:700;color:rgba(220,38,38,.9);text-transform:uppercase;letter-spacing:.06em;flex:1;">Partes</span>';
+  h+='<span style="font-size:.72rem;font-weight:700;color:rgba(220,38,38,.9);text-transform:uppercase;letter-spacing:.06em;flex:1;">Roturas y Fallas</span>';
   h+='<div style="display:flex;align-items:center;gap:6px;">';
   if(_detalleSearchOpen){
     h+='<div style="position:relative;">';
-    h+='<input id="det-busq" class="inp" value="'+esc(_detalleQ)+'" placeholder="Buscar partes e historial..." oninput="setDetalleQ(this.value)" style="padding:5px 28px 5px 10px;font-size:.75rem;width:160px;">';
+    h+='<input id="det-busq" class="inp" value="'+esc(_detalleQ)+'" placeholder="Buscar roturas y fallas e historial..." oninput="setDetalleQ(this.value)" style="padding:5px 28px 5px 10px;font-size:.75rem;width:160px;">';
     if(_detalleQ)h+='<button onclick="_detalleQ=\'\';render();setTimeout(function(){var i=document.getElementById(\'det-busq\');if(i)i.focus();},50);" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:.9rem;cursor:pointer;color:var(--text3);">✕</button>';
     h+='</div>';
   }
@@ -2342,7 +2342,7 @@ function rDetalle(){
     return (p.nombre||"").toLowerCase().includes(dq)||(p.descripcion||"").toLowerCase().includes(dq)||(p.notas||"").toLowerCase().includes(dq)||(p.estado||"").toLowerCase().includes(dq)||(p.marca||"").toLowerCase().includes(dq)||(p.nroSerie||"").toLowerCase().includes(dq);
   });
   if(!eq.partes.filter(function(p){return p.estado!=="ok"&&p.estado!=="mejora";}).length){h+='<div style="background:rgba(120,120,128,.05);border:1px dashed rgba(120,120,128,.2);border-radius:14px;text-align:center;color:var(--text3);padding:18px;font-size:.82rem;margin-bottom:12px;">Sin partes activas — tocá "+ Agregar"</div>';}
-  else if(dq&&!partesActivas.length){h+='<div style="color:var(--text3);font-size:.78rem;padding:8px 0 12px;text-align:center;">Sin partes que coincidan</div>';}
+  else if(dq&&!partesActivas.length){h+='<div style="color:var(--text3);font-size:.78rem;padding:8px 0 12px;text-align:center;">Sin roturas que coincidan</div>';}
   partesActivas.forEach(function(p){
     var c=CP[p.estado]||"var(--green)";
     var bgCard=p.estado==="roto"?"rgba(255,245,245,.95)":p.estado==="pendiente"?"rgba(255,250,240,.95)":"rgba(245,255,248,.95)";
@@ -2716,7 +2716,7 @@ function rAntenaDetalle(){
               '<div style="font-weight:700;font-size:.84rem;color:var(--text);">'+esc(r.queSeRompio||r.descripcion||'—')+'</div>'+
               (r.descripcion&&r.queSeRompio?'<div style="font-size:.72rem;color:var(--text2);margin-top:2px;">'+esc(r.descripcion)+'</div>':'')+
               '<div style="font-size:.68rem;color:var(--text3);margin-top:4px;">📅 Rotura: <span style="color:var(--red);font-weight:600;">'+fD(r.fecha)+'</span>'+(r.tecnico?' · 👷 '+esc(r.tecnico):'')+'</div>'+
-              (_lEq?'<div style="font-size:.65rem;color:var(--accent);margin-top:3px;font-weight:600;">🔗 Parte en: '+esc(_lEq.nombre)+'</div>':'')+
+              (_lEq?'<div style="font-size:.65rem;color:var(--accent);margin-top:3px;font-weight:600;">🔗 Rotura en: '+esc(_lEq.nombre)+'</div>':'')+
               (r.presupuestoArregloPdf?'<div style="margin-top:6px;"><button onclick="openPDFViewer(\''+r.presupuestoArregloPdf.id+'\',\'\')" style="font-size:.66rem;padding:3px 9px;border-radius:12px;background:rgba(0,113,227,.10);color:var(--accent);border:1px solid rgba(0,113,227,.18);cursor:pointer;font-weight:600;">📄 Ver presupuesto</button></div>':'')+
             '</div>'+
             '<div style="display:flex;flex-direction:column;gap:5px;flex-shrink:0;">'+
@@ -3000,7 +3000,7 @@ function exportAllPDF(){
   var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CIMA Reporte</title><style>'+_reportCSS+'</style></head><body>'+
     '<div class="nav-bar"><button class="btn-print" onclick="window.print()">🖨 Imprimir</button></div>'+
     '<div class="h"><div class="h1">CIMA — Reporte General</div><div class="h-sub">'+new Date().toLocaleString("es-AR")+' · '+eqs.length+' equipos</div></div>'+
-    '<div class="b"><h2>Equipos</h2><table><thead><tr><th>Equipo</th><th>Cat.</th><th>Ubic.</th><th>Estado</th><th>Frec.</th><th>Últ.Mant.</th><th>Próx.Mant.</th><th>Partes</th><th>Rotas</th><th>Hist.</th></tr></thead><tbody>'+rows+'</tbody></table></div></body></html>';
+    '<div class="b"><h2>Equipos</h2><table><thead><tr><th>Equipo</th><th>Cat.</th><th>Ubic.</th><th>Estado</th><th>Frec.</th><th>Últ.Mant.</th><th>Próx.Mant.</th><th>Roturas</th><th>Rotas</th><th>Hist.</th></tr></thead><tbody>'+rows+'</tbody></table></div></body></html>';
   toggleSettings();openHTMLViewer(html);
 }
 
@@ -3029,7 +3029,7 @@ function expFiltered(){
       }
     });
     sections+='<div class="eq-block"><div class="eq-hdr"><span class="eq-name">'+esc(eq.nombre)+'</span><span class="eq-cat">'+ci.label+(eq.ubicacion?' · '+esc(eq.ubicacion):'')+'</span></div>';
-    if(repRows)sections+='<p class="sec-lbl">🔧 Reparaciones</p><table><thead><tr><th>Parte / Descripción</th><th>Notas</th><th>F. Rotura</th><th>F. Arreglo</th></tr></thead><tbody>'+repRows+'</tbody></table>';
+    if(repRows)sections+='<p class="sec-lbl">🔧 Reparaciones</p><table><thead><tr><th>Rotura / Falla</th><th>Notas</th><th>F. Rotura</th><th>F. Arreglo</th></tr></thead><tbody>'+repRows+'</tbody></table>';
     if(mantRows)sections+='<p class="sec-lbl">🔩 Mantenimientos</p><table><thead><tr><th>Fecha</th><th>Ingeniero</th><th>Notas</th></tr></thead><tbody>'+mantRows+'</tbody></table>';
     sections+='</div>';
   });
@@ -3171,12 +3171,12 @@ function generateReport(){
     sections+='<div class="eq-stat"><div class="eq-stat-l">Estado</div><div class="eq-stat-v" style="color:'+estCol+';">'+estLabel(eq.estado)+'</div></div>';
     sections+='<div class="eq-stat"><div class="eq-stat-l">Último Mant.</div><div class="eq-stat-v">'+fD(eq.ultimoMant)+'</div></div>';
     sections+='<div class="eq-stat"><div class="eq-stat-l">Próx. Mant.</div><div class="eq-stat-v">'+fD(eq.proximoMant)+'</div></div>';
-    sections+='<div class="eq-stat"><div class="eq-stat-l">Partes Rotas</div><div class="eq-stat-v" style="color:'+(rot>0?'#dc2626':'#16a34a')+';">'+rot+'</div></div>';
+    sections+='<div class="eq-stat"><div class="eq-stat-l">Roturas y Fallas</div><div class="eq-stat-v" style="color:'+(rot>0?'#dc2626':'#16a34a')+';">'+rot+'</div></div>';
     sections+='</div>';
     if(mantHist.length){var mantRows='';mantHist.forEach(function(h){mantRows+='<tr><td>'+fD(h.fecha)+'</td><td>'+(h.tecnico?esc(h.tecnico):'—')+'</td><td>'+(h.notas?esc(h.notas):'—')+'</td></tr>';});sections+='<div class="sec-hdr"><div class="sec-hdr-dot" style="background:#0071e3;"></div><span class="sec-hdr-txt" style="color:#0071e3;">Mantenimientos</span><span class="sec-hdr-count" style="background:#e8f1ff;color:#0071e3;">'+mantHist.length+'</span></div><table><thead><tr><th>Fecha</th><th>Ingeniero</th><th>Notas</th></tr></thead><tbody>'+mantRows+'</tbody></table>';}
-    if(repHist.length){var repRows='';repHist.forEach(function(h){repRows+='<tr><td>'+esc(h.nombre||'—')+'</td><td style="color:#dc2626;font-weight:600;">'+fD(h.fechaRotura)+'</td><td style="color:#16a34a;font-weight:600;">'+fD(h.fecha)+'</td><td>'+(h.tecnico?esc(h.tecnico):'—')+'</td><td>'+(h.precio?'<strong>$'+esc(h.precio)+'</strong>':'—')+'</td><td>'+(h.notas?esc(h.notas):'—')+'</td></tr>';});sections+='<div class="sec-hdr"><div class="sec-hdr-dot" style="background:#16a34a;"></div><span class="sec-hdr-txt" style="color:#16a34a;">Reparaciones completadas</span><span class="sec-hdr-count" style="background:#f0fdf4;color:#16a34a;">'+repHist.length+'</span></div><table><thead><tr><th>Parte</th><th>F. Rotura</th><th>F. Arreglo</th><th>Ingeniero</th><th>Precio</th><th>Notas</th></tr></thead><tbody>'+repRows+'</tbody></table>';}
+    if(repHist.length){var repRows='';repHist.forEach(function(h){repRows+='<tr><td>'+esc(h.nombre||'—')+'</td><td style="color:#dc2626;font-weight:600;">'+fD(h.fechaRotura)+'</td><td style="color:#16a34a;font-weight:600;">'+fD(h.fecha)+'</td><td>'+(h.tecnico?esc(h.tecnico):'—')+'</td><td>'+(h.precio?'<strong>$'+esc(h.precio)+'</strong>':'—')+'</td><td>'+(h.notas?esc(h.notas):'—')+'</td></tr>';});sections+='<div class="sec-hdr"><div class="sec-hdr-dot" style="background:#16a34a;"></div><span class="sec-hdr-txt" style="color:#16a34a;">Reparaciones completadas</span><span class="sec-hdr-count" style="background:#f0fdf4;color:#16a34a;">'+repHist.length+'</span></div><table><thead><tr><th>Rotura</th><th>F. Rotura</th><th>F. Arreglo</th><th>Ingeniero</th><th>Precio</th><th>Notas</th></tr></thead><tbody>'+repRows+'</tbody></table>';}
     if(mejHist.length){var mejRows='';mejHist.forEach(function(h){mejRows+='<tr><td>'+esc(h.nombre||'—')+'</td><td>'+fD(h.fecha)+'</td><td>'+(h.asignadoA||h.tecnico?esc(h.asignadoA||h.tecnico):'—')+'</td><td>'+(h.notas?esc(h.notas):'—')+'</td></tr>';});sections+='<div class="sec-hdr"><div class="sec-hdr-dot" style="background:#8b5cf6;"></div><span class="sec-hdr-txt" style="color:#8b5cf6;">Mejoras completadas</span><span class="sec-hdr-count" style="background:#f5f3ff;color:#8b5cf6;">'+mejHist.length+'</span></div><table><thead><tr><th>Mejora</th><th>Fecha</th><th>Responsable</th><th>Notas</th></tr></thead><tbody>'+mejRows+'</tbody></table>';}
-    if(actToShow.length){var actRows='';actToShow.forEach(function(p){var pill=p.estado==='roto'?'<span style="background:#fee2e2;color:#dc2626;padding:2px 7px;border-radius:20px;font-weight:700;font-size:9px;">Roto</span>':'<span style="background:#fef9c3;color:#d97706;padding:2px 7px;border-radius:20px;font-weight:700;font-size:9px;">Pendiente</span>';actRows+='<tr><td style="font-weight:600;">'+esc(p.nombre)+'</td><td>'+pill+'</td><td style="color:#dc2626;">'+fD(p.fechaRotura)+'</td><td>'+(p.canalReclamo?canalLabel(p.canalReclamo):'—')+'</td><td>'+(p.presupuestoAprobado?'<span style="color:#16a34a;font-weight:600;">✅ Aprobado'+(p.fechaAprobacion?' '+fD(p.fechaAprobacion):'')+'</span>':'<span style="color:#d97706;">⏳ Pendiente</span>')+'</td><td>'+(p.precio?'<strong>$'+esc(p.precio)+'</strong>':'—')+'</td><td>'+(p.notas?esc(p.notas):'—')+'</td></tr>';});sections+='<div class="sec-hdr"><div class="sec-hdr-dot" style="background:#dc2626;"></div><span class="sec-hdr-txt" style="color:#dc2626;">Partes rotas / pendientes</span><span class="sec-hdr-count" style="background:#fef2f2;color:#dc2626;">'+actToShow.length+'</span></div><table><thead><tr><th>Parte</th><th>Estado</th><th>F. Rotura</th><th>Canal</th><th>Presupuesto</th><th>Precio</th><th>Notas</th></tr></thead><tbody>'+actRows+'</tbody></table>';}
+    if(actToShow.length){var actRows='';actToShow.forEach(function(p){var pill=p.estado==='roto'?'<span style="background:#fee2e2;color:#dc2626;padding:2px 7px;border-radius:20px;font-weight:700;font-size:9px;">Roto</span>':'<span style="background:#fef9c3;color:#d97706;padding:2px 7px;border-radius:20px;font-weight:700;font-size:9px;">Pendiente</span>';actRows+='<tr><td style="font-weight:600;">'+esc(p.nombre)+'</td><td>'+pill+'</td><td style="color:#dc2626;">'+fD(p.fechaRotura)+'</td><td>'+(p.canalReclamo?canalLabel(p.canalReclamo):'—')+'</td><td>'+(p.presupuestoAprobado?'<span style="color:#16a34a;font-weight:600;">✅ Aprobado'+(p.fechaAprobacion?' '+fD(p.fechaAprobacion):'')+'</span>':'<span style="color:#d97706;">⏳ Pendiente</span>')+'</td><td>'+(p.precio?'<strong>$'+esc(p.precio)+'</strong>':'—')+'</td><td>'+(p.notas?esc(p.notas):'—')+'</td></tr>';});sections+='<div class="sec-hdr"><div class="sec-hdr-dot" style="background:#dc2626;"></div><span class="sec-hdr-txt" style="color:#dc2626;">Roturas y fallas pendientes</span><span class="sec-hdr-count" style="background:#fef2f2;color:#dc2626;">'+actToShow.length+'</span></div><table><thead><tr><th>Rotura</th><th>Estado</th><th>F. Rotura</th><th>Canal</th><th>Presupuesto</th><th>Precio</th><th>Notas</th></tr></thead><tbody>'+actRows+'</tbody></table>';}
     if(mejPendToShow.length){var mpRows='';mejPendToShow.forEach(function(p){mpRows+='<tr><td style="font-weight:600;">'+esc(p.nombre)+'</td><td>'+(p.descripcion?esc(p.descripcion):'—')+'</td><td>'+(p.asignadoA?esc(p.asignadoA):'—')+'</td><td>'+(p.fechaMejora?fD(p.fechaMejora):'—')+'</td><td>'+(p.notas?esc(p.notas):'—')+'</td></tr>';});sections+='<div class="sec-hdr"><div class="sec-hdr-dot" style="background:#a855f7;"></div><span class="sec-hdr-txt" style="color:#a855f7;">Mejoras pendientes</span><span class="sec-hdr-count" style="background:#faf5ff;color:#a855f7;">'+mejPendToShow.length+'</span></div><table><thead><tr><th>Mejora</th><th>Descripción</th><th>Asignado</th><th>F. Prog.</th><th>Notas</th></tr></thead><tbody>'+mpRows+'</tbody></table>';}
     sections+='<div style="height:6px;"></div></div>';
   });
@@ -3514,7 +3514,7 @@ function openAddRoturaModalV2(antenaId){
   var eqBanner=linkedEqForModal
     ?'<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:var(--r-md);background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.22);margin-bottom:14px;font-size:.73rem;">'+
         '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 12h6M12 9v6"/></svg>'+
-        '<span>Se creará una parte rota automáticamente en <b>'+esc(linkedEqForModal.nombre)+'</b></span>'+
+        '<span>Se creará una rotura/falla automáticamente en <b>'+esc(linkedEqForModal.nombre)+'</b></span>'+
       '</div>'
     :'<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:var(--r-md);background:rgba(255,159,10,.07);border:1px solid rgba(255,159,10,.3);margin-bottom:14px;font-size:.73rem;color:var(--orange,#f59e0b);">'+
         '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'+
@@ -4456,8 +4456,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="4.8.2";
-var APP_BUILD="29/05/26 16:00";
+var APP_DISPLAY_VERSION="4.8.3";
+var APP_BUILD="29/05/26 17:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
@@ -4862,7 +4862,7 @@ function rSidebar(){
           iconFor(e,24)+
           '<div style="flex:1;min-width:0;">'+
             '<div style="font-size:.72rem;color:var(--text);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+esc(e.nombre)+'</div>'+
-            '<div style="font-size:.59rem;color:#ff3b30;">'+n+' parte'+(n>1?'s':'')+' rota'+(n>1?'s':'')+'</div>'+
+            '<div style="font-size:.59rem;color:#ff3b30;">'+n+' rotura'+(n>1?'s':'')+' / falla'+(n>1?'s':'')+'</div>'+
           '</div>'+
           '<div style="font-size:.78rem;flex-shrink:0;">🔧</div>'+
         '</div>';
