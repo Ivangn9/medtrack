@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.29.74 -->
+<!-- v2026.05.29.75 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>MedTrack — CIMA</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.05.29.74">
+<meta name="app-version" content="v2026.05.29.75">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -722,7 +722,6 @@ body.dark .sb-card{background:rgba(255,255,255,.07);border-color:rgba(255,255,25
     <button class="sb-nav-btn on" data-sb="dash" onclick="setView('dash')"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="8" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="15" width="7" height="6" rx="1.5"/></svg></span>Panel</button>
     <button class="sb-nav-btn" id="sb-equipos-btn" data-sb="lista" onclick="toggleSbEquiposMenu(event)"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg></span>Equipos<span style="margin-left:auto;font-size:.65rem;opacity:.5;transition:transform .2s;" id="sb-eq-chevron">▸</span></button>
     <button class="sb-nav-btn" data-sb="alertas" onclick="setView('alertas')"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></span>Alertas<span id="sb-alert-badge" style="display:none;background:var(--red);color:#fff;border-radius:10px;padding:1px 6px;font-size:.6rem;font-weight:700;margin-left:auto;"></span></button>
-    <button class="sb-nav-btn" data-sb="aires" onclick="setView('aires')"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="10" rx="3"/><path d="M6 11h12M6 14h4"/><circle cx="17" cy="14" r="1" fill="currentColor"/><path d="M2 10c0-1.1.9-3 3-3M22 10c0-1.1-.9-3-3-3"/></svg></span>Aires</button>
     <button class="sb-nav-btn" id="sb-ajustes-btn" onclick="toggleSbAjustesMenu(event)"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span>Ajustes<span style="margin-left:auto;font-size:.65rem;opacity:.5;transition:transform .2s;" id="sb-aj-chevron">▸</span></button>
   </div>
   <!-- Charts section -->
@@ -828,6 +827,7 @@ var CATS=[
   {id:"BOMBA",label:"Bombas",icon:"💉",color:"#f87171"},
   {id:"OD",label:"Odontología",icon:"🦷",color:"#2dd4bf"},
   {id:"DES",label:"Desfibriladores",icon:"⚡",color:"#f43f5e"}
+  ,{id:"ECO",label:"Ecógrafos",icon:"🔊",color:"#0ea5e9"}
 ];
 var CATS_SIN_MANT=["DM","AW","OD","DES"];
 function catById(id){return CATS.find(function(c){return c.id===id;})||{icon:"🔧",color:"#64748b",label:id};}
@@ -872,7 +872,8 @@ function catSvgIcon(catId,size){
     // Bomba inyección contraste — twin syringes with mounting head + tubes
     BOMBA:'<rect x="6" y="3" width="24" height="3.5" rx="1.2" fill="'+c[0]+'" opacity=".40"/><rect x="6" y="3" width="24" height="3.5" rx="1.2" fill="none" stroke="'+c[0]+'" stroke-width="1.1" opacity=".55"/><circle cx="9" cy="4.8" r=".7" fill="'+c[1]+'" opacity=".70"/><circle cx="11.4" cy="4.8" r=".7" fill="'+c[0]+'" opacity=".45"/><rect x="17" y="6.5" width="2" height="2.5" rx=".3" fill="'+c[0]+'" opacity=".40"/><rect x="8" y="9" width="8" height="17" rx="2" fill="'+c[1]+'" opacity=".22"/><rect x="8" y="9" width="8" height="17" rx="2" fill="none" stroke="'+c[0]+'" stroke-width="1.4" opacity=".55"/><rect x="9" y="14" width="6" height="11" rx="1.2" fill="'+c[0]+'" opacity=".30"/><line x1="16.4" y1="12" x2="17.2" y2="12" stroke="'+c[0]+'" stroke-width=".7" opacity=".55"/><line x1="16.4" y1="15" x2="17.2" y2="15" stroke="'+c[0]+'" stroke-width=".7" opacity=".55"/><line x1="16.4" y1="18" x2="17.2" y2="18" stroke="'+c[0]+'" stroke-width=".7" opacity=".55"/><line x1="16.4" y1="21" x2="17.2" y2="21" stroke="'+c[0]+'" stroke-width=".7" opacity=".55"/><rect x="20" y="9" width="8" height="17" rx="2" fill="'+c[1]+'" opacity=".22"/><rect x="20" y="9" width="8" height="17" rx="2" fill="none" stroke="'+c[0]+'" stroke-width="1.4" opacity=".55"/><rect x="21" y="17" width="6" height="8" rx="1.2" fill="'+c[0]+'" opacity=".30"/><path d="M12 26 Q12 29 15.5 30 Q18 30.5 18 32.5" fill="none" stroke="'+c[0]+'" stroke-width="1.3" opacity=".55" stroke-linecap="round"/><path d="M24 26 Q24 29 20.5 30 Q18 30.5 18 32.5" fill="none" stroke="'+c[0]+'" stroke-width="1.3" opacity=".55" stroke-linecap="round"/><circle cx="18" cy="33.4" r="1.1" fill="'+c[0]+'" opacity=".60"/>',
     OD:'<path d="M9 16 Q11 8 14 8 Q16 8 17 10 Q18 8 19 8 Q20 8 21 10 Q22 8 24 8 Q27 8 29 16 Q31 23 29 28 Q27 31 25 28 Q24 31 21 28 Q18 31 15 28 Q12 31 9 28 Q7 23 9 16 Z" fill="none" stroke="'+c[0]+'" stroke-width="1.5" opacity=".35"/><line x1="13" y1="13" x2="13" y2="19" stroke="'+c[1]+'" stroke-width="1" opacity=".35"/><line x1="17" y1="11" x2="17" y2="18" stroke="'+c[1]+'" stroke-width="1" opacity=".35"/><line x1="21" y1="11" x2="21" y2="18" stroke="'+c[1]+'" stroke-width="1" opacity=".35"/><line x1="25" y1="13" x2="25" y2="19" stroke="'+c[1]+'" stroke-width="1" opacity=".35"/>',
-    DES:'<rect x="5" y="5" width="26" height="20" rx="3.5" fill="'+c[0]+'" opacity=".18"/><rect x="5" y="5" width="26" height="20" rx="3.5" fill="none" stroke="'+c[0]+'" stroke-width="1.6" opacity=".70"/><rect x="7.5" y="7.5" width="13" height="8" rx="1.5" fill="'+c[0]+'" opacity=".12"/><rect x="7.5" y="7.5" width="13" height="8" rx="1.5" fill="none" stroke="'+c[0]+'" stroke-width=".9" opacity=".55"/><polyline points="9,12 10.5,12 11.5,9.5 12.5,14 13.5,10.5 14.5,13 15.5,12 17,12" fill="none" stroke="'+c[1]+'" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" opacity=".85"/><polygon points="23,7 20.5,12 23,12 20,18 26,11 23,11" fill="'+c[0]+'" opacity=".80" stroke="'+c[0]+'" stroke-width=".5"/><circle cx="10" cy="27" r="3.5" fill="'+c[0]+'" opacity=".25"/><circle cx="10" cy="27" r="3.5" fill="none" stroke="'+c[0]+'" stroke-width="1.2" opacity=".65"/><circle cx="10" cy="27" r="1.2" fill="'+c[0]+'" opacity=".60"/><circle cx="26" cy="27" r="3.5" fill="'+c[0]+'" opacity=".25"/><circle cx="26" cy="27" r="3.5" fill="none" stroke="'+c[0]+'" stroke-width="1.2" opacity=".65"/><circle cx="26" cy="27" r="1.2" fill="'+c[0]+'" opacity=".60"/><path d="M13.5 25 Q13.5 22 10 22.5" fill="none" stroke="'+c[0]+'" stroke-width="1" stroke-linecap="round" opacity=".55"/><path d="M22.5 25 Q22.5 22 26 22.5" fill="none" stroke="'+c[0]+'" stroke-width="1" stroke-linecap="round" opacity=".55"/>'
+    DES:'<rect x="5" y="5" width="26" height="20" rx="3.5" fill="'+c[0]+'" opacity=".18"/><rect x="5" y="5" width="26" height="20" rx="3.5" fill="none" stroke="'+c[0]+'" stroke-width="1.6" opacity=".70"/><rect x="7.5" y="7.5" width="13" height="8" rx="1.5" fill="'+c[0]+'" opacity=".12"/><rect x="7.5" y="7.5" width="13" height="8" rx="1.5" fill="none" stroke="'+c[0]+'" stroke-width=".9" opacity=".55"/><polyline points="9,12 10.5,12 11.5,9.5 12.5,14 13.5,10.5 14.5,13 15.5,12 17,12" fill="none" stroke="'+c[1]+'" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" opacity=".85"/><polygon points="23,7 20.5,12 23,12 20,18 26,11 23,11" fill="'+c[0]+'" opacity=".80" stroke="'+c[0]+'" stroke-width=".5"/><circle cx="10" cy="27" r="3.5" fill="'+c[0]+'" opacity=".25"/><circle cx="10" cy="27" r="3.5" fill="none" stroke="'+c[0]+'" stroke-width="1.2" opacity=".65"/><circle cx="10" cy="27" r="1.2" fill="'+c[0]+'" opacity=".60"/><circle cx="26" cy="27" r="3.5" fill="'+c[0]+'" opacity=".25"/><circle cx="26" cy="27" r="3.5" fill="none" stroke="'+c[0]+'" stroke-width="1.2" opacity=".65"/><circle cx="26" cy="27" r="1.2" fill="'+c[0]+'" opacity=".60"/><path d="M13.5 25 Q13.5 22 10 22.5" fill="none" stroke="'+c[0]+'" stroke-width="1" stroke-linecap="round" opacity=".55"/><path d="M22.5 25 Q22.5 22 26 22.5" fill="none" stroke="'+c[0]+'" stroke-width="1" stroke-linecap="round" opacity=".55"/>',
+    ECO:'<rect x="6" y="3" width="24" height="18" rx="3" fill="'+c[0]+'" opacity=".15"/><rect x="6" y="3" width="24" height="18" rx="3" fill="none" stroke="'+c[0]+'" stroke-width="1.5" opacity=".7"/><rect x="9" y="6" width="15" height="10" rx="1.5" fill="'+c[0]+'" opacity=".12"/><rect x="9" y="6" width="15" height="10" rx="1.5" fill="none" stroke="'+c[0]+'" stroke-width=".9" opacity=".5"/><ellipse cx="18" cy="11" rx="4" ry="3" fill="'+c[0]+'" opacity=".18"/><path d="M15 17 Q15 22 13 26 Q12 28 11 27 M18 17 L18 27 M21 17 Q21 22 23 26 Q24 28 25 27" fill="none" stroke="'+c[0]+'" stroke-width="1.2" stroke-linecap="round" opacity=".65"/><ellipse cx="18" cy="27" rx="6" ry="1.5" fill="'+c[0]+'" opacity=".20"/><circle cx="27" cy="5" r="1.5" fill="'+c[0]+'" opacity=".5"/><circle cx="30" cy="5" r="1.5" fill="'+c[0]+'" opacity=".35"/>'
   };
   var path=paths[catId];
   if(!path) path='<circle cx="18" cy="18" r="9" fill="'+c[1]+'" opacity=".15" stroke="'+c[0]+'" stroke-width="1.5" opacity=".35"/>';
@@ -1004,6 +1005,9 @@ const EQ0=[
   Object.assign(mkeqSM("EQ-20","DES","Desfibrilador GN","GN",""),{modelo:"",parches_vencimiento:"",bateria_vencimiento:""}),
   Object.assign(mkeqSM("EQ-21","DES","Desfibrilador Pedernera","Pedernera",""),{modelo:"",parches_vencimiento:"",bateria_vencimiento:""}),
   Object.assign(mkeqSM("EQ-22","DES","Desfibrilador Sarmiento","Sarmiento",""),{modelo:"",parches_vencimiento:"",bateria_vencimiento:""}),
+  mkeq("EQ-23","ECO","Ecógrafo GE Logiq E10","","semestral","GE Healthcare"),
+  mkeq("EQ-24","ECO","Ecógrafo Mindray DC-80","","semestral","Mindray"),
+  mkeq("EQ-25","ECO","Ecógrafo Philips EPIQ 7","","semestral","Philips"),
 ];
 
 function migrateEqs(){
@@ -1017,10 +1021,10 @@ function migrateEqs(){
 // ═══════════════════════════════════════════
 //  STATE
 // ═══════════════════════════════════════════
-var eqs=[],view="dash",selId=null,selAntenaEqId=null,selAntenaId=null,filtCat="TODOS",toastTimer=null,darkMode=false,fontScale=100;
+var eqs=[],view="dash",selId=null,selAntenaEqId=null,selAntenaId=null,selTransdEqId=null,selTransdId=null,filtCat="TODOS",toastTimer=null,darkMode=false,fontScale=100;
 
 function saveData(){
-  try{localStorage.setItem("mt_v4",JSON.stringify(eqs));localStorage.setItem("mt_antenas",JSON.stringify(antenas));localStorage.setItem("mt_aires",JSON.stringify(aires));}catch(e){}
+  try{localStorage.setItem("mt_v4",JSON.stringify(eqs));localStorage.setItem("mt_antenas",JSON.stringify(antenas));localStorage.setItem("mt_aires",JSON.stringify(aires));localStorage.setItem("mt_transductores",JSON.stringify(transductores));}catch(e){}
   firestoreSave();
 }
 var _fsSaveTimer=null;
@@ -1029,7 +1033,7 @@ function firestoreSave(){
   if(_fsSaveTimer)clearTimeout(_fsSaveTimer);
   _fsSaveTimer=setTimeout(function(){
     window._fbdb.collection("users").doc(window._fbUser.uid).collection("app").doc("data")
-      .set({eqs:eqs,antenas:antenas,aires:aires,updatedAt:new Date().toISOString()},{merge:true})
+      .set({eqs:eqs,antenas:antenas,aires:aires,transductores:transductores,updatedAt:new Date().toISOString()},{merge:true})
       .catch(function(e){console.warn("Firestore save:",e);});
   },1500);
 }
@@ -1112,9 +1116,19 @@ function goBack(){
   if(view==="antenaDetalle"){view="antenas";render();}
   else if(view==="antenas"){selId=selAntenaEqId;view="detalle";_detalleQ="";_detalleSearchOpen=false;render();}
   else if(view==="aireDetalle"){view="aires";render();}
+  else if(view==="transductorDetalle"){view="transductores";render();}
+  else if(view==="transductores"){selId=selTransdEqId;view="detalle";_detalleQ="";_detalleSearchOpen=false;render();}
   else setView("lista");
 }
 function goAntenas(rmEquipId){selAntenaEqId=rmEquipId;view="antenas";document.getElementById("back-btn").classList.remove("hidden");render();}
+function goTransductores(ecoEquipId){selTransdEqId=ecoEquipId;view="transductores";document.getElementById("back-btn").classList.remove("hidden");render();}
+function goTransductorDetalle(transductorId,ecoEquipId){
+  selTransdId=transductorId;
+  if(ecoEquipId)selTransdEqId=ecoEquipId;
+  view="transductorDetalle";
+  document.getElementById("back-btn").classList.remove("hidden");
+  render();
+}
 function goAntenaDetalle(antenaId,rmEquipId){
   selAntenaId=antenaId;
   if(rmEquipId)selAntenaEqId=rmEquipId;
@@ -1685,6 +1699,8 @@ function render(){
     else if(view==="antenaDetalle")d.innerHTML=rAntenaDetalle();
     else if(view==="aires")d.innerHTML=rAires();
     else if(view==="aireDetalle")d.innerHTML=rAireDetalle();
+    else if(view==="transductores")d.innerHTML=rTransductores();
+    else if(view==="transductorDetalle")d.innerHTML=rTransductorDetalle();
     m.appendChild(d);
     var spacer=document.createElement("div");spacer.style.height="80px";spacer.style.flexShrink="0";m.appendChild(spacer);
   }catch(err){
@@ -2143,6 +2159,35 @@ function rDetalle(){
     h+='</div></div>';
   }
 
+  // ── TRANSDUCTORES (ECO only) ──
+  if(eq.cat==='ECO'){
+    var _tCnt=(eq.transductorIds||[]).length;
+    var _tRot=transductores.filter(function(t){return(eq.transductorIds||[]).indexOf(t.id)!==-1;}).reduce(function(s,t){return s+(t.roturas||[]).filter(function(r){return r.estado!=='reparado';}).length;},0);
+    h+='<div class="gc tap" onclick="goTransductores(\''+eq.id+'\')" style="padding:0;margin-bottom:14px;overflow:hidden;cursor:pointer;border-left:4px solid rgba(14,165,233,.5);" ontouchstart="this.style.transform=\'scale(.98)\'" ontouchend="this.style.transform=\'\'">'+
+      '<div style="background:linear-gradient(90deg,rgba(14,165,233,.12),rgba(6,182,212,.07));padding:9px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(14,165,233,.10);">'+
+        transductorSvgIcon(14)+
+        '<span style="font-size:.72rem;font-weight:700;color:rgba(14,165,233,.9);text-transform:uppercase;letter-spacing:.06em;">Transductores</span>'+
+        '<svg style="margin-left:auto;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(14,165,233,.6)" stroke-width="2.2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>'+
+      '</div>'+
+      '<div style="padding:16px;position:relative;overflow:hidden;background:linear-gradient(135deg,rgba(14,165,233,.07) 0%,rgba(6,182,212,.04) 100%);">'+
+        '<div style="position:absolute;right:-10px;top:-8px;opacity:.22;pointer-events:none;z-index:0;">'+transductorSvgIcon(120)+'</div>'+
+        '<div style="position:relative;z-index:1;display:flex;align-items:center;gap:12px;">'+
+          '<div style="display:flex;gap:10px;">'+
+            '<div style="background:rgba(14,165,233,.10);border:1px solid rgba(14,165,233,.18);border-radius:var(--r-md);padding:9px 16px;text-align:center;min-width:64px;">'+
+              '<div style="font-size:1.5rem;font-weight:900;color:#0ea5e9;line-height:1;">'+_tCnt+'</div>'+
+              '<div style="font-size:.6rem;color:var(--text3);margin-top:3px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;">Transductor(es)</div>'+
+            '</div>'+
+            '<div style="background:'+(_tRot>0?'rgba(239,68,68,.10)':'rgba(52,199,89,.08)')+';border:1px solid '+(_tRot>0?'rgba(239,68,68,.18)':'rgba(52,199,89,.15)')+';border-radius:var(--r-md);padding:9px 16px;text-align:center;min-width:64px;">'+
+              '<div style="font-size:1.5rem;font-weight:900;color:'+(_tRot>0?'var(--red)':'var(--green)')+';line-height:1;">'+_tRot+'</div>'+
+              '<div style="font-size:.6rem;color:var(--text3);margin-top:3px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;">Rotura(s)</div>'+
+            '</div>'+
+          '</div>'+
+          '<div style="font-size:.72rem;color:var(--text3);">Ver transductores →</div>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  }
+
   // PARTES + HISTORIAL search bar
   var dq=_detalleQ.toLowerCase().trim();
   h+='<div class="gc" style="padding:0;margin-bottom:14px;overflow:hidden;border-left:4px solid rgba(255,59,48,.45);background:linear-gradient(135deg,rgba(255,59,48,.08) 0%,rgba(255,69,58,.04) 100%);">';
@@ -2504,6 +2549,146 @@ function rAntenaDetalle(){
   return h;
 }
 
+function rTransductores(){
+  var eq=eqs.find(function(e){return e.id===selTransdEqId;});if(!eq)return'';
+  var assignedIds=eq.transductorIds||[];
+  var assigned=transductores.filter(function(t){return assignedIds.indexOf(t.id)!==-1;});
+  var totalRot=0;assigned.forEach(function(t){totalRot+=(t.roturas||[]).length;});
+  var c1='#0ea5e9';
+  var h='';
+  h+='<div class="gc" style="padding:0;margin-bottom:12px;overflow:hidden;border-left:4px solid rgba(14,165,233,.6);background:linear-gradient(135deg,rgba(14,165,233,.07) 0%,rgba(6,182,212,.04) 100%);">'+
+    '<div style="background:linear-gradient(90deg,rgba(14,165,233,.13),rgba(6,182,212,.07));padding:9px 16px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(14,165,233,.12);">'+
+      transductorSvgIcon(14)+'<span style="font-size:.72rem;font-weight:700;color:rgba(14,165,233,.9);text-transform:uppercase;letter-spacing:.06em;">Transductores</span>'+
+    '</div>'+
+    '<div style="padding:16px;position:relative;overflow:hidden;">'+
+      '<div style="position:absolute;right:-12px;top:-8px;width:130px;height:130px;display:flex;align-items:center;justify-content:center;opacity:.35;pointer-events:none;z-index:0;">'+transductorSvgIcon(130)+'</div>'+
+      '<div style="position:relative;z-index:1;">'+
+        '<div style="font-weight:800;font-size:1.1rem;letter-spacing:-.3px;">'+esc(eq.nombre)+'</div>'+
+        '<div style="font-size:.72rem;color:var(--text3);margin-top:2px;">Gestión de transductores</div>'+
+        '<div style="display:flex;gap:10px;margin-top:12px;">'+
+          '<div style="background:rgba(14,165,233,.10);border:1px solid rgba(14,165,233,.18);border-radius:var(--r-md);padding:8px 14px;text-align:center;"><div style="font-size:1.4rem;font-weight:900;color:'+c1+';line-height:1;">'+assigned.length+'</div><div style="font-size:.6rem;color:var(--text3);margin-top:2px;">Transductor(es)</div></div>'+
+          '<div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.15);border-radius:var(--r-md);padding:8px 14px;text-align:center;"><div style="font-size:1.4rem;font-weight:900;color:'+(totalRot>0?'var(--red)':'var(--green)')+';line-height:1;">'+totalRot+'</div><div style="font-size:.6rem;color:var(--text3);margin-top:2px;">Rotura(s)</div></div>'+
+        '</div>'+
+      '</div>'+
+    '</div>'+
+  '</div>';
+  h+='<div style="display:flex;gap:8px;margin-bottom:12px;">'+
+    '<button onclick="openAddTransductorModal(\''+eq.id+'\')" style="flex:1;padding:12px;border-radius:var(--r-pill);background:rgba(14,165,233,.12);border:1.5px solid rgba(14,165,233,.28);color:'+c1+';font-weight:700;font-size:.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;box-shadow:inset 0 1.5px 0 rgba(255,255,255,.8);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Agregar Transductor</button>'+
+  '</div>';
+  if(assigned.length===0){
+    h+='<div class="gc" style="padding:28px 20px;text-align:center;">'+
+      '<div style="margin-bottom:10px;opacity:.4;">'+transductorSvgIcon(56)+'</div>'+
+      '<div style="font-weight:600;font-size:.88rem;color:var(--text2);">Sin transductores asignados</div>'+
+      '<div style="font-size:.75rem;color:var(--text3);margin-top:4px;">Usá "Agregar Transductor" para comenzar</div>'+
+    '</div>';
+  }else{
+    assigned.forEach(function(t){
+      var rotCount=(t.roturas||[]).filter(function(r){return r.estado!=='reparado';}).length;
+      var lastRot=(t.roturas||[]).length>0?(t.roturas||[]).slice().sort(function(x,y){return x.fecha>y.fecha?-1:1;})[0]:null;
+      var estT=t.estado||'operativo';
+      var estColor=estT==='fuera_servicio'?'var(--red)':estT==='con_fallas'?'var(--orange)':estT==='roto'?'var(--red)':'var(--green)';
+      var estBg=estT==='fuera_servicio'?'rgba(239,68,68,.12)':estT==='con_fallas'?'rgba(255,149,0,.12)':estT==='roto'?'rgba(239,68,68,.12)':'rgba(52,199,89,.12)';
+      var estLabel=estT==='fuera_servicio'?'Fuera de servicio':estT==='con_fallas'?'Con fallas':estT==='roto'?'Roto':'Operativo';
+      var _tBtns=[
+        {k:'operativo',label:'Operativo',c:'var(--green)',bg:'rgba(52,199,89,'},
+        {k:'con_fallas',label:'Con fallas',c:'var(--orange)',bg:'rgba(255,149,0,'},
+        {k:'fuera_servicio',label:'Fuera de servicio',c:'var(--red)',bg:'rgba(239,68,68,'}
+      ];
+      h+='<div class="gc" style="padding:0;overflow:hidden;margin-bottom:10px;">'+
+        '<div class="tap" onclick="goTransductorDetalle(\''+t.id+'\',\''+eq.id+'\')" style="padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;">'+
+          '<div style="flex-shrink:0;">'+transductorSvgIcon(44)+'</div>'+
+          '<div style="flex:1;min-width:0;">'+
+            '<div style="font-weight:700;font-size:.9rem;">'+esc(t.nombre)+'</div>'+
+            '<div style="font-size:.7rem;color:var(--text3);margin-top:3px;">'+
+              (t.tipo?'<span style="background:rgba(14,165,233,.10);color:'+c1+';padding:1px 7px;border-radius:10px;font-weight:600;margin-right:5px;">'+esc(t.tipo)+'</span>':'')+
+              (t.frecuencia?'<span style="background:rgba(14,165,233,.08);color:'+c1+';padding:1px 7px;border-radius:10px;font-weight:600;margin-right:5px;">'+esc(t.frecuencia)+' MHz</span>':'')+
+              (t.fechaCompra?'Compra: '+fD(t.fechaCompra):'')+
+            '</div>'+
+          '</div>'+
+          '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0;">'+
+            '<span style="font-size:.65rem;padding:2px 9px;border-radius:20px;font-weight:700;background:'+estBg+';color:'+estColor+';">'+estLabel+'</span>'+
+            '<span style="font-size:.65rem;padding:2px 9px;border-radius:20px;font-weight:700;background:'+(rotCount>0?'rgba(239,68,68,.12)':'rgba(52,199,89,.12)')+';color:'+(rotCount>0?'var(--red)':'var(--green)')+';">'+(rotCount>0?rotCount+' rotura(s) activa(s)':'Sin roturas')+'</span>'+
+            (lastRot?'<span style="font-size:.62rem;color:var(--text3);">Última: '+fD(lastRot.fecha)+'</span>':'')+
+            '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>'+
+          '</div>'+
+        '</div>'+
+        '<div style="border-top:1px solid rgba(120,120,128,.08);padding:8px 10px;display:flex;gap:6px;">'+
+          _tBtns.map(function(b){
+            var isActive=estT===b.k;
+            return '<button onclick="event.stopPropagation();setTransductorEstado(\''+t.id+'\',\''+b.k+'\')" style="flex:1;padding:6px 4px;border-radius:10px;font-size:.62rem;font-weight:700;cursor:pointer;border:'+(isActive?'1.5px solid '+b.c:'1px solid rgba(120,120,128,.15)')+';background:'+(isActive?b.bg+'.14)':'rgba(120,120,128,.05)')+';color:'+(isActive?b.c:'var(--text3)')+';transition:all .15s;">'+b.label+'</button>';
+          }).join('')+
+        '</div>'+
+      '</div>';
+    });
+  }
+  return h;
+}
+
+function rTransductorDetalle(){
+  var tr=transductores.find(function(t){return t.id===selTransdId;});if(!tr)return'';
+  var eq=eqs.find(function(e){return e.id===selTransdEqId;});
+  var c1='#0ea5e9';
+  var roturasActivas=(tr.roturas||[]).filter(function(r){return r.estado!=='reparado';});
+  var historial=tr.historialTransductor||[];
+  var h='';
+  var trEst=tr.estado||'operativo';
+  var trEstColor=trEst==='fuera_servicio'?'var(--red)':trEst==='con_fallas'?'var(--orange)':trEst==='roto'?'var(--red)':'var(--green)';
+  var trEstBg=trEst==='fuera_servicio'?'rgba(239,68,68,.12)':trEst==='con_fallas'?'rgba(255,149,0,.12)':trEst==='roto'?'rgba(239,68,68,.12)':'rgba(52,199,89,.12)';
+  var trEstLabel=trEst==='fuera_servicio'?'🔴 Fuera de servicio':trEst==='con_fallas'?'⚠️ Con fallas':trEst==='roto'?'🔴 Roto':'✅ Operativo';
+  h+='<div class="gc" style="padding:0;margin-bottom:12px;overflow:hidden;border-left:4px solid rgba(14,165,233,.6);background:linear-gradient(135deg,rgba(14,165,233,.07) 0%,rgba(6,182,212,.04) 100%);">'+
+    '<div style="background:linear-gradient(90deg,rgba(14,165,233,.13),rgba(6,182,212,.07));padding:9px 16px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(14,165,233,.12);">'+
+      transductorSvgIcon(14)+'<span style="font-size:.72rem;font-weight:700;color:rgba(14,165,233,.9);text-transform:uppercase;letter-spacing:.06em;">Transductor</span>'+
+      '<button onclick="openEditTransductorModal(\''+tr.id+'\')" style="margin-left:auto;font-size:.7rem;padding:4px 10px;border-radius:12px;background:rgba(14,165,233,.12);border:1px solid rgba(14,165,233,.22);color:'+c1+';cursor:pointer;font-weight:600;">✎ Editar</button>'+
+    '</div>'+
+    '<div style="padding:16px;position:relative;overflow:hidden;">'+
+      '<div style="position:absolute;right:-12px;top:-8px;width:130px;height:130px;display:flex;align-items:center;justify-content:center;opacity:.35;pointer-events:none;z-index:0;">'+transductorSvgIcon(130)+'</div>'+
+      '<div style="position:relative;z-index:1;">'+
+        '<div style="font-weight:800;font-size:1.15rem;letter-spacing:-.3px;">'+esc(tr.nombre)+'</div>'+
+        (eq?'<div style="font-size:.7rem;color:var(--text3);margin-top:2px;">Asignado a: '+esc(eq.nombre)+'</div>':'')+
+        '<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">'+
+          '<span style="background:'+trEstBg+';color:'+trEstColor+';padding:3px 10px;border-radius:20px;font-weight:700;font-size:.72rem;">'+trEstLabel+'</span>'+
+          (tr.tipo?'<span style="background:rgba(14,165,233,.10);color:'+c1+';padding:3px 9px;border-radius:20px;font-weight:700;font-size:.72rem;">'+esc(tr.tipo)+'</span>':'')+
+          (tr.frecuencia?'<span style="background:rgba(14,165,233,.08);color:'+c1+';padding:3px 9px;border-radius:20px;font-weight:600;font-size:.72rem;">'+esc(tr.frecuencia)+' MHz</span>':'')+
+          (tr.fechaCompra?'<span style="background:rgba(120,120,128,.08);color:var(--text2);padding:3px 9px;border-radius:20px;font-weight:600;font-size:.72rem;">Compra: '+fD(tr.fechaCompra)+'</span>':'')+
+        '</div>'+
+      '</div>'+
+    '</div>'+
+  '</div>';
+  h+='<div style="display:flex;gap:8px;margin-bottom:12px;">'+
+    '<div class="gc" style="flex:1;padding:10px 12px;text-align:center;"><div style="font-size:1.5rem;font-weight:900;color:'+(roturasActivas.length>0?'var(--red)':'var(--green)')+';line-height:1;">'+roturasActivas.length+'</div><div style="font-size:.6rem;color:var(--text3);margin-top:3px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;">Roturas activas</div></div>'+
+    '<div class="gc" style="flex:1;padding:10px 12px;text-align:center;"><div style="font-size:1.5rem;font-weight:900;color:'+c1+';line-height:1;">'+historial.length+'</div><div style="font-size:.6rem;color:var(--text3);margin-top:3px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;">En historial</div></div>'+
+  '</div>';
+  h+='<div class="gc" style="padding:0;margin-bottom:12px;overflow:hidden;">'+
+    '<div style="background:linear-gradient(90deg,rgba(239,68,68,.10),rgba(239,68,68,.05));padding:9px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(239,68,68,.10);">'+
+      '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'+
+      '<span style="font-size:.72rem;font-weight:700;color:#dc2626;text-transform:uppercase;letter-spacing:.06em;flex:1;">Roturas activas</span>'+
+      '<button onclick="openAddTransductorRoturaModal(\''+tr.id+'\')" style="font-size:.66rem;padding:4px 10px;border-radius:14px;background:#dc2626;color:#fff;border:none;cursor:pointer;font-weight:700;">+ Nueva</button>'+
+    '</div>'+
+    '<div style="padding:12px 14px;">'+
+      (roturasActivas.length===0?
+        '<div style="text-align:center;padding:14px;font-size:.74rem;color:var(--text3);">Sin roturas activas ✅</div>'
+        :
+        roturasActivas.map(function(r){return '<div style="padding:10px 12px;margin-bottom:8px;border-radius:var(--r-md);background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);">'+
+          '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">'+
+            '<div style="flex:1;"><div style="font-weight:700;font-size:.82rem;color:var(--red);">'+esc(r.descripcion||'Sin descripción')+'</div>'+
+              (r.fecha?'<div style="font-size:.66rem;color:var(--text3);margin-top:2px;">Reportada: '+fD(r.fecha)+'</div>':'')+
+              (r.notas?'<div style="font-size:.7rem;color:var(--text2);margin-top:4px;">'+esc(r.notas)+'</div>':'')+
+            '</div>'+
+          '</div>'+
+          '<div style="display:flex;gap:6px;margin-top:8px;">'+
+            '<button onclick="markTransductorRoturaReparada(\''+tr.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 11px;border-radius:14px;background:rgba(52,199,89,.12);border:1px solid rgba(52,199,89,.25);color:var(--green);font-weight:700;cursor:pointer;">✓ Marcar reparada</button>'+
+            '<button onclick="deleteTransductorRotura(\''+tr.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(255,59,48,.08);border:1px solid rgba(255,59,48,.15);color:var(--red);cursor:pointer;font-weight:600;">✕</button>'+
+          '</div>'+
+        '</div>';}).join('')
+      )+
+    '</div>'+
+  '</div>';
+  if(selTransdEqId){
+    h+='<button onclick="if(confirm(\'¿Quitar este transductor del equipo?\'))removeTransductorFromEq(\''+tr.id+'\',\''+selTransdEqId+'\');" style="width:100%;padding:11px;border-radius:var(--r-pill);background:rgba(255,59,48,.08);border:1.5px solid rgba(255,59,48,.18);color:var(--red);font-weight:600;font-size:.78rem;cursor:pointer;margin-top:8px;">Quitar del equipo</button>';
+  }
+  return h;
+}
+
 // ═══════════════════════════════════════════
 //  SETTINGS
 // ═══════════════════════════════════════════
@@ -2815,6 +3000,22 @@ function antenaSvgIcon(size){
     '<path d="M22 12.5 Q27.5 18 22 23.5" fill="none" stroke="'+c3+'" stroke-width="1.2" stroke-linecap="round" opacity=".5"/>'+
     /* base platform */
     '<path d="M2 28 L3.5 32 L22 32 L22.5 28 Z" fill="'+c1+'" opacity=".22"/>'+
+    '</svg>';
+}
+function transductorSvgIcon(size){
+  var s=size||36;var r=Math.round(s*.3);
+  var c1="#0ea5e9",c2="#38bdf8",c3="#7dd3fc";
+  return '<svg width="'+s+'" height="'+s+'" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg" style="border-radius:'+r+'px;overflow:hidden;">'+
+    '<rect width="36" height="36" rx="'+Math.round(36*.3)+'" fill="'+c1+'" opacity=".07"/>'+
+    '<rect x="11" y="2" width="14" height="16" rx="3.5" fill="rgba(255,255,255,.78)" stroke="'+c1+'" stroke-width="1.6"/>'+
+    '<rect x="14" y="5" width="8" height="7" rx="1.5" fill="'+c1+'" opacity=".18" stroke="'+c1+'" stroke-width=".7" opacity=".4"/>'+
+    '<path d="M13 18 Q12 22 11 26 Q10.5 28 12 28 L24 28 Q25.5 28 25 26 Q24 22 23 18 Z" fill="rgba(255,255,255,.7)" stroke="'+c1+'" stroke-width="1.4"/>'+
+    '<ellipse cx="18" cy="29" rx="5" ry="2" fill="'+c1+'" opacity=".35"/>'+
+    '<line x1="15" y1="18" x2="14" y2="27" stroke="'+c1+'" stroke-width=".7" opacity=".35"/>'+
+    '<line x1="18" y1="18" x2="18" y2="27" stroke="'+c1+'" stroke-width=".7" opacity=".35"/>'+
+    '<line x1="21" y1="18" x2="22" y2="27" stroke="'+c1+'" stroke-width=".7" opacity=".35"/>'+
+    '<path d="M29 8 Q34 14 29 20" fill="none" stroke="'+c1+'" stroke-width="2" stroke-linecap="round" opacity=".6"/>'+
+    '<path d="M29 11 Q32 14 29 17" fill="none" stroke="'+c2+'" stroke-width="1.5" stroke-linecap="round" opacity=".5"/>'+
     '</svg>';
 }
 function openAddAntennaModal(rmEquipId){
@@ -3535,6 +3736,162 @@ function generateAntennasReport(){
 }
 
 // ═══════════════════════════════════════════
+//  TRANSDUCTORES CRUD
+// ═══════════════════════════════════════════
+function setTransductorEstado(transductorId,estado){
+  transductores=transductores.map(function(t){if(t.id===transductorId)return Object.assign({},t,{estado:estado});return t;});
+  saveData();render();
+}
+function removeTransductorFromEq(transductorId,ecoEquipId){
+  eqs=eqs.map(function(e){if(e.id===ecoEquipId)return Object.assign({},e,{transductorIds:(e.transductorIds||[]).filter(function(id){return id!==transductorId;})});return e;});
+  saveData();setView('lista');showToast('Transductor desvinculado','warn');
+}
+function openAddTransductorModal(ecoEquipId){
+  openModal(
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">'+
+      '<div style="flex-shrink:0;">'+transductorSvgIcon(36)+'</div>'+
+      '<div><div style="font-weight:800;font-size:1.05rem;">Nuevo Transductor</div>'+
+        '<div style="font-size:.65rem;color:var(--text3);">Completá los datos del transductor</div></div>'+
+      '<button onclick="closeModal();" style="margin-left:auto;width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.85rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">‹</button>'+
+    '</div>'+
+    '<div class="ff"><div class="ff-label">Nombre del transductor *</div>'+
+      '<input class="inp" id="tr-nombre" placeholder="Ej: Transductor convexo 3.5MHz" autocomplete="off">'+
+    '</div>'+
+    '<div class="g2">'+
+      '<div class="ff"><div class="ff-label">Tipo</div>'+
+        '<select class="inp" id="tr-tipo">'+
+          '<option value="">— Sin especificar —</option>'+
+          '<option value="Convexo">Convexo</option>'+
+          '<option value="Lineal">Lineal</option>'+
+          '<option value="Sectorial">Sectorial</option>'+
+          '<option value="Microconvexo">Microconvexo</option>'+
+          '<option value="Endocavitario">Endocavitario</option>'+
+          '<option value="Matricial">Matricial</option>'+
+        '</select>'+
+      '</div>'+
+      '<div class="ff"><div class="ff-label">Frecuencia (MHz)</div>'+
+        '<input class="inp" id="tr-frec" type="text" placeholder="Ej: 3.5">'+
+      '</div>'+
+    '</div>'+
+    '<div class="ff"><div class="ff-label">Estado</div>'+
+      '<select class="inp" id="tr-estado">'+
+        '<option value="operativo">✅ Operativo</option>'+
+        '<option value="con_fallas">⚠️ Con fallas</option>'+
+        '<option value="fuera_servicio">🔴 Fuera de servicio</option>'+
+      '</select>'+
+    '</div>'+
+    '<div class="ff"><div class="ff-label">Fecha de compra</div>'+
+      '<input class="inp" id="tr-fecha" type="date">'+
+    '</div>'+
+    '<div class="ff"><div class="ff-label">Notas</div>'+
+      '<textarea class="inp" id="tr-notas" rows="2" placeholder="Observaciones opcionales..."></textarea>'+
+    '</div>'+
+    '<button class="btn-grad btn-grad-blue" style="background:linear-gradient(135deg,#0ea5e9,#0284c7);" onclick="submitAddTransductor(\''+ecoEquipId+'\')">Agregar Transductor</button>'
+  );
+}
+function submitAddTransductor(ecoEquipId){
+  var nombre=((document.getElementById('tr-nombre')||{}).value||'').trim();
+  var tipo=((document.getElementById('tr-tipo')||{}).value||'').trim();
+  var frec=((document.getElementById('tr-frec')||{}).value||'').trim();
+  var estado=((document.getElementById('tr-estado')||{}).value)||'operativo';
+  var fecha=((document.getElementById('tr-fecha')||{}).value)||'';
+  var notas=((document.getElementById('tr-notas')||{}).value||'').trim();
+  if(!nombre){alert('Ingresá el nombre del transductor');return;}
+  var tr={id:'TRSD-'+Date.now(),nombre:nombre,tipo:tipo||null,frecuencia:frec||null,estado:estado,fechaCompra:fecha,notas:notas,roturas:[],historialTransductor:[],creadoEn:new Date().toISOString()};
+  transductores.push(tr);
+  eqs=eqs.map(function(e){if(e.id===ecoEquipId)return Object.assign({},e,{transductorIds:(e.transductorIds||[]).concat(tr.id)});return e;});
+  saveData();closeModal();showToast('✅ Transductor agregado','');goTransductores(ecoEquipId);
+}
+function openEditTransductorModal(transductorId){
+  var tr=transductores.find(function(t){return t.id===transductorId;});if(!tr)return;
+  openModal(
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">'+
+      '<div style="flex-shrink:0;">'+transductorSvgIcon(36)+'</div>'+
+      '<div><div style="font-weight:800;font-size:1.05rem;">Editar Transductor</div></div>'+
+      '<button onclick="closeModal();" style="margin-left:auto;width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.85rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">‹</button>'+
+    '</div>'+
+    '<div class="ff"><div class="ff-label">Nombre *</div>'+
+      '<input class="inp" id="tr-e-nombre" value="'+esc(tr.nombre||'')+'" autocomplete="off">'+
+    '</div>'+
+    '<div class="g2">'+
+      '<div class="ff"><div class="ff-label">Tipo</div>'+
+        '<select class="inp" id="tr-e-tipo">'+
+          '<option value="">— Sin especificar —</option>'+
+          ['Convexo','Lineal','Sectorial','Microconvexo','Endocavitario','Matricial'].map(function(v){return'<option value="'+v+'"'+(tr.tipo===v?' selected':'')+'>'+v+'</option>';}).join('')+
+        '</select>'+
+      '</div>'+
+      '<div class="ff"><div class="ff-label">Frecuencia (MHz)</div>'+
+        '<input class="inp" id="tr-e-frec" type="text" value="'+esc(tr.frecuencia||'')+'" placeholder="Ej: 3.5">'+
+      '</div>'+
+    '</div>'+
+    '<div class="ff"><div class="ff-label">Estado</div>'+
+      '<select class="inp" id="tr-e-estado">'+
+        '<option value="operativo"'+(tr.estado==='operativo'?' selected':'')+'>✅ Operativo</option>'+
+        '<option value="con_fallas"'+(tr.estado==='con_fallas'?' selected':'')+'>⚠️ Con fallas</option>'+
+        '<option value="fuera_servicio"'+(tr.estado==='fuera_servicio'?' selected':'')+'>🔴 Fuera de servicio</option>'+
+      '</select>'+
+    '</div>'+
+    '<div class="ff"><div class="ff-label">Fecha de compra</div>'+
+      '<input class="inp" id="tr-e-fecha" type="date" value="'+esc(tr.fechaCompra||'')+'">'+
+    '</div>'+
+    '<div class="ff"><div class="ff-label">Notas</div>'+
+      '<textarea class="inp" id="tr-e-notas" rows="2">'+esc(tr.notas||'')+'</textarea>'+
+    '</div>'+
+    '<button class="btn-grad btn-grad-blue" style="background:linear-gradient(135deg,#0ea5e9,#0284c7);" onclick="submitEditTransductor(\''+transductorId+'\')">Guardar cambios</button>'
+  );
+}
+function submitEditTransductor(transductorId){
+  var nombre=((document.getElementById('tr-e-nombre')||{}).value||'').trim();
+  if(!nombre){alert('Nombre obligatorio');return;}
+  var tipo=((document.getElementById('tr-e-tipo')||{}).value||'');
+  var frec=((document.getElementById('tr-e-frec')||{}).value||'').trim();
+  var estado=((document.getElementById('tr-e-estado')||{}).value)||'operativo';
+  var fecha=((document.getElementById('tr-e-fecha')||{}).value)||'';
+  var notas=((document.getElementById('tr-e-notas')||{}).value||'').trim();
+  transductores=transductores.map(function(t){
+    if(t.id!==transductorId)return t;
+    return Object.assign({},t,{nombre:nombre,tipo:tipo||null,frecuencia:frec||null,estado:estado,fechaCompra:fecha,notas:notas});
+  });
+  saveData();closeModal();render();showToast('✅ Transductor actualizado','');
+}
+function openAddTransductorRoturaModal(transductorId){
+  openModal(
+    '<div style="font-weight:800;font-size:1.05rem;margin-bottom:16px;">🔴 Registrar Rotura</div>'+
+    '<div class="ff"><div class="ff-label">Descripción *</div>'+
+      '<input class="inp" id="tr-rot-desc" placeholder="Ej: Cable dañado, imagen no muestra..." autocomplete="off">'+
+    '</div>'+
+    '<div class="ff"><div class="ff-label">Fecha</div>'+
+      '<input class="inp" id="tr-rot-fecha" type="date" value="'+new Date().toISOString().split("T")[0]+'">'+
+    '</div>'+
+    '<div class="ff"><div class="ff-label">Notas</div>'+
+      '<textarea class="inp" id="tr-rot-notas" rows="2" placeholder="Detalles adicionales..."></textarea>'+
+    '</div>'+
+    '<button class="btn-grad" style="background:linear-gradient(135deg,#dc2626,#b91c1c);width:100%;margin-top:4px;" onclick="submitTransductorRotura(\''+transductorId+'\')">Registrar Rotura</button>'
+  );
+}
+function submitTransductorRotura(transductorId){
+  var desc=((document.getElementById('tr-rot-desc')||{}).value||'').trim();
+  if(!desc){alert('Descripción obligatoria');return;}
+  var fecha=((document.getElementById('tr-rot-fecha')||{}).value)||new Date().toISOString().split('T')[0];
+  var notas=((document.getElementById('tr-rot-notas')||{}).value||'').trim();
+  var rot={id:'ROT-'+Date.now(),descripcion:desc,fecha:fecha,notas:notas,estado:'activa',creadoEn:new Date().toISOString()};
+  transductores=transductores.map(function(t){if(t.id===transductorId)return Object.assign({},t,{roturas:(t.roturas||[]).concat(rot)});return t;});
+  saveData();closeModal();render();showToast('🔴 Rotura registrada','warn');
+}
+function deleteTransductorRotura(transductorId,roturaId){
+  if(!confirm('¿Eliminar esta rotura?'))return;
+  transductores=transductores.map(function(t){if(t.id===transductorId)return Object.assign({},t,{roturas:(t.roturas||[]).filter(function(r){return r.id!==roturaId;})});return t;});
+  saveData();render();showToast('Rotura eliminada','warn');
+}
+function markTransductorRoturaReparada(transductorId,roturaId){
+  transductores=transductores.map(function(t){
+    if(t.id!==transductorId)return t;
+    return Object.assign({},t,{roturas:(t.roturas||[]).map(function(r){return r.id===roturaId?Object.assign({},r,{estado:'reparado',reparadoEn:new Date().toISOString()}):r;})});
+  });
+  saveData();render();showToast('✅ Marcada como reparada','');
+}
+
+// ═══════════════════════════════════════════
 //  REPORTAR ROTURA
 // ═══════════════════════════════════════════
 function openMRotura(){
@@ -3861,7 +4218,8 @@ function deleteAireHistEntry(aireId,entryId){
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
 var antenas=[];
 var aires=[];
-var APP_DISPLAY_VERSION="4.6.6";
+var transductores=[];
+var APP_DISPLAY_VERSION="4.7.0";
 var APP_BUILD="29/05/26 10:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
@@ -4060,10 +4418,12 @@ function init(){
               eqs=doc.data().eqs;
               if(Array.isArray(doc.data().antenas))antenas=doc.data().antenas;
               if(Array.isArray(doc.data().aires))aires=doc.data().aires;
+              if(Array.isArray(doc.data().transductores))transductores=doc.data().transductores;
             } else {
               try{var s=localStorage.getItem("mt_v4");if(s){var p=JSON.parse(s);if(Array.isArray(p)&&p.length>0)eqs=p;}}catch(e){}
               try{var sa=localStorage.getItem("mt_antenas");if(sa){var pa=JSON.parse(sa);if(Array.isArray(pa))antenas=pa;}}catch(e){}
               try{var sai=localStorage.getItem("mt_aires");if(sai){var pai=JSON.parse(sai);if(Array.isArray(pai))aires=pai;}}catch(e){}
+              try{var str=localStorage.getItem("mt_transductores");if(str){var ptr=JSON.parse(str);if(Array.isArray(ptr))transductores=ptr;}}catch(e){}
             }
             migrateEqs();
             render();
