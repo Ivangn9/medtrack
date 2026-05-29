@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.29.72 -->
+<!-- v2026.05.29.73 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>MedTrack — CIMA</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.05.29.72">
+<meta name="app-version" content="v2026.05.29.73">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -941,6 +941,27 @@ function brandIconSVG(contrato, size){
     </svg>`;
   }
 
+  // Philips - blue with PHILIPS text and star-shield motif
+  if(c.includes("philips")){
+    return `<svg width="${s}" height="${s}" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+      <rect width="36" height="36" rx="${r}" fill="#0B5ED7"/>
+      <circle cx="10" cy="11" r="2" fill="#fff" opacity=".9"/>
+      <circle cx="10" cy="18" r="2" fill="#fff" opacity=".9"/>
+      <circle cx="10" cy="25" r="2" fill="#fff" opacity=".9"/>
+      <text x="23" y="16" text-anchor="middle" font-family="Arial,sans-serif" font-weight="800" font-size="6.5" fill="#fff" letter-spacing=".1">PHI</text>
+      <text x="23" y="24" text-anchor="middle" font-family="Arial,sans-serif" font-weight="800" font-size="6.5" fill="#fff" letter-spacing=".1">LIPS</text>
+    </svg>`;
+  }
+
+  // Nihon Kohden - navy blue with NK and EKG wave
+  if(c.includes("nihon")){
+    return `<svg width="${s}" height="${s}" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+      <rect width="36" height="36" rx="${r}" fill="#003087"/>
+      <text x="18" y="14" text-anchor="middle" font-family="Arial,sans-serif" font-weight="900" font-size="7" fill="#fff" letter-spacing=".5">NIHON</text>
+      <polyline points="4,24 8,24 10,20 12,28 14,18 16,26 18,24 32,24" fill="none" stroke="#00C3FF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>`;
+  }
+
   return null;
 }
 
@@ -1026,12 +1047,12 @@ function showToast(msg,tp){
 function pillH(c,txt){return'<span class="pill" style="background:'+c+'18;color:'+c+';">'+txt+'</span>';}
 
 function normBrand(s){return(s||'').toLowerCase().trim().replace(/[áàä]/g,'a').replace(/[éèë]/g,'e').replace(/[íìï]/g,'i').replace(/[óòö]/g,'o').replace(/[úùü]/g,'u').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');}
-var _LOGO_EXTS=['png','PNG','jpg','JPG','jpeg','JPEG','svg','SVG'];
+var _LOGO_EXTS=['png','PNG','jpg','JPG','jpeg','JPEG','webp','WEBP','svg','SVG'];
 var _logoExtCache={};
 function _logoErr(img){var slug=img.dataset.slug;var i=parseInt(img.dataset.li||0)+1;if(i<_LOGO_EXTS.length){img.dataset.li=i;img.src='logos/'+slug+'.'+_LOGO_EXTS[i];}else{_logoExtCache[slug]='';var p=img.previousElementSibling;if(p)p.style.display='';img.remove();}}
 function _logoCacheOk(img){var slug=img.dataset.slug;if(slug)_logoExtCache[slug]=_LOGO_EXTS[parseInt(img.dataset.li||0)];img.style.opacity='1';}
 function _logoImgHTML(slug,r){if(!slug)return'';var cached=_logoExtCache[slug];if(cached!==undefined){if(!cached)return'';return'<img src="logos/'+slug+'.'+cached+'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:3px;border-radius:'+r+'px;z-index:2;">';}return'<img src="logos/'+slug+'.'+_LOGO_EXTS[0]+'" data-slug="'+slug+'" data-li="0" onload="_logoCacheOk(this)" onerror="_logoErr(this)" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:3px;border-radius:'+r+'px;z-index:2;opacity:0;transition:opacity .18s;">';}
-var _BRAND_ALIAS={'ge-healthcare':'ge','ge-lunar':'ge','ge-healthcare-life-sciences':'ge','siemens-healthineers':'siemens','siemens-healthcare':'siemens','carestream-health':'carestream','agfa-healthcare':'agfa','agfa-healthcare-nv':'agfa','philips-healthcare':'philips','canon-medical':'canon','fujifilm-healthcare':'fujifilm'};
+var _BRAND_ALIAS={'ge-healthcare':'ge','ge-lunar':'ge','ge-healthcare-life-sciences':'ge','siemens-healthineers':'siemens','siemens-healthcare':'siemens','carestream-health':'carestream','agfa-healthcare':'agfa','agfa-healthcare-nv':'agfa','philips':'Philips','philips-healthcare':'Philips','philips-medical':'Philips','nihon':'Nihon','nihon-kohden':'Nihon','canon-medical':'canon','fujifilm-healthcare':'fujifilm'};
 function _brandSlug(s){var sl=normBrand(s);return _BRAND_ALIAS[sl]||sl;}
 
 function iconFor(eq,size){
@@ -3841,7 +3862,7 @@ function deleteAireHistEntry(aireId,entryId){
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
 var antenas=[];
 var aires=[];
-var APP_DISPLAY_VERSION="4.6.4";
+var APP_DISPLAY_VERSION="4.6.5";
 var APP_BUILD="29/05/26 10:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
