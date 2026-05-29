@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.28.71 -->
+<!-- v2026.05.29.72 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>MedTrack — CIMA</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.05.28.71">
+<meta name="app-version" content="v2026.05.29.72">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -984,6 +984,14 @@ const EQ0=[
   Object.assign(mkeqSM("EQ-21","DES","Desfibrilador Pedernera","Pedernera",""),{modelo:"",parches_vencimiento:"",bateria_vencimiento:""}),
   Object.assign(mkeqSM("EQ-22","DES","Desfibrilador Sarmiento","Sarmiento",""),{modelo:"",parches_vencimiento:"",bateria_vencimiento:""}),
 ];
+
+function migrateEqs(){
+  EQ0.forEach(function(def){
+    if(!eqs.find(function(e){return e.id===def.id;})){
+      eqs.push(JSON.parse(JSON.stringify(def)));
+    }
+  });
+}
 
 // ═══════════════════════════════════════════
 //  STATE
@@ -3833,8 +3841,8 @@ function deleteAireHistEntry(aireId,entryId){
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
 var antenas=[];
 var aires=[];
-var APP_DISPLAY_VERSION="4.6.3";
-var APP_BUILD="28/05/26 02:00";
+var APP_DISPLAY_VERSION="4.6.4";
+var APP_BUILD="29/05/26 10:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
@@ -4037,6 +4045,7 @@ function init(){
               try{var sa=localStorage.getItem("mt_antenas");if(sa){var pa=JSON.parse(sa);if(Array.isArray(pa))antenas=pa;}}catch(e){}
               try{var sai=localStorage.getItem("mt_aires");if(sai){var pai=JSON.parse(sai);if(Array.isArray(pai))aires=pai;}}catch(e){}
             }
+            migrateEqs();
             render();
             setTimeout(checkForUpdates,3000);
             setInterval(checkForUpdates,60*1000);
@@ -4044,6 +4053,7 @@ function init(){
           .catch(function(){
             eqs=JSON.parse(JSON.stringify(EQ0));
             try{var s=localStorage.getItem("mt_v4");if(s){var p=JSON.parse(s);if(Array.isArray(p)&&p.length>0)eqs=p;}}catch(e){}
+            migrateEqs();
             render();
           });
       },function(){
@@ -4057,6 +4067,7 @@ function init(){
     // Firebase not loaded — fallback to localStorage
     eqs=JSON.parse(JSON.stringify(EQ0));
     try{var s=localStorage.getItem("mt_v4");if(s){var p=JSON.parse(s);if(Array.isArray(p)&&p.length>0)eqs=p;}}catch(e){}
+    migrateEqs();
     setTimeout(function(){render();},50);
     setTimeout(checkForUpdates,3000);
     setInterval(checkForUpdates,60*1000);
