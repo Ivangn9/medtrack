@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.29.81 -->
+<!-- v2026.05.29.82 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>MedTrack — CIMA</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.05.29.81">
+<meta name="app-version" content="v2026.05.29.82">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1802,13 +1802,14 @@ function render(){
 
 // ── DASHBOARD ──
 function rDash(){
-  var opF=eqs.filter(function(e){return e.estado==="fuera-de-servicio";}).length;
-  var opOK=eqs.length-opF;
-  var mU=eqs.filter(function(e){return!sinMant(e)&&(semafo(e)==="vencido"||semafo(e)==="urgente");}).length;
-  var rot=0,pend=0;eqs.forEach(function(e){e.partes.forEach(function(p){if(p.estado==="roto")rot++;if(p.estado==="pendiente")pend++;});});
+  var activeEqs=eqs.filter(function(e){return !e.baja;});
+  var opF=activeEqs.filter(function(e){return e.estado==="fuera-de-servicio";}).length;
+  var opOK=activeEqs.length-opF;
+  var mU=activeEqs.filter(function(e){return!sinMant(e)&&(semafo(e)==="vencido"||semafo(e)==="urgente");}).length;
+  var rot=0,pend=0;activeEqs.forEach(function(e){e.partes.forEach(function(p){if(p.estado==="roto")rot++;if(p.estado==="pendiente")pend++;});});
   
   var h='<div class="g3" style="margin-bottom:16px;">';
-  [{l:"Total",v:eqs.length,c:"var(--accent)",k:"total"},{l:"Operativos",v:opOK,c:"var(--green)",k:"operativo"},{l:"F. de servicio",v:opF,c:"var(--red)",k:"fuera"},{l:"Mant. Urg.",v:mU,c:"var(--red)",k:"manturg"},{l:"Comp. Rotos",v:rot,c:"var(--red)",k:"rotos"},{l:"Pendientes",v:pend,c:"var(--orange)",k:"pendientes"}].forEach(function(s){
+  [{l:"Total",v:activeEqs.length,c:"var(--accent)",k:"total"},{l:"Operativos",v:opOK,c:"var(--green)",k:"operativo"},{l:"F. de servicio",v:opF,c:"var(--red)",k:"fuera"},{l:"Mant. Urg.",v:mU,c:"var(--red)",k:"manturg"},{l:"Comp. Rotos",v:rot,c:"var(--red)",k:"rotos"},{l:"Pendientes",v:pend,c:"var(--orange)",k:"pendientes"}].forEach(function(s){
     h+='<div class="gc stat tap" onclick="applyDashFilter(\''+s.k+'\')" style="cursor:pointer;border-bottom:3px solid '+s.c+'40;transition:transform .18s,box-shadow .18s;">'+
       '<div class="stat-lbl">'+s.l+'</div>'+
       '<div class="stat-val" style="color:'+s.c+';">'+s.v+'</div>'+
@@ -1871,7 +1872,7 @@ function rDash(){
   h+='</div>';
 
   h+='<div class="sec">Próximos Mantenimientos</div>';
-  var sorted=eqs.filter(function(e){return!sinMant(e);}).sort(function(a,b){return new Date(a.proximoMant)-new Date(b.proximoMant);}).slice(0,8);
+  var sorted=eqs.filter(function(e){return!e.baja&&!sinMant(e);}).sort(function(a,b){return new Date(a.proximoMant)-new Date(b.proximoMant);}).slice(0,8);
   sorted.forEach(function(e){
     var ms=semafo(e);var d=diasH(e.proximoMant);
     h+='<div class="gc tap" onclick="goDetalle(\''+e.id+'\')" style="padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px;cursor:pointer;">'+
@@ -4422,8 +4423,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="4.7.3";
-var APP_BUILD="29/05/26 12:00";
+var APP_DISPLAY_VERSION="4.7.4";
+var APP_BUILD="29/05/26 13:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
