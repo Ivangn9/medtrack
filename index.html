@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.29.76 -->
+<!-- v2026.05.29.77 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>MedTrack — CIMA</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.05.29.76">
+<meta name="app-version" content="v2026.05.29.77">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3056,15 +3056,33 @@ function transductorSvgIcon(size){
   var c1="#0ea5e9",c2="#38bdf8",c3="#7dd3fc";
   return '<svg width="'+s+'" height="'+s+'" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg" style="border-radius:'+r+'px;overflow:hidden;">'+
     '<rect width="36" height="36" rx="'+Math.round(36*.3)+'" fill="'+c1+'" opacity=".07"/>'+
-    '<rect x="11" y="2" width="14" height="16" rx="3.5" fill="rgba(255,255,255,.78)" stroke="'+c1+'" stroke-width="1.6"/>'+
-    '<rect x="14" y="5" width="8" height="7" rx="1.5" fill="'+c1+'" opacity=".18" stroke="'+c1+'" stroke-width=".7" opacity=".4"/>'+
-    '<path d="M13 18 Q12 22 11 26 Q10.5 28 12 28 L24 28 Q25.5 28 25 26 Q24 22 23 18 Z" fill="rgba(255,255,255,.7)" stroke="'+c1+'" stroke-width="1.4"/>'+
-    '<ellipse cx="18" cy="29" rx="5" ry="2" fill="'+c1+'" opacity=".35"/>'+
-    '<line x1="15" y1="18" x2="14" y2="27" stroke="'+c1+'" stroke-width=".7" opacity=".35"/>'+
-    '<line x1="18" y1="18" x2="18" y2="27" stroke="'+c1+'" stroke-width=".7" opacity=".35"/>'+
-    '<line x1="21" y1="18" x2="22" y2="27" stroke="'+c1+'" stroke-width=".7" opacity=".35"/>'+
-    '<path d="M29 8 Q34 14 29 20" fill="none" stroke="'+c1+'" stroke-width="2" stroke-linecap="round" opacity=".6"/>'+
-    '<path d="M29 11 Q32 14 29 17" fill="none" stroke="'+c2+'" stroke-width="1.5" stroke-linecap="round" opacity=".5"/>'+
+    /* Handle body — rounded rectangle, main grip */
+    '<rect x="13" y="14" width="10" height="17" rx="2.5" fill="rgba(255,255,255,.78)" stroke="'+c1+'" stroke-width="1.5" opacity=".80"/>'+
+    /* Grip texture lines */
+    '<line x1="15" y1="18" x2="21" y2="18" stroke="'+c1+'" stroke-width=".65" opacity=".35"/>'+
+    '<line x1="15" y1="20.5" x2="21" y2="20.5" stroke="'+c1+'" stroke-width=".65" opacity=".30"/>'+
+    '<line x1="15" y1="23" x2="21" y2="23" stroke="'+c1+'" stroke-width=".65" opacity=".25"/>'+
+    /* Button on handle */
+    '<rect x="14.5" y="25.5" width="7" height="3" rx="1" fill="'+c1+'" opacity=".22" stroke="'+c1+'" stroke-width=".7" opacity=".55"/>'+
+    /* Neck — tapered transition from handle to head */
+    '<path d="M14 14 Q13.5 10 12 8 L24 8 Q22.5 10 22 14 Z" fill="rgba(255,255,255,.72)" stroke="'+c1+'" stroke-width="1.2" opacity=".70"/>'+
+    /* Head (footprint) — flat scanning surface */
+    '<path d="M10.5 8 L25.5 8 Q27 8 27 6.5 L27 4 Q27 2.5 25 2.5 L11 2.5 Q9 2.5 9 4 L9 6.5 Q9 8 10.5 8 Z" fill="'+c1+'" opacity=".30" stroke="'+c1+'" stroke-width="1.2" opacity=".70"/>'+
+    /* Crystal array lines (scan elements) */
+    '<line x1="11.5" y1="3" x2="11.5" y2="7.5" stroke="'+c1+'" stroke-width=".55" opacity=".60"/>'+
+    '<line x1="13.5" y1="3" x2="13.5" y2="7.5" stroke="'+c1+'" stroke-width=".55" opacity=".55"/>'+
+    '<line x1="15.5" y1="3" x2="15.5" y2="7.5" stroke="'+c1+'" stroke-width=".55" opacity=".55"/>'+
+    '<line x1="17.5" y1="3" x2="17.5" y2="7.5" stroke="'+c1+'" stroke-width=".55" opacity=".55"/>'+
+    '<line x1="19.5" y1="3" x2="19.5" y2="7.5" stroke="'+c1+'" stroke-width=".55" opacity=".55"/>'+
+    '<line x1="21.5" y1="3" x2="21.5" y2="7.5" stroke="'+c1+'" stroke-width=".55" opacity=".55"/>'+
+    '<line x1="23.5" y1="3" x2="23.5" y2="7.5" stroke="'+c1+'" stroke-width=".55" opacity=".60"/>'+
+    /* Ultrasound beam arcs emanating from head */
+    '<path d="M9 1.5 Q6.5 4.5 9 8" fill="none" stroke="'+c1+'" stroke-width="1.2" stroke-linecap="round" opacity=".45"/>'+
+    '<path d="M9.5 0 Q5.5 4.5 9.5 9" fill="none" stroke="'+c2+'" stroke-width=".85" stroke-linecap="round" opacity=".32"/>'+
+    '<path d="M27 1.5 Q29.5 4.5 27 8" fill="none" stroke="'+c1+'" stroke-width="1.2" stroke-linecap="round" opacity=".45"/>'+
+    '<path d="M26.5 0 Q30.5 4.5 26.5 9" fill="none" stroke="'+c2+'" stroke-width=".85" stroke-linecap="round" opacity=".32"/>'+
+    /* Cable coming out bottom of handle */
+    '<path d="M18 31 Q18 34 14 35 Q10 36 8 34" fill="none" stroke="'+c1+'" stroke-width="1.8" stroke-linecap="round" opacity=".50"/>'+
     '</svg>';
 }
 function openAddAntennaModal(rmEquipId){
