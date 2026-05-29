@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.29.82 -->
+<!-- v2026.05.29.83 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>MedTrack — CIMA</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.05.29.82">
+<meta name="app-version" content="v2026.05.29.83">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1078,11 +1078,12 @@ function saveData(){
   firestoreSave();
 }
 var _fsSaveTimer=null;
+function orgDataRef(){return window._fbdb.collection("orgs").doc("cima").collection("app").doc("data");}
 function firestoreSave(){
   if(!window._fbUser||!window._fbdb)return;
   if(_fsSaveTimer)clearTimeout(_fsSaveTimer);
   _fsSaveTimer=setTimeout(function(){
-    window._fbdb.collection("users").doc(window._fbUser.uid).collection("app").doc("data")
+    orgDataRef()
       .set({eqs:eqs,antenas:antenas,aires:aires,transductores:transductores,updatedAt:new Date().toISOString()},{merge:true})
       .catch(function(e){console.warn("Firestore save:",e);});
   },1500);
@@ -4423,8 +4424,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="4.7.4";
-var APP_BUILD="29/05/26 13:00";
+var APP_DISPLAY_VERSION="4.8.0";
+var APP_BUILD="29/05/26 14:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
@@ -4614,32 +4615,55 @@ function init(){
         if(adminBtn)adminBtn.style.display=isOwner?"block":"none";
         var sbAccBtn=document.getElementById("sb-access-btn");
         if(sbAccBtn)sbAccBtn.style.display=isOwner?"block":"none";
-        // Load from Firestore, fallback to localStorage
-        window._fbdb.collection("users").doc(user.uid).collection("app").doc("data").get()
-          .then(function(doc){
-            eqs=JSON.parse(JSON.stringify(EQ0));
-            if(doc.exists&&Array.isArray(doc.data().eqs)&&doc.data().eqs.length>0){
-              eqs=doc.data().eqs;
-              if(Array.isArray(doc.data().antenas))antenas=doc.data().antenas;
-              if(Array.isArray(doc.data().aires))aires=doc.data().aires;
-              if(Array.isArray(doc.data().transductores))transductores=doc.data().transductores;
-            } else {
-              try{var s=localStorage.getItem("mt_v4");if(s){var p=JSON.parse(s);if(Array.isArray(p)&&p.length>0)eqs=p;}}catch(e){}
-              try{var sa=localStorage.getItem("mt_antenas");if(sa){var pa=JSON.parse(sa);if(Array.isArray(pa))antenas=pa;}}catch(e){}
-              try{var sai=localStorage.getItem("mt_aires");if(sai){var pai=JSON.parse(sai);if(Array.isArray(pai))aires=pai;}}catch(e){}
-              try{var str=localStorage.getItem("mt_transductores");if(str){var ptr=JSON.parse(str);if(Array.isArray(ptr))transductores=ptr;}}catch(e){}
-            }
-            migrateEqs();
-            render();
-            setTimeout(checkForUpdates,3000);
-            setInterval(checkForUpdates,60*1000);
-          })
-          .catch(function(){
-            eqs=JSON.parse(JSON.stringify(EQ0));
-            try{var s=localStorage.getItem("mt_v4");if(s){var p=JSON.parse(s);if(Array.isArray(p)&&p.length>0)eqs=p;}}catch(e){}
-            migrateEqs();
-            render();
-          });
+        // Load from shared org doc; migrate personal data on first run if org doesn't exist yet
+        function _applyData(d){
+          if(d&&Array.isArray(d.eqs)&&d.eqs.length>0){
+            eqs=d.eqs;
+            if(Array.isArray(d.antenas))antenas=d.antenas;
+            if(Array.isArray(d.aires))aires=d.aires;
+            if(Array.isArray(d.transductores))transductores=d.transductores;
+          }
+        }
+        function _lsLoad(){
+          try{var s=localStorage.getItem("mt_v4");if(s){var p=JSON.parse(s);if(Array.isArray(p)&&p.length>0)eqs=p;}}catch(e){}
+          try{var sa=localStorage.getItem("mt_antenas");if(sa){var pa=JSON.parse(sa);if(Array.isArray(pa))antenas=pa;}}catch(e){}
+          try{var sai=localStorage.getItem("mt_aires");if(sai){var pai=JSON.parse(sai);if(Array.isArray(pai))aires=pai;}}catch(e){}
+          try{var str=localStorage.getItem("mt_transductores");if(str){var ptr=JSON.parse(str);if(Array.isArray(ptr))transductores=ptr;}}catch(e){}
+        }
+        function _finishLoad(){migrateEqs();render();setTimeout(checkForUpdates,3000);setInterval(checkForUpdates,60*1000);}
+        orgDataRef().get().then(function(orgDoc){
+          eqs=JSON.parse(JSON.stringify(EQ0));
+          if(orgDoc.exists&&Array.isArray(orgDoc.data().eqs)&&orgDoc.data().eqs.length>0){
+            // Shared org data found — use it directly
+            _applyData(orgDoc.data());
+            _finishLoad();
+          } else {
+            // No org data yet — migrate from personal user doc (keeps personal data intact)
+            window._fbdb.collection("users").doc(user.uid).collection("app").doc("data").get()
+              .then(function(userDoc){
+                eqs=JSON.parse(JSON.stringify(EQ0));
+                if(userDoc.exists&&Array.isArray(userDoc.data().eqs)&&userDoc.data().eqs.length>0){
+                  _applyData(userDoc.data());
+                } else {
+                  _lsLoad();
+                }
+                migrateEqs();
+                firestoreSave(); // write personal data up to shared org doc
+                render();
+                setTimeout(checkForUpdates,3000);
+                setInterval(checkForUpdates,60*1000);
+              })
+              .catch(function(){
+                eqs=JSON.parse(JSON.stringify(EQ0));
+                _lsLoad();
+                _finishLoad();
+              });
+          }
+        }).catch(function(){
+          eqs=JSON.parse(JSON.stringify(EQ0));
+          _lsLoad();
+          _finishLoad();
+        });
       },function(){
         // Not allowed
         window._fbAuth.signOut();
