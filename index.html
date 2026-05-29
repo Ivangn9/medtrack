@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.29.78 -->
+<!-- v2026.05.29.79 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>MedTrack — CIMA</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.05.29.78">
+<meta name="app-version" content="v2026.05.29.79">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -2087,7 +2087,7 @@ function rDetalle(){
     '</div>';
   }
   h+='<div style="display:flex;gap:8px;margin-bottom:8px;"><button class="btn-secondary" style="flex:1;" onclick="openModalEq('+JSON.stringify(eq).replace(/"/g,"&quot;")+')">✏️ Editar</button><button class="btn-danger" onclick="delEq(\''+eq.id+'\')">🗑</button></div>'+
-  '<button onclick="openDarDeBajaModal(\''+eq.id+'\')" style="width:100%;padding:11px;border-radius:var(--r-pill);background:rgba(120,120,128,.08);border:1.5px solid rgba(120,120,128,.22);color:var(--text2);font-weight:600;font-size:.8rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;">'+
+  '<button onclick="openDarDeBajaModal(\''+eq.id+'\')" style="width:100%;padding:11px;border-radius:var(--r-pill);background:rgba(255,59,48,.10);border:1.5px solid rgba(255,59,48,.30);color:var(--red);font-weight:700;font-size:.8rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;">'+
     '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>Dar de baja equipo'+
   '</button>'+
   '</div></div></div></div>';
@@ -2448,7 +2448,7 @@ function openDarDeBajaModal(eqId){
     '<div class="ff"><div class="ff-label">Observación</div>'+
       '<textarea class="inp" id="baja-obs" rows="3" placeholder="Detallá el motivo, destino del equipo, etc..."></textarea>'+
     '</div>'+
-    '<button onclick="submitDarDeBaja(\''+eqId+'\')" style="width:100%;padding:13px;border-radius:var(--r-pill);background:rgba(120,120,128,.15);border:1.5px solid rgba(120,120,128,.30);color:var(--text2);font-weight:700;font-size:.88rem;cursor:pointer;margin-top:4px;">Confirmar baja</button>'
+    '<button onclick="submitDarDeBaja(\''+eqId+'\')" style="width:100%;padding:13px;border-radius:var(--r-pill);background:linear-gradient(135deg,#ef4444,#dc2626);border:none;color:#fff;font-weight:700;font-size:.88rem;cursor:pointer;margin-top:4px;box-shadow:0 2px 10px rgba(220,38,38,.35);">Confirmar baja</button>'
   );
 }
 function submitDarDeBaja(eqId){
