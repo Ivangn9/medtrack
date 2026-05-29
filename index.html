@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.29.86 -->
+<!-- v2026.05.29.87 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>MedTrack — CIMA</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.05.29.86">
+<meta name="app-version" content="v2026.05.29.87">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -2783,11 +2783,128 @@ function rmSceneSVG(eq){
   s+='</svg>';
   return s;
 }
+// ── WebGL 3D (three.js diferido) con fallback a SVG ──
+var _threeState='none',_threeCbs=[],_rm3d=null;
+function _webglOK(){try{var c=document.createElement('canvas');return!!(window.WebGLRenderingContext&&(c.getContext('webgl')||c.getContext('experimental-webgl')));}catch(e){return false;}}
+function _loadThree(cb){
+  if(_threeState==='ready')return cb(true);
+  if(_threeState==='fail')return cb(false);
+  _threeCbs.push(cb);
+  if(_threeState==='loading')return;
+  _threeState='loading';
+  var sc=document.createElement('script');
+  sc.src='https://unpkg.com/three@0.150.1/build/three.min.js';
+  sc.onload=function(){_threeState=window.THREE?'ready':'fail';_threeCbs.forEach(function(f){f(_threeState==='ready');});_threeCbs=[];};
+  sc.onerror=function(){_threeState='fail';_threeCbs.forEach(function(f){f(false);});_threeCbs=[];};
+  document.head.appendChild(sc);
+}
+function _disposeRM3D(){
+  if(!_rm3d)return;
+  try{if(_rm3d.raf)cancelAnimationFrame(_rm3d.raf);}catch(e){}
+  try{if(_rm3d.onResize)window.removeEventListener('resize',_rm3d.onResize);}catch(e){}
+  try{if(_rm3d.renderer){_rm3d.renderer.dispose();if(_rm3d.renderer.domElement&&_rm3d.renderer.domElement.parentNode)_rm3d.renderer.domElement.parentNode.removeChild(_rm3d.renderer.domElement);}}catch(e){}
+  _rm3d=null;
+}
 function mountRM3D(){
+  _disposeRM3D();
   var c=document.getElementById('rm3d-container');if(!c)return;
   var eq=rmCurrentEq();if(!eq)return;
-  // Increment 3 enriquece esto con WebGL; por ahora render SVG 2.5D
+  // Render SVG 2.5D inmediato (contenido garantizado + fallback)
   c.innerHTML=rmSceneSVG(eq);
+  if(!_webglOK())return;
+  _loadThree(function(ok){
+    if(!ok)return; // se mantiene el SVG
+    if(view!=='estadorm')return;
+    var cc=document.getElementById('rm3d-container');if(!cc)return;
+    try{_buildRM3D(cc,rmCurrentEq());}catch(e){console.warn('RM3D fallback SVG:',e);}
+  });
+}
+function _buildRM3D(cc,eq){
+  var T=window.THREE;if(!T||!eq)return;
+  function col(id){return rmNivelColor(rmCompEstado(eq,id).nivel);}
+  var cHead=col('coldhead'),cCam=col('camilla'),cCon=col('conectores'),cTank=col('tanque_helio');
+  var cGx=col('grad_x'),cGy=col('grad_y'),cGz=col('grad_z'),cGg=col('grad_gen');
+  var cComp=col('compresor'),cChil=col('chiller'),cSh=rmNivelColor(rmCompEstado(eq,'shimming').nivel);
+  var compRed=(cComp==='#ff3b30');
+  var pc=rmHelioPct(eq);if(pc===null)pc=85;
+  var W=cc.clientWidth||cc.offsetWidth||600,H=cc.clientHeight||340;
+  var scene=new T.Scene();
+  var camera=new T.PerspectiveCamera(42,W/H,0.1,100);
+  var dist=11;camera.position.set(0,2.4,dist);camera.lookAt(0,0,0);
+  var renderer=new T.WebGLRenderer({antialias:true,alpha:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+  renderer.setSize(W,H);
+  cc.innerHTML='';cc.appendChild(renderer.domElement);
+  renderer.domElement.style.display='block';renderer.domElement.style.touchAction='none';
+  // luces
+  scene.add(new T.AmbientLight(0x8aa6ff,0.65));
+  var dl=new T.DirectionalLight(0xffffff,0.95);dl.position.set(6,9,7);scene.add(dl);
+  var pl=new T.PointLight(0x66ccff,0.55,40);pl.position.set(-5,3,5);scene.add(pl);
+  var g=new T.Group();scene.add(g);
+  function std(c,o){return new T.MeshStandardMaterial(Object.assign({color:c,metalness:0.35,roughness:0.5},o||{}));}
+  var bodyMat=std(0xdfe6f5);
+  // housing
+  var housing=new T.Mesh(new T.CylinderGeometry(2.4,2.4,3,48),bodyMat);housing.rotation.x=Math.PI/2;g.add(housing);
+  var bezel=new T.Mesh(new T.TorusGeometry(2.4,0.26,16,48),bodyMat);bezel.position.z=1.5;g.add(bezel);
+  var bore=new T.Mesh(new T.CylinderGeometry(1.25,1.25,3.2,48,1,true),std(0x0a1322,{roughness:0.9,metalness:0.1,side:T.DoubleSide}));bore.rotation.x=Math.PI/2;g.add(bore);
+  var shRing=new T.Mesh(new T.TorusGeometry(1.25,0.07,12,48),std(cSh,{emissive:cSh,emissiveIntensity:0.8}));shRing.position.z=1.56;g.add(shRing);
+  // coldhead
+  var cold=new T.Mesh(new T.BoxGeometry(0.85,0.85,0.85),std(cHead,{emissive:cHead,emissiveIntensity:0.15}));cold.position.set(0,2.6,0);g.add(cold);
+  var coldDisc=new T.Mesh(new T.CylinderGeometry(0.5,0.5,0.14,24),std(cHead,{metalness:0.6,roughness:0.3}));coldDisc.position.set(0,3.15,0);g.add(coldDisc);
+  // camilla
+  var table=new T.Mesh(new T.BoxGeometry(1,0.13,3.4),std(cCam,{roughness:0.6}));table.position.set(0,-0.25,2);g.add(table);
+  // tanque helio
+  var tank=new T.Mesh(new T.CylinderGeometry(0.72,0.72,2.4,24),std(0xcdd8ee,{transparent:true,opacity:0.45,roughness:0.3}));tank.position.set(-3.5,0,0);g.add(tank);
+  var hLevel=Math.max(0.05,(pc/100)*2.2);
+  var heLiq=new T.Mesh(new T.CylinderGeometry(0.62,0.62,hLevel,24),std(cTank,{emissive:0x1fa9d6,emissiveIntensity:0.3,roughness:0.3}));heLiq.position.set(-3.5,-1.1+hLevel/2,0);g.add(heLiq);
+  // conectores
+  var conn=new T.Mesh(new T.BoxGeometry(1.5,0.5,0.22),std(cCon,{roughness:0.5}));conn.position.set(0,-1.75,1.55);g.add(conn);
+  // gabinete gradientes
+  var cab=new T.Mesh(new T.BoxGeometry(1.5,2.5,1.5),std(0x9aa6c4));cab.position.set(3.6,0,-0.4);g.add(cab);
+  var gcols=[cGx,cGy,cGz,cGg],boards=[];
+  for(var i=0;i<4;i++){var b=new T.Mesh(new T.BoxGeometry(1.6,0.34,0.12),std(gcols[i],{emissive:gcols[i],emissiveIntensity:0.25}));b.position.set(3.6,0.85-i*0.52,0.45);g.add(b);boards.push(b);}
+  // compresor
+  var comp=new T.Mesh(new T.BoxGeometry(1.3,1.7,1.3),std(cComp,{roughness:0.5}));comp.position.set(2.3,-0.1,-3.2);g.add(comp);
+  var compFan=new T.Mesh(new T.CylinderGeometry(0.42,0.42,0.12,20),std(0x222a3a));compFan.rotation.x=Math.PI/2;compFan.position.set(2.3,-0.1,-2.5);g.add(compFan);
+  // chiller
+  var chil=new T.Mesh(new T.BoxGeometry(1.05,1.45,1.05),std(cChil,{roughness:0.5}));chil.position.set(4.2,-0.2,-3.2);g.add(chil);
+  // linea de helio compresor → scanner
+  var dx=0-2.3,dz=-1-(-3.2),len=Math.sqrt(dx*dx+dz*dz);
+  var tube=new T.Mesh(new T.BoxGeometry(0.12,0.12,len),std(cComp,{emissive:cComp,emissiveIntensity:0.35}));tube.position.set(1.15,-0.1,-2.1);tube.rotation.y=Math.atan2(dx,dz);g.add(tube);
+  // interacción rotación / zoom
+  var rot={x:0.12,y:-0.55},drag=false,lastX=0,lastY=0,pinch=0;
+  var dom=renderer.domElement;
+  function pDown(e){drag=true;var t=e.touches?e.touches[0]:e;lastX=t.clientX;lastY=t.clientY;}
+  function pMove(e){
+    if(e.touches&&e.touches.length===2){var d2=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);if(pinch)dist=Math.max(6,Math.min(18,dist-(d2-pinch)*0.03));pinch=d2;e.preventDefault&&e.preventDefault();return;}
+    if(!drag)return;var t=e.touches?e.touches[0]:e;
+    rot.y+=(t.clientX-lastX)*0.01;rot.x+=(t.clientY-lastY)*0.01;rot.x=Math.max(-0.9,Math.min(1.2,rot.x));
+    lastX=t.clientX;lastY=t.clientY;e.preventDefault&&e.preventDefault();
+  }
+  function pUp(){drag=false;pinch=0;}
+  function onWheel(e){dist=Math.max(6,Math.min(18,dist+(e.deltaY>0?0.6:-0.6)));e.preventDefault&&e.preventDefault();}
+  dom.addEventListener('mousedown',pDown);window.addEventListener('mousemove',pMove);window.addEventListener('mouseup',pUp);
+  dom.addEventListener('touchstart',pDown,{passive:false});dom.addEventListener('touchmove',pMove,{passive:false});dom.addEventListener('touchend',pUp);
+  dom.addEventListener('wheel',onWheel,{passive:false});
+  function onResize(){var w=cc.clientWidth||W,hh=cc.clientHeight||H;camera.aspect=w/hh;camera.updateProjectionMatrix();renderer.setSize(w,hh);}
+  window.addEventListener('resize',onResize);
+  var clock=0;
+  _rm3d={renderer:renderer,raf:0,onResize:onResize};
+  function loop(){
+    if(view!=='estadorm'||!document.body.contains(dom)){_disposeRM3D();return;}
+    clock+=0.016;
+    if(!drag)rot.y+=0.0022;
+    g.rotation.y=rot.y;g.rotation.x=rot.x;
+    camera.position.set(0,2.4,dist);camera.lookAt(0,0,0);
+    coldDisc.rotation.y+=0.09;
+    compFan.rotation.z+=compRed?0.04:0.22;
+    shRing.material.emissiveIntensity=0.5+0.4*Math.sin(clock*2.5);
+    for(var k=0;k<boards.length;k++){boards[k].material.emissiveIntensity=0.15+0.3*Math.abs(Math.sin(clock*2+k));}
+    table.position.z=2+Math.sin(clock*0.55)*0.85;
+    renderer.render(scene,camera);
+    _rm3d.raf=requestAnimationFrame(loop);
+  }
+  loop();
 }
 function rAntenas(){
   var eq=eqs.find(function(e){return e.id===selAntenaEqId;});if(!eq)return'';
@@ -4705,8 +4822,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="4.8.3";
-var APP_BUILD="29/05/26 17:00";
+var APP_DISPLAY_VERSION="4.9.0";
+var APP_BUILD="29/05/26 18:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
