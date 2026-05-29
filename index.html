@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.29.83 -->
+<!-- v2026.05.29.84 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>MedTrack — CIMA</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.05.29.83">
+<meta name="app-version" content="v2026.05.29.84">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1337,7 +1337,7 @@ function openHistDetail(eqId,hid){
   var hh=(eq.historialMant||[]).find(function(h){return h.id===hid;});if(!hh)return;
   var isMant=hh.tipo==="mantenimiento";
   var archivos=hh.archivos||[];
-  function makePdfRow(a){return '<div style="display:flex;align-items:center;gap:10px;padding:8px;background:rgba(0,113,227,.05);border-radius:var(--r-sm);margin-bottom:6px;"><span style="font-size:1.3rem;">📄</span><span style="font-size:.78rem;flex:1;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(a.nombre)+'</span><button onclick="openPDFViewer(\''+a.id+'\',\''+esc(a.nombre)+'\')" style="background:var(--accent);color:#fff;border:none;border-radius:50px;padding:6px 14px;font-size:.72rem;font-weight:700;cursor:pointer;flex-shrink:0;">Abrir PDF</button></div>';}
+  function makePdfRow(a){return '<div style="display:flex;align-items:center;gap:10px;padding:8px;background:rgba(0,113,227,.05);border-radius:var(--r-sm);margin-bottom:6px;"><span style="font-size:1.3rem;">📄</span><span style="font-size:.78rem;flex:1;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(a.nombre)+'</span><button onclick="openPDFViewer(\''+a.id+'\',\''+esc(a.nombre)+'\')" style="background:var(--accent);color:#fff;border:none;border-radius:50px;padding:6px 14px;font-size:.72rem;font-weight:700;cursor:pointer;flex-shrink:0;">Abrir PDF</button><button onclick="delHistFileDirect(\''+eqId+'\',\''+hid+'\',\''+a.id+'\')" style="background:rgba(255,59,48,.10);border:1.5px solid rgba(255,59,48,.25);color:var(--red);border-radius:50px;padding:6px 10px;font-size:.78rem;cursor:pointer;flex-shrink:0;" title="Eliminar PDF">🗑</button></div>';}
   var presFiles=archivos.filter(function(a){return a.tipo==='presupuesto'||(archivos.length&&!a.tipo&&archivos.indexOf(a)<archivos.filter(function(x){return x.tipo;}).length);});
   var repFiles=archivos.filter(function(a){return a.tipo==='reporte';});
   var untypedFiles=archivos.filter(function(a){return !a.tipo;});
@@ -1427,6 +1427,7 @@ function renderHistPendingFiles(tipo){
 }
 function removeHistPending(tipo,i){if(tipo==='presupuesto'){_pendingHistPresupuestos.splice(i,1);}else{_pendingHistReportes.splice(i,1);}renderHistPendingFiles(tipo);}
 function removeHistFile(fid){
+  if(!confirm('¿Eliminar este PDF? Esta acción no se puede deshacer.'))return;
   _deletedHistFiles.push(fid);
   var row=document.getElementById('hf-row-'+fid);
   if(row)row.style.display='none';
@@ -1567,10 +1568,39 @@ function closePDFViewer(){
 
 var _pendingPresupuestos=[];
 var _pendingReportes=[];
+var _deletedParteFiles=[];
 var _pendingHistPresupuestos=[];
 var _pendingHistReportes=[];
 var _deletedHistFiles=[];
-function attachPDF(tipo){
+function delHistFileDirect(eqId,hid,fileId){
+  if(!confirm('¿Eliminar este PDF? Esta acción no se puede deshacer.'))return;
+  dbDel(fileId);
+  eqs=eqs.map(function(e){
+    if(e.id!==eqId)return e;
+    return Object.assign({},e,{historialMant:(e.historialMant||[]).map(function(h){
+      if(h.id!==hid)return h;
+      return Object.assign({},h,{archivos:(h.archivos||[]).filter(function(a){return a.id!==fileId;})});
+    })});
+  });
+  saveData();closeModal();render();showToast('PDF eliminado','warn');
+}
+function delParteFileDirect(eqId,parteId,fileId){
+  if(!confirm('¿Eliminar este PDF? Esta acción no se puede deshacer.'))return;
+  dbDel(fileId);
+  eqs=eqs.map(function(e){
+    if(e.id!==eqId)return e;
+    return Object.assign({},e,{partes:e.partes.map(function(p){
+      if(p.id!==parteId)return p;
+      return Object.assign({},p,{archivos:(p.archivos||[]).filter(function(a){return a.id!==fileId;})});
+    })});
+  });
+  saveData();render();showToast('PDF eliminado','warn');
+}
+function removeParteFile(fid){
+  if(!confirm('¿Eliminar este PDF? Esta acción no se puede deshacer.'))return;
+  _deletedParteFiles.push(fid);
+  var row=document.getElementById('pt-file-row-'+fid);if(row)row.style.display='none';
+}
   var input=document.createElement('input');input.type='file';input.accept='application/pdf';input.multiple=true;
   input.onchange=function(){
     Array.from(input.files).forEach(function(file){
@@ -1599,12 +1629,12 @@ function renderPendingFiles(tipo){
 function removePending(tipo,i){if(tipo==='presupuesto'){_pendingPresupuestos.splice(i,1);}else{_pendingReportes.splice(i,1);}renderPendingFiles(tipo);}
 
 function openModalParte(eqId,pt){
-  _pendingPresupuestos=[];_pendingReportes=[];
+  _pendingPresupuestos=[];_pendingReportes=[];_deletedParteFiles=[];
   var n=!pt;var f=pt||{nombre:"",descripcion:"",estado:"roto",fechaRotura:"",fechaArreglo:"",marca:"",nroSerie:"",notas:"",precio:"",archivos:[]};
   if(!f.archivos)f.archivos=[];
   var estBtns=["ok","pendiente","roto","mejora"].map(function(e){var a=f.estado===e;return'<button data-est="'+e+'" style="flex:1;padding:10px;border-radius:var(--r-sm);font-size:.68rem;font-weight:700;border:none;cursor:pointer;background:'+(a?CP[e]+"20":"rgba(120,120,128,.08)")+';color:'+(a?CP[e]:"var(--text3)")+';'+(a?"box-shadow:0 0 0 2px "+CP[e]+"40;":"")+'" onclick="setPtEst(\''+e+'\')">'+(e==="ok"?"✅ OK":e==="pendiente"?"⚠️ Pend.":e==="roto"?"🔴 Roto":"🎨 Mejora")+'</button>';}).join("");
   function pdfSection(tipo,label){
-    var existHtml=f.archivos.filter(function(a){return a.tipo===tipo||(tipo==='presupuesto'&&!a.tipo);}).map(function(a){return'<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(0,0,0,.05);"><span style="font-size:1.1rem;">📄</span><span style="font-size:.74rem;flex:1;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(a.nombre)+'</span><button onclick="openPDFViewer(\''+a.id+'\',\''+esc(a.nombre)+'\')" style="background:rgba(0,113,227,.1);color:var(--accent);border:none;border-radius:8px;padding:3px 10px;font-size:.68rem;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;">Abrir</button></div>';}).join('');
+    var existHtml=f.archivos.filter(function(a){return a.tipo===tipo||(tipo==='presupuesto'&&!a.tipo);}).map(function(a){return'<div id="pt-file-row-'+a.id+'" style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(0,0,0,.05);"><span style="font-size:1.1rem;">📄</span><span style="font-size:.74rem;flex:1;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(a.nombre)+'</span><button onclick="openPDFViewer(\''+a.id+'\',\''+esc(a.nombre)+'\')" style="background:rgba(0,113,227,.1);color:var(--accent);border:none;border-radius:8px;padding:3px 10px;font-size:.68rem;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;">Abrir</button><button onclick="removeParteFile(\''+a.id+'\')" style="background:none;border:none;color:var(--red);font-size:.9rem;cursor:pointer;padding:2px 6px;" title="Eliminar PDF">🗑</button></div>';}).join('');
     return '<div class="ff" style="background:rgba(0,0,0,.02);border-radius:var(--r-sm);padding:10px;margin-bottom:4px;"><div class="ff-label" style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;">'+label+'</div>'+(existHtml?'<div style="margin-bottom:6px;">'+existHtml+'</div>':'')+'<div id="pdf-list-'+tipo+'"></div><button onclick="attachPDF(\''+tipo+'\')" type="button" style="margin-top:6px;width:100%;padding:8px;border:1.5px dashed rgba(0,113,227,.4);border-radius:var(--r-md);background:rgba(0,113,227,.05);color:var(--accent);font-size:.78rem;font-weight:600;cursor:pointer;">📎 Adjuntar '+label+'</button></div>';
   }
   var isMejora=f.estado==="mejora";
@@ -1684,7 +1714,8 @@ function submitPt(eqId,ptId){
   var n=document.getElementById("pt-n").value.trim();if(!n)return alert("Nombre obligatorio");
   var archivosExist=[];
   var eq=eqs.find(function(e){return e.id===eqId;});
-  if(eq&&ptId){var px=eq.partes.find(function(p){return p.id===ptId;});if(px)archivosExist=px.archivos||[];}
+  if(eq&&ptId){var px=eq.partes.find(function(p){return p.id===ptId;});if(px)archivosExist=(px.archivos||[]).filter(function(a){return _deletedParteFiles.indexOf(a.id)===-1;});}
+  _deletedParteFiles.forEach(function(fid){dbDel(fid);});
   var newPresRefs=_pendingPresupuestos.map(function(f){return{id:f.id,nombre:f.nombre,size:f.size,tipo:'presupuesto'};});
   var newRepRefs=_pendingReportes.map(function(f){return{id:f.id,nombre:f.nombre,size:f.size,tipo:'reporte'};});
   _pendingPresupuestos.forEach(function(f){dbSave(f.id,f.nombre,f.data);});
@@ -1692,7 +1723,7 @@ function submitPt(eqId,ptId){
   var esEl=document.getElementById("pt-es");var esMej=esEl&&esEl.value==="mejora";
   var presOkEl=document.getElementById("pt-pres-ok");var presFechaEl=document.getElementById("pt-pres-fecha");
   saveParte(eqId,{id:ptId||"",nombre:n,descripcion:document.getElementById("pt-d").value,estado:esEl?esEl.value:"roto",fechaRotura:esMej?"":document.getElementById("pt-fr").value,fechaArreglo:esMej?"":document.getElementById("pt-fa").value,canalReclamo:esMej?"":(document.getElementById("pt-canal")||{value:""}).value||"",tecnicoReparacion:esMej?"":(document.getElementById("pt-tec")||{value:""}).value||"",asignadoA:esMej?(document.getElementById("pt-asig")||{}).value||"":"",fechaMejora:esMej?(document.getElementById("pt-fmej")||{}).value||"":"",marca:document.getElementById("pt-mk").value,nroSerie:document.getElementById("pt-sn").value,notas:document.getElementById("pt-nt").value,precio:esMej?"":(document.getElementById("pt-pc")||{}).value||"",presupuestoAprobado:esMej?false:!!(presOkEl&&presOkEl.checked),fechaAprobacion:esMej?"":(presFechaEl&&presOkEl&&presOkEl.checked?presFechaEl.value:""),archivos:archivosExist.concat(newPresRefs).concat(newRepRefs)});
-  _pendingPresupuestos=[];_pendingReportes=[];
+  _pendingPresupuestos=[];_pendingReportes=[];_deletedParteFiles=[];
 }
 function openModalMant(eqId){
   var eq=eqs.find(function(e){return e.id===eqId;});var ci=catById(eq.cat);var td=today();var px=calcP(td,eq.frecuencia);
@@ -2331,7 +2362,7 @@ function rDetalle(){
       '</div></div>':'')+
       '</div>'+
       (p.notas?'<div style="font-size:.73rem;color:var(--text2);background:rgba(0,0,0,.04);padding:7px 10px;border-radius:8px;margin-bottom:8px;">'+esc(p.notas)+'</div>':'')+
-      ((p.archivos&&p.archivos.length)?'<div style="margin-bottom:8px;">'+p.archivos.map(function(a){return'<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(0,0,0,.05);"><span>📄</span><span style="font-size:.72rem;flex:1;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(a.nombre)+'</span><button onclick="openPDFViewer(\''+a.id+'\',\''+esc(a.nombre)+'\')" style="background:rgba(0,113,227,.1);color:var(--accent);border:none;border-radius:8px;padding:3px 10px;font-size:.65rem;font-weight:600;cursor:pointer;flex-shrink:0;">Abrir</button></div>';}).join('')+'</div>':'')+
+      ((p.archivos&&p.archivos.length)?'<div style="margin-bottom:8px;">'+p.archivos.map(function(a){return'<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(0,0,0,.05);"><span>📄</span><span style="font-size:.72rem;flex:1;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(a.nombre)+'</span><button onclick="openPDFViewer(\''+a.id+'\',\''+esc(a.nombre)+'\')" style="background:rgba(0,113,227,.1);color:var(--accent);border:none;border-radius:8px;padding:3px 10px;font-size:.65rem;font-weight:600;cursor:pointer;flex-shrink:0;">Abrir</button><button onclick="delParteFileDirect(\''+eq.id+'\',\''+p.id+'\',\''+a.id+'\')" style="background:none;border:none;color:var(--red);font-size:.85rem;cursor:pointer;padding:2px 5px;flex-shrink:0;" title="Eliminar PDF">🗑</button></div>';}).join('')+'</div>':'')+
       (p.estado!=="ok"?'<button onclick="repararParte(\''+eq.id+'\',\''+p.id+'\')" style="width:100%;padding:11px;margin-bottom:8px;border:none;border-radius:12px;background:var(--green);color:#fff;font-size:.86rem;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(52,199,89,.3);">✅ Marcar como Reparado</button>':'')+
       '<div style="display:flex;gap:6px;"><button class="btn-secondary btn-sm" style="flex:1;" onclick=\'openModalParte("'+eq.id+'",'+JSON.stringify(p).replace(/'/g,"&#39;")+')\'>✏️ Editar</button><button class="btn-danger btn-sm" onclick="delParte(\''+eq.id+'\',\''+p.id+'\')">🗑</button></div></div>';
   });
@@ -2409,7 +2440,7 @@ function rDetalle(){
         (hh.precio?'<div style="font-size:.7rem;color:var(--green);font-weight:600;">💲 $'+esc(hh.precio)+'</div>':'')+
         (hh.notas?'<div style="font-size:.72rem;color:var(--text2);margin-top:4px;background:rgba(0,0,0,.03);padding:4px 8px;border-radius:7px;">'+esc(hh.notas)+'</div>':'')+'</div>'+
         '<div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;flex-shrink:0;">'+
-        (hasPdf?(hh.archivos).map(function(af){return '<button onclick="openPDFViewer(\''+af.id+'\',\''+esc(af.nombre)+'\')" style="padding:4px 10px;background:rgba(0,113,227,.1);color:var(--accent);border-radius:8px;font-size:.66rem;font-weight:600;border:none;cursor:pointer;white-space:nowrap;">📄 '+esc(af.nombre.length>18?af.nombre.slice(0,16)+'…':af.nombre)+'</button>';}).join(''):'<button onclick="openHistDetail(\''+eq.id+'\',\''+hh.id+'\')" style="padding:4px 10px;background:rgba(0,113,227,.1);color:var(--accent);border-radius:8px;font-size:.66rem;font-weight:600;border:none;cursor:pointer;white-space:nowrap;">🔍 Ver</button>')+
+        (hasPdf?(hh.archivos).map(function(af){return '<div style="display:flex;align-items:center;gap:3px;"><button onclick="openPDFViewer(\''+af.id+'\',\''+esc(af.nombre)+'\')" style="padding:4px 10px;background:rgba(0,113,227,.1);color:var(--accent);border-radius:8px;font-size:.66rem;font-weight:600;border:none;cursor:pointer;white-space:nowrap;">📄 '+esc(af.nombre.length>18?af.nombre.slice(0,16)+'…':af.nombre)+'</button><button onclick="delHistFileDirect(\''+eq.id+'\',\''+hh.id+'\',\''+af.id+'\')" style="background:rgba(255,59,48,.08);border:1px solid rgba(255,59,48,.2);color:var(--red);border-radius:8px;padding:4px 7px;font-size:.7rem;cursor:pointer;flex-shrink:0;" title="Eliminar PDF">🗑</button></div>';}).join(''):'<button onclick="openHistDetail(\''+eq.id+'\',\''+hh.id+'\')" style="padding:4px 10px;background:rgba(0,113,227,.1);color:var(--accent);border-radius:8px;font-size:.66rem;font-weight:600;border:none;cursor:pointer;white-space:nowrap;">🔍 Ver</button>')+
         '<button onclick="openEditHist(\''+eq.id+'\',\''+hh.id+'\')" style="padding:4px 10px;background:rgba(52,199,89,.1);color:var(--green);border-radius:8px;font-size:.66rem;font-weight:600;border:none;cursor:pointer;">✏️</button>'+
         '<button onclick="delHist(\''+eq.id+'\',\''+hh.id+'\')" style="padding:4px 8px;background:rgba(255,59,48,.07);color:var(--red);border-radius:8px;font-size:.68rem;border:none;cursor:pointer;">🗑</button>'+
         '</div></div></div></div>';
@@ -4424,8 +4455,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="4.8.0";
-var APP_BUILD="29/05/26 14:00";
+var APP_DISPLAY_VERSION="4.8.1";
+var APP_BUILD="29/05/26 15:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
