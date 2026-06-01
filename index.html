@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.01.114 -->
+<!-- v2026.06.01.115 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.01.114">
+<meta name="app-version" content="v2026.06.01.115">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -4078,8 +4078,8 @@ function generateReport(){
     html+='</div>';
     html+='</div>';
     html+='</body></html>';
-    openHTMLViewer(html);
     closeModal();
+    setTimeout(function(){openHTMLViewer(html,'Informe Equipos CIMA — '+mesAnio);},80);
     }catch(err){showToast('Error al generar: '+(err&&err.message?err.message:String(err)),'warn');console.error('generateReport error:',err);}
   }
   // If no images: build synchronously (avoids async/XHR issues on iOS PWA)
@@ -5370,8 +5370,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.1.4";
-var APP_BUILD="01/06/26 18:00";
+var APP_DISPLAY_VERSION="5.1.5";
+var APP_BUILD="01/06/26 19:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
@@ -5899,7 +5899,7 @@ function sbCalTap(ds){
     <span style="flex:1;">Modo Oscuro</span><span id="sb-dark-pill" style="font-size:.6rem;padding:2px 8px;border-radius:20px;background:rgba(0,113,227,.12);color:var(--accent);font-weight:700;">OFF</span>
   </button>
   <div style="height:1px;background:rgba(120,120,128,.1);margin:3px 4px;"></div>
-  <button class="sb-sub-btn" onclick="generateReportDirect()">
+  <button class="sb-sub-btn" onclick="closeSbAjustesMenu();openReportPanel()">
     <span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>Reporte PDF
   </button>
   <button class="sb-sub-btn" onclick="closeSbAjustesMenu();exportBackup()">
