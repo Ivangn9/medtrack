@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.01.115 -->
+<!-- v2026.06.01.116 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.01.115">
+<meta name="app-version" content="v2026.06.01.116">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3954,12 +3954,22 @@ function generateReportDirect(){
   }catch(err){showToast('Error: '+(err&&err.message?err.message:String(err)),'warn');}
 }
 function generateReport(){
-  var tipo=document.getElementById('rep-tipo').value;
-  var desde=document.getElementById('rep-desde').value;
-  var hasta=document.getElementById('rep-hasta').value;
-  var nroInforme=parseInt(document.getElementById('rep-nro').value)||1;
-  var paraInforme=(document.getElementById('rep-para').value||'Comité Ejecutivo').trim();
-  var selIds=[];document.querySelectorAll('.rep-eq-chk:checked').forEach(function(c){selIds.push(c.value);});
+  try{
+  var _rTipo=document.getElementById('rep-tipo');
+  var _rDesde=document.getElementById('rep-desde');
+  var _rHasta=document.getElementById('rep-hasta');
+  var _rNro=document.getElementById('rep-nro');
+  var _rPara=document.getElementById('rep-para');
+  if(!_rTipo||!_rDesde||!_rHasta||!_rNro||!_rPara){showToast('Error: formulario no encontrado','err');return;}
+  var tipo=_rTipo.value;
+  var desde=_rDesde.value;
+  var hasta=_rHasta.value;
+  var nroInforme=parseInt(_rNro.value)||1;
+  var paraInforme=(_rPara.value||'Comité Ejecutivo').trim();
+  var selIds=[];
+  var _chks=document.querySelectorAll('.rep-eq-chk:checked');
+  if(_chks&&_chks.length){for(var _ci=0;_ci<_chks.length;_ci++){selIds.push(_chks[_ci].value);}}
+  }catch(_topErr){showToast('Error al iniciar reporte: '+(_topErr&&_topErr.message?_topErr.message:String(_topErr)),'err');return;}
   if(!selIds.length){showToast('Seleccioná al menos un equipo','warn');return;}
   var filtEqs=eqs.filter(function(e){return selIds.indexOf(e.id)!==-1;});
   var tm=0,tr=0,tmej=0,tact=0,hasData=false;
@@ -4079,7 +4089,7 @@ function generateReport(){
     html+='</div>';
     html+='</body></html>';
     closeModal();
-    setTimeout(function(){openHTMLViewer(html,'Informe Equipos CIMA — '+mesAnio);},80);
+    openHTMLViewer(html,'Informe Equipos CIMA — '+mesAnio);
     }catch(err){showToast('Error al generar: '+(err&&err.message?err.message:String(err)),'warn');console.error('generateReport error:',err);}
   }
   // If no images: build synchronously (avoids async/XHR issues on iOS PWA)
@@ -5370,8 +5380,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.1.5";
-var APP_BUILD="01/06/26 19:00";
+var APP_DISPLAY_VERSION="5.1.6";
+var APP_BUILD="01/06/26 20:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
