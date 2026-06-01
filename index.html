@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.29.110 -->
+<!-- v2026.06.01.114 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.05.29.110">
+<meta name="app-version" content="v2026.06.01.114">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3898,6 +3898,61 @@ function _loadForReport(imageIds, cb){
     });
   });
 }
+// Quick report: all equipment, no date filter, default settings
+function generateReportDirect(){
+  closeSbAjustesMenu();
+  var nroInforme=parseInt(localStorage.getItem('cima_nro_informe')||'1');
+  var paraInforme=localStorage.getItem('cima_rep_para')||'Comité Ejecutivo';
+  var filtEqs=eqs.filter(function(e){return !e.baja;});
+  if(!filtEqs.length){showToast('Sin equipos para reportar','warn');return;}
+  var tm=0,tr=0,tmej=0,tact=0;
+  var eqData=[],sumRows='';
+  filtEqs.forEach(function(eq){
+    var ci=catById(eq.cat);
+    var hist=(eq.historialMant||[]).slice().sort(function(a,b){return a.fecha>b.fecha?1:-1;});
+    var mantH=hist.filter(function(h){return h.tipo==='mantenimiento';});
+    var repH=hist.filter(function(h){return h.tipo==='reparacion';});
+    var mejH=hist.filter(function(h){return h.tipo==='mejora';});
+    var actH=(eq.partes||[]).filter(function(p){return p.estado==='roto'||p.estado==='pendiente';});
+    var mejP=(eq.partes||[]).filter(function(p){return p.estado==='mejora';});
+    var estClass=eq.estado==='fuera-de-servicio'?'sbad':eq.estado==='operativo'?'sok':'swarn';
+    sumRows+='<tr><td><strong>'+esc(eq.nombre)+'</strong></td><td>'+ci.label+'</td><td>'+(eq.ubicacion?esc(eq.ubicacion):'—')+'</td><td><span class="'+estClass+'">'+estLabel(eq.estado)+'</span></td><td>'+mantH.length+'</td><td>'+repH.length+'</td><td>'+actH.length+'</td></tr>';
+    var hasEq=mantH.length||repH.length||mejH.length||actH.length||mejP.length;
+    if(!hasEq)return;
+    tm+=mantH.length;tr+=repH.length;tmej+=mejH.length;tact+=actH.length;
+    eqData.push({eq:eq,ci:ci,mantH:mantH,repH:repH,mejH:mejH,actH:actH,mejP:mejP});
+  });
+  localStorage.setItem('cima_nro_informe',String(nroInforme+1));
+  var _logoSync=null;
+  try{var _imgs=document.querySelectorAll('img');for(var _ii=0;_ii<_imgs.length;_ii++){if(_imgs[_ii].src&&_imgs[_ii].src.indexOf('logo.png')!==-1&&_imgs[_ii].complete&&_imgs[_ii].naturalWidth>0){var _cv=document.createElement('canvas');_cv.width=_imgs[_ii].naturalWidth;_cv.height=_imgs[_ii].naturalHeight;_cv.getContext('2d').drawImage(_imgs[_ii],0,0);_logoSync=_cv.toDataURL('image/png');break;}}}catch(e){}
+  try{
+    var nowDate=new Date();
+    var mesAnio=nowDate.toLocaleDateString('es-AR',{month:'long',year:'numeric'});
+    mesAnio=mesAnio.charAt(0).toUpperCase()+mesAnio.slice(1);
+    var fechaCreacion=nowDate.toLocaleDateString('es-AR',{day:'2-digit',month:'long',year:'numeric'});
+    var logoTag=_logoSync?'<img src="'+_logoSync+'" style="height:88px;width:auto;display:block;">':'<div style="font-size:11pt;font-weight:900;color:#1a3a6b;">CIMA</div>';
+    var introText='El presente informe técnico tiene por objeto detallar las actividades de mantenimiento preventivo y correctivo, reparaciones, mejoras y estado general del equipamiento biomédico de <strong>CIMA Investigaciones Avanzadas</strong>. La información incluida refleja los registros del sistema CIMA Hub al momento de la emisión del documento.';
+    var resumenText='Se registraron: <strong>'+tm+' mantenimiento'+(tm!==1?'s preventivos':' preventivo')+'</strong>'+(tr?', <strong>'+tr+' reparación'+(tr!==1?'es':'')+' completada'+(tr!==1?'s':'')+'</strong>':'')+(tmej?', <strong>'+tmej+' mejora'+(tmej!==1?'s':'')+' completada'+(tmej!==1?'s':'')+'</strong>':'')+(tact?'. Se reportan <strong class="sbad">'+tact+' falla'+(tact!==1?'s':'')+' activa'+(tact!==1?'s':'')+'</strong>.':'.');
+    var conclusionText='Se recomienda dar seguimiento a las fallas activas para garantizar la continuidad operativa.';
+    var eqSections='';
+    eqData.forEach(function(d){var eq=d.eq;var ci=d.ci;var narrativeHtml=_narrativeEq(eq,d.mantH,d.repH,d.mejH,d.actH,d.mejP);eqSections+='<div class="eq-block"><div class="eq-title">'+esc(eq.nombre)+'<span style="font-size:9pt;font-weight:500;color:#64748b;margin-left:10px;">'+ci.label+(eq.ubicacion?' — '+esc(eq.ubicacion):'')+'</span></div><div class="narrative">'+narrativeHtml+'</div></div>';});
+    var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width"><title>Informe Equipos CIMA — '+mesAnio+'</title><style>'+_reportCSS+'</style></head><body>';
+    html+='<div class="page">';
+    html+='<div class="logo-area">'+logoTag+'</div>';
+    html+='<div class="informe-box"><div class="informe-title">INFORME&nbsp; EQUIPOS&nbsp; CIMA&nbsp; Nº&nbsp;'+nroInforme+'&nbsp; &mdash;&nbsp;'+mesAnio.toUpperCase()+'</div>';
+    html+='<div class="informe-row"><span class="informe-label">FECHA:</span><span class="informe-value">'+fechaCreacion+'</span></div>';
+    html+='<div class="informe-row"><span class="informe-label">DE:</span><span class="informe-value">Lic. García Núñez Iván</span></div>';
+    html+='<div class="informe-row"><span class="informe-label">PARA:</span><span class="informe-value">'+esc(paraInforme)+'</span></div></div>';
+    html+='<div class="section"><div class="section-title">1. Objeto</div><div class="narrative"><p>'+introText+'</p></div></div>';
+    html+='<div class="section"><div class="section-title">2. Resumen ejecutivo</div><div class="narrative"><p>'+resumenText+'</p></div></div>';
+    html+='<div class="section"><div class="section-title">3. Detalle por equipo</div>'+eqSections+'</div>';
+    html+='<div class="section"><div class="section-title">4. Cuadro resumen</div><table class="sum"><thead><tr><th>Equipo</th><th>Categoría</th><th>Centro</th><th>Estado</th><th>Mant.</th><th>Reparaciones</th><th>Fallas activas</th></tr></thead><tbody>'+sumRows+'</tbody></table></div>';
+    html+='<div class="section"><div class="section-title">5. Conclusiones</div><div class="narrative"><p>'+conclusionText+'</p></div></div>';
+    html+='<div class="footer"><div class="footer-meta">CIMA Investigaciones Avanzadas · CIMA Hub · Generado: '+nowDate.toLocaleString("es-AR")+'</div><div class="sig-row"><div class="sig-block"><div class="sig-line">Lic. García Núñez Iván</div><div class="sig-title">Responsable de Equipos Biomédicos</div></div></div></div>';
+    html+='</div></body></html>';
+    openHTMLViewer(html,'Informe Equipos CIMA — '+mesAnio);
+  }catch(err){showToast('Error: '+(err&&err.message?err.message:String(err)),'warn');}
+}
 function generateReport(){
   var tipo=document.getElementById('rep-tipo').value;
   var desde=document.getElementById('rep-desde').value;
@@ -3943,7 +3998,6 @@ function generateReport(){
     eqData.push({eq:eq,ci:ci,mantH:mantH,repH:repH,mejH:mejH,actH:actH,mejP:mejP});
   });
   if(!hasData){showToast('Sin actividad en el período seleccionado','warn');return;}
-  closeModal();
   localStorage.setItem('cima_nro_informe',String(nroInforme+1));
   localStorage.setItem('cima_rep_para',paraInforme);
   // Collect all image IDs needed
@@ -4025,6 +4079,7 @@ function generateReport(){
     html+='</div>';
     html+='</body></html>';
     openHTMLViewer(html);
+    closeModal();
     }catch(err){showToast('Error al generar: '+(err&&err.message?err.message:String(err)),'warn');console.error('generateReport error:',err);}
   }
   // If no images: build synchronously (avoids async/XHR issues on iOS PWA)
@@ -5315,8 +5370,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.1.3";
-var APP_BUILD="02/06/26 14:00";
+var APP_DISPLAY_VERSION="5.1.4";
+var APP_BUILD="01/06/26 18:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
@@ -5844,7 +5899,7 @@ function sbCalTap(ds){
     <span style="flex:1;">Modo Oscuro</span><span id="sb-dark-pill" style="font-size:.6rem;padding:2px 8px;border-radius:20px;background:rgba(0,113,227,.12);color:var(--accent);font-weight:700;">OFF</span>
   </button>
   <div style="height:1px;background:rgba(120,120,128,.1);margin:3px 4px;"></div>
-  <button class="sb-sub-btn" onclick="closeSbAjustesMenu();openReportPanel()">
+  <button class="sb-sub-btn" onclick="generateReportDirect()">
     <span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>Reporte PDF
   </button>
   <button class="sb-sub-btn" onclick="closeSbAjustesMenu();exportBackup()">
