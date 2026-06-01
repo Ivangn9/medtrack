@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.29.106 -->
+<!-- v2026.05.29.107 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.05.29.106">
+<meta name="app-version" content="v2026.05.29.107">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3933,8 +3933,10 @@ function generateReport(){
     d.actH.forEach(function(p){(p.imagenes||[]).forEach(function(im){if(allImgIds.indexOf(im.id)===-1)allImgIds.push(im.id);});});
     d.repH.forEach(function(h){(h.imagenes||[]).forEach(function(im){if(allImgIds.indexOf(im.id)===-1)allImgIds.push(im.id);});});
   });
+  showToast('Generando informe...');
   // Load logo + images, then build HTML
   _loadForReport(allImgIds,function(logoB64,imgsMap){
+    try{
     var eqSections='';
     eqData.forEach(function(d){
       var eq=d.eq;var ci=d.ci;
@@ -3992,6 +3994,7 @@ function generateReport(){
     html+='</div>';
     html+='</body></html>';
     openHTMLViewer(html);
+    }catch(err){showToast('Error al generar: '+(err&&err.message?err.message:String(err)),'warn');console.error('generateReport error:',err);}
   });
 }
 
@@ -5264,8 +5267,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.0.9";
-var APP_BUILD="02/06/26 09:00";
+var APP_DISPLAY_VERSION="5.1.0";
+var APP_BUILD="02/06/26 10:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
