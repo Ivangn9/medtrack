@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.01.120 -->
+<!-- v2026.06.01.121 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.01.120">
+<meta name="app-version" content="v2026.06.01.121">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3962,23 +3962,14 @@ function generateReportDirect(){
   }catch(err){showToast('Error: '+(err&&err.message?err.message:String(err)),'warn');}
 }
 function generateReport(){
-  showToast('Procesando reporte…','');
-  try{
-  var _rTipo=document.getElementById('rep-tipo');
-  var _rDesde=document.getElementById('rep-desde');
-  var _rHasta=document.getElementById('rep-hasta');
-  var _rNro=document.getElementById('rep-nro');
-  var _rPara=document.getElementById('rep-para');
-  if(!_rTipo||!_rDesde||!_rHasta||!_rNro||!_rPara){showToast('Error: formulario no encontrado','err');return;}
-  var tipo=_rTipo.value;
-  var desde=_rDesde.value;
-  var hasta=_rHasta.value;
-  var nroInforme=parseInt(_rNro.value)||1;
-  var paraInforme=(_rPara.value||'Comité Ejecutivo').trim();
+  var tipo=(document.getElementById('rep-tipo')||{}).value||'todo';
+  var desde=(document.getElementById('rep-desde')||{}).value||'';
+  var hasta=(document.getElementById('rep-hasta')||{}).value||'';
+  var nroInforme=parseInt((document.getElementById('rep-nro')||{}).value)||1;
+  var paraInforme=((document.getElementById('rep-para')||{}).value||'Comité Ejecutivo').trim();
   var selIds=[];
   var _chks=document.querySelectorAll('.rep-eq-chk:checked');
-  if(_chks&&_chks.length){for(var _ci=0;_ci<_chks.length;_ci++){selIds.push(_chks[_ci].value);}}
-  }catch(_topErr){showToast('Error al iniciar reporte: '+(_topErr&&_topErr.message?_topErr.message:String(_topErr)),'err');return;}
+  for(var _ci=0;_ci<_chks.length;_ci++){selIds.push(_chks[_ci].value);}
   if(!selIds.length){showToast('Seleccioná al menos un equipo','warn');return;}
   var filtEqs=eqs.filter(function(e){return selIds.indexOf(e.id)!==-1;});
   var tm=0,tr=0,tmej=0,tact=0,hasData=false;
@@ -4009,14 +4000,14 @@ function generateReport(){
     // Always add to summary table
     var estClass=eq.estado==='fuera-de-servicio'?'sbad':eq.estado==='operativo'?'sok':'swarn';
     sumRows+='<tr><td><strong>'+esc(eq.nombre)+'</strong></td><td>'+ci.label+'</td><td>'+(eq.ubicacion?esc(eq.ubicacion):'—')+'</td><td><span class="'+estClass+'">'+estLabel(eq.estado)+'</span></td><td>'+mantH.length+'</td><td>'+repH.length+'</td><td>'+actH.length+'</td></tr>';
-    // Only add to detail section if has events
+    // Add to detail section only if has events in the period
     var hasEq=mantH.length||repH.length||mejH.length||actH.length||mejP.length;
     if(!hasEq)return;
     hasData=true;
     tm+=mantH.length;tr+=repH.length;tmej+=mejH.length;tact+=actH.length;
     eqData.push({eq:eq,ci:ci,mantH:mantH,repH:repH,mejH:mejH,actH:actH,mejP:mejP});
   });
-  if(!hasData){showToast('Sin actividad en el período seleccionado','warn');return;}
+  // Always generate if equipment selected — no-activity periods still produce a status report
   localStorage.setItem('cima_nro_informe',String(nroInforme+1));
   localStorage.setItem('cima_rep_para',paraInforme);
   // Collect all image IDs needed
@@ -4068,7 +4059,7 @@ function generateReport(){
     var mesAnio=_mesRef.toLocaleDateString('es-AR',{month:'long',year:'numeric'});
     mesAnio=mesAnio.charAt(0).toUpperCase()+mesAnio.slice(1);
     var introText='El presente informe técnico tiene por objeto detallar las actividades de mantenimiento preventivo y correctivo, reparaciones, mejoras y estado general del equipamiento biomédico de <strong>CIMA Investigaciones Avanzadas</strong> correspondientes al período <strong>'+periodoLabel+'</strong>. La información incluida refleja los registros del sistema CIMA Hub al momento de la emisión del documento.';
-    var resumenText='Durante el período informado se registraron: <strong>'+tm+' mantenimiento'+(tm!==1?'s':'')+' preventivo'+(tm!==1?'s':'')+' </strong>'+(tr?', <strong>'+tr+' reparación'+(tr!==1?'es':'')+' completada'+(tr!==1?'s':'')+'</strong>':'')+(tmej?', <strong>'+tmej+' mejora'+(tmej!==1?'s':'')+' completada'+(tmej!==1?'s':'')+'</strong>':'')+(tact?'. Se reportan <strong class="sbad">'+tact+' falla'+(tact!==1?'s':'')+' activa'+(tact!==1?'s':'')+' pendiente'+(tact!==1?'s':'')+'</strong> de resolución.':'.');
+    var resumenText=(!hasData)?'Sin actividad registrada en el período seleccionado. El cuadro de estado refleja la situación actual de los equipos.':'Durante el período informado se registraron: <strong>'+tm+' mantenimiento'+(tm!==1?'s':'')+' preventivo'+(tm!==1?'s':'')+' </strong>'+(tr?', <strong>'+tr+' reparación'+(tr!==1?'es':'')+' completada'+(tr!==1?'s':'')+'</strong>':'')+(tmej?', <strong>'+tmej+' mejora'+(tmej!==1?'s':'')+' completada'+(tmej!==1?'s':'')+'</strong>':'')+(tact?'. Se reportan <strong class="sbad">'+tact+' falla'+(tact!==1?'s':'')+' activa'+(tact!==1?'s':'')+' pendiente'+(tact!==1?'s':'')+'</strong> de resolución.':'.');
     var conclusionText='Se recomienda dar seguimiento oportuno a las fallas activas registradas con el fin de garantizar la continuidad operativa del servicio. '+(tm>0?'Los mantenimientos preventivos realizados contribuyen a la prolongación de la vida útil del equipamiento. ':'')+'Cualquier consulta adicional quedará a disposición del Comité Ejecutivo.';
     var logoTag=logoB64?'<img src="'+logoB64+'" style="height:88px;width:auto;display:block;">':'<div style="font-size:11pt;font-weight:900;color:#1a3a6b;">CIMA</div>';
     var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width"><title>Informe Equipos CIMA — '+mesAnio+'</title><style>'+_reportCSS+'</style></head><body>';
@@ -5388,8 +5379,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.2.0";
-var APP_BUILD="02/06/26 00:00";
+var APP_DISPLAY_VERSION="5.2.1";
+var APP_BUILD="02/06/26 01:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
