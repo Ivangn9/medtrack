@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.29.94 -->
+<!-- v2026.05.29.95 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>MedTrack — CIMA</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.05.29.94">
+<meta name="app-version" content="v2026.05.29.95">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1521,6 +1521,15 @@ function openModalEq(eq){
     '<div class="ff"><div class="ff-label">Vencimiento Parches</div><input class="inp" type="date" id="eq-parches-venc" value="'+esc(f.parches_vencimiento||'')+'"></div>'+
     '<div class="ff"><div class="ff-label">Vencimiento Batería</div><input class="inp" type="date" id="eq-bateria-venc" value="'+esc(f.bateria_vencimiento||'')+'"></div>'+
     '</div>':'')
+    +'<div style="border-top:1px solid rgba(8,145,178,.18);margin:12px 0 10px;padding-top:12px;"><div style="font-size:.68rem;font-weight:800;color:#0891b2;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;">🌐 Datos de Red</div>'
+    +'<div style="font-size:.63rem;font-weight:700;color:#0891b2;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;opacity:.75;">PACS</div>'
+    +'<div class="g2"><div class="ff"><div class="ff-label">IP Local</div><input class="inp" id="eq-pacs-ip" value="'+esc(f.pacsIp||'')+'" placeholder="192.168.1.100"></div>'
+    +'<div class="ff"><div class="ff-label">Puerto TCP</div><input class="inp" id="eq-pacs-puerto" value="'+esc(f.pacsPuerto||'')+'" placeholder="104"></div></div>'
+    +'<div class="ff"><div class="ff-label">AE Title</div><input class="inp" id="eq-pacs-ae" value="'+esc(f.pacsAE||'')+'" placeholder="PACS_SERVER"></div>'
+    +'<div style="font-size:.63rem;font-weight:700;color:#0891b2;text-transform:uppercase;letter-spacing:.06em;margin:10px 0 8px;opacity:.75;">WORKLIST</div>'
+    +'<div class="g2"><div class="ff"><div class="ff-label">IP Local</div><input class="inp" id="eq-wl-ip" value="'+esc(f.wlIp||'')+'" placeholder="192.168.1.101"></div>'
+    +'<div class="ff"><div class="ff-label">AE Title</div><input class="inp" id="eq-wl-ae" value="'+esc(f.wlAE||'')+'" placeholder="WORKLIST_SCP"></div></div>'
+    +'</div>'
     +'<button class="btn-primary" style="width:100%;padding:14px;font-size:.92rem;" onclick="submitEq(\''+((f.id)||"")+'\')">'+(n?"✅ Agregar":"💾 Guardar")+'</button>');
 }
 function submitEq(eid){
@@ -1534,6 +1543,11 @@ function submitEq(eid){
     d.parches_vencimiento=((document.getElementById("eq-parches-venc")||{}).value||'').trim();
     d.bateria_vencimiento=((document.getElementById("eq-bateria-venc")||{}).value||'').trim();
   }
+  d.pacsIp=((document.getElementById("eq-pacs-ip")||{}).value||'').trim();
+  d.pacsPuerto=((document.getElementById("eq-pacs-puerto")||{}).value||'').trim();
+  d.pacsAE=((document.getElementById("eq-pacs-ae")||{}).value||'').trim();
+  d.wlIp=((document.getElementById("eq-wl-ip")||{}).value||'').trim();
+  d.wlAE=((document.getElementById("eq-wl-ae")||{}).value||'').trim();
   saveEq(d);
 }
 // ── FILE STORE (IndexedDB) ──
@@ -2202,6 +2216,29 @@ function rDetalle(){
     '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>Dar de baja equipo'+
   '</button>'+
   '</div></div></div></div>';
+
+  // ── CARD: DATOS DE RED ──
+  var _hasNet=!!(eq.pacsIp||eq.pacsPuerto||eq.pacsAE||eq.wlIp||eq.wlAE);
+  h+='<div class="gc" style="padding:0;margin-bottom:14px;overflow:hidden;border-left:4px solid rgba(8,145,178,.45);background:linear-gradient(135deg,rgba(8,145,178,.07) 0%,rgba(6,182,212,.04) 100%);">'+
+    '<div onclick="(function(){var c=document.getElementById(\'net-body\');var ic=document.getElementById(\'net-ic\');var op=c.style.display!==\'none\';c.style.display=op?\'none\':\'block\';ic.style.transform=op?\'rotate(-90deg)\':\'rotate(0deg)\';})()" style="cursor:pointer;background:linear-gradient(90deg,rgba(8,145,178,.12),rgba(6,182,212,.07));padding:9px 14px;display:flex;align-items:center;gap:7px;user-select:none;">'+
+    '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(8,145,178,.9)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="16" y="16" width="6" height="6" rx="1"/><rect x="2" y="16" width="6" height="6" rx="1"/><rect x="9" y="2" width="6" height="6" rx="1"/><path d="M5 16v-4h14v4"/><path d="M12 12V8"/></svg>'+
+    '<span style="font-size:.72rem;font-weight:700;color:rgba(8,145,178,.9);text-transform:uppercase;letter-spacing:.06em;flex:1;">Datos de Red</span>'+
+    (_hasNet?'<span style="background:rgba(8,145,178,.15);color:#0891b2;border-radius:20px;padding:1px 8px;font-size:.64rem;font-weight:700;margin-right:4px;">Configurado</span>':'')+
+    '<svg id="net-ic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(8,145,178,.6)" stroke-width="2.2" stroke-linecap="round" style="transition:transform .2s;transform:rotate(-90deg);flex-shrink:0;"><polyline points="9 18 15 12 9 6"/></svg>'+
+    '</div>'+
+    '<div id="net-body" style="display:none;padding:14px 16px;">'+
+    '<div style="font-size:.63rem;font-weight:800;color:#0891b2;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">PACS</div>'+
+    '<div class="det-grid" style="margin-bottom:12px;">'+
+    '<div class="ibox"><div class="ibox-l">IP Local</div><div class="ibox-v" style="font-family:monospace;font-size:.78rem;">'+(eq.pacsIp?esc(eq.pacsIp):'<span style="color:var(--text3);">—</span>')+'</div></div>'+
+    '<div class="ibox"><div class="ibox-l">Puerto TCP</div><div class="ibox-v" style="font-family:monospace;font-size:.78rem;">'+(eq.pacsPuerto?esc(eq.pacsPuerto):'<span style="color:var(--text3);">—</span>')+'</div></div>'+
+    '<div class="ibox" style="grid-column:1/-1;"><div class="ibox-l">AE Title</div><div class="ibox-v" style="font-family:monospace;font-size:.78rem;">'+(eq.pacsAE?esc(eq.pacsAE):'<span style="color:var(--text3);">—</span>')+'</div></div>'+
+    '</div>'+
+    '<div style="font-size:.63rem;font-weight:800;color:#0891b2;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">WORKLIST</div>'+
+    '<div class="det-grid">'+
+    '<div class="ibox"><div class="ibox-l">IP Local</div><div class="ibox-v" style="font-family:monospace;font-size:.78rem;">'+(eq.wlIp?esc(eq.wlIp):'<span style="color:var(--text3);">—</span>')+'</div></div>'+
+    '<div class="ibox"><div class="ibox-l">AE Title</div><div class="ibox-v" style="font-family:monospace;font-size:.78rem;">'+(eq.wlAE?esc(eq.wlAE):'<span style="color:var(--text3);">—</span>')+'</div></div>'+
+    '</div>'+
+    '</div></div>';
 
   // ── CARD 2: MANTENIMIENTO ──
   h+='<div class="gc" style="padding:0;margin-bottom:14px;overflow:hidden;border-left:4px solid rgba(255,149,0,.45);background:linear-gradient(135deg,rgba(255,149,0,.08) 0%,rgba(255,204,0,.04) 100%);">'+
@@ -4956,8 +4993,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="4.9.7";
-var APP_BUILD="01/06/26 10:00";
+var APP_DISPLAY_VERSION="4.9.8";
+var APP_BUILD="01/06/26 11:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
