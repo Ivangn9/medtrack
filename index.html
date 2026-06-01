@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.29.108 -->
+<!-- v2026.05.29.109 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.05.29.108">
+<meta name="app-version" content="v2026.05.29.109">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1579,14 +1579,23 @@ function openHTMLViewer(htmlContent,title){
   var titleEl=document.getElementById('pdf-viewer-title');
   var dlBtn=document.getElementById('pdf-dl-btn');
   if(titleEl)titleEl.textContent=title||'Reporte';
-  // srcdoc works on iOS Safari; blob URLs in iframes are blocked on iOS
-  frame.removeAttribute('src');
-  frame.srcdoc=htmlContent;
-  // Download button: blob URL for saving (only used on non-iOS where it works)
-  if(_pdfBlobUrl){URL.revokeObjectURL(_pdfBlobUrl);_pdfBlobUrl=null;}
-  try{var blob=new Blob([htmlContent],{type:'text/html'});_pdfBlobUrl=URL.createObjectURL(blob);if(dlBtn){dlBtn.href=_pdfBlobUrl;dlBtn.download=(title||'reporte')+'.html';}}catch(e){}
+  // Show overlay FIRST so the iframe is laid out and visible
   overlay.classList.remove('hidden');
   document.body.style.overflow='hidden';
+  // Primary render: write directly into iframe document.
+  // This is the most reliable method on iOS PWA standalone, where large srcdoc
+  // values fail silently (blank iframe) and blob URLs are blocked.
+  frame.removeAttribute('srcdoc');
+  var wrote=false;
+  try{
+    var doc=frame.contentWindow&&frame.contentWindow.document;
+    if(doc){doc.open();doc.write(htmlContent);doc.close();wrote=true;}
+  }catch(e){}
+  // Fallback: srcdoc
+  if(!wrote){try{frame.srcdoc=htmlContent;}catch(e){}}
+  // Download button: blob URL for saving (works on non-iOS)
+  if(_pdfBlobUrl){URL.revokeObjectURL(_pdfBlobUrl);_pdfBlobUrl=null;}
+  try{var blob=new Blob([htmlContent],{type:'text/html'});_pdfBlobUrl=URL.createObjectURL(blob);if(dlBtn){dlBtn.href=_pdfBlobUrl;dlBtn.download=(title||'reporte')+'.html';}}catch(e){}
 }
 function closePDFViewer(){
   var overlay=document.getElementById('pdf-viewer-overlay');
@@ -5296,8 +5305,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.1.1";
-var APP_BUILD="02/06/26 11:00";
+var APP_DISPLAY_VERSION="5.1.2";
+var APP_BUILD="02/06/26 12:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
