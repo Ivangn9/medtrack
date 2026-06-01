@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<!-- v2026.05.29.98 -->
+<!-- v2026.05.29.99 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="MedTrack">
+<meta name="apple-mobile-web-app-title" content="CIMA Hub">
 <link rel="apple-touch-icon-precomposed" sizes="180x180" href="icon.png">
 <link rel="apple-touch-icon-precomposed" sizes="167x167" href="icon.png">
 <link rel="apple-touch-icon-precomposed" sizes="152x152" href="icon.png">
@@ -33,9 +33,9 @@
 <link rel="shortcut icon" href="icon.png">
 <link rel="preload" href="logo.png" as="image">
 <link rel="preload" href="bg.jpg" as="image">
-<title>MedTrack — CIMA</title>
+<title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.05.29.98">
+<meta name="app-version" content="v2026.05.29.99">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -585,7 +585,7 @@ body.dark .sb-card{background:rgba(255,255,255,.07);border-color:rgba(255,255,25
     <!-- Logo / header -->
     <div style="text-align:center;margin-bottom:32px;">
       <img src="logo.png" alt="CIMA" style="height:56px;width:auto;object-fit:contain;margin-bottom:12px;" onerror="this.style.display='none'">
-      <div style="font-weight:800;font-size:1.4rem;letter-spacing:-.5px;color:var(--text);">MedTrack</div>
+      <div style="font-weight:800;font-size:1.4rem;letter-spacing:-.5px;color:var(--text);">CIMA Hub</div>
       <div style="font-size:.78rem;color:var(--text3);margin-top:4px;">CIMA Investigaciones Avanzadas</div>
     </div>
     <!-- Card -->
@@ -704,7 +704,7 @@ body.dark .sb-card{background:rgba(255,255,255,.07);border-color:rgba(255,255,25
     <div style="display:flex;align-items:center;gap:9px;">
       <img src="logo.png" style="height:30px;opacity:1;filter:drop-shadow(0 1px 3px rgba(0,0,0,.15));" onerror="this.style.display='none'">
       <div>
-        <div style="font-weight:800;font-size:.92rem;color:var(--text);letter-spacing:-.3px;">MedTrack</div>
+        <div style="font-weight:800;font-size:.92rem;color:var(--text);letter-spacing:-.3px;">CIMA Hub</div>
         <div style="font-size:.58rem;color:var(--text3);letter-spacing:.3px;">CIMA Investigaciones</div>
       </div>
     </div>
@@ -3539,7 +3539,7 @@ function updateSettingsUI(){
   if(b){b.style.background=darkMode?"var(--accent)":"#e5e5ea";}if(d){d.style.left=darkMode?"23px":"3px";}if(l)l.textContent=fontScale+"%";
   if(vl)vl.textContent=(APP_DISPLAY_VERSION||APP_VERSION)||"";
   if(sf&&APP_VERSION){
-    sf.innerHTML='<div style="margin-bottom:3px;font-size:.64rem;">Última actualización: '+APP_BUILD+'</div>'+'<div>CIMA Investigaciones Avanzadas · MedTrack '+(APP_DISPLAY_VERSION||APP_VERSION)+'</div>';
+    sf.innerHTML='<div style="margin-bottom:3px;font-size:.64rem;">Última actualización: '+APP_BUILD+'</div>'+'<div>CIMA Investigaciones Avanzadas · CIMA Hub '+(APP_DISPLAY_VERSION||APP_VERSION)+'</div>';
   }
 }
 function changeFont(dir){fontScale=Math.max(70,Math.min(150,fontScale+dir*10));applyFont();try{localStorage.setItem("mt_font",String(fontScale));}catch(e){}}
@@ -3559,9 +3559,9 @@ function exportBackup(){
   });
 }
 function _doExportBackup(archivos){
-  var j=JSON.stringify({version:"medtrack_v4",fecha:new Date().toISOString(),equipos:eqs,archivos:archivos},null,2);
+  var j=JSON.stringify({version:"cimahub_v4",fecha:new Date().toISOString(),equipos:eqs,archivos:archivos},null,2);
   var b=new Blob([j],{type:"application/json"});var u=URL.createObjectURL(b);
-  var a=document.createElement("a");a.href=u;a.download="MedTrack_Backup_"+today()+".json";document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(u);
+  var a=document.createElement("a");a.href=u;a.download="CIMAHub_Backup_"+today()+".json";document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(u);
   showToast("📥 Backup listo ("+archivos.length+" PDF"+(archivos.length!==1?"s":"")+" incluido"+(archivos.length!==1?"s":"")+")"  );toggleSettings();
 }
 function importBackup(ev){
@@ -3919,7 +3919,7 @@ function generateReport(){
     var periodoLabel=(desde||hasta)?((desde?fD(desde):'inicio')+' al '+(hasta?fD(hasta):'presente')):'Período general';
     var nowDate=new Date();
     var fechaCreacion=nowDate.toLocaleDateString('es-AR',{day:'2-digit',month:'long',year:'numeric'});
-    var introText='El presente informe técnico tiene por objeto detallar las actividades de mantenimiento preventivo y correctivo, reparaciones, mejoras y estado general del equipamiento biomédico de <strong>CIMA Investigaciones Avanzadas</strong> correspondientes al período <strong>'+periodoLabel+'</strong>. La información incluida refleja los registros del sistema MedTrack al momento de la emisión del documento.';
+    var introText='El presente informe técnico tiene por objeto detallar las actividades de mantenimiento preventivo y correctivo, reparaciones, mejoras y estado general del equipamiento biomédico de <strong>CIMA Investigaciones Avanzadas</strong> correspondientes al período <strong>'+periodoLabel+'</strong>. La información incluida refleja los registros del sistema CIMA Hub al momento de la emisión del documento.';
     var resumenText='Durante el período informado se registraron: <strong>'+tm+' mantenimiento'+(tm!==1?'s':'')+' preventivo'+(tm!==1?'s':'')+' </strong>'+(tr?', <strong>'+tr+' reparación'+(tr!==1?'es':'')+' completada'+(tr!==1?'s':'')+'</strong>':'')+(tmej?', <strong>'+tmej+' mejora'+(tmej!==1?'s':'')+' completada'+(tmej!==1?'s':'')+'</strong>':'')+(tact?'. Se reportan <strong class="sbad">'+tact+' falla'+(tact!==1?'s':'')+' activa'+(tact!==1?'s':'')+' pendiente'+(tact!==1?'s':'')+'</strong> de resolución.':'.');
     var conclusionText='Se recomienda dar seguimiento oportuno a las fallas activas registradas con el fin de garantizar la continuidad operativa del servicio. '+(tm>0?'Los mantenimientos preventivos realizados contribuyen a la prolongación de la vida útil del equipamiento. ':'')+'Cualquier consulta adicional quedará a disposición del Comité Ejecutivo.';
     var logoTag=logoB64?'<img src="'+logoB64+'" style="height:88px;width:auto;display:block;">':'<div style="font-size:11pt;font-weight:900;color:#1a3a6b;">CIMA</div>';
@@ -3942,7 +3942,7 @@ function generateReport(){
     html+='</div>';
     html+='<div class="section"><div class="section-title">5. Conclusiones y recomendaciones</div><div class="narrative"><p>'+conclusionText+'</p></div></div>';
     html+='<div class="footer">';
-    html+='<div class="footer-meta">CIMA Investigaciones Avanzadas · Sistema MedTrack · Generado: '+new Date().toLocaleString("es-AR")+'</div>';
+    html+='<div class="footer-meta">CIMA Investigaciones Avanzadas · CIMA Hub · Generado: '+new Date().toLocaleString("es-AR")+'</div>';
     html+='<div class="sig-row">';
     html+='<div class="sig-block"><div class="sig-line">Lic. García Núñez Iván</div><div class="sig-title">Responsable de Equipos Biomédicos</div></div>';
     html+='<div class="sig-block"><div class="sig-line">&nbsp;</div><div class="sig-title">Autorizado por</div></div>';
@@ -5223,8 +5223,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.0.1";
-var APP_BUILD="01/06/26 15:00";
+var APP_DISPLAY_VERSION="5.0.2";
+var APP_BUILD="01/06/26 16:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
