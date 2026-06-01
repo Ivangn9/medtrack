@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.29.103 -->
+<!-- v2026.05.29.104 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.05.29.103">
+<meta name="app-version" content="v2026.05.29.104">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1075,7 +1075,8 @@ function migrateEqs(){
 var eqs=[],view="dash",selId=null,selAntenaEqId=null,selAntenaId=null,selTransdEqId=null,selTransdId=null,filtCat="TODOS",toastTimer=null,darkMode=false,fontScale=100;
 
 function saveData(){
-  try{localStorage.setItem("mt_v4",JSON.stringify(eqs));localStorage.setItem("mt_antenas",JSON.stringify(antenas));localStorage.setItem("mt_aires",JSON.stringify(aires));localStorage.setItem("mt_transductores",JSON.stringify(transductores));}catch(e){}
+  var now=new Date().toISOString();
+  try{localStorage.setItem("mt_v4",JSON.stringify(eqs));localStorage.setItem("mt_antenas",JSON.stringify(antenas));localStorage.setItem("mt_aires",JSON.stringify(aires));localStorage.setItem("mt_transductores",JSON.stringify(transductores));localStorage.setItem("mt_updatedAt",now);}catch(e){}
   firestoreSave();
 }
 var _fsSaveTimer=null;
@@ -1087,7 +1088,7 @@ function firestoreSave(){
     orgDataRef()
       .set({eqs:eqs,antenas:antenas,aires:aires,transductores:transductores,updatedAt:new Date().toISOString()},{merge:true})
       .catch(function(e){console.warn("Firestore save:",e);});
-  },1500);
+  },400);
 }
 
 // ═══════════════════════════════════════════
@@ -5240,8 +5241,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.0.6";
-var APP_BUILD="01/06/26 21:00";
+var APP_DISPLAY_VERSION="5.0.7";
+var APP_BUILD="01/06/26 22:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
@@ -5450,8 +5451,16 @@ function init(){
         orgDataRef().get().then(function(orgDoc){
           eqs=JSON.parse(JSON.stringify(EQ0));
           if(orgDoc.exists&&Array.isArray(orgDoc.data().eqs)&&orgDoc.data().eqs.length>0){
-            // Shared org data found — use it directly
-            _applyData(orgDoc.data());
+            // Compare Firestore vs localStorage timestamps — use the most recent
+            var fsAt=orgDoc.data().updatedAt||'';
+            var lsAt=localStorage.getItem('mt_updatedAt')||'';
+            if(lsAt&&lsAt>fsAt){
+              // localStorage is newer (unsaved changes) — load it and resync to Firestore
+              _lsLoad();
+              firestoreSave();
+            } else {
+              _applyData(orgDoc.data());
+            }
             _finishLoad();
           } else {
             // No org data yet — migrate from personal user doc (keeps personal data intact)
