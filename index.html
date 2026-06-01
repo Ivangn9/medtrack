@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.01.121 -->
+<!-- v2026.06.01.122 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.01.121">
+<meta name="app-version" content="v2026.06.01.122">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -623,10 +623,10 @@ body.dark .sb-card{background:rgba(255,255,255,.07);border-color:rgba(255,255,25
   <div id="pdf-viewer-hdr">
     <button onclick="closePDFViewer()" style="flex-shrink:0;background:rgba(255,255,255,.12);color:#fff;border:none;border-radius:10px;padding:7px 14px;font-size:.82rem;font-weight:600;cursor:pointer;">← Cerrar</button>
     <span id="pdf-viewer-title">Documento</span>
-    <a id="pdf-dl-btn" download="" href="#" style="flex-shrink:0;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:7px 14px;font-size:.82rem;font-weight:600;cursor:pointer;text-decoration:none;display:flex;align-items:center;gap:5px;">⬇ Descargar</a>
+    <button onclick="printReport()" style="flex-shrink:0;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:7px 14px;font-size:.82rem;font-weight:600;cursor:pointer;">🖨 Imprimir</button>
   </div>
   <div id="pdf-viewer-body">
-    <iframe id="pdf-viewer-frame" src="about:blank"></iframe>
+    <div id="pdf-report-div" style="width:100%;min-height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;"></div>
   </div>
 </div>
 
@@ -1578,49 +1578,43 @@ function openPDFViewer(fileId,nombre){
   });
 }
 var _reportHTML='';
-var _pdfBlobUrl=null;
 function openHTMLViewer(htmlContent,title){
   var overlay=document.getElementById('pdf-viewer-overlay');
-  var frame=document.getElementById('pdf-viewer-frame');
+  var reportDiv=document.getElementById('pdf-report-div');
   var titleEl=document.getElementById('pdf-viewer-title');
-  var dlBtn=document.getElementById('pdf-dl-btn');
+  if(!overlay||!reportDiv){showToast('Error: visor no encontrado','err');return;}
   if(titleEl)titleEl.textContent=title||'Reporte';
   _reportHTML=htmlContent;
-  // Show overlay FIRST so iframe is laid out before writing content
+  // Extract <style> blocks from report HTML
+  var styleContent='';
+  var styleRx=/<style[^>]*>([\s\S]*?)<\/style>/gi;
+  var sm;while((sm=styleRx.exec(htmlContent))!==null){styleContent+=sm[1]+'\n';}
+  // Extract body content
+  var bodyMatch=htmlContent.match(/<body[^>]*>([\s\S]*)<\/body>/i);
+  var bodyContent=bodyMatch?bodyMatch[1]:htmlContent;
+  bodyContent=bodyContent.replace(/<div class="nav-bar"[\s\S]*?<\/div>/,'');
+  // Inject <style> inside the div — auto-cleaned on close when innerHTML is cleared
+  reportDiv.innerHTML='<style>'+styleContent+'</style>'+bodyContent;
+  reportDiv.scrollTop=0;
   overlay.classList.remove('hidden');
   document.body.style.overflow='hidden';
-  // Write into iframe's own document — isolated from the main app
-  frame.removeAttribute('srcdoc');
-  var wrote=false;
-  try{
-    var doc=frame.contentWindow&&frame.contentWindow.document;
-    if(doc){doc.open();doc.write(htmlContent);doc.close();wrote=true;}
-  }catch(e){}
-  // Fallback: srcdoc
-  if(!wrote){try{frame.srcdoc=htmlContent;}catch(e){}}
-  // Download button (blob URL)
-  if(_pdfBlobUrl){URL.revokeObjectURL(_pdfBlobUrl);_pdfBlobUrl=null;}
-  try{var blob=new Blob([htmlContent],{type:'text/html'});_pdfBlobUrl=URL.createObjectURL(blob);if(dlBtn){dlBtn.href=_pdfBlobUrl;dlBtn.download=(title||'reporte')+'.html';}}catch(e){}
 }
 function printReport(){
-  try{
-    var frame=document.getElementById('pdf-viewer-frame');
-    if(frame&&frame.contentWindow){frame.contentWindow.focus();frame.contentWindow.print();return;}
-  }catch(e){}
-  try{
-    var w=window.open('','_blank');
-    if(w){w.document.open();w.document.write(_reportHTML);w.document.close();w.focus();setTimeout(function(){w.print();},600);}
-    else{showToast('Usar botón Descargar para guardar el PDF','warn');}
-  }catch(e){showToast('Usar botón Descargar para guardar el PDF','warn');}
+  var appEls=['#top-bar','#bottom-bar','#pdf-viewer-hdr','#sidebar'];
+  var saved=[];
+  appEls.forEach(function(sel){var el=document.querySelector(sel);if(el){saved.push([el,el.style.display]);el.style.display='none';}});
+  setTimeout(function(){
+    window.print();
+    setTimeout(function(){saved.forEach(function(p){p[0].style.display=p[1];});},500);
+  },80);
 }
 function closePDFViewer(){
   var overlay=document.getElementById('pdf-viewer-overlay');
-  var frame=document.getElementById('pdf-viewer-frame');
+  var reportDiv=document.getElementById('pdf-report-div');
   overlay.classList.add('hidden');
   document.body.style.overflow='';
   _reportHTML='';
-  if(frame){frame.removeAttribute('srcdoc');frame.src='about:blank';}
-  if(_pdfBlobUrl){URL.revokeObjectURL(_pdfBlobUrl);_pdfBlobUrl=null;}
+  if(reportDiv)reportDiv.innerHTML='';
 }
 
 var _pendingPresupuestos=[];
@@ -5379,8 +5373,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.2.1";
-var APP_BUILD="02/06/26 01:00";
+var APP_DISPLAY_VERSION="5.2.2";
+var APP_BUILD="02/06/26 02:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
