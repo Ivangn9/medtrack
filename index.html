@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.29.102 -->
+<!-- v2026.05.29.103 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.05.29.102">
+<meta name="app-version" content="v2026.05.29.103">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3884,8 +3884,6 @@ function generateReport(){
     }).sort(function(a,b){return a.fecha>b.fecha?1:-1;});
     var partesActivas=eq.partes.filter(function(p){
       if(p.estado!=='roto'&&p.estado!=='pendiente')return false;
-      if(desde&&p.fechaRotura&&p.fechaRotura<desde)return false;
-      if(hasta&&p.fechaRotura&&p.fechaRotura>hasta)return false;
       return true;
     });
     var mejorasPend=eq.partes.filter(function(p){return p.estado==='mejora';});
@@ -3948,7 +3946,7 @@ function generateReport(){
     html+='<div class="page">';
     html+='<div class="logo-area">'+logoTag+'</div>';
     html+='<div class="informe-box">';
-    html+='<div class="informe-title">INFORME&nbsp; EQUIPOS&nbsp; CIMA&nbsp; &mdash;&nbsp;'+mesAnio.toUpperCase()+'</div>';
+    html+='<div class="informe-title">INFORME&nbsp; EQUIPOS&nbsp; CIMA&nbsp; Nº&nbsp;'+nroInforme+'&nbsp; &mdash;&nbsp;'+mesAnio.toUpperCase()+'</div>';
     html+='<div class="informe-row"><span class="informe-label">FECHA:</span><span class="informe-value">'+fechaCreacion+'</span></div>';
     html+='<div class="informe-row"><span class="informe-label">DE:</span><span class="informe-value">Lic. García Núñez Iván</span></div>';
     html+='<div class="informe-row"><span class="informe-label">PARA:</span><span class="informe-value">'+esc(paraInforme)+'</span></div>';
@@ -5242,8 +5240,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.0.5";
-var APP_BUILD="01/06/26 20:00";
+var APP_DISPLAY_VERSION="5.0.6";
+var APP_BUILD="01/06/26 21:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
