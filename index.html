@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.29.96 -->
+<!-- v2026.05.29.97 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>MedTrack — CIMA</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.05.29.96">
+<meta name="app-version" content="v2026.05.29.97">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1599,10 +1599,55 @@ function closePDFViewer(){
 
 var _pendingPresupuestos=[];
 var _pendingReportes=[];
+var _pendingParteImages=[];
+var _pendingRotImages=[];
 var _deletedParteFiles=[];
 var _pendingHistPresupuestos=[];
 var _pendingHistReportes=[];
 var _deletedHistFiles=[];
+var _deletedParteImages=[];
+function attachParteImage(){
+  var inp=document.createElement('input');inp.type='file';inp.accept='image/*';inp.multiple=true;
+  inp.onchange=function(){
+    Array.from(inp.files).forEach(function(file){
+      var reader=new FileReader();
+      reader.onload=function(e){
+        var obj={id:'IMG-'+Date.now()+'-'+Math.random().toString(36).slice(2,6),nombre:file.name,size:file.size,data:e.target.result};
+        _pendingParteImages.push(obj);_renderParteImages();
+      };reader.readAsDataURL(file);
+    });
+  };inp.click();
+}
+function removeParteImagePending(i){_pendingParteImages.splice(i,1);_renderParteImages();}
+function _renderParteImages(){
+  var el=document.getElementById('pt-img-list');if(!el)return;
+  el.innerHTML=_pendingParteImages.map(function(f,i){
+    return '<div style="display:inline-flex;align-items:center;gap:4px;background:rgba(0,0,0,.04);border-radius:8px;padding:4px 6px;margin:3px;">'+
+      '<img src="'+f.data+'" style="width:48px;height:48px;object-fit:cover;border-radius:6px;">'+
+      '<button onclick="removeParteImagePending('+i+')" style="background:none;border:none;color:var(--red);font-size:.8rem;cursor:pointer;padding:0 2px;">✕</button></div>';
+  }).join('');
+}
+function attachRotImage(){
+  var inp=document.createElement('input');inp.type='file';inp.accept='image/*';inp.multiple=true;
+  inp.onchange=function(){
+    Array.from(inp.files).forEach(function(file){
+      var reader=new FileReader();
+      reader.onload=function(e){
+        var obj={id:'IMG-'+Date.now()+'-'+Math.random().toString(36).slice(2,6),nombre:file.name,size:file.size,data:e.target.result};
+        _pendingRotImages.push(obj);_renderRotImages();
+      };reader.readAsDataURL(file);
+    });
+  };inp.click();
+}
+function removeRotImage(i){_pendingRotImages.splice(i,1);_renderRotImages();}
+function _renderRotImages(){
+  var el=document.getElementById('rot-img-list');if(!el)return;
+  el.innerHTML=_pendingRotImages.map(function(f,i){
+    return '<div style="display:inline-flex;align-items:center;gap:4px;background:rgba(0,0,0,.04);border-radius:8px;padding:4px 6px;margin:3px;">'+
+      '<img src="'+f.data+'" style="width:48px;height:48px;object-fit:cover;border-radius:6px;">'+
+      '<button onclick="removeRotImage('+i+')" style="background:none;border:none;color:var(--red);font-size:.8rem;cursor:pointer;padding:0 2px;">✕</button></div>';
+  }).join('');
+}
 function delHistFileDirect(eqId,hid,fileId){
   if(!confirm('¿Eliminar este PDF? Esta acción no se puede deshacer.'))return;
   dbDel(fileId);
@@ -1717,6 +1762,10 @@ function openModalParte(eqId,pt){
     '<div class="g2"><div class="ff"><div class="ff-label">Marca</div><input class="inp" id="pt-mk" value="'+esc(f.marca)+'"></div><div class="ff"><div class="ff-label">N° Serie</div><input class="inp" id="pt-sn" value="'+esc(f.nroSerie)+'"></div></div>'+
     '<div class="ff"><div class="ff-label">Notas</div><textarea class="inp" id="pt-nt" rows="2">'+esc(f.notas)+'</textarea></div>'+
     '<div class="ff"><div class="ff-label" style="margin-bottom:6px;">Archivos PDF</div>'+pdfSection('presupuesto','Presupuesto')+pdfSection('reporte','Reporte')+'</div>'+
+    '<div class="ff"><div class="ff-label" style="margin-bottom:6px;">📷 Imágenes</div>'+
+    ((f.imagenes&&f.imagenes.length)?'<div style="font-size:.7rem;color:var(--text3);margin-bottom:6px;">'+f.imagenes.length+' imagen(es) existente(s) — se mantienen al guardar</div>':'')+
+    '<div id="pt-img-list"></div>'+
+    '<button type="button" onclick="attachParteImage()" style="width:100%;padding:9px;border:1.5px dashed rgba(0,113,227,.35);border-radius:var(--r-md);background:rgba(0,113,227,.05);color:var(--accent);font-size:.78rem;font-weight:600;cursor:pointer;">📷 Adjuntar foto(s)</button></div>'+
     (!n&&f.estado!=="ok"&&f.estado!=="mejora"?'<button onclick="repararParte(\''+eqId+'\',\''+f.id+'\')" style="width:100%;padding:14px;margin-bottom:10px;border:none;border-radius:var(--r-md);background:var(--green);color:#fff;font-size:.95rem;font-weight:700;cursor:pointer;box-shadow:0 2px 10px rgba(52,199,89,.4);">✅ Marcar como Reparado</button>':'')+
     '<button class="btn-primary" style="width:100%;padding:14px;font-size:.92rem;" onclick="submitPt(\''+eqId+'\',\''+(f.id||"")+'\')">'+(n?"✅ Agregar":"💾 Guardar")+'</button>');
 }
@@ -1760,11 +1809,13 @@ function setPtEst(e){
   if(rf)rf.style.display=e==="mejora"?"none":"block";
   if(mf)mf.style.display=e==="mejora"?"block":"none";
 }
+function removeExistingParteImage(imgId){_deletedParteImages.push(imgId);var el=document.querySelector('[data-imgid="'+imgId+'"]');if(el&&el.parentElement)el.parentElement.remove();}
 function submitPt(eqId,ptId){
   var n=document.getElementById("pt-n").value.trim();if(!n)return alert("Nombre obligatorio");
   var archivosExist=[];
   var eq=eqs.find(function(e){return e.id===eqId;});
-  if(eq&&ptId){var px=eq.partes.find(function(p){return p.id===ptId;});if(px)archivosExist=(px.archivos||[]).filter(function(a){return _deletedParteFiles.indexOf(a.id)===-1;});}
+  var imgsExist=[];
+  if(eq&&ptId){var px=eq.partes.find(function(p){return p.id===ptId;});if(px){archivosExist=(px.archivos||[]).filter(function(a){return _deletedParteFiles.indexOf(a.id)===-1;});imgsExist=(px.imagenes||[]).filter(function(im){return _deletedParteImages.indexOf(im.id)===-1;});}}
   _deletedParteFiles.forEach(function(fid){dbDel(fid);});
   var newPresRefs=_pendingPresupuestos.map(function(f){return{id:f.id,nombre:f.nombre,size:f.size,tipo:'presupuesto'};});
   var newRepRefs=_pendingReportes.map(function(f){return{id:f.id,nombre:f.nombre,size:f.size,tipo:'reporte'};});
@@ -1773,8 +1824,12 @@ function submitPt(eqId,ptId){
   var esEl=document.getElementById("pt-es");var esMej=esEl&&esEl.value==="mejora";
   var presOkEl=document.getElementById("pt-pres-ok");var presFechaEl=document.getElementById("pt-pres-fecha");
   var compEl=document.getElementById("pt-comp");
-  saveParte(eqId,{id:ptId||"",nombre:n,descripcion:document.getElementById("pt-d").value,estado:esEl?esEl.value:"roto",componenteRM:compEl?compEl.value:"",fechaRotura:esMej?"":document.getElementById("pt-fr").value,fechaArreglo:esMej?"":document.getElementById("pt-fa").value,canalReclamo:esMej?"":(document.getElementById("pt-canal")||{value:""}).value||"",tecnicoReparacion:esMej?"":(document.getElementById("pt-tec")||{value:""}).value||"",asignadoA:esMej?(document.getElementById("pt-asig")||{}).value||"":"",fechaMejora:esMej?(document.getElementById("pt-fmej")||{}).value||"":"",marca:document.getElementById("pt-mk").value,nroSerie:document.getElementById("pt-sn").value,notas:document.getElementById("pt-nt").value,precio:esMej?"":(document.getElementById("pt-pc")||{}).value||"",presupuestoAprobado:esMej?false:!!(presOkEl&&presOkEl.checked),fechaAprobacion:esMej?"":(presFechaEl&&presOkEl&&presOkEl.checked?presFechaEl.value:""),archivos:archivosExist.concat(newPresRefs).concat(newRepRefs)});
+  saveParte(eqId,{id:ptId||"",nombre:n,descripcion:document.getElementById("pt-d").value,estado:esEl?esEl.value:"roto",componenteRM:compEl?compEl.value:"",fechaRotura:esMej?"":document.getElementById("pt-fr").value,fechaArreglo:esMej?"":document.getElementById("pt-fa").value,canalReclamo:esMej?"":(document.getElementById("pt-canal")||{value:""}).value||"",tecnicoReparacion:esMej?"":(document.getElementById("pt-tec")||{value:""}).value||"",asignadoA:esMej?(document.getElementById("pt-asig")||{}).value||"":"",fechaMejora:esMej?(document.getElementById("pt-fmej")||{}).value||"":"",marca:document.getElementById("pt-mk").value,nroSerie:document.getElementById("pt-sn").value,notas:document.getElementById("pt-nt").value,precio:esMej?"":(document.getElementById("pt-pc")||{}).value||"",presupuestoAprobado:esMej?false:!!(presOkEl&&presOkEl.checked),fechaAprobacion:esMej?"":(presFechaEl&&presOkEl&&presOkEl.checked?presFechaEl.value:""),archivos:archivosExist.concat(newPresRefs).concat(newRepRefs),imagenes:imgsExist.concat(newImgRefs)});
+  var newImgRefs=_pendingParteImages.map(function(f){return{id:f.id,nombre:f.nombre};});
+  _pendingParteImages.forEach(function(f){dbSave(f.id,f.nombre,f.data);});
+  _deletedParteImages.forEach(function(id){dbDel(id);});
   _pendingPresupuestos=[];_pendingReportes=[];_deletedParteFiles=[];
+  _pendingParteImages=[];_deletedParteImages=[];
 }
 function openModalMant(eqId){
   var eq=eqs.find(function(e){return e.id===eqId;});var ci=catById(eq.cat);var td=today();var px=calcP(td,eq.frecuencia);
@@ -3526,7 +3581,7 @@ function importBackup(ev){
   };
   r.readAsText(f);ev.target.value="";
 }
-var _reportCSS='*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,Helvetica,sans-serif;font-size:11pt;color:#1c1c1e;background:#d0d4db;print-color-adjust:exact;-webkit-print-color-adjust:exact}.nav-bar{position:sticky;top:0;z-index:99;background:rgba(255,255,255,.97);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-bottom:1px solid #dde3ec;padding:10px 20px;display:flex;align-items:center;gap:10px}.btn-print{background:#1a3a6b;color:#fff;border:none;border-radius:6px;padding:9px 22px;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.02em}.page{background:#fff;width:21cm;min-height:29.7cm;margin:18px auto;padding:2cm 2.4cm 2.2cm;box-shadow:0 6px 32px rgba(0,0,0,.22)}.logo-area{display:flex;align-items:center;justify-content:center;gap:20px;margin-bottom:30px;padding-bottom:22px;border-bottom:2px solid #e8edf4}.cima-wordmark{line-height:1}.cima-title{font-size:52pt;font-weight:900;color:#1a3a6b;letter-spacing:-2px;line-height:1;font-family:Arial,Helvetica,sans-serif}.cima-reg{font-size:18pt;vertical-align:super;color:#1a3a6b}.cima-sub{font-size:8.5pt;color:#1a3a6b;letter-spacing:5px;font-weight:400;text-transform:uppercase;margin-top:2px}.informe-box{border:1.5px solid #1a3a6b;padding:18px 26px 20px;margin-bottom:26px}.informe-title{text-align:center;font-size:13.5pt;font-weight:700;text-decoration:underline;letter-spacing:1px;margin-bottom:16px;font-family:Arial,sans-serif}.informe-row{display:flex;gap:0;margin-bottom:7px;font-size:11pt;font-family:Arial,sans-serif;line-height:1.4}.informe-label{font-weight:700;min-width:90px;flex-shrink:0}.informe-value{font-weight:700}.section{margin-bottom:22px;page-break-inside:avoid}.section-title{font-size:11pt;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#1a3a6b;border-bottom:2px solid #1a3a6b;padding-bottom:5px;margin-bottom:12px}.eq-block{margin-bottom:18px;page-break-inside:avoid}.eq-title{font-size:11pt;font-weight:700;color:#1c1c1e;margin:14px 0 7px;border-left:4px solid #1a3a6b;padding:5px 10px;background:#f4f7fc}.narrative p{margin-bottom:7px;line-height:1.6;text-align:justify;font-size:10.5pt;color:#1c1c1e}.narrative p:last-child{margin-bottom:0}.sub-label{font-size:9pt;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#1a3a6b;margin:10px 0 4px}hr.sep{border:none;border-top:1px solid #d8dfe8;margin:16px 0}table.sum{width:100%;border-collapse:collapse;margin:8px 0 4px;font-size:10pt}table.sum th{background:#1a3a6b;color:#fff;padding:7px 12px;text-align:left;font-size:9pt;text-transform:uppercase;letter-spacing:.04em}table.sum td{padding:6px 12px;border-bottom:1px solid #e8edf4;vertical-align:top}table.sum tr:nth-child(even) td{background:#f8fafd}.sok{color:#16a34a;font-weight:700}.swarn{color:#d97706;font-weight:700}.sbad{color:#dc2626;font-weight:700}.footer{margin-top:32px;padding-top:14px;border-top:2px solid #1a3a6b;display:flex;justify-content:space-between;align-items:flex-end;font-size:9pt;color:#64748b}.sig-block{text-align:center;min-width:220px}.sig-line{border-top:1px solid #333;padding-top:5px;margin-top:36px;font-size:9.5pt;font-weight:700;color:#1c1c1e}.sig-title{font-size:8.5pt;color:#555;margin-top:2px}@media print{.nav-bar{display:none!important}.page{margin:0;padding:2cm 2.4cm;box-shadow:none;width:100%}body{background:#fff}}';
+var _reportCSS='*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,Helvetica,sans-serif;font-size:11pt;color:#1c1c1e;background:#d0d4db;print-color-adjust:exact;-webkit-print-color-adjust:exact}.nav-bar{position:sticky;top:0;z-index:99;background:rgba(255,255,255,.97);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-bottom:1px solid #dde3ec;padding:10px 20px;display:flex;align-items:center;gap:10px}.btn-print{background:#1a3a6b;color:#fff;border:none;border-radius:6px;padding:9px 22px;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.02em}.page{background:#fff;width:21cm;min-height:29.7cm;margin:18px auto;padding:2cm 2.4cm 2.2cm;box-shadow:0 6px 32px rgba(0,0,0,.22)}.logo-area{display:flex;align-items:center;justify-content:center;gap:20px;margin-bottom:30px;padding-bottom:22px;border-bottom:2px solid #e8edf4}.cima-wordmark{line-height:1}.cima-title{font-size:52pt;font-weight:900;color:#1a3a6b;letter-spacing:-2px;line-height:1;font-family:Arial,Helvetica,sans-serif}.cima-reg{font-size:18pt;vertical-align:super;color:#1a3a6b}.cima-sub{font-size:8.5pt;color:#1a3a6b;letter-spacing:5px;font-weight:400;text-transform:uppercase;margin-top:2px}.informe-box{border:1.5px solid #1a3a6b;padding:18px 26px 20px;margin-bottom:26px}.informe-title{text-align:center;font-size:13.5pt;font-weight:700;text-decoration:underline;letter-spacing:1px;margin-bottom:16px;font-family:Arial,sans-serif}.informe-row{display:flex;gap:0;margin-bottom:7px;font-size:11pt;font-family:Arial,sans-serif;line-height:1.4}.informe-label{font-weight:700;min-width:90px;flex-shrink:0}.informe-value{font-weight:700}.section{margin-bottom:22px;page-break-inside:avoid}.section-title{font-size:11pt;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#1a3a6b;border-bottom:2px solid #1a3a6b;padding-bottom:5px;margin-bottom:12px}.eq-block{margin-bottom:18px;page-break-inside:avoid}.eq-title{font-size:11pt;font-weight:700;color:#1c1c1e;margin:14px 0 7px;border-left:4px solid #1a3a6b;padding:5px 10px;background:#f4f7fc}.narrative p{margin-bottom:7px;line-height:1.6;text-align:justify;font-size:10.5pt;color:#1c1c1e}.narrative p:last-child{margin-bottom:0}.sub-label{font-size:9pt;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#1a3a6b;margin:10px 0 4px}hr.sep{border:none;border-top:1px solid #d8dfe8;margin:16px 0}table.sum{width:100%;border-collapse:collapse;margin:8px 0 4px;font-size:10pt}table.sum th{background:#1a3a6b;color:#fff;padding:7px 12px;text-align:left;font-size:9pt;text-transform:uppercase;letter-spacing:.04em}table.sum td{padding:6px 12px;border-bottom:1px solid #e8edf4;vertical-align:top}table.sum tr:nth-child(even) td{background:#f8fafd}.sok{color:#16a34a;font-weight:700}.swarn{color:#d97706;font-weight:700}.sbad{color:#dc2626;font-weight:700}.footer{margin-top:32px;padding-top:14px;border-top:2px solid #1a3a6b;display:flex;justify-content:space-between;align-items:flex-end;font-size:9pt;color:#64748b}.sig-block{text-align:center;min-width:220px}.sig-line{border-top:1px solid #333;padding-top:5px;margin-top:36px;font-size:9.5pt;font-weight:700;color:#1c1c1e}.sig-title{font-size:8.5pt;color:#555;margin-top:2px}.fault-imgs{margin-top:10px;padding-top:8px;border-top:1px solid #e8edf4}@media print{.nav-bar{display:none!important}.page{margin:0;padding:2cm 2.4cm;box-shadow:none;width:100%}body{background:#fff}}';
 
 function exportAllPDF(){
   var rows="";eqs.forEach(function(eq){var ci=catById(eq.cat);var rot=0;eq.partes.forEach(function(p){if(p.estado==="roto")rot++;});
@@ -3590,6 +3645,8 @@ function openReportPanel(){
   locs=locs.filter(function(v,i,a){return a.indexOf(v)===i;}).sort();
   var tipoOpts=[{v:'todo',l:'Todo',icon:'📋'},{v:'mant',l:'Mantenimientos',icon:'🔩'},{v:'rep',l:'Reparaciones',icon:'🔧'},{v:'mejora',l:'Mejoras',icon:'✨'},{v:'activas',l:'Partes Activas',icon:'🔴'}];
   var tipoPills=tipoOpts.map(function(t){var a=t.v==='todo';return'<button type="button" data-rep-tipo="'+t.v+'" onclick="setRepTipo(\''+t.v+'\')" style="display:flex;align-items:center;gap:5px;padding:9px 14px;border-radius:var(--r-pill);font-size:.73rem;font-weight:600;border:1.5px solid '+(a?'rgba(0,113,227,.40)':'rgba(255,255,255,.65)')+';cursor:pointer;white-space:nowrap;transition:all .18s;background:'+(a?'rgba(0,113,227,.14)':'rgba(255,255,255,.32)')+';color:'+(a?'var(--accent)':'var(--text2)')+(a?';box-shadow:0 0 0 1px rgba(0,113,227,.18),inset 0 1.5px 0 rgba(255,255,255,.8)':';box-shadow:inset 0 1.5px 0 rgba(255,255,255,.8)')+';-webkit-backdrop-filter:saturate(280%) blur(16px);backdrop-filter:saturate(280%) blur(16px);">'+t.icon+' '+t.l+'</button>';}).join('');
+  var usedCats=CATS.filter(function(c){return eqs.some(function(e){return e.cat===c.id;});});
+  var catPills=usedCats.map(function(c){return'<button type="button" data-rep-cat-pill="'+esc(c.id)+'" onclick="toggleRepCat(\''+c.id+'\')" style="padding:8px 14px;border-radius:var(--r-pill);font-size:.73rem;font-weight:600;border:1.5px solid rgba(0,113,227,.35);background:rgba(0,113,227,.12);color:var(--accent);cursor:pointer;transition:all .18s;box-shadow:inset 0 1.5px 0 rgba(255,255,255,.8);">'+esc(c.label)+'</button>';}).join('');
   var locPills=locs.map(function(l){return'<button type="button" data-rep-loc-pill="'+esc(l)+'" onclick="toggleRepLoc(\''+l.replace(/'/g,"\\'")+'\')" style="padding:8px 16px;border-radius:var(--r-pill);font-size:.73rem;font-weight:600;border:1.5px solid rgba(0,113,227,.35);background:rgba(0,113,227,.12);color:var(--accent);cursor:pointer;transition:all .18s;box-shadow:inset 0 1.5px 0 rgba(255,255,255,.8);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);">📍 '+esc(l)+'</button>';}).join('');
   var eqList=eqs.map(function(e){var ci=catById(e.cat);return'<label style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--r-md);cursor:pointer;transition:background .15s;background:rgba(255,255,255,.0);" class="rep-eq-row" data-eq-loc="'+esc(e.ubicacion||'')+'">'+
     '<input type="checkbox" checked class="rep-eq-chk" value="'+e.id+'" style="accent-color:var(--accent);width:18px;height:18px;flex-shrink:0;border-radius:6px;">'+
@@ -3642,6 +3699,9 @@ function openReportPanel(){
     /* Centros */
     (locs.length?'<div style="'+secStyle+'">'+iconPin+' Sucursales / Centros</div>'+
     '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px;">'+locPills+'</div>':'')+
+    /* Categorías */
+    '<div style="'+secStyle+'">'+iconGrid+' Categorías <div style="display:flex;gap:2px;margin-left:auto;"><button type="button" onclick="toggleAllRepCat(true)" style="font-size:.68rem;color:var(--accent);background:rgba(0,113,227,.08);border:1px solid rgba(0,113,227,.18);border-radius:20px;cursor:pointer;font-weight:700;padding:3px 10px;">Todas</button><button type="button" onclick="toggleAllRepCat(false)" style="font-size:.68rem;color:var(--text3);background:rgba(120,120,128,.06);border:1px solid rgba(120,120,128,.15);border-radius:20px;cursor:pointer;font-weight:600;padding:3px 10px;">Ninguna</button></div></div>'+
+    '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px;">'+catPills+'</div>'+
     /* Equipos */
     '<div style="'+secStyle+'margin-top:14px;">'+iconGrid+' Equipos'+
       '<div style="display:flex;gap:2px;margin-left:auto;">'+
@@ -3659,6 +3719,27 @@ function openReportPanel(){
 }
 function setRepTipo(v){document.getElementById('rep-tipo').value=v;document.querySelectorAll('[data-rep-tipo]').forEach(function(b){var a=b.dataset.repTipo===v;b.style.background=a?'rgba(0,113,227,.18)':'rgba(120,120,128,.08)';b.style.color=a?'var(--accent)':'var(--text3)';b.style.boxShadow=a?'0 0 0 2px rgba(0,113,227,.3)':'none';});}
 function toggleAllRepEq(checked){document.querySelectorAll('.rep-eq-chk').forEach(function(c){c.checked=checked;});}
+function toggleRepCat(catId){
+  var rows=document.querySelectorAll('.rep-eq-row');
+  var catRows=[].filter.call(rows,function(r){
+    var chk=r.querySelector('.rep-eq-chk');if(!chk)return false;
+    var eq=eqs.find(function(e){return e.id===chk.value;});
+    return eq&&eq.cat===catId;
+  });
+  if(!catRows.length)return;
+  var allChk=catRows.every(function(r){return r.querySelector('.rep-eq-chk').checked;});
+  var nv=!allChk;
+  catRows.forEach(function(r){r.querySelector('.rep-eq-chk').checked=nv;});
+  var pill=document.querySelector('[data-rep-cat-pill="'+catId+'"]');
+  if(pill){pill.style.background=nv?'rgba(0,113,227,.22)':'rgba(0,113,227,.06)';pill.style.borderColor=nv?'rgba(0,113,227,.6)':'rgba(0,113,227,.2)';}
+}
+function toggleAllRepCat(checked){
+  CATS.forEach(function(c){
+    var pill=document.querySelector('[data-rep-cat-pill="'+c.id+'"]');
+    if(pill){pill.style.background=checked?'rgba(0,113,227,.22)':'rgba(0,113,227,.06)';pill.style.borderColor=checked?'rgba(0,113,227,.6)':'rgba(0,113,227,.2)';}
+  });
+  document.querySelectorAll('.rep-eq-chk').forEach(function(c){c.checked=checked;});
+}
 function toggleRepLoc(loc){
   var rows=document.querySelectorAll('.rep-eq-row');
   var locRows=[].filter.call(rows,function(r){return r.dataset.eqLoc===loc;});
@@ -3674,13 +3755,17 @@ function _narrativeEq(eq,mantHist,repHist,mejHist,actToShow,mejPendToShow){
   var intro='El equipo <strong>'+esc(eq.nombre)+'</strong>';
   if(eq.ubicacion)intro+=', ubicado en <strong>'+esc(eq.ubicacion)+'</strong>';
   if(eq.serie)intro+=' (SID: '+esc(eq.serie)+')';
-  intro+='.';ps.push(intro);
+  var ms=semafo(eq);
+  var estLbls={operativo:'en condiciones operativas normales','con-rotura':'operativo con fallas activas','advertencia':'bajo advertencia de mantenimiento','fuera-de-servicio':'fuera de servicio'};
+  intro+='. Al momento de la emisión del informe el equipo se encuentra <strong>'+(estLbls[eq.estado]||eq.estado)+'</strong>.';
+  ps.push(intro);
+  if(eq.notas)ps.push('Observaciones generales del equipo: '+esc(eq.notas)+'.');
   mantHist.forEach(function(h){
     var t='Se realizó mantenimiento preventivo el <strong>'+fD(h.fecha)+'</strong>';
-    if(h.tecnico)t+=', a cargo del Ing. <strong>'+esc(h.tecnico)+'</strong>';
-    if(h.notas)t+='. '+esc(h.notas);
-    else t+='. El equipo fue verificado y se encuentra en condiciones normales de operación.';
-    ps.push(t);
+    if(h.tecnico)t+=', ejecutado por el Ing. <strong>'+esc(h.tecnico)+'</strong>';
+    if(h.notas)t+='. Tareas realizadas: '+esc(h.notas);
+    else t+='. El equipo fue inspeccionado y verificado en condiciones normales de operación';
+    t+='.';ps.push(t);
   });
   repHist.forEach(function(h){
     var t='';
@@ -3689,35 +3774,70 @@ function _narrativeEq(eq,mantHist,repHist,mejHist,actToShow,mejPendToShow){
     if(h.fechaRotura)t+='. La avería fue detectada el <strong>'+fD(h.fechaRotura)+'</strong>';
     if(h.fecha)t+=' y la reparación se completó el <strong>'+fD(h.fecha)+'</strong>';
     if(h.tecnico)t+=', ejecutada por el Ing. <strong>'+esc(h.tecnico)+'</strong>';
-    if(h.precio)t+='. El costo ascendió a <strong>$'+esc(h.precio)+'</strong>';
+    if(h.canalReclamo)t+='. Reclamo gestionado por: <strong>'+canalLabel(h.canalReclamo)+'</strong>';
+    if(h.presupuestoAprobado)t+='. Presupuesto <strong class="sok">aprobado por gerencia</strong>'+(h.fechaAprobacion?' el '+fD(h.fechaAprobacion):'');
+    else if(h.precio)t+='. Presupuesto <strong class="swarn">pendiente de aprobación</strong> por un valor estimado de <strong>$'+esc(h.precio)+'</strong>';
+    if(h.precio&&h.presupuestoAprobado)t+='. Costo final de la intervención: <strong>$'+esc(h.precio)+'</strong>';
     if(h.notas)t+='. Observaciones: '+esc(h.notas);
-    else t+='. El equipo fue restituido a su condición operativa.';
-    ps.push(t);
+    else t+='. El equipo fue restituido a su condición operativa';
+    t+='.';ps.push(t);
   });
   mejHist.forEach(function(h){
     var t='Se completó la mejora: <strong>'+esc(h.nombre||'sin descripción')+'</strong>';
-    if(h.fecha)t+=' ('+fD(h.fecha)+')';
+    if(h.descripcion)t+=' ('+esc(h.descripcion)+')';
+    if(h.fecha)t+=' el '+fD(h.fecha);
     if(h.asignadoA||h.tecnico)t+=', a cargo de <strong>'+esc(h.asignadoA||h.tecnico)+'</strong>';
     if(h.notas)t+='. '+esc(h.notas);
-    ps.push(t);
+    t+='.';ps.push(t);
   });
   actToShow.forEach(function(p){
-    var t='Se reporta falla activa en <strong>'+esc(p.nombre)+'</strong>';
-    if(p.fechaRotura)t+=' detectada el <strong>'+fD(p.fechaRotura)+'</strong>';
+    var t='Se reporta falla activa: <strong>'+esc(p.nombre)+'</strong>';
+    if(p.descripcion)t+=' — '+esc(p.descripcion);
+    if(p.fechaRotura)t+=', detectada el <strong>'+fD(p.fechaRotura)+'</strong>';
     t+='. Estado actual: '+(p.estado==='roto'?'<strong class="sbad">Roto — requiere intervención</strong>':'<strong class="swarn">Pendiente de resolución</strong>');
-    if(p.presupuestoAprobado)t+='. Presupuesto <strong class="sok">aprobado</strong>'+(p.fechaAprobacion?' el '+fD(p.fechaAprobacion):'');
-    else if(p.precio)t+='. Presupuesto en espera de aprobación (estimado: $'+esc(p.precio)+')';
+    if(p.canalReclamo)t+='. Reclamo comunicado a través de: <strong>'+canalLabel(p.canalReclamo)+'</strong>';
+    if(p.presupuestoAprobado)t+='. El presupuesto fue <strong class="sok">aprobado por gerencia</strong>'+(p.fechaAprobacion?' el '+fD(p.fechaAprobacion):'');
+    else if(p.precio)t+='. Se presentó presupuesto a gerencia por <strong>$'+esc(p.precio)+'</strong>, pendiente de aprobación';
+    else t+='. Presupuesto pendiente de cotización y aprobación';
     if(p.notas)t+='. '+esc(p.notas);
-    ps.push(t);
+    t+='.';ps.push(t);
   });
   mejPendToShow.forEach(function(p){
     var t='Mejora pendiente de ejecución: <strong>'+esc(p.nombre)+'</strong>';
     if(p.descripcion)t+=' — '+esc(p.descripcion);
-    if(p.asignadoA)t+=', asignada a '+esc(p.asignadoA);
-    if(p.fechaMejora)t+=', con fecha programada al '+fD(p.fechaMejora);
-    ps.push(t);
+    if(p.asignadoA)t+=', asignada a <strong>'+esc(p.asignadoA)+'</strong>';
+    if(p.fechaMejora)t+=', programada para el '+fD(p.fechaMejora);
+    if(p.notas)t+='. '+esc(p.notas);
+    t+='.';ps.push(t);
   });
   return ps;
+}
+
+function _loadForReport(imageIds, cb){
+  // Load logo.png as base64, then load all images from IndexedDB
+  var logoB64=null;var imgsMap={};
+  function finish(){cb(logoB64,imgsMap);}
+  var pending=1+imageIds.length;
+  function done(){pending--;if(pending<=0)finish();}
+  // Load logo
+  var xhr=new XMLHttpRequest();
+  xhr.open('GET','logo.png',true);xhr.responseType='blob';
+  xhr.onload=function(){
+    if(xhr.status===200){
+      var reader=new FileReader();
+      reader.onload=function(e){logoB64=e.target.result;done();};
+      reader.readAsDataURL(xhr.response);
+    }else{done();}
+  };xhr.onerror=function(){done();};
+  xhr.send();
+  // Load images from IndexedDB
+  if(!imageIds.length)return;
+  imageIds.forEach(function(id){
+    dbGet(id,function(rec){
+      if(rec)imgsMap[id]=rec.data;
+      done();
+    });
+  });
 }
 function generateReport(){
   var tipo=document.getElementById('rep-tipo').value;
@@ -3737,8 +3857,8 @@ function generateReport(){
   var inclMejHist=tipo==='todo'||tipo==='mejora';
   var inclActivas=tipo==='todo'||tipo==='activas'||tipo==='rep';
   var inclMejPend=tipo==='todo'||tipo==='mejora';
-  var eqSections='';
-  var sumRows='';
+  // Collect data per equipment
+  var eqData=[];
   filtEqs.forEach(function(eq){
     var ci=catById(eq.cat);
     var hist=(eq.historialMant||[]).filter(function(h){
@@ -3762,53 +3882,73 @@ function generateReport(){
     if(!hasEq)return;
     hasData=true;
     tm+=mantH.length;tr+=repH.length;tmej+=mejH.length;tact+=actH.length;
-    var estCol=eq.estado==='fuera-de-servicio'?'#dc2626':eq.estado==='operativo'?'#16a34a':'#d97706';
-    var estLbl=estLabel(eq.estado);
-    var paras=_narrativeEq(eq,mantH,repH,mejH,actH,mejP);
-    var parasHtml=paras.map(function(p){return'<p>'+p+'</p>';}).join('');
-    eqSections+='<div class="eq-block">';
-    eqSections+='<div class="eq-title">'+esc(eq.nombre);
-    eqSections+='<span style="font-size:9pt;font-weight:500;color:#64748b;margin-left:10px;">'+ci.label+(eq.ubicacion?' — '+esc(eq.ubicacion):'')+'</span></div>';
-    eqSections+='<div class="narrative">'+parasHtml+'</div></div>';
-    var estClass=eq.estado==='fuera-de-servicio'?'sbad':eq.estado==='operativo'?'sok':'swarn';
-    sumRows+='<tr><td><strong>'+esc(eq.nombre)+'</strong></td><td>'+ci.label+'</td><td>'+(eq.ubicacion?esc(eq.ubicacion):'—')+'</td><td><span class="'+estClass+'">'+estLbl+'</span></td><td>'+mantH.length+'</td><td>'+repH.length+'</td><td>'+actH.length+'</td></tr>';
+    eqData.push({eq:eq,ci:ci,mantH:mantH,repH:repH,mejH:mejH,actH:actH,mejP:mejP});
   });
   if(!hasData){alert('Sin datos con los filtros seleccionados');return;}
-  var periodoLabel=(desde||hasta)?((desde?fD(desde):'inicio')+' al '+(hasta?fD(hasta):'presente')):'Período general';
-  var nowDate=new Date();
-  var fechaCreacion=nowDate.toLocaleDateString('es-AR',{day:'2-digit',month:'long',year:'numeric'});
-  var introText='El presente informe técnico tiene por objeto detallar las actividades de mantenimiento preventivo y correctivo, reparaciones, mejoras y estado general del equipamiento biomédico de <strong>CIMA Investigaciones Avanzadas</strong> correspondientes al período <strong>'+periodoLabel+'</strong>. La información incluida refleja los registros del sistema MedTrack al momento de la emisión del documento.';
-  var resumenText='Durante el período informado se registraron: <strong>'+tm+' mantenimiento'+(tm!==1?'s':'')+' preventivo'+(tm!==1?'s':'')+' </strong>'+(tr?', <strong>'+tr+' reparación'+(tr!==1?'es':'')+' completada'+(tr!==1?'s':'')+'</strong>':'')+(tmej?', <strong>'+tmej+' mejora'+(tmej!==1?'s':'')+' completada'+(tmej!==1?'s':'')+'</strong>':'')+(tact?'. Se reportan <strong class="sbad">'+tact+' falla'+(tact!==1?'s':'')+' activa'+(tact!==1?'s':'')+' pendiente'+(tact!==1?'s':'')+'</strong> de resolución.':'.');
-  var conclusionText='Se recomienda dar seguimiento oportuno a las fallas activas registradas con el fin de garantizar la continuidad operativa del servicio. '+(tm>0?'Los mantenimientos preventivos realizados contribuyen a la prolongación de la vida útil del equipamiento. ':'')+'Cualquier consulta adicional quedará a disposición del Comité Ejecutivo.';
-  var logoSvg='<svg width="88" height="88" viewBox="0 0 90 90" xmlns="http://www.w3.org/2000/svg"><path d="M 54 4 A 42 42 0 0 1 78 71 L 66 62 A 27 27 0 0 0 51 19 Z" fill="#1a3a6b"/><path d="M 72 77 A 42 42 0 0 1 13 18 L 24 28 A 27 27 0 0 0 62 66 Z" fill="#1a3a6b"/><path d="M 19 12 A 42 42 0 0 1 44 3 L 45 18 A 27 27 0 0 0 28 24 Z" fill="#8aacc8"/><circle cx="45" cy="45" r="20" fill="#5a8c8a"/></svg>';
-  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width"><title>CIMA — Informe Técnico Nº '+nroInforme+'</title><style>'+_reportCSS+'</style></head><body>';
-  html+='<div class="nav-bar"><button class="btn-print" onclick="window.print()">🖨 Imprimir / Guardar PDF</button><span style="font-size:11px;color:#64748b;margin-left:8px;">CIMA — Informe Técnico Nº '+nroInforme+'</span></div>';
-  html+='<div class="page">';
-  html+='<div class="logo-area">';
-  html+=logoSvg;
-  html+='<div class="cima-wordmark"><div class="cima-title">CIMA<span class="cima-reg">®</span></div><div class="cima-sub">Investigaciones Avanzadas</div></div>';
-  html+='</div>';
-  html+='<div class="informe-box">';
-  html+='<div class="informe-title">INFORME&nbsp; TECNICO&nbsp; N&ordm;&nbsp;'+nroInforme+'</div>';
-  html+='<div class="informe-row"><span class="informe-label">FECHA:</span><span class="informe-value">'+fechaCreacion+'</span></div>';
-  html+='<div class="informe-row"><span class="informe-label">DE:</span><span class="informe-value">Lic. García Núñez Iván</span></div>';
-  html+='<div class="informe-row"><span class="informe-label">PARA:</span><span class="informe-value">'+esc(paraInforme)+'</span></div>';
-  html+='<div class="informe-row" style="margin-top:10px;"><span class="informe-label">PERÍODO:</span><span class="informe-value">'+periodoLabel+'</span></div>';
-  html+='</div>';
-  html+='<div class="section"><div class="section-title">1. Objeto</div><div class="narrative"><p>'+introText+'</p></div></div>';
-  html+='<div class="section"><div class="section-title">2. Resumen ejecutivo</div><div class="narrative"><p>'+resumenText+'</p></div></div>';
-  html+='<div class="section"><div class="section-title">3. Detalle por equipo</div>'+eqSections+'</div>';
-  html+='<div class="section"><div class="section-title">4. Cuadro resumen</div>';
-  html+='<table class="sum"><thead><tr><th>Equipo</th><th>Categoría</th><th>Centro</th><th>Estado</th><th>Mant.</th><th>Reparaciones</th><th>Fallas activas</th></tr></thead><tbody>'+sumRows+'</tbody></table>';
-  html+='</div>';
-  html+='<div class="section"><div class="section-title">5. Conclusiones y recomendaciones</div><div class="narrative"><p>'+conclusionText+'</p></div></div>';
-  html+='<div class="footer">';
-  html+='<div style="font-size:8.5pt;">CIMA Investigaciones Avanzadas<br>Sistema MedTrack · Generado: '+new Date().toLocaleString("es-AR")+'</div>';
-  html+='<div class="sig-block"><div class="sig-line">Lic. García Núñez Iván</div><div class="sig-title">Responsable de Equipos Biomédicos</div></div>';
-  html+='</div>';
-  html+='</div>';
-  html+='</body></html>';
-  openHTMLViewer(html);
+  // Collect all image IDs needed
+  var allImgIds=[];
+  eqData.forEach(function(d){
+    d.actH.forEach(function(p){(p.imagenes||[]).forEach(function(im){if(allImgIds.indexOf(im.id)===-1)allImgIds.push(im.id);});});
+    d.repH.forEach(function(h){(h.imagenes||[]).forEach(function(im){if(allImgIds.indexOf(im.id)===-1)allImgIds.push(im.id);});});
+  });
+  // Load logo + images, then build HTML
+  _loadForReport(allImgIds,function(logoB64,imgsMap){
+    var eqSections='',sumRows='';
+    eqData.forEach(function(d){
+      var eq=d.eq;var ci=d.ci;
+      var paras=_narrativeEq(eq,d.mantH,d.repH,d.mejH,d.actH,d.mejP);
+      var parasHtml=paras.map(function(p){return'<p>'+p+'</p>';}).join('');
+      // Gather images for this equipment's faults
+      var faultImgs=[];
+      d.actH.forEach(function(p){(p.imagenes||[]).forEach(function(im){if(imgsMap[im.id])faultImgs.push({src:imgsMap[im.id],nombre:im.nombre,falla:p.nombre});});});
+      d.repH.forEach(function(h){(h.imagenes||[]).forEach(function(im){if(imgsMap[im.id])faultImgs.push({src:imgsMap[im.id],nombre:im.nombre,falla:h.nombre});});});
+      var imgsHtml='';
+      if(faultImgs.length){
+        imgsHtml='<div class="fault-imgs"><div class="sub-label">Imágenes registradas</div><div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;">';
+        faultImgs.forEach(function(im){
+          imgsHtml+='<figure style="margin:0;text-align:center;"><img src="'+im.src+'" style="max-width:220px;max-height:160px;object-fit:cover;border-radius:6px;border:1px solid #e2e8f0;display:block;"><figcaption style="font-size:8pt;color:#64748b;margin-top:3px;">'+esc(im.falla)+'</figcaption></figure>';
+        });
+        imgsHtml+='</div></div>';
+      }
+      eqSections+='<div class="eq-block">';
+      eqSections+='<div class="eq-title">'+esc(eq.nombre)+'<span style="font-size:9pt;font-weight:500;color:#64748b;margin-left:10px;">'+ci.label+(eq.ubicacion?' — '+esc(eq.ubicacion):'')+'</span></div>';
+      eqSections+='<div class="narrative">'+parasHtml+'</div>'+imgsHtml+'</div>';
+      var estClass=eq.estado==='fuera-de-servicio'?'sbad':eq.estado==='operativo'?'sok':'swarn';
+      sumRows+='<tr><td><strong>'+esc(eq.nombre)+'</strong></td><td>'+ci.label+'</td><td>'+(eq.ubicacion?esc(eq.ubicacion):'—')+'</td><td><span class="'+estClass+'">'+estLabel(eq.estado)+'</span></td><td>'+d.mantH.length+'</td><td>'+d.repH.length+'</td><td>'+d.actH.length+'</td></tr>';
+    });
+    var periodoLabel=(desde||hasta)?((desde?fD(desde):'inicio')+' al '+(hasta?fD(hasta):'presente')):'Período general';
+    var nowDate=new Date();
+    var fechaCreacion=nowDate.toLocaleDateString('es-AR',{day:'2-digit',month:'long',year:'numeric'});
+    var introText='El presente informe técnico tiene por objeto detallar las actividades de mantenimiento preventivo y correctivo, reparaciones, mejoras y estado general del equipamiento biomédico de <strong>CIMA Investigaciones Avanzadas</strong> correspondientes al período <strong>'+periodoLabel+'</strong>. La información incluida refleja los registros del sistema MedTrack al momento de la emisión del documento.';
+    var resumenText='Durante el período informado se registraron: <strong>'+tm+' mantenimiento'+(tm!==1?'s':'')+' preventivo'+(tm!==1?'s':'')+' </strong>'+(tr?', <strong>'+tr+' reparación'+(tr!==1?'es':'')+' completada'+(tr!==1?'s':'')+'</strong>':'')+(tmej?', <strong>'+tmej+' mejora'+(tmej!==1?'s':'')+' completada'+(tmej!==1?'s':'')+'</strong>':'')+(tact?'. Se reportan <strong class="sbad">'+tact+' falla'+(tact!==1?'s':'')+' activa'+(tact!==1?'s':'')+' pendiente'+(tact!==1?'s':'')+'</strong> de resolución.':'.');
+    var conclusionText='Se recomienda dar seguimiento oportuno a las fallas activas registradas con el fin de garantizar la continuidad operativa del servicio. '+(tm>0?'Los mantenimientos preventivos realizados contribuyen a la prolongación de la vida útil del equipamiento. ':'')+'Cualquier consulta adicional quedará a disposición del Comité Ejecutivo.';
+    var logoTag=logoB64?'<img src="'+logoB64+'" style="height:88px;width:auto;display:block;">':'<div style="font-size:11pt;font-weight:900;color:#1a3a6b;">CIMA</div>';
+    var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width"><title>CIMA — Informe Técnico Nº '+nroInforme+'</title><style>'+_reportCSS+'</style></head><body>';
+    html+='<div class="nav-bar"><button class="btn-print" onclick="window.print()">🖨 Imprimir / Guardar PDF</button><span style="font-size:11px;color:#64748b;margin-left:8px;">CIMA — Informe Técnico Nº '+nroInforme+'</span></div>';
+    html+='<div class="page">';
+    html+='<div class="logo-area">'+logoTag+'</div>';
+    html+='<div class="informe-box">';
+    html+='<div class="informe-title">INFORME&nbsp; TECNICO&nbsp; N&ordm;&nbsp;'+nroInforme+'</div>';
+    html+='<div class="informe-row"><span class="informe-label">FECHA:</span><span class="informe-value">'+fechaCreacion+'</span></div>';
+    html+='<div class="informe-row"><span class="informe-label">DE:</span><span class="informe-value">Lic. García Núñez Iván</span></div>';
+    html+='<div class="informe-row"><span class="informe-label">PARA:</span><span class="informe-value">'+esc(paraInforme)+'</span></div>';
+    html+='<div class="informe-row" style="margin-top:10px;"><span class="informe-label">PERÍODO:</span><span class="informe-value">'+periodoLabel+'</span></div>';
+    html+='</div>';
+    html+='<div class="section"><div class="section-title">1. Objeto</div><div class="narrative"><p>'+introText+'</p></div></div>';
+    html+='<div class="section"><div class="section-title">2. Resumen ejecutivo</div><div class="narrative"><p>'+resumenText+'</p></div></div>';
+    html+='<div class="section"><div class="section-title">3. Detalle por equipo</div>'+eqSections+'</div>';
+    html+='<div class="section"><div class="section-title">4. Cuadro resumen</div>';
+    html+='<table class="sum"><thead><tr><th>Equipo</th><th>Categoría</th><th>Centro</th><th>Estado</th><th>Mant.</th><th>Reparaciones</th><th>Fallas activas</th></tr></thead><tbody>'+sumRows+'</tbody></table>';
+    html+='</div>';
+    html+='<div class="section"><div class="section-title">5. Conclusiones y recomendaciones</div><div class="narrative"><p>'+conclusionText+'</p></div></div>';
+    html+='<div class="footer">';
+    html+='<div style="font-size:8.5pt;">CIMA Investigaciones Avanzadas<br>Sistema MedTrack · Generado: '+new Date().toLocaleString("es-AR")+'</div>';
+    html+='<div class="sig-block"><div class="sig-line">Lic. García Núñez Iván</div><div class="sig-title">Responsable de Equipos Biomédicos</div></div>';
+    html+='</div>';
+    html+='</div>';
+    html+='</body></html>';
+    openHTMLViewer(html);
+  });
 }
 
 // ─── ANTENAS SUBSYSTEM ─────────────────────────────────
@@ -4768,6 +4908,9 @@ function openMRotura(){
     '<div class="ff"><div class="ff-label">Posible fecha de visita técnica</div><input class="inp" type="date" id="rot-visita"></div>'+
     '<div class="ff"><div class="ff-label">Canal de Reclamo</div><div style="display:flex;gap:5px;flex-wrap:wrap;">'+canalBtnsHTML('rot-canal','')+'</div><input type="hidden" id="rot-canal" value=""></div>'+
     '<div class="ff"><div class="ff-label">Notas adicionales</div><textarea class="inp" id="rot-notas" rows="2" placeholder="Proveedor contactado, presupuesto, urgencia..."></textarea></div>'+
+    '<div class="ff"><div class="ff-label" style="margin-bottom:6px;">📷 Imágenes de la falla</div>'+
+    '<div id="rot-img-list" style="display:flex;flex-wrap:wrap;gap:0;"></div>'+
+    '<button type="button" onclick="attachRotImage()" style="width:100%;padding:9px;border:1.5px dashed rgba(255,59,48,.35);border-radius:var(--r-md);background:rgba(255,59,48,.05);color:var(--red);font-size:.78rem;font-weight:600;cursor:pointer;margin-top:6px;">📷 Adjuntar foto(s)</button></div>'+
     '<button style="width:100%;padding:14px;background:var(--red);color:#fff;border:none;border-radius:50px;font-weight:700;font-size:.9rem;cursor:pointer;box-shadow:0 2px 8px rgba(255,59,48,.3);" onclick="submitRotura()">🔴 Registrar Rotura</button>'
   );
 }
@@ -4794,6 +4937,9 @@ function submitRotura(){
   if(notas)notaFull+=(notaFull?"\n":"")+""+notas;
 
   // Create the parte object
+  var imgRefs=_pendingRotImages.map(function(f){return{id:f.id,nombre:f.nombre};});
+  _pendingRotImages.forEach(function(f){dbSave(f.id,f.nombre,f.data);});
+  _pendingRotImages=[];
   var parte={
     id:"PT-"+Date.now(),
     nombre:nombre,
@@ -4804,7 +4950,8 @@ function submitRotura(){
     canalReclamo:canal,
     marca:marca,
     nroSerie:serie,
-    notas:notaFull
+    notas:notaFull,
+    imagenes:imgRefs
   };
 
   // Add parte to the selected equipment
@@ -5073,8 +5220,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="4.9.9";
-var APP_BUILD="01/06/26 12:00";
+var APP_DISPLAY_VERSION="5.0.0";
+var APP_BUILD="01/06/26 14:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
