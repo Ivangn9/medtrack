@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.01.126 -->
+<!-- v2026.06.01.127 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.01.126">
+<meta name="app-version" content="v2026.06.01.127">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -4019,8 +4019,8 @@ function generateReport(){
   // Collect all image IDs needed
   var allImgIds=[];
   eqData.forEach(function(d){
-    d.actH.forEach(function(p){(p.imagenes||[]).forEach(function(im){if(allImgIds.indexOf(im.id)===-1)allImgIds.push(im.id);});});
-    d.repH.forEach(function(h){(h.imagenes||[]).forEach(function(im){if(allImgIds.indexOf(im.id)===-1)allImgIds.push(im.id);});});
+    d.actH.forEach(function(p){(p.imagenes||[]).forEach(function(im){if(im&&im.id&&allImgIds.indexOf(im.id)===-1)allImgIds.push(im.id);});});
+    d.repH.forEach(function(h){(h.imagenes||[]).forEach(function(im){if(im&&im.id&&allImgIds.indexOf(im.id)===-1)allImgIds.push(im.id);});});
   });
   // Get logo synchronously from already-loaded DOM image
   var _logoSync=null;
@@ -4044,8 +4044,8 @@ function generateReport(){
       var narrativeHtml=_narrativeEq(eq,d.mantH,d.repH,d.mejH,d.actH,d.mejP);
       // Gather images for this equipment's faults
       var faultImgs=[];
-      d.actH.forEach(function(p){(p.imagenes||[]).forEach(function(im){if(imgsMap[im.id])faultImgs.push({src:imgsMap[im.id],nombre:im.nombre,falla:p.nombre});});});
-      d.repH.forEach(function(h){(h.imagenes||[]).forEach(function(im){if(imgsMap[im.id])faultImgs.push({src:imgsMap[im.id],nombre:im.nombre,falla:h.nombre});});});
+      d.actH.forEach(function(p){(p.imagenes||[]).forEach(function(im){if(im&&im.id&&imgsMap[im.id])faultImgs.push({src:imgsMap[im.id],nombre:im.nombre,falla:p.nombre});});});
+      d.repH.forEach(function(h){(h.imagenes||[]).forEach(function(im){if(im&&im.id&&imgsMap[im.id])faultImgs.push({src:imgsMap[im.id],nombre:im.nombre,falla:h.nombre});});});
       var imgsHtml='';
       if(faultImgs.length){
         imgsHtml='<div class="fault-imgs"><div class="sub-label">Imágenes registradas</div><div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;">';
@@ -5387,8 +5387,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.2.6";
-var APP_BUILD="02/06/26 06:00";
+var APP_DISPLAY_VERSION="5.2.7";
+var APP_BUILD="02/06/26 07:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
