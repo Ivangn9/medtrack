@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.29.105 -->
+<!-- v2026.05.29.106 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.05.29.105">
+<meta name="app-version" content="v2026.05.29.106">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3831,22 +3831,45 @@ function _narrativeEq(eq,mantHist,repHist,mejHist,actToShow,mejPendToShow){
 }
 
 function _loadForReport(imageIds, cb){
-  // Load logo.png as base64, then load all images from IndexedDB
   var logoB64=null;var imgsMap={};
-  function finish(){cb(logoB64,imgsMap);}
+  var _finished=false;
+  function finish(){if(_finished)return;_finished=true;clearTimeout(_safetyTimer);cb(logoB64,imgsMap);}
   var pending=1+imageIds.length;
   function done(){pending--;if(pending<=0)finish();}
-  // Load logo
-  var xhr=new XMLHttpRequest();
-  xhr.open('GET','logo.png',true);xhr.responseType='blob';
-  xhr.onload=function(){
-    if(xhr.status===200){
-      var reader=new FileReader();
-      reader.onload=function(e){logoB64=e.target.result;done();};
-      reader.readAsDataURL(xhr.response);
-    }else{done();}
-  };xhr.onerror=function(){done();};
-  xhr.send();
+  // Safety net: always generate report within 5s even if logo/images fail to load
+  var _safetyTimer=setTimeout(function(){finish();},5000);
+  // Try to get logo from already-loaded <img> in the DOM first (avoids XHR issues on iOS PWA)
+  function _tryLogoFromDOM(){
+    try{
+      var imgs=document.querySelectorAll('img');
+      for(var i=0;i<imgs.length;i++){
+        if(imgs[i].src&&imgs[i].src.indexOf('logo.png')!==-1&&imgs[i].complete&&imgs[i].naturalWidth>0){
+          var canvas=document.createElement('canvas');
+          canvas.width=imgs[i].naturalWidth;canvas.height=imgs[i].naturalHeight;
+          canvas.getContext('2d').drawImage(imgs[i],0,0);
+          logoB64=canvas.toDataURL('image/png');
+          done();return;
+        }
+      }
+    }catch(e){}
+    return false;
+  }
+  if(!_tryLogoFromDOM()){
+    // Fallback: XHR
+    var xhr=new XMLHttpRequest();
+    xhr.open('GET','logo.png',true);xhr.responseType='blob';xhr.timeout=4000;
+    xhr.onload=function(){
+      if(xhr.status===200||xhr.status===0){
+        var reader=new FileReader();
+        reader.onload=function(e){logoB64=e.target.result;done();};
+        reader.onerror=function(){done();};
+        reader.readAsDataURL(xhr.response);
+      }else{done();}
+    };
+    xhr.onerror=function(){done();};
+    xhr.ontimeout=function(){done();};
+    xhr.send();
+  }
   // Load images from IndexedDB
   if(!imageIds.length)return;
   imageIds.forEach(function(id){
@@ -5241,8 +5264,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.0.8";
-var APP_BUILD="01/06/26 23:00";
+var APP_DISPLAY_VERSION="5.0.9";
+var APP_BUILD="02/06/26 09:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
