@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.01.124 -->
+<!-- v2026.06.01.125 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.01.124">
+<meta name="app-version" content="v2026.06.01.125">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1557,7 +1557,7 @@ function submitEq(eid){
 }
 // ── FILE STORE (IndexedDB) ──
 var _idb=null;
-function _openIDB(cb){if(_idb){cb(_idb);return;}var r=indexedDB.open('mt_files',1);r.onupgradeneeded=function(e){e.target.result.createObjectStore('files',{keyPath:'id'});};r.onsuccess=function(e){_idb=e.target.result;cb(_idb);};r.onerror=function(){cb(null);};}
+function _openIDB(cb){try{if(_idb){cb(_idb);return;}var r=indexedDB.open('mt_files',1);r.onupgradeneeded=function(e){try{e.target.result.createObjectStore('files',{keyPath:'id'});}catch(e2){}};r.onsuccess=function(e){_idb=e.target.result;cb(_idb);};r.onerror=function(){cb(null);};}catch(e){cb(null);}}
 function dbSave(id,nombre,data,cb){_openIDB(function(d){if(!d){cb&&cb(false);return;}var tx=d.transaction('files','readwrite');tx.objectStore('files').put({id:id,nombre:nombre,data:data});tx.oncomplete=function(){cb&&cb(true);};});}
 function dbGet(id,cb){_openIDB(function(d){if(!d){cb(null);return;}var r=d.transaction('files','readonly').objectStore('files').get(id);r.onsuccess=function(){cb(r.result||null);};r.onerror=function(){cb(null);};});}
 function dbDel(id){_openIDB(function(d){if(!d)return;d.transaction('files','readwrite').objectStore('files').delete(id);});}
@@ -3978,7 +3978,7 @@ function generateReport(){
   var inclMejPend=tipo==='todo'||tipo==='mejora';
   // Collect data per equipment — sumRows for ALL selected, eqData only for those with events
   var eqData=[],sumRows='';
-  filtEqs.forEach(function(eq){
+  try{filtEqs.forEach(function(eq){
     var ci=catById(eq.cat);
     var hist=(eq.historialMant||[]).filter(function(h){
       if(desde&&h.fecha<desde)return false;
@@ -4004,7 +4004,7 @@ function generateReport(){
     hasData=true;
     tm+=mantH.length;tr+=repH.length;tmej+=mejH.length;tact+=actH.length;
     eqData.push({eq:eq,ci:ci,mantH:mantH,repH:repH,mejH:mejH,actH:actH,mejP:mejP});
-  });
+  });}catch(_fe){showToast('Error procesando equipos: '+(_fe&&_fe.message?_fe.message:String(_fe)),'err');return;}
   // Always generate if equipment selected — no-activity periods still produce a status report
   try{localStorage.setItem('cima_nro_informe',String(nroInforme+1));localStorage.setItem('cima_rep_para',paraInforme);}catch(e){}
   // Collect all image IDs needed
@@ -5378,8 +5378,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.2.4";
-var APP_BUILD="02/06/26 04:00";
+var APP_DISPLAY_VERSION="5.2.5";
+var APP_BUILD="02/06/26 05:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
