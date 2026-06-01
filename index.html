@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.01.122 -->
+<!-- v2026.06.01.123 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.01.122">
+<meta name="app-version" content="v2026.06.01.123">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3965,6 +3965,7 @@ function generateReport(){
   var _chks=document.querySelectorAll('.rep-eq-chk:checked');
   for(var _ci=0;_ci<_chks.length;_ci++){selIds.push(_chks[_ci].value);}
   if(!selIds.length){showToast('Seleccioná al menos un equipo','warn');return;}
+  showToast('⏳ Generando reporte...');
   var filtEqs=eqs.filter(function(e){return selIds.indexOf(e.id)!==-1;});
   var tm=0,tr=0,tmej=0,tact=0,hasData=false;
   var inclMant=tipo==='todo'||tipo==='mant';
@@ -4002,8 +4003,7 @@ function generateReport(){
     eqData.push({eq:eq,ci:ci,mantH:mantH,repH:repH,mejH:mejH,actH:actH,mejP:mejP});
   });
   // Always generate if equipment selected — no-activity periods still produce a status report
-  localStorage.setItem('cima_nro_informe',String(nroInforme+1));
-  localStorage.setItem('cima_rep_para',paraInforme);
+  try{localStorage.setItem('cima_nro_informe',String(nroInforme+1));localStorage.setItem('cima_rep_para',paraInforme);}catch(e){}
   // Collect all image IDs needed
   var allImgIds=[];
   eqData.forEach(function(d){
@@ -4092,15 +4092,17 @@ function generateReport(){
     // Has fault images: load them from IndexedDB then build
     var _imgsMap={};
     var _pending=allImgIds.length;
+    var _built=false;
+    function _onceBuild(){if(_built)return;_built=true;_buildReport(_logoSync,_imgsMap);}
     allImgIds.forEach(function(id){
       dbGet(id,function(rec){
         if(rec)_imgsMap[id]=rec.data;
         _pending--;
-        if(_pending<=0)_buildReport(_logoSync,_imgsMap);
+        if(_pending<=0)_onceBuild();
       });
     });
-    // Safety: build after 4s even if IndexedDB stalls
-    setTimeout(function(){_buildReport(_logoSync,_imgsMap);},4000);
+    // Safety: build after 2s even if IndexedDB stalls
+    setTimeout(_onceBuild,2000);
   }
 }
 
@@ -5373,8 +5375,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.2.2";
-var APP_BUILD="02/06/26 02:00";
+var APP_DISPLAY_VERSION="5.2.3";
+var APP_BUILD="02/06/26 03:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
