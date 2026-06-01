@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.01.117 -->
+<!-- v2026.06.01.118 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.01.117">
+<meta name="app-version" content="v2026.06.01.118">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -626,7 +626,7 @@ body.dark .sb-card{background:rgba(255,255,255,.07);border-color:rgba(255,255,25
     <button onclick="printReport()" style="flex-shrink:0;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:7px 14px;font-size:.82rem;font-weight:600;cursor:pointer;">🖨 Imprimir</button>
   </div>
   <div id="pdf-viewer-body">
-    <div id="pdf-report-div"></div>
+    <iframe id="pdf-viewer-frame" style="width:100%;flex:1;border:none;min-height:0;" allowfullscreen></iframe>
   </div>
 </div>
 
@@ -1578,28 +1578,20 @@ function openPDFViewer(fileId,nombre){
   });
 }
 var _reportHTML='';
-var _reportShadow=null;
 function openHTMLViewer(htmlContent,title){
   var overlay=document.getElementById('pdf-viewer-overlay');
-  var reportDiv=document.getElementById('pdf-report-div');
+  var frame=document.getElementById('pdf-viewer-frame');
   var titleEl=document.getElementById('pdf-viewer-title');
+  if(!overlay||!frame){showToast('Error: visor no encontrado','err');return;}
   if(titleEl)titleEl.textContent=title||'Reporte';
   _reportHTML=htmlContent;
-  // Extract styles and body — strip the nav-bar (we have our own header)
-  var styleMatches=htmlContent.match(/<style[^>]*>[\s\S]*?<\/style>/gi)||[];
-  var styles=styleMatches.join('');
-  var bodyMatch=htmlContent.match(/<body[^>]*>([\s\S]*)<\/body>/i);
-  var bodyContent=bodyMatch?bodyMatch[1]:htmlContent;
-  // Remove the internal nav-bar from the injected body
-  bodyContent=bodyContent.replace(/<div class="nav-bar"[\s\S]*?<\/div>/,'');
-  // Use Shadow DOM so the report CSS is fully isolated from the app CSS
+  // Load via base64 data URL — works reliably in iOS WKWebView without document.write
   try{
-    if(!_reportShadow){_reportShadow=reportDiv.attachShadow({mode:'open'});}
-    _reportShadow.innerHTML=styles+bodyContent;
-    _reportShadow.scrollTop=0;
+    var b64=btoa(unescape(encodeURIComponent(htmlContent)));
+    frame.src='data:text/html;base64,'+b64;
   }catch(e){
-    // Fallback if shadow DOM unavailable
-    reportDiv.innerHTML=styles+bodyContent;
+    // Fallback: srcdoc
+    try{frame.srcdoc=htmlContent;}catch(e2){showToast('Error al cargar reporte','err');return;}
   }
   overlay.classList.remove('hidden');
   document.body.style.overflow='hidden';
@@ -1613,11 +1605,11 @@ function printReport(){
 }
 function closePDFViewer(){
   var overlay=document.getElementById('pdf-viewer-overlay');
-  var reportDiv=document.getElementById('pdf-report-div');
+  var frame=document.getElementById('pdf-viewer-frame');
   overlay.classList.add('hidden');
   document.body.style.overflow='';
   _reportHTML='';
-  if(reportDiv)reportDiv.innerHTML='';
+  if(frame)frame.src='about:blank';
 }
 
 var _pendingPresupuestos=[];
@@ -3959,6 +3951,7 @@ function generateReportDirect(){
   }catch(err){showToast('Error: '+(err&&err.message?err.message:String(err)),'warn');}
 }
 function generateReport(){
+  showToast('Procesando reporte…','');
   try{
   var _rTipo=document.getElementById('rep-tipo');
   var _rDesde=document.getElementById('rep-desde');
@@ -5384,8 +5377,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.1.7";
-var APP_BUILD="01/06/26 21:00";
+var APP_DISPLAY_VERSION="5.1.8";
+var APP_BUILD="01/06/26 22:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
@@ -5902,49 +5895,48 @@ function sbCalTap(ds){
 }
 function rReporte(){
   var tipoOpts=[{v:'todo',l:'Todo'},{v:'mant',l:'Mantenimientos'},{v:'rep',l:'Reparaciones'},{v:'mejora',l:'Mejoras'},{v:'activas',l:'Fallas activas'}];
-  var tipoPills=tipoOpts.map(function(t){var a=t.v==='todo';return'<button type="button" data-rep-tipo="'+t.v+'" onclick="setRepTipo(\''+t.v+'\')" style="padding:9px 16px;border-radius:var(--r-pill);font-size:.78rem;font-weight:600;border:1.5px solid '+(a?'rgba(0,113,227,.4)':'rgba(120,120,128,.2)')+';cursor:pointer;background:'+(a?'rgba(0,113,227,.14)':'rgba(255,255,255,.5)')+';color:'+(a?'var(--accent)':'var(--text2)')+';box-shadow:inset 0 1.5px 0 rgba(255,255,255,.8);-webkit-tap-highlight-color:transparent;">'+t.l+'</button>';}).join('');
+  var fIn='width:100%;background:rgba(255,255,255,.7);border:1.5px solid rgba(120,120,128,.2);border-radius:var(--r-sm);padding:10px 12px;font-size:.9rem;font-family:inherit;color:var(--text);outline:none;box-sizing:border-box;';
+  var lbl='display:block;font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);margin-bottom:5px;';
+  var tipoPills=tipoOpts.map(function(t){var a=t.v==='todo';return'<button type="button" data-rep-tipo="'+t.v+'" onclick="setRepTipo(\''+t.v+'\')" style="padding:8px 14px;border-radius:var(--r-pill);font-size:.77rem;font-weight:600;border:1.5px solid '+(a?'rgba(0,113,227,.4)':'rgba(120,120,128,.2)')+';cursor:pointer;background:'+(a?'rgba(0,113,227,.14)':'rgba(255,255,255,.55)')+';color:'+(a?'var(--accent)':'var(--text2)')+';-webkit-tap-highlight-color:transparent;">'+t.l+'</button>';}).join('');
   var usedCats=CATS.filter(function(c){return eqs.some(function(e){return !e.baja&&e.cat===c.id;});});
-  var eqList=eqs.filter(function(e){return !e.baja;}).map(function(e){var ci=catById(e.cat);return'<label style="display:flex;align-items:center;gap:12px;padding:11px 16px;border-bottom:1px solid rgba(120,120,128,.08);cursor:pointer;" class="rep-eq-row" data-eq-loc="'+esc(e.ubicacion||'')+'">'+
-    '<input type="checkbox" checked class="rep-eq-chk" value="'+e.id+'" style="accent-color:var(--accent);width:20px;height:20px;flex-shrink:0;-webkit-appearance:checkbox;">'+
+  var catPills=usedCats.map(function(c){return'<button type="button" data-rep-cat-pill="'+esc(c.id)+'" onclick="toggleRepCat(\''+c.id+'\')" style="padding:7px 13px;border-radius:var(--r-pill);font-size:.73rem;font-weight:600;border:1.5px solid rgba(0,113,227,.35);background:rgba(0,113,227,.10);color:var(--accent);cursor:pointer;-webkit-tap-highlight-color:transparent;">'+esc(c.label)+'</button>';}).join('');
+  var eqList=eqs.filter(function(e){return !e.baja;}).map(function(e){var ci=catById(e.cat);return'<label style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid rgba(120,120,128,.08);cursor:pointer;" class="rep-eq-row" data-eq-loc="'+esc(e.ubicacion||'')+'">'+
+    '<input type="checkbox" checked class="rep-eq-chk" value="'+e.id+'" style="accent-color:var(--accent);width:20px;height:20px;flex-shrink:0;">'+
     '<span style="flex:1;font-size:.85rem;font-weight:600;color:var(--text);">'+esc(e.nombre)+'</span>'+
-    '<span style="font-size:.65rem;color:var(--text3);background:rgba(120,120,128,.08);padding:3px 8px;border-radius:20px;flex-shrink:0;">'+ci.label+'</span>'+
+    '<span style="font-size:.64rem;color:var(--text3);background:rgba(120,120,128,.08);padding:3px 8px;border-radius:20px;flex-shrink:0;">'+ci.label+'</span>'+
   '</label>';}).join('');
   var h='';
-  h+='<div class="gc" style="padding:0;margin-bottom:16px;overflow:hidden;border-left:4px solid var(--accent);">'+
-    '<div style="background:linear-gradient(90deg,rgba(0,113,227,.10),rgba(0,113,227,.03));padding:12px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(0,113,227,.10);">'+
-      '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>'+
-      '<span style="font-size:.78rem;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:.04em;">Generar Reporte PDF</span>'+
+  /* Card 1 — opciones */
+  h+='<div class="gc" style="padding:16px;margin-bottom:14px;">'+
+    '<div style="font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--accent);margin-bottom:12px;">Tipo de reporte</div>'+
+    '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;">'+tipoPills+'</div>'+
+    '<input type="hidden" id="rep-tipo" value="todo">'+
+    '<div style="font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:10px;">Rango de fechas <span style="font-weight:400;opacity:.6;text-transform:none;">(opcional)</span></div>'+
+    '<div style="display:flex;gap:10px;margin-bottom:16px;">'+
+      '<div style="flex:1;"><span style="'+lbl+'">Desde</span><input type="date" id="rep-desde" style="'+fIn+'"></div>'+
+      '<div style="flex:1;"><span style="'+lbl+'">Hasta</span><input type="date" id="rep-hasta" style="'+fIn+'"></div>'+
     '</div>'+
-    '<div style="padding:16px;">'+
-      '<div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:8px;">Tipo de reporte</div>'+
-      '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;">'+tipoPills+'</div>'+
-      '<input type="hidden" id="rep-tipo" value="todo">'+
-      '<div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:8px;">Rango de fechas <span style="font-weight:400;opacity:.6;text-transform:none;">(opcional)</span></div>'+
-      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">'+
-        '<div><div style="font-size:.6rem;color:var(--text3);margin-bottom:4px;">Desde</div>'+
-        '<input type="date" id="rep-desde" style="width:100%;background:rgba(255,255,255,.7);border:1.5px solid rgba(120,120,128,.2);border-radius:var(--r-sm);padding:9px 12px;font-size:.88rem;font-family:inherit;color:var(--text);outline:none;box-sizing:border-box;"></div>'+
-        '<div><div style="font-size:.6rem;color:var(--text3);margin-bottom:4px;">Hasta</div>'+
-        '<input type="date" id="rep-hasta" style="width:100%;background:rgba(255,255,255,.7);border:1.5px solid rgba(120,120,128,.2);border-radius:var(--r-sm);padding:9px 12px;font-size:.88rem;font-family:inherit;color:var(--text);outline:none;box-sizing:border-box;"></div>'+
-      '</div>'+
-      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">'+
-        '<div><div style="font-size:.6rem;color:var(--text3);margin-bottom:4px;">Nº Informe</div>'+
-        '<input type="number" id="rep-nro" min="1" value="'+(localStorage.getItem('cima_nro_informe')||'1')+'" style="width:100%;background:rgba(255,255,255,.7);border:1.5px solid rgba(120,120,128,.2);border-radius:var(--r-sm);padding:9px 12px;font-size:.9rem;font-weight:700;font-family:inherit;color:var(--text);outline:none;box-sizing:border-box;"></div>'+
-        '<div><div style="font-size:.6rem;color:var(--text3);margin-bottom:4px;">Para</div>'+
-        '<input type="text" id="rep-para" value="'+(localStorage.getItem('cima_rep_para')||'Comité Ejecutivo')+'" style="width:100%;background:rgba(255,255,255,.7);border:1.5px solid rgba(120,120,128,.2);border-radius:var(--r-sm);padding:9px 12px;font-size:.85rem;font-family:inherit;color:var(--text);outline:none;box-sizing:border-box;"></div>'+
-      '</div>'+
+    '<div style="display:flex;gap:10px;margin-bottom:0;">'+
+      '<div style="flex:1;"><span style="'+lbl+'">Nº Informe</span><input type="number" id="rep-nro" min="1" value="'+(localStorage.getItem('cima_nro_informe')||'1')+'" style="'+fIn+'font-weight:700;"></div>'+
+      '<div style="flex:1;"><span style="'+lbl+'">Para</span><input type="text" id="rep-para" value="'+(localStorage.getItem('cima_rep_para')||'Comité Ejecutivo')+'" style="'+fIn+'"></div>'+
     '</div>'+
   '</div>';
-  h+='<div class="gc" style="padding:0;margin-bottom:16px;overflow:hidden;">'+
-    '<div style="background:rgba(120,120,128,.05);padding:10px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(120,120,128,.08);">'+
-      '<span style="font-size:.72rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;">Equipos</span>'+
-      '<div style="margin-left:auto;display:flex;gap:6px;">'+
-        '<button type="button" onclick="toggleAllRepEq(true)" style="font-size:.68rem;color:var(--accent);background:rgba(0,113,227,.08);border:1px solid rgba(0,113,227,.18);border-radius:20px;cursor:pointer;font-weight:700;padding:3px 10px;-webkit-tap-highlight-color:transparent;">Todos</button>'+
-        '<button type="button" onclick="toggleAllRepEq(false)" style="font-size:.68rem;color:var(--text3);background:rgba(120,120,128,.06);border:1px solid rgba(120,120,128,.15);border-radius:20px;cursor:pointer;font-weight:600;padding:3px 10px;-webkit-tap-highlight-color:transparent;">Ninguno</button>'+
+  /* Card 2 — equipos */
+  h+='<div class="gc" style="padding:0;margin-bottom:14px;overflow:hidden;">'+
+    '<div style="padding:12px 16px;background:rgba(120,120,128,.05);border-bottom:1px solid rgba(120,120,128,.08);">'+
+      '<div style="display:flex;align-items:center;gap:6px;margin-bottom:('+usedCats.length+'>0?\'8px\':\'0\');">'+
+        '<span style="font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);">Equipos</span>'+
+        '<div style="margin-left:auto;display:flex;gap:5px;">'+
+          '<button type="button" onclick="toggleAllRepEq(true)" style="font-size:.68rem;color:var(--accent);background:rgba(0,113,227,.08);border:1px solid rgba(0,113,227,.18);border-radius:20px;cursor:pointer;font-weight:700;padding:3px 10px;-webkit-tap-highlight-color:transparent;">Todos</button>'+
+          '<button type="button" onclick="toggleAllRepEq(false)" style="font-size:.68rem;color:var(--text3);background:rgba(120,120,128,.06);border:1px solid rgba(120,120,128,.15);border-radius:20px;cursor:pointer;font-weight:600;padding:3px 10px;-webkit-tap-highlight-color:transparent;">Ninguno</button>'+
+        '</div>'+
       '</div>'+
+      (usedCats.length?'<div style="font-size:.58rem;color:var(--text3);margin-bottom:6px;">Filtrar por categoría:</div><div style="display:flex;gap:5px;flex-wrap:wrap;">'+catPills+'</div>':'')+
     '</div>'+
     eqList+
   '</div>';
-  h+='<button onclick="generateReport()" style="width:100%;padding:18px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:var(--r-pill);font-weight:700;font-size:1rem;cursor:pointer;box-shadow:0 4px 20px rgba(0,113,227,.40);display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px;-webkit-tap-highlight-color:transparent;">'+
+  /* Botón generar */
+  h+='<button onclick="generateReport()" style="width:100%;padding:18px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:var(--r-pill);font-weight:700;font-size:1rem;cursor:pointer;box-shadow:0 4px 20px rgba(0,113,227,.35);display:flex;align-items:center;justify-content:center;gap:10px;-webkit-tap-highlight-color:transparent;">'+
     '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>'+
     'Generar PDF'+
   '</button>';
