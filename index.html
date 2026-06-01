@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.29.99 -->
+<!-- v2026.05.29.100 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.05.29.99">
+<meta name="app-version" content="v2026.05.29.100">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3919,16 +3919,19 @@ function generateReport(){
     var periodoLabel=(desde||hasta)?((desde?fD(desde):'inicio')+' al '+(hasta?fD(hasta):'presente')):'Período general';
     var nowDate=new Date();
     var fechaCreacion=nowDate.toLocaleDateString('es-AR',{day:'2-digit',month:'long',year:'numeric'});
+    var _mesRef=desde?new Date(desde+'T12:00:00'):hasta?new Date(hasta+'T12:00:00'):nowDate;
+    var mesAnio=_mesRef.toLocaleDateString('es-AR',{month:'long',year:'numeric'});
+    mesAnio=mesAnio.charAt(0).toUpperCase()+mesAnio.slice(1);
     var introText='El presente informe técnico tiene por objeto detallar las actividades de mantenimiento preventivo y correctivo, reparaciones, mejoras y estado general del equipamiento biomédico de <strong>CIMA Investigaciones Avanzadas</strong> correspondientes al período <strong>'+periodoLabel+'</strong>. La información incluida refleja los registros del sistema CIMA Hub al momento de la emisión del documento.';
     var resumenText='Durante el período informado se registraron: <strong>'+tm+' mantenimiento'+(tm!==1?'s':'')+' preventivo'+(tm!==1?'s':'')+' </strong>'+(tr?', <strong>'+tr+' reparación'+(tr!==1?'es':'')+' completada'+(tr!==1?'s':'')+'</strong>':'')+(tmej?', <strong>'+tmej+' mejora'+(tmej!==1?'s':'')+' completada'+(tmej!==1?'s':'')+'</strong>':'')+(tact?'. Se reportan <strong class="sbad">'+tact+' falla'+(tact!==1?'s':'')+' activa'+(tact!==1?'s':'')+' pendiente'+(tact!==1?'s':'')+'</strong> de resolución.':'.');
     var conclusionText='Se recomienda dar seguimiento oportuno a las fallas activas registradas con el fin de garantizar la continuidad operativa del servicio. '+(tm>0?'Los mantenimientos preventivos realizados contribuyen a la prolongación de la vida útil del equipamiento. ':'')+'Cualquier consulta adicional quedará a disposición del Comité Ejecutivo.';
     var logoTag=logoB64?'<img src="'+logoB64+'" style="height:88px;width:auto;display:block;">':'<div style="font-size:11pt;font-weight:900;color:#1a3a6b;">CIMA</div>';
-    var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width"><title>CIMA — Informe Técnico Nº '+nroInforme+'</title><style>'+_reportCSS+'</style></head><body>';
-    html+='<div class="nav-bar"><button class="btn-print" onclick="window.print()">🖨 Imprimir / Guardar PDF</button><span style="font-size:11px;color:#64748b;margin-left:8px;">CIMA — Informe Técnico Nº '+nroInforme+'</span></div>';
+    var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width"><title>Informe Equipos CIMA — '+mesAnio+'</title><style>'+_reportCSS+'</style></head><body>';
+    html+='<div class="nav-bar"><button class="btn-print" onclick="window.print()">🖨 Imprimir / Guardar PDF</button><span style="font-size:11px;color:#64748b;margin-left:8px;">Informe Equipos CIMA — '+mesAnio+'</span></div>';
     html+='<div class="page">';
     html+='<div class="logo-area">'+logoTag+'</div>';
     html+='<div class="informe-box">';
-    html+='<div class="informe-title">INFORME&nbsp; TECNICO&nbsp; N&ordm;&nbsp;'+nroInforme+'</div>';
+    html+='<div class="informe-title">INFORME&nbsp; EQUIPOS&nbsp; CIMA&nbsp; &mdash;&nbsp;'+mesAnio.toUpperCase()+'</div>';
     html+='<div class="informe-row"><span class="informe-label">FECHA:</span><span class="informe-value">'+fechaCreacion+'</span></div>';
     html+='<div class="informe-row"><span class="informe-label">DE:</span><span class="informe-value">Lic. García Núñez Iván</span></div>';
     html+='<div class="informe-row"><span class="informe-label">PARA:</span><span class="informe-value">'+esc(paraInforme)+'</span></div>';
@@ -5223,8 +5226,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.0.2";
-var APP_BUILD="01/06/26 16:00";
+var APP_DISPLAY_VERSION="5.0.3";
+var APP_BUILD="01/06/26 17:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
