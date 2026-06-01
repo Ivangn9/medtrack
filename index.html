@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.01.123 -->
+<!-- v2026.06.01.124 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.01.123">
+<meta name="app-version" content="v2026.06.01.124">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1593,11 +1593,15 @@ function openHTMLViewer(htmlContent,title){
   var bodyMatch=htmlContent.match(/<body[^>]*>([\s\S]*)<\/body>/i);
   var bodyContent=bodyMatch?bodyMatch[1]:htmlContent;
   bodyContent=bodyContent.replace(/<div class="nav-bar"[\s\S]*?<\/div>/,'');
-  // Inject <style> inside the div — auto-cleaned on close when innerHTML is cleared
+  // Scope injected CSS: replace bare body/html/*/root selectors so they don't leak
+  styleContent=styleContent.replace(/\bhtml\s*,\s*body\b|\bbody\s*,\s*html\b/gi,'#pdf-report-div');
+  styleContent=styleContent.replace(/\bbody\b/gi,'#pdf-report-div');
+  styleContent=styleContent.replace(/(^|[,{};])\s*\*/g,function(m,p){return p+'#pdf-report-div *';});
   reportDiv.innerHTML='<style>'+styleContent+'</style>'+bodyContent;
-  reportDiv.scrollTop=0;
+  // Scroll overlay to top, then reveal — do NOT set body overflow (breaks position:fixed on iOS)
+  overlay.scrollTop=0;
+  if(overlay.querySelector('#pdf-viewer-body'))overlay.querySelector('#pdf-viewer-body').scrollTop=0;
   overlay.classList.remove('hidden');
-  document.body.style.overflow='hidden';
 }
 function printReport(){
   var appEls=['#top-bar','#bottom-bar','#pdf-viewer-hdr','#sidebar'];
@@ -1612,7 +1616,6 @@ function closePDFViewer(){
   var overlay=document.getElementById('pdf-viewer-overlay');
   var reportDiv=document.getElementById('pdf-report-div');
   overlay.classList.add('hidden');
-  document.body.style.overflow='';
   _reportHTML='';
   if(reportDiv)reportDiv.innerHTML='';
 }
@@ -5375,8 +5378,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.2.3";
-var APP_BUILD="02/06/26 03:00";
+var APP_DISPLAY_VERSION="5.2.4";
+var APP_BUILD="02/06/26 04:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
