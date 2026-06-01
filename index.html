@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.05.29.93 -->
+<!-- v2026.05.29.94 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>MedTrack — CIMA</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.05.29.93">
+<meta name="app-version" content="v2026.05.29.94">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1315,7 +1315,23 @@ function delHist(eqId,hid){
   var tieneOrigen=!!(hh._parteOriginal);
   var esMant=hh.tipo==="mantenimiento";
   var msg=tieneOrigen?"¿Eliminar este registro? El parte volverá a la lista como estaba antes.":esMant?"¿Eliminar este registro de mantenimiento? Las fechas del equipo se recalcularán con el último mantenimiento restante.":"¿Eliminar registro?";
-  if(!confirm(msg))return;
+  openModal(
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">'+
+    '<div class="modal-title">Confirmar eliminación</div>'+
+    '<button class="modal-close" onclick="closeModal()">✕</button></div>'+
+    '<div style="font-size:.88rem;color:var(--text2);margin-bottom:20px;line-height:1.5;">'+esc(msg)+'</div>'+
+    '<div style="display:flex;gap:10px;">'+
+    '<button class="btn-secondary" style="flex:1;padding:13px;" onclick="closeModal()">Cancelar</button>'+
+    '<button style="flex:1;padding:13px;border:none;border-radius:var(--r-pill);background:var(--red);color:#fff;font-size:.9rem;font-weight:700;cursor:pointer;" onclick="_confirmDelHist(\''+eqId+'\',\''+hid+'\')">Eliminar</button>'+
+    '</div>'
+  );
+}
+function _confirmDelHist(eqId,hid){
+  closeModal();
+  var eq=eqs.find(function(e){return e.id===eqId;});if(!eq)return;
+  var hh=(eq.historialMant||[]).find(function(h){return h.id===hid;});if(!hh)return;
+  var tieneOrigen=!!(hh._parteOriginal);
+  var esMant=hh.tipo==="mantenimiento";
   eqs=eqs.map(function(e){
     if(e.id!==eqId)return e;
     var newHist=(e.historialMant||[]).filter(function(h){return h.id!==hid;});
@@ -4940,8 +4956,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="4.9.6";
-var APP_BUILD="01/06/26 09:00";
+var APP_DISPLAY_VERSION="4.9.7";
+var APP_BUILD="01/06/26 10:00";
 function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
