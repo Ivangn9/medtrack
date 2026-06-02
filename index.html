@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.01.136 -->
+<!-- v2026.06.01.137 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.01.136">
+<meta name="app-version" content="v2026.06.01.137">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1616,27 +1616,24 @@ function printReport(){
   }
   function _run(){
     try{
-      // Filename from report title (e.g. "Informe Equipos CIMA - Mayo 2026.pdf")
+      var od=document.getElementById('pdf-report-div');
+      if(!od){showToast('Sin contenido','err');_restore();return;}
+      // Filename from report title
       var titleEl=document.getElementById('pdf-viewer-title');
       var rTitle=titleEl?titleEl.textContent.trim():'Informe CIMA';
       var filename=rTitle.replace(/[—–]/g,'-').replace(/[\/\\:*?"<>|]/g,' ').replace(/\s+/g,' ').trim()+'.pdf';
-      // Save original state and parent
-      var origParent=od.parentNode;
-      var origStyle=od.getAttribute('style')||'';
-      // Move od directly to document.body at origin — fixes html2canvas blank-space bug
-      // caused by position:fixed ancestor (#pdf-viewer-overlay) offsetting element position
-      origParent.removeChild(od);
-      od.setAttribute('style','position:absolute;top:0;left:0;width:21cm;background:#fff;overflow:visible;');
-      document.body.appendChild(od);
-      // Hide fault images (large camera data: URIs)
-      var fi=od.querySelectorAll('.fault-imgs');
-      [].forEach.call(fi,function(el){el.style.display='none';});
-      void od.offsetHeight;
+      // Build a fresh render div directly in <body> (avoids position:fixed ancestor offsetting html2canvas)
+      // Re-scope CSS selectors from #pdf-report-div → #_pdf_render so styles apply correctly
+      var rd=document.createElement('div');
+      rd.id='_pdf_render';
+      rd.style.cssText='position:absolute;top:0;left:0;width:21cm;background:#fff;overflow:visible;';
+      rd.innerHTML=od.innerHTML.replace(/#pdf-report-div/g,'#_pdf_render');
+      // Remove fault images from clone (large data: URIs)
+      [].forEach.call(rd.querySelectorAll('.fault-imgs'),function(el){el.parentNode.removeChild(el);});
+      document.body.appendChild(rd);
+      void rd.offsetHeight;
       function _done(ok,e){
-        [].forEach.call(fi,function(el){el.style.display='';});
-        if(od.parentNode)od.parentNode.removeChild(od);
-        od.setAttribute('style',origStyle);
-        origParent.appendChild(od);
+        if(rd.parentNode)rd.parentNode.removeChild(rd);
         _restore();
         if(ok)showToast('✅ PDF exportado','');
         else{showToast('Error PDF: '+(e&&e.message?e.message:String(e)),'err');console.error(e);}
@@ -1648,8 +1645,8 @@ function printReport(){
           image:{type:'jpeg',quality:0.93},
           html2canvas:{scale:2,useCORS:true,allowTaint:true,backgroundColor:'#ffffff',logging:false},
           jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}
-        }).from(od).save().then(function(){_done(true);}).catch(function(e){_done(false,e);});
-      },150);
+        }).from(rd).save().then(function(){_done(true);}).catch(function(e){_done(false,e);});
+      },200);
     }catch(e){
       _restore();
       showToast('Error: '+(e.message||String(e)),'err');
@@ -5450,8 +5447,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.2.16";
-var APP_BUILD="03/06/26 00:00";
+var APP_DISPLAY_VERSION="5.2.17";
+var APP_BUILD="03/06/26 08:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
