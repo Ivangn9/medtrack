@@ -1966,7 +1966,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "4.16";
+const APP_VERSION = "4.17";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -4519,27 +4519,24 @@ function openEqModal(id){
         <div style="font-size:.73rem;color:#8e8e93;margin-top:2px">Pedido: <b>${maxQ}</b> und</div>
       </div>
       <div style="display:flex;align-items:center;background:#f2f2f7;border-radius:11px;overflow:hidden;flex-shrink:0">
-        <button onclick="adjEq('${item.id}',-1,${maxQ})" style="width:40px;height:42px;border:none;background:transparent;font-size:1.3rem;font-weight:300;color:#1c1c1e;cursor:pointer;-webkit-tap-highlight-color:transparent;line-height:1">−</button>
+        <button onclick="adjEq('${item.id}',-1,${maxQ})" style="width:40px;height:42px;border:none;background:transparent;font-size:1.3rem;font-weight:300;color:#1c1c1e;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;line-height:1">−</button>
         <input type="text" inputmode="numeric" pattern="[0-9]*" id="eq_${item.id}" value="${maxQ}" data-max="${maxQ}"
-          style="width:48px;height:42px;border:none;background:transparent;text-align:center;font-size:.97rem;font-weight:700;color:#1c1c1e;padding:0;outline:none"
+          style="width:48px;height:42px;border:none;background:transparent;text-align:center;font-size:.97rem;font-weight:700;color:#1c1c1e;padding:0;outline:none;touch-action:manipulation"
           oninput="var v=parseInt(this.value.replace(/[^0-9]/g,''))||0;var m=parseInt(this.dataset.max)||0;this.value=Math.min(v,m)">
-        <button onclick="adjEq('${item.id}',+1,${maxQ})" style="width:40px;height:42px;border:none;background:transparent;font-size:1.3rem;font-weight:300;color:#1c1c1e;cursor:pointer;-webkit-tap-highlight-color:transparent;line-height:1">+</button>
+        <button onclick="adjEq('${item.id}',+1,${maxQ})" style="width:40px;height:42px;border:none;background:transparent;font-size:1.3rem;font-weight:300;color:#1c1c1e;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;line-height:1">+</button>
       </div>
     </div>`;
   }).join('');
   document.getElementById('eq-overlay').style.display='block';
-  document.body.style.overflow='hidden';
 }
 function adjEq(itemId, delta, max){
   const inp=document.getElementById('eq_'+itemId); if(!inp) return;
   inp.value=Math.max(0,Math.min(max,(parseInt(inp.value)||0)+delta));
-  // Trigger visual feedback
   inp.style.color='#0071e3';
   setTimeout(()=>{inp.style.color='#1c1c1e';},120);
 }
 function closeEqModal(){
   document.getElementById('eq-overlay').style.display='none';
-  document.body.style.overflow='';
   _eqSolId=null;
 }
 function confirmarEqModal(){
