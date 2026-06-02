@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.02.002 -->
+<!-- v2026.06.02.003 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.02.002">
+<meta name="app-version" content="v2026.06.02.003">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3967,7 +3967,7 @@ function generateReportDirect(){
     var resumenText='Se registraron: <strong>'+tm+' mantenimiento'+(tm!==1?'s preventivos':' preventivo')+'</strong>'+(tr?', <strong>'+tr+' reparación'+(tr!==1?'es':'')+' completada'+(tr!==1?'s':'')+'</strong>':'')+(tmej?', <strong>'+tmej+' mejora'+(tmej!==1?'s':'')+' completada'+(tmej!==1?'s':'')+'</strong>':'')+(tact?'. Se reportan <strong class="sbad">'+tact+' falla'+(tact!==1?'s':'')+' activa'+(tact!==1?'s':'')+'</strong>.':'.');
     var conclusionText='Se recomienda dar seguimiento a las fallas activas para garantizar la continuidad operativa.';
     var eqSections='';
-    eqData.forEach(function(d){var eq=d.eq;var ci=d.ci;var narrativeHtml=_narrativeEq(eq,d.mantH,d.repH,d.mejH,d.actH,d.mejP);var _bs=_brandSlug(eq.marca||'');var _bl=_RPT_BRAND_LOGOS[_bs]||'';var _blt=_bl?'<img src="'+_bl+'" style="height:18px;width:auto;object-fit:contain;vertical-align:middle;margin-left:8px;border-radius:2px;" onerror="this.style.display=\'none\'">':'';eqSections+='<div class="eq-block"><div class="eq-title" style="display:flex;align-items:center;">'+esc(eq.nombre)+_blt+'<span style="font-size:9pt;font-weight:500;color:#64748b;margin-left:10px;flex:1;">'+ci.label+(eq.ubicacion?' — '+esc(eq.ubicacion):'')+'</span></div><div class="narrative">'+narrativeHtml+'</div></div>';});
+    eqData.forEach(function(d){var eq=d.eq;var ci=d.ci;var narrativeHtml=_narrativeEq(eq,d.mantH,d.repH,d.mejH,d.actH,d.mejP);eqSections+='<div class="eq-block"><div class="eq-title" style="display:flex;align-items:center;">'+esc(eq.nombre)+'<span style="font-size:9pt;font-weight:500;color:#64748b;margin-left:10px;flex:1;">'+ci.label+(eq.ubicacion?' — '+esc(eq.ubicacion):'')+'</span></div><div class="narrative">'+narrativeHtml+'</div></div>';});
     var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width"><title>Informe Equipos CIMA — '+mesAnio+'</title><style>'+_reportCSS+'</style></head><body>';
     html+='<div class="page">';
     html+='<div class="logo-area">'+logoTag+'</div>';
@@ -4086,11 +4086,8 @@ function generateReport(){
         });
         imgsHtml+='</div></div>';
       }
-      var _bslug=_brandSlug(eq.marca||'');
-      var _blogoUrl=_RPT_BRAND_LOGOS[_bslug]||'';
-      var _blogoTag=_blogoUrl?'<img src="'+_blogoUrl+'" style="height:18px;width:auto;object-fit:contain;vertical-align:middle;margin-left:8px;border-radius:2px;" onerror="this.style.display=\'none\'">':'';
       eqSections+='<div class="eq-block">';
-      eqSections+='<div class="eq-title" style="display:flex;align-items:center;gap:0;">'+esc(eq.nombre)+_blogoTag+'<span style="font-size:9pt;font-weight:500;color:#64748b;margin-left:10px;flex:1;">'+ci.label+(eq.ubicacion?' — '+esc(eq.ubicacion):'')+'</span></div>';
+      eqSections+='<div class="eq-title" style="display:flex;align-items:center;gap:0;">'+esc(eq.nombre)+'<span style="font-size:9pt;font-weight:500;color:#64748b;margin-left:10px;flex:1;">'+ci.label+(eq.ubicacion?' — '+esc(eq.ubicacion):'')+'</span></div>';
       eqSections+='<div class="narrative">'+narrativeHtml+'</div>'+imgsHtml+'</div>';
     });
     var periodoLabel=(desde||hasta)?((desde?fD(desde):'inicio')+' al '+(hasta?fD(hasta):'presente')):'Período general';
@@ -5422,8 +5419,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.2.20";
-var APP_BUILD="02/06/26 12:00";
+var APP_DISPLAY_VERSION="5.2.21";
+var APP_BUILD="02/06/26 13:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
