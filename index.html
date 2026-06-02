@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.01.133 -->
+<!-- v2026.06.01.134 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.01.133">
+<meta name="app-version" content="v2026.06.01.134">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1606,37 +1606,33 @@ function openHTMLViewer(htmlContent,title){
   }catch(e){showToast('Error abriendo visor: '+(e.message||String(e)),'err');}
 }
 function printReport(){
-  var ov=document.getElementById('pdf-viewer-overlay');
-  var oh=document.getElementById('pdf-viewer-hdr');
-  var ob=document.getElementById('pdf-viewer-body');
-  var od=document.getElementById('pdf-report-div');
-  // Save inline state
-  var savedOv=ov?ov.style.cssText:'';
-  var savedOh=oh?oh.style.cssText:'';
-  // Direct inline manipulation (most reliable in WKWebView)
-  if(ov)ov.style.cssText='position:static;display:block;background:transparent;';
-  if(oh)oh.style.cssText='display:none;';
-  if(ob){ob.style.display='block';ob.style.overflow='visible';ob.style.maxHeight='none';ob.style.background='transparent';}
-  if(od){od.style.overflow='visible';od.style.maxHeight='none';ob&&(ob.style.padding='0');}
-  // Hide other body children
+  if(!_reportHTML){showToast('Sin contenido para imprimir','warn');return;}
+  // Extract body content from stored report HTML
+  var bodyMatch=_reportHTML.match(/<body[^>]*>([\s\S]*)<\/body>/i);
+  var bodyContent=bodyMatch?bodyMatch[1]:_reportHTML;
+  bodyContent=bodyContent.replace(/<div class="nav-bar"[\s\S]*?<\/div>/,'');
+  // Scope CSS to #_prt (remove global * reset to preserve spacing)
+  var sc=_reportCSS.replace(/^\*\{[^}]+\}/,'').replace(/\bbody\b/g,'#_prt');
+  // Build a FRESH div directly in <body> — no overlay nesting, no dark backgrounds
+  var pd=document.createElement('div');
+  pd.id='_prt';
+  pd.innerHTML='<style>#_prt *{box-sizing:border-box;}'+sc+'</style>'+bodyContent;
+  // Remove fault photo elements via DOM (data: URI photos of equipment are too large
+  // for WKWebView print renderer and show as solid-color blocks)
+  [].forEach.call(pd.querySelectorAll('.fault-imgs'),function(el){el.parentNode.removeChild(el);});
+  document.body.appendChild(pd);
+  // Hide every other body child (including the overlay)
   var hidden=[];
-  [].forEach.call(document.body.children,function(el){if(el.id!=='pdf-viewer-overlay'){hidden.push([el,el.style.display]);el.style.display='none';}});
-  // Also inject !important stylesheet as secondary override
-  var ps=document.createElement('style');ps.id='_prt';
-  ps.textContent='body>*:not(#pdf-viewer-overlay){display:none!important}#pdf-viewer-overlay{position:static!important;background:transparent!important}#pdf-viewer-hdr{display:none!important}#pdf-viewer-body{display:block!important;overflow:visible!important;max-height:none!important;background:transparent!important}#pdf-report-div{overflow:visible!important;max-height:none!important;background:transparent!important}.fault-imgs{display:none!important}';
-  (document.head||document.documentElement).appendChild(ps);
-  if(od)void od.offsetHeight;
+  [].forEach.call(document.body.children,function(el){
+    if(el.id!=='_prt'){hidden.push([el,el.style.display]);el.style.display='none';}
+  });
+  void pd.offsetHeight; // force layout before print
   setTimeout(function(){
     window.print();
     setTimeout(function(){
-      if(ov)ov.style.cssText=savedOv;
-      if(oh)oh.style.cssText=savedOh;
-      if(ob){ob.style.display='';ob.style.overflow='';ob.style.maxHeight='';ob.style.background='';ob.style.padding='';}
-      if(od){od.style.overflow='';od.style.maxHeight='';}
+      if(pd.parentNode)pd.parentNode.removeChild(pd);
       hidden.forEach(function(p){p[0].style.display=p[1];});
-      var el=document.getElementById('_prt');
-      if(el&&el.parentNode)el.parentNode.removeChild(el);
-    },800);
+    },600);
   },200);
 }
 function closePDFViewer(){
@@ -5424,8 +5420,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.2.13";
-var APP_BUILD="02/06/26 21:00";
+var APP_DISPLAY_VERSION="5.2.14";
+var APP_BUILD="02/06/26 22:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
