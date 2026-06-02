@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.02.005 -->
+<!-- v2026.06.02.006 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.02.005">
+<meta name="app-version" content="v2026.06.02.006">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -656,6 +656,14 @@ body.dark .sb-card{background:rgba(255,255,255,.07);border-color:rgba(255,255,25
         <div><div class="settings-title">🌙 Modo Oscuro</div><div class="settings-desc">Tema oscuro para la interfaz</div></div>
         <button id="dark-toggle" onclick="toggleDarkMode()" style="width:50px;height:30px;border-radius:15px;border:none;cursor:pointer;position:relative;transition:background .3s;background:#e5e5ea;">
           <div id="dark-dot" style="width:24px;height:24px;border-radius:50%;background:#fff;position:absolute;top:3px;left:3px;transition:left .3s;box-shadow:0 1px 3px rgba(0,0,0,.2);"></div>
+        </button>
+      </div>
+    </div>
+    <div class="settings-item">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div><div class="settings-title">🔔 Recordatorio Mensual</div><div class="settings-desc">Aviso el último día del mes para generar el reporte</div><div id="reminder-status" style="font-size:.62rem;color:var(--text3);margin-top:3px;"></div></div>
+        <button id="reminder-toggle" onclick="toggleMonthlyReminder()" style="width:50px;height:30px;border-radius:15px;border:none;cursor:pointer;position:relative;transition:background .3s;background:#e5e5ea;flex-shrink:0;margin-left:12px;">
+          <div id="reminder-dot" style="width:24px;height:24px;border-radius:50%;background:#fff;position:absolute;top:3px;left:3px;transition:left .3s;box-shadow:0 1px 3px rgba(0,0,0,.2);"></div>
         </button>
       </div>
     </div>
@@ -3584,6 +3592,31 @@ function toggleSbAjustesMenu(e){_sbToggle("aj",e);}
 function closeSbAjustesMenu(){_sbClose("aj");}
 function updateSbDarkLabel(){var p=document.getElementById("sb-dark-pill");if(p){p.textContent=darkMode?"ON":"OFF";p.style.background=darkMode?"rgba(0,113,227,.25)":"rgba(0,113,227,.1)";}}
 function toggleDarkMode(){darkMode=!darkMode;document.body.classList.toggle("dark",darkMode);try{localStorage.setItem("mt_dark",darkMode?"1":"0");}catch(e){}updateSettingsUI();}
+function _isLastDayOfMonth(){var n=new Date();return new Date(n.getFullYear(),n.getMonth(),n.getDate()+1).getDate()===1;}
+function toggleMonthlyReminder(){
+  var on=localStorage.getItem('cima_reminder')==='1';
+  if(on){localStorage.setItem('cima_reminder','0');updateSettingsUI();showToast('Recordatorio desactivado','');}
+  else{
+    if(!('Notification' in window)){showToast('Notificaciones no soportadas en este navegador','warn');return;}
+    if(Notification.permission==='denied'){showToast('Notificaciones bloqueadas — habilitálas en Ajustes del sistema → Notificaciones','warn');return;}
+    var _grant=function(perm){if(perm==='granted'){localStorage.setItem('cima_reminder','1');updateSettingsUI();showToast('✅ Recordatorio activado — avisará el último día de cada mes','');}else{showToast('Permiso denegado para notificaciones','warn');}};
+    var p=Notification.requestPermission();
+    if(p&&typeof p.then==='function')p.then(_grant);else _grant(p);
+  }
+}
+function checkMonthlyReminder(){
+  try{
+    if(localStorage.getItem('cima_reminder')!=='1')return;
+    if(!('Notification' in window)||Notification.permission!=='granted')return;
+    if(!_isLastDayOfMonth())return;
+    var today=new Date().toISOString().slice(0,10);
+    if(localStorage.getItem('cima_reminder_shown')===today)return;
+    localStorage.setItem('cima_reminder_shown',today);
+    var mes=new Date().toLocaleDateString('es-AR',{month:'long',year:'numeric'});
+    mes=mes.charAt(0).toUpperCase()+mes.slice(1);
+    new Notification('📋 CIMA Hub — Reporte '+mes,{body:'Hoy es el último día del mes. Generá y compartí el informe mensual.',tag:'cima-monthly',icon:''});
+  }catch(e){}
+}
 function updateSettingsUI(){
   var b=document.getElementById("dark-toggle"),d=document.getElementById("dark-dot"),l=document.getElementById("font-label"),vl=document.getElementById("ver-label"),sf=document.getElementById("settings-footer");
   if(b){b.style.background=darkMode?"var(--accent)":"#e5e5ea";}if(d){d.style.left=darkMode?"23px":"3px";}if(l)l.textContent=fontScale+"%";
@@ -3591,6 +3624,11 @@ function updateSettingsUI(){
   if(sf&&APP_VERSION){
     sf.innerHTML='<div style="margin-bottom:3px;font-size:.64rem;">Última actualización: '+APP_BUILD+'</div>'+'<div>CIMA Investigaciones Avanzadas · CIMA Hub '+(APP_DISPLAY_VERSION||APP_VERSION)+'</div>';
   }
+  var re=localStorage.getItem('cima_reminder')==='1';
+  var rt=document.getElementById('reminder-toggle'),rd=document.getElementById('reminder-dot'),rs=document.getElementById('reminder-status');
+  if(rt)rt.style.background=re?'var(--accent)':'#e5e5ea';
+  if(rd)rd.style.left=re?'23px':'3px';
+  if(rs){if(!('Notification' in window))rs.textContent='No soportado en este navegador';else if(Notification.permission==='denied')rs.textContent='⚠️ Bloqueado — habilitá en Ajustes del sistema';else rs.textContent=re?'Activo — avisa el último día del mes':'Inactivo';}
 }
 function changeFont(dir){fontScale=Math.max(70,Math.min(150,fontScale+dir*10));applyFont();try{localStorage.setItem("mt_font",String(fontScale));}catch(e){}}
 function resetFont(){fontScale=100;applyFont();try{localStorage.setItem("mt_font","100");}catch(e){}}
@@ -5419,8 +5457,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.2.23";
-var APP_BUILD="02/06/26 15:00";
+var APP_DISPLAY_VERSION="5.2.24";
+var APP_BUILD="02/06/26 16:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
@@ -5595,6 +5633,7 @@ function init(){
   try{if(localStorage.getItem("mt_dark")==="1"){darkMode=true;document.body.classList.add("dark");}
     var f=localStorage.getItem("mt_font");if(f){fontScale=parseInt(f)||100;document.documentElement.style.fontSize=fontScale+"%";}}catch(e){}
   updateSettingsUI();
+  checkMonthlyReminder();
   setInterval(function(){var el=document.getElementById("logo-time");if(el)el.textContent=new Date().toLocaleString("es-AR",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"});renderHeader();},6e4);
 
   if(window._fbAuth){
