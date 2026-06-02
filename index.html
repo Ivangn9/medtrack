@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.02.003 -->
+<!-- v2026.06.02.004 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.02.003">
+<meta name="app-version" content="v2026.06.02.004">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1618,15 +1618,15 @@ function printReport(){
     var safeName=rTitle.replace(/[—–]/g,'-').replace(/[\/\\:*?"<>|]/g,' ').replace(/\s+/g,' ').trim();
     var pbDiv=rDoc.createElement('div');
     pbDiv.className='no-print';
-    pbDiv.style.cssText='position:fixed;bottom:24px;right:24px;z-index:9999;';
-    pbDiv.innerHTML='<button onclick="window.print()" style="background:#1a3a6b;color:#fff;border:none;padding:13px 26px;font-size:15px;font-weight:700;border-radius:10px;cursor:pointer;box-shadow:0 4px 18px rgba(0,0,0,.35);">🖨 Guardar como PDF</button>';
-    rDoc.body.appendChild(pbDiv);
+    pbDiv.style.cssText='position:sticky;top:0;z-index:9999;background:#1a3a6b;color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:center;gap:10px;font-family:Arial,sans-serif;font-size:15px;font-weight:600;';
+    pbDiv.innerHTML='<span style="font-size:22px;">⬆️</span><span>Para guardar como PDF: tocá <strong>Compartir</strong> (arriba a la derecha) → <strong>Imprimir</strong></span>';
+    rDoc.body.insertBefore(pbDiv,rDoc.body.firstChild);
     var htmlStr='<!DOCTYPE html>'+rDoc.documentElement.outerHTML;
     var blob=new Blob([htmlStr],{type:'text/html'});
     var file=new File([blob],safeName+'.html',{type:'text/html'});
     if(navigator.canShare&&navigator.canShare({files:[file]})){
       navigator.share({title:rTitle,files:[file]}).then(function(){_restore();}).catch(function(e){_restore();if(e.name!=='AbortError')showToast('Error al compartir','err');});
-      showToast('Abrí en Safari → tocá 🖨 Guardar como PDF','');
+      showToast('Abrí en Safari → Compartir ⬆ → Imprimir','');
     }else{
       var url=URL.createObjectURL(blob);
       var a=document.createElement('a');
@@ -5419,8 +5419,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.2.21";
-var APP_BUILD="02/06/26 13:00";
+var APP_DISPLAY_VERSION="5.2.22";
+var APP_BUILD="02/06/26 14:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
