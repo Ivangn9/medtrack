@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.01.131 -->
+<!-- v2026.06.01.132 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.01.131">
+<meta name="app-version" content="v2026.06.01.132">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1615,7 +1615,8 @@ function printReport(){
     '#pdf-viewer-overlay{position:static!important;display:block!important;background:transparent!important}'+
     '#pdf-viewer-hdr{display:none!important}'+
     '#pdf-viewer-body{display:block!important;overflow:visible!important;max-height:none!important;background:transparent!important;padding:0!important;margin:0!important}'+
-    '#pdf-report-div{overflow:visible!important;max-height:none!important;background:transparent!important}';
+    '#pdf-report-div{overflow:visible!important;max-height:none!important;background:transparent!important}'+
+    '.fault-imgs{display:none!important}';  /* photos are data: URIs — iOS WKWebView can't print them, shows blue/black blocks */
   document.head.appendChild(ps);
   // Force layout recalc before print
   var _od=document.getElementById('pdf-report-div');
@@ -5413,8 +5414,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.2.11";
-var APP_BUILD="02/06/26 19:00";
+var APP_DISPLAY_VERSION="5.2.12";
+var APP_BUILD="02/06/26 20:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
