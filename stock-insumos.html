@@ -1966,7 +1966,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "4.15";
+const APP_VERSION = "4.16";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -4520,9 +4520,9 @@ function openEqModal(id){
       </div>
       <div style="display:flex;align-items:center;background:#f2f2f7;border-radius:11px;overflow:hidden;flex-shrink:0">
         <button onclick="adjEq('${item.id}',-1,${maxQ})" style="width:40px;height:42px;border:none;background:transparent;font-size:1.3rem;font-weight:300;color:#1c1c1e;cursor:pointer;-webkit-tap-highlight-color:transparent;line-height:1">−</button>
-        <input type="number" id="eq_${item.id}" value="${maxQ}" min="0" max="${maxQ}"
-          style="width:42px;height:42px;border:none;background:transparent;text-align:center;font-size:.97rem;font-weight:700;color:#1c1c1e;-webkit-appearance:none;-moz-appearance:textfield;padding:0"
-          oninput="if(+this.value>+this.max)this.value=this.max;if(+this.value<0)this.value=0">
+        <input type="text" inputmode="numeric" pattern="[0-9]*" id="eq_${item.id}" value="${maxQ}" data-max="${maxQ}"
+          style="width:48px;height:42px;border:none;background:transparent;text-align:center;font-size:.97rem;font-weight:700;color:#1c1c1e;padding:0;outline:none"
+          oninput="var v=parseInt(this.value.replace(/[^0-9]/g,''))||0;var m=parseInt(this.dataset.max)||0;this.value=Math.min(v,m)">
         <button onclick="adjEq('${item.id}',+1,${maxQ})" style="width:40px;height:42px;border:none;background:transparent;font-size:1.3rem;font-weight:300;color:#1c1c1e;cursor:pointer;-webkit-tap-highlight-color:transparent;line-height:1">+</button>
       </div>
     </div>`;
@@ -4533,6 +4533,9 @@ function openEqModal(id){
 function adjEq(itemId, delta, max){
   const inp=document.getElementById('eq_'+itemId); if(!inp) return;
   inp.value=Math.max(0,Math.min(max,(parseInt(inp.value)||0)+delta));
+  // Trigger visual feedback
+  inp.style.color='#0071e3';
+  setTimeout(()=>{inp.style.color='#1c1c1e';},120);
 }
 function closeEqModal(){
   document.getElementById('eq-overlay').style.display='none';
@@ -4541,14 +4544,15 @@ function closeEqModal(){
 }
 function confirmarEqModal(){
   if(!_eqSolId) return;
-  const s=solicitudes.find(x=>x.id===_eqSolId); if(!s) return;
+  const id=_eqSolId;
+  const s=solicitudes.find(x=>x.id===id); if(!s) return;
   const qtyMap={};
   (s.items||[]).filter(i=>i.id).forEach(item=>{
     const inp=document.getElementById('eq_'+item.id);
     qtyMap[item.id]=inp?Math.max(0,parseInt(inp.value)||0):(item.cantidad||0);
   });
   closeEqModal();
-  markSolicitudEntregado(_eqSolId, qtyMap);
+  markSolicitudEntregado(id, qtyMap);
 }
 function deleteSolicitud(id){
   const s=solicitudes.find(x=>x.id===id);
