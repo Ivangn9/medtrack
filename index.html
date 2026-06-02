@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.02.004 -->
+<!-- v2026.06.02.005 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.02.004">
+<meta name="app-version" content="v2026.06.02.005">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1864,7 +1864,7 @@ function submitPt(eqId,ptId){
   var archivosExist=[];
   var eq=eqs.find(function(e){return e.id===eqId;});
   var imgsExist=[];
-  if(eq&&ptId){var px=eq.partes.find(function(p){return p.id===ptId;});if(px){archivosExist=(px.archivos||[]).filter(function(a){return _deletedParteFiles.indexOf(a.id)===-1;});imgsExist=(px.imagenes||[]).filter(function(im){return _deletedParteImages.indexOf(im.id)===-1;});}}
+  if(eq&&ptId){var px=eq.partes.find(function(p){return p.id===ptId;});if(px){archivosExist=(px.archivos||[]).filter(function(a){return a&&_deletedParteFiles.indexOf(a.id)===-1;});imgsExist=(px.imagenes||[]).filter(function(im){return im&&_deletedParteImages.indexOf(im.id)===-1;});}}
   _deletedParteFiles.forEach(function(fid){dbDel(fid);});
   var newPresRefs=_pendingPresupuestos.map(function(f){return{id:f.id,nombre:f.nombre,size:f.size,tipo:'presupuesto'};});
   var newRepRefs=_pendingReportes.map(function(f){return{id:f.id,nombre:f.nombre,size:f.size,tipo:'reporte'};});
@@ -1873,9 +1873,9 @@ function submitPt(eqId,ptId){
   var esEl=document.getElementById("pt-es");var esMej=esEl&&esEl.value==="mejora";
   var presOkEl=document.getElementById("pt-pres-ok");var presFechaEl=document.getElementById("pt-pres-fecha");
   var compEl=document.getElementById("pt-comp");
-  saveParte(eqId,{id:ptId||"",nombre:n,descripcion:document.getElementById("pt-d").value,estado:esEl?esEl.value:"roto",componenteRM:compEl?compEl.value:"",fechaRotura:esMej?"":document.getElementById("pt-fr").value,fechaArreglo:esMej?"":document.getElementById("pt-fa").value,canalReclamo:esMej?"":(document.getElementById("pt-canal")||{value:""}).value||"",tecnicoReparacion:esMej?"":(document.getElementById("pt-tec")||{value:""}).value||"",asignadoA:esMej?(document.getElementById("pt-asig")||{}).value||"":"",fechaMejora:esMej?(document.getElementById("pt-fmej")||{}).value||"":"",marca:document.getElementById("pt-mk").value,nroSerie:document.getElementById("pt-sn").value,notas:document.getElementById("pt-nt").value,precio:esMej?"":(document.getElementById("pt-pc")||{}).value||"",presupuestoAprobado:esMej?false:!!(presOkEl&&presOkEl.checked),fechaAprobacion:esMej?"":(presFechaEl&&presOkEl&&presOkEl.checked?presFechaEl.value:""),archivos:archivosExist.concat(newPresRefs).concat(newRepRefs),imagenes:imgsExist.concat(newImgRefs)});
   var newImgRefs=_pendingParteImages.map(function(f){return{id:f.id,nombre:f.nombre};});
   _pendingParteImages.forEach(function(f){dbSave(f.id,f.nombre,f.data);});
+  saveParte(eqId,{id:ptId||"",nombre:n,descripcion:document.getElementById("pt-d").value,estado:esEl?esEl.value:"roto",componenteRM:compEl?compEl.value:"",fechaRotura:esMej?"":document.getElementById("pt-fr").value,fechaArreglo:esMej?"":document.getElementById("pt-fa").value,canalReclamo:esMej?"":(document.getElementById("pt-canal")||{value:""}).value||"",tecnicoReparacion:esMej?"":(document.getElementById("pt-tec")||{value:""}).value||"",asignadoA:esMej?(document.getElementById("pt-asig")||{}).value||"":"",fechaMejora:esMej?(document.getElementById("pt-fmej")||{}).value||"":"",marca:document.getElementById("pt-mk").value,nroSerie:document.getElementById("pt-sn").value,notas:document.getElementById("pt-nt").value,precio:esMej?"":(document.getElementById("pt-pc")||{}).value||"",presupuestoAprobado:esMej?false:!!(presOkEl&&presOkEl.checked),fechaAprobacion:esMej?"":(presFechaEl&&presOkEl&&presOkEl.checked?presFechaEl.value:""),archivos:archivosExist.concat(newPresRefs).concat(newRepRefs),imagenes:imgsExist.concat(newImgRefs)});
   _deletedParteImages.forEach(function(id){dbDel(id);});
   _pendingPresupuestos=[];_pendingReportes=[];_deletedParteFiles=[];
   _pendingParteImages=[];_deletedParteImages=[];
@@ -5419,8 +5419,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.2.22";
-var APP_BUILD="02/06/26 14:00";
+var APP_DISPLAY_VERSION="5.2.23";
+var APP_BUILD="02/06/26 15:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
