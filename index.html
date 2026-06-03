@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.03.003 -->
+<!-- v2026.06.03.004 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.02.009">
+<meta name="app-version" content="v2026.06.03.004">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1110,22 +1110,17 @@ function migrateTransductores(){
   });
 }
 function migrateEcoData(){
-  var ecoMap={
-    "EQ-23":{nroSerie:"636410WX0",consultorio:"3",marca:"GE",nombre:"Ecógrafo GE Vivid T8 BN",transductorIds:["TRSD-001","TRSD-002"]},
-    "EQ-24":{nroSerie:"LT0100595",consultorio:"8",marca:"GE",nombre:"Ecógrafo GE LOGIQ TOTUS",transductorIds:["TRSD-003","TRSD-004","TRSD-005"]},
-    "EQ-25":{nroSerie:"LP9353868",consultorio:"10",marca:"GE",nombre:"Ecógrafo GE LOGIQ P9",transductorIds:["TRSD-006","TRSD-007","TRSD-008"]},
-    "EQ-26":{nroSerie:"USB203606",consultorio:"13",marca:"GE",nombre:"Ecógrafo GE Voluson S8E BT22",transductorIds:["TRSD-009","TRSD-010","TRSD-011","TRSD-012"]}
-  };
-  eqs=eqs.map(function(e){
-    var patch=ecoMap[e.id];if(!patch)return e;
-    var u=Object.assign({},e);
-    if(!u.nroSerie||u.nroSerie==='')u.nroSerie=patch.nroSerie;
-    if(!u.consultorio||u.consultorio==='')u.consultorio=patch.consultorio;
-    if(!u.marca||u.marca===''||u.marca==='Mindray'||u.marca==='Philips')u.marca=patch.marca;
-    if(/Logiq E10|Mindray|Philips EPIQ/.test(u.nombre))u.nombre=patch.nombre;
-    if(!u.transductorIds||u.transductorIds.length===0)u.transductorIds=patch.transductorIds;
-    return u;
-  });
+  if(localStorage.getItem('mt_eco_v1')==='1')return;
+  // Remove ALL ECO equipment (old placeholders) and replace with only the 4 real ones
+  eqs=eqs.filter(function(e){return e.cat!=='ECO';});
+  var realEco=[
+    Object.assign(mkeq("EQ-23","ECO","Ecógrafo GE Vivid T8 BN","","semestral","GE Healthcare"),{marca:"GE",nroSerie:"636410WX0",consultorio:"3",transductorIds:["TRSD-001","TRSD-002"]}),
+    Object.assign(mkeq("EQ-24","ECO","Ecógrafo GE LOGIQ TOTUS","","semestral","GE Healthcare"),{marca:"GE",nroSerie:"LT0100595",consultorio:"8",transductorIds:["TRSD-003","TRSD-004","TRSD-005"]}),
+    Object.assign(mkeq("EQ-25","ECO","Ecógrafo GE LOGIQ P9","","semestral","GE Healthcare"),{marca:"GE",nroSerie:"LP9353868",consultorio:"10",transductorIds:["TRSD-006","TRSD-007","TRSD-008"]}),
+    Object.assign(mkeq("EQ-26","ECO","Ecógrafo GE Voluson S8E BT22","","semestral","GE Healthcare"),{marca:"GE",nroSerie:"USB203606",consultorio:"13",transductorIds:["TRSD-009","TRSD-010","TRSD-011","TRSD-012"]})
+  ];
+  eqs=eqs.concat(realEco);
+  localStorage.setItem('mt_eco_v1','1');
 }
 
 // ═══════════════════════════════════════════
@@ -5579,8 +5574,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.2.30";
-var APP_BUILD="03/06/26 12:00";
+var APP_DISPLAY_VERSION="5.2.31";
+var APP_BUILD="03/06/26 14:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
@@ -5787,7 +5782,16 @@ function init(){
           try{var sai=localStorage.getItem("mt_aires");if(sai){var pai=JSON.parse(sai);if(Array.isArray(pai))aires=pai;}}catch(e){}
           try{var str=localStorage.getItem("mt_transductores");if(str){var ptr=JSON.parse(str);if(Array.isArray(ptr))transductores=ptr;}}catch(e){}
         }
-        function _finishLoad(){migrateEqs();migrateEcoData();migrateTransductores();render();setTimeout(checkForUpdates,3000);setInterval(checkForUpdates,60*1000);}
+        function _finishLoad(){
+          migrateEqs();
+          var _ecoChanged=localStorage.getItem('mt_eco_v1')!=='1';
+          migrateEcoData();
+          migrateTransductores();
+          if(_ecoChanged){saveData();}
+          render();
+          setTimeout(checkForUpdates,3000);
+          setInterval(checkForUpdates,60*1000);
+        }
         orgDataRef().get().then(function(orgDoc){
           eqs=JSON.parse(JSON.stringify(EQ0));
           if(orgDoc.exists&&Array.isArray(orgDoc.data().eqs)&&orgDoc.data().eqs.length>0){
@@ -5840,7 +5844,10 @@ function init(){
     // Firebase not loaded — fallback to localStorage
     eqs=JSON.parse(JSON.stringify(EQ0));
     try{var s=localStorage.getItem("mt_v4");if(s){var p=JSON.parse(s);if(Array.isArray(p)&&p.length>0)eqs=p;}}catch(e){}
-    migrateEqs();migrateEcoData();migrateTransductores();
+    migrateEqs();
+    var _ecoChgOffline=localStorage.getItem('mt_eco_v1')!=='1';
+    migrateEcoData();migrateTransductores();
+    if(_ecoChgOffline){saveData();}
     setTimeout(function(){render();},50);
     setTimeout(checkForUpdates,3000);
     setInterval(checkForUpdates,60*1000);
