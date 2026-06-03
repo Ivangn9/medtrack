@@ -1130,6 +1130,25 @@
     @keyframes sol-dot-pulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.4);opacity:.6} }
     .sol-dot { width:9px;height:9px;border-radius:50%;flex-shrink:0;display:inline-block; }
     .sol-dot-anim { animation:sol-dot-pulse 1.8s ease-in-out infinite; }
+  /* ─── Sistema de Respaldos ─── */
+  .backup-status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px;flex-shrink:0}
+  .backup-status-dot.ok{background:#34c759}
+  .backup-status-dot.warn{background:#ff9500}
+  .backup-status-dot.err{background:#ff3b30}
+  .backup-card{background:#fff;border-radius:16px;overflow:hidden;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.07)}
+  .backup-head{background:linear-gradient(135deg,#0f2942,#1c3553);color:#fff;padding:14px 18px;display:flex;align-items:center;gap:10px}
+  .backup-head .title{font-size:.92rem;font-weight:700}
+  .backup-head .sub{font-size:.72rem;opacity:.75;margin-top:2px}
+  .backup-snap-row{display:flex;align-items:center;padding:10px 16px;border-bottom:1px solid #f4f4f4;gap:10px;font-size:.82rem}
+  .backup-snap-row:last-child{border-bottom:none}
+  .backup-snap-date{font-weight:700;color:#1c1c1e;min-width:100px}
+  .backup-snap-meta{flex:1;color:#636366;font-size:.75rem}
+  .backup-restore-btn{padding:5px 12px;border-radius:8px;border:1.5px solid var(--blue);color:var(--blue);background:#fff;font-size:.75rem;font-weight:700;cursor:pointer;white-space:nowrap;touch-action:manipulation}
+  .audit-row{display:flex;align-items:flex-start;padding:9px 16px;border-bottom:1px solid #f4f4f4;gap:10px;font-size:.78rem}
+  .audit-row:last-child{border-bottom:none}
+  .audit-icon{font-size:1rem;width:22px;flex-shrink:0;margin-top:1px}
+  .audit-desc{flex:1;color:#1c1c1e;line-height:1.4}
+  .audit-meta{color:#aeaeb2;font-size:.7rem;text-align:right;min-width:70px;flex-shrink:0}
   /* ─── Control Contable ─── */
   .prac-view-toggle{display:flex;gap:6px;margin-bottom:14px}
   .prac-view-btn{flex:1;padding:8px 12px;border-radius:10px;border:none;font-size:.82rem;font-weight:600;cursor:pointer;background:rgba(120,120,128,.12);color:var(--text2);transition:background .15s,color .15s}
@@ -1267,6 +1286,10 @@
       Gestión de usuarios
     </button>
     <div class="sb-sep" style="margin:8px 0" id="sbAdminSep" style="display:none"></div>
+    <div id="sbBackupStatus" style="display:none;align-items:center;font-size:.72rem;color:var(--text3);margin-bottom:6px;gap:4px">
+      <span class="backup-status-dot ok" id="sbBackupDot"></span>
+      <span id="sbBackupLabel">Respaldo: —</span>
+    </div>
     <div class="sb-user">
       <span class="sb-user-name" id="sbUserName">—</span>
     </div>
@@ -1549,6 +1572,11 @@
         <input type="email" id="adminNewEmail" placeholder="Email del nuevo usuario…" />
         <button class="btn btn-primary" onclick="addAuthorizedUser()" style="white-space:nowrap"><span class="btn-icon">+</span> Agregar</button>
       </div>
+    </div>
+
+    <!-- ─ Respaldos (admin) ─ -->
+    <div id="backupAdminSection" style="display:none;margin-top:24px">
+      <div id="backupAdminContainer"></div>
     </div>
   </div>
 
@@ -2050,7 +2078,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "4.22";
+const APP_VERSION = "4.23";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -3047,6 +3075,7 @@ function archiveSupply(id){
   const s=supplies.find(x=>x.id===id);
   openConfirm(`¿Archivar "${s?.name}"?`,"Se ocultará del inventario.",()=>{
     const f=supplies.find(x=>x.id===id);if(f)f.active=false;
+    _auditLog('supply_archive',`Insumo archivado: "${s?.name}"`);
     persist();renderGestion();if(currentTab==="inventario")renderInventario();toast("Insumo archivado");
   });
 }
@@ -3277,8 +3306,10 @@ function saveMovimiento(){
     ...(fechaVenc&&_movType==="entrada"&&{fechaVenc}),
     ...(presentacion&&{presentacion})
   };
+  const stockAntes=cs[activeCenter].stock[supplyId]||0;
   cs[activeCenter].movements.push(mov);
   cs[activeCenter].stock[supplyId]=(cs[activeCenter].stock[supplyId]||0)+(_movType==="entrada"?qty:-qty);
+  _auditLog(`mov_${_movType}`,`${_movType==="entrada"?"Entrada":"Salida"}: ${qty} ${s.unit||'ud'} de "${s.name}" en ${activeCenter}${loteDetail}${note?` · ${note}`:''}`,{stock:stockAntes},{stock:cs[activeCenter].stock[supplyId]});
   persist();
   document.getElementById("movModal").classList.remove("open");
   toast(`✓ ${_movType==="entrada"?"Entrada":"Salida"} registrada: ${qty} ${s.unit} de ${s.name}${loteDetail}`);
@@ -3336,7 +3367,9 @@ function saveSupply(){
   if(presentacion==="caja"&&unidadesPorCaja<1){toast("⚠️ Ingresá las unidades por caja");return;}
   if(_editId){
     const s=supplies.find(x=>x.id===_editId);
+    const before=s?{name:s.name,code:s.code,price:s.price,category:s.category}:null;
     if(s){Object.assign(s,{name,code,category,unit,price,minStock,presentacion,unidadesPorCaja});cs[activeCenter].stock[s.id]=initStk;}
+    _auditLog('supply_edit',`Insumo editado: "${name}"`,before,{name,code,price,category});
     toast("✓ Insumo actualizado");
   }else{
     const id="cus_"+Date.now();
@@ -3344,6 +3377,7 @@ function saveSupply(){
     CENTERS.forEach(c=>{if(!cs[c].stock[id])cs[c].stock[id]=0;});
     cs[activeCenter].stock[id]=initStk;
     if(initStk>0)cs[activeCenter].movements.push({id:"mov_init_"+id,supplyId:id,supplyName:name,type:"entrada",qty:initStk,date:new Date().toISOString().slice(0,10),time:new Date().toTimeString().slice(0,5),note:"Stock inicial"});
+    _auditLog('supply_add',`Insumo creado: "${name}" (${code||'sin código'}) — precio: $${price}`);
     toast("✓ Insumo agregado");
   }
   persist();
@@ -3400,6 +3434,8 @@ function showApp(){
   if(!_standalone) console.warn('[PWA] La app NO está en modo standalone. Abrila desde el ícono de pantalla de inicio, no desde Safari.');
   if(isAdmin){
     document.getElementById("adminSection").style.display="block";
+    document.getElementById("backupAdminSection").style.display="block";
+    document.getElementById("sbBackupStatus").style.display="flex";
     const ab=document.getElementById("sbAdminBtn"); if(ab) ab.style.display="flex";
     const as=document.getElementById("sbAdminSep"); if(as) as.style.display="block";
   }
@@ -3447,6 +3483,7 @@ function startListeners(){
     updateCenterStats();
     if(currentTab==="inventario") renderInventario();
     if(currentTab==="gestion") renderGestion();
+    _maybeInitBackup();
   });
 
   _unsubGN = _db.collection(DB_COL).doc("center_GN").onSnapshot(snap=>{
@@ -4599,6 +4636,8 @@ function markSolicitudEntregado(id, qtyMap){
     });
     persistCenter(center);
   }
+  const auditItems=(s.items||[]).filter(i=>i.id).map(i=>({id:i.id,name:i.name,qty:qtyMap?(qtyMap[i.id]??i.cantidad):i.cantidad}));
+  _auditLog('solicitud_entregado',`Pedido entregado: ${s.solicitante||'?'} · ${s.sector||''} · ${s.fecha||''}`,null,{id,items:auditItems,center});
   _db.collection("insumos_cima").doc("solicitudes_log").collection("items")
     .doc(id).update({entregado:true,leido:true,fechaEntrega:firebase.firestore.FieldValue.serverTimestamp()})
     .then(()=>{
@@ -4691,6 +4730,7 @@ function deleteSolicitud(id){
     "Eliminar pedido",
     `¿Eliminar el pedido de ${label}? Esta acción no se puede deshacer.`,
     ()=>{
+      _auditLog('solicitud_delete',`Solicitud eliminada: ${label}`,{id,solicitante:s?.solicitante,sector:s?.sector,fecha:s?.fecha,items:s?.items});
       _db.collection("insumos_cima").doc("solicitudes_log").collection("items")
         .doc(id).delete()
         .then(()=>{ toast("Pedido eliminado"); closePdfViewer(); })
@@ -5335,6 +5375,196 @@ function savePracMes(){
   _db.collection(DB_COL).doc("practicas_mes").set({[_pracCierreMes]:data},{merge:true})
     .then(()=>toast('✓ Cierre mensual guardado'))
     .catch(()=>toast('⚠️ Error al guardar'));
+}
+
+// ─── Sistema de Respaldos & Auditoría ─────────────────────────────────────────
+const BACKUP_COL  = "cima_backups";
+const AUDIT_COL   = "cima_audit";
+let _lastSnapshotDate = null;
+
+// ── Audit log (fire-and-forget, falla silenciosamente) ──────────────────────
+function _auditLog(action, description, before, after){
+  if(!_db||!currentUser) return;
+  _db.collection(AUDIT_COL).add({
+    action, description,
+    user: currentUser.email||'?',
+    ts: new Date().toISOString(),
+    ...(before!=null&&{before}),
+    ...(after!=null&&{after})
+  }).catch(()=>{});
+}
+
+// ── Auto-snapshot diario ─────────────────────────────────────────────────────
+async function initBackupSystem(){
+  if(!isAdmin) return;
+  try {
+    const today=new Date().toISOString().slice(0,10);
+    const ref=_db.collection(BACKUP_COL).doc(today);
+    const snap=await ref.get();
+    if(snap.exists){
+      _lastSnapshotDate=today;
+      _updateBackupStatusBar(today, true);
+      return;
+    }
+    await _takeSnapshot(today);
+  } catch(e){ console.warn('[Backup]',e); }
+}
+
+async function _takeSnapshot(dateStr){
+  if(!_db||!supplies.length) return;
+  const data={
+    supplies,
+    center_GN: cs.GN||{},
+    center_Sarmiento: cs.Sarmiento||{},
+    createdAt: new Date().toISOString(),
+    createdBy: currentUser?.email||'?',
+    appVersion: APP_VERSION,
+    counts:{ supplies: supplies.length, movsGN:(cs.GN?.movements||[]).length, movsSarm:(cs.Sarmiento?.movements||[]).length }
+  };
+  await _db.collection(BACKUP_COL).doc(dateStr).set(data);
+  _lastSnapshotDate=dateStr;
+  _updateBackupStatusBar(dateStr, true);
+  console.log(`[Backup] Snapshot ${dateStr} guardado`);
+}
+
+function _updateBackupStatusBar(dateStr, ok){
+  const dot=document.getElementById('sbBackupDot');
+  const lbl=document.getElementById('sbBackupLabel');
+  if(!dot||!lbl) return;
+  const d=dateStr?fmtDate(dateStr):'—';
+  dot.className='backup-status-dot '+(ok?'ok':'warn');
+  lbl.textContent=`Respaldo: ${d}`;
+}
+
+// Snapshot manual (llamado desde UI)
+async function manualSnapshot(){
+  const today=new Date().toISOString().slice(0,10);
+  toast('Guardando respaldo…');
+  try {
+    await _takeSnapshot(today);
+    toast('✓ Respaldo manual guardado');
+    renderBackupAdmin();
+  } catch(e){
+    toast('⚠️ Error al guardar respaldo');
+    console.error(e);
+  }
+}
+
+// ── Restaurar desde snapshot ─────────────────────────────────────────────────
+function restoreSnapshot(dateStr){
+  openConfirm(
+    `⚠️ Restaurar respaldo del ${fmtDate(dateStr)}`,
+    'Esto reemplazará el catálogo de insumos y el stock de ambas sucursales con los datos de ese día. Los movimientos posteriores se perderán. ¿Confirmar?',
+    async ()=>{
+      try {
+        toast('Restaurando…');
+        const snap=await _db.collection(BACKUP_COL).doc(dateStr).get();
+        if(!snap.exists){toast('⚠️ No se encontró ese respaldo');return;}
+        const d=snap.data();
+        const batch=_db.batch();
+        batch.set(_db.collection(DB_COL).doc('supplies'),{data:d.supplies,suppliers:suppliers});
+        batch.set(_db.collection(DB_COL).doc('center_GN'),d.center_GN);
+        batch.set(_db.collection(DB_COL).doc('center_Sarmiento'),d.center_Sarmiento);
+        await batch.commit();
+        _auditLog('restore',`Restauración desde respaldo ${dateStr}`);
+        toast(`✓ Sistema restaurado al ${fmtDate(dateStr)}`);
+      } catch(e){
+        console.error('[Restore]',e);
+        toast('⚠️ Error al restaurar');
+      }
+    }
+  );
+}
+
+// ── Render panel de respaldos (admin) ────────────────────────────────────────
+async function renderBackupAdmin(){
+  const container=document.getElementById('backupAdminContainer'); if(!container) return;
+  container.innerHTML=`<div class="backup-card"><div class="backup-head"><div><div class="title">💾 Respaldos automáticos</div><div class="sub">Cargando lista…</div></div></div></div>`;
+
+  // Load last 30 snapshots
+  let snapshots=[];
+  try {
+    const col=await _db.collection(BACKUP_COL).orderBy('createdAt','desc').limit(30).get();
+    snapshots=col.docs.map(d=>({id:d.id,...d.data()}));
+  } catch(e){
+    // Firestore orderBy may fail without index; fall back
+    try {
+      const col=await _db.collection(BACKUP_COL).get();
+      snapshots=col.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>b.id.localeCompare(a.id)).slice(0,30);
+    } catch(e2){ snapshots=[]; }
+  }
+
+  // Load last 20 audit entries
+  let audits=[];
+  try {
+    const acol=await _db.collection(AUDIT_COL).orderBy('ts','desc').limit(20).get();
+    audits=acol.docs.map(d=>d.data());
+  } catch(e){
+    try {
+      const acol=await _db.collection(AUDIT_COL).get();
+      audits=acol.docs.map(d=>d.data()).sort((a,b)=>b.ts?.localeCompare(a.ts||'')||0).slice(0,20);
+    } catch(e2){ audits=[]; }
+  }
+
+  const ACTION_ICONS={'supply_edit':'✏️','supply_add':'➕','supply_archive':'📦','mov_entrada':'⬆️','mov_salida':'⬇️','solicitud_entregado':'✅','solicitud_delete':'🗑️','restore':'🔄'};
+
+  const snapRows=snapshots.length?snapshots.map(s=>`
+    <div class="backup-snap-row">
+      <div>
+        <div class="backup-snap-date">${fmtDate(s.id)}</div>
+        <div style="font-size:.7rem;color:#636366;margin-top:1px">${s.counts?.supplies||'?'} insumos · V${s.appVersion||'?'} · ${s.createdBy||'?'}</div>
+      </div>
+      <button class="backup-restore-btn" onclick="restoreSnapshot('${escAttr(s.id)}')">↩ Restaurar</button>
+    </div>`).join('')
+    :`<div style="padding:16px;text-align:center;color:var(--text3);font-size:.82rem">Sin respaldos aún</div>`;
+
+  const auditRows=audits.length?audits.map(a=>{
+    const icon=ACTION_ICONS[a.action]||'📝';
+    const time=a.ts?a.ts.slice(0,16).replace('T',' '):'';
+    return `<div class="audit-row">
+      <div class="audit-icon">${icon}</div>
+      <div class="audit-desc">${escHtml(a.description||a.action)}</div>
+      <div class="audit-meta">${escHtml(a.user?.split('@')[0]||'?')}<br>${time.slice(5)}</div>
+    </div>`;}).join('')
+    :`<div style="padding:16px;text-align:center;color:var(--text3);font-size:.82rem">Sin registros aún</div>`;
+
+  container.innerHTML=`
+    <div class="backup-card">
+      <div class="backup-head" style="justify-content:space-between">
+        <div>
+          <div class="title">💾 Respaldos diarios</div>
+          <div class="sub">Se genera automáticamente 1 vez por día al ingresar</div>
+        </div>
+        <button onclick="manualSnapshot()" style="padding:6px 14px;background:rgba(255,255,255,.2);border:none;border-radius:8px;color:#fff;font-size:.78rem;font-weight:700;cursor:pointer;white-space:nowrap;touch-action:manipulation">+ Guardar ahora</button>
+      </div>
+      ${snapRows}
+    </div>
+    <div class="backup-card" style="margin-top:12px">
+      <div class="backup-head">
+        <div>
+          <div class="title">📋 Registro de actividad</div>
+          <div class="sub">Últimas ${audits.length} acciones importantes</div>
+        </div>
+      </div>
+      ${auditRows}
+    </div>`;
+}
+
+// ── Inicializar respaldos cuando el tab Gestión carga ────────────────────────
+const _origRenderGestion=renderGestion;
+function renderGestion(){
+  _origRenderGestion();
+  if(isAdmin && document.getElementById('backupAdminContainer')?.innerHTML==='') renderBackupAdmin();
+}
+
+// ── Llamar initBackupSystem cuando los datos estén listos ───────────────────
+// Se llama desde el listener de supplies, una sola vez
+let _backupInitDone=false;
+const _origUnsubSuppliesCb=null;
+function _maybeInitBackup(){
+  if(_backupInitDone||!supplies.length||!isAdmin) return;
+  _backupInitDone=true;
+  setTimeout(initBackupSystem, 1500); // pequeño delay para que todo cargue
 }
 
 </script>
