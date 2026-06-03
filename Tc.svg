@@ -1,0 +1,109 @@
+<svg width="100%" viewBox="0 0 800 480" xmlns="http://www.w3.org/2000/svg">
+<title>CT Scanner Flat Design - Cuerpo redondo</title>
+
+<!-- PISO -->
+<rect x="0" y="420" width="800" height="60" fill="#d8dde4"/>
+<rect x="0" y="418" width="800" height="5" fill="#c0c8d0"/>
+
+<!-- ===================== CUERPO REDONDO (dona/disco) ===================== -->
+
+<!-- Sombra -->
+<ellipse cx="545" cy="415" rx="160" ry="10" fill="#b0bcc8" opacity="0.35"/>
+
+<!-- Cara lateral derecha del cilindro (profundidad) -->
+<ellipse cx="668" cy="252" rx="36" ry="148" fill="#b0bcc8"/>
+<!-- Franjas laterales -->
+<rect x="632" y="152" width="36" height="12" fill="#a0acb8"/>
+<rect x="632" y="210" width="36" height="12" fill="#a0acb8"/>
+<rect x="632" y="268" width="36" height="12" fill="#a0acb8"/>
+<rect x="632" y="326" width="36" height="12" fill="#a0acb8"/>
+
+<!-- Cuerpo principal circular -->
+<circle cx="510" cy="252" r="168" fill="#dce2e8"/>
+<!-- Capa frontal más clara -->
+<circle cx="510" cy="252" r="160" fill="#e8edf2"/>
+
+<!-- Franja superior oscura (arco) -->
+<path d="M342,252 A168,168 0 0,1 678,252" fill="#b8c4ce"/>
+<path d="M350,252 A160,160 0 0,1 670,252" fill="#e8edf2"/>
+
+<!-- Franja inferior oscura (arco) -->
+<path d="M342,252 A168,168 0 0,0 678,252" fill="#c8d4de"/>
+<path d="M350,252 A160,160 0 0,0 670,252" fill="#e8edf2"/>
+
+<!-- Franjas horizontales del cuerpo -->
+<rect x="345" y="168" width="330" height="10" rx="2" fill="#c8d4de" opacity="0.7"/>
+<rect x="342" y="210" width="336" height="10" rx="2" fill="#c8d4de" opacity="0.7"/>
+<rect x="342" y="252" width="336" height="10" rx="2" fill="#c8d4de" opacity="0.7"/>
+<rect x="342" y="294" width="336" height="10" rx="2" fill="#c8d4de" opacity="0.7"/>
+<rect x="345" y="336" width="330" height="10" rx="2" fill="#c8d4de" opacity="0.7"/>
+
+<!-- Clip del círculo para que las franjas no salgan -->
+<circle cx="510" cy="252" r="168" fill="none" stroke="#e8edf2" stroke-width="0"/>
+
+<!-- ===================== TÚNEL CT (pequeño, centrado) ===================== -->
+<!-- Aro exterior -->
+<circle cx="510" cy="252" r="100" fill="#c0ccd4"/>
+<circle cx="510" cy="252" r="100" fill="none" stroke="#b0bcc4" stroke-width="3"/>
+
+<!-- Aro teal -->
+<circle cx="510" cy="252" r="88" fill="#7ecece"/>
+<circle cx="510" cy="252" r="88" fill="none" stroke="#9adada" stroke-width="4" opacity="0.5"/>
+
+<!-- Aro blanco/gris intermedio -->
+<circle cx="510" cy="252" r="74" fill="#e4eef2"/>
+<circle cx="510" cy="252" r="74" fill="none" stroke="#d0dce2" stroke-width="2"/>
+
+<!-- Aro gris interior -->
+<circle cx="510" cy="252" r="62" fill="#c8d4da"/>
+<circle cx="510" cy="252" r="55" fill="#d8e4e8"/>
+
+<!-- Interior oscuro -->
+<circle cx="510" cy="252" r="46" fill="#2a3848"/>
+<circle cx="510" cy="252" r="36" fill="#1a2838"/>
+<circle cx="510" cy="252" r="24" fill="#111e2c"/>
+
+<!-- Reflejo interior -->
+<ellipse cx="502" cy="224" rx="16" ry="7" fill="#2e4060" opacity="0.65"/>
+
+<!-- ===================== PANEL CONTROL ===================== -->
+<rect x="446" y="176" width="54" height="38" rx="5" fill="#c8d4de"/>
+<rect x="450" y="180" width="46" height="26" rx="3" fill="#1a2a3a"/>
+<rect x="452" y="182" width="38" height="2.5" rx="1" fill="#38bdf8" opacity="0.9"/>
+<rect x="452" y="187" width="26" height="2.5" rx="1" fill="#38bdf8" opacity="0.6"/>
+<rect x="452" y="192" width="32" height="2.5" rx="1" fill="#22d3ee" opacity="0.7"/>
+<rect x="452" y="197" width="20" height="2.5" rx="1" fill="#38bdf8" opacity="0.4"/>
+<circle cx="456" cy="208" r="4" fill="#e05050"/>
+<circle cx="468" cy="208" r="4" fill="#e0c050"/>
+<circle cx="480" cy="208" r="4" fill="#50c878"/>
+
+<!-- ===================== CAMILLA ===================== -->
+<!-- Colchoneta teal -->
+<rect x="58" y="298" width="400" height="14" rx="5" fill="#7ecece"/>
+<rect x="58" y="298" width="400" height="5" rx="5" fill="#9adada" opacity="0.7"/>
+<rect x="58" y="307" width="400" height="3" fill="#5ab0b0"/>
+
+<!-- Cuerpo camilla -->
+<rect x="58" y="310" width="400" height="22" rx="4" fill="#d8e4ec"/>
+<!-- Capas inferiores -->
+<rect x="64" y="330" width="390" height="14" rx="3" fill="#c8d4de"/>
+<rect x="70" y="342" width="378" height="12" rx="3" fill="#b8c4ce"/>
+<!-- Reflejo blanco -->
+<rect x="100" y="332" width="130" height="3" rx="1" fill="#ffffff" opacity="0.45"/>
+
+<!-- Pedestal central -->
+<rect x="270" y="354" width="96" height="60" rx="6" fill="#b0bcc8"/>
+<rect x="280" y="354" width="76" height="15" rx="3" fill="#c0ccd8"/>
+<rect x="252" y="408" width="132" height="13" rx="5" fill="#a0acb8"/>
+
+<!-- Cabecera izquierda -->
+<rect x="40" y="294" width="24" height="46" rx="8" fill="#d0dce6"/>
+<ellipse cx="40" cy="317" rx="9" ry="19" fill="#c0ccd8"/>
+
+<!-- Cable -->
+<path d="M440 302 Q448 282 444 265 Q438 252 510 252" fill="none" stroke="#a0acb8" stroke-width="2.5" stroke-linecap="round"/>
+
+<!-- BASE -->
+<rect x="40" y="414" width="640" height="9" rx="3" fill="#b0bcc8"/>
+
+</svg>

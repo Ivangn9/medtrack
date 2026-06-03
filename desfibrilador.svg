@@ -1,0 +1,258 @@
+<svg width="100%" viewBox="0 0 800 580" xmlns="http://www.w3.org/2000/svg">
+<title>Desfibrilador - Flat Design</title>
+<defs>
+  <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0%" stop-color="#f0f4f8"/>
+    <stop offset="100%" stop-color="#d8e0ea"/>
+  </linearGradient>
+  <linearGradient id="handleGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+    <stop offset="0%" stop-color="#d0dce8"/>
+    <stop offset="100%" stop-color="#b0bcc8"/>
+  </linearGradient>
+  <linearGradient id="screenGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0%" stop-color="#0a1e10"/>
+    <stop offset="100%" stop-color="#040e08"/>
+  </linearGradient>
+  <linearGradient id="paddleGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+    <stop offset="0%" stop-color="#c8d4de"/>
+    <stop offset="100%" stop-color="#a8b8c4"/>
+  </linearGradient>
+</defs>
+
+<!-- PISO -->
+<rect x="0" y="530" width="800" height="50" fill="#d8dde4"/>
+<rect x="0" y="528" width="800" height="5" fill="#c0c8d0"/>
+<!-- PARED -->
+<rect x="0" y="0" width="800" height="532" fill="#f2f5f8"/>
+
+<!-- ============================================================ -->
+<!--              CUERPO PRINCIPAL DESFIBRILADOR                  -->
+<!-- ============================================================ -->
+
+<!-- Sombra base -->
+<ellipse cx="310" cy="526" rx="200" ry="10" fill="#a0acb8" opacity="0.2"/>
+
+<!-- Asa/manija superior (para transportar) -->
+<path d="M230,88 Q230,62 260,62 L360,62 Q390,62 390,88" fill="none" stroke="url(#handleGrad)" stroke-width="18" stroke-linecap="round"/>
+<path d="M232,88 Q232,66 260,66 L360,66 Q388,66 388,88" fill="none" stroke="#dce8f2" stroke-width="10" stroke-linecap="round"/>
+
+<!-- Cuerpo principal -->
+<rect x="148" y="88" width="324" height="380" rx="18" fill="url(#bodyGrad)" stroke="#c0ccd8" stroke-width="1.5"/>
+<rect x="156" y="96" width="308" height="364" rx="14" fill="#f4f7fa"/>
+
+<!-- Franja superior amarilla (color característico desfibriladores) -->
+<rect x="148" y="88" width="324" height="32" rx="18" fill="#e8a820"/>
+<rect x="148" y="108" width="324" height="12" fill="#e8a820"/>
+<!-- Franja inferior amarilla -->
+<rect x="148" y="430" width="324" height="38" rx="18" fill="#e8a820"/>
+<rect x="148" y="430" width="324" height="14" fill="#e8a820"/>
+
+<!-- Marca / logo -->
+<text x="310" y="110" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="11" font-weight="800" fill="#ffffff" letter-spacing="2">PHILIPS</text>
+<text x="310" y="121" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="7" fill="#fff8e0" letter-spacing="3" opacity="0.9">HeartStart MRx</text>
+
+<!-- ============================================================ -->
+<!--              PANTALLA ECG PRINCIPAL                          -->
+<!-- ============================================================ -->
+<rect x="164" y="126" width="292" height="160" rx="8" fill="#0a1808"/>
+<rect x="168" y="130" width="284" height="152" rx="5" fill="url(#screenGrad)"/>
+
+<!-- Grilla ECG (fondo cuadriculado verde oscuro) -->
+<!-- Líneas verticales -->
+<line x1="186" y1="130" x2="186" y2="282" stroke="#1a3820" stroke-width="0.8"/>
+<line x1="204" y1="130" x2="204" y2="282" stroke="#1a3820" stroke-width="0.8"/>
+<line x1="222" y1="130" x2="222" y2="282" stroke="#1a3820" stroke-width="0.8"/>
+<line x1="240" y1="130" x2="240" y2="282" stroke="#1a3820" stroke-width="0.8"/>
+<line x1="258" y1="130" x2="258" y2="282" stroke="#1a3820" stroke-width="0.8"/>
+<line x1="276" y1="130" x2="276" y2="282" stroke="#1a3820" stroke-width="0.8"/>
+<line x1="294" y1="130" x2="294" y2="282" stroke="#1a3820" stroke-width="0.8"/>
+<line x1="312" y1="130" x2="312" y2="282" stroke="#1a3820" stroke-width="0.8"/>
+<line x1="330" y1="130" x2="330" y2="282" stroke="#1a3820" stroke-width="0.8"/>
+<line x1="348" y1="130" x2="348" y2="282" stroke="#1a3820" stroke-width="0.8"/>
+<line x1="366" y1="130" x2="366" y2="282" stroke="#1a3820" stroke-width="0.8"/>
+<line x1="384" y1="130" x2="384" y2="282" stroke="#1a3820" stroke-width="0.8"/>
+<line x1="402" y1="130" x2="402" y2="282" stroke="#1a3820" stroke-width="0.8"/>
+<line x1="420" y1="130" x2="420" y2="282" stroke="#1a3820" stroke-width="0.8"/>
+<line x1="438" y1="130" x2="438" y2="282" stroke="#1a3820" stroke-width="0.8"/>
+<!-- Líneas horizontales -->
+<line x1="168" y1="148" x2="452" y2="148" stroke="#1a3820" stroke-width="0.8"/>
+<line x1="168" y1="166" x2="452" y2="166" stroke="#1a3820" stroke-width="0.8"/>
+<line x1="168" y1="184" x2="452" y2="184" stroke="#1a3820" stroke-width="0.8"/>
+<line x1="168" y1="202" x2="452" y2="202" stroke="#1a3820" stroke-width="0.8"/>
+<line x1="168" y1="220" x2="452" y2="220" stroke="#1a3820" stroke-width="0.8"/>
+<line x1="168" y1="238" x2="452" y2="238" stroke="#1a3820" stroke-width="0.8"/>
+<line x1="168" y1="256" x2="452" y2="256" stroke="#1a3820" stroke-width="0.8"/>
+<line x1="168" y1="274" x2="452" y2="274" stroke="#1a3820" stroke-width="0.8"/>
+
+<!-- TRAZA ECG (ritmo sinusal normal luego fibrilación luego choque) -->
+<!-- Segmento normal izquierdo -->
+<polyline points="170,206 182,206 186,206 190,198 194,214 198,186 202,230 206,206 210,206 214,202 218,210 222,206 226,206 230,200 234,212 238,186 242,228 246,206 250,206" fill="none" stroke="#50e878" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<!-- Fibrilación ventricular (ondas caóticas) -->
+<polyline points="250,206 254,194 258,220 262,182 266,228 270,190 274,218 278,200 282,226 286,188 290,216 294,196 298,222 302,186 306,218 310,202" fill="none" stroke="#50e878" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<!-- Post-choque (línea plana luego recuperación) -->
+<polyline points="310,206 320,206 324,206 328,206 332,140 336,270 340,206 344,206 348,200 352,212 356,186 360,228 364,206 368,206 372,202 376,210 380,206 384,206 388,202 392,210 396,186 400,228 404,206 408,206 412,202 416,210 420,206 424,206 428,200 432,212 436,186 440,228 444,206 448,206 452,206" fill="none" stroke="#50e878" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+
+<!-- Línea central referencia -->
+<line x1="168" y1="206" x2="452" y2="206" stroke="#1e4820" stroke-width="0.5" opacity="0.5"/>
+
+<!-- Indicadores pantalla -->
+<text x="172" y="142" font-family="monospace" font-size="7" fill="#50e878" opacity="0.8">II</text>
+<text x="172" y="152" font-family="monospace" font-size="6" fill="#50c860" opacity="0.6">25mm/s</text>
+<!-- Frecuencia cardíaca -->
+<text x="370" y="142" font-family="monospace" font-size="7" fill="#50e878" opacity="0.7">HR</text>
+<text x="390" y="150" font-family="-apple-system, sans-serif" font-size="20" font-weight="800" fill="#50e878">82</text>
+<text x="430" y="150" font-family="monospace" font-size="7" fill="#50c860">bpm</text>
+<!-- SpO2 -->
+<text x="172" y="272" font-family="monospace" font-size="7" fill="#38bdf8">SpO2</text>
+<text x="210" y="272" font-family="-apple-system, sans-serif" font-size="13" font-weight="700" fill="#38bdf8">98%</text>
+<!-- NIBP -->
+<text x="290" y="272" font-family="monospace" font-size="7" fill="#e0c050">NIBP</text>
+<text x="326" y="272" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" fill="#e0c050">120/80</text>
+<!-- Energía -->
+<text x="390" y="272" font-family="monospace" font-size="7" fill="#ff8040">ENERGY</text>
+<text x="390" y="283" font-family="-apple-system, sans-serif" font-size="13" font-weight="800" fill="#ff8040">200J</text>
+
+<!-- ============================================================ -->
+<!--              CONTROLES Y BOTONES                             -->
+<!-- ============================================================ -->
+
+<!-- Selector de energía (perilla grande) -->
+<circle cx="220" cy="340" r="38" fill="#c8d4de" stroke="#a8b8c4" stroke-width="2"/>
+<circle cx="220" cy="340" r="30" fill="#d8e4ec"/>
+<circle cx="220" cy="340" r="22" fill="#c0ccd8"/>
+<circle cx="220" cy="340" r="12" fill="#b0bcc8"/>
+<!-- Marcas de energía alrededor -->
+<text x="220" y="298" text-anchor="middle" font-family="monospace" font-size="6" fill="#607080">2</text>
+<text x="220" y="388" text-anchor="middle" font-family="monospace" font-size="6" fill="#607080">360</text>
+<text x="178" y="308" text-anchor="middle" font-family="monospace" font-size="6" fill="#607080">5</text>
+<text x="264" y="308" text-anchor="middle" font-family="monospace" font-size="6" fill="#607080">100</text>
+<text x="178" y="375" text-anchor="middle" font-family="monospace" font-size="6" fill="#607080">200</text>
+<text x="264" y="375" text-anchor="middle" font-family="monospace" font-size="6" fill="#607080">200</text>
+<!-- Indicador posición perilla -->
+<rect x="218" y="310" width="4" height="16" rx="2" fill="#e8a820"/>
+<!-- Label perilla -->
+<text x="220" y="420" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="8" fill="#607080">ENERGY (J)</text>
+
+<!-- BOTÓN CARGAR (naranja/amarillo) -->
+<rect x="272" y="298" width="80" height="36" rx="10" fill="#c87010"/>
+<rect x="274" y="300" width="76" height="32" rx="8" fill="#e88020"/>
+<!-- Símbolo rayo -->
+<polygon points="318,306 308,320 316,320 306,334 320,318 312,318" fill="#ffffff"/>
+<text x="312" y="344" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="8" font-weight="700" fill="#ffffff">CARGAR</text>
+
+<!-- BOTÓN DESCARGA (rojo grande, el más importante) -->
+<rect x="272" y="348" width="80" height="56" rx="12" fill="#901010"/>
+<rect x="276" y="352" width="72" height="48" rx="10" fill="#c01818"/>
+<!-- Símbolo shock -->
+<polygon points="312,360 300,378 310,378 298,396 318,374 308,374" fill="#ffffff"/>
+<text x="312" y="414" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="9" font-weight="800" fill="#ffffff">SHOCK</text>
+
+<!-- BOTÓN ANÁLISIS (azul) -->
+<rect x="164" y="432" width="80" height="30" rx="8" fill="#1040a0"/>
+<rect x="166" y="434" width="76" height="26" rx="6" fill="#1850c0"/>
+<text x="204" y="451" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="8" font-weight="700" fill="#ffffff">ANÁLISIS</text>
+
+<!-- BOTÓN MARCAR EVENTO -->
+<rect x="256" y="432" width="80" height="30" rx="8" fill="#186030"/>
+<rect x="258" y="434" width="76" height="26" rx="6" fill="#208040"/>
+<text x="296" y="451" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="8" font-weight="700" fill="#ffffff">EVENTO</text>
+
+<!-- BOTÓN SYNC -->
+<rect x="348" y="432" width="80" height="30" rx="8" fill="#602010"/>
+<rect x="350" y="434" width="76" height="26" rx="6" fill="#804020"/>
+<text x="388" y="451" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="8" font-weight="700" fill="#ffffff">SYNC</text>
+
+<!-- Botones pequeños adicionales -->
+<rect x="164" y="296" width="36" height="24" rx="5" fill="#1a2838"/>
+<text x="182" y="311" text-anchor="middle" font-family="monospace" font-size="7" fill="#7ee8ff">PRINT</text>
+<rect x="164" y="326" width="36" height="24" rx="5" fill="#1a2838"/>
+<text x="182" y="341" text-anchor="middle" font-family="monospace" font-size="7" fill="#7ee8ff">12 LEAD</text>
+<rect x="164" y="356" width="36" height="24" rx="5" fill="#1a2838"/>
+<text x="182" y="371" text-anchor="middle" font-family="monospace" font-size="7" fill="#7ee8ff">PACER</text>
+<rect x="164" y="386" width="36" height="24" rx="5" fill="#1a2838"/>
+<text x="182" y="401" text-anchor="middle" font-family="monospace" font-size="7" fill="#7ee8ff">MENU</text>
+
+<!-- ============================================================ -->
+<!--              PALETAS / ELECTRODOS                            -->
+<!-- ============================================================ -->
+
+<!-- Paleta APEX (derecha) - cuelga del costado -->
+<!-- Cable paleta derecha -->
+<path d="M472,180 Q520,180 540,200 Q560,220 555,260 Q550,300 545,340 Q542,370 545,400 Q548,430 560,450" fill="none" stroke="#2a3040" stroke-width="6" stroke-linecap="round"/>
+<path d="M472,180 Q520,180 540,200 Q560,220 555,260 Q550,300 545,340 Q542,370 545,400 Q548,430 560,450" fill="none" stroke="#3a4050" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+
+<!-- Paleta APEX -->
+<rect x="536" y="448" width="58" height="100" rx="12" fill="url(#paddleGrad)" stroke="#98a8b4" stroke-width="1.5"/>
+<rect x="542" y="454" width="46" height="88" rx="9" fill="#d8e4ec"/>
+<!-- Plato metálico electrodo -->
+<rect x="542" y="500" width="46" height="36" rx="6" fill="#b8c8d4"/>
+<rect x="546" y="504" width="38" height="28" rx="4" fill="#c8d8e4"/>
+<!-- Botón descarga en paleta (rojo) -->
+<circle cx="565" cy="468" r="10" fill="#901010"/>
+<circle cx="565" cy="468" r="7" fill="#c01818"/>
+<circle cx="565" cy="468" r="3" fill="#a01212"/>
+<!-- Label paleta -->
+<text x="565" y="497" text-anchor="middle" font-family="monospace" font-size="6" fill="#607080">APEX</text>
+
+<!-- Paleta STERNUM (izquierda) -->
+<!-- Cable paleta izquierda -->
+<path d="M148,200 Q100,200 80,220 Q60,240 62,280 Q64,320 68,360 Q70,390 65,420 Q62,445 60,460" fill="none" stroke="#2a3040" stroke-width="6" stroke-linecap="round"/>
+<path d="M148,200 Q100,200 80,220 Q60,240 62,280 Q64,320 68,360 Q70,390 65,420 Q62,445 60,460" fill="none" stroke="#3a4050" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+
+<!-- Paleta STERNUM -->
+<rect x="28" y="456" width="58" height="100" rx="12" fill="url(#paddleGrad)" stroke="#98a8b4" stroke-width="1.5"/>
+<rect x="34" y="462" width="46" height="88" rx="9" fill="#d8e4ec"/>
+<!-- Plato metálico -->
+<rect x="34" y="506" width="46" height="36" rx="6" fill="#b8c8d4"/>
+<rect x="38" y="510" width="38" height="28" rx="4" fill="#c8d8e4"/>
+<!-- Botón descarga en paleta (rojo) -->
+<circle cx="57" cy="476" r="10" fill="#901010"/>
+<circle cx="57" cy="476" r="7" fill="#c01818"/>
+<circle cx="57" cy="476" r="3" fill="#a01212"/>
+<!-- Label paleta -->
+<text x="57" y="504" text-anchor="middle" font-family="monospace" font-size="6" fill="#607080">STERNUM</text>
+
+<!-- ============================================================ -->
+<!--       CONECTORES LATERALES Y ACCESORIOS                     -->
+<!-- ============================================================ -->
+
+<!-- Puerto SpO2 -->
+<rect x="148" y="200" width="16" height="28" rx="4" fill="#c0ccd8"/>
+<rect x="150" y="204" width="12" height="20" rx="2" fill="#1a2838"/>
+<text x="156" y="242" text-anchor="middle" font-family="monospace" font-size="6" fill="#607888">SpO2</text>
+
+<!-- Puerto ECG/cables paciente -->
+<rect x="148" y="236" width="16" height="40" rx="4" fill="#c0ccd8"/>
+<rect x="150" y="240" width="12" height="32" rx="2" fill="#1a2838"/>
+<!-- Conectores tipo banana -->
+<circle cx="156" cy="248" r="3" fill="#e8a820"/>
+<circle cx="156" cy="258" r="3" fill="#e8a820"/>
+<circle cx="156" cy="268" r="3" fill="#e8a820"/>
+<text x="156" y="288" text-anchor="middle" font-family="monospace" font-size="6" fill="#607888">ECG</text>
+
+<!-- Indicador batería -->
+<rect x="390" y="296" width="66" height="26" rx="5" fill="#1a2838"/>
+<text x="423" y="306" text-anchor="middle" font-family="monospace" font-size="6" fill="#7ee8ff">BATERÍA</text>
+<!-- Barra batería -->
+<rect x="396" y="308" width="48" height="8" rx="2" fill="#0a1020"/>
+<rect x="396" y="308" width="40" height="8" rx="2" fill="#50c878"/>
+<text x="445" y="315" font-family="monospace" font-size="5" fill="#50c878">83%</text>
+
+<!-- Indicador estado -->
+<rect x="390" y="328" width="66" height="26" rx="5" fill="#0a1e10"/>
+<text x="423" y="343" text-anchor="middle" font-family="monospace" font-size="8" font-weight="700" fill="#50e878">● STANDBY</text>
+
+<!-- LED indicador carga -->
+<circle cx="390" cy="370" r="7" fill="#e88020" opacity="0.3"/>
+<circle cx="390" cy="370" r="7" fill="none" stroke="#e88020" stroke-width="1.5"/>
+<text x="406" y="374" font-family="monospace" font-size="6" fill="#e88020">CHARGED</text>
+
+<!-- Puerto impresora -->
+<rect x="460" y="300" width="12" height="36" rx="3" fill="#b0bcc8"/>
+<text x="466" y="348" text-anchor="middle" font-family="monospace" font-size="6" fill="#607888">PRINT</text>
+
+<!-- Etiqueta general -->
+<text x="310" y="552" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="13" font-weight="700" fill="#8898a8" letter-spacing="1">Desfibrilador Monitor</text>
+<text x="310" y="566" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="10" fill="#a0b0b8">Philips HeartStart MRx</text>
+
+</svg>

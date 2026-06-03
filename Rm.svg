@@ -1,0 +1,118 @@
+<svg width="100%" viewBox="0 0 800 480" xmlns="http://www.w3.org/2000/svg">
+<title>CT Scanner Flat Design - Vista lateral</title>
+
+<!-- PISO -->
+<rect x="0" y="420" width="800" height="60" fill="#d8dde4"/>
+<rect x="0" y="418" width="800" height="5" fill="#c0c8d0"/>
+
+<!-- ===================== CUERPO PRINCIPAL CT ===================== -->
+<!-- El CT es más cuadrado/rectangular que el MRI, más ancho que alto -->
+
+<!-- Cara lateral derecha (profundidad) -->
+<rect x="636" y="112" width="52" height="308" rx="8" fill="#b8c4ce"/>
+<!-- Franjas laterales -->
+<rect x="636" y="148" width="52" height="16" fill="#a8b4be"/>
+<rect x="636" y="224" width="52" height="16" fill="#a8b4be"/>
+<rect x="636" y="300" width="52" height="16" fill="#a8b4be"/>
+
+<!-- Cuerpo frontal principal -->
+<rect x="390" y="108" width="250" height="312" rx="28" fill="#dce2e8"/>
+<!-- Capa interior más clara -->
+<rect x="398" y="116" width="234" height="296" rx="22" fill="#e8edf2"/>
+
+<!-- Franja superior gris oscuro -->
+<rect x="390" y="108" width="250" height="36" rx="28" fill="#b8c4ce"/>
+<rect x="390" y="132" width="250" height="12" fill="#b8c4ce"/>
+
+<!-- Franja inferior gris oscuro -->
+<rect x="390" y="392" width="250" height="28" rx="28" fill="#b8c4ce"/>
+<rect x="390" y="392" width="250" height="12" fill="#b8c4ce"/>
+
+<!-- Franjas horizontales intermedias del cuerpo -->
+<rect x="398" y="172" width="234" height="12" rx="2" fill="#c8d4de" opacity="0.7"/>
+<rect x="398" y="228" width="234" height="12" rx="2" fill="#c8d4de" opacity="0.7"/>
+<rect x="398" y="284" width="234" height="12" rx="2" fill="#c8d4de" opacity="0.7"/>
+<rect x="398" y="340" width="234" height="12" rx="2" fill="#c8d4de" opacity="0.7"/>
+
+<!-- ===================== ARO CT (más pequeño y con bisel pronunciado) ===================== -->
+<!-- Bisel exterior gris -->
+<circle cx="420" cy="264" r="148" fill="#c8d2d8"/>
+<!-- Aro exterior -->
+<circle cx="420" cy="264" r="148" fill="none" stroke="#b8c4ce" stroke-width="4"/>
+
+<!-- Aro teal/cyan (más delgado que el MRI) -->
+<circle cx="420" cy="264" r="132" fill="#7ecece"/>
+<!-- Brillo aro teal -->
+<circle cx="420" cy="264" r="132" fill="none" stroke="#9adede" stroke-width="5" opacity="0.5"/>
+
+<!-- Aro blanco intermedio -->
+<circle cx="420" cy="264" r="114" fill="#e8eef2"/>
+<circle cx="420" cy="264" r="114" fill="none" stroke="#d0d8e0" stroke-width="3"/>
+
+<!-- Aro gris interior bisel -->
+<circle cx="420" cy="264" r="98" fill="#c0ccd2"/>
+<circle cx="420" cy="264" r="90" fill="#d8e2e6"/>
+
+<!-- Interior del túnel -->
+<circle cx="420" cy="264" r="78" fill="#b8d8d8"/>
+<circle cx="420" cy="264" r="64" fill="#a8cece"/>
+<circle cx="420" cy="264" r="48" fill="#98c4c4"/>
+
+<!-- Reflejo interior superior -->
+<ellipse cx="408" cy="214" rx="38" ry="16" fill="#c8e8e8" opacity="0.7"/>
+
+<!-- Anillo de luz interior (característica CT) -->
+<circle cx="420" cy="264" r="78" fill="none" stroke="#b0d8e0" stroke-width="3" opacity="0.6"/>
+
+<!-- ===================== DISPLAY LATERAL (CT tiene panel más grande) ===================== -->
+<rect x="490" y="194" width="58" height="46" rx="6" fill="#c0ccd4"/>
+<rect x="494" y="198" width="50" height="34" rx="4" fill="#1a2a3a"/>
+<!-- Contenido pantalla -->
+<rect x="497" y="201" width="40" height="3" rx="1" fill="#38bdf8" opacity="0.9"/>
+<rect x="497" y="207" width="28" height="3" rx="1" fill="#38bdf8" opacity="0.6"/>
+<rect x="497" y="213" width="34" height="3" rx="1" fill="#22d3ee" opacity="0.7"/>
+<rect x="497" y="219" width="22" height="3" rx="1" fill="#38bdf8" opacity="0.4"/>
+<rect x="497" y="225" width="36" height="3" rx="1" fill="#38bdf8" opacity="0.5"/>
+
+<!-- Botones debajo del display -->
+<circle cx="504" cy="252" r="5" fill="#e05050"/>
+<circle cx="518" cy="252" r="5" fill="#e0c050"/>
+<circle cx="532" cy="252" r="5" fill="#50c878"/>
+
+<!-- ===================== CAMILLA CT (más angosta y plana) ===================== -->
+<!-- Base pedestal (CT tiene pedestal articulado central) -->
+<rect x="190" y="380" width="260" height="40" rx="5" fill="#a8b4be"/>
+<rect x="200" y="368" width="240" height="18" rx="4" fill="#b8c4ce"/>
+
+<!-- Pedestal central articulado -->
+<rect x="278" y="340" width="84" height="46" rx="6" fill="#b0bcc6"/>
+<rect x="286" y="340" width="68" height="14" rx="3" fill="#c0ccd6"/>
+
+<!-- Superficie camilla (más angosta) -->
+<rect x="62" y="318" width="368" height="28" rx="5" fill="#c8d4de"/>
+<!-- Colchoneta teal delgada encima -->
+<rect x="66" y="310" width="360" height="16" rx="5" fill="#7ecece"/>
+<!-- Brillo colchoneta -->
+<rect x="66" y="310" width="360" height="6" rx="5" fill="#9adada" opacity="0.7"/>
+<!-- Línea inferior colchoneta -->
+<rect x="66" y="320" width="360" height="4" fill="#5ab0b0"/>
+
+<!-- Cabecera izquierda CT (forma característica redondeada) -->
+<ellipse cx="68" cy="322" rx="16" ry="20" fill="#d8e4ec"/>
+<ellipse cx="68" cy="322" rx="10" ry="13" fill="#c8d4de"/>
+
+<!-- Estructura inferior camilla (CT tiene estructura más baja) -->
+<rect x="62" y="342" width="368" height="12" rx="3" fill="#b8c8d4"/>
+<rect x="62" y="350" width="368" height="10" rx="2" fill="#a8b8c4"/>
+
+<!-- Línea blanca reflejo camilla (detalle flat) -->
+<rect x="100" y="344" width="120" height="4" rx="2" fill="#ffffff" opacity="0.5"/>
+
+<!-- Cable entre camilla y cuerpo -->
+<path d="M430,310 Q436,290 428,270 Q422,258 420,264" fill="none" stroke="#909aaa" stroke-width="3" stroke-linecap="round"/>
+
+<!-- ===================== BASE / PLATAFORMA ===================== -->
+<rect x="50" y="414" width="640" height="10" rx="3" fill="#b0bcc8"/>
+<rect x="50" y="416" width="640" height="5" rx="2" fill="#a0acb8"/>
+
+</svg>

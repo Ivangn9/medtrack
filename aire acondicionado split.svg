@@ -1,0 +1,202 @@
+<svg width="100%" viewBox="0 0 820 580" xmlns="http://www.w3.org/2000/svg">
+<title>Aire Acondicionado Split</title>
+<defs>
+  <linearGradient id="interiorGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+    <stop offset="0%" stop-color="#f4f7fa"/>
+    <stop offset="100%" stop-color="#dce4ec"/>
+  </linearGradient>
+  <linearGradient id="exteriorGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+    <stop offset="0%" stop-color="#c8d4de"/>
+    <stop offset="100%" stop-color="#a8b8c4"/>
+  </linearGradient>
+  <radialGradient id="fanGrad" cx="40%" cy="40%" r="60%">
+    <stop offset="0%" stop-color="#b8c8d4"/>
+    <stop offset="100%" stop-color="#8a9aaa"/>
+  </radialGradient>
+  <linearGradient id="airFlow" x1="0%" y1="0%" x2="100%" y2="0%">
+    <stop offset="0%" stop-color="#b8e8f8" stop-opacity="0.8"/>
+    <stop offset="100%" stop-color="#b8e8f8" stop-opacity="0"/>
+  </linearGradient>
+  <linearGradient id="paddleGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+    <stop offset="0%" stop-color="#c8d4de"/>
+    <stop offset="100%" stop-color="#a8b8c4"/>
+  </linearGradient>
+</defs>
+
+<!-- FONDO -->
+<rect x="0" y="0" width="820" height="580" fill="#f5f8fb"/>
+
+<!-- Etiquetas sección -->
+<text x="200" y="38" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="12" font-weight="700" fill="#8898a8" letter-spacing="1">UNIDAD INTERIOR</text>
+<text x="610" y="38" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="12" font-weight="700" fill="#8898a8" letter-spacing="1">UNIDAD EXTERIOR</text>
+<line x1="410" y1="20" x2="410" y2="560" stroke="#d8e0e8" stroke-width="2" stroke-dasharray="8 4"/>
+
+<!-- ============================================================ -->
+<!-- UNIDAD INTERIOR                                              -->
+<!-- ============================================================ -->
+
+<!-- Pared -->
+<rect x="30" y="55" width="360" height="270" rx="4" fill="#edf1f5"/>
+<rect x="30" y="318" width="360" height="8" rx="2" fill="#d8e0e8"/>
+
+<!-- Soportes pared -->
+<rect x="90" y="315" width="28" height="18" rx="3" fill="#b8c4d0"/>
+<rect x="292" y="315" width="28" height="18" rx="3" fill="#b8c4d0"/>
+
+<!-- Cuerpo unidad interior -->
+<rect x="60" y="128" width="300" height="92" rx="16" fill="url(#interiorGrad)" stroke="#c4d0da" stroke-width="1.5"/>
+<rect x="66" y="134" width="288" height="80" rx="12" fill="#f6f9fc"/>
+
+<!-- Franja superior -->
+<rect x="60" y="128" width="300" height="20" rx="16" fill="#e0e8f2"/>
+<rect x="60" y="142" width="300" height="6" fill="#e0e8f2"/>
+
+<!-- Display -->
+<rect x="80" y="146" width="58" height="22" rx="5" fill="#0a1828"/>
+<rect x="84" y="150" width="50" height="14" rx="3" fill="#081020"/>
+<text x="109" y="161" text-anchor="middle" font-family="monospace" font-size="11" font-weight="700" fill="#38bdf8">22°C</text>
+<circle cx="82" cy="173" r="4" fill="#50c878"/>
+<circle cx="82" cy="173" r="2.5" fill="#7eeaa0"/>
+<circle cx="94" cy="173" r="4" fill="#38bdf8" opacity="0.6"/>
+
+<!-- Rejilla salida -->
+<rect x="66" y="178" width="288" height="30" rx="4" fill="#d8e4ec"/>
+<rect x="70" y="181" width="280" height="3" rx="1" fill="#c0ccd8"/>
+<rect x="70" y="187" width="280" height="3" rx="1" fill="#c0ccd8"/>
+<rect x="70" y="193" width="280" height="3" rx="1" fill="#c0ccd8"/>
+<rect x="70" y="199" width="280" height="3" rx="1" fill="#c0ccd8"/>
+<rect x="68" y="184" width="284" height="6" rx="3" fill="#b8c8d4" transform="rotate(-3 210 187)"/>
+
+<!-- Rejilla entrada -->
+<rect x="152" y="134" width="140" height="12" rx="3" fill="#e8eef4"/>
+<line x1="166" y1="134" x2="166" y2="146" stroke="#c8d4de" stroke-width="1.2"/>
+<line x1="180" y1="134" x2="180" y2="146" stroke="#c8d4de" stroke-width="1.2"/>
+<line x1="194" y1="134" x2="194" y2="146" stroke="#c8d4de" stroke-width="1.2"/>
+<line x1="208" y1="134" x2="208" y2="146" stroke="#c8d4de" stroke-width="1.2"/>
+<line x1="222" y1="134" x2="222" y2="146" stroke="#c8d4de" stroke-width="1.2"/>
+<line x1="236" y1="134" x2="236" y2="146" stroke="#c8d4de" stroke-width="1.2"/>
+<line x1="250" y1="134" x2="250" y2="146" stroke="#c8d4de" stroke-width="1.2"/>
+<line x1="264" y1="134" x2="264" y2="146" stroke="#c8d4de" stroke-width="1.2"/>
+<line x1="278" y1="134" x2="278" y2="146" stroke="#c8d4de" stroke-width="1.2"/>
+
+<!-- Logo -->
+<text x="318" y="150" font-family="-apple-system, sans-serif" font-size="10" font-weight="700" fill="#8898a8" letter-spacing="1">DAIKIN</text>
+<circle cx="350" cy="173" r="5" fill="#1a2030"/>
+<circle cx="350" cy="173" r="3" fill="#0a1018"/>
+
+<!-- Flujo de aire -->
+<path d="M70,220 Q120,213 170,223 Q220,233 270,218 Q320,208 370,220" fill="none" stroke="url(#airFlow)" stroke-width="3" stroke-linecap="round"/>
+<path d="M70,232 Q130,223 190,233 Q250,243 310,228 Q340,222 370,232" fill="none" stroke="url(#airFlow)" stroke-width="2.5" stroke-linecap="round" opacity="0.7"/>
+<path d="M70,244 Q140,235 200,246 Q260,256 330,240 Q350,235 370,244" fill="none" stroke="url(#airFlow)" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+<path d="M70,256 Q150,247 220,258 Q280,268 350,251" fill="none" stroke="url(#airFlow)" stroke-width="1.5" stroke-linecap="round" opacity="0.3"/>
+
+<!-- Cañerías -->
+<rect x="308" y="208" width="8" height="120" rx="3" fill="#c8d4de"/>
+<rect x="320" y="208" width="5" height="120" rx="2" fill="#b8c4d0"/>
+<rect x="330" y="216" width="5" height="112" rx="2" fill="#a8b8c4"/>
+
+<!-- Control remoto -->
+<rect x="66" y="358" width="58" height="142" rx="10" fill="#e8eef4" stroke="#c8d4de" stroke-width="1.5"/>
+<rect x="70" y="362" width="50" height="138" rx="8" fill="#f0f4f8"/>
+<rect x="74" y="366" width="42" height="28" rx="4" fill="#0a1828"/>
+<text x="95" y="377" text-anchor="middle" font-family="monospace" font-size="7" fill="#38bdf8">22°C</text>
+<text x="95" y="388" text-anchor="middle" font-family="monospace" font-size="6" fill="#50c878">COOL</text>
+<circle cx="88" cy="408" r="8" fill="#c8d8e4"/>
+<rect x="85" y="398" width="6" height="20" rx="2" fill="#b8c8d4"/>
+<rect x="80" y="405" width="16" height="6" rx="2" fill="#b8c8d4"/>
+<circle cx="88" cy="408" r="3" fill="#c8d8e4"/>
+<rect x="74" y="422" width="14" height="10" rx="3" fill="#1040a0"/>
+<rect x="91" y="422" width="14" height="10" rx="3" fill="#901010"/>
+<rect x="74" y="436" width="14" height="10" rx="3" fill="#186030"/>
+<rect x="91" y="436" width="14" height="10" rx="3" fill="#604010"/>
+<rect x="74" y="450" width="32" height="10" rx="3" fill="#2a3848"/>
+<text x="90" y="458" text-anchor="middle" font-family="monospace" font-size="5" fill="#7ee8ff">ON/OFF</text>
+<rect x="74" y="464" width="32" height="10" rx="3" fill="#2a3848"/>
+<text x="90" y="472" text-anchor="middle" font-family="monospace" font-size="5" fill="#7ee8ff">TIMER</text>
+<rect x="74" y="478" width="32" height="10" rx="3" fill="#2a3848"/>
+<text x="90" y="486" text-anchor="middle" font-family="monospace" font-size="5" fill="#7ee8ff">MODE</text>
+
+<text x="200" y="520" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="11" font-weight="600" fill="#8898a8">Evaporadora 3500W · 12.000 BTU</text>
+
+<!-- ============================================================ -->
+<!-- UNIDAD EXTERIOR                                              -->
+<!-- ============================================================ -->
+
+<!-- Cuerpo exterior -->
+<rect x="450" y="108" width="300" height="282" rx="12" fill="url(#exteriorGrad)" stroke="#98a8b4" stroke-width="2"/>
+<rect x="458" y="116" width="284" height="266" rx="8" fill="#b8c8d4"/>
+
+<!-- Franjas -->
+<rect x="450" y="108" width="300" height="28" rx="12" fill="#a0b0bc"/>
+<rect x="450" y="126" width="300" height="10" fill="#a0b0bc"/>
+<rect x="450" y="362" width="300" height="28" rx="12" fill="#a0b0bc"/>
+<rect x="450" y="362" width="300" height="10" fill="#a0b0bc"/>
+
+<!-- Ventilador circular -->
+<circle cx="576" cy="250" r="108" fill="#a8b8c4"/>
+<circle cx="576" cy="250" r="102" fill="#98a8b4"/>
+
+<!-- Paletas hélice (5 paletas) -->
+<ellipse cx="576" cy="198" rx="18" ry="46" fill="url(#paddleGrad)" transform="rotate(0 576 250)"/>
+<ellipse cx="576" cy="198" rx="18" ry="46" fill="url(#paddleGrad)" transform="rotate(72 576 250)"/>
+<ellipse cx="576" cy="198" rx="18" ry="46" fill="url(#paddleGrad)" transform="rotate(144 576 250)"/>
+<ellipse cx="576" cy="198" rx="18" ry="46" fill="url(#paddleGrad)" transform="rotate(216 576 250)"/>
+<ellipse cx="576" cy="198" rx="18" ry="46" fill="url(#paddleGrad)" transform="rotate(288 576 250)"/>
+
+<!-- Centro motor -->
+<circle cx="576" cy="250" r="22" fill="#90a0ac"/>
+<circle cx="576" cy="250" r="15" fill="#a0b0bc"/>
+<circle cx="576" cy="250" r="8" fill="#8898a8"/>
+<circle cx="576" cy="250" r="4" fill="#788898"/>
+<circle cx="576" cy="250" r="102" fill="none" stroke="#8898a8" stroke-width="3"/>
+
+<!-- Compresor lateral derecho -->
+<rect x="700" y="126" width="44" height="80" rx="6" fill="#9aacb8"/>
+<rect x="704" y="130" width="36" height="72" rx="4" fill="#a8bac6"/>
+<circle cx="722" cy="156" r="16" fill="#8898a4"/>
+<circle cx="722" cy="156" r="10" fill="#98a8b4"/>
+<circle cx="722" cy="156" r="5" fill="#8898a4"/>
+<rect x="714" y="194" width="6" height="24" rx="2" fill="#7888a0"/>
+<rect x="724" y="194" width="6" height="24" rx="2" fill="#8898b0"/>
+
+<!-- Condensador aletas -->
+<rect x="700" y="218" width="44" height="112" rx="4" fill="#8898a8"/>
+<line x1="700" y1="228" x2="744" y2="228" stroke="#98a8b8" stroke-width="1.5"/>
+<line x1="700" y1="236" x2="744" y2="236" stroke="#98a8b8" stroke-width="1.5"/>
+<line x1="700" y1="244" x2="744" y2="244" stroke="#98a8b8" stroke-width="1.5"/>
+<line x1="700" y1="252" x2="744" y2="252" stroke="#98a8b8" stroke-width="1.5"/>
+<line x1="700" y1="260" x2="744" y2="260" stroke="#98a8b8" stroke-width="1.5"/>
+<line x1="700" y1="268" x2="744" y2="268" stroke="#98a8b8" stroke-width="1.5"/>
+<line x1="700" y1="276" x2="744" y2="276" stroke="#98a8b8" stroke-width="1.5"/>
+<line x1="700" y1="284" x2="744" y2="284" stroke="#98a8b8" stroke-width="1.5"/>
+<line x1="700" y1="292" x2="744" y2="292" stroke="#98a8b8" stroke-width="1.5"/>
+<line x1="700" y1="300" x2="744" y2="300" stroke="#98a8b8" stroke-width="1.5"/>
+<line x1="700" y1="308" x2="744" y2="308" stroke="#98a8b8" stroke-width="1.5"/>
+<line x1="700" y1="316" x2="744" y2="316" stroke="#98a8b8" stroke-width="1.5"/>
+
+<!-- Logo exterior -->
+<text x="516" y="138" font-family="-apple-system, sans-serif" font-size="11" font-weight="700" fill="#6878a0" letter-spacing="1">DAIKIN</text>
+
+<!-- Válvula servicio -->
+<rect x="452" y="228" width="20" height="32" rx="4" fill="#8898a8"/>
+<rect x="456" y="232" width="12" height="24" rx="2" fill="#98a8b8"/>
+
+<!-- Base y patas -->
+<rect x="440" y="388" width="330" height="14" rx="5" fill="#98a8b4"/>
+<rect x="450" y="398" width="310" height="10" rx="4" fill="#88a0ac"/>
+<rect x="460" y="406" width="24" height="28" rx="4" fill="#8898a8"/>
+<rect x="496" y="406" width="24" height="28" rx="4" fill="#8898a8"/>
+<rect x="688" y="406" width="24" height="28" rx="4" fill="#8898a8"/>
+<rect x="724" y="406" width="24" height="28" rx="4" fill="#8898a8"/>
+<circle cx="472" cy="430" r="5" fill="#788898"/>
+<circle cx="508" cy="430" r="5" fill="#788898"/>
+<circle cx="700" cy="430" r="5" fill="#788898"/>
+<circle cx="736" cy="430" r="5" fill="#788898"/>
+
+<!-- Flujo aire exterior -->
+<path d="M456,220 Q428,230 418,250 Q408,272 422,288" fill="none" stroke="#b8d8e8" stroke-width="2.5" stroke-linecap="round" opacity="0.5"/>
+<path d="M456,250 Q426,250 416,260 Q406,270 412,283" fill="none" stroke="#b8d8e8" stroke-width="2" stroke-linecap="round" opacity="0.35"/>
+
+<text x="600" y="520" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="11" font-weight="600" fill="#8898a8">Condensadora 3500W · Inverter R32</text>
+
+</svg>

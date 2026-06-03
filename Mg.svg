@@ -1,0 +1,219 @@
+<svg width="100%" viewBox="0 0 700 580" xmlns="http://www.w3.org/2000/svg">
+<title>Mamógrafo Flat Design - Rosa</title>
+<defs>
+  <linearGradient id="pinkGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0%" stop-color="#fce4ec"/>
+    <stop offset="100%" stop-color="#f8bbd0"/>
+  </linearGradient>
+  <linearGradient id="colGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+    <stop offset="0%" stop-color="#f48fb1"/>
+    <stop offset="100%" stop-color="#f8bbd0"/>
+  </linearGradient>
+  <clipPath id="screenClip">
+    <rect x="38" y="190" width="128" height="138" rx="3"/>
+  </clipPath>
+</defs>
+
+<!-- PISO -->
+<rect x="0" y="500" width="700" height="80" fill="#f3e5f5"/>
+<rect x="0" y="498" width="700" height="6" fill="#e1bee7"/>
+
+<!-- PARED -->
+<rect x="0" y="0" width="700" height="502" fill="#fdf6f9"/>
+<rect x="0" y="490" width="700" height="12" fill="#fce4ec"/>
+
+<!-- ===================== COLUMNA PRINCIPAL ===================== -->
+<rect x="272" y="440" width="156" height="58" rx="8" fill="#f48fb1"/>
+<rect x="282" y="440" width="136" height="16" rx="4" fill="#f9a8c2"/>
+<rect x="278" y="478" width="40" height="24" rx="4" fill="#e879a0"/>
+<rect x="382" y="478" width="40" height="24" rx="4" fill="#e879a0"/>
+<circle cx="298" cy="502" r="8" fill="#c2185b"/>
+<circle cx="298" cy="502" r="4" fill="#e91e8c"/>
+<circle cx="402" cy="502" r="8" fill="#c2185b"/>
+<circle cx="402" cy="502" r="4" fill="#e91e8c"/>
+
+<!-- Columna vertical central -->
+<rect x="308" y="100" width="84" height="344" rx="6" fill="url(#colGrad)"/>
+<rect x="316" y="108" width="68" height="328" rx="4" fill="#fce4ec"/>
+<rect x="344" y="108" width="12" height="328" rx="3" fill="#f48fb1"/>
+<rect x="320" y="108" width="8" height="328" rx="2" fill="#fff0f5" opacity="0.6"/>
+
+<!-- ===================== BRAZO EN C ===================== -->
+<rect x="314" y="96" width="72" height="30" rx="6" fill="#f06292"/>
+<rect x="320" y="100" width="60" height="20" rx="4" fill="#f48fb1"/>
+
+<!-- Brazo horizontal superior -->
+<rect x="382" y="86" width="120" height="32" rx="8" fill="#ec407a"/>
+<rect x="388" y="92" width="108" height="20" rx="5" fill="#f06292"/>
+
+<!-- ===================== TUBO RX ===================== -->
+<rect x="478" y="52" width="88" height="72" rx="12" fill="#e91e8c"/>
+<rect x="484" y="58" width="76" height="60" rx="9" fill="#f06292"/>
+<ellipse cx="522" cy="88" rx="22" ry="16" fill="#c2185b"/>
+<ellipse cx="522" cy="88" rx="14" ry="10" fill="#ad1457"/>
+<ellipse cx="522" cy="88" rx="6" ry="6" fill="#880e4f"/>
+<rect x="486" y="62" width="4" height="28" rx="2" fill="#e879a0" opacity="0.6"/>
+<rect x="493" y="62" width="4" height="28" rx="2" fill="#e879a0" opacity="0.5"/>
+<rect x="500" y="62" width="4" height="28" rx="2" fill="#e879a0" opacity="0.4"/>
+
+<!-- ===================== COLIMADOR ===================== -->
+<rect x="486" y="122" width="72" height="44" rx="6" fill="#4a1a2e"/>
+<rect x="490" y="126" width="64" height="36" rx="4" fill="#3a0e22"/>
+<line x1="522" y1="126" x2="522" y2="162" stroke="#ff80ab" stroke-width="1.5" opacity="0.5"/>
+<line x1="490" y1="144" x2="554" y2="144" stroke="#ff80ab" stroke-width="1.5" opacity="0.5"/>
+
+<!-- Paleta compresora -->
+<rect x="480" y="164" width="84" height="14" rx="4" fill="#fce4ec"/>
+<rect x="484" y="166" width="76" height="8" rx="3" fill="#fff0f5"/>
+<rect x="480" y="174" width="84" height="4" rx="2" fill="#f48fb1"/>
+<rect x="476" y="162" width="10" height="20" rx="3" fill="#f06292"/>
+<rect x="558" y="162" width="10" height="20" rx="3" fill="#f06292"/>
+
+<!-- Haz RX -->
+<polygon points="522,178 492,270 552,270" fill="#ff80ab" opacity="0.10"/>
+
+<!-- ===================== PLATAFORMA ===================== -->
+<rect x="382" y="270" width="160" height="28" rx="8" fill="#ec407a"/>
+<rect x="388" y="276" width="148" height="16" rx="5" fill="#f06292"/>
+
+<rect x="390" y="294" width="150" height="20" rx="6" fill="url(#pinkGrad)"/>
+<rect x="394" y="296" width="142" height="12" rx="4" fill="#fce4ec"/>
+<rect x="390" y="310" width="150" height="6" rx="3" fill="#f48fb1"/>
+
+<rect x="396" y="298" width="138" height="10" rx="3" fill="#fce4ec"/>
+<line x1="420" y1="298" x2="420" y2="308" stroke="#f48fb1" stroke-width="1" opacity="0.5"/>
+<line x1="446" y1="298" x2="446" y2="308" stroke="#f48fb1" stroke-width="1" opacity="0.5"/>
+<line x1="472" y1="298" x2="472" y2="308" stroke="#f48fb1" stroke-width="1" opacity="0.5"/>
+<line x1="498" y1="298" x2="498" y2="308" stroke="#f48fb1" stroke-width="1" opacity="0.5"/>
+<line x1="524" y1="298" x2="524" y2="308" stroke="#f48fb1" stroke-width="1" opacity="0.5"/>
+
+<!-- ===================== PANEL CONTROL ===================== -->
+<rect x="312" y="160" width="58" height="100" rx="8" fill="#e91e8c"/>
+<rect x="318" y="166" width="46" height="70" rx="5" fill="#1a0810"/>
+<rect x="320" y="168" width="42" height="38" rx="3" fill="#0e0610"/>
+<rect x="322" y="170" width="36" height="3" rx="1" fill="#ff80ab" opacity="0.9"/>
+<rect x="322" y="175" width="26" height="3" rx="1" fill="#ff80ab" opacity="0.6"/>
+<rect x="322" y="180" width="30" height="3" rx="1" fill="#ff4d8c" opacity="0.7"/>
+<rect x="322" y="185" width="20" height="3" rx="1" fill="#ff80ab" opacity="0.5"/>
+<rect x="322" y="190" width="28" height="3" rx="1" fill="#ff80ab" opacity="0.4"/>
+<rect x="322" y="195" width="16" height="3" rx="1" fill="#ff4d8c" opacity="0.35"/>
+<circle cx="328" cy="214" r="5" fill="#ff1744"/>
+<circle cx="341" cy="214" r="5" fill="#ffd740"/>
+<circle cx="354" cy="214" r="5" fill="#69f0ae"/>
+<rect x="324" y="222" width="22" height="8" rx="3" fill="#c2185b"/>
+
+<!-- ===================== MANIJAS ===================== -->
+<rect x="258" y="230" width="16" height="80" rx="6" fill="#fce4ec" stroke="#f48fb1" stroke-width="1.5"/>
+<rect x="260" y="234" width="12" height="72" rx="4" fill="#fff0f5"/>
+<rect x="260" y="248" width="12" height="6" rx="2" fill="#f48fb1"/>
+<rect x="260" y="262" width="12" height="6" rx="2" fill="#f48fb1"/>
+<rect x="260" y="276" width="12" height="6" rx="2" fill="#f48fb1"/>
+<rect x="260" y="290" width="12" height="6" rx="2" fill="#f48fb1"/>
+
+<rect x="420" y="230" width="16" height="80" rx="6" fill="#fce4ec" stroke="#f48fb1" stroke-width="1.5"/>
+<rect x="422" y="234" width="12" height="72" rx="4" fill="#fff0f5"/>
+<rect x="422" y="248" width="12" height="6" rx="2" fill="#f48fb1"/>
+<rect x="422" y="262" width="12" height="6" rx="2" fill="#f48fb1"/>
+<rect x="422" y="276" width="12" height="6" rx="2" fill="#f48fb1"/>
+<rect x="422" y="290" width="12" height="6" rx="2" fill="#f48fb1"/>
+
+<!-- ===================== PEDALES ===================== -->
+<rect x="240" y="480" width="80" height="16" rx="5" fill="#e879a0"/>
+<rect x="244" y="475" width="72" height="10" rx="4" fill="#f06292"/>
+<rect x="380" y="480" width="80" height="16" rx="5" fill="#e879a0"/>
+<rect x="384" y="475" width="72" height="10" rx="4" fill="#f06292"/>
+<path d="M280 475 Q282 460 308 450" fill="none" stroke="#f48fb1" stroke-width="2" stroke-linecap="round"/>
+<path d="M420 475 Q418 460 392 450" fill="none" stroke="#f48fb1" stroke-width="2" stroke-linecap="round"/>
+
+<!-- ===================== MONITOR ===================== -->
+<rect x="96" y="340" width="12" height="160" rx="3" fill="#f48fb1"/>
+<rect x="62" y="490" width="80" height="12" rx="4" fill="#f06292"/>
+<rect x="76" y="480" width="52" height="14" rx="3" fill="#f48fb1"/>
+
+<!-- Marco monitor -->
+<rect x="28" y="180" width="148" height="166" rx="8" fill="#e91e8c"/>
+<rect x="34" y="186" width="136" height="148" rx="5" fill="#1a0810"/>
+
+<!-- IMAGEN MAMOGRAFÍA REAL EN PANTALLA -->
+<rect x="38" y="190" width="128" height="138" rx="3" fill="#0a0408"/>
+
+<!-- Fondo imagen mamografía (negro radiológico) -->
+<rect x="38" y="190" width="128" height="138" rx="3" fill="#050208"/>
+
+<!-- MAMA DERECHA - forma ovoide característica MLO -->
+<ellipse cx="85" cy="259" rx="38" ry="56" fill="#1a0d14" clip-path="url(#screenClip)"/>
+
+<!-- Tejido fibroglandular (zona densa central, color más claro) -->
+<ellipse cx="80" cy="248" rx="22" ry="32" fill="#2d1520"/>
+<ellipse cx="78" cy="244" rx="15" ry="22" fill="#3d1e28"/>
+<ellipse cx="76" cy="242" rx="9" ry="14" fill="#502535"/>
+
+<!-- Grasa subcutánea (bordes más oscuros) -->
+<ellipse cx="95" cy="272" rx="12" ry="18" fill="#150a10"/>
+<ellipse cx="72" cy="270" rx="8" ry="14" fill="#150a10"/>
+
+<!-- Pezón (punto referencia) -->
+<circle cx="112" cy="268" r="3" fill="#6b3045"/>
+
+<!-- Músculo pectoral (banda oblicua lateral) -->
+<polygon points="108,196 128,196 128,310 114,310" fill="#1f0d18" opacity="0.7" clip-path="url(#screenClip)"/>
+<polygon points="112,196 128,196 128,300 116,300" fill="#281018" opacity="0.5" clip-path="url(#screenClip)"/>
+
+<!-- Ganglios axilares (pequeños nódulos) -->
+<ellipse cx="118" cy="210" rx="5" ry="4" fill="#3a1a24"/>
+<ellipse cx="124" cy="218" rx="4" ry="3" fill="#3a1a24"/>
+<ellipse cx="120" cy="226" rx="4" ry="3" fill="#3a1a24"/>
+
+<!-- Vasos / ductos (líneas finas) -->
+<line x1="76" y1="220" x2="68" y2="240" stroke="#3d1e28" stroke-width="1.5" opacity="0.6"/>
+<line x1="82" y1="218" x2="78" y2="244" stroke="#3d1e28" stroke-width="1.5" opacity="0.6"/>
+<line x1="88" y1="222" x2="84" y2="248" stroke="#3d1e28" stroke-width="1.2" opacity="0.5"/>
+<line x1="72" y1="248" x2="66" y2="264" stroke="#2d1520" stroke-width="1" opacity="0.5"/>
+
+<!-- Marcadores radiológicos (texto en imagen) -->
+<text x="42" y="200" font-family="monospace" font-size="7" fill="#e0a0b0" opacity="0.8">R MLO</text>
+<text x="42" y="208" font-family="monospace" font-size="6" fill="#c08090" opacity="0.6">28kV 80mAs</text>
+<text x="42" y="320" font-family="monospace" font-size="6" fill="#c08090" opacity="0.5">MAMOGRAFIA</text>
+
+<!-- Línea de referencia horizontal -->
+<line x1="38" y1="259" x2="166" y2="259" stroke="#ff80ab" stroke-width="0.5" opacity="0.2"/>
+
+<!-- Botones monitor -->
+<rect x="34" y="338" width="136" height="8" rx="2" fill="#e91e8c"/>
+<circle cx="50" cy="342" r="3" fill="#69f0ae"/>
+<circle cx="62" cy="342" r="3" fill="#fce4ec"/>
+<circle cx="74" cy="342" r="3" fill="#fce4ec"/>
+<rect x="120" y="338" width="40" height="8" rx="2" fill="#c2185b"/>
+
+<!-- Teclado -->
+<rect x="20" y="356" width="164" height="44" rx="5" fill="#fce4ec"/>
+<rect x="24" y="360" width="156" height="36" rx="3" fill="#f8bbd0"/>
+<rect x="28" y="364" width="8" height="6" rx="1" fill="#e879a0"/>
+<rect x="39" y="364" width="8" height="6" rx="1" fill="#e879a0"/>
+<rect x="50" y="364" width="8" height="6" rx="1" fill="#e879a0"/>
+<rect x="61" y="364" width="8" height="6" rx="1" fill="#e879a0"/>
+<rect x="72" y="364" width="8" height="6" rx="1" fill="#e879a0"/>
+<rect x="83" y="364" width="8" height="6" rx="1" fill="#e879a0"/>
+<rect x="94" y="364" width="8" height="6" rx="1" fill="#e879a0"/>
+<rect x="105" y="364" width="8" height="6" rx="1" fill="#e879a0"/>
+<rect x="116" y="364" width="8" height="6" rx="1" fill="#e879a0"/>
+<rect x="127" y="364" width="8" height="6" rx="1" fill="#e879a0"/>
+<rect x="138" y="364" width="8" height="6" rx="1" fill="#e879a0"/>
+<rect x="28" y="374" width="148" height="6" rx="2" fill="#e879a0"/>
+<rect x="28" y="384" width="60" height="6" rx="2" fill="#e879a0"/>
+<rect x="96" y="384" width="80" height="6" rx="2" fill="#e879a0"/>
+
+<!-- Lazo rosa (símbolo cancer mama) -->
+<path d="M348,42 Q352,30 360,36 Q368,42 360,50 Q352,58 348,50 Q344,42 352,36 Q360,30 364,42" fill="none" stroke="#e91e8c" stroke-width="3" stroke-linecap="round"/>
+<path d="M352,50 Q356,58 360,66" fill="none" stroke="#e91e8c" stroke-width="2.5" stroke-linecap="round"/>
+<path d="M368,50 Q364,58 360,66" fill="none" stroke="#e91e8c" stroke-width="2.5" stroke-linecap="round"/>
+
+<!-- ===================== ETIQUETAS ===================== -->
+<text x="102" y="520" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="11" font-weight="600" fill="#e879a0">Consola</text>
+<text x="350" y="520" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="13" font-weight="700" fill="#e879a0" letter-spacing="1">Mamógrafo Digital</text>
+
+<!-- LED -->
+<circle cx="558" cy="134" r="5" fill="#69f0ae"/>
+<circle cx="558" cy="134" r="3" fill="#b9f6ca"/>
+
+</svg>

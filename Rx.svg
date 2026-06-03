@@ -1,0 +1,142 @@
+<svg width="100%" viewBox="0 0 900 520" xmlns="http://www.w3.org/2000/svg">
+<title>Equipo Rayos X - Bucky Mesa y Bucky Mural</title>
+
+<!-- PISO -->
+<rect x="0" y="450" width="900" height="70" fill="#d8dde4"/>
+<rect x="0" y="448" width="900" height="6" fill="#c0c8d0"/>
+
+<!-- PARED FONDO -->
+<rect x="0" y="0" width="900" height="452" fill="#f0f4f8"/>
+<!-- Línea zócalo -->
+<rect x="0" y="440" width="900" height="12" fill="#e0e6ec"/>
+
+<!-- ===================== TUBO RX - COLIMADOR (centro, arriba) ===================== -->
+<!-- Columna/riel techo -->
+<rect x="310" y="0" width="20" height="130" rx="4" fill="#b0bcc8"/>
+<rect x="318" y="0" width="8" height="130" rx="2" fill="#c0ccd8"/>
+
+<!-- Brazo horizontal -->
+<rect x="220" y="125" width="200" height="16" rx="5" fill="#c0ccd8"/>
+<rect x="224" y="129" width="192" height="8" rx="3" fill="#d0dce8"/>
+
+<!-- Cabezal tubo RX -->
+<rect x="286" y="138" width="72" height="52" rx="10" fill="#b8c4d0"/>
+<rect x="292" y="144" width="60" height="40" rx="7" fill="#c8d4e0"/>
+<!-- Detalle tubo -->
+<ellipse cx="322" cy="164" rx="18" ry="12" fill="#a8b4c0"/>
+<ellipse cx="322" cy="164" rx="12" ry="8" fill="#98a8b4"/>
+
+<!-- Colimador (caja negra debajo del tubo) -->
+<rect x="296" y="188" width="52" height="48" rx="5" fill="#2a3848"/>
+<rect x="300" y="192" width="44" height="40" rx="3" fill="#1a2838"/>
+<!-- Líneas del colimador -->
+<line x1="322" y1="192" x2="322" y2="232" stroke="#38bdf8" stroke-width="1.5" opacity="0.4"/>
+<line x1="300" y1="212" x2="344" y2="212" stroke="#38bdf8" stroke-width="1.5" opacity="0.4"/>
+<!-- Haz de luz RX (triángulo) -->
+<polygon points="322,236 290,310 354,310" fill="#f0e060" opacity="0.12"/>
+<polygon points="322,236 298,310 346,310" fill="#f0e060" opacity="0.08"/>
+
+<!-- ===================== BUCKY MESA ===================== -->
+<!-- Sombra -->
+<ellipse cx="322" cy="446" rx="165" ry="9" fill="#a0acb8" opacity="0.3"/>
+
+<!-- Estructura inferior mesa (pedestal) -->
+<rect x="248" y="390" width="148" height="58" rx="6" fill="#b0bcc8"/>
+<rect x="258" y="390" width="128" height="16" rx="3" fill="#c0ccd8"/>
+
+<!-- Patas laterales -->
+<rect x="256" y="390" width="22" height="58" rx="4" fill="#a0acb8"/>
+<rect x="366" y="390" width="22" height="58" rx="4" fill="#a0acb8"/>
+
+<!-- Base de la mesa -->
+<rect x="236" y="440" width="172" height="12" rx="4" fill="#98a4b0"/>
+
+<!-- Cuerpo de la mesa -->
+<rect x="180" y="310" width="284" height="84" rx="8" fill="#c8d4de"/>
+<rect x="188" y="316" width="268" height="72" rx="6" fill="#d8e4ec"/>
+
+<!-- Superficie de la mesa (tablero) -->
+<rect x="176" y="300" width="292" height="18" rx="6" fill="#e8eef4"/>
+<rect x="180" y="302" width="284" height="10" rx="4" fill="#f0f4f8"/>
+
+<!-- Grid/bucky dentro de la mesa (visible como líneas) -->
+<rect x="188" y="320" width="268" height="64" rx="4" fill="#d0dce8"/>
+<!-- Líneas del grid -->
+<line x1="220" y1="320" x2="220" y2="384" stroke="#b8c8d4" stroke-width="1" opacity="0.6"/>
+<line x1="252" y1="320" x2="252" y2="384" stroke="#b8c8d4" stroke-width="1" opacity="0.6"/>
+<line x1="284" y1="320" x2="284" y2="384" stroke="#b8c8d4" stroke-width="1" opacity="0.6"/>
+<line x1="316" y1="320" x2="316" y2="384" stroke="#b8c8d4" stroke-width="1" opacity="0.6"/>
+<line x1="348" y1="320" x2="348" y2="384" stroke="#b8c8d4" stroke-width="1" opacity="0.6"/>
+<line x1="380" y1="320" x2="380" y2="384" stroke="#b8c8d4" stroke-width="1" opacity="0.6"/>
+<line x1="188" y1="340" x2="456" y2="340" stroke="#b8c8d4" stroke-width="1" opacity="0.6"/>
+<line x1="188" y1="362" x2="456" y2="362" stroke="#b8c8d4" stroke-width="1" opacity="0.6"/>
+
+<!-- Manija lateral mesa -->
+<rect x="462" y="326" width="14" height="36" rx="5" fill="#c0ccd8" stroke="#a8b8c4" stroke-width="1"/>
+
+<!-- ===================== BUCKY MURAL VERTICAL (derecha) ===================== -->
+<!-- Riel vertical en pared -->
+<rect x="720" y="60" width="16" height="390" rx="4" fill="#b0bcc8"/>
+<rect x="726" y="60" width="6" height="390" rx="2" fill="#c0ccd8"/>
+
+<!-- Panel bucky mural -->
+<rect x="628" y="120" width="92" height="280" rx="8" fill="#c8d4de"/>
+<rect x="636" y="128" width="76" height="264" rx="6" fill="#d8e4ec"/>
+
+<!-- Marco del detector -->
+<rect x="640" y="132" width="68" height="256" rx="4" fill="#e0eaf2"/>
+<!-- Área activa detector (gris más claro) -->
+<rect x="644" y="136" width="60" height="248" rx="3" fill="#eef4f8"/>
+<!-- Líneas del grid detector -->
+<line x1="664" y1="136" x2="664" y2="384" stroke="#c8d4de" stroke-width="1" opacity="0.5"/>
+<line x1="684" y1="136" x2="684" y2="384" stroke="#c8d4de" stroke-width="1" opacity="0.5"/>
+<line x1="644" y1="196" x2="704" y2="196" stroke="#c8d4de" stroke-width="1" opacity="0.5"/>
+<line x1="644" y1="256" x2="704" y2="256" stroke="#c8d4de" stroke-width="1" opacity="0.5"/>
+<line x1="644" y1="316" x2="704" y2="316" stroke="#c8d4de" stroke-width="1" opacity="0.5"/>
+
+<!-- Brazo soporte bucky mural -->
+<rect x="704" y="238" width="20" height="36" rx="4" fill="#b0bcc8"/>
+<rect x="718" y="228" width="10" height="56" rx="3" fill="#a0acb8"/>
+
+<!-- Manija bucky mural -->
+<rect x="624" y="246" width="16" height="20" rx="5" fill="#c0ccd8" stroke="#a8b8c4" stroke-width="1"/>
+
+<!-- Indicador LED bucky mural -->
+<circle cx="670" cy="148" r="5" fill="#50c878"/>
+<circle cx="670" cy="148" r="3" fill="#7eeaa0"/>
+
+<!-- ===================== CONSOLA / PANEL CONTROL (izquierda) ===================== -->
+<!-- Soporte consola -->
+<rect x="82" y="320" width="12" height="130" rx="3" fill="#b0bcc8"/>
+
+<!-- Cuerpo consola -->
+<rect x="28" y="200" width="110" height="130" rx="8" fill="#c0ccc8"/><!-- Pantalla -->
+<rect x="36" y="208" width="94" height="72" rx="5" fill="#1a2838"/>
+<rect x="40" y="212" width="86" height="64" rx="3" fill="#0e1828"/>
+<!-- Contenido pantalla - imagen RX simplificada -->
+<rect x="44" y="216" width="78" height="56" rx="2" fill="#0a1420"/>
+<!-- Silueta torax en pantalla -->
+<ellipse cx="83" cy="244" rx="28" ry="22" fill="#1a3050" opacity="0.8"/>
+<path d="M72,234 Q83,228 94,234 L94,258 Q83,264 72,258 Z" fill="#0e2040" opacity="0.6"/>
+<!-- Costillas simplificadas -->
+<line x1="68" y1="238" x2="98" y2="238" stroke="#38bdf8" stroke-width="1" opacity="0.5"/>
+<line x1="66" y1="244" x2="100" y2="244" stroke="#38bdf8" stroke-width="1" opacity="0.5"/>
+<line x1="67" y1="250" x2="99" y2="250" stroke="#38bdf8" stroke-width="1" opacity="0.5"/>
+<!-- Botones consola -->
+<rect x="36" y="286" width="94" height="36" rx="4" fill="#b0bcc8"/>
+<circle cx="50" cy="304" r="6" fill="#e05050"/>
+<circle cx="68" cy="304" r="6" fill="#e0c050"/>
+<circle cx="86" cy="304" r="6" fill="#50c878"/>
+<rect x="100" y="297" width="22" height="14" rx="3" fill="#8090a0"/>
+
+<!-- ===================== ETIQUETAS ===================== -->
+<!-- Texto Bucky Mesa -->
+<text x="322" y="476" text-anchor="middle" font-family="-apple-system, 'Helvetica Neue', sans-serif" font-size="12" font-weight="600" fill="#8898a8" letter-spacing="1">Bucky Mesa</text>
+
+<!-- Texto Bucky Mural -->
+<text x="674" y="476" text-anchor="middle" font-family="-apple-system, 'Helvetica Neue', sans-serif" font-size="12" font-weight="600" fill="#8898a8" letter-spacing="1">Bucky Mural</text>
+
+<!-- Texto Tubo RX -->
+<text x="132" y="476" text-anchor="middle" font-family="-apple-system, 'Helvetica Neue', sans-serif" font-size="12" font-weight="600" fill="#8898a8" letter-spacing="1">Consola</text>
+
+</svg>
