@@ -1966,7 +1966,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "4.18";
+const APP_VERSION = "4.19";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -4502,7 +4502,7 @@ function markSolicitudEntregado(id, qtyMap){
     .catch(e=>{console.warn(e);toast("⚠️ Error al actualizar");});
 }
 
-// ─── Cantidades entregadas — se renderiza DENTRO del pdf-viewer-overlay ───────
+// ─── Cantidades entregadas — dentro de pdf-viewer-overlay, sin getElementById ──
 let _eqSolId = null;
 
 function openEqModal(id){
@@ -4511,45 +4511,54 @@ function openEqModal(id){
   const body=document.getElementById('pdf-viewer-body'); if(!body) return;
   document.getElementById('pdf-viewer-title').textContent='Cantidades a entregar';
   const items=(s.items||[]).filter(item=>item.id);
-  body.innerHTML=`<div style="padding:16px;overflow-y:auto;flex:1;background:#f2f2f7;display:flex;flex-direction:column;gap:12px">
-    <div style="background:#fff;border-radius:14px;padding:14px 16px">
-      <div style="font-size:.8rem;color:#636366">${escHtml((s.solicitante||'')+(s.sector?' · '+s.sector:'')+(s.equipo?' · '+s.equipo:''))}</div>
+  // Botones usan nextElementSibling/previousElementSibling — sin getElementById
+  body.innerHTML=`<div id="eq-form-wrap" style="padding:16px;overflow-y:auto;flex:1;background:#f2f2f7">
+    <div style="background:#fff;border-radius:14px;padding:12px 16px;margin-bottom:12px;font-size:.8rem;color:#636366">
+      ${escHtml((s.solicitante||'')+(s.sector?' · '+s.sector:'')+(s.equipo?' · '+s.equipo:''))}
     </div>
-    <div style="background:#fff;border-radius:14px;overflow:hidden">
+    <div style="background:#fff;border-radius:14px;overflow:hidden;margin-bottom:14px">
       ${items.length?items.map((item,i)=>`
-        <div style="padding:13px 16px;display:flex;align-items:center;gap:12px${i<items.length-1?';border-bottom:1px solid #f2f2f7':''}">
-          <div style="flex:1;min-width:0">
-            <div style="font-size:.88rem;font-weight:600;color:#1c1c1e">${escHtml(item.name||'')}</div>
-            <div style="font-size:.74rem;color:#8e8e93;margin-top:2px">Pedido: <b>${item.cantidad||0}</b> und</div>
+        <div style="padding:12px 16px;display:flex;align-items:center;gap:10px${i<items.length-1?';border-bottom:1px solid #f0f0f0':''}">
+          <div style="flex:1;min-width:0;font-size:.87rem;font-weight:600;color:#1c1c1e">
+            ${escHtml(item.name||'')}
+            <div style="font-size:.73rem;color:#8e8e93;font-weight:400;margin-top:1px">Pedido: ${item.cantidad||0} und</div>
           </div>
-          <div style="display:flex;align-items:center;background:#f2f2f7;border-radius:10px">
-            <button type="button"
-              style="width:46px;height:46px;border:none;background:transparent;font-size:1.5rem;font-weight:300;color:#1c1c1e;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;display:flex;align-items:center;justify-content:center"
-              onclick="adjEq('${escAttr(item.id)}',-1,${item.cantidad||0})">−</button>
-            <input type="tel" id="eq_${escAttr(item.id)}" value="${item.cantidad||0}" data-max="${item.cantidad||0}"
-              style="width:46px;height:46px;border:none;background:transparent;text-align:center;font-size:1rem;font-weight:700;color:#1c1c1e;padding:0;outline:none;touch-action:manipulation"
-              oninput="var v=parseInt(this.value.replace(/\\D/g,''))||0;var m=parseInt(this.dataset.max)||0;if(v>m)v=m;this.value=v">
-            <button type="button"
-              style="width:46px;height:46px;border:none;background:transparent;font-size:1.5rem;font-weight:300;color:#1c1c1e;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;display:flex;align-items:center;justify-content:center"
-              onclick="adjEq('${escAttr(item.id)}',+1,${item.cantidad||0})">+</button>
+          <div style="display:flex;align-items:center;background:#f2f2f7;border-radius:12px;overflow:hidden">
+            <button type="button" data-delta="-1" data-max="${item.cantidad||0}"
+              style="width:50px;height:50px;border:none;background:transparent;font-size:1.8rem;font-weight:200;color:#1c1c1e;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;line-height:1"
+              onclick="_eqStep(this)">−</button>
+            <span data-qty="${item.cantidad||0}" data-max="${item.cantidad||0}" data-id="${escAttr(item.id)}"
+              style="display:inline-block;width:44px;text-align:center;font-size:1.1rem;font-weight:700;color:#1c1c1e;pointer-events:none">${item.cantidad||0}</span>
+            <button type="button" data-delta="+1" data-max="${item.cantidad||0}"
+              style="width:50px;height:50px;border:none;background:transparent;font-size:1.8rem;font-weight:200;color:#1c1c1e;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;line-height:1"
+              onclick="_eqStep(this)">+</button>
           </div>
-        </div>`).join(''):`<div style="padding:16px;text-align:center;color:#8e8e93;font-size:.85rem">Sin insumos</div>`}
+        </div>`).join(''):`<div style="padding:16px;text-align:center;color:#8e8e93">Sin insumos</div>`}
     </div>
-    <div style="display:flex;gap:10px;padding-bottom:8px">
+    <div style="display:flex;gap:10px">
       <button type="button"
-        style="flex:1;padding:15px;border-radius:13px;background:#e5e5ea;color:#1c1c1e;border:none;font-size:.95rem;font-weight:600;cursor:pointer;touch-action:manipulation"
+        style="flex:1;padding:14px;border-radius:13px;background:#e5e5ea;color:#1c1c1e;border:none;font-size:.95rem;font-weight:600;cursor:pointer;touch-action:manipulation"
         onclick="openSolicitudDetalle('${escAttr(id)}')">← Volver</button>
       <button type="button"
-        style="flex:2;padding:15px;border-radius:13px;background:#34c759;color:#fff;border:none;font-size:.95rem;font-weight:700;cursor:pointer;touch-action:manipulation"
+        style="flex:2;padding:14px;border-radius:13px;background:#34c759;color:#fff;border:none;font-size:.95rem;font-weight:700;cursor:pointer;touch-action:manipulation"
         onclick="confirmarEqModal()">✓ Confirmar entrega</button>
     </div>
   </div>`;
 }
-function adjEq(itemId,delta,max){
-  const inp=document.getElementById('eq_'+itemId); if(!inp) return;
-  inp.value=Math.max(0,Math.min(max,(parseInt(inp.value)||0)+delta));
-  inp.style.color='#0071e3';
-  setTimeout(()=>{inp.style.color='#1c1c1e';},150);
+function _eqStep(btn){
+  // Navega al span de cantidad que es el hermano del botón
+  const parent=btn.parentElement;
+  const span=parent.querySelector('span[data-qty]');
+  if(!span) return;
+  const delta=parseInt(btn.dataset.delta)||0;
+  const max=parseInt(btn.dataset.max)||0;
+  let v=parseInt(span.dataset.qty)||0;
+  v=Math.max(0,Math.min(max,v+delta));
+  span.dataset.qty=v;
+  span.textContent=v;
+  // feedback visual
+  span.style.color='#0071e3';
+  setTimeout(()=>{span.style.color='#1c1c1e';},200);
 }
 function closeEqModal(){
   const id=_eqSolId; _eqSolId=null;
@@ -4558,13 +4567,11 @@ function closeEqModal(){
 function confirmarEqModal(){
   if(!_eqSolId) return;
   const id=_eqSolId;
-  const s=solicitudes.find(x=>x.id===id); if(!s) return;
-  const qtyMap={};
-  (s.items||[]).filter(i=>i.id).forEach(item=>{
-    const inp=document.getElementById('eq_'+item.id);
-    qtyMap[item.id]=inp?Math.max(0,parseInt(inp.value)||0):(item.cantidad||0);
-  });
   _eqSolId=null;
+  const qtyMap={};
+  document.querySelectorAll('#eq-form-wrap span[data-id]').forEach(span=>{
+    qtyMap[span.dataset.id]=parseInt(span.dataset.qty)||0;
+  });
   markSolicitudEntregado(id,qtyMap);
 }
 function deleteSolicitud(id){
