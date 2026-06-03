@@ -1130,6 +1130,75 @@
     @keyframes sol-dot-pulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.4);opacity:.6} }
     .sol-dot { width:9px;height:9px;border-radius:50%;flex-shrink:0;display:inline-block; }
     .sol-dot-anim { animation:sol-dot-pulse 1.8s ease-in-out infinite; }
+  /* ─── Sistema de Respaldos ─── */
+  .backup-status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px;flex-shrink:0}
+  .backup-status-dot.ok{background:#34c759}
+  .backup-status-dot.warn{background:#ff9500}
+  .backup-status-dot.err{background:#ff3b30}
+  .backup-card{background:#fff;border-radius:16px;overflow:hidden;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.07)}
+  .backup-head{background:linear-gradient(135deg,#0f2942,#1c3553);color:#fff;padding:14px 18px;display:flex;align-items:center;gap:10px}
+  .backup-head .title{font-size:.92rem;font-weight:700}
+  .backup-head .sub{font-size:.72rem;opacity:.75;margin-top:2px}
+  .backup-snap-row{display:flex;align-items:center;padding:10px 16px;border-bottom:1px solid #f4f4f4;gap:10px;font-size:.82rem}
+  .backup-snap-row:last-child{border-bottom:none}
+  .backup-snap-date{font-weight:700;color:#1c1c1e;min-width:100px}
+  .backup-snap-meta{flex:1;color:#636366;font-size:.75rem}
+  .backup-restore-btn{padding:5px 12px;border-radius:8px;border:1.5px solid var(--blue);color:var(--blue);background:#fff;font-size:.75rem;font-weight:700;cursor:pointer;white-space:nowrap;touch-action:manipulation}
+  .audit-row{display:flex;align-items:flex-start;padding:9px 16px;border-bottom:1px solid #f4f4f4;gap:10px;font-size:.78rem}
+  .audit-row:last-child{border-bottom:none}
+  .audit-icon{font-size:1rem;width:22px;flex-shrink:0;margin-top:1px}
+  .audit-desc{flex:1;color:#1c1c1e;line-height:1.4}
+  .audit-meta{color:#aeaeb2;font-size:.7rem;text-align:right;min-width:70px;flex-shrink:0}
+  /* ─── Control Contable ─── */
+  .prac-view-toggle{display:flex;gap:6px;margin-bottom:14px}
+  .prac-view-btn{flex:1;padding:8px 12px;border-radius:10px;border:none;font-size:.82rem;font-weight:600;cursor:pointer;background:rgba(120,120,128,.12);color:var(--text2);transition:background .15s,color .15s}
+  .prac-view-btn.active{background:var(--blue);color:#fff}
+  .prac-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:14px;scrollbar-width:none}
+  .prac-tabs::-webkit-scrollbar{display:none}
+  .prac-tab-btn{white-space:nowrap;padding:6px 14px;border-radius:20px;border:none;font-size:.78rem;font-weight:600;cursor:pointer;background:rgba(120,120,128,.12);color:var(--text2);transition:background .15s,color .15s;flex-shrink:0}
+  .prac-tab-btn.active{background:var(--blue);color:#fff}
+  .prac-card{background:#fff;border-radius:16px;overflow:hidden;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+  .prac-card-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:linear-gradient(135deg,#1c3553,#2563a8);color:#fff;cursor:pointer}
+  .prac-card-head .name{font-size:.9rem;font-weight:700}
+  .prac-card-head .cost{font-size:.95rem;font-weight:800}
+  .prac-card-body{padding:10px 0}
+  .prac-insumo-row{display:flex;align-items:center;padding:7px 16px;gap:10px;border-bottom:1px solid #f4f4f4;font-size:.8rem}
+  .prac-insumo-row:last-child{border-bottom:none}
+  .prac-insumo-name{flex:1;color:#1c1c1e;line-height:1.3}
+  .prac-insumo-consumo{color:#636366;min-width:60px;text-align:right;font-size:.75rem}
+  .prac-insumo-cost{font-weight:700;color:#1c1c1e;min-width:70px;text-align:right}
+  .prac-warn{color:#ff9500;font-size:.7rem;margin-left:4px}
+  .prac-link-btn{width:26px;height:26px;border-radius:7px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.7rem;font-weight:700;transition:background .15s}
+  .prac-link-btn.linked{background:#e3f0ff;color:#0071e3}
+  .prac-link-btn.unlinked{background:#fff3e0;color:#ff9500}
+  /* Link modal */
+  .prac-link-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9100;display:flex;align-items:flex-end;justify-content:center}
+  .prac-link-sheet{background:#f2f2f7;border-radius:20px 20px 0 0;width:100%;max-width:600px;max-height:82vh;display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom)}
+  .prac-link-handle{width:36px;height:4px;border-radius:2px;background:rgba(0,0,0,.15);margin:10px auto 0}
+  .prac-link-head{padding:14px 18px 10px;border-bottom:1px solid rgba(0,0,0,.08)}
+  .prac-link-title{font-size:.85rem;font-weight:700;color:#1c1c1e;line-height:1.3}
+  .prac-link-sub{font-size:.72rem;color:#636366;margin-top:2px}
+  .prac-link-search{margin:10px 14px;padding:9px 14px;border-radius:10px;border:1.5px solid #d1d5db;font-size:.88rem;width:calc(100% - 28px);box-sizing:border-box}
+  .prac-link-search:focus{outline:none;border-color:var(--blue)}
+  .prac-link-list{overflow-y:auto;flex:1;padding:4px 0}
+  .prac-link-item{padding:11px 18px;cursor:pointer;border-bottom:1px solid rgba(0,0,0,.06);font-size:.82rem;color:#1c1c1e;transition:background .1s}
+  .prac-link-item:hover,.prac-link-item:active{background:#e5e5ea}
+  .prac-link-item .li-name{font-weight:600;line-height:1.3}
+  .prac-link-item .li-sub{font-size:.72rem;color:#636366;margin-top:1px}
+  .prac-link-clear{margin:8px 14px;padding:10px;border-radius:10px;background:#fff;border:1.5px solid #ff3b30;color:#ff3b30;font-size:.82rem;font-weight:600;cursor:pointer;width:calc(100%-28px);text-align:center}
+  .prac-mes-card{background:#fff;border-radius:16px;overflow:hidden;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+  .prac-mes-head{padding:12px 16px;background:linear-gradient(135deg,#1c3553,#2563a8);color:#fff}
+  .prac-mes-head .name{font-size:.88rem;font-weight:700}
+  .prac-mes-row{display:flex;align-items:center;padding:10px 16px;gap:10px;border-bottom:1px solid #f4f4f4;font-size:.82rem}
+  .prac-mes-row:last-child{border-bottom:none}
+  .prac-mes-subname{flex:1;color:#1c1c1e;font-size:.82rem}
+  .prac-mes-unitcost{color:#636366;font-size:.75rem;min-width:80px;text-align:right}
+  .prac-mes-input{width:64px;padding:5px 8px;border:1.5px solid #d1d5db;border-radius:8px;font-size:.85rem;font-weight:700;text-align:center;color:#1c1c1e;-webkit-appearance:none;appearance:none}
+  .prac-mes-input:focus{outline:none;border-color:var(--blue)}
+  .prac-mes-total{font-weight:800;color:var(--blue);min-width:84px;text-align:right}
+  .prac-total-bar{background:linear-gradient(135deg,#0f2942,#1c3553);border-radius:16px;padding:16px 18px;margin-bottom:14px;color:#fff;display:flex;align-items:center;justify-content:space-between}
+  .prac-total-bar .label{font-size:.82rem;opacity:.8}
+  .prac-total-bar .value{font-size:1.3rem;font-weight:800}
   </style>
 </head>
 <body>
@@ -1198,6 +1267,10 @@
       Solicitudes
       <span class="sol-badge" id="sol-badge-sb"></span>
     </button>
+    <button class="sb-btn" data-tab="contable" onclick="sidebarNav('contable')">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="3" width="14" height="14" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M7 7h2M7 10h2M7 13h2M11 7h2M11 10h2M11 13h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Control Contable
+    </button>
   </nav>
   <div class="sb-footer">
     <div class="sb-version-row">
@@ -1213,6 +1286,10 @@
       Gestión de usuarios
     </button>
     <div class="sb-sep" style="margin:8px 0" id="sbAdminSep" style="display:none"></div>
+    <div id="sbBackupStatus" style="display:none;align-items:center;font-size:.72rem;color:var(--text3);margin-bottom:6px;gap:4px">
+      <span class="backup-status-dot ok" id="sbBackupDot"></span>
+      <span id="sbBackupLabel">Respaldo: —</span>
+    </div>
     <div class="sb-user">
       <span class="sb-user-name" id="sbUserName">—</span>
     </div>
@@ -1234,6 +1311,7 @@
     <button class="tab-btn"        onclick="switchTab('costos',this)"><span class="ti">💰</span><span class="label">Costos</span></button>
     <button class="tab-btn"        onclick="switchTab('reportes',this)"><span class="ti">📄</span><span class="label">Reportes</span></button>
     <button class="tab-btn"        onclick="switchTab('solicitudes',this)" style="position:relative"><span class="ti">📬</span><span class="label">Solicitudes</span><span class="sol-badge" id="sol-badge-tab"></span></button>
+    <button class="tab-btn"        onclick="switchTab('contable',this)"><span class="ti">📋</span><span class="label">Contable</span></button>
   </nav>
 </div>
 
@@ -1495,6 +1573,11 @@
         <button class="btn btn-primary" onclick="addAuthorizedUser()" style="white-space:nowrap"><span class="btn-icon">+</span> Agregar</button>
       </div>
     </div>
+
+    <!-- ─ Respaldos (admin) ─ -->
+    <div id="backupAdminSection" style="display:none;margin-top:24px">
+      <div id="backupAdminContainer"></div>
+    </div>
   </div>
 
   <!-- ════ COSTOS ════ -->
@@ -1611,8 +1694,37 @@
     <div id="solicitudesContainer"></div>
   </div>
 
+  <div class="tab-pane" id="tab-contable">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+      <div>
+        <div style="font-size:1.05rem;font-weight:800">Control Contable de Prácticas</div>
+        <div style="font-size:.75rem;color:var(--text3);margin-top:2px">Costos variables por práctica médica</div>
+      </div>
+    </div>
+    <div class="prac-view-toggle">
+      <button class="prac-view-btn active" id="prac-btn-costos" onclick="setPracView('costos')">💰 Costos por Práctica</button>
+      <button class="prac-view-btn" id="prac-btn-cierre" onclick="setPracView('cierre')">📅 Cierre Mensual</button>
+    </div>
+    <div id="contableContainer"></div>
+  </div>
+
   <div class="footer">
     <span>CIMA · Stock de Insumos · 2026</span>
+  </div>
+</div>
+
+<!-- ─── Modal Vinculación Insumo-Práctica ─────────── -->
+<div class="prac-link-overlay" id="pracLinkOverlay" style="display:none" onclick="closePracLink(event)">
+  <div class="prac-link-sheet" onclick="event.stopPropagation()">
+    <div class="prac-link-handle"></div>
+    <div class="prac-link-head">
+      <div class="prac-link-title" id="pracLinkTitle">Vincular insumo</div>
+      <div class="prac-link-sub" id="pracLinkSub"></div>
+    </div>
+    <input type="search" class="prac-link-search" id="pracLinkSearch" placeholder="Buscar en catálogo…"
+      oninput="_pracLinkSearch(this.value)" autocomplete="off" autocorrect="off" spellcheck="false">
+    <div class="prac-link-list" id="pracLinkList"></div>
+    <button class="prac-link-clear" id="pracLinkClearBtn" onclick="clearPracLink()" style="display:none">✕ Quitar vinculación actual</button>
   </div>
 </div>
 
@@ -1966,7 +2078,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "4.20";
+const APP_VERSION = "4.23";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -2235,7 +2347,12 @@ const DB_COL      = "insumos_cima";
 const DB_USERS    = "insumos_users";
 
 let currentUser = null, isAdmin = false, _lastUsers = [];
-let _unsubSupplies, _unsubGN, _unsubSarm, _unsubUsers, _unsubSolicitudes;
+let _unsubSupplies, _unsubGN, _unsubSarm, _unsubUsers, _unsubSolicitudes, _unsubPrac;
+let _pracConfig = null;          // {practicas:[...]}
+let _pracMes = {};               // {"2026-06": {"rmn__reso_simple": qty, ...}}
+let _pracView = 'costos';        // 'costos' | 'cierre'
+let _pracActivePrac = null;      // id of selected practice group
+let _pracCierreMes = null;       // "YYYY-MM" of active cierre
 let solicitudes = [];
 let _knownSolicitudIds = null; // null = primera carga, no notificar
 
@@ -2328,6 +2445,7 @@ function renderCurrentTab(){
   if(currentTab==="reportes")    renderReportes();
   if(currentTab==="vencimientos")renderVencimientos();
   if(currentTab==="solicitudes") renderSolicitudes();
+  if(currentTab==="contable")   renderContable();
 }
 
 // ─── Inventario ──────────────────────────────────────────────────────────────
@@ -2957,6 +3075,7 @@ function archiveSupply(id){
   const s=supplies.find(x=>x.id===id);
   openConfirm(`¿Archivar "${s?.name}"?`,"Se ocultará del inventario.",()=>{
     const f=supplies.find(x=>x.id===id);if(f)f.active=false;
+    _auditLog('supply_archive',`Insumo archivado: "${s?.name}"`);
     persist();renderGestion();if(currentTab==="inventario")renderInventario();toast("Insumo archivado");
   });
 }
@@ -3187,8 +3306,10 @@ function saveMovimiento(){
     ...(fechaVenc&&_movType==="entrada"&&{fechaVenc}),
     ...(presentacion&&{presentacion})
   };
+  const stockAntes=cs[activeCenter].stock[supplyId]||0;
   cs[activeCenter].movements.push(mov);
   cs[activeCenter].stock[supplyId]=(cs[activeCenter].stock[supplyId]||0)+(_movType==="entrada"?qty:-qty);
+  _auditLog(`mov_${_movType}`,`${_movType==="entrada"?"Entrada":"Salida"}: ${qty} ${s.unit||'ud'} de "${s.name}" en ${activeCenter}${loteDetail}${note?` · ${note}`:''}`,{stock:stockAntes},{stock:cs[activeCenter].stock[supplyId]});
   persist();
   document.getElementById("movModal").classList.remove("open");
   toast(`✓ ${_movType==="entrada"?"Entrada":"Salida"} registrada: ${qty} ${s.unit} de ${s.name}${loteDetail}`);
@@ -3246,7 +3367,9 @@ function saveSupply(){
   if(presentacion==="caja"&&unidadesPorCaja<1){toast("⚠️ Ingresá las unidades por caja");return;}
   if(_editId){
     const s=supplies.find(x=>x.id===_editId);
+    const before=s?{name:s.name,code:s.code,price:s.price,category:s.category}:null;
     if(s){Object.assign(s,{name,code,category,unit,price,minStock,presentacion,unidadesPorCaja});cs[activeCenter].stock[s.id]=initStk;}
+    _auditLog('supply_edit',`Insumo editado: "${name}"`,before,{name,code,price,category});
     toast("✓ Insumo actualizado");
   }else{
     const id="cus_"+Date.now();
@@ -3254,6 +3377,7 @@ function saveSupply(){
     CENTERS.forEach(c=>{if(!cs[c].stock[id])cs[c].stock[id]=0;});
     cs[activeCenter].stock[id]=initStk;
     if(initStk>0)cs[activeCenter].movements.push({id:"mov_init_"+id,supplyId:id,supplyName:name,type:"entrada",qty:initStk,date:new Date().toISOString().slice(0,10),time:new Date().toTimeString().slice(0,5),note:"Stock inicial"});
+    _auditLog('supply_add',`Insumo creado: "${name}" (${code||'sin código'}) — precio: $${price}`);
     toast("✓ Insumo agregado");
   }
   persist();
@@ -3310,6 +3434,8 @@ function showApp(){
   if(!_standalone) console.warn('[PWA] La app NO está en modo standalone. Abrila desde el ícono de pantalla de inicio, no desde Safari.');
   if(isAdmin){
     document.getElementById("adminSection").style.display="block";
+    document.getElementById("backupAdminSection").style.display="block";
+    document.getElementById("sbBackupStatus").style.display="flex";
     const ab=document.getElementById("sbAdminBtn"); if(ab) ab.style.display="flex";
     const as=document.getElementById("sbAdminSep"); if(as) as.style.display="block";
   }
@@ -3357,6 +3483,7 @@ function startListeners(){
     updateCenterStats();
     if(currentTab==="inventario") renderInventario();
     if(currentTab==="gestion") renderGestion();
+    _maybeInitBackup();
   });
 
   _unsubGN = _db.collection(DB_COL).doc("center_GN").onSnapshot(snap=>{
@@ -3387,6 +3514,22 @@ function startListeners(){
     updateCenterStats(); updateVencBadge();
     if(!activeCenter)setTimeout(updateHomeStats,0);
     if(activeCenter==="Sarmiento") renderCurrentTab();
+  });
+
+  _unsubPrac = _db.collection(DB_COL).doc("practicas_config").onSnapshot(snap=>{
+    if(snap.exists){
+      _pracConfig = snap.data();
+    } else {
+      // Seed with default model on first use
+      _pracConfig = PRAC_DEFAULT_CONFIG;
+      _db.collection(DB_COL).doc("practicas_config").set(_pracConfig);
+    }
+    if(currentTab==="contable") renderContable();
+  });
+
+  _db.collection(DB_COL).doc("practicas_mes").onSnapshot(snap=>{
+    _pracMes = snap.exists ? snap.data() : {};
+    if(currentTab==="contable" && _pracView==="cierre") renderContable();
   });
 
   if(isAdmin) startUsersListener();
@@ -3559,7 +3702,7 @@ _auth.onAuthStateChanged(async user=>{
 // ─── Notification tab navigation ─────────────────────────────────────────────
 function _handleNotifTabParam(){
   const tab=new URLSearchParams(location.search).get('tab');
-  const valid=['inventario','movimientos','graficas','gestion','costos','reportes','solicitudes','vencimientos'];
+  const valid=['inventario','movimientos','graficas','gestion','costos','reportes','solicitudes','vencimientos','contable'];
   if(tab&&valid.includes(tab)) setTimeout(()=>switchTabDirect(tab),400);
 }
 if('serviceWorker' in navigator){
@@ -4493,6 +4636,8 @@ function markSolicitudEntregado(id, qtyMap){
     });
     persistCenter(center);
   }
+  const auditItems=(s.items||[]).filter(i=>i.id).map(i=>({id:i.id,name:i.name,qty:qtyMap?(qtyMap[i.id]??i.cantidad):i.cantidad}));
+  _auditLog('solicitud_entregado',`Pedido entregado: ${s.solicitante||'?'} · ${s.sector||''} · ${s.fecha||''}`,null,{id,items:auditItems,center});
   _db.collection("insumos_cima").doc("solicitudes_log").collection("items")
     .doc(id).update({entregado:true,leido:true,fechaEntrega:firebase.firestore.FieldValue.serverTimestamp()})
     .then(()=>{
@@ -4585,6 +4730,7 @@ function deleteSolicitud(id){
     "Eliminar pedido",
     `¿Eliminar el pedido de ${label}? Esta acción no se puede deshacer.`,
     ()=>{
+      _auditLog('solicitud_delete',`Solicitud eliminada: ${label}`,{id,solicitante:s?.solicitante,sector:s?.sector,fecha:s?.fecha,items:s?.items});
       _db.collection("insumos_cima").doc("solicitudes_log").collection("items")
         .doc(id).delete()
         .then(()=>{ toast("Pedido eliminado"); closePdfViewer(); })
@@ -4952,6 +5098,473 @@ async function updateHomeStatsEntregas(){
     const el=document.getElementById("home-stats-entregas");
     if(el) el.innerHTML=`<span class="csp-pill csp-ok">${total} entrega${total!==1?"s":""} registrada${total!==1?"s":""}</span>`;
   }catch(e){}
+}
+
+
+// ─── Control Contable de Prácticas ───────────────────────────────────────────
+const PRAC_DEFAULT_CONFIG = {"practicas":[{"id":"rmn","nombre":"Resonancias Magnéticas","subPracticas":[{"id":"reso_simple","nombre":"RESO SIMPLE","insumos":[{"nombre":"Alcohol líquido x 1 Lt","consumo":0.01,"precioBase":0},{"nombre":"Batas cortas sin mangas","consumo":0.5,"precioBase":420.0},{"nombre":"Cubre Camilla","consumo":0.5,"precioBase":243.801},{"nombre":"Protectores auditivos descartables","consumo":0.2,"precioBase":766.25}]},{"id":"reso_c_contraste","nombre":"Reso c/Contraste","insumos":[{"nombre":"Abbocath JELCO 20G","consumo":0.5,"precioBase":1140.46},{"nombre":"Abbocath JELCO 22G","consumo":0.5,"precioBase":1140.46},{"nombre":"Agujas hipodérmica estéril 18G -  40/12 (1, 1/2\")","consumo":1.0,"precioBase":19.0},{"nombre":"Batas cortas sin mangas","consumo":0.5,"precioBase":420.0},{"nombre":"Cubre Camilla","consumo":0.5,"precioBase":243.801},{"nombre":"Set de infusión, equipo V14","consumo":0.1,"precioBase":280.52},{"nombre":"Guantes latex talle  PAR \"M\" y \"S\"","consumo":1.0,"precioBase":124.9},{"nombre":"Jeringas desechables x 10ml","consumo":0.5,"precioBase":90.41},{"nombre":"Jeringas desechables x 20ml","consumo":0.5,"precioBase":223.9},{"nombre":"Llaves 3 vias","consumo":1.0,"precioBase":362.5},{"nombre":"Suero (solución cloruro de sodio) (500ml)","consumo":0.1,"precioBase":1656.07},{"nombre":"Tubo conector de baja presion RESO-TAC (x50)","consumo":0.1,"precioBase":7024.793},{"nombre":"Prolongador/Extensor 50 Cm.","consumo":1.0,"precioBase":524.0}]},{"id":"angioreso","nombre":"ANGIORESO","insumos":[{"nombre":"Agujas hipodérmica estéril 18G -  40/12 (1, 1/2\")","consumo":1.0,"precioBase":19.0},{"nombre":"Alcohol líquido x 1 Lt","consumo":0.01,"precioBase":0}]},{"id":"mama___multip","nombre":"MAMA / MULTIP.","insumos":[{"nombre":"Abbocath JELCO 20G","consumo":0.5,"precioBase":1140.46},{"nombre":"Abbocath JELCO 22G","consumo":0.5,"precioBase":1140.46},{"nombre":"Agujas hipodérmica estéril 18G -  40/12 (1, 1/2\")","consumo":1.0,"precioBase":19.0},{"nombre":"Alcohol líquido x 1 Lt","consumo":0.01,"precioBase":0},{"nombre":"Algodón (Pack)","consumo":0.01,"precioBase":4005.0},{"nombre":"Batas cortas sin mangas","consumo":1.0,"precioBase":420.0},{"nombre":"Cubre Camilla","consumo":1.0,"precioBase":243.801},{"nombre":"Set de infusión, equipo V14","consumo":0.1,"precioBase":280.52},{"nombre":"Gasa estéril","consumo":0.1,"precioBase":210.54},{"nombre":"Guantes latex talle  PAR \"M\" y \"S\"","consumo":1.0,"precioBase":124.9},{"nombre":"Dexametasona ampolla (2ml)","consumo":0.01,"precioBase":739.2},{"nombre":"Difenhidramina clorhidrato ampolla (10mg)","consumo":0.01,"precioBase":898.8},{"nombre":"Hioscina - Buscapina ampolla (1ml)","consumo":0.01,"precioBase":768.03},{"nombre":"Jeringas desechables x 10ml","consumo":0.5,"precioBase":90.41},{"nombre":"Jeringas desechables x 20ml","consumo":1.0,"precioBase":223.9},{"nombre":"Llaves 3 vias","consumo":0.5,"precioBase":362.5},{"nombre":"Protectores auditivos descartables","consumo":1.0,"precioBase":766.25},{"nombre":"Suero (solución cloruro de sodio) (500ml)","consumo":0.02,"precioBase":1656.07},{"nombre":"Cinta hipoalergénica Transpore 3M x Rollo","consumo":0.01,"precioBase":1123.1},{"nombre":"Tubo conector de baja presion RESO-TAC (x50)","consumo":0.1,"precioBase":7024.793},{"nombre":"Prolongador/Extensor 50 Cm.","consumo":1.0,"precioBase":524.0}]},{"id":"reso_cardiaca","nombre":"RESO CARDIACA","insumos":[{"nombre":"Abbocath JELCO 20G","consumo":1.0,"precioBase":1140.46},{"nombre":"Agujas hipodérmica estéril 18G -  40/12 (1, 1/2\")","consumo":1.0,"precioBase":19.0},{"nombre":"Alcohol líquido x 1 Lt","consumo":0.01,"precioBase":0},{"nombre":"Algodón (Pack)","consumo":0.01,"precioBase":4005.0},{"nombre":"Batas cortas sin mangas","consumo":1.0,"precioBase":420.0},{"nombre":"Cubre Camilla","consumo":1.0,"precioBase":243.801},{"nombre":"Set de infusión, equipo V14","consumo":1.0,"precioBase":280.52},{"nombre":"Guantes latex talle  PAR \"M\" y \"S\"","consumo":1.0,"precioBase":124.9},{"nombre":"Jeringas desechables x 10ml","consumo":0.5,"precioBase":90.41},{"nombre":"Jeringas desechables x 20ml","consumo":1.0,"precioBase":223.9},{"nombre":"Llaves 3 vias","consumo":0.5,"precioBase":362.5},{"nombre":"Protectores auditivos descartables","consumo":1.0,"precioBase":766.25},{"nombre":"Suero (solución cloruro de sodio) (500ml)","consumo":0.02,"precioBase":1656.07},{"nombre":"Cinta hipoalergénica Transpore 3M x Rollo","consumo":0.01,"precioBase":1123.1},{"nombre":"Electrodos para RMI con punta de Carbón (x50)","consumo":4.0,"precioBase":1103.3},{"nombre":"Tubo conector de baja presion RESO-TAC (x50)","consumo":0.1,"precioBase":7024.793},{"nombre":"Prolongador/Extensor 50 Cm.","consumo":1.0,"precioBase":524.0}]}]},{"id":"tac","nombre":"Tomografía","subPracticas":[{"id":"tac_simple","nombre":"TAC SIMPLE","insumos":[{"nombre":"Alcohol líquido x 1 Lt","consumo":0.1,"precioBase":0},{"nombre":"Algodón (Pack)","consumo":0.1,"precioBase":4005.0}]},{"id":"tac_c_contraste","nombre":"TAC c/Contraste","insumos":[{"nombre":"Abbocath JELCO 18G","consumo":0.5,"precioBase":1140.46},{"nombre":"Abbocath JELCO 20G","consumo":0.5,"precioBase":1140.46},{"nombre":"Agujas espinales 18G (3,1/2\")","consumo":1.0,"precioBase":1600.0},{"nombre":"Alcohol líquido x 1 Lt","consumo":0.1,"precioBase":0},{"nombre":"Algodón (Pack)","consumo":0.1,"precioBase":4005.0},{"nombre":"Prolongador/Extensor 50 Cm.","consumo":1.0,"precioBase":524.0},{"nombre":"Tubo conector de baja presion RESO-TAC (x50)","consumo":0.1,"precioBase":7024.793}]},{"id":"angiotac_c_cte","nombre":"ANGIOTAC c/Cte","insumos":[{"nombre":"Abbocath JELCO 18G","consumo":0.5,"precioBase":1140.46},{"nombre":"Abbocath JELCO 20G","consumo":0.5,"precioBase":1140.46},{"nombre":"Agujas espinales 18G (3,1/2\")","consumo":1.0,"precioBase":1600.0},{"nombre":"Alcohol líquido x 1 Lt","consumo":0.1,"precioBase":0},{"nombre":"Algodón (Pack)","consumo":0.1,"precioBase":4005.0},{"nombre":"Guantes latex talle  PAR \"M\" y \"S\"","consumo":1.0,"precioBase":124.9},{"nombre":"Prolongador/Extensor 50 Cm.","consumo":1.0,"precioBase":524.0},{"nombre":"Tubo conector de baja presion RESO-TAC (x50)","consumo":1.0,"precioBase":7024.793},{"nombre":"Dexametasona ampolla (2ml)","consumo":1.0,"precioBase":739.2},{"nombre":"Difenhidramina clorhidrato ampolla (10mg)","consumo":1.0,"precioBase":898.8},{"nombre":"Jeringas desechables x 10ml","consumo":0.5,"precioBase":90.41},{"nombre":"Jeringas desechables x 20ml","consumo":0.5,"precioBase":223.9},{"nombre":"Jeringas hipodérmicas estériles x 5ml","consumo":0.5,"precioBase":64.17},{"nombre":"Llaves 3 vias","consumo":0.5,"precioBase":362.5},{"nombre":"Llaves 3 vias y set de extensión","consumo":0.5,"precioBase":0},{"nombre":"Suero (solución cloruro de sodio) (500ml)","consumo":0.2,"precioBase":1656.07},{"nombre":"Cinta hipoalergénica Transpore 3M x Rollo","consumo":0.1,"precioBase":1123.1}]},{"id":"3d_c_cte","nombre":"3D c/Cte","insumos":[{"nombre":"Alcohol líquido x 1 Lt","consumo":0.1,"precioBase":0},{"nombre":"Algodón (Pack)","consumo":0.1,"precioBase":4005.0},{"nombre":"Prolongador/Extensor 50 Cm.","consumo":1.0,"precioBase":524.0},{"nombre":"Tubo conector de baja presion RESO-TAC (x50)","consumo":0.1,"precioBase":7024.793}]}]},{"id":"eco","nombre":"Ecografía","subPracticas":[{"id":"simple","nombre":"SIMPLE","insumos":[{"nombre":"Rollo de Papel","consumo":0.01,"precioBase":31183.32},{"nombre":"Gel x 3 Lt -5kg-","consumo":0.01,"precioBase":10400.0},{"nombre":"Batas cortas sin mangas","consumo":0.2,"precioBase":420.0},{"nombre":"Cubre Camilla","consumo":0.3,"precioBase":243.801},{"nombre":"Guantes latex talle  PAR \"M\" y \"S\"","consumo":1.0,"precioBase":124.9}]},{"id":"transvaginal","nombre":"TRANSVAGINAL","insumos":[{"nombre":"Rollo de Papel","consumo":0.01,"precioBase":31183.32},{"nombre":"Gel x 3 Lt -5kg-","consumo":0.01,"precioBase":10400.0},{"nombre":"Fundas ecográficas de látex - Preservativos (x144 un)","consumo":1.0,"precioBase":165.93},{"nombre":"Batas cortas sin mangas","consumo":1.0,"precioBase":420.0},{"nombre":"Cubre Camilla","consumo":0.3,"precioBase":243.801},{"nombre":"Guantes latex talle  PAR \"M\" y \"S\"","consumo":1.0,"precioBase":124.9}]},{"id":"5d","nombre":"5D","insumos":[{"nombre":"Rollo de Papel","consumo":0.01,"precioBase":31183.32},{"nombre":"Gel x 3 Lt -5kg-","consumo":0.01,"precioBase":10400.0},{"nombre":"Cubre Camilla","consumo":0.3,"precioBase":243.801},{"nombre":"Guantes latex talle  PAR \"M\" y \"S\"","consumo":1.0,"precioBase":124.9}]},{"id":"ecodoppler","nombre":"ECODOPPLER","insumos":[{"nombre":"Rollo de Papel","consumo":0.01,"precioBase":31183.32},{"nombre":"Gel x 3 Lt -5kg-","consumo":0.01,"precioBase":10400.0},{"nombre":"Batas cortas sin mangas","consumo":1.0,"precioBase":420.0},{"nombre":"Cubre Camilla","consumo":0.3,"precioBase":243.801},{"nombre":"Guantes latex talle  PAR \"M\" y \"S\"","consumo":1.0,"precioBase":124.9}]},{"id":"elastografia","nombre":"ELASTOGRAFÍA","insumos":[{"nombre":"Rollo de Papel","consumo":0.01,"precioBase":31183.32},{"nombre":"Gel x 3 Lt -5kg-","consumo":0.01,"precioBase":10400.0},{"nombre":"Batas cortas sin mangas","consumo":1.0,"precioBase":420.0},{"nombre":"Cubre Camilla","consumo":0.3,"precioBase":243.801},{"nombre":"Guantes latex talle  PAR \"M\" y \"S\"","consumo":1.0,"precioBase":124.9}]}]},{"id":"mamo","nombre":"Mamografía","subPracticas":[{"id":"2d","nombre":"2D","insumos":[{"nombre":"Hoja membretada","consumo":1.0,"precioBase":0}]},{"id":"3d","nombre":"3D","insumos":[{"nombre":"Hoja membretada","consumo":1.0,"precioBase":0}]}]},{"id":"rx","nombre":"Radiología","subPracticas":[{"id":"comunes","nombre":"COMUNES","insumos":[{"nombre":"Batas cortas sin mangas","consumo":0.3,"precioBase":420.0}]},{"id":"espinografia","nombre":"ESPINOGRAFÍA","insumos":[{"nombre":"Batas cortas sin mangas","consumo":1.0,"precioBase":420.0}]}]},{"id":"interven","nombre":"Intervenciones","subPracticas":[{"id":"colonoscopia","nombre":"COLONOSCOPIA","insumos":[{"nombre":"Abbocath JELCO 20G","consumo":0.5,"precioBase":1140.46},{"nombre":"Accesorio para contraste Colon","consumo":1.0,"precioBase":87641.63},{"nombre":"Agua oxigenada x 1Lts.","consumo":0.01,"precioBase":1147.98},{"nombre":"Algodón (Pack)","consumo":0.1,"precioBase":4005.0},{"nombre":"Guantes latex talle  PAR \"M\" y \"S\"","consumo":1.0,"precioBase":124.9},{"nombre":"Prolongador/Extensor 50 Cm.","consumo":0.01,"precioBase":524.0},{"nombre":"Tubo conector de baja presion RESO-TAC (x50)","consumo":1.0,"precioBase":7024.793},{"nombre":"Dexametasona ampolla (2ml)","consumo":1.0,"precioBase":739.2},{"nombre":"Difenhidramina clorhidrato ampolla (10mg)","consumo":1.0,"precioBase":898.8},{"nombre":"Gasa estéril","consumo":2.0,"precioBase":210.54},{"nombre":"Hioscina - Buscapina ampolla (1ml)","consumo":1.0,"precioBase":768.03},{"nombre":"Jeringa dual con espiga y tubo RESO (x50) Spectris","consumo":0.01,"precioBase":16528.92},{"nombre":"Jeringas desechables x 10ml","consumo":0.5,"precioBase":90.41},{"nombre":"Llaves 3 vias","consumo":0.5,"precioBase":362.5},{"nombre":"Suero (solución cloruro de sodio) (500ml)","consumo":0.2,"precioBase":1656.07},{"nombre":"Cinta hipoalergénica Transpore 3M x Rollo","consumo":0.1,"precioBase":1123.1},{"nombre":"Lidocaina Gel pomo ( 25ml)","consumo":0.5,"precioBase":2520.0},{"nombre":"Contrastes EZCAT/ TRIYOSOM","consumo":1.0,"precioBase":27590.63},{"nombre":"Contrastes ULTRAVIST 370 BAYER 50 ml x48","consumo":0.5,"precioBase":28857.0}]},{"id":"pun_bloq_(tac)","nombre":"PUN./BLOQ. (TAC)","insumos":[{"nombre":"Agua oxigenada x 1Lts.","consumo":0.01,"precioBase":1147.98},{"nombre":"Agujas espinales 18G (3,1/2\")","consumo":0.5,"precioBase":1600.0},{"nombre":"Agujas espinales 20G (3,1/2\")","consumo":1.0,"precioBase":1600.0},{"nombre":"Algodón (Pack)","consumo":0.1,"precioBase":4005.0},{"nombre":"Gasa estéril","consumo":2.0,"precioBase":210.54},{"nombre":"Corteroid Retard ampolla (2ml)","consumo":1.0,"precioBase":1628.7},{"nombre":"Jeringas desechables x 10ml","consumo":0.5,"precioBase":90.41},{"nombre":"Jeringas hipodérmicas estériles x 5ml","consumo":0.5,"precioBase":64.17},{"nombre":"Iodopovidona x 100 ml.","consumo":0.1,"precioBase":3610.0},{"nombre":"Cinta hipoalergénica Transpore 3M x Rollo","consumo":0.1,"precioBase":1123.1},{"nombre":"Jeringas Pico a rosca 10ml","consumo":1.0,"precioBase":145.38},{"nombre":"Jeringas Pico a rosca 5ml","consumo":1.0,"precioBase":155.97},{"nombre":"Agujas espinales 18G (3,1/2\")","consumo":0.5,"precioBase":1600.0},{"nombre":"Agujas espinales 20G (3,1/2\")","consumo":0.5,"precioBase":1600.0},{"nombre":"Apósitos estériles (7 x 20cm)","consumo":0.5,"precioBase":4100.0},{"nombre":"Bisturi N11","consumo":1.0,"precioBase":53.214},{"nombre":"Porta Objetos (x50un)","consumo":1.0,"precioBase":0.9934},{"nombre":"Guantes estériles pares  (7, 1/2) xUn","consumo":1.0,"precioBase":340.17},{"nombre":"Guantes estériles pares (8, 1/2) xUn","consumo":1.0,"precioBase":340.17},{"nombre":"Spray Sanitizante de piel con Clorhexidina (x120ml)","consumo":0.5,"precioBase":7785.0}]},{"id":"puncion_x_eco","nombre":"PUNCIÓN x ECO","insumos":[{"nombre":"Abbocath JELCO 22G","consumo":0.1,"precioBase":1140.46},{"nombre":"Abbocath JELCO 20G","consumo":0.01,"precioBase":1140.46},{"nombre":"Agua oxigenada x 1Lts.","consumo":1.0,"precioBase":1147.98},{"nombre":"Agujas espinales 20G (3,1/2\")","consumo":0.3,"precioBase":1600.0},{"nombre":"Guantes latex talle  PAR \"M\" y \"S\"","consumo":2.0,"precioBase":124.9},{"nombre":"Prolongador/Extensor 50 Cm.","consumo":1.0,"precioBase":524.0},{"nombre":"Tubo conector de baja presion RESO-TAC (x50)","consumo":0.5,"precioBase":7024.793},{"nombre":"Dexametasona ampolla (2ml)","consumo":1.0,"precioBase":739.2},{"nombre":"Difenhidramina clorhidrato ampolla (10mg)","consumo":5.0,"precioBase":898.8},{"nombre":"Gasa estéril","consumo":0.05,"precioBase":210.54},{"nombre":"Hioscina - Buscapina ampolla (1ml)","consumo":0.1,"precioBase":768.03},{"nombre":"Corteroid Retard ampolla (2ml)","consumo":1.0,"precioBase":1628.7},{"nombre":"Jeringa dual con espiga y tubo RESO (x50) Spectris","consumo":1.0,"precioBase":16528.92}]},{"id":"histerosono","nombre":"HISTEROSONO","insumos":[{"nombre":"Abbocath JELCO 20G","consumo":0.01,"precioBase":1140.46},{"nombre":"Accesorio para contraste Colon","consumo":1.0,"precioBase":87641.63},{"nombre":"Agua oxigenada x 1Lts.","consumo":1.0,"precioBase":1147.98},{"nombre":"Agujas espinales 18G (3,1/2\")","consumo":1.0,"precioBase":1600.0},{"nombre":"Agujas espinales 20G (3,1/2\")","consumo":0.3,"precioBase":1600.0}]},{"id":"marcaciones_x_eco","nombre":"MARCACIONES x ECO","insumos":[{"nombre":"Abbocath JELCO 22G","consumo":0.1,"precioBase":1140.46},{"nombre":"Abbocath JELCO 20G","consumo":0.01,"precioBase":1140.46},{"nombre":"Agua oxigenada x 1Lts.","consumo":1.0,"precioBase":1147.98},{"nombre":"Agujas espinales 20G (3,1/2\")","consumo":0.3,"precioBase":1600.0},{"nombre":"Difenhidramina clorhidrato ampolla (10mg)","consumo":1.0,"precioBase":898.8},{"nombre":"Gasa estéril","consumo":1.0,"precioBase":210.54},{"nombre":"Hioscina - Buscapina ampolla (1ml)","consumo":0.1,"precioBase":768.03}]},{"id":"infiltraciones","nombre":"INFILTRACIONES","insumos":[{"nombre":"Abbocath JELCO 22G","consumo":0.1,"precioBase":1140.46},{"nombre":"Agujas espinales 20G (3,1/2\")","consumo":0.3,"precioBase":1600.0},{"nombre":"Prolongador/Extensor 50 Cm.","consumo":0.5,"precioBase":524.0},{"nombre":"Tubo conector de baja presion RESO-TAC (x50)","consumo":0.5,"precioBase":7024.793},{"nombre":"Dexametasona ampolla (2ml)","consumo":1.0,"precioBase":739.2},{"nombre":"Gasa estéril","consumo":1.0,"precioBase":210.54},{"nombre":"Hidrocortisona crema (15mg)","consumo":1.0,"precioBase":0},{"nombre":"Hioscina - Buscapina ampolla (1ml)","consumo":0.1,"precioBase":768.03},{"nombre":"Jeringas hipodérmicas estériles x 5ml","consumo":1.0,"precioBase":64.17}]},{"id":"esterotaxia_(mamo)","nombre":"Esterotaxia (Mamo)","insumos":[{"nombre":"Abbocath JELCO 22G","consumo":0.1,"precioBase":1140.46},{"nombre":"Agua oxigenada x 1Lts.","consumo":1.0,"precioBase":1147.98},{"nombre":"Agujas espinales 18G (3,1/2\")","consumo":4.0,"precioBase":1600.0},{"nombre":"Agujas espinales 20G (3,1/2\")","consumo":0.01,"precioBase":1600.0},{"nombre":"Algodón (Pack)","consumo":1.0,"precioBase":4005.0},{"nombre":"Guantes latex talle  PAR \"M\" y \"S\"","consumo":1.0,"precioBase":124.9},{"nombre":"Prolongador/Extensor 50 Cm.","consumo":0.05,"precioBase":524.0},{"nombre":"Tubo conector de baja presion RESO-TAC (x50)","consumo":0.5,"precioBase":7024.793},{"nombre":"Dexametasona ampolla (2ml)","consumo":0.5,"precioBase":739.2},{"nombre":"Difenhidramina clorhidrato ampolla (10mg)","consumo":1.0,"precioBase":898.8},{"nombre":"Gasa estéril","consumo":0.1,"precioBase":210.54},{"nombre":"Hidrocortisona crema (15mg)","consumo":1.0,"precioBase":0},{"nombre":"Hioscina - Buscapina ampolla (1ml)","consumo":1.0,"precioBase":768.03},{"nombre":"Corteroid Retard ampolla (2ml)","consumo":1.0,"precioBase":1628.7},{"nombre":"Jeringa dual con espiga y tubo RESO (x50) Spectris","consumo":1.0,"precioBase":16528.92}]},{"id":"marcacion_c_clips_arpon","nombre":"Marcación c/Clips/Arpón","insumos":[{"nombre":"Abbocath JELCO 22G","consumo":0.1,"precioBase":1140.46},{"nombre":"Abbocath JELCO 20G","consumo":1.0,"precioBase":1140.46},{"nombre":"Agua oxigenada x 1Lts.","consumo":1.0,"precioBase":1147.98},{"nombre":"Agujas espinales 18G (3,1/2\")","consumo":4.0,"precioBase":1600.0},{"nombre":"Agujas espinales 20G (3,1/2\")","consumo":0.01,"precioBase":1600.0},{"nombre":"Algodón (Pack)","consumo":1.0,"precioBase":4005.0},{"nombre":"Guantes latex talle  PAR \"M\" y \"S\"","consumo":1.0,"precioBase":124.9},{"nombre":"Prolongador/Extensor 50 Cm.","consumo":0.05,"precioBase":524.0},{"nombre":"Tubo conector de baja presion RESO-TAC (x50)","consumo":0.5,"precioBase":7024.793},{"nombre":"Dexametasona ampolla (2ml)","consumo":0.5,"precioBase":739.2},{"nombre":"Difenhidramina clorhidrato ampolla (10mg)","consumo":1.0,"precioBase":898.8},{"nombre":"Gasa estéril","consumo":0.1,"precioBase":210.54},{"nombre":"Hidrocortisona crema (15mg)","consumo":1.0,"precioBase":0},{"nombre":"Hioscina - Buscapina ampolla (1ml)","consumo":1.0,"precioBase":768.03},{"nombre":"Corteroid Retard ampolla (2ml)","consumo":1.0,"precioBase":1628.7},{"nombre":"Jeringa dual con espiga y tubo RESO (x50) Spectris","consumo":1.0,"precioBase":16528.92}]}]},{"id":"odonto","nombre":"Odontología","subPracticas":[{"id":"cefalometria","nombre":"Cefalometría","insumos":[{"nombre":"Alcohol líquido x 1 Lt","consumo":0.005,"precioBase":0},{"nombre":"Guantes Esterlies Polietileno","consumo":0.126,"precioBase":91.1},{"nombre":"Guantes latex talle  PAR \"M\" y \"S\"","consumo":0.1,"precioBase":124.9}]},{"id":"ortopantomografia","nombre":"Ortopantomografía","insumos":[{"nombre":"Alcohol líquido x 1 Lt","consumo":0.005,"precioBase":0},{"nombre":"Guantes Esterlies Polietileno","consumo":0.13,"precioBase":91.1},{"nombre":"Guantes latex talle  PAR \"M\" y \"S\"","consumo":0.1,"precioBase":124.9},{"nombre":"Rollo de Papel","consumo":0.005,"precioBase":31183.32}]},{"id":"rx_atm_-_condilo","nombre":"RX ATM - Cóndilo","insumos":[{"nombre":"Alcohol líquido x 1 Lt","consumo":0.005,"precioBase":0},{"nombre":"Guantes Esterlies Polietileno","consumo":0.13,"precioBase":91.1},{"nombre":"Guantes latex talle  PAR \"M\" y \"S\"","consumo":0.1,"precioBase":124.9},{"nombre":"Rollo de Papel","consumo":0.005,"precioBase":31183.32}]},{"id":"tc_cone_beam","nombre":"TC Cone Beam","insumos":[{"nombre":"Alcohol líquido x 1 Lt","consumo":0.005,"precioBase":0},{"nombre":"Guantes Esterlies Polietileno","consumo":0.13,"precioBase":91.1},{"nombre":"Guantes latex talle  PAR \"M\" y \"S\"","consumo":0.1,"precioBase":124.9},{"nombre":"Rollo de Papel","consumo":0.05,"precioBase":31183.32}]},{"id":"teleradiografia","nombre":"Teleradiografía","insumos":[{"nombre":"Alcohol líquido x 1 Lt","consumo":0.5,"precioBase":0},{"nombre":"Guantes Esterlies Polietileno","consumo":0.26,"precioBase":91.1},{"nombre":"Guantes latex talle  PAR \"M\" y \"S\"","consumo":0.1,"precioBase":124.9},{"nombre":"Rollo de Papel","consumo":0.005,"precioBase":31183.32}]},{"id":"esterotaxia","nombre":"Esterotaxia","insumos":[{"nombre":"Guantes latex talle  PAR \"M\" y \"S\"","consumo":5.1,"precioBase":124.9}]}]},{"id":"cardio","nombre":"Cardiología","subPracticas":[{"id":"ecg","nombre":"ECG","insumos":[{"nombre":"Alcohol líquido x 1 Lt 96%","consumo":0.1,"precioBase":2095.76},{"nombre":"Algodón (Pack)","consumo":0.01,"precioBase":4005.0}]},{"id":"ergometria","nombre":"ERGOMETRÍA","insumos":[{"nombre":"Alcohol líquido x 1 Lt 96%","consumo":0.1,"precioBase":2095.76},{"nombre":"Algodón (Pack)","consumo":0.01,"precioBase":4005.0}]},{"id":"holter","nombre":"HOLTER","insumos":[{"nombre":"Electrodos cardiacos3M (x50)","consumo":7.0,"precioBase":225.6},{"nombre":"Alcohol líquido x 1 Lt 96%","consumo":0.01,"precioBase":2095.76},{"nombre":"Algodón (Pack)","consumo":0.01,"precioBase":4005.0},{"nombre":"Pilas AAA","consumo":1.0,"precioBase":82.65}]},{"id":"presurometria","nombre":"PRESUROMETRÍA","insumos":[{"nombre":"Alcohol líquido x 1 Lt 96%","consumo":0.01,"precioBase":2095.76},{"nombre":"Algodón (Pack)","consumo":0.01,"precioBase":4005.0},{"nombre":"Pilas AAA","consumo":0.02,"precioBase":82.65}]}]},{"id":"neurologia","nombre":"Neurología","subPracticas":[{"id":"eeg","nombre":"EEG","insumos":[{"nombre":"Pasta conductora de EEG","consumo":0.03,"precioBase":2024.79},{"nombre":"Algodón (Pack)","consumo":0.1,"precioBase":4005.0},{"nombre":"Alcohol líquido x 1 Lt 96%","consumo":0.1,"precioBase":2095.76},{"nombre":"Cinta hipoalergénica Transpore 3M x Rollo","consumo":0.02,"precioBase":1123.1}]},{"id":"video_eeg","nombre":"VIDEO EEG","insumos":[{"nombre":"Pasta conductora de EEG","consumo":0.03,"precioBase":2024.79},{"nombre":"Algodón (Pack)","consumo":0.1,"precioBase":4005.0},{"nombre":"Alcohol líquido x 1 Lt 96%","consumo":0.1,"precioBase":2095.76},{"nombre":"Cinta hipoalergénica Transpore 3M x Rollo","consumo":0.02,"precioBase":1123.1}]},{"id":"emg","nombre":"EMG","insumos":[{"nombre":"Pasta conductora de EEG","consumo":0.03,"precioBase":2024.79},{"nombre":"Algodón (Pack)","consumo":0.1,"precioBase":4005.0},{"nombre":"Alcohol líquido x 1 Lt 96%","consumo":0.1,"precioBase":2095.76},{"nombre":"Cinta hipoalergénica Transpore 3M x Rollo","consumo":0.02,"precioBase":1123.1}]},{"id":"pot_evo","nombre":"POT. EVO.","insumos":[{"nombre":"Parches Oculares","consumo":1.0,"precioBase":480.0},{"nombre":"Algodón (Pack)","consumo":0.1,"precioBase":4005.0},{"nombre":"Alcohol líquido x 1 Lt 96%","consumo":0.1,"precioBase":2095.76},{"nombre":"Cinta hipoalergénica Transpore 3M x Rollo","consumo":0.02,"precioBase":1123.1}]},{"id":"est_rep","nombre":"EST. REP.","insumos":[{"nombre":"Algodón (Pack)","consumo":0.1,"precioBase":4005.0},{"nombre":"Alcohol líquido x 1 Lt 96%","consumo":0.1,"precioBase":2095.76},{"nombre":"Cinta hipoalergénica Transpore 3M x Rollo","consumo":0.02,"precioBase":1123.1}]},{"id":"polisomnografia","nombre":"POLISOMNOGRAFÍA","insumos":[{"nombre":"Pasta conductora de EEG","consumo":0.03,"precioBase":2024.79},{"nombre":"Electrodos cardiacos3M (x50)","consumo":5.0,"precioBase":225.6},{"nombre":"Algodón (Pack)","consumo":0.1,"precioBase":4005.0},{"nombre":"Alcohol líquido x 1 Lt 96%","consumo":0.1,"precioBase":2095.76},{"nombre":"Gasa estéril","consumo":0.2,"precioBase":210.54},{"nombre":"Pilas AAA","consumo":3.0,"precioBase":82.65},{"nombre":"Cinta hipoalergénica Transpore 3M x Rollo","consumo":0.03,"precioBase":1123.1}]}]},{"id":"gineco","nombre":"Ginecología","subPracticas":[{"id":"videocolpo","nombre":"VideoColpo","insumos":[{"nombre":"Especulo Vaginal Chico","consumo":0.05,"precioBase":520.661},{"nombre":"Especulo Vaginal Grande","consumo":0.05,"precioBase":570.247},{"nombre":"Kit Ginecologia","consumo":0.33,"precioBase":1500.0},{"nombre":"Guantes latex talle  PAR \"M\" y \"S\"","consumo":1.0,"precioBase":124.9},{"nombre":"Batas cortas sin mangas","consumo":1.0,"precioBase":420.0},{"nombre":"Cubre Camilla","consumo":0.5,"precioBase":243.801},{"nombre":"Alcohol líquido x 1 Lt 96%","consumo":0.1,"precioBase":2095.76},{"nombre":"Algodón (Pack)","consumo":0.05,"precioBase":4005.0},{"nombre":"Gasa estéril","consumo":1.0,"precioBase":210.54},{"nombre":"Solución de ácido acético (500ml)","consumo":0.1,"precioBase":1300.0}]},{"id":"pap","nombre":"PAP","insumos":[{"nombre":"Especulo Vaginal Chico","consumo":0.05,"precioBase":520.661},{"nombre":"Especulo Vaginal Grande","consumo":0.05,"precioBase":570.247},{"nombre":"Kit Ginecologia","consumo":0.33,"precioBase":1500.0},{"nombre":"Espatula de madera de AYRE","consumo":1.0,"precioBase":161.7},{"nombre":"Pinzas MAIER","consumo":1.0,"precioBase":36.0},{"nombre":"Porta Objetos (x50un)","consumo":0.05,"precioBase":0.9934},{"nombre":"Guantes latex talle  PAR \"M\" y \"S\"","consumo":1.0,"precioBase":124.9},{"nombre":"Batas cortas sin mangas","consumo":1.0,"precioBase":420.0},{"nombre":"Cubre Camilla","consumo":0.5,"precioBase":243.801},{"nombre":"Algodón (Pack)","consumo":0.02,"precioBase":4005.0},{"nombre":"Gasa estéril","consumo":1.0,"precioBase":210.54},{"nombre":"Solución de ácido acético (500ml)","consumo":0.03,"precioBase":1300.0},{"nombre":"Solucion de Lugol (500ml)","consumo":0.1,"precioBase":37154.21}]},{"id":"cepillado","nombre":"Cepillado","insumos":[{"nombre":"Especulo Vaginal Chico","consumo":0.05,"precioBase":520.661},{"nombre":"Especulo Vaginal Grande","consumo":0.05,"precioBase":570.247},{"nombre":"Kit Ginecologia","consumo":0.33,"precioBase":1500.0},{"nombre":"Cepillo Endovaginal","consumo":0.1,"precioBase":222.0},{"nombre":"Porta Objetos (x50un)","consumo":0.05,"precioBase":0.9934},{"nombre":"Guantes latex talle  PAR \"M\" y \"S\"","consumo":1.0,"precioBase":124.9},{"nombre":"Batas cortas sin mangas","consumo":1.0,"precioBase":420.0},{"nombre":"Cubre Camilla","consumo":0.5,"precioBase":243.801}]},{"id":"biopsia","nombre":"Biopsia","insumos":[{"nombre":"Especulo Vaginal Chico","consumo":0.05,"precioBase":520.661},{"nombre":"Especulo Vaginal Grande","consumo":0.05,"precioBase":570.247},{"nombre":"Hisopos Ginecologia","consumo":1.0,"precioBase":0},{"nombre":"Porta Objetos (x50un)","consumo":0.05,"precioBase":0.9934},{"nombre":"Batas cortas sin mangas","consumo":1.0,"precioBase":420.0},{"nombre":"Cubre Camilla","consumo":0.5,"precioBase":243.801},{"nombre":"Guantes estériles pares  (7) xUn","consumo":1.0,"precioBase":340.17},{"nombre":"Gasa estéril","consumo":1.0,"precioBase":210.54},{"nombre":"Apósitos estériles (7 x 20cm)","consumo":1.0,"precioBase":4100.0},{"nombre":"Percloruro Férrico (solucion monsel) 10 Ml.","consumo":1.0,"precioBase":0},{"nombre":"Esterilizacion","consumo":0.1,"precioBase":2790.0}]},{"id":"col_ext_diu","nombre":"Col./Ext. DIU","insumos":[{"nombre":"Especulo Vaginal Mediano","consumo":0.1,"precioBase":619.834},{"nombre":"Especulo Vaginal Chico","consumo":0.05,"precioBase":520.661},{"nombre":"Especulo Vaginal Grande","consumo":0.05,"precioBase":570.247},{"nombre":"Guantes estériles pares  (7) xUn","consumo":1.0,"precioBase":340.17},{"nombre":"Gasa estéril","consumo":1.0,"precioBase":210.54},{"nombre":"Apósitos estériles (7 x 20cm)","consumo":1.0,"precioBase":4100.0},{"nombre":"Bisturi N11","consumo":1.0,"precioBase":53.214},{"nombre":"Esterilizacion","consumo":0.1,"precioBase":2790.0}]},{"id":"monitoreo_fetal","nombre":"Monitoreo Fetal","insumos":[{"nombre":"Guantes estériles pares  (7) xUn","consumo":2.0,"precioBase":340.17},{"nombre":"Gasa estéril","consumo":2.0,"precioBase":210.54},{"nombre":"Apósitos estériles (7 x 20cm)","consumo":2.0,"precioBase":4100.0},{"nombre":"Bisturi N11","consumo":2.0,"precioBase":53.214},{"nombre":"Esterilizacion","consumo":1.1,"precioBase":2790.0}]},{"id":"rehab_piso_pelvico","nombre":"Rehab. Piso Pélvico","insumos":[{"nombre":"Guantes estériles pares  (7) xUn","consumo":3.0,"precioBase":340.17},{"nombre":"Gasa estéril","consumo":3.0,"precioBase":210.54},{"nombre":"Apósitos estériles (7 x 20cm)","consumo":3.0,"precioBase":4100.0},{"nombre":"Bisturi N11","consumo":3.0,"precioBase":53.214},{"nombre":"Esterilizacion","consumo":2.1,"precioBase":2790.0}]}]},{"id":"hospital_dia","nombre":"Hospital de Día","subPracticas":[{"id":"infusion_sc","nombre":"Infusión SC","insumos":[{"nombre":"Jeringas hipodérmicas estériles x 5ml","consumo":1.0,"precioBase":64.17},{"nombre":"Aguja Huber 19/20G","consumo":1.0,"precioBase":2366.1},{"nombre":"Alcohol líquido x 1 Lt 96%","consumo":0.1,"precioBase":2095.76},{"nombre":"Guantes latex talle  PAR \"M\" y \"S\"","consumo":2.0,"precioBase":124.9},{"nombre":"Cinta hipoalergénica Transpore 3M x Rollo","consumo":0.05,"precioBase":1123.1},{"nombre":"Gasa estéril","consumo":2.0,"precioBase":210.54},{"nombre":"Algodón (Pack)","consumo":0.05,"precioBase":4005.0}]},{"id":"infusion_im","nombre":"Infusión IM","insumos":[{"nombre":"Jeringas desechables x 10ml","consumo":1.0,"precioBase":90.41},{"nombre":"Agujas hipodérmica estéril 18G -  40/12 (1, 1/2\")","consumo":2.0,"precioBase":19.0},{"nombre":"Aguja Huber 19/20G","consumo":1.0,"precioBase":2366.1},{"nombre":"Solución Fisiológica ampolla","consumo":2.0,"precioBase":369.58},{"nombre":"Alcohol líquido x 1 Lt 96%","consumo":0.1,"precioBase":2095.76},{"nombre":"Guantes latex talle  PAR \"M\" y \"S\"","consumo":2.0,"precioBase":124.9},{"nombre":"Cinta hipoalergénica Transpore 3M x Rollo","consumo":0.05,"precioBase":1123.1},{"nombre":"Gasa estéril","consumo":2.0,"precioBase":210.54},{"nombre":"Algodón (Pack)","consumo":0.05,"precioBase":4005.0}]},{"id":"infusion_ev","nombre":"Infusión EV","insumos":[{"nombre":"Abbocath JELCO 22G","consumo":1.0,"precioBase":1140.46},{"nombre":"Jeringas desechables x 10ml","consumo":3.0,"precioBase":90.41},{"nombre":"Agujas hipodérmica estéril 18G -  40/12 (1, 1/2\")","consumo":2.0,"precioBase":19.0},{"nombre":"Set de infusión, equipo V14","consumo":5.0,"precioBase":280.52},{"nombre":"Llaves 3 vias C/ extensión 50Cm","consumo":1.0,"precioBase":535.92},{"nombre":"Dexametasona ampolla (2ml)","consumo":1.0,"precioBase":739.2},{"nombre":"Difenhidramina clorhidrato ampolla (10mg)","consumo":2.0,"precioBase":898.8},{"nombre":"Ondansetran (8ml)","consumo":1.0,"precioBase":507.78},{"nombre":"Ranitidina 50mg","consumo":1.0,"precioBase":475.9},{"nombre":"Solución Fisiológica ampolla","consumo":2.0,"precioBase":369.58},{"nombre":"Suero (solución cloruro de sodio) (500ml)","consumo":3.0,"precioBase":1656.07},{"nombre":"Alcohol líquido x 1 Lt 96%","consumo":0.1,"precioBase":2095.76},{"nombre":"Guantes latex talle  PAR \"M\" y \"S\"","consumo":2.0,"precioBase":124.9},{"nombre":"Cinta hipoalergénica Transpore 3M x Rollo","consumo":0.05,"precioBase":1123.1},{"nombre":"Apósito Transparente con marco de aplicación","consumo":1.0,"precioBase":690.0},{"nombre":"Gasa estéril","consumo":1.0,"precioBase":210.54},{"nombre":"Algodón (Pack)","consumo":0.05,"precioBase":4005.0},{"nombre":"Solucion Ringer Lactato","consumo":0.25,"precioBase":1250.0}]},{"id":"infusion_ev_c_cateter","nombre":"Infusión EV c/Catéter","insumos":[{"nombre":"Jeringas desechables x 10ml","consumo":3.0,"precioBase":90.41},{"nombre":"Agujas hipodérmica estéril 18G -  40/12 (1, 1/2\")","consumo":3.0,"precioBase":19.0},{"nombre":"Aguja Huber 19/20G","consumo":1.0,"precioBase":2366.1},{"nombre":"Set de infusión, equipo V14","consumo":5.0,"precioBase":280.52},{"nombre":"Llaves 3 vias","consumo":1.0,"precioBase":362.5},{"nombre":"Dexametasona ampolla (2ml)","consumo":1.0,"precioBase":739.2},{"nombre":"Difenhidramina clorhidrato ampolla (10mg)","consumo":1.0,"precioBase":898.8},{"nombre":"Ondansetran (8ml)","consumo":1.0,"precioBase":507.78},{"nombre":"Ranitidina 50mg","consumo":1.0,"precioBase":475.9},{"nombre":"Heparina sódica (5ml)","consumo":1.0,"precioBase":6600.0},{"nombre":"Solución Fisiológica ampolla","consumo":8.0,"precioBase":369.58},{"nombre":"Suero (solución cloruro de sodio) (500ml)","consumo":2.0,"precioBase":1656.07},{"nombre":"Alcohol líquido x 1 Lt 96%","consumo":0.1,"precioBase":2095.76},{"nombre":"Guantes estériles pares  (7, 1/2) xUn","consumo":1.0,"precioBase":340.17},{"nombre":"Cinta hipoalergénica Transpore 3M x Rollo","consumo":0.05,"precioBase":1123.1},{"nombre":"Apósito Transparente con marco de aplicación","consumo":1.0,"precioBase":690.0},{"nombre":"Gasa estéril","consumo":1.0,"precioBase":210.54},{"nombre":"Algodón (Pack)","consumo":0.05,"precioBase":4005.0},{"nombre":"Solucion Ringer Lactato","consumo":0.25,"precioBase":1250.0}]},{"id":"mant_de_cateter","nombre":"Mant. de Catéter","insumos":[{"nombre":"Jeringas desechables x 10ml","consumo":3.0,"precioBase":90.41},{"nombre":"Agujas hipodérmica estéril 18G -  40/12 (1, 1/2\")","consumo":2.0,"precioBase":19.0},{"nombre":"Aguja Huber 19/20G","consumo":1.0,"precioBase":2366.1},{"nombre":"Heparina sódica (5ml)","consumo":1.0,"precioBase":6600.0},{"nombre":"Solución Fisiológica ampolla","consumo":8.0,"precioBase":369.58},{"nombre":"Alcohol líquido x 1 Lt 96%","consumo":0.1,"precioBase":2095.76},{"nombre":"Guantes estériles pares  (7, 1/2) xUn","consumo":1.0,"precioBase":340.17},{"nombre":"Cinta hipoalergénica Transpore 3M x Rollo","consumo":0.05,"precioBase":1123.1},{"nombre":"Apósito Transparente con marco de aplicación","consumo":1.0,"precioBase":690.0},{"nombre":"Gasa estéril","consumo":3.0,"precioBase":210.54},{"nombre":"Algodón (Pack)","consumo":0.05,"precioBase":4005.0}]},{"id":"protocolo","nombre":"Protocolo","insumos":[{"nombre":"Abbocath JELCO 22G","consumo":2.0,"precioBase":1140.46},{"nombre":"Jeringas hipodérmicas estériles x 5ml","consumo":3.0,"precioBase":64.17},{"nombre":"Agujas hipodérmica estéril 18G -  40/12 (1, 1/2\")","consumo":3.0,"precioBase":19.0},{"nombre":"Set de infusión, equipo V14","consumo":3.0,"precioBase":280.52},{"nombre":"Llaves 3 vias","consumo":1.0,"precioBase":362.5},{"nombre":"Suero (solución cloruro de sodio) (500ml)","consumo":2.0,"precioBase":1656.07},{"nombre":"Suero (solución cloruro de sodio) (100ml)","consumo":1.0,"precioBase":1990.0},{"nombre":"Alcohol líquido x 1 Lt 96%","consumo":0.1,"precioBase":2095.76},{"nombre":"Guantes latex talle  PAR \"M\" y \"S\"","consumo":2.0,"precioBase":124.9},{"nombre":"Cinta hipoalergénica Transpore 3M x Rollo","consumo":0.05,"precioBase":1123.1},{"nombre":"Gasa estéril","consumo":3.0,"precioBase":210.54},{"nombre":"Algodón (Pack)","consumo":0.05,"precioBase":4005.0}]},{"id":"protocolo_sc","nombre":"Protocolo SC","insumos":[{"nombre":"Jeringas hipodérmicas estériles x 5ml","consumo":1.0,"precioBase":64.17},{"nombre":"Agujas hipodérmica estéril 18G -  40/12 (1, 1/2\")","consumo":2.0,"precioBase":19.0},{"nombre":"Aguja Huber 19/20G","consumo":1.0,"precioBase":2366.1},{"nombre":"Alcohol líquido x 1 Lt 96%","consumo":0.1,"precioBase":2095.76},{"nombre":"Guantes latex talle  PAR \"M\" y \"S\"","consumo":2.0,"precioBase":124.9},{"nombre":"Cinta hipoalergénica Transpore 3M x Rollo","consumo":0.05,"precioBase":1123.1},{"nombre":"Gasa estéril","consumo":2.0,"precioBase":210.54},{"nombre":"Algodón (Pack)","consumo":0.05,"precioBase":4005.0}]}]},{"id":"med_rep","nombre":"Med. Respiratoria","subPracticas":[{"id":"consulta","nombre":"CONSULTA","insumos":[{"nombre":"Alcohol líquido x 1 Lt 96%","consumo":0.01,"precioBase":2095.76},{"nombre":"Esterilizacion","consumo":0.1,"precioBase":2790.0}]},{"id":"espirometria_bronco","nombre":"ESPIROMETRÍA/BRONCO","insumos":[{"nombre":"Alcohol líquido x 1 Lt 96%","consumo":0.01,"precioBase":2095.76},{"nombre":"Esterilizacion","consumo":0.1,"precioBase":2790.0}]},{"id":"estimulacion_rep","nombre":"ESTIMULACIÓN REP.","insumos":[{"nombre":"Alcohol líquido x 1 Lt 96%","consumo":0.01,"precioBase":2095.76},{"nombre":"Esterilizacion","consumo":0.1,"precioBase":2790.0}]},{"id":"cap_dif___dlco","nombre":"CAP. DIF. / DLCO","insumos":[{"nombre":"Alcohol líquido x 1 Lt 96%","consumo":0.01,"precioBase":2095.76},{"nombre":"Esterilizacion","consumo":0.1,"precioBase":2790.0}]},{"id":"med_bucal___curva","nombre":"MED. BUCAL / CURVA","insumos":[{"nombre":"Alcohol líquido x 1 Lt 96%","consumo":0.01,"precioBase":2095.76},{"nombre":"Esterilizacion","consumo":0.1,"precioBase":2790.0}]},{"id":"test_de_la_marcha","nombre":"TEST DE LA MARCHA","insumos":[{"nombre":"Alcohol líquido x 1 Lt 96%","consumo":0.01,"precioBase":2095.76},{"nombre":"Esterilizacion","consumo":0.1,"precioBase":2790.0}]}]}]};
+
+// Normalize name for fuzzy matching: lowercase, no accents, collapse spaces
+function _pracNorm(s){
+  return String(s||'').toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g,'')
+    .replace(/\s+/g,' ').trim();
+}
+
+// Match supply: check manual override first, then name-based matching
+function _pracMatchSupply(nombre, overrideKey){
+  const overrides=_pracConfig&&_pracConfig.overrides||{};
+  if(overrideKey && overrides[overrideKey]){
+    const s=supplies.find(x=>x.id===overrides[overrideKey]);
+    if(s) return s;
+  }
+  const n=_pracNorm(nombre);
+  let s=supplies.find(x=>_pracNorm(x.name)===n);
+  if(s) return s;
+  s=supplies.find(x=>{const xn=_pracNorm(x.name);return xn.includes(n)||n.includes(xn);});
+  return s||null;
+}
+
+// Calculate unit cost; pracId+spId used to build override key per insumo
+function _pracCalcSubCost(sp, pracId){
+  let total=0;
+  const items=sp.insumos.map((ins,idx)=>{
+    const oKey=pracId?`${pracId}__${sp.id}__${idx}`:null;
+    const sup=_pracMatchSupply(ins.nombre, oKey);
+    const precio=sup?sup.price:ins.precioBase;
+    const costo=precio*ins.consumo;
+    total+=costo;
+    return {nombre:ins.nombre,consumo:ins.consumo,precio,costo,linked:!!sup,supId:sup?sup.id:null,oKey};
+  });
+  return {total,items};
+}
+
+// Format currency
+function _pracFmt(n){return '$'+fmt(n);}
+
+// Switch main view (costos vs cierre)
+function setPracView(view){
+  _pracView=view;
+  document.getElementById('prac-btn-costos').className='prac-view-btn'+(view==='costos'?' active':'');
+  document.getElementById('prac-btn-cierre').className='prac-view-btn'+(view==='cierre'?' active':'');
+  renderContable();
+}
+
+// Main render function
+function renderContable(){
+  const el=document.getElementById('contableContainer'); if(!el) return;
+  if(!_pracConfig){
+    el.innerHTML='<div style="text-align:center;padding:40px;color:var(--text3)">Cargando configuración...</div>';
+    return;
+  }
+  if(_pracView==='costos') renderPracCostos(el);
+  else renderPracCierre(el);
+}
+
+// ─── Vista: Costos por Práctica ───────────────────────────────────────────────
+function renderPracCostos(el){
+  const pracs=_pracConfig.practicas||[];
+  if(!_pracActivePrac && pracs.length) _pracActivePrac=pracs[0].id;
+
+  const tabsHtml=`<div class="prac-tabs">${pracs.map(p=>`
+    <button class="prac-tab-btn${p.id===_pracActivePrac?' active':''}" onclick="setPracActivePrac('${escAttr(p.id)}')">${escHtml(p.nombre)}</button>
+  `).join('')}</div>`;
+
+  const prac=pracs.find(p=>p.id===_pracActivePrac);
+  if(!prac){el.innerHTML=tabsHtml+'<div style="padding:24px;text-align:center;color:var(--text3)">Sin datos</div>';return;}
+
+  const cardsHtml=prac.subPracticas.map(sp=>{
+    const {total,items}=_pracCalcSubCost(sp, prac.id);
+    const unlinked=items.filter(i=>!i.linked).length;
+    const rowsHtml=items.map(it=>{
+      const isLinked=it.linked;
+      const btnTitle=isLinked?`Vinculado: cambia enlace`:`No encontrado en catálogo — clic para vincular`;
+      const btnIcon=isLinked?'🔗':'⚠';
+      return `<div class="prac-insumo-row">
+        <div class="prac-insumo-name">${escHtml(it.nombre)}</div>
+        <div class="prac-insumo-consumo">×${it.consumo<1?it.consumo.toFixed(3).replace(/0+$/,'').replace(/\.$/,''):it.consumo} ud</div>
+        <div class="prac-insumo-cost">${it.precio>0?_pracFmt(it.costo):'—'}</div>
+        <button class="prac-link-btn ${isLinked?'linked':'unlinked'}" title="${escAttr(btnTitle)}"
+          onclick="openPracLink('${escAttr(it.oKey)}','${escAttr(it.nombre)}')">${btnIcon}</button>
+      </div>`;
+    }).join('');
+    return `<div class="prac-card">
+      <div class="prac-card-head">
+        <div>
+          <div class="name">${escHtml(sp.nombre)}</div>
+          ${unlinked?`<div style="font-size:.7rem;opacity:.7;margin-top:2px">⚠ ${unlinked} sin precio — toca ⚠ para vincular</div>`:''}
+        </div>
+        <div class="cost">${_pracFmt(total)}</div>
+      </div>
+      <div class="prac-card-body">${rowsHtml}</div>
+    </div>`;
+  }).join('');
+
+  el.innerHTML=tabsHtml+cardsHtml;
+  if(!cardsHtml) el.innerHTML+=`<div style="padding:24px;text-align:center;color:var(--text3)">Sin sub-prácticas registradas</div>`;
+}
+
+function setPracActivePrac(id){
+  _pracActivePrac=id;
+  renderContable();
+}
+
+// ─── Modal de vinculación ─────────────────────────────────────────────────────
+let _pracLinkKey=null; // current override key being edited
+
+function openPracLink(oKey, nombre){
+  _pracLinkKey=oKey;
+  document.getElementById('pracLinkTitle').textContent=nombre;
+  const overrides=_pracConfig.overrides||{};
+  const currentSup=overrides[oKey]?supplies.find(s=>s.id===overrides[oKey]):null;
+  document.getElementById('pracLinkSub').textContent=currentSup?`Vinculado a: ${currentSup.name}`:'Sin vinculación manual';
+  document.getElementById('pracLinkClearBtn').style.display=currentSup?'block':'none';
+  const inp=document.getElementById('pracLinkSearch');
+  inp.value='';
+  _pracLinkSearch('');
+  document.getElementById('pracLinkOverlay').style.display='flex';
+  setTimeout(()=>inp.focus(),150);
+}
+
+function closePracLink(e){
+  if(e && e.target!==document.getElementById('pracLinkOverlay')) return;
+  document.getElementById('pracLinkOverlay').style.display='none';
+  _pracLinkKey=null;
+}
+
+function _pracLinkSearch(q){
+  const list=document.getElementById('pracLinkList'); if(!list) return;
+  const norm=_pracNorm(q);
+  const matched=supplies.filter(s=>s.active&&(!norm||_pracNorm(s.name).includes(norm)||_pracNorm(s.code||'').includes(norm)))
+    .slice(0,40);
+  if(!matched.length){
+    list.innerHTML='<div style="padding:20px;text-align:center;color:var(--text3);font-size:.82rem">Sin resultados</div>';
+    return;
+  }
+  list.innerHTML=matched.map(s=>`
+    <div class="prac-link-item" onclick="selectPracLink('${escAttr(s.id)}')">
+      <div class="li-name">${escHtml(s.name)}</div>
+      <div class="li-sub">${escHtml(s.code||'')}${s.price>0?' · '+_pracFmt(s.price):''}${s.category?' · '+escHtml(s.category):''}</div>
+    </div>`).join('');
+}
+
+function selectPracLink(supplyId){
+  if(!_pracLinkKey||!_pracConfig) return;
+  if(!_pracConfig.overrides) _pracConfig.overrides={};
+  _pracConfig.overrides[_pracLinkKey]=supplyId;
+  _savePracConfig();
+  document.getElementById('pracLinkOverlay').style.display='none';
+  _pracLinkKey=null;
+  renderContable();
+  toast('✓ Insumo vinculado al catálogo');
+}
+
+function clearPracLink(){
+  if(!_pracLinkKey||!_pracConfig) return;
+  if(_pracConfig.overrides) delete _pracConfig.overrides[_pracLinkKey];
+  _savePracConfig();
+  document.getElementById('pracLinkOverlay').style.display='none';
+  _pracLinkKey=null;
+  renderContable();
+  toast('Vinculación eliminada');
+}
+
+function _savePracConfig(){
+  _db.collection(DB_COL).doc("practicas_config").set(_pracConfig)
+    .catch(()=>toast('⚠️ Error guardando configuración'));
+}
+
+// ─── Vista: Cierre Mensual ────────────────────────────────────────────────────
+function renderPracCierre(el){
+  // Default to current month
+  const today=new Date();
+  if(!_pracCierreMes) _pracCierreMes=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}`;
+
+  const mesData=_pracMes[_pracCierreMes]||{};
+  const pracs=_pracConfig.practicas||[];
+
+  // Month total
+  let grandTotal=0;
+  pracs.forEach(p=>p.subPracticas.forEach(sp=>{
+    const key=`${p.id}__${sp.id}`;
+    const qty=parseInt(mesData[key])||0;
+    const {total}=_pracCalcSubCost(sp, p.id);
+    grandTotal+=qty*total;
+  }));
+
+  const mesLabel=_pracCierreMes?new Date(_pracCierreMes+'-02').toLocaleDateString('es-AR',{month:'long',year:'numeric'}):'';
+
+  const monthSelector=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+    <input type="month" id="prac-mes-sel" value="${escAttr(_pracCierreMes)}"
+      style="padding:8px 12px;border-radius:10px;border:1.5px solid #d1d5db;font-size:.85rem;font-weight:600;color:#1c1c1e;background:#fff;cursor:pointer"
+      onchange="setPracMes(this.value)">
+    <button class="btn btn-primary" style="padding:8px 14px;font-size:.82rem" onclick="savePracMes()">💾 Guardar mes</button>
+  </div>`;
+
+  const totalBar=`<div class="prac-total-bar">
+    <div><div class="label">Total insumos del mes</div><div style="font-size:.72rem;opacity:.6;margin-top:2px">${mesLabel}</div></div>
+    <div class="value" id="prac-grand-total">${_pracFmt(grandTotal)}</div>
+  </div>`;
+
+  const cardsHtml=pracs.map(p=>{
+    if(!p.subPracticas.length) return '';
+    const rowsHtml=p.subPracticas.map(sp=>{
+      const key=`${p.id}__${sp.id}`;
+      const qty=parseInt(mesData[key])||0;
+      const {total}=_pracCalcSubCost(sp, p.id);
+      const rowTotal=qty*total;
+      return `<div class="prac-mes-row">
+        <div class="prac-mes-subname">${escHtml(sp.nombre)}</div>
+        <div class="prac-mes-unitcost">${_pracFmt(total)}/prac.</div>
+        <input type="number" class="prac-mes-input" min="0" max="99999" value="${qty}"
+          data-key="${escAttr(key)}" oninput="updatePracQty(this)" inputmode="numeric">
+        <div class="prac-mes-total" id="prac-row-${escAttr(key)}">${rowTotal>0?_pracFmt(rowTotal):'—'}</div>
+      </div>`;
+    }).join('');
+    return `<div class="prac-mes-card">
+      <div class="prac-mes-head"><div class="name">${escHtml(p.nombre)}</div></div>
+      ${rowsHtml}
+    </div>`;
+  }).filter(Boolean).join('');
+
+  el.innerHTML=monthSelector+totalBar+cardsHtml;
+}
+
+function setPracMes(val){
+  _pracCierreMes=val;
+  renderContable();
+}
+
+function updatePracQty(input){
+  const key=input.dataset.key;
+  const qty=parseInt(input.value)||0;
+  // Update inline total for this row
+  const rowTotalEl=document.getElementById('prac-row-'+key);
+  if(rowTotalEl){
+    const [pracId,spId]=key.split('__');
+    const prac=(_pracConfig.practicas||[]).find(p=>p.id===pracId);
+    const sp=prac?prac.subPracticas.find(s=>s.id===spId):null;
+    if(sp){
+      const {total}=_pracCalcSubCost(sp, pracId);
+      rowTotalEl.textContent=qty>0?_pracFmt(qty*total):'—';
+    }
+  }
+  // Recalculate grand total
+  let grandTotal=0;
+  document.querySelectorAll('.prac-mes-input').forEach(inp=>{
+    const k=inp.dataset.key;
+    const q=parseInt(inp.value)||0;
+    if(!k||!q) return;
+    const [pId,sId]=k.split('__');
+    const pr=(_pracConfig.practicas||[]).find(p=>p.id===pId);
+    const sp=pr?pr.subPracticas.find(s=>s.id===sId):null;
+    if(sp){const {total}=_pracCalcSubCost(sp, pId);grandTotal+=q*total;}
+  });
+  const gtEl=document.getElementById('prac-grand-total');
+  if(gtEl) gtEl.textContent=_pracFmt(grandTotal);
+}
+
+function savePracMes(){
+  if(!_pracCierreMes) return;
+  const data={};
+  document.querySelectorAll('.prac-mes-input').forEach(inp=>{
+    const k=inp.dataset.key;
+    const q=parseInt(inp.value)||0;
+    if(k) data[k]=q;
+  });
+  _db.collection(DB_COL).doc("practicas_mes").set({[_pracCierreMes]:data},{merge:true})
+    .then(()=>toast('✓ Cierre mensual guardado'))
+    .catch(()=>toast('⚠️ Error al guardar'));
+}
+
+// ─── Sistema de Respaldos & Auditoría ─────────────────────────────────────────
+const BACKUP_COL  = "cima_backups";
+const AUDIT_COL   = "cima_audit";
+let _lastSnapshotDate = null;
+
+// ── Audit log (fire-and-forget, falla silenciosamente) ──────────────────────
+function _auditLog(action, description, before, after){
+  if(!_db||!currentUser) return;
+  _db.collection(AUDIT_COL).add({
+    action, description,
+    user: currentUser.email||'?',
+    ts: new Date().toISOString(),
+    ...(before!=null&&{before}),
+    ...(after!=null&&{after})
+  }).catch(()=>{});
+}
+
+// ── Auto-snapshot diario ─────────────────────────────────────────────────────
+async function initBackupSystem(){
+  if(!isAdmin) return;
+  try {
+    const today=new Date().toISOString().slice(0,10);
+    const ref=_db.collection(BACKUP_COL).doc(today);
+    const snap=await ref.get();
+    if(snap.exists){
+      _lastSnapshotDate=today;
+      _updateBackupStatusBar(today, true);
+      return;
+    }
+    await _takeSnapshot(today);
+  } catch(e){ console.warn('[Backup]',e); }
+}
+
+async function _takeSnapshot(dateStr){
+  if(!_db||!supplies.length) return;
+  const data={
+    supplies,
+    center_GN: cs.GN||{},
+    center_Sarmiento: cs.Sarmiento||{},
+    createdAt: new Date().toISOString(),
+    createdBy: currentUser?.email||'?',
+    appVersion: APP_VERSION,
+    counts:{ supplies: supplies.length, movsGN:(cs.GN?.movements||[]).length, movsSarm:(cs.Sarmiento?.movements||[]).length }
+  };
+  await _db.collection(BACKUP_COL).doc(dateStr).set(data);
+  _lastSnapshotDate=dateStr;
+  _updateBackupStatusBar(dateStr, true);
+  console.log(`[Backup] Snapshot ${dateStr} guardado`);
+}
+
+function _updateBackupStatusBar(dateStr, ok){
+  const dot=document.getElementById('sbBackupDot');
+  const lbl=document.getElementById('sbBackupLabel');
+  if(!dot||!lbl) return;
+  const d=dateStr?fmtDate(dateStr):'—';
+  dot.className='backup-status-dot '+(ok?'ok':'warn');
+  lbl.textContent=`Respaldo: ${d}`;
+}
+
+// Snapshot manual (llamado desde UI)
+async function manualSnapshot(){
+  const today=new Date().toISOString().slice(0,10);
+  toast('Guardando respaldo…');
+  try {
+    await _takeSnapshot(today);
+    toast('✓ Respaldo manual guardado');
+    renderBackupAdmin();
+  } catch(e){
+    toast('⚠️ Error al guardar respaldo');
+    console.error(e);
+  }
+}
+
+// ── Restaurar desde snapshot ─────────────────────────────────────────────────
+function restoreSnapshot(dateStr){
+  openConfirm(
+    `⚠️ Restaurar respaldo del ${fmtDate(dateStr)}`,
+    'Esto reemplazará el catálogo de insumos y el stock de ambas sucursales con los datos de ese día. Los movimientos posteriores se perderán. ¿Confirmar?',
+    async ()=>{
+      try {
+        toast('Restaurando…');
+        const snap=await _db.collection(BACKUP_COL).doc(dateStr).get();
+        if(!snap.exists){toast('⚠️ No se encontró ese respaldo');return;}
+        const d=snap.data();
+        const batch=_db.batch();
+        batch.set(_db.collection(DB_COL).doc('supplies'),{data:d.supplies,suppliers:suppliers});
+        batch.set(_db.collection(DB_COL).doc('center_GN'),d.center_GN);
+        batch.set(_db.collection(DB_COL).doc('center_Sarmiento'),d.center_Sarmiento);
+        await batch.commit();
+        _auditLog('restore',`Restauración desde respaldo ${dateStr}`);
+        toast(`✓ Sistema restaurado al ${fmtDate(dateStr)}`);
+      } catch(e){
+        console.error('[Restore]',e);
+        toast('⚠️ Error al restaurar');
+      }
+    }
+  );
+}
+
+// ── Render panel de respaldos (admin) ────────────────────────────────────────
+async function renderBackupAdmin(){
+  const container=document.getElementById('backupAdminContainer'); if(!container) return;
+  container.innerHTML=`<div class="backup-card"><div class="backup-head"><div><div class="title">💾 Respaldos automáticos</div><div class="sub">Cargando lista…</div></div></div></div>`;
+
+  // Load last 30 snapshots
+  let snapshots=[];
+  try {
+    const col=await _db.collection(BACKUP_COL).orderBy('createdAt','desc').limit(30).get();
+    snapshots=col.docs.map(d=>({id:d.id,...d.data()}));
+  } catch(e){
+    // Firestore orderBy may fail without index; fall back
+    try {
+      const col=await _db.collection(BACKUP_COL).get();
+      snapshots=col.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>b.id.localeCompare(a.id)).slice(0,30);
+    } catch(e2){ snapshots=[]; }
+  }
+
+  // Load last 20 audit entries
+  let audits=[];
+  try {
+    const acol=await _db.collection(AUDIT_COL).orderBy('ts','desc').limit(20).get();
+    audits=acol.docs.map(d=>d.data());
+  } catch(e){
+    try {
+      const acol=await _db.collection(AUDIT_COL).get();
+      audits=acol.docs.map(d=>d.data()).sort((a,b)=>b.ts?.localeCompare(a.ts||'')||0).slice(0,20);
+    } catch(e2){ audits=[]; }
+  }
+
+  const ACTION_ICONS={'supply_edit':'✏️','supply_add':'➕','supply_archive':'📦','mov_entrada':'⬆️','mov_salida':'⬇️','solicitud_entregado':'✅','solicitud_delete':'🗑️','restore':'🔄'};
+
+  const snapRows=snapshots.length?snapshots.map(s=>`
+    <div class="backup-snap-row">
+      <div>
+        <div class="backup-snap-date">${fmtDate(s.id)}</div>
+        <div style="font-size:.7rem;color:#636366;margin-top:1px">${s.counts?.supplies||'?'} insumos · V${s.appVersion||'?'} · ${s.createdBy||'?'}</div>
+      </div>
+      <button class="backup-restore-btn" onclick="restoreSnapshot('${escAttr(s.id)}')">↩ Restaurar</button>
+    </div>`).join('')
+    :`<div style="padding:16px;text-align:center;color:var(--text3);font-size:.82rem">Sin respaldos aún</div>`;
+
+  const auditRows=audits.length?audits.map(a=>{
+    const icon=ACTION_ICONS[a.action]||'📝';
+    const time=a.ts?a.ts.slice(0,16).replace('T',' '):'';
+    return `<div class="audit-row">
+      <div class="audit-icon">${icon}</div>
+      <div class="audit-desc">${escHtml(a.description||a.action)}</div>
+      <div class="audit-meta">${escHtml(a.user?.split('@')[0]||'?')}<br>${time.slice(5)}</div>
+    </div>`;}).join('')
+    :`<div style="padding:16px;text-align:center;color:var(--text3);font-size:.82rem">Sin registros aún</div>`;
+
+  container.innerHTML=`
+    <div class="backup-card">
+      <div class="backup-head" style="justify-content:space-between">
+        <div>
+          <div class="title">💾 Respaldos diarios</div>
+          <div class="sub">Se genera automáticamente 1 vez por día al ingresar</div>
+        </div>
+        <button onclick="manualSnapshot()" style="padding:6px 14px;background:rgba(255,255,255,.2);border:none;border-radius:8px;color:#fff;font-size:.78rem;font-weight:700;cursor:pointer;white-space:nowrap;touch-action:manipulation">+ Guardar ahora</button>
+      </div>
+      ${snapRows}
+    </div>
+    <div class="backup-card" style="margin-top:12px">
+      <div class="backup-head">
+        <div>
+          <div class="title">📋 Registro de actividad</div>
+          <div class="sub">Últimas ${audits.length} acciones importantes</div>
+        </div>
+      </div>
+      ${auditRows}
+    </div>`;
+}
+
+// ── Inicializar respaldos cuando el tab Gestión carga ────────────────────────
+const _origRenderGestion=renderGestion;
+function renderGestion(){
+  _origRenderGestion();
+  if(isAdmin && document.getElementById('backupAdminContainer')?.innerHTML==='') renderBackupAdmin();
+}
+
+// ── Llamar initBackupSystem cuando los datos estén listos ───────────────────
+// Se llama desde el listener de supplies, una sola vez
+let _backupInitDone=false;
+const _origUnsubSuppliesCb=null;
+function _maybeInitBackup(){
+  if(_backupInitDone||!supplies.length||!isAdmin) return;
+  _backupInitDone=true;
+  setTimeout(initBackupSystem, 1500); // pequeño delay para que todo cargue
 }
 
 </script>
