@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.02.008 -->
+<!-- v2026.06.02.009 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.02.008">
+<meta name="app-version" content="v2026.06.02.009">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -2052,7 +2052,7 @@ function rDash(){
     var aireColor='#06b6d4';
     var aireStatus=aireFallas>0?'⚠️ '+aireFallas+' con falla':'✅ Operativos';
     var aireStatusColor=aireFallas>0?'#f59e0b':'#34c759';
-    var aireSvg='<svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect x="20" y="55" width="160" height="90" rx="22" fill="'+aireColor+'" fill-opacity=".18" stroke="'+aireColor+'" stroke-width="3"/><rect x="35" y="68" width="130" height="64" rx="14" fill="'+aireColor+'" fill-opacity=".10"/><line x1="50" y1="95" x2="150" y2="95" stroke="'+aireColor+'" stroke-width="3" stroke-linecap="round"/><line x1="50" y1="108" x2="120" y2="108" stroke="'+aireColor+'" stroke-width="2.5" stroke-linecap="round"/><circle cx="148" cy="108" r="7" fill="'+aireColor+'" fill-opacity=".3" stroke="'+aireColor+'" stroke-width="2"/><path d="M60 55 Q60 35 80 35 Q100 35 100 20" stroke="'+aireColor+'" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="4 3" fill="none"/><path d="M90 55 Q90 30 110 30 Q130 30 130 15" stroke="'+aireColor+'" stroke-width="2" stroke-linecap="round" stroke-dasharray="4 3" fill="none" opacity=".6"/><path d="M120 55 Q120 38 135 38 Q148 38 148 25" stroke="'+aireColor+'" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="4 3" fill="none" opacity=".4"/></svg>';
+    var aireSvg='<svg viewBox="'+_AIRE_VB+'" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" width="200" height="200">'+_AIRE_ILLUS+'</svg>';
     h+='<div class="gc tap" onclick="setView(\'aires\');" style="padding:0;overflow:hidden;cursor:pointer;border:1.5px solid '+aireColor+'40;min-height:130px;">'+
       '<div style="height:3px;background:linear-gradient(90deg,'+aireColor+','+aireColor+'55);border-radius:0;"></div>'+
       '<div style="padding:16px 14px 14px;display:flex;flex-direction:column;justify-content:space-between;height:calc(100% - 3px);position:relative;overflow:hidden;">'+
@@ -5460,8 +5460,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.2.26";
-var APP_BUILD="03/06/26 03:30";
+var APP_DISPLAY_VERSION="5.2.27";
+var APP_BUILD="03/06/26 04:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
