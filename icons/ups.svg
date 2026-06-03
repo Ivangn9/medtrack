@@ -1,0 +1,309 @@
+<svg width="100%" viewBox="0 0 600 700" xmlns="http://www.w3.org/2000/svg">
+<title>UPS - Sistema de Alimentación Ininterrumpida</title>
+<defs>
+  <linearGradient id="frontFace" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0%" stop-color="#f8fafb"/>
+    <stop offset="60%" stop-color="#edf1f5"/>
+    <stop offset="100%" stop-color="#d8e0e8"/>
+  </linearGradient>
+  <linearGradient id="sideFace" x1="0%" y1="0%" x2="100%" y2="0%">
+    <stop offset="0%" stop-color="#d0d8e0"/>
+    <stop offset="100%" stop-color="#b8c4cc"/>
+  </linearGradient>
+  <linearGradient id="topFace" x1="0%" y1="0%" x2="0%" y2="100%">
+    <stop offset="0%" stop-color="#eef2f6"/>
+    <stop offset="100%" stop-color="#d4dce4"/>
+  </linearGradient>
+  <linearGradient id="panelDark" x1="0%" y1="0%" x2="0%" y2="100%">
+    <stop offset="0%" stop-color="#1a2030"/>
+    <stop offset="100%" stop-color="#0e1420"/>
+  </linearGradient>
+  <linearGradient id="ventStripe" x1="0%" y1="0%" x2="100%" y2="0%">
+    <stop offset="0%" stop-color="#c8d4de"/>
+    <stop offset="100%" stop-color="#b0bcc8"/>
+  </linearGradient>
+  <radialGradient id="screenGrad" cx="50%" cy="40%" r="60%">
+    <stop offset="0%" stop-color="#0e2040"/>
+    <stop offset="100%" stop-color="#060c18"/>
+  </radialGradient>
+  <filter id="shadow">
+    <feDropShadow dx="8" dy="12" stdDeviation="18" flood-color="#8090a0" flood-opacity="0.3"/>
+  </filter>
+</defs>
+
+<g filter="url(#shadow)">
+
+<!-- ============================================================ -->
+<!--   CARA INFERIOR / BASE                                      -->
+<!-- ============================================================ -->
+<path d="M112,598 L112,628 L488,628 L556,598 L556,568 L480,568 Z" fill="#b8c4ce"/>
+<path d="M112,628 L488,628 L556,598 L480,568 L112,568 Z" fill="#a8b4be" opacity="0.6"/>
+
+<!-- ============================================================ -->
+<!--   CARA LATERAL DERECHA                                      -->
+<!-- ============================================================ -->
+<path d="M480,92 L556,60 L556,598 L480,568 Z" fill="url(#sideFace)"/>
+<!-- Franjas ventilación lateral -->
+<rect x="490" y="130" width="56" height="6" rx="2" fill="#b0bcc8" opacity="0.6"/>
+<rect x="490" y="144" width="56" height="6" rx="2" fill="#b0bcc8" opacity="0.6"/>
+<rect x="490" y="158" width="56" height="6" rx="2" fill="#b0bcc8" opacity="0.6"/>
+<rect x="490" y="172" width="56" height="6" rx="2" fill="#b0bcc8" opacity="0.6"/>
+<rect x="490" y="186" width="56" height="6" rx="2" fill="#b0bcc8" opacity="0.6"/>
+<rect x="490" y="200" width="56" height="6" rx="2" fill="#b0bcc8" opacity="0.6"/>
+<!-- Highlight lateral -->
+<rect x="486" y="90" width="6" height="480" rx="2" fill="#ffffff" opacity="0.15"/>
+
+<!-- ============================================================ -->
+<!--   CARA SUPERIOR                                             -->
+<!-- ============================================================ -->
+<path d="M112,92 L480,92 L556,60 L188,60 Z" fill="url(#topFace)"/>
+<!-- Highlight top -->
+<path d="M140,66 L480,66 L520,62 L180,62 Z" fill="#ffffff" opacity="0.25"/>
+
+<!-- ============================================================ -->
+<!--   CUERPO FRONTAL PRINCIPAL                                  -->
+<!-- ============================================================ -->
+<rect x="112" y="92" width="368" height="476" rx="6" fill="url(#frontFace)" stroke="#c8d4de" stroke-width="1.5"/>
+
+<!-- ============================================================ -->
+<!--   PANEL SUPERIOR OSCURO (display y controles)              -->
+<!-- ============================================================ -->
+<rect x="120" y="102" width="352" height="148" rx="8" fill="url(#panelDark)" stroke="#1a2838" stroke-width="1"/>
+
+<!-- DISPLAY LCD PRINCIPAL -->
+<rect x="132" y="114" width="218" height="96" rx="6" fill="#0a1828" stroke="#1e3050" stroke-width="1.5"/>
+<rect x="136" y="118" width="210" height="88" rx="4" fill="url(#screenGrad)"/>
+
+<!-- Contenido display -->
+<!-- Barra de carga batería -->
+<text x="142" y="134" font-family="monospace" font-size="8" fill="#38bdf8" opacity="0.8">BATERÍA</text>
+<rect x="142" y="138" width="120" height="10" rx="3" fill="#0a1828"/>
+<rect x="142" y="138" width="96" height="10" rx="3" fill="#50c878"/>
+<text x="268" y="147" font-family="monospace" font-size="7" fill="#50c878">80%</text>
+
+<!-- Voltaje entrada -->
+<text x="142" y="164" font-family="monospace" font-size="7" fill="#5a8aaa">Entrada:</text>
+<text x="142" y="175" font-family="monospace" font-size="13" font-weight="700" fill="#7ee8ff">220V</text>
+<text x="188" y="175" font-family="monospace" font-size="8" fill="#4a7898">AC</text>
+
+<!-- Frecuencia -->
+<text x="222" y="164" font-family="monospace" font-size="7" fill="#5a8aaa">Frec:</text>
+<text x="222" y="175" font-family="monospace" font-size="11" font-weight="700" fill="#7ee8ff">50Hz</text>
+
+<!-- Carga -->
+<text x="142" y="193" font-family="monospace" font-size="7" fill="#5a8aaa">Carga:</text>
+<text x="142" y="204" font-family="monospace" font-size="11" font-weight="700" fill="#e0c050">340W</text>
+<text x="194" y="204" font-family="monospace" font-size="7" fill="#a09040">/ 1000VA</text>
+
+<!-- Autonomía -->
+<text x="256" y="193" font-family="monospace" font-size="7" fill="#5a8aaa">Autonomía:</text>
+<text x="256" y="204" font-family="monospace" font-size="11" font-weight="700" fill="#50c878">18 min</text>
+
+<!-- BOTONES PANEL DERECHO -->
+<!-- Botón ON/OFF principal -->
+<circle cx="392" cy="144" r="22" fill="#1a3020" stroke="#1e4028" stroke-width="2"/>
+<circle cx="392" cy="144" r="16" fill="#186028"/>
+<circle cx="392" cy="144" r="10" fill="#20a040"/>
+<!-- Símbolo power -->
+<path d="M392,136 L392,144" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/>
+<path d="M386,139 Q380,144 382,152 Q384,160 392,162 Q400,160 402,152 Q404,144 398,139" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
+<text x="392" y="170" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="7" fill="#308040">ON/OFF</text>
+
+<!-- Botón test batería -->
+<rect x="358" y="182" width="68" height="20" rx="5" fill="#102030" stroke="#1a3040" stroke-width="1"/>
+<text x="392" y="195" text-anchor="middle" font-family="monospace" font-size="6" fill="#38bdf8">TEST BAT.</text>
+
+<!-- ============================================================ -->
+<!--   LEDs INDICADORES                                          -->
+<!-- ============================================================ -->
+<!-- LED Online (verde) -->
+<circle cx="136" cy="222" r="5" fill="#20a040"/>
+<circle cx="136" cy="222" r="3" fill="#40d060"/>
+<text x="146" y="226" font-family="-apple-system, sans-serif" font-size="8" fill="#c8d8e4">On Line</text>
+
+<!-- LED Batería (verde) -->
+<circle cx="196" cy="222" r="5" fill="#20a040"/>
+<circle cx="196" cy="222" r="3" fill="#40d060"/>
+<text x="206" y="226" font-family="-apple-system, sans-serif" font-size="8" fill="#c8d8e4">Batería</text>
+
+<!-- LED Falla (rojo apagado) -->
+<circle cx="268" cy="222" r="5" fill="#301010" stroke="#401818" stroke-width="1"/>
+<text x="278" y="226" font-family="-apple-system, sans-serif" font-size="8" fill="#607888">Falla</text>
+
+<!-- LED Sobrecarga (naranja apagado) -->
+<circle cx="328" cy="222" r="5" fill="#302010" stroke="#403018" stroke-width="1"/>
+<text x="338" y="226" font-family="-apple-system, sans-serif" font-size="8" fill="#607888">Sobrecarga</text>
+
+<!-- Barra carga visual (indicador lineal) -->
+<rect x="132" y="236" width="340" height="6" rx="3" fill="#0a1828"/>
+<rect x="132" y="236" width="136" height="6" rx="3" fill="#50c878"/>
+<rect x="268" y="236" width="4" height="6" rx="1" fill="#e0c050" opacity="0.4"/>
+<rect x="338" y="236" width="4" height="6" rx="1" fill="#e84040" opacity="0.3"/>
+
+<!-- ============================================================ -->
+<!--   ZONA CENTRAL - VENTILACIÓN FRONTAL                       -->
+<!-- ============================================================ -->
+<rect x="120" y="260" width="352" height="60" rx="4" fill="#dce4ec"/>
+<!-- Rejilla ventilación -->
+<rect x="128" y="266" width="336" height="48" rx="3" fill="#d0dae2"/>
+<!-- Lamas ventilación -->
+<rect x="132" y="269" width="328" height="4" rx="1" fill="#b8c4ce"/>
+<rect x="132" y="277" width="328" height="4" rx="1" fill="#b8c4ce"/>
+<rect x="132" y="285" width="328" height="4" rx="1" fill="#b8c4ce"/>
+<rect x="132" y="293" width="328" height="4" rx="1" fill="#b8c4ce"/>
+<rect x="132" y="301" width="328" height="4" rx="1" fill="#b8c4ce"/>
+<!-- Ventilador circular dentro de rejilla -->
+<circle cx="296" cy="290" r="22" fill="#c8d4de" stroke="#b0bcc8" stroke-width="1.5"/>
+<circle cx="296" cy="290" r="16" fill="#b8c4ce"/>
+<!-- Paletas ventilador -->
+<ellipse cx="296" cy="278" rx="5" ry="11" fill="#a8b8c8" transform="rotate(0 296 290)"/>
+<ellipse cx="296" cy="278" rx="5" ry="11" fill="#a8b8c8" transform="rotate(60 296 290)"/>
+<ellipse cx="296" cy="278" rx="5" ry="11" fill="#a8b8c8" transform="rotate(120 296 290)"/>
+<ellipse cx="296" cy="278" rx="5" ry="11" fill="#a8b8c8" transform="rotate(180 296 290)"/>
+<ellipse cx="296" cy="278" rx="5" ry="11" fill="#a8b8c8" transform="rotate(240 296 290)"/>
+<ellipse cx="296" cy="278" rx="5" ry="11" fill="#a8b8c8" transform="rotate(300 296 290)"/>
+<circle cx="296" cy="290" r="5" fill="#98a8b8"/>
+<circle cx="296" cy="290" r="2" fill="#a8b8c8"/>
+
+<!-- ============================================================ -->
+<!--   ZONA MEDIA - TOMAS DE CORRIENTE                          -->
+<!-- ============================================================ -->
+<rect x="120" y="330" width="352" height="140" rx="4" fill="#e4ecf2"/>
+<rect x="128" y="338" width="336" height="124" rx="4" fill="#d8e4ec"/>
+
+<!-- Título zona tomas -->
+<text x="296" y="354" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="9" font-weight="700" fill="#607888" letter-spacing="2">SALIDAS PROTEGIDAS</text>
+
+<!-- Tomas eléctricas (enchufes tipo schuko/IEC) - fila 1 -->
+<!-- Toma 1 -->
+<rect x="140" y="362" width="52" height="52" rx="8" fill="#c8d4de" stroke="#a8b8c4" stroke-width="1.5"/>
+<rect x="146" y="368" width="40" height="40" rx="6" fill="#d8e4ec"/>
+<circle cx="166" cy="385" rx="14" r="14" fill="#c0ccd8"/>
+<circle cx="166" cy="385" rx="10" r="10" fill="#ccd8e4"/>
+<circle cx="160" cy="382" r="3" fill="#6080a0"/>
+<circle cx="172" cy="382" r="3" fill="#6080a0"/>
+<rect x="163" y="390" width="6" height="6" rx="2" fill="#6080a0"/>
+
+<!-- Toma 2 -->
+<rect x="202" y="362" width="52" height="52" rx="8" fill="#c8d4de" stroke="#a8b8c4" stroke-width="1.5"/>
+<rect x="208" y="368" width="40" height="40" rx="6" fill="#d8e4ec"/>
+<circle cx="228" cy="385" rx="14" r="14" fill="#c0ccd8"/>
+<circle cx="228" cy="385" rx="10" r="10" fill="#ccd8e4"/>
+<circle cx="222" cy="382" r="3" fill="#6080a0"/>
+<circle cx="234" cy="382" r="3" fill="#6080a0"/>
+<rect x="225" y="390" width="6" height="6" rx="2" fill="#6080a0"/>
+
+<!-- Toma 3 -->
+<rect x="264" y="362" width="52" height="52" rx="8" fill="#c8d4de" stroke="#a8b8c4" stroke-width="1.5"/>
+<rect x="270" y="368" width="40" height="40" rx="6" fill="#d8e4ec"/>
+<circle cx="290" cy="385" rx="14" r="14" fill="#c0ccd8"/>
+<circle cx="290" cy="385" rx="10" r="10" fill="#ccd8e4"/>
+<circle cx="284" cy="382" r="3" fill="#6080a0"/>
+<circle cx="296" cy="382" r="3" fill="#6080a0"/>
+<rect x="287" y="390" width="6" height="6" rx="2" fill="#6080a0"/>
+
+<!-- Toma 4 -->
+<rect x="326" y="362" width="52" height="52" rx="8" fill="#c8d4de" stroke="#a8b8c4" stroke-width="1.5"/>
+<rect x="332" y="368" width="40" height="40" rx="6" fill="#d8e4ec"/>
+<circle cx="352" cy="385" rx="14" r="14" fill="#c0ccd8"/>
+<circle cx="352" cy="385" rx="10" r="10" fill="#ccd8e4"/>
+<circle cx="346" cy="382" r="3" fill="#6080a0"/>
+<circle cx="358" cy="382" r="3" fill="#6080a0"/>
+<rect x="349" y="390" width="6" height="6" rx="2" fill="#6080a0"/>
+
+<!-- Toma 5 - fila 2 izq -->
+<rect x="140" y="422" width="52" height="36" rx="6" fill="#c8d4de" stroke="#a8b8c4" stroke-width="1.2"/>
+<rect x="146" y="427" width="40" height="26" rx="4" fill="#d8e4ec"/>
+<circle cx="166" cy="437" rx="10" r="10" fill="#c0ccd8"/>
+<circle cx="160" cy="435" r="2.5" fill="#6080a0"/>
+<circle cx="172" cy="435" r="2.5" fill="#6080a0"/>
+<rect x="163" y="441" width="6" height="5" rx="2" fill="#6080a0"/>
+
+<!-- Toma 6 -->
+<rect x="202" y="422" width="52" height="36" rx="6" fill="#c8d4de" stroke="#a8b8c4" stroke-width="1.2"/>
+<rect x="208" y="427" width="40" height="26" rx="4" fill="#d8e4ec"/>
+<circle cx="228" cy="437" rx="10" r="10" fill="#c0ccd8"/>
+<circle cx="222" cy="435" r="2.5" fill="#6080a0"/>
+<circle cx="234" cy="435" r="2.5" fill="#6080a0"/>
+<rect x="225" y="441" width="6" height="5" rx="2" fill="#6080a0"/>
+
+<!-- Puerto USB carga (derecha) -->
+<rect x="326" y="422" width="52" height="36" rx="6" fill="#1a2838" stroke="#1e3050" stroke-width="1.2"/>
+<rect x="338" y="430" width="14" height="20" rx="2" fill="#0e1828"/>
+<rect x="340" y="434" width="10" height="12" rx="1" fill="#0a1020"/>
+<text x="352" y="450" text-anchor="middle" font-family="monospace" font-size="6" fill="#38bdf8">USB</text>
+
+<!-- ============================================================ -->
+<!--   ZONA INFERIOR - CONECTORES Y PROTECCIONES               -->
+<!-- ============================================================ -->
+<rect x="120" y="480" width="352" height="60" rx="4" fill="#dce4ec"/>
+
+<!-- Título -->
+<text x="296" y="498" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="9" font-weight="700" fill="#607888" letter-spacing="1">PROTECCIÓN RED / TEL</text>
+
+<!-- Puerto entrada red eléctrica -->
+<rect x="136" y="505" width="56" height="24" rx="5" fill="#c0ccd8" stroke="#a0b0bc" stroke-width="1.2"/>
+<rect x="142" y="510" width="44" height="14" rx="3" fill="#b0bcc8"/>
+<text x="164" y="520" text-anchor="middle" font-family="monospace" font-size="6" fill="#607888">ENTRADA</text>
+
+<!-- Puerto RJ45 protección red -->
+<rect x="206" y="508" width="28" height="18" rx="3" fill="#1a2838" stroke="#1e3050" stroke-width="1"/>
+<rect x="210" y="512" width="20" height="10" rx="2" fill="#0e1828"/>
+<!-- Pines RJ45 -->
+<rect x="212" y="514" width="2" height="6" rx="1" fill="#7890a8"/>
+<rect x="216" y="514" width="2" height="6" rx="1" fill="#7890a8"/>
+<rect x="220" y="514" width="2" height="6" rx="1" fill="#7890a8"/>
+<rect x="224" y="514" width="2" height="6" rx="1" fill="#7890a8"/>
+<text x="220" y="530" text-anchor="middle" font-family="monospace" font-size="5" fill="#607888">RJ45</text>
+
+<!-- Puerto comunicación RS232 / USB -->
+<rect x="250" y="507" width="32" height="20" rx="4" fill="#1a2838" stroke="#1e3050" stroke-width="1"/>
+<rect x="254" y="511" width="24" height="12" rx="2" fill="#0e1828"/>
+<text x="266" y="521" text-anchor="middle" font-family="monospace" font-size="5" fill="#38bdf8">RS232</text>
+<text x="266" y="530" text-anchor="middle" font-family="monospace" font-size="5" fill="#607888">COMM</text>
+
+<!-- Botón reset -->
+<circle cx="330" cy="517" r="10" fill="#2a1010" stroke="#3a1818" stroke-width="1.5"/>
+<circle cx="330" cy="517" r="7" fill="#401818"/>
+<circle cx="330" cy="517" r="4" fill="#501c1c"/>
+<text x="330" y="534" text-anchor="middle" font-family="monospace" font-size="6" fill="#907888">RESET</text>
+
+<!-- Interruptor silencio alarma -->
+<rect x="352" y="508" width="44" height="18" rx="5" fill="#102030" stroke="#1a3040" stroke-width="1"/>
+<text x="374" y="519" text-anchor="middle" font-family="monospace" font-size="5" fill="#38bdf8">SILENCIO</text>
+<text x="374" y="530" text-anchor="middle" font-family="monospace" font-size="5" fill="#5a8aaa">ALARMA</text>
+
+<!-- ============================================================ -->
+<!--   FRANJA INFERIOR MARCA                                    -->
+<!-- ============================================================ -->
+<rect x="120" y="548" width="352" height="28" rx="4" fill="#1a2030"/>
+<!-- Logo APC -->
+<text x="200" y="566" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="13" font-weight="800" fill="#50c878" letter-spacing="2">APC</text>
+<text x="330" y="566" font-family="-apple-system, sans-serif" font-size="9" fill="#607888" letter-spacing="1">Back-UPS Pro 1000VA</text>
+
+<!-- ============================================================ -->
+<!--   DETALLES LATERALES CUERPO                                -->
+<!-- ============================================================ -->
+<!-- Línea separadora superior panel -->
+<rect x="120" y="254" width="352" height="3" rx="1" fill="#b8c8d4"/>
+<rect x="120" y="324" width="352" height="3" rx="1" fill="#b8c8d4"/>
+<rect x="120" y="474" width="352" height="3" rx="1" fill="#b8c8d4"/>
+<rect x="120" y="542" width="352" height="3" rx="1" fill="#b8c8d4"/>
+
+<!-- Tornillos esquinas -->
+<circle cx="132" cy="104" r="5" fill="#d0dce8"/>
+<circle cx="132" cy="104" r="3" fill="#dce8f2"/>
+<circle cx="460" cy="104" r="5" fill="#d0dce8"/>
+<circle cx="460" cy="104" r="3" fill="#dce8f2"/>
+<circle cx="132" cy="560" r="5" fill="#d0dce8"/>
+<circle cx="132" cy="560" r="3" fill="#dce8f2"/>
+<circle cx="460" cy="560" r="5" fill="#d0dce8"/>
+<circle cx="460" cy="560" r="3" fill="#dce8f2"/>
+
+</g>
+
+<!-- ETIQUETA -->
+<text x="300" y="668" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="13" font-weight="700" fill="#8898a8" letter-spacing="1">UPS · Sistema Alimentación Ininterrumpida</text>
+<text x="300" y="684" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="10" fill="#a0b0b8">APC Back-UPS Pro 1000VA · 230V</text>
+
+</svg>
