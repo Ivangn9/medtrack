@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.03.005 -->
+<!-- v2026.06.03.006 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.03.005">
+<meta name="app-version" content="v2026.06.03.006">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3607,7 +3607,40 @@ function rTransductorDetalle(){
       )+
     '</div>'+
   '</div>';
+  h+='<div class="gc" style="padding:0;margin-bottom:12px;overflow:hidden;">'+
+    '<div style="background:linear-gradient(90deg,rgba(14,165,233,.10),rgba(14,165,233,.05));padding:9px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(14,165,233,.10);">'+
+      '<span style="font-size:.72rem;font-weight:700;color:#0ea5e9;text-transform:uppercase;letter-spacing:.06em;flex:1;">📋 Historial de movimientos</span>'+
+      '<span style="font-size:.66rem;font-weight:700;background:rgba(14,165,233,.15);color:#0ea5e9;padding:2px 8px;border-radius:10px;">'+historial.length+'</span>'+
+    '</div>'+
+    '<div style="padding:12px 14px;">'+
+      (historial.length===0?
+        '<div style="text-align:center;padding:14px;font-size:.74rem;color:var(--text3);">Sin movimientos registrados</div>'
+        :
+        historial.slice().sort(function(a,b){return a.fecha>b.fecha?-1:1;}).map(function(ent){
+          if(ent.tipo==='traslado'){
+            return '<div style="padding:10px 12px;margin-bottom:8px;border-radius:var(--r-md);background:rgba(14,165,233,.05);border:1px solid rgba(14,165,233,.15);">'+
+              '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">'+
+                '<span style="font-size:.82rem;color:#0ea5e9;font-weight:700;">→</span>'+
+                '<span style="font-weight:700;font-size:.8rem;color:#0ea5e9;">Traslado</span>'+
+                (ent.fecha?'<span style="font-size:.66rem;color:var(--text3);margin-left:auto;">'+fD(ent.fecha)+'</span>':'')+
+              '</div>'+
+              '<div style="font-size:.75rem;color:var(--text2);">Trasladado desde: <strong>'+esc(ent.deEquipoNombre||ent.deEquipoId||'—')+'</strong> → <strong>'+esc(ent.aEquipoNombre||ent.aEquipoId||'—')+'</strong></div>'+
+              (ent.notas?'<div style="font-size:.7rem;color:var(--text3);margin-top:3px;">'+esc(ent.notas)+'</div>':'')+
+            '</div>';
+          }
+          return '<div style="padding:10px 12px;margin-bottom:8px;border-radius:var(--r-md);background:rgba(120,120,128,.05);border:1px solid rgba(120,120,128,.12);">'+
+            '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">'+
+              '<span style="font-weight:700;font-size:.8rem;color:var(--text2);">'+esc(ent.tipo||'Movimiento')+'</span>'+
+              (ent.fecha?'<span style="font-size:.66rem;color:var(--text3);margin-left:auto;">'+fD(ent.fecha)+'</span>':'')+
+            '</div>'+
+            (ent.notas?'<div style="font-size:.7rem;color:var(--text3);">'+esc(ent.notas)+'</div>':'')+
+          '</div>';
+        }).join('')
+      )+
+    '</div>'+
+  '</div>';
   if(selTransdEqId){
+    h+='<button onclick="openTrasladoTransductorModal(\''+tr.id+'\',\''+selTransdEqId+'\')" style="width:100%;padding:11px;border-radius:var(--r-pill);background:rgba(14,165,233,.08);border:1.5px solid rgba(14,165,233,.30);color:#0ea5e9;font-weight:600;font-size:.78rem;cursor:pointer;margin-top:8px;">🔄 Trasladar a otro ecógrafo</button>';
     h+='<button onclick="if(confirm(\'¿Quitar este transductor del equipo?\'))removeTransductorFromEq(\''+tr.id+'\',\''+selTransdEqId+'\');" style="width:100%;padding:11px;border-radius:var(--r-pill);background:rgba(255,59,48,.08);border:1.5px solid rgba(255,59,48,.18);color:var(--red);font-weight:600;font-size:.78rem;cursor:pointer;margin-top:8px;">Quitar del equipo</button>';
   }
   return h;
@@ -3897,7 +3930,7 @@ function toggleRepLoc(loc){
   var pill=document.querySelector('[data-rep-loc-pill="'+loc+'"]');
   if(pill){pill.style.background=nv?'rgba(0,113,227,.22)':'rgba(0,113,227,.06)';pill.style.borderColor=nv?'rgba(0,113,227,.6)':'rgba(0,113,227,.2)';}
 }
-function _narrativeEq(eq,mantHist,repHist,mejHist,actToShow,mejPendToShow){
+function _narrativeEq(eq,mantHist,repHist,mejHist,actToShow,mejPendToShow,trasladosHist){
   var html='';
   var estLbls={operativo:'en condiciones operativas normales','con-rotura':'operativo con fallas activas','advertencia':'bajo advertencia de mantenimiento','fuera-de-servicio':'fuera de servicio'};
   var intro='El equipo <strong>'+esc(eq.nombre)+'</strong>';
@@ -3973,6 +4006,17 @@ function _narrativeEq(eq,mantHist,repHist,mejHist,actToShow,mejPendToShow){
     });
     html+='</ul>';
   }
+  if(trasladosHist&&trasladosHist.length){
+    html+='<div class="sub-label" style="margin:10px 0 4px;">Movimientos de transductores</div><ul class="rep-list">';
+    trasladosHist.forEach(function(h){
+      html+='<li><strong>'+fD(h.fecha)+'</strong> — Transductor <strong>'+esc(h.transductorNombre||h.transductorId||'')+'</strong>';
+      html+=' trasladado de <strong>'+esc(h.deEquipoNombre||h.deEquipoId||'—')+'</strong>';
+      html+=' a <strong>'+esc(h.aEquipoNombre||h.aEquipoId||'—')+'</strong>';
+      if(h.notas)html+='<br><span class="list-note">'+esc(h.notas)+'</span>';
+      html+='</li>';
+    });
+    html+='</ul>';
+  }
   return html;
 }
 
@@ -4042,12 +4086,24 @@ function generateReportDirect(){
     var mejH=hist.filter(function(h){return h.tipo==='mejora';});
     var actH=(eq.partes||[]).filter(function(p){return p.estado==='roto'||p.estado==='pendiente';});
     var mejP=(eq.partes||[]).filter(function(p){return p.estado==='mejora';});
+    var trasladosH=[];
+    if(eq.cat==='ECO'){
+      transductores.forEach(function(t){
+        (t.historialTransductor||[]).forEach(function(h){
+          if(h.tipo!=='traslado')return;
+          if(h.deEquipoId===eq.id||h.aEquipoId===eq.id){
+            trasladosH.push(Object.assign({},h,{transductorNombre:t.nombre,transductorId:t.id}));
+          }
+        });
+      });
+      trasladosH.sort(function(a,b){return a.fecha>b.fecha?1:-1;});
+    }
     var estClass=eq.estado==='fuera-de-servicio'?'sbad':eq.estado==='operativo'?'sok':'swarn';
     sumRows+='<tr><td><strong>'+esc(eq.nombre)+'</strong></td><td>'+ci.label+'</td><td>'+(eq.ubicacion?esc(eq.ubicacion):'—')+'</td><td><span class="'+estClass+'">'+estLabel(eq.estado)+'</span></td><td>'+mantH.length+'</td><td>'+repH.length+'</td><td>'+actH.length+'</td></tr>';
-    var hasEq=mantH.length||repH.length||mejH.length||actH.length||mejP.length;
+    var hasEq=mantH.length||repH.length||mejH.length||actH.length||mejP.length||trasladosH.length;
     if(!hasEq)return;
     tm+=mantH.length;tr+=repH.length;tmej+=mejH.length;tact+=actH.length;
-    eqData.push({eq:eq,ci:ci,mantH:mantH,repH:repH,mejH:mejH,actH:actH,mejP:mejP});
+    eqData.push({eq:eq,ci:ci,mantH:mantH,repH:repH,mejH:mejH,actH:actH,mejP:mejP,trasladosH:trasladosH});
   });
   localStorage.setItem('cima_nro_informe',String(nroInforme+1));
   var _logoSync=null;
@@ -4062,7 +4118,7 @@ function generateReportDirect(){
     var resumenText='Se registraron: <strong>'+tm+' mantenimiento'+(tm!==1?'s preventivos':' preventivo')+'</strong>'+(tr?', <strong>'+tr+' reparación'+(tr!==1?'es':'')+' completada'+(tr!==1?'s':'')+'</strong>':'')+(tmej?', <strong>'+tmej+' mejora'+(tmej!==1?'s':'')+' completada'+(tmej!==1?'s':'')+'</strong>':'')+(tact?'. Se reportan <strong class="sbad">'+tact+' falla'+(tact!==1?'s':'')+' activa'+(tact!==1?'s':'')+'</strong>.':'.');
     var conclusionText='Se recomienda dar seguimiento a las fallas activas para garantizar la continuidad operativa.';
     var eqSections='';
-    eqData.forEach(function(d){var eq=d.eq;var ci=d.ci;var narrativeHtml=_narrativeEq(eq,d.mantH,d.repH,d.mejH,d.actH,d.mejP);eqSections+='<div class="eq-block"><div class="eq-title" style="display:flex;align-items:center;">'+esc(eq.nombre)+'<span style="font-size:9pt;font-weight:500;color:#64748b;margin-left:10px;flex:1;">'+ci.label+(eq.ubicacion?' — '+esc(eq.ubicacion):'')+'</span></div><div class="narrative">'+narrativeHtml+'</div></div>';});
+    eqData.forEach(function(d){var eq=d.eq;var ci=d.ci;var narrativeHtml=_narrativeEq(eq,d.mantH,d.repH,d.mejH,d.actH,d.mejP,d.trasladosH||[]);eqSections+='<div class="eq-block"><div class="eq-title" style="display:flex;align-items:center;">'+esc(eq.nombre)+'<span style="font-size:9pt;font-weight:500;color:#64748b;margin-left:10px;flex:1;">'+ci.label+(eq.ubicacion?' — '+esc(eq.ubicacion):'')+'</span></div><div class="narrative">'+narrativeHtml+'</div></div>';});
     var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width"><title>Informe Equipos CIMA — '+mesAnio+'</title><style>'+_reportCSS+'</style></head><body>';
     html+='<div class="page">';
     html+='<div class="logo-area">'+logoTag+'</div>';
@@ -4131,15 +4187,29 @@ function generateReport(){
     var mejH=inclMejHist?hist.filter(function(h){return h.tipo==='mejora';}):[];
     var actH=inclActivas?partesActivas:[];
     var mejP=inclMejPend?mejorasPend:[];
+    var trasladosH=[];
+    if(eq.cat==='ECO'){
+      transductores.forEach(function(t){
+        (t.historialTransductor||[]).forEach(function(h){
+          if(h.tipo!=='traslado')return;
+          if(desde&&h.fecha<desde)return;
+          if(hasta&&h.fecha>hasta)return;
+          if(h.deEquipoId===eq.id||h.aEquipoId===eq.id){
+            trasladosH.push(Object.assign({},h,{transductorNombre:t.nombre,transductorId:t.id}));
+          }
+        });
+      });
+      trasladosH.sort(function(a,b){return a.fecha>b.fecha?1:-1;});
+    }
     // Always add to summary table
     var estClass=eq.estado==='fuera-de-servicio'?'sbad':eq.estado==='operativo'?'sok':'swarn';
     sumRows+='<tr><td><strong>'+esc(eq.nombre)+'</strong></td><td>'+ci.label+'</td><td>'+(eq.ubicacion?esc(eq.ubicacion):'—')+'</td><td><span class="'+estClass+'">'+estLabel(eq.estado)+'</span></td><td>'+mantH.length+'</td><td>'+repH.length+'</td><td>'+actH.length+'</td></tr>';
     // Add to detail section only if has events in the period
-    var hasEq=mantH.length||repH.length||mejH.length||actH.length||mejP.length;
+    var hasEq=mantH.length||repH.length||mejH.length||actH.length||mejP.length||trasladosH.length;
     if(!hasEq)return;
     hasData=true;
     tm+=mantH.length;tr+=repH.length;tmej+=mejH.length;tact+=actH.length;
-    eqData.push({eq:eq,ci:ci,mantH:mantH,repH:repH,mejH:mejH,actH:actH,mejP:mejP});
+    eqData.push({eq:eq,ci:ci,mantH:mantH,repH:repH,mejH:mejH,actH:actH,mejP:mejP,trasladosH:trasladosH});
   });}catch(_fe){showToast('Error procesando equipos: '+(_fe&&_fe.message?_fe.message:String(_fe)),'err');return;}
   // Always generate if equipment selected — no-activity periods still produce a status report
   try{localStorage.setItem('cima_nro_informe',String(nroInforme+1));localStorage.setItem('cima_rep_para',paraInforme);}catch(e){}
@@ -4168,7 +4238,7 @@ function generateReport(){
     var eqSections='';
     eqData.forEach(function(d){
       var eq=d.eq;var ci=d.ci;
-      var narrativeHtml=_narrativeEq(eq,d.mantH,d.repH,d.mejH,d.actH,d.mejP);
+      var narrativeHtml=_narrativeEq(eq,d.mantH,d.repH,d.mejH,d.actH,d.mejP,d.trasladosH||[]);
       // Gather images for this equipment's faults
       var faultImgs=[];
       d.actH.forEach(function(p){(p.imagenes||[]).forEach(function(im){if(im&&im.id&&imgsMap[im.id])faultImgs.push({src:imgsMap[im.id],nombre:im.nombre,falla:p.nombre});});});
@@ -5242,6 +5312,65 @@ function markTransductorRoturaReparada(transductorId,roturaId){
   saveData();render();showToast('✅ Marcada como reparada','');
 }
 
+function openTrasladoTransductorModal(transductorId, fromEqId){
+  var otrosEcos=eqs.filter(function(e){return e.cat==='ECO'&&e.id!==fromEqId&&!e.baja;});
+  var bodyHtml='<div class="modal-hdr"><div class="modal-title">🔄 Trasladar Transductor</div><button class="modal-x" onclick="closeModal()">✕</button></div>'+
+    '<div style="font-size:.78rem;color:var(--text3);margin-bottom:14px;">Seleccioná el equipo de destino</div>'+
+    '<div class="ff"><div class="ff-label">Fecha *</div>'+
+      '<input class="inp" id="tr-tras-fecha" type="date" value="'+today()+'">'+
+    '</div>';
+  if(!otrosEcos.length){
+    bodyHtml+='<div style="padding:14px;background:rgba(255,149,0,.08);border:1px solid rgba(255,149,0,.18);border-radius:var(--r-md);font-size:.78rem;color:var(--orange);text-align:center;">No hay otros ecógrafos disponibles</div>';
+  }else{
+    var opts=otrosEcos.map(function(e){return '<option value="'+e.id+'">'+esc(e.nombre)+(e.consultorio?' — Consultorio '+esc(e.consultorio):'')+'</option>';}).join('');
+    bodyHtml+='<div class="ff"><div class="ff-label">Equipo destino *</div>'+
+      '<select class="inp" id="tr-tras-destino">'+opts+'</select>'+
+    '</div>'+
+    '<div class="ff"><div class="ff-label">Motivo / notas opcionales</div>'+
+      '<textarea class="inp" id="tr-tras-notas" rows="2" placeholder="Detalles del traslado..."></textarea>'+
+    '</div>'+
+    '<button class="btn-grad" style="width:100%;margin-top:4px;" onclick="submitTrasladoTransductor(\''+transductorId+'\',\''+fromEqId+'\')">Confirmar traslado</button>';
+  }
+  openModal(bodyHtml);
+}
+function submitTrasladoTransductor(transductorId, fromEqId){
+  var fecha=((document.getElementById('tr-tras-fecha')||{}).value||'').trim();
+  var toEqId=((document.getElementById('tr-tras-destino')||{}).value||'').trim();
+  var notas=((document.getElementById('tr-tras-notas')||{}).value||'').trim();
+  if(!fecha){alert('Fecha obligatoria');return;}
+  if(!toEqId){alert('Seleccioná el equipo destino');return;}
+  var fromEq=eqs.find(function(e){return e.id===fromEqId;});
+  var toEq=eqs.find(function(e){return e.id===toEqId;});
+  var entry={
+    id:'TRAS-'+Date.now(),
+    tipo:'traslado',
+    fecha:fecha,
+    deEquipoId:fromEqId,
+    deEquipoNombre:fromEq?fromEq.nombre:fromEqId,
+    aEquipoId:toEqId,
+    aEquipoNombre:toEq?toEq.nombre:toEqId,
+    notas:notas,
+    registradoEn:new Date().toISOString()
+  };
+  transductores=transductores.map(function(t){
+    if(t.id!==transductorId)return t;
+    return Object.assign({},t,{historialTransductor:(t.historialTransductor||[]).concat(entry)});
+  });
+  eqs=eqs.map(function(e){
+    if(e.id===fromEqId){
+      return Object.assign({},e,{transductorIds:(e.transductorIds||[]).filter(function(id){return id!==transductorId;})});
+    }
+    if(e.id===toEqId){
+      var ids=e.transductorIds||[];
+      if(ids.indexOf(transductorId)===-1)ids=ids.concat(transductorId);
+      return Object.assign({},e,{transductorIds:ids});
+    }
+    return e;
+  });
+  saveData();closeModal();showToast('🔄 Transductor trasladado','');
+  selTransdEqId=toEqId;view='transductores';render();
+}
+
 // ═══════════════════════════════════════════
 //  REPORTAR ROTURA
 // ═══════════════════════════════════════════
@@ -5577,8 +5706,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.2.32";
-var APP_BUILD="03/06/26 15:00";
+var APP_DISPLAY_VERSION="5.2.33";
+var APP_BUILD="03/06/26 16:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
