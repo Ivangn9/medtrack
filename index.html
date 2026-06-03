@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.03.011 -->
+<!-- v2026.06.03.012 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.03.011">
+<meta name="app-version" content="v2026.06.03.012">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1617,6 +1617,27 @@ function estLabel(s){return{operativo:"Operativo","con-rotura":"Con Rotura",adve
 // ═══════════════════════════════════════════
 //  MODAL BUILDERS
 // ═══════════════════════════════════════════
+function _upsEqChecklist(selectedIds){
+  var sel=Array.isArray(selectedIds)?selectedIds:[];
+  var others=eqs.filter(function(e){return !e.baja&&e.cat!=='UPS';});
+  if(!others.length)return '<div style="font-size:.75rem;color:var(--text3);padding:6px 0;">No hay equipos cargados en el sistema</div>';
+  var groups={};
+  others.forEach(function(e){if(!groups[e.cat])groups[e.cat]=[];groups[e.cat].push(e);});
+  var h='';
+  Object.keys(groups).forEach(function(catId){
+    var c=catById(catId);
+    h+='<div style="font-size:.6rem;font-weight:800;color:'+c.color+';text-transform:uppercase;letter-spacing:.07em;margin:6px 0 3px;">'+c.label+'</div>';
+    groups[catId].forEach(function(e){
+      var chk=sel.indexOf(e.id)!==-1?' checked':'';
+      var sede=e.sede||e.ubicacion||'';
+      h+='<label style="display:flex;align-items:center;gap:8px;padding:5px 0;cursor:pointer;border-bottom:1px solid rgba(0,0,0,.04);">'+
+        '<input type="checkbox" value="'+e.id+'" class="ups-eq-chk"'+chk+' style="width:16px;height:16px;accent-color:#f59e0b;flex-shrink:0;">'+
+        '<span style="font-size:.8rem;color:var(--text);">'+esc(e.nombre)+(sede?' <span style="font-size:.7rem;color:var(--text3);">· '+esc(sede)+'</span>':'')+
+        '</span></label>';
+    });
+  });
+  return h;
+}
 function openModalEq(eq){
   var n=!eq;var f=eq||{nombre:"",cat:"RM",ubicacion:"",instalacion:"",serie:"",tecnico:"",contrato:"",marca:"",estado:"operativo",frecuencia:"semestral",ultimoMant:today(),proximoMant:calcP(today(),"semestral"),notas:"",garantia:false,garantiaHasta:"",tieneServicio:false};
   var catOpts=CATS.map(function(c){return'<option value="'+c.id+'"'+(f.cat===c.id?' selected':'')+'>'+c.label+'</option>';}).join("");
@@ -1655,7 +1676,7 @@ function openModalEq(eq){
     +(f.cat==='UPS'?'<div style="border-top:1px solid rgba(245,158,11,.18);margin:12px 0 10px;padding-top:12px;"><div style="font-size:.68rem;font-weight:800;color:#f59e0b;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;">🔋 Datos UPS</div>'+
     '<div class="g2"><div class="ff"><div class="ff-label">Modelo</div><input class="inp" id="eq-ups-modelo" value="'+esc(f.modelo||'')+'" placeholder="Ej: APC Smart-UPS 3000"></div>'+
     '<div class="ff"><div class="ff-label">KVA</div><input class="inp" id="eq-ups-kva" value="'+esc(f.kva||'')+'" placeholder="Ej: 3 kVA"></div></div>'+
-    '<div class="ff"><div class="ff-label">Equipos conectados</div><input class="inp" id="eq-ups-eqconect" value="'+esc(f.equiposConectados||'')+'" placeholder="Ej: RM - GN, MG - CRS"></div>'+
+    '<div class="ff"><div class="ff-label">Equipos conectados</div><div style="border:1.5px solid var(--border);border-radius:10px;padding:8px 10px;background:var(--bg2);max-height:200px;overflow-y:auto;-webkit-overflow-scrolling:touch;">'+_upsEqChecklist(f.equiposConectados)+'</div></div>'+
     '<div class="ff"><div class="ff-label">Empresa que lo vendió</div><input class="inp" id="eq-ups-empresa" value="'+esc(f.empresaVendio||'')+'" placeholder="Ej: PowerSystems S.A."></div>'+
     '</div>':'')
     +'<div style="border-top:1px solid rgba(8,145,178,.18);margin:12px 0 10px;padding-top:12px;"><div style="font-size:.68rem;font-weight:800;color:#0891b2;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;">🌐 Datos de Red</div>'
@@ -1691,7 +1712,7 @@ function submitEq(eid){
   if(cat==='UPS'){
     d.modelo=((document.getElementById("eq-ups-modelo")||{}).value||'').trim();
     d.kva=((document.getElementById("eq-ups-kva")||{}).value||'').trim();
-    d.equiposConectados=((document.getElementById("eq-ups-eqconect")||{}).value||'').trim();
+    var _chks=document.querySelectorAll('.ups-eq-chk:checked');var _eqIds=[];for(var _ci=0;_ci<_chks.length;_ci++)_eqIds.push(_chks[_ci].value);d.equiposConectados=_eqIds;
     d.empresaVendio=((document.getElementById("eq-ups-empresa")||{}).value||'').trim();
     d.macAddress=((document.getElementById("eq-ups-mac")||{}).value||'').trim();
   }
@@ -2482,7 +2503,7 @@ function rDetalle(){
   if(eq.cat==='ECO'&&eq.consultorio){h+='<div class="ibox"><div class="ibox-l">Consultorio</div><div class="ibox-v">'+esc(eq.consultorio)+'</div></div>';}
   if(eq.cat==='UPS'&&eq.modelo){h+='<div class="ibox"><div class="ibox-l">Modelo</div><div class="ibox-v">'+esc(eq.modelo)+'</div></div>';}
   if(eq.cat==='UPS'&&eq.kva){h+='<div class="ibox"><div class="ibox-l">KVA</div><div class="ibox-v" style="font-weight:700;">'+esc(eq.kva)+'</div></div>';}
-  if(eq.cat==='UPS'&&eq.equiposConectados){h+='<div class="ibox" style="grid-column:1/-1;"><div class="ibox-l">Equipos conectados</div><div class="ibox-v">'+esc(eq.equiposConectados)+'</div></div>';}
+  if(eq.cat==='UPS'&&eq.equiposConectados&&(Array.isArray(eq.equiposConectados)?eq.equiposConectados.length:eq.equiposConectados)){var _eqConHtml='';if(Array.isArray(eq.equiposConectados)){_eqConHtml=eq.equiposConectados.map(function(id){var e2=eqs.find(function(x){return x.id===id;});return e2?'<span style="display:inline-flex;align-items:center;padding:2px 9px;border-radius:50px;font-size:.72rem;font-weight:600;background:rgba(245,158,11,.14);color:#d97706;">'+esc(e2.nombre)+'</span>':'';}).filter(Boolean).join(' ');}else{_eqConHtml=esc(eq.equiposConectados);}if(_eqConHtml)h+='<div class="ibox" style="grid-column:1/-1;"><div class="ibox-l">Equipos conectados</div><div class="ibox-v" style="display:flex;flex-wrap:wrap;gap:5px;">'+_eqConHtml+'</div></div>';}
   if(eq.cat==='UPS'&&eq.empresaVendio){h+='<div class="ibox"><div class="ibox-l">Empresa vendedora</div><div class="ibox-v">'+esc(eq.empresaVendio)+'</div></div>';}
   if(eq.garantia){var gd=diasH(eq.garantiaHasta);var gVenc=eq.garantiaHasta&&gd<0;var gProx=!gVenc&&eq.garantiaHasta&&gd<=30;var gColor=gVenc?"var(--red)":gProx?"var(--orange)":"var(--green)";var gBg=gVenc?"rgba(255,59,48,.12)":gProx?"rgba(255,149,0,.12)":"rgba(52,199,89,.12)";var gLabel=gVenc?"❌ Vencida":gProx?"⚠️ Vence en "+gd+"d":"✅ En garantía";h+='<div class="ibox" style="grid-column:1/-1;"><div class="ibox-l">Garantía</div><div class="ibox-v"><span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:50px;font-size:.72rem;font-weight:700;background:'+gBg+';color:'+gColor+';">'+gLabel+(eq.garantiaHasta?' · hasta '+fD(eq.garantiaHasta):'')+'</span></div></div>';}
   if(eq.tieneServicio)h+='<div class="ibox" style="grid-column:1/-1;"><div class="ibox-l">Servicio</div><div class="ibox-v"><span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:50px;font-size:.72rem;font-weight:700;background:rgba(52,199,89,.12);color:var(--green);">✔ Contrato de servicio activo</span></div></div>';
@@ -5863,8 +5884,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.2.38";
-var APP_BUILD="03/06/26 23:00";
+var APP_DISPLAY_VERSION="5.2.39";
+var APP_BUILD="04/06/26 00:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
