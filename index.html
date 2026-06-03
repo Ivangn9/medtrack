@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.03.015 -->
+<!-- v2026.06.03.016 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.03.015">
+<meta name="app-version" content="v2026.06.03.016">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -324,28 +324,28 @@ textarea.inp{resize:vertical;}
 
 /* ── CHIPS ── */
 .chip{
-  display:inline-flex;align-items:center;gap:6px;
-  padding:8px 14px;border-radius:var(--r-pill);font-size:.82rem;font-weight:700;
-  background:rgba(255,255,255,.55);
-  -webkit-backdrop-filter:saturate(180%) blur(12px);
-  backdrop-filter:saturate(180%) blur(12px);
+  display:inline-flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px;
+  padding:10px 6px 8px;border-radius:16px;width:72px;min-height:78px;
+  background:rgba(255,255,255,.58);
+  -webkit-backdrop-filter:saturate(180%) blur(14px);
+  backdrop-filter:saturate(180%) blur(14px);
   color:var(--text)!important;
-  border:1.5px solid rgba(255,255,255,.75);border-top-color:rgba(255,255,255,1.0);
-  box-shadow:0 1px 3px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.06),inset 0 1.5px 0 rgba(255,255,255,1.0);
-  white-space:nowrap;cursor:pointer;
+  border:1.5px solid rgba(255,255,255,.8);border-top-color:rgba(255,255,255,1.0);
+  box-shadow:0 1px 4px rgba(0,0,0,.07),0 3px 10px rgba(0,0,0,.06),inset 0 1.5px 0 rgba(255,255,255,1.0);
+  white-space:nowrap;cursor:pointer;flex-shrink:0;
   position:relative;overflow:hidden;
   transition:transform .18s var(--spring),box-shadow .18s,background .18s;}
 .chip::before{content:'';position:absolute;inset:0;border-radius:inherit;background:var(--lg-shimmer);pointer-events:none;z-index:0;}
 .chip::after{content:'';position:absolute;top:0;left:0;right:0;height:40%;background:var(--specular);pointer-events:none;z-index:0;}
-.chip svg{filter:saturate(4) brightness(.62);flex-shrink:0;position:relative;z-index:1;}
-.chip-icon{font-size:1.1rem;line-height:1;flex-shrink:0;position:relative;z-index:1;}
-.chip-lbl{position:relative;z-index:1;letter-spacing:.01em;}
-.chip span{position:relative;z-index:1;color:var(--text)!important;}
-.chip.on{color:#fff!important;border-color:transparent;
-  box-shadow:0 3px 14px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.22);}
+.chip svg{flex-shrink:0;position:relative;z-index:1;filter:none;}
+.chip-lbl{position:relative;z-index:1;font-size:.6rem;font-weight:700;text-align:center;letter-spacing:.01em;color:var(--text);line-height:1.2;max-width:68px;overflow:hidden;text-overflow:ellipsis;}
+.chip span{position:relative;z-index:1;}
+.chip.on{border-color:transparent;box-shadow:0 4px 16px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.25);}
 .chip.on::before,.chip.on::after{display:none;}
-.chip.on .chip-lbl,.chip.on .chip-icon,.chip.on span{color:#fff!important;}
-.chip:active{transform:scale(.93);}
+.chip.on .chip-lbl{color:#fff!important;}
+.chip.on svg{filter:brightness(0) invert(1) opacity(.92);}
+.chip:active{transform:scale(.91);}
+.chip-todos{width:auto;min-width:64px;flex-direction:row;min-height:auto;padding:9px 16px;border-radius:var(--r-pill);}
 
 /* ── MODAL ── */
 .modal-bg{position:fixed;inset:0;background:rgba(15,18,40,.32);-webkit-backdrop-filter:saturate(140%) blur(16px);backdrop-filter:saturate(140%) blur(16px);z-index:500;display:flex;align-items:flex-end;justify-content:center;animation:modalFadeIn .22s var(--ease-out);}
@@ -2362,14 +2362,15 @@ function rLista(){
     (_busqueda?'<button onclick="_busqueda=\'\';render();" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:rgba(120,120,128,.15);border:none;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:.75rem;cursor:pointer;color:var(--text3);z-index:2;">✕</button>':'')+'</div>';
 
   // ── Filtro Modalidad ──
-  h+='<div style="margin-bottom:6px;font-size:.58rem;text-transform:uppercase;letter-spacing:.8px;font-weight:700;color:var(--text3);">Modalidad</div>';
-  h+='<div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:10px;scrollbar-width:none;">';
-  h+='<button class="chip'+(!_filtDash&&filtCat==="TODOS"?" on":"")+'" onclick="_filtDash=null;filtCat=\'TODOS\';render();" style="'+(!_filtDash&&filtCat==="TODOS"?'background:var(--accent);border-color:transparent;box-shadow:0 3px 14px rgba(0,113,227,.35),inset 0 1px 0 rgba(255,255,255,.22);':'')+'"><span class="chip-lbl" style="'+(!_filtDash&&filtCat==="TODOS"?'color:#fff!important;':'')+'">Todos</span></button>';
+  h+='<div style="margin-bottom:7px;font-size:.58rem;text-transform:uppercase;letter-spacing:.8px;font-weight:700;color:var(--text3);">Modalidad</div>';
+  h+='<div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px;">';
+  var todosOn=!_filtDash&&filtCat==="TODOS";
+  h+='<button class="chip chip-todos'+(todosOn?" on":"")+'" onclick="_filtDash=null;filtCat=\'TODOS\';render();" style="'+(todosOn?'background:var(--accent);border-color:transparent;box-shadow:0 3px 14px rgba(0,113,227,.35);':'')+'"><span class="chip-lbl" style="font-size:.78rem;'+(todosOn?'color:#fff!important;':'')+'">Todos</span></button>';
   CATS.forEach(function(c){
     var on=!_filtDash&&filtCat===c.id;
-    var iStyle=on?'background:'+c.color+';border-color:'+c.color+'90;box-shadow:0 3px 14px '+c.color+'55,inset 0 1px 0 rgba(255,255,255,.22);':'';
+    var iStyle=on?'background:'+c.color+';border-color:'+c.color+'90;box-shadow:0 4px 16px '+c.color+'55;':'';
     h+='<button class="chip'+(on?' on':'')+'" style="'+iStyle+'" onclick="_filtDash=null;filtCat=\''+c.id+'\';render();">'+
-      '<span class="chip-icon">'+c.icon+'</span>'+
+      (catSvgIcon(c.id,48)||'')+
       '<span class="chip-lbl">'+c.label+'</span>'+
     '</button>';
   });
@@ -5924,8 +5925,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.2.42";
-var APP_BUILD="04/06/26 01:30";
+var APP_DISPLAY_VERSION="5.2.43";
+var APP_BUILD="04/06/26 02:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
