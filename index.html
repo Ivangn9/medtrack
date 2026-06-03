@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.03.018 -->
+<!-- v2026.06.03.019 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.03.018">
+<meta name="app-version" content="v2026.06.03.019">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1154,15 +1154,19 @@ function migrateTransductores(){
 }
 function migrateEcoData(){
   if(localStorage.getItem('mt_eco_v1')==='1')return;
-  // Remove ALL ECO equipment (old placeholders) and replace with only the 4 real ones
-  eqs=eqs.filter(function(e){return e.cat!=='ECO';});
-  var realEco=[
-    Object.assign(mkeq("EQ-23","ECO","Ecógrafo GE Vivid T8 BN","","semestral","GE Healthcare"),{marca:"GE",nroSerie:"636410WX0",consultorio:"3",transductorIds:["TRSD-001","TRSD-002"]}),
-    Object.assign(mkeq("EQ-24","ECO","Ecógrafo GE LOGIQ TOTUS","","semestral","GE Healthcare"),{marca:"GE",nroSerie:"LT0100595",consultorio:"8",transductorIds:["TRSD-003","TRSD-004","TRSD-005"]}),
-    Object.assign(mkeq("EQ-25","ECO","Ecógrafo GE LOGIQ P9","","semestral","GE Healthcare"),{marca:"GE",nroSerie:"LP9353868",consultorio:"10",transductorIds:["TRSD-006","TRSD-007","TRSD-008"]}),
-    Object.assign(mkeq("EQ-26","ECO","Ecógrafo GE Voluson S8E BT22","","semestral","GE Healthcare"),{marca:"GE",nroSerie:"USB203606",consultorio:"13",transductorIds:["TRSD-009","TRSD-010","TRSD-011","TRSD-012"]})
-  ];
-  eqs=eqs.concat(realEco);
+  // NON-DESTRUCTIVE: only seed the 4 real ECO units if there is NO ECO equipment at all.
+  // Never delete existing ECO equipment — that would wipe user-entered data when the
+  // (device-local) flag is missing (e.g. after iOS clears storage).
+  var hasEco=eqs.some(function(e){return e.cat==='ECO';});
+  if(!hasEco){
+    var realEco=[
+      Object.assign(mkeq("EQ-23","ECO","Ecógrafo GE Vivid T8 BN","","semestral","GE Healthcare"),{marca:"GE",nroSerie:"636410WX0",consultorio:"3",transductorIds:["TRSD-001","TRSD-002"]}),
+      Object.assign(mkeq("EQ-24","ECO","Ecógrafo GE LOGIQ TOTUS","","semestral","GE Healthcare"),{marca:"GE",nroSerie:"LT0100595",consultorio:"8",transductorIds:["TRSD-003","TRSD-004","TRSD-005"]}),
+      Object.assign(mkeq("EQ-25","ECO","Ecógrafo GE LOGIQ P9","","semestral","GE Healthcare"),{marca:"GE",nroSerie:"LP9353868",consultorio:"10",transductorIds:["TRSD-006","TRSD-007","TRSD-008"]}),
+      Object.assign(mkeq("EQ-26","ECO","Ecógrafo GE Voluson S8E BT22","","semestral","GE Healthcare"),{marca:"GE",nroSerie:"USB203606",consultorio:"13",transductorIds:["TRSD-009","TRSD-010","TRSD-011","TRSD-012"]})
+    ];
+    eqs=eqs.concat(realEco);
+  }
   localStorage.setItem('mt_eco_v1','1');
 }
 
@@ -1176,16 +1180,85 @@ function saveData(){
   try{localStorage.setItem("mt_v4",JSON.stringify(eqs));localStorage.setItem("mt_antenas",JSON.stringify(antenas));localStorage.setItem("mt_aires",JSON.stringify(aires));localStorage.setItem("mt_transductores",JSON.stringify(transductores));localStorage.setItem("mt_updatedAt",now);}catch(e){}
   firestoreSave();
 }
-var _fsSaveTimer=null;
+var _fsSaveTimer=null,_fsWriting=false,_fsDirty=false;
 function orgDataRef(){return window._fbdb.collection("orgs").doc("cima").collection("app").doc("data");}
 function firestoreSave(){
   if(!window._fbUser||!window._fbdb)return;
+  _fsDirty=true;
   if(_fsSaveTimer)clearTimeout(_fsSaveTimer);
-  _fsSaveTimer=setTimeout(function(){
-    orgDataRef()
-      .set({eqs:eqs,antenas:antenas,aires:aires,transductores:transductores,updatedAt:new Date().toISOString()},{merge:true})
-      .catch(function(e){console.warn("Firestore save:",e);});
-  },400);
+  _fsSaveTimer=setTimeout(function(){_fsWrite(0);},400);
+}
+// Write to Firestore with exponential-backoff retry on failure
+function _fsWrite(tryN){
+  if(!window._fbUser||!window._fbdb)return;
+  _fsWriting=true;
+  orgDataRef()
+    .set({eqs:eqs,antenas:antenas,aires:aires,transductores:transductores,updatedAt:new Date().toISOString()},{merge:true})
+    .then(function(){_fsWriting=false;_fsDirty=false;})
+    .catch(function(e){
+      _fsWriting=false;
+      console.warn("Firestore save (try "+(tryN+1)+"):",e);
+      var t=(tryN||0)+1;
+      if(t<6)setTimeout(function(){_fsWrite(t);},Math.min(1000*Math.pow(2,t),20000));
+    });
+}
+// Force-flush any pending save immediately (called when the app is backgrounded/closed —
+// critical on iOS where the PWA can be killed before the 400ms debounce fires).
+function flushSaveNow(){
+  if(!window._fbUser||!window._fbdb)return;
+  if(_fsSaveTimer){clearTimeout(_fsSaveTimer);_fsSaveTimer=null;}
+  if(_fsDirty)_fsWrite(0);
+}
+// Automatic daily snapshot to a separate backups collection, so the data is always
+// recoverable even if the main document is ever overwritten or corrupted.
+function dailyBackup(){
+  if(!window._fbUser||!window._fbdb)return;
+  if(!eqs||!eqs.length)return; // never snapshot an empty/unloaded state
+  var today=new Date().toISOString().slice(0,10);
+  var last='';try{last=localStorage.getItem('mt_lastBackup')||'';}catch(e){}
+  if(last===today)return;
+  try{
+    window._fbdb.collection("orgs").doc("cima").collection("backups").doc(today)
+      .set({eqs:eqs,antenas:antenas,aires:aires,transductores:transductores,savedAt:new Date().toISOString(),by:(window._fbUser.email||window._fbUser.uid||'')})
+      .then(function(){try{localStorage.setItem('mt_lastBackup',today);}catch(e){}})
+      .catch(function(e){console.warn('Daily backup:',e);});
+  }catch(e){}
+}
+// List available daily backups and let an owner restore one (with confirmation).
+function openRestoreBackup(){
+  if(!window._fbUser||!window._fbdb){showToast('Sin conexión a la nube','warn');return;}
+  showToast('Cargando copias…');
+  window._fbdb.collection("orgs").doc("cima").collection("backups").get().then(function(snap){
+    var items=[];
+    snap.forEach(function(doc){var dt=doc.data()||{};items.push({fecha:doc.id,n:(dt.eqs||[]).length,savedAt:dt.savedAt||'',by:dt.by||''});});
+    items.sort(function(a,b){return a.fecha<b.fecha?1:-1;}); // newest first
+    if(!items.length){openModal('<div class="modal-title">Restaurar copia</div><p style="margin:14px 0;color:var(--text2);font-size:.86rem;">Todavía no hay copias de seguridad guardadas. Se crea una copia automática por día.</p><button class="btn-primary" style="width:100%;" onclick="closeModal()">Entendido</button>');return;}
+    var rows=items.slice(0,30).map(function(it){
+      return '<button class="sb-sub-btn" style="width:100%;justify-content:flex-start;padding:11px 12px;border:1px solid rgba(120,120,128,.15);border-radius:12px;margin-bottom:7px;background:rgba(255,255,255,.5);" onclick="doRestoreBackup(\''+it.fecha+'\')">'+
+        '<div style="text-align:left;"><div style="font-weight:700;font-size:.86rem;color:var(--text);">'+esc(it.fecha)+'</div>'+
+        '<div style="font-size:.68rem;color:var(--text3);">'+it.n+' equipos'+(it.by?' · '+esc(it.by):'')+'</div></div></button>';
+    }).join('');
+    openModal('<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><div class="modal-title">Restaurar copia</div><button class="modal-close" onclick="closeModal()">✕</button></div>'+
+      '<p style="margin:0 0 12px;color:var(--text2);font-size:.8rem;line-height:1.4;">Elegí una fecha para restaurar. Esto reemplazará los datos actuales con la copia seleccionada (los archivos PDF no se ven afectados).</p>'+
+      '<div style="max-height:50vh;overflow-y:auto;-webkit-overflow-scrolling:touch;">'+rows+'</div>');
+  }).catch(function(e){console.warn(e);showToast('Error al cargar copias','err');});
+}
+function doRestoreBackup(fecha){
+  if(!confirm('¿Restaurar la copia del '+fecha+'?\n\nSe reemplazarán todos los datos actuales por los de esa fecha. Esta acción se sincroniza a todos los dispositivos.'))return;
+  window._fbdb.collection("orgs").doc("cima").collection("backups").doc(fecha).get().then(function(doc){
+    if(!doc.exists){showToast('Copia no encontrada','err');return;}
+    var d=doc.data()||{};
+    if(!Array.isArray(d.eqs)||!d.eqs.length){showToast('La copia está vacía','warn');return;}
+    // Snapshot the current state first so a mistaken restore is itself recoverable
+    try{window._fbdb.collection("orgs").doc("cima").collection("backups").doc('pre-restore-'+new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')).set({eqs:eqs,antenas:antenas,aires:aires,transductores:transductores,savedAt:new Date().toISOString(),by:(window._fbUser.email||'')});}catch(e){}
+    eqs=d.eqs;
+    antenas=Array.isArray(d.antenas)?d.antenas:[];
+    aires=Array.isArray(d.aires)?d.aires:[];
+    transductores=Array.isArray(d.transductores)?d.transductores:[];
+    saveData();
+    closeModal();render();
+    showToast('✅ Datos restaurados al '+fecha);
+  }).catch(function(e){console.warn(e);showToast('Error al restaurar','err');});
 }
 
 // ═══════════════════════════════════════════
@@ -1764,24 +1837,49 @@ function submitEq(eid){
   d.wlAE=((document.getElementById("eq-wl-ae")||{}).value||'').trim();
   saveEq(d);
 }
-// ── FILE STORE (IndexedDB) ──
+// ── FILE STORE (IndexedDB + Firebase Storage mirror) ──
 var _idb=null;
 function _openIDB(cb){try{if(_idb){cb(_idb);return;}var r=indexedDB.open('mt_files',1);r.onupgradeneeded=function(e){try{e.target.result.createObjectStore('files',{keyPath:'id'});}catch(e2){}};r.onsuccess=function(e){_idb=e.target.result;cb(_idb);};r.onerror=function(){cb(null);};}catch(e){cb(null);}}
-function dbSave(id,nombre,data,cb){_openIDB(function(d){if(!d){cb&&cb(false);return;}var tx=d.transaction('files','readwrite');tx.objectStore('files').put({id:id,nombre:nombre,data:data});tx.oncomplete=function(){cb&&cb(true);_storageSaveB64(id,nombre,data,null);};});}
-function dbGet(id,cb){_openIDB(function(d){if(!d){cb(null);return;}var r=d.transaction('files','readonly').objectStore('files').get(id);r.onsuccess=function(){cb(r.result||null);};r.onerror=function(){cb(null);};});}
-function dbDel(id){_openIDB(function(d){if(!d)return;d.transaction('files','readwrite').objectStore('files').delete(id);});}
 
-// Upload a base64 dataURL to Firebase Storage at orgs/cima/files/{id}
-function _storageSaveB64(id,nombre,dataUrl,cb){
+// Persistent upload queue: file IDs that still need to reach Firebase Storage.
+// Survives reloads so files saved while offline / before auth are not lost.
+var _UPQ_KEY='mt_upq_v1';
+function _upqGet(){try{return JSON.parse(localStorage.getItem(_UPQ_KEY)||'{}');}catch(e){return{};}}
+function _upqSet(o){try{localStorage.setItem(_UPQ_KEY,JSON.stringify(o));}catch(e){}}
+function _upqAdd(id,nombre){if(!id)return;var q=_upqGet();q[id]={n:nombre||id};_upqSet(q);}
+function _upqDel(id){var q=_upqGet();if(q[id]){delete q[id];_upqSet(q);}}
+
+function dbSave(id,nombre,data,cb){
+  _upqAdd(id,nombre); // mark as needing cloud upload BEFORE anything can fail
+  _openIDB(function(d){
+    if(!d){cb&&cb(false);return;}
+    var tx=d.transaction('files','readwrite');
+    tx.objectStore('files').put({id:id,nombre:nombre,data:data});
+    tx.oncomplete=function(){cb&&cb(true);_storageSaveB64(id,nombre,data,null);};
+    tx.onerror=function(){cb&&cb(false);};
+  });
+}
+function dbGet(id,cb){_openIDB(function(d){if(!d){cb(null);return;}var r=d.transaction('files','readonly').objectStore('files').get(id);r.onsuccess=function(){cb(r.result||null);};r.onerror=function(){cb(null);};});}
+function dbDel(id){_upqDel(id);_openIDB(function(d){if(!d)return;d.transaction('files','readwrite').objectStore('files').delete(id);});}
+
+// Upload a base64 dataURL to Firebase Storage at orgs/cima/files/{id}, with retry.
+// On success the file is removed from the persistent upload queue.
+function _storageSaveB64(id,nombre,dataUrl,cb,_try){
   try{
-    if(!window._fbStorage||!window._fbUser){cb&&cb(false);return;}
+    if(!window._fbStorage||!window._fbUser){cb&&cb(false);return;} // retried later by reconcile
     var parts=dataUrl.split(',');if(parts.length<2){cb&&cb(false);return;}
     var mime=parts[0].split(':')[1].split(';')[0];
     var bytes=atob(parts[1]);var ab=new ArrayBuffer(bytes.length);var ia=new Uint8Array(ab);
     for(var i=0;i<bytes.length;i++)ia[i]=bytes.charCodeAt(i);
     var blob=new Blob([ab],{type:mime});
     var ref=window._fbStorage.ref('orgs/cima/files/'+id);
-    ref.put(blob,{contentType:mime,customMetadata:{nombre:nombre}}).then(function(){cb&&cb(true);}).catch(function(e){console.warn('Storage upload failed:',e);cb&&cb(false);});
+    ref.put(blob,{contentType:mime,customMetadata:{nombre:nombre||''}}).then(function(){
+      _upqDel(id);cb&&cb(true);
+    }).catch(function(e){
+      var t=(_try||0)+1;
+      if(t<4){setTimeout(function(){_storageSaveB64(id,nombre,dataUrl,cb,t);},Math.min(1500*t,8000));}
+      else{console.warn('Storage upload failed (kept in queue):',id,e);cb&&cb(false);}
+    });
   }catch(e){console.warn('_storageSaveB64 error:',e);cb&&cb(false);}
 }
 
@@ -1793,6 +1891,63 @@ function _storageGetUrl(id,cb){
     ref.getDownloadURL().then(function(url){cb(url);}).catch(function(){cb(null);});
   }catch(e){cb(null);}
 }
+
+// Walk the entire data model and collect every file reference {id->nombre}.
+// File IDs always start with "F-" or "IMG-" so this catches every nested location
+// (historialMant.archivos, rupturas.*Pdf, antenas.*Pdf, reportesPdfs, images, etc.)
+function _collectFileRefs(){
+  var refs={};
+  function walk(o){
+    if(!o||typeof o!=='object')return;
+    if(typeof o.id==='string'&&/^(F|IMG)-/.test(o.id))refs[o.id]=o.nombre||o.id;
+    if(Array.isArray(o)){for(var i=0;i<o.length;i++)walk(o[i]);}
+    else{for(var k in o){if(o.hasOwnProperty(k)){var v=o[k];if(v&&typeof v==='object')walk(v);}}}
+  }
+  try{walk(eqs);walk(antenas);walk(aires);walk(transductores);}catch(e){}
+  return refs;
+}
+
+// Reconcile local files with Firebase Storage. Ensures every file that exists in
+// IndexedDB also reaches the cloud, so nothing is lost when iOS evicts local storage.
+var _reconcileRunning=false,_cloudConfirmed={};
+function reconcileFiles(){
+  if(_reconcileRunning||!window._fbStorage||!window._fbUser)return;
+  _reconcileRunning=true;
+  var seen={};
+  // 1) Everything explicitly queued as "needs upload"
+  var q=_upqGet();
+  Object.keys(q).forEach(function(id){
+    seen[id]=1;
+    dbGet(id,function(rec){
+      if(rec&&rec.data)_storageSaveB64(id,(q[id]&&q[id].n)||id,rec.data,function(ok){if(ok)_cloudConfirmed[id]=1;});
+      else _upqDel(id); // not in IndexedDB anymore and untracked — can't recover
+    });
+  });
+  // 2) Every referenced file: if missing from cloud but present locally, upload it
+  var refs=_collectFileRefs();
+  Object.keys(refs).forEach(function(id){
+    if(seen[id]||_cloudConfirmed[id])return; // skip already-confirmed cloud files
+    _storageGetUrl(id,function(url){
+      if(url){_cloudConfirmed[id]=1;return;} // already safe in the cloud
+      dbGet(id,function(rec){
+        if(rec&&rec.data)_storageSaveB64(id,refs[id],rec.data,function(ok){if(ok)_cloudConfirmed[id]=1;});
+      });
+    });
+  });
+  setTimeout(function(){_reconcileRunning=false;},8000);
+}
+
+// Lifecycle: flush pending Firestore save when the app is hidden/closed (iOS kills PWAs),
+// and retry file uploads when the app comes back to the foreground or regains network.
+(function(){
+  document.addEventListener('visibilitychange',function(){
+    if(document.visibilityState==='hidden'){flushSaveNow();}
+    else{reconcileFiles();}
+  });
+  window.addEventListener('pagehide',flushSaveNow);
+  window.addEventListener('beforeunload',flushSaveNow);
+  window.addEventListener('online',function(){reconcileFiles();flushSaveNow();});
+})();
 
 var _pdfBlobUrl=null;
 function openPDFViewer(fileId,nombre){
@@ -5933,8 +6088,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.2.45";
-var APP_BUILD="04/06/26 03:00";
+var APP_DISPLAY_VERSION="5.2.46";
+var APP_BUILD="04/06/26 12:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
@@ -6127,6 +6282,8 @@ function init(){
         if(adminBtn)adminBtn.style.display=isOwner?"block":"none";
         var sbAccBtn=document.getElementById("sb-access-btn");
         if(sbAccBtn)sbAccBtn.style.display=isOwner?"block":"none";
+        var sbRestoreBtn=document.getElementById("sb-restore-btn");
+        if(sbRestoreBtn)sbRestoreBtn.style.display=isOwner?"block":"none";
         // Load from shared org doc; migrate personal data on first run if org doesn't exist yet
         function _applyData(d){
           if(d&&Array.isArray(d.eqs)&&d.eqs.length>0){
@@ -6151,6 +6308,9 @@ function init(){
           render();
           setTimeout(checkForUpdates,3000);
           setInterval(checkForUpdates,60*1000);
+          setTimeout(reconcileFiles,4000);              // upload any local-only files to the cloud
+          setInterval(reconcileFiles,5*60*1000);        // keep retrying periodically
+          setTimeout(dailyBackup,6000);                 // daily recoverable snapshot
         }
         orgDataRef().get().then(function(orgDoc){
           eqs=JSON.parse(JSON.stringify(EQ0));
@@ -6181,6 +6341,9 @@ function init(){
                 render();
                 setTimeout(checkForUpdates,3000);
                 setInterval(checkForUpdates,60*1000);
+                setTimeout(reconcileFiles,4000);
+                setInterval(reconcileFiles,5*60*1000);
+                setTimeout(dailyBackup,6000);
               })
               .catch(function(){
                 eqs=JSON.parse(JSON.stringify(EQ0));
@@ -6537,6 +6700,11 @@ function rReporte(){
   <div id="sb-access-btn" style="display:none;">
     <button class="sb-sub-btn" onclick="closeSbAjustesMenu();openAccessManager()">
       <span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></span>Gestionar Acceso
+    </button>
+  </div>
+  <div id="sb-restore-btn" style="display:none;">
+    <button class="sb-sub-btn" onclick="closeSbAjustesMenu();openRestoreBackup()">
+      <span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><polyline points="3 3 3 8 8 8"/></svg></span>Restaurar Copia
     </button>
   </div>
   <button class="sb-sub-btn" onclick="closeSbAjustesMenu();doUpdate()">
