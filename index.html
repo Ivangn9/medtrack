@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.03.012 -->
+<!-- v2026.06.03.013 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.03.012">
+<meta name="app-version" content="v2026.06.03.013">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1626,17 +1626,40 @@ function _upsEqChecklist(selectedIds){
   var h='';
   Object.keys(groups).forEach(function(catId){
     var c=catById(catId);
-    h+='<div style="font-size:.6rem;font-weight:800;color:'+c.color+';text-transform:uppercase;letter-spacing:.07em;margin:6px 0 3px;">'+c.label+'</div>';
+    h+='<div class="ups-cat-hdr" style="font-size:.6rem;font-weight:800;color:'+c.color+';text-transform:uppercase;letter-spacing:.07em;margin:8px 0 3px;padding:0 2px;">'+c.label+'</div>';
     groups[catId].forEach(function(e){
       var chk=sel.indexOf(e.id)!==-1?' checked':'';
       var sede=e.sede||e.ubicacion||'';
-      h+='<label style="display:flex;align-items:center;gap:8px;padding:5px 0;cursor:pointer;border-bottom:1px solid rgba(0,0,0,.04);">'+
-        '<input type="checkbox" value="'+e.id+'" class="ups-eq-chk"'+chk+' style="width:16px;height:16px;accent-color:#f59e0b;flex-shrink:0;">'+
-        '<span style="font-size:.8rem;color:var(--text);">'+esc(e.nombre)+(sede?' <span style="font-size:.7rem;color:var(--text3);">· '+esc(sede)+'</span>':'')+
+      var srch=(e.nombre+' '+sede+' '+c.label).toLowerCase();
+      h+='<label class="ups-eq-item" data-search="'+srch+'" style="display:flex;align-items:center;gap:9px;padding:6px 4px;cursor:pointer;border-bottom:1px solid rgba(0,0,0,.05);border-radius:6px;">'+
+        '<input type="checkbox" value="'+e.id+'" class="ups-eq-chk"'+chk+' style="width:17px;height:17px;accent-color:#f59e0b;flex-shrink:0;">'+
+        '<span style="font-size:.82rem;color:var(--text);line-height:1.2;">'+esc(e.nombre)+(sede?'<br><span style="font-size:.7rem;color:var(--text3);">'+esc(sede)+'</span>':'')+
         '</span></label>';
     });
   });
   return h;
+}
+function _upsFilter(inp){
+  var q=(inp.value||'').toLowerCase().trim();
+  var wrap=inp.parentNode.parentNode;
+  var items=wrap.querySelectorAll('.ups-eq-item');
+  var hdrs=wrap.querySelectorAll('.ups-cat-hdr');
+  var vis=0;
+  for(var i=0;i<items.length;i++){
+    var match=!q||(items[i].getAttribute('data-search')||'').indexOf(q)!==-1;
+    items[i].style.display=match?'':'none';
+    if(match)vis++;
+  }
+  for(var j=0;j<hdrs.length;j++){
+    var nxt=hdrs[j].nextElementSibling;var hasV=false;
+    while(nxt&&nxt.className.indexOf('ups-cat-hdr')===-1){
+      if(nxt.style.display!=='none')hasV=true;
+      nxt=nxt.nextElementSibling;
+    }
+    hdrs[j].style.display=hasV?'':'none';
+  }
+  var nr=wrap.querySelector('.ups-eq-nores');
+  if(nr)nr.style.display=vis===0?'block':'none';
 }
 function openModalEq(eq){
   var n=!eq;var f=eq||{nombre:"",cat:"RM",ubicacion:"",instalacion:"",serie:"",tecnico:"",contrato:"",marca:"",estado:"operativo",frecuencia:"semestral",ultimoMant:today(),proximoMant:calcP(today(),"semestral"),notas:"",garantia:false,garantiaHasta:"",tieneServicio:false};
@@ -1676,7 +1699,16 @@ function openModalEq(eq){
     +(f.cat==='UPS'?'<div style="border-top:1px solid rgba(245,158,11,.18);margin:12px 0 10px;padding-top:12px;"><div style="font-size:.68rem;font-weight:800;color:#f59e0b;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;">🔋 Datos UPS</div>'+
     '<div class="g2"><div class="ff"><div class="ff-label">Modelo</div><input class="inp" id="eq-ups-modelo" value="'+esc(f.modelo||'')+'" placeholder="Ej: APC Smart-UPS 3000"></div>'+
     '<div class="ff"><div class="ff-label">KVA</div><input class="inp" id="eq-ups-kva" value="'+esc(f.kva||'')+'" placeholder="Ej: 3 kVA"></div></div>'+
-    '<div class="ff"><div class="ff-label">Equipos conectados</div><div style="border:1.5px solid var(--border);border-radius:10px;padding:8px 10px;background:var(--bg2);max-height:200px;overflow-y:auto;-webkit-overflow-scrolling:touch;">'+_upsEqChecklist(f.equiposConectados)+'</div></div>'+
+    '<div class="ff"><div class="ff-label">Equipos conectados</div>'+
+    '<div style="border:1.5px solid var(--border);border-radius:12px;background:var(--bg2);overflow:hidden;">'+
+      '<div style="padding:8px 8px 6px;border-bottom:1px solid var(--border);background:var(--bg2);">'+
+        '<input type="text" placeholder="🔍 Buscar equipo..." oninput="_upsFilter(this)" autocomplete="off" style="width:100%;padding:7px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);font-size:.82rem;box-sizing:border-box;color:var(--text);">'+
+      '</div>'+
+      '<div style="max-height:200px;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:4px 10px 8px;">'+
+        _upsEqChecklist(f.equiposConectados)+
+        '<div class="ups-eq-nores" style="display:none;font-size:.75rem;color:var(--text3);padding:8px 0;">Sin resultados para esa búsqueda</div>'+
+      '</div>'+
+    '</div></div>'+
     '<div class="ff"><div class="ff-label">Empresa que lo vendió</div><input class="inp" id="eq-ups-empresa" value="'+esc(f.empresaVendio||'')+'" placeholder="Ej: PowerSystems S.A."></div>'+
     '</div>':'')
     +'<div style="border-top:1px solid rgba(8,145,178,.18);margin:12px 0 10px;padding-top:12px;"><div style="font-size:.68rem;font-weight:800;color:#0891b2;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;">🌐 Datos de Red</div>'
@@ -5884,8 +5916,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.2.39";
-var APP_BUILD="04/06/26 00:00";
+var APP_DISPLAY_VERSION="5.2.40";
+var APP_BUILD="04/06/26 00:30";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
