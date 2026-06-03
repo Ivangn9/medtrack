@@ -1149,6 +1149,24 @@
   .prac-insumo-consumo{color:#636366;min-width:60px;text-align:right;font-size:.75rem}
   .prac-insumo-cost{font-weight:700;color:#1c1c1e;min-width:70px;text-align:right}
   .prac-warn{color:#ff9500;font-size:.7rem;margin-left:4px}
+  .prac-link-btn{width:26px;height:26px;border-radius:7px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.7rem;font-weight:700;transition:background .15s}
+  .prac-link-btn.linked{background:#e3f0ff;color:#0071e3}
+  .prac-link-btn.unlinked{background:#fff3e0;color:#ff9500}
+  /* Link modal */
+  .prac-link-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9100;display:flex;align-items:flex-end;justify-content:center}
+  .prac-link-sheet{background:#f2f2f7;border-radius:20px 20px 0 0;width:100%;max-width:600px;max-height:82vh;display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom)}
+  .prac-link-handle{width:36px;height:4px;border-radius:2px;background:rgba(0,0,0,.15);margin:10px auto 0}
+  .prac-link-head{padding:14px 18px 10px;border-bottom:1px solid rgba(0,0,0,.08)}
+  .prac-link-title{font-size:.85rem;font-weight:700;color:#1c1c1e;line-height:1.3}
+  .prac-link-sub{font-size:.72rem;color:#636366;margin-top:2px}
+  .prac-link-search{margin:10px 14px;padding:9px 14px;border-radius:10px;border:1.5px solid #d1d5db;font-size:.88rem;width:calc(100% - 28px);box-sizing:border-box}
+  .prac-link-search:focus{outline:none;border-color:var(--blue)}
+  .prac-link-list{overflow-y:auto;flex:1;padding:4px 0}
+  .prac-link-item{padding:11px 18px;cursor:pointer;border-bottom:1px solid rgba(0,0,0,.06);font-size:.82rem;color:#1c1c1e;transition:background .1s}
+  .prac-link-item:hover,.prac-link-item:active{background:#e5e5ea}
+  .prac-link-item .li-name{font-weight:600;line-height:1.3}
+  .prac-link-item .li-sub{font-size:.72rem;color:#636366;margin-top:1px}
+  .prac-link-clear{margin:8px 14px;padding:10px;border-radius:10px;background:#fff;border:1.5px solid #ff3b30;color:#ff3b30;font-size:.82rem;font-weight:600;cursor:pointer;width:calc(100%-28px);text-align:center}
   .prac-mes-card{background:#fff;border-radius:16px;overflow:hidden;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
   .prac-mes-head{padding:12px 16px;background:linear-gradient(135deg,#1c3553,#2563a8);color:#fff}
   .prac-mes-head .name{font-size:.88rem;font-weight:700}
@@ -1664,6 +1682,21 @@
 
   <div class="footer">
     <span>CIMA · Stock de Insumos · 2026</span>
+  </div>
+</div>
+
+<!-- ─── Modal Vinculación Insumo-Práctica ─────────── -->
+<div class="prac-link-overlay" id="pracLinkOverlay" style="display:none" onclick="closePracLink(event)">
+  <div class="prac-link-sheet" onclick="event.stopPropagation()">
+    <div class="prac-link-handle"></div>
+    <div class="prac-link-head">
+      <div class="prac-link-title" id="pracLinkTitle">Vincular insumo</div>
+      <div class="prac-link-sub" id="pracLinkSub"></div>
+    </div>
+    <input type="search" class="prac-link-search" id="pracLinkSearch" placeholder="Buscar en catálogo…"
+      oninput="_pracLinkSearch(this.value)" autocomplete="off" autocorrect="off" spellcheck="false">
+    <div class="prac-link-list" id="pracLinkList"></div>
+    <button class="prac-link-clear" id="pracLinkClearBtn" onclick="clearPracLink()" style="display:none">✕ Quitar vinculación actual</button>
   </div>
 </div>
 
@@ -5038,26 +5071,30 @@ function _pracNorm(s){
     .replace(/\s+/g,' ').trim();
 }
 
-// Match a supply from the catalog by name (normalized)
-function _pracMatchSupply(nombre){
+// Match supply: check manual override first, then name-based matching
+function _pracMatchSupply(nombre, overrideKey){
+  const overrides=_pracConfig&&_pracConfig.overrides||{};
+  if(overrideKey && overrides[overrideKey]){
+    const s=supplies.find(x=>x.id===overrides[overrideKey]);
+    if(s) return s;
+  }
   const n=_pracNorm(nombre);
-  // Exact match
   let s=supplies.find(x=>_pracNorm(x.name)===n);
   if(s) return s;
-  // Contains match (both ways)
   s=supplies.find(x=>{const xn=_pracNorm(x.name);return xn.includes(n)||n.includes(xn);});
   return s||null;
 }
 
-// Calculate unit cost for a sub-práctica
-function _pracCalcSubCost(sp){
+// Calculate unit cost; pracId+spId used to build override key per insumo
+function _pracCalcSubCost(sp, pracId){
   let total=0;
-  const items=sp.insumos.map(ins=>{
-    const sup=_pracMatchSupply(ins.nombre);
+  const items=sp.insumos.map((ins,idx)=>{
+    const oKey=pracId?`${pracId}__${sp.id}__${idx}`:null;
+    const sup=_pracMatchSupply(ins.nombre, oKey);
     const precio=sup?sup.price:ins.precioBase;
     const costo=precio*ins.consumo;
     total+=costo;
-    return {nombre:ins.nombre,consumo:ins.consumo,precio,costo,linked:!!sup,supId:sup?sup.id:null};
+    return {nombre:ins.nombre,consumo:ins.consumo,precio,costo,linked:!!sup,supId:sup?sup.id:null,oKey};
   });
   return {total,items};
 }
@@ -5089,7 +5126,6 @@ function renderPracCostos(el){
   const pracs=_pracConfig.practicas||[];
   if(!_pracActivePrac && pracs.length) _pracActivePrac=pracs[0].id;
 
-  // Tabs selector
   const tabsHtml=`<div class="prac-tabs">${pracs.map(p=>`
     <button class="prac-tab-btn${p.id===_pracActivePrac?' active':''}" onclick="setPracActivePrac('${escAttr(p.id)}')">${escHtml(p.nombre)}</button>
   `).join('')}</div>`;
@@ -5098,19 +5134,25 @@ function renderPracCostos(el){
   if(!prac){el.innerHTML=tabsHtml+'<div style="padding:24px;text-align:center;color:var(--text3)">Sin datos</div>';return;}
 
   const cardsHtml=prac.subPracticas.map(sp=>{
-    const {total,items}=_pracCalcSubCost(sp);
+    const {total,items}=_pracCalcSubCost(sp, prac.id);
     const unlinked=items.filter(i=>!i.linked).length;
-    const rowsHtml=items.map(it=>`
-      <div class="prac-insumo-row">
-        <div class="prac-insumo-name">${escHtml(it.nombre)}${!it.linked?'<span class="prac-warn" title="No vinculado al catálogo">⚠</span>':''}</div>
+    const rowsHtml=items.map(it=>{
+      const isLinked=it.linked;
+      const btnTitle=isLinked?`Vinculado: cambia enlace`:`No encontrado en catálogo — clic para vincular`;
+      const btnIcon=isLinked?'🔗':'⚠';
+      return `<div class="prac-insumo-row">
+        <div class="prac-insumo-name">${escHtml(it.nombre)}</div>
         <div class="prac-insumo-consumo">×${it.consumo<1?it.consumo.toFixed(3).replace(/0+$/,'').replace(/\.$/,''):it.consumo} ud</div>
         <div class="prac-insumo-cost">${it.precio>0?_pracFmt(it.costo):'—'}</div>
-      </div>`).join('');
+        <button class="prac-link-btn ${isLinked?'linked':'unlinked'}" title="${escAttr(btnTitle)}"
+          onclick="openPracLink('${escAttr(it.oKey)}','${escAttr(it.nombre)}')">${btnIcon}</button>
+      </div>`;
+    }).join('');
     return `<div class="prac-card">
       <div class="prac-card-head">
         <div>
           <div class="name">${escHtml(sp.nombre)}</div>
-          ${unlinked?`<div style="font-size:.7rem;opacity:.7;margin-top:2px">⚠ ${unlinked} insumo${unlinked>1?'s':''} sin precio de catálogo</div>`:''}
+          ${unlinked?`<div style="font-size:.7rem;opacity:.7;margin-top:2px">⚠ ${unlinked} sin precio — toca ⚠ para vincular</div>`:''}
         </div>
         <div class="cost">${_pracFmt(total)}</div>
       </div>
@@ -5127,6 +5169,71 @@ function setPracActivePrac(id){
   renderContable();
 }
 
+// ─── Modal de vinculación ─────────────────────────────────────────────────────
+let _pracLinkKey=null; // current override key being edited
+
+function openPracLink(oKey, nombre){
+  _pracLinkKey=oKey;
+  document.getElementById('pracLinkTitle').textContent=nombre;
+  const overrides=_pracConfig.overrides||{};
+  const currentSup=overrides[oKey]?supplies.find(s=>s.id===overrides[oKey]):null;
+  document.getElementById('pracLinkSub').textContent=currentSup?`Vinculado a: ${currentSup.name}`:'Sin vinculación manual';
+  document.getElementById('pracLinkClearBtn').style.display=currentSup?'block':'none';
+  const inp=document.getElementById('pracLinkSearch');
+  inp.value='';
+  _pracLinkSearch('');
+  document.getElementById('pracLinkOverlay').style.display='flex';
+  setTimeout(()=>inp.focus(),150);
+}
+
+function closePracLink(e){
+  if(e && e.target!==document.getElementById('pracLinkOverlay')) return;
+  document.getElementById('pracLinkOverlay').style.display='none';
+  _pracLinkKey=null;
+}
+
+function _pracLinkSearch(q){
+  const list=document.getElementById('pracLinkList'); if(!list) return;
+  const norm=_pracNorm(q);
+  const matched=supplies.filter(s=>s.active&&(!norm||_pracNorm(s.name).includes(norm)||_pracNorm(s.code||'').includes(norm)))
+    .slice(0,40);
+  if(!matched.length){
+    list.innerHTML='<div style="padding:20px;text-align:center;color:var(--text3);font-size:.82rem">Sin resultados</div>';
+    return;
+  }
+  list.innerHTML=matched.map(s=>`
+    <div class="prac-link-item" onclick="selectPracLink('${escAttr(s.id)}')">
+      <div class="li-name">${escHtml(s.name)}</div>
+      <div class="li-sub">${escHtml(s.code||'')}${s.price>0?' · '+_pracFmt(s.price):''}${s.category?' · '+escHtml(s.category):''}</div>
+    </div>`).join('');
+}
+
+function selectPracLink(supplyId){
+  if(!_pracLinkKey||!_pracConfig) return;
+  if(!_pracConfig.overrides) _pracConfig.overrides={};
+  _pracConfig.overrides[_pracLinkKey]=supplyId;
+  _savePracConfig();
+  document.getElementById('pracLinkOverlay').style.display='none';
+  _pracLinkKey=null;
+  renderContable();
+  toast('✓ Insumo vinculado al catálogo');
+}
+
+function clearPracLink(){
+  if(!_pracLinkKey||!_pracConfig) return;
+  if(_pracConfig.overrides) delete _pracConfig.overrides[_pracLinkKey];
+  _savePracConfig();
+  document.getElementById('pracLinkOverlay').style.display='none';
+  _pracLinkKey=null;
+  renderContable();
+  toast('Vinculación eliminada');
+}
+
+function _savePracConfig(){
+  _db.collection(DB_COL).doc("practicas_config").set(_pracConfig)
+    .catch(()=>toast('⚠️ Error guardando configuración'));
+}
+
 // ─── Vista: Cierre Mensual ────────────────────────────────────────────────────
 function renderPracCierre(el){
   // Default to current month
@@ -5141,7 +5248,7 @@ function renderPracCierre(el){
   pracs.forEach(p=>p.subPracticas.forEach(sp=>{
     const key=`${p.id}__${sp.id}`;
     const qty=parseInt(mesData[key])||0;
-    const {total}=_pracCalcSubCost(sp);
+    const {total}=_pracCalcSubCost(sp, p.id);
     grandTotal+=qty*total;
   }));
 
@@ -5164,7 +5271,7 @@ function renderPracCierre(el){
     const rowsHtml=p.subPracticas.map(sp=>{
       const key=`${p.id}__${sp.id}`;
       const qty=parseInt(mesData[key])||0;
-      const {total}=_pracCalcSubCost(sp);
+      const {total}=_pracCalcSubCost(sp, p.id);
       const rowTotal=qty*total;
       return `<div class="prac-mes-row">
         <div class="prac-mes-subname">${escHtml(sp.nombre)}</div>
@@ -5198,7 +5305,7 @@ function updatePracQty(input){
     const prac=(_pracConfig.practicas||[]).find(p=>p.id===pracId);
     const sp=prac?prac.subPracticas.find(s=>s.id===spId):null;
     if(sp){
-      const {total}=_pracCalcSubCost(sp);
+      const {total}=_pracCalcSubCost(sp, pracId);
       rowTotalEl.textContent=qty>0?_pracFmt(qty*total):'—';
     }
   }
@@ -5211,7 +5318,7 @@ function updatePracQty(input){
     const [pId,sId]=k.split('__');
     const pr=(_pracConfig.practicas||[]).find(p=>p.id===pId);
     const sp=pr?pr.subPracticas.find(s=>s.id===sId):null;
-    if(sp){const {total}=_pracCalcSubCost(sp);grandTotal+=q*total;}
+    if(sp){const {total}=_pracCalcSubCost(sp, pId);grandTotal+=q*total;}
   });
   const gtEl=document.getElementById('prac-grand-total');
   if(gtEl) gtEl.textContent=_pracFmt(grandTotal);
