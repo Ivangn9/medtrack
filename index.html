@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.02.009 -->
+<!-- v2026.06.03.001 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -1544,6 +1544,10 @@ function openModalEq(eq){
     '<div class="ff"><div class="ff-label">Vencimiento Parches</div><input class="inp" type="date" id="eq-parches-venc" value="'+esc(f.parches_vencimiento||'')+'"></div>'+
     '<div class="ff"><div class="ff-label">Vencimiento Batería</div><input class="inp" type="date" id="eq-bateria-venc" value="'+esc(f.bateria_vencimiento||'')+'"></div>'+
     '</div>':'')
+    +(f.cat==='ECO'?'<div style="border-top:1px solid rgba(14,165,233,.18);margin:12px 0 10px;padding-top:12px;"><div style="font-size:.68rem;font-weight:800;color:#0ea5e9;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;">🔊 Datos Ecógrafo</div>'+
+    '<div class="g2"><div class="ff"><div class="ff-label">N° Serie</div><input class="inp" id="eq-nro-serie" value="'+esc(f.nroSerie||'')+'" placeholder="Ej: US1234567"></div>'+
+    '<div class="ff"><div class="ff-label">Consultorio</div><input class="inp" id="eq-consultorio" value="'+esc(f.consultorio||'')+'" placeholder="Ej: Consultorio 3"></div></div>'+
+    '</div>':'')
     +'<div style="border-top:1px solid rgba(8,145,178,.18);margin:12px 0 10px;padding-top:12px;"><div style="font-size:.68rem;font-weight:800;color:#0891b2;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;">🌐 Datos de Red</div>'
     +'<div style="font-size:.63rem;font-weight:700;color:#0891b2;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;opacity:.75;">PACS</div>'
     +'<div class="g2"><div class="ff"><div class="ff-label">IP Local</div><input class="inp" id="eq-pacs-ip" value="'+esc(f.pacsIp||'')+'" placeholder="192.168.1.100"></div>'
@@ -1565,6 +1569,10 @@ function submitEq(eid){
     d.modelo=((document.getElementById("eq-modelo")||{}).value||'').trim();
     d.parches_vencimiento=((document.getElementById("eq-parches-venc")||{}).value||'').trim();
     d.bateria_vencimiento=((document.getElementById("eq-bateria-venc")||{}).value||'').trim();
+  }
+  if(cat==='ECO'){
+    d.nroSerie=((document.getElementById("eq-nro-serie")||{}).value||'').trim();
+    d.consultorio=((document.getElementById("eq-consultorio")||{}).value||'').trim();
   }
   d.pacsIp=((document.getElementById("eq-pacs-ip")||{}).value||'').trim();
   d.pacsPuerto=((document.getElementById("eq-pacs-puerto")||{}).value||'').trim();
@@ -2314,6 +2322,8 @@ function rDetalle(){
     h+='<div class="ibox"><div class="ibox-l">'+x.l+'</div><div class="ibox-v">'+esc(x.v)+'</div></div>';
   });
   if(eq.cat==='DES'&&eq.modelo){h+='<div class="ibox"><div class="ibox-l">Modelo</div><div class="ibox-v">'+esc(eq.modelo)+'</div></div>';}
+  if(eq.cat==='ECO'&&eq.nroSerie){h+='<div class="ibox"><div class="ibox-l">N° Serie</div><div class="ibox-v" style="font-family:monospace;font-size:.8rem;">'+esc(eq.nroSerie)+'</div></div>';}
+  if(eq.cat==='ECO'&&eq.consultorio){h+='<div class="ibox"><div class="ibox-l">Consultorio</div><div class="ibox-v">'+esc(eq.consultorio)+'</div></div>';}
   if(eq.garantia){var gd=diasH(eq.garantiaHasta);var gVenc=eq.garantiaHasta&&gd<0;var gProx=!gVenc&&eq.garantiaHasta&&gd<=30;var gColor=gVenc?"var(--red)":gProx?"var(--orange)":"var(--green)";var gBg=gVenc?"rgba(255,59,48,.12)":gProx?"rgba(255,149,0,.12)":"rgba(52,199,89,.12)";var gLabel=gVenc?"❌ Vencida":gProx?"⚠️ Vence en "+gd+"d":"✅ En garantía";h+='<div class="ibox" style="grid-column:1/-1;"><div class="ibox-l">Garantía</div><div class="ibox-v"><span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:50px;font-size:.72rem;font-weight:700;background:'+gBg+';color:'+gColor+';">'+gLabel+(eq.garantiaHasta?' · hasta '+fD(eq.garantiaHasta):'')+'</span></div></div>';}
   if(eq.tieneServicio)h+='<div class="ibox" style="grid-column:1/-1;"><div class="ibox-l">Servicio</div><div class="ibox-v"><span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:50px;font-size:.72rem;font-weight:700;background:rgba(52,199,89,.12);color:var(--green);">✔ Contrato de servicio activo</span></div></div>';
   h+='</div>';
@@ -3469,6 +3479,7 @@ function rTransductores(){
           '<div style="flex-shrink:0;">'+transductorSvgIcon(44)+'</div>'+
           '<div style="flex:1;min-width:0;">'+
             '<div style="font-weight:700;font-size:.9rem;">'+esc(t.nombre)+'</div>'+
+            (t.modelo?'<div style="font-size:.72rem;color:var(--text2);margin-top:1px;font-weight:600;">'+esc(t.modelo)+'</div>':'')+
             '<div style="font-size:.7rem;color:var(--text3);margin-top:3px;">'+
               (t.tipo?'<span style="background:rgba(14,165,233,.10);color:'+c1+';padding:1px 7px;border-radius:10px;font-weight:600;margin-right:5px;">'+esc(t.tipo)+'</span>':'')+
               (t.frecuencia?'<span style="background:rgba(14,165,233,.08);color:'+c1+';padding:1px 7px;border-radius:10px;font-weight:600;margin-right:5px;">'+esc(t.frecuencia)+' MHz</span>':'')+
@@ -3515,6 +3526,7 @@ function rTransductorDetalle(){
       '<div style="position:relative;z-index:1;">'+
         '<div style="font-weight:800;font-size:1.15rem;letter-spacing:-.3px;">'+esc(tr.nombre)+'</div>'+
         (eq?'<div style="font-size:.7rem;color:var(--text3);margin-top:2px;">Asignado a: '+esc(eq.nombre)+'</div>':'')+
+        (tr.modelo?'<div style="font-size:.74rem;color:var(--text2);margin-top:4px;font-weight:600;">Modelo: '+esc(tr.modelo)+'</div>':'')+
         '<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">'+
           '<span style="background:'+trEstBg+';color:'+trEstColor+';padding:3px 10px;border-radius:20px;font-weight:700;font-size:.72rem;">'+trEstLabel+'</span>'+
           (tr.tipo?'<span style="background:rgba(14,165,233,.10);color:'+c1+';padding:3px 9px;border-radius:20px;font-weight:700;font-size:.72rem;">'+esc(tr.tipo)+'</span>':'')+
@@ -4991,6 +5003,9 @@ function openAddTransductorModal(ecoEquipId){
     '<div class="ff"><div class="ff-label">Nombre del transductor *</div>'+
       '<input class="inp" id="tr-nombre" placeholder="Ej: Transductor convexo 3.5MHz" autocomplete="off">'+
     '</div>'+
+    '<div class="ff"><div class="ff-label">Modelo del transductor</div>'+
+      '<input class="inp" id="tr-modelo" placeholder="Ej: C1-6-D, L12-5" autocomplete="off">'+
+    '</div>'+
     '<div class="g2">'+
       '<div class="ff"><div class="ff-label">Tipo</div>'+
         '<select class="inp" id="tr-tipo">'+
@@ -5025,13 +5040,14 @@ function openAddTransductorModal(ecoEquipId){
 }
 function submitAddTransductor(ecoEquipId){
   var nombre=((document.getElementById('tr-nombre')||{}).value||'').trim();
+  var modelo=((document.getElementById('tr-modelo')||{}).value||'').trim();
   var tipo=((document.getElementById('tr-tipo')||{}).value||'').trim();
   var frec=((document.getElementById('tr-frec')||{}).value||'').trim();
   var estado=((document.getElementById('tr-estado')||{}).value)||'operativo';
   var fecha=((document.getElementById('tr-fecha')||{}).value)||'';
   var notas=((document.getElementById('tr-notas')||{}).value||'').trim();
   if(!nombre){alert('Ingresá el nombre del transductor');return;}
-  var tr={id:'TRSD-'+Date.now(),nombre:nombre,tipo:tipo||null,frecuencia:frec||null,estado:estado,fechaCompra:fecha,notas:notas,roturas:[],historialTransductor:[],creadoEn:new Date().toISOString()};
+  var tr={id:'TRSD-'+Date.now(),nombre:nombre,modelo:modelo||null,tipo:tipo||null,frecuencia:frec||null,estado:estado,fechaCompra:fecha,notas:notas,roturas:[],historialTransductor:[],creadoEn:new Date().toISOString()};
   transductores.push(tr);
   eqs=eqs.map(function(e){if(e.id===ecoEquipId)return Object.assign({},e,{transductorIds:(e.transductorIds||[]).concat(tr.id)});return e;});
   saveData();closeModal();showToast('✅ Transductor agregado','');goTransductores(ecoEquipId);
@@ -5046,6 +5062,9 @@ function openEditTransductorModal(transductorId){
     '</div>'+
     '<div class="ff"><div class="ff-label">Nombre *</div>'+
       '<input class="inp" id="tr-e-nombre" value="'+esc(tr.nombre||'')+'" autocomplete="off">'+
+    '</div>'+
+    '<div class="ff"><div class="ff-label">Modelo del transductor</div>'+
+      '<input class="inp" id="tr-e-modelo" value="'+esc(tr.modelo||'')+'" placeholder="Ej: C1-6-D, L12-5">'+
     '</div>'+
     '<div class="g2">'+
       '<div class="ff"><div class="ff-label">Tipo</div>'+
@@ -5077,6 +5096,7 @@ function openEditTransductorModal(transductorId){
 function submitEditTransductor(transductorId){
   var nombre=((document.getElementById('tr-e-nombre')||{}).value||'').trim();
   if(!nombre){alert('Nombre obligatorio');return;}
+  var modelo=((document.getElementById('tr-e-modelo')||{}).value||'').trim();
   var tipo=((document.getElementById('tr-e-tipo')||{}).value||'');
   var frec=((document.getElementById('tr-e-frec')||{}).value||'').trim();
   var estado=((document.getElementById('tr-e-estado')||{}).value)||'operativo';
@@ -5084,7 +5104,7 @@ function submitEditTransductor(transductorId){
   var notas=((document.getElementById('tr-e-notas')||{}).value||'').trim();
   transductores=transductores.map(function(t){
     if(t.id!==transductorId)return t;
-    return Object.assign({},t,{nombre:nombre,tipo:tipo||null,frecuencia:frec||null,estado:estado,fechaCompra:fecha,notas:notas});
+    return Object.assign({},t,{nombre:nombre,modelo:modelo||null,tipo:tipo||null,frecuencia:frec||null,estado:estado,fechaCompra:fecha,notas:notas});
   });
   saveData();closeModal();render();showToast('✅ Transductor actualizado','');
 }
@@ -5460,8 +5480,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.2.27";
-var APP_BUILD="03/06/26 04:00";
+var APP_DISPLAY_VERSION="5.2.28";
+var APP_BUILD="03/06/26 10:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
