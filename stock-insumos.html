@@ -1966,7 +1966,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "4.19";
+const APP_VERSION = "4.20";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -4511,29 +4511,33 @@ function openEqModal(id){
   const body=document.getElementById('pdf-viewer-body'); if(!body) return;
   document.getElementById('pdf-viewer-title').textContent='Cantidades a entregar';
   const items=(s.items||[]).filter(item=>item.id);
-  // Botones usan nextElementSibling/previousElementSibling — sin getElementById
+  // Botones usan parentElement.querySelector — sin getElementById. Tope alto (libre).
+  const EQ_MAX=9999;
   body.innerHTML=`<div id="eq-form-wrap" style="padding:16px;overflow-y:auto;flex:1;background:#f2f2f7">
     <div style="background:#fff;border-radius:14px;padding:12px 16px;margin-bottom:12px;font-size:.8rem;color:#636366">
       ${escHtml((s.solicitante||'')+(s.sector?' · '+s.sector:'')+(s.equipo?' · '+s.equipo:''))}
     </div>
     <div style="background:#fff;border-radius:14px;overflow:hidden;margin-bottom:14px">
-      ${items.length?items.map((item,i)=>`
+      ${items.length?items.map((item,i)=>{
+        const inCat=supplies.some(sup=>sup.id===item.id);
+        const ped=item.cantidad||0;
+        return `
         <div style="padding:12px 16px;display:flex;align-items:center;gap:10px${i<items.length-1?';border-bottom:1px solid #f0f0f0':''}">
           <div style="flex:1;min-width:0;font-size:.87rem;font-weight:600;color:#1c1c1e">
             ${escHtml(item.name||'')}
-            <div style="font-size:.73rem;color:#8e8e93;font-weight:400;margin-top:1px">Pedido: ${item.cantidad||0} und</div>
+            <div style="font-size:.73rem;color:#8e8e93;font-weight:400;margin-top:1px">Pedido: ${ped} und${inCat?'':' · <span style="color:#ff9500">no afecta stock</span>'}</div>
           </div>
           <div style="display:flex;align-items:center;background:#f2f2f7;border-radius:12px;overflow:hidden">
-            <button type="button" data-delta="-1" data-max="${item.cantidad||0}"
+            <button type="button" data-delta="-1" data-max="${EQ_MAX}"
               style="width:50px;height:50px;border:none;background:transparent;font-size:1.8rem;font-weight:200;color:#1c1c1e;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;line-height:1"
               onclick="_eqStep(this)">−</button>
-            <span data-qty="${item.cantidad||0}" data-max="${item.cantidad||0}" data-id="${escAttr(item.id)}"
-              style="display:inline-block;width:44px;text-align:center;font-size:1.1rem;font-weight:700;color:#1c1c1e;pointer-events:none">${item.cantidad||0}</span>
-            <button type="button" data-delta="+1" data-max="${item.cantidad||0}"
+            <span data-qty="${ped}" data-max="${EQ_MAX}" data-id="${escAttr(item.id)}"
+              style="display:inline-block;width:44px;text-align:center;font-size:1.1rem;font-weight:700;color:#1c1c1e;pointer-events:none">${ped}</span>
+            <button type="button" data-delta="+1" data-max="${EQ_MAX}"
               style="width:50px;height:50px;border:none;background:transparent;font-size:1.8rem;font-weight:200;color:#1c1c1e;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;line-height:1"
               onclick="_eqStep(this)">+</button>
           </div>
-        </div>`).join(''):`<div style="padding:16px;text-align:center;color:#8e8e93">Sin insumos</div>`}
+        </div>`;}).join(''):`<div style="padding:16px;text-align:center;color:#8e8e93">Sin insumos</div>`}
     </div>
     <div style="display:flex;gap:10px">
       <button type="button"
