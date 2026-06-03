@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.03.001 -->
+<!-- v2026.06.03.002 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -1075,9 +1075,10 @@ const EQ0=[
   Object.assign(mkeqSM("EQ-20","DES","Desfibrilador GN","GN",""),{modelo:"",parches_vencimiento:"",bateria_vencimiento:""}),
   Object.assign(mkeqSM("EQ-21","DES","Desfibrilador Pedernera","Pedernera",""),{modelo:"",parches_vencimiento:"",bateria_vencimiento:""}),
   Object.assign(mkeqSM("EQ-22","DES","Desfibrilador Sarmiento","Sarmiento",""),{modelo:"",parches_vencimiento:"",bateria_vencimiento:""}),
-  mkeq("EQ-23","ECO","Ecógrafo GE Logiq E10","","semestral","GE Healthcare"),
-  mkeq("EQ-24","ECO","Ecógrafo Mindray DC-80","","semestral","Mindray"),
-  mkeq("EQ-25","ECO","Ecógrafo Philips EPIQ 7","","semestral","Philips"),
+  Object.assign(mkeq("EQ-23","ECO","Ecógrafo GE Vivid T8 BN","","semestral","GE Healthcare"),{marca:"GE",nroSerie:"636410WX0",consultorio:"3",transductorIds:["TRSD-001","TRSD-002"]}),
+  Object.assign(mkeq("EQ-24","ECO","Ecógrafo GE LOGIQ TOTUS","","semestral","GE Healthcare"),{marca:"GE",nroSerie:"LT0100595",consultorio:"8",transductorIds:["TRSD-003","TRSD-004","TRSD-005"]}),
+  Object.assign(mkeq("EQ-25","ECO","Ecógrafo GE LOGIQ P9","","semestral","GE Healthcare"),{marca:"GE",nroSerie:"LP9353868",consultorio:"10",transductorIds:["TRSD-006","TRSD-007","TRSD-008"]}),
+  Object.assign(mkeq("EQ-26","ECO","Ecógrafo GE Voluson S8E BT22","","semestral","GE Healthcare"),{marca:"GE",nroSerie:"USB203606",consultorio:"13",transductorIds:["TRSD-009","TRSD-010","TRSD-011","TRSD-012"]}),
 ];
 
 function migrateEqs(){
@@ -1085,6 +1086,45 @@ function migrateEqs(){
     if(!eqs.find(function(e){return e.id===def.id;})){
       eqs.push(JSON.parse(JSON.stringify(def)));
     }
+  });
+}
+var TRSD0=[
+  {id:"TRSD-001",nombre:"L6-12-RS",modelo:"L6-12-RS",tipo:"Lineal",nroSerie:"1521925WX6",consultorio:"3",estado:"operativo",frecuencia:null,fechaCompra:"",notas:"",roturas:[],historialTransductor:[],creadoEn:""},
+  {id:"TRSD-002",nombre:"6S-RS",modelo:"6S-RS",tipo:"Sectorial cardíaco",nroSerie:"215114PD0",consultorio:"3",estado:"operativo",frecuencia:null,fechaCompra:"",notas:"",roturas:[],historialTransductor:[],creadoEn:""},
+  {id:"TRSD-003",nombre:"IC5-9-D",modelo:"IC5-9-D",tipo:"Endocavitario",nroSerie:"1491487WX3",consultorio:"8",estado:"operativo",frecuencia:null,fechaCompra:"",notas:"",roturas:[],historialTransductor:[],creadoEn:""},
+  {id:"TRSD-004",nombre:"L3-12-D",modelo:"L3-12-D",tipo:"Lineal",nroSerie:"1490629WX1",consultorio:"8",estado:"operativo",frecuencia:null,fechaCompra:"",notas:"",roturas:[],historialTransductor:[],creadoEn:""},
+  {id:"TRSD-005",nombre:"C1-6-D",modelo:"C1-6-D",tipo:"Convex abdominal",nroSerie:"5509845P0",consultorio:"8",estado:"operativo",frecuencia:null,fechaCompra:"",notas:"",roturas:[],historialTransductor:[],creadoEn:""},
+  {id:"TRSD-006",nombre:"C1-5-RS",modelo:"C1-5-RS",tipo:"Convex abdominal",nroSerie:"984199WX0",consultorio:"10",estado:"operativo",frecuencia:null,fechaCompra:"",notas:"",roturas:[],historialTransductor:[],creadoEn:""},
+  {id:"TRSD-007",nombre:"L3-12-RS",modelo:"L3-12-RS",tipo:"Lineal",nroSerie:"1285345WX3",consultorio:"10",estado:"operativo",frecuencia:null,fechaCompra:"",notas:"",roturas:[],historialTransductor:[],creadoEn:""},
+  {id:"TRSD-008",nombre:"E8CS-RS",modelo:"E8CS-RS",tipo:"Endocavitario",nroSerie:"972967WX4",consultorio:"10",estado:"operativo",frecuencia:null,fechaCompra:"",notas:"",roturas:[],historialTransductor:[],creadoEn:""},
+  {id:"TRSD-009",nombre:"RAB6-RS",modelo:"RAB6-RS",tipo:"Convex volumétrico 4D",nroSerie:"856147WX4",consultorio:"13",estado:"operativo",frecuencia:null,fechaCompra:"",notas:"",roturas:[],historialTransductor:[],creadoEn:""},
+  {id:"TRSD-010",nombre:"C1-5-RS",modelo:"C1-5-RS",tipo:"Convex abdominal",nroSerie:"1282209WX4",consultorio:"13",estado:"operativo",frecuencia:null,fechaCompra:"",notas:"",roturas:[],historialTransductor:[],creadoEn:""},
+  {id:"TRSD-011",nombre:"IC9-RS",modelo:"IC9-RS",tipo:"Endocavitario volumétrico 4D",nroSerie:"1354454WX9",consultorio:"13",estado:"operativo",frecuencia:null,fechaCompra:"",notas:"",roturas:[],historialTransductor:[],creadoEn:""},
+  {id:"TRSD-012",nombre:"12L-RS",modelo:"12L-RS",tipo:"Lineal",nroSerie:"1314728WX5",consultorio:"13",estado:"operativo",frecuencia:null,fechaCompra:"",notas:"",roturas:[],historialTransductor:[],creadoEn:""}
+];
+function migrateTransductores(){
+  TRSD0.forEach(function(def){
+    if(!transductores.find(function(t){return t.id===def.id;})){
+      transductores.push(JSON.parse(JSON.stringify(def)));
+    }
+  });
+}
+function migrateEcoData(){
+  var ecoMap={
+    "EQ-23":{nroSerie:"636410WX0",consultorio:"3",marca:"GE",nombre:"Ecógrafo GE Vivid T8 BN",transductorIds:["TRSD-001","TRSD-002"]},
+    "EQ-24":{nroSerie:"LT0100595",consultorio:"8",marca:"GE",nombre:"Ecógrafo GE LOGIQ TOTUS",transductorIds:["TRSD-003","TRSD-004","TRSD-005"]},
+    "EQ-25":{nroSerie:"LP9353868",consultorio:"10",marca:"GE",nombre:"Ecógrafo GE LOGIQ P9",transductorIds:["TRSD-006","TRSD-007","TRSD-008"]},
+    "EQ-26":{nroSerie:"USB203606",consultorio:"13",marca:"GE",nombre:"Ecógrafo GE Voluson S8E BT22",transductorIds:["TRSD-009","TRSD-010","TRSD-011","TRSD-012"]}
+  };
+  eqs=eqs.map(function(e){
+    var patch=ecoMap[e.id];if(!patch)return e;
+    var u=Object.assign({},e);
+    if(!u.nroSerie||u.nroSerie==='')u.nroSerie=patch.nroSerie;
+    if(!u.consultorio||u.consultorio==='')u.consultorio=patch.consultorio;
+    if(!u.marca||u.marca===''||u.marca==='Mindray'||u.marca==='Philips')u.marca=patch.marca;
+    if(/Logiq E10|Mindray|Philips EPIQ/.test(u.nombre))u.nombre=patch.nombre;
+    if(!u.transductorIds||u.transductorIds.length===0)u.transductorIds=patch.transductorIds;
+    return u;
   });
 }
 
@@ -3479,7 +3519,7 @@ function rTransductores(){
           '<div style="flex-shrink:0;">'+transductorSvgIcon(44)+'</div>'+
           '<div style="flex:1;min-width:0;">'+
             '<div style="font-weight:700;font-size:.9rem;">'+esc(t.nombre)+'</div>'+
-            (t.modelo?'<div style="font-size:.72rem;color:var(--text2);margin-top:1px;font-weight:600;">'+esc(t.modelo)+'</div>':'')+
+            (t.modelo?'<div style="font-size:.72rem;color:var(--text2);margin-top:1px;font-weight:600;">'+esc(t.modelo)+(t.nroSerie?' <span style="font-family:monospace;font-weight:400;font-size:.68rem;color:var(--text3);">'+esc(t.nroSerie)+'</span>':'')+'</div>':'')+
             '<div style="font-size:.7rem;color:var(--text3);margin-top:3px;">'+
               (t.tipo?'<span style="background:rgba(14,165,233,.10);color:'+c1+';padding:1px 7px;border-radius:10px;font-weight:600;margin-right:5px;">'+esc(t.tipo)+'</span>':'')+
               (t.frecuencia?'<span style="background:rgba(14,165,233,.08);color:'+c1+';padding:1px 7px;border-radius:10px;font-weight:600;margin-right:5px;">'+esc(t.frecuencia)+' MHz</span>':'')+
@@ -3526,7 +3566,7 @@ function rTransductorDetalle(){
       '<div style="position:relative;z-index:1;">'+
         '<div style="font-weight:800;font-size:1.15rem;letter-spacing:-.3px;">'+esc(tr.nombre)+'</div>'+
         (eq?'<div style="font-size:.7rem;color:var(--text3);margin-top:2px;">Asignado a: '+esc(eq.nombre)+'</div>':'')+
-        (tr.modelo?'<div style="font-size:.74rem;color:var(--text2);margin-top:4px;font-weight:600;">Modelo: '+esc(tr.modelo)+'</div>':'')+
+        (tr.modelo?'<div style="font-size:.74rem;color:var(--text2);margin-top:4px;font-weight:600;">Modelo: '+esc(tr.modelo)+(tr.nroSerie?' &nbsp;·&nbsp; <span style="font-family:monospace;font-size:.72rem;font-weight:500;">SN: '+esc(tr.nroSerie)+'</span>':'')+'</div>':'')+
         '<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">'+
           '<span style="background:'+trEstBg+';color:'+trEstColor+';padding:3px 10px;border-radius:20px;font-weight:700;font-size:.72rem;">'+trEstLabel+'</span>'+
           (tr.tipo?'<span style="background:rgba(14,165,233,.10);color:'+c1+';padding:3px 9px;border-radius:20px;font-weight:700;font-size:.72rem;">'+esc(tr.tipo)+'</span>':'')+
@@ -5003,18 +5043,27 @@ function openAddTransductorModal(ecoEquipId){
     '<div class="ff"><div class="ff-label">Nombre del transductor *</div>'+
       '<input class="inp" id="tr-nombre" placeholder="Ej: Transductor convexo 3.5MHz" autocomplete="off">'+
     '</div>'+
-    '<div class="ff"><div class="ff-label">Modelo del transductor</div>'+
-      '<input class="inp" id="tr-modelo" placeholder="Ej: C1-6-D, L12-5" autocomplete="off">'+
+    '<div class="g2">'+
+      '<div class="ff"><div class="ff-label">Modelo del transductor</div>'+
+        '<input class="inp" id="tr-modelo" placeholder="Ej: C1-6-D, L12-5" autocomplete="off">'+
+      '</div>'+
+      '<div class="ff"><div class="ff-label">N° Serie</div>'+
+        '<input class="inp" id="tr-nro-serie" placeholder="Ej: 1521925WX6" autocomplete="off">'+
+      '</div>'+
     '</div>'+
     '<div class="g2">'+
       '<div class="ff"><div class="ff-label">Tipo</div>'+
         '<select class="inp" id="tr-tipo">'+
           '<option value="">— Sin especificar —</option>'+
           '<option value="Convexo">Convexo</option>'+
+          '<option value="Convex abdominal">Convex abdominal</option>'+
+          '<option value="Convex volumétrico 4D">Convex volumétrico 4D</option>'+
           '<option value="Lineal">Lineal</option>'+
           '<option value="Sectorial">Sectorial</option>'+
+          '<option value="Sectorial cardíaco">Sectorial cardíaco</option>'+
           '<option value="Microconvexo">Microconvexo</option>'+
           '<option value="Endocavitario">Endocavitario</option>'+
+          '<option value="Endocavitario volumétrico 4D">Endocavitario volumétrico 4D</option>'+
           '<option value="Matricial">Matricial</option>'+
         '</select>'+
       '</div>'+
@@ -5041,13 +5090,14 @@ function openAddTransductorModal(ecoEquipId){
 function submitAddTransductor(ecoEquipId){
   var nombre=((document.getElementById('tr-nombre')||{}).value||'').trim();
   var modelo=((document.getElementById('tr-modelo')||{}).value||'').trim();
+  var nroSerie=((document.getElementById('tr-nro-serie')||{}).value||'').trim();
   var tipo=((document.getElementById('tr-tipo')||{}).value||'').trim();
   var frec=((document.getElementById('tr-frec')||{}).value||'').trim();
   var estado=((document.getElementById('tr-estado')||{}).value)||'operativo';
   var fecha=((document.getElementById('tr-fecha')||{}).value)||'';
   var notas=((document.getElementById('tr-notas')||{}).value||'').trim();
   if(!nombre){alert('Ingresá el nombre del transductor');return;}
-  var tr={id:'TRSD-'+Date.now(),nombre:nombre,modelo:modelo||null,tipo:tipo||null,frecuencia:frec||null,estado:estado,fechaCompra:fecha,notas:notas,roturas:[],historialTransductor:[],creadoEn:new Date().toISOString()};
+  var tr={id:'TRSD-'+Date.now(),nombre:nombre,modelo:modelo||null,nroSerie:nroSerie||null,tipo:tipo||null,frecuencia:frec||null,estado:estado,fechaCompra:fecha,notas:notas,roturas:[],historialTransductor:[],creadoEn:new Date().toISOString()};
   transductores.push(tr);
   eqs=eqs.map(function(e){if(e.id===ecoEquipId)return Object.assign({},e,{transductorIds:(e.transductorIds||[]).concat(tr.id)});return e;});
   saveData();closeModal();showToast('✅ Transductor agregado','');goTransductores(ecoEquipId);
@@ -5063,14 +5113,19 @@ function openEditTransductorModal(transductorId){
     '<div class="ff"><div class="ff-label">Nombre *</div>'+
       '<input class="inp" id="tr-e-nombre" value="'+esc(tr.nombre||'')+'" autocomplete="off">'+
     '</div>'+
-    '<div class="ff"><div class="ff-label">Modelo del transductor</div>'+
-      '<input class="inp" id="tr-e-modelo" value="'+esc(tr.modelo||'')+'" placeholder="Ej: C1-6-D, L12-5">'+
+    '<div class="g2">'+
+      '<div class="ff"><div class="ff-label">Modelo del transductor</div>'+
+        '<input class="inp" id="tr-e-modelo" value="'+esc(tr.modelo||'')+'" placeholder="Ej: C1-6-D, L12-5">'+
+      '</div>'+
+      '<div class="ff"><div class="ff-label">N° Serie</div>'+
+        '<input class="inp" id="tr-e-nro-serie" value="'+esc(tr.nroSerie||'')+'">'+
+      '</div>'+
     '</div>'+
     '<div class="g2">'+
       '<div class="ff"><div class="ff-label">Tipo</div>'+
         '<select class="inp" id="tr-e-tipo">'+
           '<option value="">— Sin especificar —</option>'+
-          ['Convexo','Lineal','Sectorial','Microconvexo','Endocavitario','Matricial'].map(function(v){return'<option value="'+v+'"'+(tr.tipo===v?' selected':'')+'>'+v+'</option>';}).join('')+
+          ['Convexo','Convex abdominal','Convex volumétrico 4D','Lineal','Sectorial','Sectorial cardíaco','Microconvexo','Endocavitario','Endocavitario volumétrico 4D','Matricial'].map(function(v){return'<option value="'+v+'"'+(tr.tipo===v?' selected':'')+'>'+v+'</option>';}).join('')+
         '</select>'+
       '</div>'+
       '<div class="ff"><div class="ff-label">Frecuencia (MHz)</div>'+
@@ -5097,6 +5152,7 @@ function submitEditTransductor(transductorId){
   var nombre=((document.getElementById('tr-e-nombre')||{}).value||'').trim();
   if(!nombre){alert('Nombre obligatorio');return;}
   var modelo=((document.getElementById('tr-e-modelo')||{}).value||'').trim();
+  var nroSerie=((document.getElementById('tr-e-nro-serie')||{}).value||'').trim();
   var tipo=((document.getElementById('tr-e-tipo')||{}).value||'');
   var frec=((document.getElementById('tr-e-frec')||{}).value||'').trim();
   var estado=((document.getElementById('tr-e-estado')||{}).value)||'operativo';
@@ -5104,7 +5160,7 @@ function submitEditTransductor(transductorId){
   var notas=((document.getElementById('tr-e-notas')||{}).value||'').trim();
   transductores=transductores.map(function(t){
     if(t.id!==transductorId)return t;
-    return Object.assign({},t,{nombre:nombre,modelo:modelo||null,tipo:tipo||null,frecuencia:frec||null,estado:estado,fechaCompra:fecha,notas:notas});
+    return Object.assign({},t,{nombre:nombre,modelo:modelo||null,nroSerie:nroSerie||null,tipo:tipo||null,frecuencia:frec||null,estado:estado,fechaCompra:fecha,notas:notas});
   });
   saveData();closeModal();render();showToast('✅ Transductor actualizado','');
 }
@@ -5480,8 +5536,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.2.28";
-var APP_BUILD="03/06/26 10:00";
+var APP_DISPLAY_VERSION="5.2.29";
+var APP_BUILD="03/06/26 11:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
@@ -5688,7 +5744,7 @@ function init(){
           try{var sai=localStorage.getItem("mt_aires");if(sai){var pai=JSON.parse(sai);if(Array.isArray(pai))aires=pai;}}catch(e){}
           try{var str=localStorage.getItem("mt_transductores");if(str){var ptr=JSON.parse(str);if(Array.isArray(ptr))transductores=ptr;}}catch(e){}
         }
-        function _finishLoad(){migrateEqs();render();setTimeout(checkForUpdates,3000);setInterval(checkForUpdates,60*1000);}
+        function _finishLoad(){migrateEqs();migrateEcoData();migrateTransductores();render();setTimeout(checkForUpdates,3000);setInterval(checkForUpdates,60*1000);}
         orgDataRef().get().then(function(orgDoc){
           eqs=JSON.parse(JSON.stringify(EQ0));
           if(orgDoc.exists&&Array.isArray(orgDoc.data().eqs)&&orgDoc.data().eqs.length>0){
@@ -5713,7 +5769,7 @@ function init(){
                 } else {
                   _lsLoad();
                 }
-                migrateEqs();
+                migrateEqs();migrateEcoData();migrateTransductores();
                 firestoreSave(); // write personal data up to shared org doc
                 render();
                 setTimeout(checkForUpdates,3000);
@@ -5741,7 +5797,7 @@ function init(){
     // Firebase not loaded — fallback to localStorage
     eqs=JSON.parse(JSON.stringify(EQ0));
     try{var s=localStorage.getItem("mt_v4");if(s){var p=JSON.parse(s);if(Array.isArray(p)&&p.length>0)eqs=p;}}catch(e){}
-    migrateEqs();
+    migrateEqs();migrateEcoData();migrateTransductores();
     setTimeout(function(){render();},50);
     setTimeout(checkForUpdates,3000);
     setInterval(checkForUpdates,60*1000);
