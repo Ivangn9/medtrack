@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.03.010 -->
+<!-- v2026.06.03.011 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.03.010">
+<meta name="app-version" content="v2026.06.03.011">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -586,6 +586,7 @@ body.dark .sb-card{background:rgba(255,255,255,.07);border-color:rgba(255,255,25
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 
 <!-- LOGIN SCREEN -->
 <div id="login-screen" style="position:fixed;inset:0;z-index:10000;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;gap:0;">
@@ -1704,23 +1705,58 @@ function submitEq(eid){
 // ── FILE STORE (IndexedDB) ──
 var _idb=null;
 function _openIDB(cb){try{if(_idb){cb(_idb);return;}var r=indexedDB.open('mt_files',1);r.onupgradeneeded=function(e){try{e.target.result.createObjectStore('files',{keyPath:'id'});}catch(e2){}};r.onsuccess=function(e){_idb=e.target.result;cb(_idb);};r.onerror=function(){cb(null);};}catch(e){cb(null);}}
-function dbSave(id,nombre,data,cb){_openIDB(function(d){if(!d){cb&&cb(false);return;}var tx=d.transaction('files','readwrite');tx.objectStore('files').put({id:id,nombre:nombre,data:data});tx.oncomplete=function(){cb&&cb(true);};});}
+function dbSave(id,nombre,data,cb){_openIDB(function(d){if(!d){cb&&cb(false);return;}var tx=d.transaction('files','readwrite');tx.objectStore('files').put({id:id,nombre:nombre,data:data});tx.oncomplete=function(){cb&&cb(true);_storageSaveB64(id,nombre,data,null);};});}
 function dbGet(id,cb){_openIDB(function(d){if(!d){cb(null);return;}var r=d.transaction('files','readonly').objectStore('files').get(id);r.onsuccess=function(){cb(r.result||null);};r.onerror=function(){cb(null);};});}
 function dbDel(id){_openIDB(function(d){if(!d)return;d.transaction('files','readwrite').objectStore('files').delete(id);});}
 
-var _pdfBlobUrl=null;
-function openPDFViewer(fileId,nombre){
-  dbGet(fileId,function(rec){
-    if(!rec){showToast("Archivo no encontrado","warn");return;}
-    var parts=rec.data.split(',');var mime=parts[0].split(':')[1].split(';')[0];
+// Upload a base64 dataURL to Firebase Storage at orgs/cima/files/{id}
+function _storageSaveB64(id,nombre,dataUrl,cb){
+  try{
+    if(!window._fbStorage||!window._fbUser){cb&&cb(false);return;}
+    var parts=dataUrl.split(',');if(parts.length<2){cb&&cb(false);return;}
+    var mime=parts[0].split(':')[1].split(';')[0];
     var bytes=atob(parts[1]);var ab=new ArrayBuffer(bytes.length);var ia=new Uint8Array(ab);
     for(var i=0;i<bytes.length;i++)ia[i]=bytes.charCodeAt(i);
     var blob=new Blob([ab],{type:mime});
-    var url=URL.createObjectURL(blob);
-    var a=document.createElement('a');
-    a.href=url;a.target='_blank';a.rel='noopener';
-    document.body.appendChild(a);a.click();document.body.removeChild(a);
-    setTimeout(function(){URL.revokeObjectURL(url);},60000);
+    var ref=window._fbStorage.ref('orgs/cima/files/'+id);
+    ref.put(blob,{contentType:mime,customMetadata:{nombre:nombre}}).then(function(){cb&&cb(true);}).catch(function(e){console.warn('Storage upload failed:',e);cb&&cb(false);});
+  }catch(e){console.warn('_storageSaveB64 error:',e);cb&&cb(false);}
+}
+
+// Get a download URL from Firebase Storage for a file ID
+function _storageGetUrl(id,cb){
+  try{
+    if(!window._fbStorage||!window._fbUser){cb(null);return;}
+    var ref=window._fbStorage.ref('orgs/cima/files/'+id);
+    ref.getDownloadURL().then(function(url){cb(url);}).catch(function(){cb(null);});
+  }catch(e){cb(null);}
+}
+
+var _pdfBlobUrl=null;
+function openPDFViewer(fileId,nombre){
+  // Try Firebase Storage first so files survive iOS cache clearing
+  _storageGetUrl(fileId,function(url){
+    if(url){
+      var a=document.createElement('a');
+      a.href=url;a.target='_blank';a.rel='noopener';
+      document.body.appendChild(a);a.click();document.body.removeChild(a);
+      return;
+    }
+    // Fall back to IndexedDB
+    dbGet(fileId,function(rec){
+      if(!rec){showToast("Archivo no encontrado","warn");return;}
+      var parts=rec.data.split(',');var mime=parts[0].split(':')[1].split(';')[0];
+      var bytes=atob(parts[1]);var ab=new ArrayBuffer(bytes.length);var ia=new Uint8Array(ab);
+      for(var i=0;i<bytes.length;i++)ia[i]=bytes.charCodeAt(i);
+      var blob=new Blob([ab],{type:mime});
+      var burl=URL.createObjectURL(blob);
+      var a=document.createElement('a');
+      a.href=burl;a.target='_blank';a.rel='noopener';
+      document.body.appendChild(a);a.click();document.body.removeChild(a);
+      setTimeout(function(){URL.revokeObjectURL(burl);},60000);
+      // Back-fill to Firebase Storage so future opens use the cloud copy
+      _storageSaveB64(fileId,nombre||fileId,rec.data,null);
+    });
   });
 }
 var _reportHTML='';
@@ -5827,8 +5863,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.2.37";
-var APP_BUILD="03/06/26 21:00";
+var APP_DISPLAY_VERSION="5.2.38";
+var APP_BUILD="03/06/26 23:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
@@ -5874,6 +5910,7 @@ var firebaseConfig={apiKey:"AIzaSyDpzlN1gaJUH6XGAWv5GRW_suk7zcqKeJE",authDomain:
 if(typeof firebase!=="undefined"&&!firebase.apps.length){firebase.initializeApp(firebaseConfig);}
 window._fbAuth=typeof firebase!=="undefined"?firebase.auth():null;
 window._fbdb=typeof firebase!=="undefined"?firebase.firestore():null;
+window._fbStorage=typeof firebase!=="undefined"?firebase.storage():null;
 window._fbUser=null;
 
 function signInGoogle(){
