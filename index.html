@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.03.006 -->
+<!-- v2026.06.03.007 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.03.006">
+<meta name="app-version" content="v2026.06.03.007">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -324,8 +324,8 @@ textarea.inp{resize:vertical;}
 
 /* ── CHIPS ── */
 .chip{
-  display:inline-flex;align-items:center;gap:5px;
-  padding:9px 16px;border-radius:var(--r-pill);font-size:.72rem;font-weight:600;
+  display:inline-flex;align-items:center;gap:10px;
+  padding:18px 32px;border-radius:var(--r-pill);font-size:1rem;font-weight:600;
   background:rgba(255,255,255,.22);
   -webkit-backdrop-filter:saturate(140%) contrast(100%) brightness(100%) blur(16px);
   backdrop-filter:saturate(140%) contrast(100%) brightness(100%) blur(16px);
@@ -506,7 +506,7 @@ body.dark .ibox{background:rgba(50,50,58,.5);border-color:rgba(80,80,90,.4);}
   .li-eq{padding:12px 14px;}
   .li-eq .li-icon{width:52px;height:52px;border-radius:14px;}
   .li-eq .li-name{font-size:.9rem;}
-  .chip{padding:7px 10px;font-size:.68rem;}
+  .chip{padding:12px 20px;font-size:.82rem;gap:7px;}
   .modal-sheet{padding:4px 14px 36px;}
   .g2{grid-template-columns:1fr!important;}
   .det-grid{grid-template-columns:1fr 1fr!important;}
@@ -2193,7 +2193,7 @@ function rLista(){
   h+='<div style="margin-bottom:6px;font-size:.58rem;text-transform:uppercase;letter-spacing:.8px;font-weight:700;color:var(--text3);">Modalidad</div>';
   h+='<div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:10px;scrollbar-width:none;">';
   h+='<button class="chip'+(!_filtDash&&filtCat==="TODOS"?" on":"")+'" onclick="_filtDash=null;filtCat=\'TODOS\';render();">Todos</button>';
-  CATS.forEach(function(c){h+='<button class="chip'+(!_filtDash&&filtCat===c.id?" on":"")+'" onclick="_filtDash=null;filtCat=\''+c.id+'\';render();">'+(catSvgIcon(c.id,18)||'')+' '+c.label+'</button>';});
+  CATS.forEach(function(c){h+='<button class="chip'+(!_filtDash&&filtCat===c.id?" on":"")+'" onclick="_filtDash=null;filtCat=\''+c.id+'\';render();">'+(catSvgIcon(c.id,44)||'')+' '+c.label+'</button>';});
   h+='</div>';
 
   // ── Filtro Centro ──
@@ -5706,8 +5706,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.2.33";
-var APP_BUILD="03/06/26 16:00";
+var APP_DISPLAY_VERSION="5.2.34";
+var APP_BUILD="03/06/26 17:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
