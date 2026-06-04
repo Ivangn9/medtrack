@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.04.015 -->
+<!-- v2026.06.04.016 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.04.015">
+<meta name="app-version" content="v2026.06.04.016">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -2698,7 +2698,19 @@ function rLista(){
 
 // ── ESQUEMA UPS ──
 function rUpsSchema(){
-  var h='';
+  var anim='<style>'+
+    '@keyframes upsFlow{0%{stroke-dashoffset:24}100%{stroke-dashoffset:0}}'+
+    '@keyframes upsPulse{0%,100%{opacity:.9;transform:scale(1)}50%{opacity:.5;transform:scale(.88)}}'+
+    '@keyframes upsGlow{0%,100%{box-shadow:0 0 6px #f59e0b66,0 0 14px #f59e0b33}50%{box-shadow:0 0 12px #f59e0baa,0 0 28px #f59e0b55}}'+
+    '@keyframes flowH{0%{background-position:0 0}100%{background-position:24px 0}}'+
+    '@keyframes flowV{0%{background-position:0 0}100%{background-position:0 24px}}'+
+    '.ups-flow-v{background:repeating-linear-gradient(to bottom,#f59e0b 0,#f59e0b 7px,transparent 7px,transparent 14px);background-size:3px 14px;animation:flowV .55s linear infinite;}'+
+    '.ups-flow-h{background:repeating-linear-gradient(to right,#f59e0b 0,#f59e0b 7px,transparent 7px,transparent 14px);background-size:14px 3px;animation:flowH .55s linear infinite;}'+
+    '.ups-eq-card{transition:transform .15s,box-shadow .15s;}'+
+    '.ups-eq-card:active{transform:scale(.96);}'+
+    '</style>';
+
+  var h=anim;
   var allUps=eqs.filter(function(e){return !e.baja&&e.cat==='UPS';});
   var allConnectedIds=[];
   allUps.forEach(function(u){(u.equiposConectados||[]).forEach(function(id){allConnectedIds.push(id);});});
@@ -2713,80 +2725,105 @@ function rUpsSchema(){
   allUps.forEach(function(ups){
     var upsCon=ups.equiposConectados||[];
     var upsEqs=upsCon.map(function(id){return eqs.find(function(e){return e.id===id;});}).filter(Boolean);
-    var upsColor='#f59e0b';
-    var upsEstColor=CE[ups.estado]||'var(--green)';
+    var upsEstColor=(ups.estado==='operativo')?'#34c759':(ups.estado==='fuera-de-servicio'?'#ff3b30':'#ff9500');
+    var isActive=ups.estado==='operativo';
     var upsInfo=[];
     if(ups.kva)upsInfo.push(ups.kva);
     if(ups.modelo)upsInfo.push(ups.modelo);
-    if(ups.consultorio)upsInfo.push('Cons. '+ups.consultorio);
+    if(ups.consultorio)upsInfo.push('Consultorio '+ups.consultorio);
     if(ups.ubicacion)upsInfo.push(ups.ubicacion);
 
-    h+='<div class="gc" style="padding:0;margin-bottom:16px;overflow:hidden;">';
-    h+='<div onclick="goDetalle(\''+ups.id+'\')" style="display:flex;align-items:center;gap:12px;padding:13px 16px;background:linear-gradient(135deg,rgba(245,158,11,.13),rgba(245,158,11,.05));border-bottom:1px solid rgba(245,158,11,.18);cursor:pointer;">'+
-      '<div style="width:44px;height:44px;border-radius:13px;background:rgba(245,158,11,.15);border:1.5px solid rgba(245,158,11,.32);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.35rem;">🔋</div>'+
-      '<div style="flex:1;min-width:0;">'+
-        '<div style="font-weight:800;font-size:.9rem;color:var(--text);">'+esc(ups.nombre)+'</div>'+
-        (upsInfo.length?'<div style="font-size:.68rem;color:var(--text3);margin-top:2px;">'+upsInfo.join(' · ')+'</div>':'')+
+    h+='<div style="margin-bottom:28px;">';
+
+    // ── UPS card ──
+    h+='<div onclick="goDetalle(\''+ups.id+'\')" class="gc" style="padding:0;cursor:pointer;overflow:hidden;border:1.5px solid rgba(245,158,11,'+(isActive?'.45':'.2')+');'+(isActive?'animation:upsGlow 2.5s ease-in-out infinite;':'')+'">'+
+      '<div style="height:4px;background:linear-gradient(90deg,#f59e0b,#fbbf24,#f59e0b);background-size:200% 100%;'+(isActive?'animation:flowH .8s linear infinite;':'')+'"></div>'+
+      '<div style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(245,158,11,.04));">'+
+        '<div style="width:60px;height:60px;flex-shrink:0;filter:drop-shadow(0 2px 8px rgba(245,158,11,.35));">'+catSvgIcon('UPS',60)+'</div>'+
+        '<div style="flex:1;min-width:0;">'+
+          '<div style="font-weight:900;font-size:.95rem;color:var(--text);letter-spacing:-.2px;">'+esc(ups.nombre)+'</div>'+
+          (upsInfo.length?'<div style="font-size:.7rem;color:var(--text3);margin-top:3px;">'+upsInfo.join(' · ')+'</div>':'')+
+          '<div style="display:flex;align-items:center;gap:6px;margin-top:7px;">'+
+            '<div style="width:8px;height:8px;border-radius:50%;background:'+upsEstColor+';'+(isActive?'animation:upsPulse 2s ease-in-out infinite;':'')+'box-shadow:0 0 6px '+upsEstColor+';"></div>'+
+            '<span style="font-size:.68rem;font-weight:700;color:'+upsEstColor+';">'+(ups.estado==='operativo'?'Alimentando':ups.estado==='fuera-de-servicio'?'Fuera de servicio':'Advertencia')+'</span>'+
+            '<span style="font-size:.66rem;color:var(--text3);margin-left:4px;">'+upsCon.length+' equipo'+(upsCon.length!==1?'s conectados':'conectado')+'</span>'+
+          '</div>'+
+        '</div>'+
+        '<div style="color:var(--text3);font-size:1rem;flex-shrink:0;">›</div>'+
       '</div>'+
-      '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">'+
-        '<span style="font-size:.68rem;font-weight:700;color:'+upsColor+';background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.25);border-radius:20px;padding:2px 9px;">'+upsCon.length+' equipo'+(upsCon.length!==1?'s':'')+'</span>'+
-        '<div style="width:8px;height:8px;border-radius:50%;background:'+upsEstColor+';box-shadow:0 0 5px '+upsEstColor+';"></div>'+
-      '</div>'+
-      '<div style="color:var(--text3);font-size:1rem;margin-left:4px;">›</div>'+
     '</div>';
 
-    if(upsEqs.length){
-      h+='<div style="padding:6px 12px 6px 14px;">';
-      upsEqs.forEach(function(e,idx){
-        var isLast=idx===upsEqs.length-1;
-        var estColor=CE[e.estado]||'var(--green)';
-        var eqInfo=[];
-        if(e.consultorio)eqInfo.push('Cons. '+e.consultorio);
-        else if(e.ubicacion)eqInfo.push(e.ubicacion);
-        h+='<div onclick="goDetalle(\''+e.id+'\')" style="display:flex;align-items:center;gap:10px;padding:8px 6px;cursor:pointer;border-bottom:'+(isLast?'none':'1px solid rgba(0,0,0,.05)')+';border-radius:8px;">'+
-          '<div style="display:flex;flex-direction:column;align-items:center;width:14px;flex-shrink:0;align-self:stretch;">'+
-            '<div style="width:1.5px;background:rgba(245,158,11,.3);flex:1;'+(idx===0?'min-height:12px':'')+'"></div>'+
-            '<div style="width:8px;height:8px;border-radius:50%;border:1.5px solid '+upsColor+';background:var(--bg);flex-shrink:0;"></div>'+
-            '<div style="width:1.5px;background:'+(isLast?'transparent':'rgba(245,158,11,.3)')+';flex:1;'+(isLast?'':'min-height:12px')+'"></div>'+
-          '</div>'+
-          '<div style="width:34px;height:34px;flex-shrink:0;">'+iconFor(e,34)+'</div>'+
-          '<div style="flex:1;min-width:0;">'+
-            '<div style="font-size:.82rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+esc(e.nombre)+'</div>'+
-            (eqInfo.length?'<div style="font-size:.68rem;color:var(--text3);margin-top:1px;">🏥 '+eqInfo.join(' · ')+'</div>':'')+
-          '</div>'+
-          '<div style="flex-shrink:0;">'+pillH(estColor,e.estado==='operativo'?'✅ OK':e.estado==='fuera-de-servicio'?'🚫 F.S.':(e.estado==='con-rotura'?'🔧 Rotura':'⚠️'))+'</div>'+
-          '<div style="color:var(--text3);font-size:.9rem;margin-left:4px;">›</div>'+
-        '</div>';
-      });
+    if(!upsEqs.length){
+      h+='<div style="text-align:center;font-size:.75rem;color:var(--text3);padding:16px 0;">Sin equipos conectados — editá la UPS para asignarlos</div>';
       h+='</div>';
-    } else {
-      h+='<div style="padding:14px 16px;font-size:.76rem;color:var(--text3);text-align:center;">Sin equipos conectados — editá la UPS para asignarlos</div>';
+      return;
     }
-    h+='</div>';
-  });
 
-  if(unconnected.length){
-    h+='<div style="margin:4px 0 10px;font-size:.62rem;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;display:flex;align-items:center;gap:6px;">'+
-      '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#8e8e93;"></span>Sin UPS asignada ('+unconnected.length+')</div>';
-    var unRow='<div class="gc" style="padding:8px 12px;">';
-    unconnected.forEach(function(e){
+    // ── Línea vertical animada (UPS → bus) ──
+    h+='<div style="display:flex;justify-content:center;height:28px;">'+
+      '<div class="ups-flow-v" style="width:3px;height:28px;border-radius:2px;opacity:.8;"></div>'+
+    '</div>';
+
+    // ── Bus horizontal animado ──
+    h+='<div style="position:relative;height:3px;margin:0 16px;">'+
+      '<div class="ups-flow-h" style="width:100%;height:3px;border-radius:2px;opacity:.8;"></div>'+
+    '</div>';
+
+    // ── Drops verticales + tarjetas de equipos ──
+    h+='<div style="display:flex;overflow-x:auto;gap:10px;padding:0 12px 6px;-webkit-overflow-scrolling:touch;scrollbar-width:none;">';
+    upsEqs.forEach(function(e){
       var estColor=CE[e.estado]||'var(--green)';
-      var info=e.consultorio?'Cons. '+esc(e.consultorio):(e.ubicacion?esc(e.ubicacion):'');
-      unRow+='<div onclick="goDetalle(\''+e.id+'\')" style="display:flex;align-items:center;gap:10px;padding:7px 4px;cursor:pointer;border-bottom:1px solid rgba(0,0,0,.04);">'+
-        '<div style="width:30px;height:30px;flex-shrink:0;">'+iconFor(e,30)+'</div>'+
-        '<div style="flex:1;min-width:0;">'+
-          '<div style="font-size:.8rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+esc(e.nombre)+'</div>'+
-          (info?'<div style="font-size:.66rem;color:var(--text3);">'+info+'</div>':'')+
+      var cat=catById(e.cat);
+      var eqInfo=e.consultorio?'Cons. '+e.consultorio:(e.ubicacion||cat.label);
+      var isOp=e.estado==='operativo';
+      h+='<div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:100px;">'+
+        // drop line
+        '<div class="ups-flow-v" style="width:3px;height:20px;border-radius:2px;opacity:'+(isActive?'.7':'.25')+';"></div>'+
+        // connector dot
+        '<div style="width:8px;height:8px;border-radius:50%;background:'+estColor+';box-shadow:0 0 5px '+estColor+';margin-bottom:4px;'+(isOp&&isActive?'animation:upsPulse 2s ease-in-out infinite;':'')+'"></div>'+
+        // equipment card
+        '<div class="ups-eq-card" onclick="goDetalle(\''+e.id+'\')" style="width:100px;border-radius:14px;background:var(--bg2);border:1.5px solid '+cat.color+'33;cursor:pointer;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.07);">'+
+          '<div style="height:2px;background:'+cat.color+';opacity:.7;"></div>'+
+          '<div style="padding:10px 6px 8px;display:flex;flex-direction:column;align-items:center;gap:6px;">'+
+            '<div style="width:52px;height:52px;flex-shrink:0;filter:drop-shadow(0 2px 5px '+cat.color+'55);">'+catSvgIcon(e.cat,52)+'</div>'+
+            '<div style="font-size:.65rem;font-weight:700;color:var(--text);text-align:center;line-height:1.25;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;max-height:2.5em;">'+esc(e.nombre)+'</div>'+
+            '<div style="font-size:.58rem;color:var(--text3);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;padding:0 4px;">'+esc(eqInfo)+'</div>'+
+            '<div style="display:flex;align-items:center;gap:3px;">'+
+              '<div style="width:5px;height:5px;border-radius:50%;background:'+estColor+';box-shadow:0 0 4px '+estColor+';"></div>'+
+              '<span style="font-size:.58rem;font-weight:700;color:'+estColor+';">'+(e.estado==='operativo'?'OK':e.estado==='fuera-de-servicio'?'F.S.':'Adv.')+'</span>'+
+            '</div>'+
+          '</div>'+
         '</div>'+
-        '<div style="width:8px;height:8px;border-radius:50%;background:'+estColor+';flex-shrink:0;"></div>'+
       '</div>';
     });
-    unRow+='</div>';
-    h+=unRow;
+    h+='</div>';
+    h+='</div>'; // UPS block
+  });
+
+  // ── Sin UPS asignada ──
+  if(unconnected.length){
+    h+='<div style="margin-top:8px;margin-bottom:10px;font-size:.62rem;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;display:flex;align-items:center;gap:6px;">'+
+      '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#8e8e93;"></span>Sin UPS asignada ('+unconnected.length+')</div>';
+    h+='<div class="gc" style="padding:8px 12px;">';
+    unconnected.forEach(function(e){
+      var estColor=CE[e.estado]||'var(--green)';
+      var cat=catById(e.cat);
+      var info=e.consultorio?'Cons. '+esc(e.consultorio):(e.ubicacion?esc(e.ubicacion):cat.label);
+      h+='<div onclick="goDetalle(\''+e.id+'\')" style="display:flex;align-items:center;gap:10px;padding:7px 4px;cursor:pointer;border-bottom:1px solid rgba(0,0,0,.04);">'+
+        '<div style="width:34px;height:34px;flex-shrink:0;">'+catSvgIcon(e.cat,34)+'</div>'+
+        '<div style="flex:1;min-width:0;">'+
+          '<div style="font-size:.8rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+esc(e.nombre)+'</div>'+
+          '<div style="font-size:.66rem;color:var(--text3);">'+info+'</div>'+
+        '</div>'+
+        '<div style="width:7px;height:7px;border-radius:50%;background:'+estColor+';flex-shrink:0;"></div>'+
+      '</div>';
+    });
+    h+='</div>';
   }
 
   return h;
 }
+
 
 // ── ALERTAS ──
 function rAlertas(){
@@ -6390,8 +6427,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.2.62";
-var APP_BUILD="04/06/26 13:15";
+var APP_DISPLAY_VERSION="5.2.63";
+var APP_BUILD="04/06/26 13:45";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
