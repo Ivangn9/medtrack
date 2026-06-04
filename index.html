@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.04.011 -->
+<!-- v2026.06.04.012 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.04.011">
+<meta name="app-version" content="v2026.06.04.012">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -4912,7 +4912,7 @@ function scanLabelAntena(){
 }
 function scanLabelTransductor(){
   _doScanLabel(
-    'This is a GE Healthcare ultrasound transducer label. Read ONLY the human-readable printed text on the label sticker — DO NOT read or decode the UDI barcode string (the long encoded number in parentheses like "(01)008406..."). The label has these specific fields printed clearly:\n1. MODEL NAME: large text at the top-left of the label, right next to the GE logo. It is a code like RAB6-RS, C1-5-RS, L3-12-D, M5SC-RS, IC5-9-D, 6S-RS, 12L-RS, etc.\n2. REF: small label box on the left side says "REF" followed by a code like H48691LP\n3. SN: small label box on the left side says "SN" followed by the serial number like 1276772WX9\n4. DATE: near the manufacture symbol (mountain/wave icon), printed as YYYY-MM like 2023-08\nReturn ONLY a valid JSON object, no explanation, no markdown:\n{"nombre":"model name exactly as printed next to GE logo","modelo":"same as nombre","nroSerie":"SN value exactly as printed in the SN box","ref":"REF value exactly as printed in the REF box","tipo":"RAB=Convex volumétrico 4D, C=Convex abdominal, L=Lineal, IC=Endocavitario, SC or M or 6S=Sectorial cardíaco, IC9=Endocavitario volumétrico 4D","frecuencia":null,"fecha":"YYYY-MM from manufacture date or empty string"}',
+    'This is an ultrasound transducer label (may be GE Healthcare, Philips, Siemens, Samsung/Sonosite, Mindray, Toshiba/Canon, Hitachi, or other brand). Read ONLY the human-readable printed text on the label sticker — DO NOT read or decode the UDI barcode string (the long encoded number in parentheses like "(01)008406..."). Extract:\n1. MODEL NAME / BRAND: The model code and manufacturer name (e.g. "GE RAB6-RS", "Philips C5-2", "Siemens 18L6 HD", "Mindray L14-6NE")\n2. REF or CAT#: a reference/catalog code\n3. SN or S/N: the serial number\nFor the "tipo" field, use your training knowledge of the ultrasound transducer catalog of all brands to identify the exact type in Spanish. Categories: Lineal, Convex abdominal, Sectorial cardíaco, Endocavitario, Convex volumétrico 4D, Endocavitario volumétrico 4D, Lineal intraoperatorio, TEE. GE examples: RAB6-RS=Convex volumétrico 4D; C1-5-RS/C2-7-D=Convex abdominal; L3-12-D/12L-RS/9L-RS=Lineal; IC5-9-D=Endocavitario; M5SC-RS/6S-RS/4S-RS=Sectorial cardíaco. Philips examples: C5-2=Convex abdominal; S5-1=Sectorial cardíaco; L12-3=Lineal; C8-4V=Endocavitario. Siemens: 18L6=Lineal; CH5-2=Sectorial cardíaco. Use the model name and brand to infer the type — a linear array probe is always Lineal, curved/convex is Convex abdominal, phased array cardiac is Sectorial cardíaco, endocavitary/transvaginal/transrectal is Endocavitario.\nReturn ONLY a valid JSON object, no explanation, no markdown:\n{"nombre":"model code exactly as printed (without brand prefix)","modelo":"same as nombre","marca":"manufacturer brand name (GE, Philips, Siemens, Samsung, Mindray, Toshiba, Hitachi, or other)","nroSerie":"SN value exactly as printed","ref":"REF or CAT# value exactly as printed","tipo":"transducer type in Spanish based on your catalog knowledge","frecuencia":null}',
     function(data){
       function fill(id,val){var el=document.getElementById(id);if(el&&val)el.value=val;}
       fill('tr-nombre',data.nombre);
@@ -4920,7 +4920,6 @@ function scanLabelTransductor(){
       fill('tr-nro-serie',data.nroSerie);
       if(data.tipo){var el=document.getElementById('tr-tipo');if(el)el.value=data.tipo;}
       if(data.frecuencia)fill('tr-frec',String(data.frecuencia));
-      if(data.fecha){var f=String(data.fecha);if(/^\d{4}-\d{2}$/.test(f))f=f+'-01';fill('tr-fecha',f);}
       showToast('✅ Datos cargados desde la etiqueta','');
     }
   );
@@ -6282,8 +6281,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.2.58";
-var APP_BUILD="05/06/26 11:30";
+var APP_DISPLAY_VERSION="5.2.59";
+var APP_BUILD="04/06/26 12:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
