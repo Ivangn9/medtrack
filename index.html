@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.04.003 -->
+<!-- v2026.06.04.004 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.04.003">
+<meta name="app-version" content="v2026.06.04.004">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -4832,18 +4832,28 @@ function _doScanLabel(prompt,onResult){
           {type:'text',text:prompt}
         ]}]})
       })
-      .then(function(r){return r.json();})
-      .then(function(d){
+      .then(function(r){
+        return r.json().then(function(d){return {ok:r.ok,status:r.status,data:d};});
+      })
+      .then(function(res){
+        if(!res.ok){
+          var errMsg=((res.data||{}).error||{}).message||'Error desconocido';
+          if(res.status===401)throw new Error('API Key inválida. Verificá que la copiaste completa.');
+          if(res.status===400)throw new Error('Error en la solicitud: '+errMsg);
+          throw new Error('Error '+res.status+': '+errMsg);
+        }
+        var d=res.data;
         var text=(((d.content||[])[0])||{}).text||'';
         var m=text.match(/\{[\s\S]*\}/);
-        if(!m)throw new Error('Respuesta inesperada');
+        if(!m)throw new Error('La IA no pudo leer la etiqueta. Intentá con mejor iluminación.');
         onResult(JSON.parse(m[0]));
         var sb=document.getElementById('scan-label-btn');
         if(sb){sb.disabled=false;sb.innerHTML='📷 Escanear otra etiqueta';}
       })
       .catch(function(err){
         console.error('AI scan:',err);
-        showToast('Error al analizar la etiqueta. Verificá la API Key.','err');
+        var msg=err.message||'Error desconocido';
+        showToast(msg,'err');
         var sb=document.getElementById('scan-label-btn');
         if(sb){sb.disabled=false;sb.innerHTML='📷 Escanear etiqueta';}
       });
@@ -6216,8 +6226,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.2.50";
-var APP_BUILD="04/06/26 16:30";
+var APP_DISPLAY_VERSION="5.2.51";
+var APP_BUILD="04/06/26 18:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
