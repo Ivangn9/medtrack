@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.03.020">
+<meta name="app-version" content="v2026.06.04.001">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -6146,12 +6146,13 @@ function checkForUpdates(){
     .then(function(r){return r.text();})
     .then(function(html){
       var m=html.match(/<!--\s*(v[\d.]+)\s*-->/);
-      if(m&&m[1]&&APP_VERSION&&m[1]!==APP_VERSION){
-        showToast("🔄 Nueva versión detectada — actualizando...");
-        setTimeout(function(){
-          window.location.href=base+'?v='+Date.now();
-        },1800);
-      }
+      if(!m||!m[1]||!APP_VERSION||m[1]===APP_VERSION)return;
+      // Guard: only reload once per session to avoid infinite loops
+      var reloadedTo=sessionStorage.getItem('_reloadedToVer')||'';
+      if(reloadedTo===m[1])return;
+      sessionStorage.setItem('_reloadedToVer',m[1]);
+      showToast("🔄 Nueva versión detectada — actualizando...");
+      setTimeout(function(){window.location.href=base+'?v='+Date.now();},1800);
     }).catch(function(){});
 }
 
