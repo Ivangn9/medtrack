@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.04.002 -->
+<!-- v2026.06.04.003 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.04.002">
+<meta name="app-version" content="v2026.06.04.003">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -4787,6 +4787,101 @@ function transductorSvgIcon(size){
     '<path d="M18 31 Q18 34 14 35 Q10 36 8 34" fill="none" stroke="'+c1+'" stroke-width="1.8" stroke-linecap="round" opacity=".50"/>'+
     '</svg>';
 }
+// ─── AI LABEL SCANNER ───
+function _getAIKey(){try{return localStorage.getItem('mt_ai_key')||'';}catch(e){return '';}}
+function _setAIKey(k){try{localStorage.setItem('mt_ai_key',k||'');}catch(e){}}
+function openAIKeyModal(){
+  openModal(
+    '<div style="font-weight:800;font-size:1.05rem;margin-bottom:6px;">🔑 Escáner de Etiquetas IA</div>'+
+    '<div style="font-size:.78rem;color:var(--text2);margin-bottom:14px;">La API Key de Anthropic permite fotografiar etiquetas y cargar los datos automáticamente. Obtené tu clave en <b>console.anthropic.com</b> → API Keys. El costo es mínimo (fracciones de centavo por escaneo).</div>'+
+    '<div class="ff"><div class="ff-label">API Key (sk-ant-...)</div>'+
+      '<input class="inp" id="ai-key-inp" type="password" placeholder="sk-ant-api03..." autocomplete="off">'+
+    '</div>'+
+    '<button class="btn-grad btn-grad-blue" onclick="var k=((document.getElementById(\'ai-key-inp\')||{}).value||\'\').trim();_setAIKey(k);closeModal();showToast(k?\'✅ API Key guardada — ya podés escanear etiquetas\':\'API Key eliminada\',\'\');">Guardar</button>'
+  );
+  setTimeout(function(){var el=document.getElementById('ai-key-inp');if(el&&_getAIKey()){el.value=_getAIKey();}},50);
+}
+function _doScanLabel(prompt,onResult){
+  var key=_getAIKey();
+  if(!key){
+    if(confirm('Para escanear etiquetas necesitás configurar una API Key de Anthropic.\n¿Abrir configuración?')){openAIKeyModal();}
+    return;
+  }
+  var inp=document.createElement('input');
+  inp.type='file';inp.accept='image/*';inp.capture='environment';
+  inp.style.cssText='position:fixed;top:-100px;left:-100px;opacity:0;pointer-events:none;';
+  document.body.appendChild(inp);
+  inp.onchange=function(){
+    var file=inp.files&&inp.files[0];
+    if(!file){document.body.removeChild(inp);return;}
+    var sb=document.getElementById('scan-label-btn');
+    if(sb){sb.disabled=true;sb.innerHTML='⏳ Analizando…';}
+    showToast('📷 Analizando etiqueta con IA…','');
+    var reader=new FileReader();
+    reader.onload=function(ev){
+      var dataUrl=ev.target.result;
+      var parts=dataUrl.split(',');var b64=parts[1]||'';
+      var mime=(parts[0]||'').replace('data:','').replace(';base64','');
+      if(!mime)mime='image/jpeg';
+      document.body.removeChild(inp);
+      fetch('https://api.anthropic.com/v1/messages',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-calls':'true'},
+        body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:400,messages:[{role:'user',content:[
+          {type:'image',source:{type:'base64',media_type:mime,data:b64}},
+          {type:'text',text:prompt}
+        ]}]})
+      })
+      .then(function(r){return r.json();})
+      .then(function(d){
+        var text=(((d.content||[])[0])||{}).text||'';
+        var m=text.match(/\{[\s\S]*\}/);
+        if(!m)throw new Error('Respuesta inesperada');
+        onResult(JSON.parse(m[0]));
+        var sb=document.getElementById('scan-label-btn');
+        if(sb){sb.disabled=false;sb.innerHTML='📷 Escanear otra etiqueta';}
+      })
+      .catch(function(err){
+        console.error('AI scan:',err);
+        showToast('Error al analizar la etiqueta. Verificá la API Key.','err');
+        var sb=document.getElementById('scan-label-btn');
+        if(sb){sb.disabled=false;sb.innerHTML='📷 Escanear etiqueta';}
+      });
+    };
+    reader.readAsDataURL(file);
+  };
+  inp.click();
+}
+function scanLabelAntena(){
+  _doScanLabel(
+    'This is an MRI RF antenna/coil label photo. Extract the fields and return ONLY a valid JSON object, no explanation, no markdown fences. Keys: {"nombre":"full model name","nroSerie":"serial number value after SN: or S/N: field, empty string if not found","canales":integer_channel_count_or_null,"fecha":"manufacture or expiry date as YYYY-MM or empty string","tipo":"one of: Cabeza, Cabeza/Cuello, Neurovascular, Columna, Cuerpo entero, Rodilla, Hombro, Mama, Cardiaca, Vascular, Endocavitaria, Flex/Superficie — infer from model name if not stated, empty string if unknown"}.',
+    function(data){
+      function fill(id,val){var el=document.getElementById(id);if(el&&val)el.value=val;}
+      fill('ant-nombre',data.nombre);
+      fill('ant-nro-serie',data.nroSerie);
+      if(data.canales)fill('ant-canales',String(data.canales));
+      if(data.tipo){var el=document.getElementById('ant-tipo');if(el)el.value=data.tipo;}
+      if(data.fecha){var f=String(data.fecha);if(/^\d{4}-\d{2}$/.test(f))f=f+'-01';fill('ant-fecha',f);}
+      showToast('✅ Datos cargados desde la etiqueta','');
+    }
+  );
+}
+function scanLabelTransductor(){
+  _doScanLabel(
+    'This is an ultrasound transducer/probe label photo. Extract the fields and return ONLY a valid JSON object, no explanation, no markdown fences. Keys: {"nombre":"model name e.g. M5SC-RS","modelo":"model code, usually same as nombre","nroSerie":"value after SN: field","ref":"value after REF: field, empty string if not found","tipo":"one of: Convexo, Convex abdominal, Convex volumétrico 4D, Lineal, Sectorial, Sectorial cardíaco, Microconvexo, Endocavitario, Endocavitario volumétrico 4D, Matricial — infer: L=Lineal, C=Convex, IC/E=Endocavitario, SC/M=Sectorial cardíaco","frecuencia":"MHz as string or null","fecha":"manufacture date as YYYY-MM, look for year-month printed on label, empty string if not found"}.',
+    function(data){
+      function fill(id,val){var el=document.getElementById(id);if(el&&val)el.value=val;}
+      fill('tr-nombre',data.nombre);
+      fill('tr-modelo',data.modelo||data.nombre);
+      fill('tr-nro-serie',data.nroSerie);
+      if(data.tipo){var el=document.getElementById('tr-tipo');if(el)el.value=data.tipo;}
+      if(data.frecuencia)fill('tr-frec',String(data.frecuencia));
+      if(data.fecha){var f=String(data.fecha);if(/^\d{4}-\d{2}$/.test(f))f=f+'-01';fill('tr-fecha',f);}
+      showToast('✅ Datos cargados desde la etiqueta','');
+    }
+  );
+}
+
 function openAddAntennaModal(rmEquipId){
   var rmEqs=eqs.filter(function(e){return e.cat==='RM';});
   var origenOpts=rmEqs.map(function(e){return'<option value="'+esc(e.nombre)+'">'+esc(e.nombre)+'</option>';}).join('')+
@@ -4800,6 +4895,7 @@ function openAddAntennaModal(rmEquipId){
       '</div>'+
       '<button onclick="closeModal();" style="margin-left:auto;width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.85rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">‹</button>'+
     '</div>'+
+    '<button id="scan-label-btn" type="button" onclick="scanLabelAntena()" style="width:100%;padding:11px 14px;border-radius:14px;background:linear-gradient(135deg,rgba(0,113,227,.1),rgba(0,113,227,.05));border:1.5px solid rgba(0,113,227,.3);color:var(--accent);font-weight:700;font-size:.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:14px;">📷 Escanear etiqueta con IA</button>'+
     '<div class="ff"><div class="ff-label">Nombre de la antena *</div>'+
       '<input class="inp" id="ant-nombre" placeholder="Ej: Antena de cabeza 1.5T" autocomplete="off">'+
     '</div>'+
@@ -5564,6 +5660,7 @@ function openAddTransductorModal(ecoEquipId){
         '<div style="font-size:.65rem;color:var(--text3);">Completá los datos del transductor</div></div>'+
       '<button onclick="closeModal();" style="margin-left:auto;width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.85rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">‹</button>'+
     '</div>'+
+    '<button id="scan-label-btn" type="button" onclick="scanLabelTransductor()" style="width:100%;padding:11px 14px;border-radius:14px;background:linear-gradient(135deg,rgba(14,165,233,.1),rgba(14,165,233,.05));border:1.5px solid rgba(14,165,233,.3);color:rgba(14,165,233,1);font-weight:700;font-size:.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:14px;">📷 Escanear etiqueta con IA</button>'+
     '<div class="ff"><div class="ff-label">Nombre del transductor *</div>'+
       '<input class="inp" id="tr-nombre" placeholder="Ej: Transductor convexo 3.5MHz" autocomplete="off">'+
     '</div>'+
@@ -6119,8 +6216,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.2.49";
-var APP_BUILD="04/06/26 15:00";
+var APP_DISPLAY_VERSION="5.2.50";
+var APP_BUILD="04/06/26 16:30";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
@@ -6316,6 +6413,8 @@ function init(){
         if(sbAccBtn)sbAccBtn.style.display=isOwner?"block":"none";
         var sbRestoreBtn=document.getElementById("sb-restore-btn");
         if(sbRestoreBtn)sbRestoreBtn.style.display=isOwner?"block":"none";
+        var sbAiKeyBtn=document.getElementById("sb-ai-key-btn");
+        if(sbAiKeyBtn)sbAiKeyBtn.style.display=isOwner?"block":"none";
         // Load from shared org doc; migrate personal data on first run if org doesn't exist yet
         function _applyData(d){
           if(d&&Array.isArray(d.eqs)&&d.eqs.length>0){
@@ -6732,6 +6831,11 @@ function rReporte(){
   <div id="sb-access-btn" style="display:none;">
     <button class="sb-sub-btn" onclick="closeSbAjustesMenu();openAccessManager()">
       <span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></span>Gestionar Acceso
+    </button>
+  </div>
+  <div id="sb-ai-key-btn" style="display:none;">
+    <button class="sb-sub-btn" onclick="closeSbAjustesMenu();openAIKeyModal()">
+      <span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15" r="4"/><path d="M12 15h9"/><path d="M16 11v8"/><path d="M19 14v2"/></svg></span>API Key Escáner IA
     </button>
   </div>
   <div id="sb-restore-btn" style="display:none;">
