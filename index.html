@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.04.004 -->
+<!-- v2026.06.04.005 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.04.004">
+<meta name="app-version" content="v2026.06.04.005">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -718,6 +718,9 @@ body.dark .sb-card{background:rgba(255,255,255,.07);border-color:rgba(255,255,25
       </div>
       <div id="access-admin-btn" style="display:none;margin-bottom:8px;">
         <button onclick="toggleSettings();openAccessManager()" style="width:100%;padding:10px;background:rgba(0,113,227,.1);color:var(--accent);border:1px solid rgba(0,113,227,.2);border-radius:50px;font-weight:600;font-size:.8rem;cursor:pointer;">🔐 Gestionar Acceso</button>
+      </div>
+      <div id="ai-key-settings-btn" style="display:none;margin-bottom:8px;">
+        <button onclick="toggleSettings();openAIKeyModal()" style="width:100%;padding:10px;background:rgba(0,113,227,.08);color:var(--accent);border:1px solid rgba(0,113,227,.18);border-radius:50px;font-weight:600;font-size:.8rem;cursor:pointer;">📷 API Key Escáner IA</button>
       </div>
       <button onclick="doSignOut()" style="width:100%;padding:10px;background:rgba(255,59,48,.1);color:var(--red);border:1px solid rgba(255,59,48,.2);border-radius:50px;font-weight:600;font-size:.8rem;cursor:pointer;position:relative;z-index:1;">🚪 Cerrar sesión</button>
     </div>
@@ -6226,8 +6229,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.2.51";
-var APP_BUILD="04/06/26 18:00";
+var APP_DISPLAY_VERSION="5.2.52";
+var APP_BUILD="04/06/26 19:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
@@ -6425,6 +6428,8 @@ function init(){
         if(sbRestoreBtn)sbRestoreBtn.style.display=isOwner?"block":"none";
         var sbAiKeyBtn=document.getElementById("sb-ai-key-btn");
         if(sbAiKeyBtn)sbAiKeyBtn.style.display=isOwner?"block":"none";
+        var aiKeySettingsBtn=document.getElementById("ai-key-settings-btn");
+        if(aiKeySettingsBtn)aiKeySettingsBtn.style.display=isOwner?"block":"none";
         // Load from shared org doc; migrate personal data on first run if org doesn't exist yet
         function _applyData(d){
           if(d&&Array.isArray(d.eqs)&&d.eqs.length>0){
