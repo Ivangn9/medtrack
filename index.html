@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.04.010 -->
+<!-- v2026.06.04.011 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.04.010">
+<meta name="app-version" content="v2026.06.04.011">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -4858,7 +4858,7 @@ function _doScanLabel(prompt,onResult){
           method:'POST',
           mode:'cors',
           headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:400,messages:[{role:'user',content:[
+          body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:500,messages:[{role:'user',content:[
             {type:'image',source:{type:'base64',media_type:'image/jpeg',data:rb64}},
             {type:'text',text:prompt}
           ]}]})
@@ -4912,7 +4912,7 @@ function scanLabelAntena(){
 }
 function scanLabelTransductor(){
   _doScanLabel(
-    'Look carefully at this ultrasound transducer/probe label photo and read the text visible in the image. Return ONLY a valid JSON object with NO explanation and NO markdown. Do NOT use example values — only use text you can actually read in the image. JSON keys: {"nombre":"the model name/code printed on the label (read it exactly as written)","modelo":"same as nombre","nroSerie":"the serial number — on GE labels it appears after a box symbol or after the text SN or S/N — read the full alphanumeric string exactly","ref":"number after REF or REF: label, empty string if not visible","tipo":"classify based on model name: L or Lin=Lineal, C or Conv=Convex abdominal, IC or E=Endocavitario, SC or M or card=Sectorial cardíaco, RAB or 4D=Convex volumétrico 4D, IC9 or RAB=Endocavitario volumétrico 4D — use empty string if unsure","frecuencia":"frequency in MHz if shown, null otherwise","fecha":"manufacture date as YYYY-MM if visible, look for 4-digit year followed by month, empty string if not found"}.',
+    'This is a GE Healthcare ultrasound transducer label. Read ONLY the human-readable printed text on the label sticker — DO NOT read or decode the UDI barcode string (the long encoded number in parentheses like "(01)008406..."). The label has these specific fields printed clearly:\n1. MODEL NAME: large text at the top-left of the label, right next to the GE logo. It is a code like RAB6-RS, C1-5-RS, L3-12-D, M5SC-RS, IC5-9-D, 6S-RS, 12L-RS, etc.\n2. REF: small label box on the left side says "REF" followed by a code like H48691LP\n3. SN: small label box on the left side says "SN" followed by the serial number like 1276772WX9\n4. DATE: near the manufacture symbol (mountain/wave icon), printed as YYYY-MM like 2023-08\nReturn ONLY a valid JSON object, no explanation, no markdown:\n{"nombre":"model name exactly as printed next to GE logo","modelo":"same as nombre","nroSerie":"SN value exactly as printed in the SN box","ref":"REF value exactly as printed in the REF box","tipo":"RAB=Convex volumétrico 4D, C=Convex abdominal, L=Lineal, IC=Endocavitario, SC or M or 6S=Sectorial cardíaco, IC9=Endocavitario volumétrico 4D","frecuencia":null,"fecha":"YYYY-MM from manufacture date or empty string"}',
     function(data){
       function fill(id,val){var el=document.getElementById(id);if(el&&val)el.value=val;}
       fill('tr-nombre',data.nombre);
@@ -6282,8 +6282,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.2.57";
-var APP_BUILD="05/06/26 10:00";
+var APP_DISPLAY_VERSION="5.2.58";
+var APP_BUILD="05/06/26 11:30";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
