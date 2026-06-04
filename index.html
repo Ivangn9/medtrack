@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.04.012 -->
+<!-- v2026.06.04.013 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.04.012">
+<meta name="app-version" content="v2026.06.04.013">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1742,15 +1742,26 @@ function _upsEqChecklist(selectedIds){
   var h='';
   Object.keys(groups).forEach(function(catId){
     var c=catById(catId);
-    h+='<div class="ups-cat-hdr" style="font-size:.6rem;font-weight:800;color:'+c.color+';text-transform:uppercase;letter-spacing:.07em;margin:8px 0 3px;padding:0 2px;">'+c.label+'</div>';
-    groups[catId].forEach(function(e){
-      var chk=sel.indexOf(e.id)!==-1?' checked':'';
+    var groupItems=groups[catId];
+    h+='<div class="ups-cat-hdr" style="display:flex;align-items:center;gap:6px;font-size:.6rem;font-weight:800;color:'+c.color+';text-transform:uppercase;letter-spacing:.07em;margin:10px 0 4px;padding:0 2px;">'+
+      '<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:'+c.color+';flex-shrink:0;"></span>'+
+      c.label+
+      '<span style="font-size:.6rem;font-weight:600;color:var(--text3);margin-left:2px;text-transform:none;letter-spacing:0;">('+groupItems.length+')</span>'+
+    '</div>';
+    groupItems.forEach(function(e){
+      var chk=sel.indexOf(e.id)!==-1;
       var sede=e.sede||e.ubicacion||'';
-      var srch=(e.nombre+' '+sede+' '+c.label).toLowerCase();
-      h+='<label class="ups-eq-item" data-search="'+srch+'" style="display:flex;align-items:center;gap:9px;padding:6px 4px;cursor:pointer;border-bottom:1px solid rgba(0,0,0,.05);border-radius:6px;">'+
-        '<input type="checkbox" value="'+e.id+'" class="ups-eq-chk"'+chk+' style="width:17px;height:17px;accent-color:#f59e0b;flex-shrink:0;">'+
-        '<span style="font-size:.82rem;color:var(--text);line-height:1.2;">'+esc(e.nombre)+(sede?'<br><span style="font-size:.7rem;color:var(--text3);">'+esc(sede)+'</span>':'')+
-        '</span></label>';
+      var consult=e.consultorio?'Consultorio '+e.consultorio:'';
+      var sub=consult||(sede||'');
+      var srch=(e.nombre+' '+sede+' '+consult+' '+c.label).toLowerCase();
+      h+='<label class="ups-eq-item" data-search="'+srch+'" style="display:flex;align-items:center;gap:10px;padding:8px 8px;cursor:pointer;border-radius:10px;margin-bottom:2px;background:'+(chk?'rgba(245,158,11,.08)':'')+';">'+
+        '<input type="checkbox" value="'+e.id+'" class="ups-eq-chk"'+(chk?' checked':'')+' style="width:18px;height:18px;accent-color:#f59e0b;flex-shrink:0;" onchange="this.closest(\'label\').style.background=this.checked?\'rgba(245,158,11,.08)\':\'\'" >'+
+        '<span style="min-width:0;flex:1;">'+
+          '<span style="font-size:.82rem;font-weight:'+(chk?'700':'500')+';color:var(--text);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+esc(e.nombre)+'</span>'+
+          (sub?'<span style="font-size:.68rem;color:var(--text3);display:block;margin-top:1px;">📍 '+esc(sub)+'</span>':'')+
+        '</span>'+
+        (chk?'<span style="font-size:.7rem;font-weight:800;color:#f59e0b;flex-shrink:0;">✓</span>':'')+
+      '</label>';
     });
   });
   return h;
@@ -6281,8 +6292,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.2.59";
-var APP_BUILD="04/06/26 12:00";
+var APP_DISPLAY_VERSION="5.2.60";
+var APP_BUILD="04/06/26 12:30";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
