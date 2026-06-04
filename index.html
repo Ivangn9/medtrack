@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.03.020 -->
+<!-- v2026.06.04.001 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -813,7 +813,7 @@ body.dark .sb-card{background:rgba(255,255,255,.07);border-color:rgba(255,255,25
       <img src="logo.png" alt="CIMA" id="logo-img" style="height:68px;width:auto;object-fit:contain;">
       <div style="display:flex;flex-direction:column;gap:3px;">
         <div class="hdr-time" id="logo-time"></div>
-        <div id="sync-indicator" onclick="reconcileFiles();flushSaveNow();updateSyncIndicator();" style="display:inline-flex;align-items:center;gap:5px;font-size:.62rem;font-weight:700;padding:2px 9px;border-radius:50px;width:fit-content;cursor:pointer;user-select:none;transition:all .2s;">
+        <div id="sync-indicator" onclick="retrySync();" style="display:inline-flex;align-items:center;gap:5px;font-size:.62rem;font-weight:700;padding:2px 9px;border-radius:50px;width:fit-content;cursor:pointer;user-select:none;transition:all .2s;">
           <span id="sync-dot" style="width:7px;height:7px;border-radius:50%;flex-shrink:0;"></span>
           <span id="sync-text"></span>
         </div>
@@ -1187,26 +1187,27 @@ function saveData(){
   try{localStorage.setItem("mt_v4",JSON.stringify(eqs));localStorage.setItem("mt_antenas",JSON.stringify(antenas));localStorage.setItem("mt_aires",JSON.stringify(aires));localStorage.setItem("mt_transductores",JSON.stringify(transductores));localStorage.setItem("mt_updatedAt",now);}catch(e){}
   firestoreSave();
 }
-var _fsSaveTimer=null,_fsWriting=false,_fsDirty=false;
+var _fsSaveTimer=null,_fsWriting=false,_fsDirty=false,_fsFailed=false;
 function orgDataRef(){return window._fbdb.collection("orgs").doc("cima").collection("app").doc("data");}
 function firestoreSave(){
   if(!window._fbUser||!window._fbdb)return;
-  _fsDirty=true;
+  _fsDirty=true;_fsFailed=false;
   if(_fsSaveTimer)clearTimeout(_fsSaveTimer);
-  _fsSaveTimer=setTimeout(function(){_fsWrite(0);},400);
+  _fsSaveTimer=setTimeout(function(){_fsSaveTimer=null;_fsWrite(0);},400);
 }
 // Write to Firestore with exponential-backoff retry on failure
 function _fsWrite(tryN){
-  if(!window._fbUser||!window._fbdb)return;
+  if(!window._fbUser||!window._fbdb){_fsWriting=false;return;}
   _fsWriting=true;
   orgDataRef()
     .set({eqs:eqs,antenas:antenas,aires:aires,transductores:transductores,updatedAt:new Date().toISOString()},{merge:true})
-    .then(function(){_fsWriting=false;_fsDirty=false;})
+    .then(function(){_fsWriting=false;_fsDirty=false;_fsFailed=false;})
     .catch(function(e){
       _fsWriting=false;
       console.warn("Firestore save (try "+(tryN+1)+"):",e);
       var t=(tryN||0)+1;
-      if(t<6)setTimeout(function(){_fsWrite(t);},Math.min(1000*Math.pow(2,t),20000));
+      if(t<6){setTimeout(function(){_fsWrite(t);},Math.min(1000*Math.pow(2,t),20000));}
+      else{_fsDirty=false;_fsFailed=true;console.warn('Firestore: reintentos agotados, datos en localStorage');}
     });
 }
 // Force-flush any pending save immediately (called when the app is backgrounded/closed —
@@ -1216,6 +1217,7 @@ function flushSaveNow(){
   if(_fsSaveTimer){clearTimeout(_fsSaveTimer);_fsSaveTimer=null;}
   if(_fsDirty)_fsWrite(0);
 }
+function retrySync(){_fsFailed=false;_fsDirty=true;reconcileFiles();flushSaveNow();updateSyncIndicator();}
 // Real-time cloud sync indicator in the header
 function _pendingUploadCount(){try{return Object.keys(JSON.parse(localStorage.getItem('mt_upq_v1')||'{}')).length;}catch(e){return 0;}}
 function updateSyncIndicator(){
@@ -1224,6 +1226,7 @@ function updateSyncIndicator(){
   var col,bg,label,pulse=false;
   if(!window._fbUser){col='#94a3b8';bg='rgba(148,163,184,.15)';label='Local';}
   else if(typeof navigator!=='undefined'&&navigator.onLine===false){col='#f59e0b';bg='rgba(245,158,11,.15)';label='Sin conexión';}
+  else if(_fsFailed){col='#ef4444';bg='rgba(239,68,68,.13)';label='Error — Tocar para reintentar';pulse=false;}
   else{
     var ups=_pendingUploadCount();
     var saving=_fsDirty||_fsWriting||_fsSaveTimer;
@@ -6115,8 +6118,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.2.47";
-var APP_BUILD="04/06/26 12:30";
+var APP_DISPLAY_VERSION="5.2.48";
+var APP_BUILD="04/06/26 14:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
