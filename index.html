@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.04.009 -->
+<!-- v2026.06.04.010 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.04.009">
+<meta name="app-version" content="v2026.06.04.010">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -4847,7 +4847,7 @@ function _doScanLabel(prompt,onResult){
       var canvas=document.createElement('canvas');
       var img=new Image();
       img.onload=function(){
-        var maxW=800,maxH=800,w=img.width,h=img.height;
+        var maxW=1600,maxH=1600,w=img.width,h=img.height;
         if(w>maxW){h=Math.round(h*maxW/w);w=maxW;}
         if(h>maxH){w=Math.round(w*maxH/h);h=maxH;}
         canvas.width=w;canvas.height=h;
@@ -4898,7 +4898,7 @@ function _doScanLabel(prompt,onResult){
 }
 function scanLabelAntena(){
   _doScanLabel(
-    'This is an MRI RF antenna/coil label photo. Extract the fields and return ONLY a valid JSON object, no explanation, no markdown fences. Keys: {"nombre":"full model name","nroSerie":"serial number value after SN: or S/N: field, empty string if not found","canales":integer_channel_count_or_null,"fecha":"manufacture or expiry date as YYYY-MM or empty string","tipo":"one of: Cabeza, Cabeza/Cuello, Neurovascular, Columna, Cuerpo entero, Rodilla, Hombro, Mama, Cardiaca, Vascular, Endocavitaria, Flex/Superficie — infer from model name if not stated, empty string if unknown"}.',
+    'Look carefully at this MRI RF antenna/coil label photo and read the text visible in the image. Return ONLY a valid JSON object with NO explanation and NO markdown. Do NOT use example values — only use text you can actually read in the image. JSON keys: {"nombre":"the full model name exactly as printed on the label","nroSerie":"the serial number — read the exact alphanumeric string after SN, S/N, or a box symbol, empty string if not visible","canales":integer_number_of_channels_or_null,"fecha":"manufacture or expiry date as YYYY-MM, look for 4-digit year, empty string if not visible","tipo":"one of: Cabeza, Cabeza/Cuello, Neurovascular, Columna, Cuerpo entero, Rodilla, Hombro, Mama, Cardiaca, Vascular, Endocavitaria, Flex/Superficie — infer from model name, empty string if unknown"}.',
     function(data){
       function fill(id,val){var el=document.getElementById(id);if(el&&val)el.value=val;}
       fill('ant-nombre',data.nombre);
@@ -4912,7 +4912,7 @@ function scanLabelAntena(){
 }
 function scanLabelTransductor(){
   _doScanLabel(
-    'This is an ultrasound transducer/probe label photo. Extract the fields and return ONLY a valid JSON object, no explanation, no markdown fences. Keys: {"nombre":"model name e.g. M5SC-RS","modelo":"model code, usually same as nombre","nroSerie":"value after SN: field","ref":"value after REF: field, empty string if not found","tipo":"one of: Convexo, Convex abdominal, Convex volumétrico 4D, Lineal, Sectorial, Sectorial cardíaco, Microconvexo, Endocavitario, Endocavitario volumétrico 4D, Matricial — infer: L=Lineal, C=Convex, IC/E=Endocavitario, SC/M=Sectorial cardíaco","frecuencia":"MHz as string or null","fecha":"manufacture date as YYYY-MM, look for year-month printed on label, empty string if not found"}.',
+    'Look carefully at this ultrasound transducer/probe label photo and read the text visible in the image. Return ONLY a valid JSON object with NO explanation and NO markdown. Do NOT use example values — only use text you can actually read in the image. JSON keys: {"nombre":"the model name/code printed on the label (read it exactly as written)","modelo":"same as nombre","nroSerie":"the serial number — on GE labels it appears after a box symbol or after the text SN or S/N — read the full alphanumeric string exactly","ref":"number after REF or REF: label, empty string if not visible","tipo":"classify based on model name: L or Lin=Lineal, C or Conv=Convex abdominal, IC or E=Endocavitario, SC or M or card=Sectorial cardíaco, RAB or 4D=Convex volumétrico 4D, IC9 or RAB=Endocavitario volumétrico 4D — use empty string if unsure","frecuencia":"frequency in MHz if shown, null otherwise","fecha":"manufacture date as YYYY-MM if visible, look for 4-digit year followed by month, empty string if not found"}.',
     function(data){
       function fill(id,val){var el=document.getElementById(id);if(el&&val)el.value=val;}
       fill('tr-nombre',data.nombre);
@@ -6282,8 +6282,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.2.56";
-var APP_BUILD="05/06/26 09:00";
+var APP_DISPLAY_VERSION="5.2.57";
+var APP_BUILD="05/06/26 10:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
