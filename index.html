@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.04.001 -->
+<!-- v2026.06.04.002 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.04.001">
+<meta name="app-version" content="v2026.06.04.002">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1122,7 +1122,7 @@ const EQ0=[
   Object.assign(mkeqSM("EQ-20","DES","Desfibrilador GN","GN",""),{modelo:"",parches_vencimiento:"",bateria_vencimiento:""}),
   Object.assign(mkeqSM("EQ-21","DES","Desfibrilador Pedernera","Pedernera",""),{modelo:"",parches_vencimiento:"",bateria_vencimiento:""}),
   Object.assign(mkeqSM("EQ-22","DES","Desfibrilador Sarmiento","Sarmiento",""),{modelo:"",parches_vencimiento:"",bateria_vencimiento:""}),
-  Object.assign(mkeq("EQ-23","ECO","Ecógrafo GE Vivid T8 BN","","semestral","GE Healthcare"),{marca:"GE",nroSerie:"636410WX0",consultorio:"3",transductorIds:["TRSD-001","TRSD-002"]}),
+  Object.assign(mkeq("EQ-23","ECO","Ecógrafo GE Vivid T8 BN","","semestral","GE Healthcare"),{marca:"GE",nroSerie:"636410WX0",consultorio:"3",transductorIds:["TRSD-001","TRSD-002","TRSD-015"]}),
   Object.assign(mkeq("EQ-24","ECO","Ecógrafo GE LOGIQ TOTUS","","semestral","GE Healthcare"),{marca:"GE",nroSerie:"LT0100595",consultorio:"8",transductorIds:["TRSD-003","TRSD-004","TRSD-005"]}),
   Object.assign(mkeq("EQ-25","ECO","Ecógrafo GE LOGIQ P9","","semestral","GE Healthcare"),{marca:"GE",nroSerie:"LP9353868",consultorio:"10",transductorIds:["TRSD-006","TRSD-007","TRSD-008"]}),
   Object.assign(mkeq("EQ-26","ECO","Ecógrafo GE Voluson S8E BT22","","semestral","GE Healthcare"),{marca:"GE",nroSerie:"USB203606",consultorio:"13",transductorIds:["TRSD-009","TRSD-010","TRSD-011","TRSD-012"]}),
@@ -1150,7 +1150,8 @@ var TRSD0=[
   {id:"TRSD-011",nombre:"IC9-RS",modelo:"IC9-RS",tipo:"Endocavitario volumétrico 4D",nroSerie:"1354454WX9",consultorio:"13",estado:"operativo",frecuencia:null,fechaCompra:"",notas:"",roturas:[],historialTransductor:[],creadoEn:""},
   {id:"TRSD-012",nombre:"12L-RS",modelo:"12L-RS",tipo:"Lineal",nroSerie:"1314728WX5",consultorio:"13",estado:"operativo",frecuencia:null,fechaCompra:"",notas:"",roturas:[],historialTransductor:[],creadoEn:""},
   {id:"TRSD-013",nombre:"3Sc-RS",modelo:"3Sc-RS",tipo:"Sectorial cardíaco",nroSerie:"1251249WX7",consultorio:"",estado:"operativo",frecuencia:null,fechaCompra:"2023-05",notas:"",roturas:[],historialTransductor:[],creadoEn:""},
-  {id:"TRSD-014",nombre:"12L-RS",modelo:"12L-RS",tipo:"Lineal",nroSerie:"687119WX8",consultorio:"",estado:"operativo",frecuencia:null,fechaCompra:"2018-07",notas:"",roturas:[],historialTransductor:[],creadoEn:""}
+  {id:"TRSD-014",nombre:"12L-RS",modelo:"12L-RS",tipo:"Lineal",nroSerie:"687119WX8",consultorio:"",estado:"operativo",frecuencia:null,fechaCompra:"2018-07",notas:"",roturas:[],historialTransductor:[],creadoEn:""},
+  {id:"TRSD-015",nombre:"M5SC-RS",modelo:"M5SC-RS",tipo:"Sectorial cardíaco",nroSerie:"5608813YP8",ref:"5718483",consultorio:"3",estado:"operativo",frecuencia:null,fechaCompra:"2025-10",notas:"",roturas:[],historialTransductor:[],creadoEn:""}
 ];
 function migrateTransductores(){
   TRSD0.forEach(function(def){
@@ -1167,7 +1168,7 @@ function migrateEcoData(){
   var hasEco=eqs.some(function(e){return e.cat==='ECO';});
   if(!hasEco){
     var realEco=[
-      Object.assign(mkeq("EQ-23","ECO","Ecógrafo GE Vivid T8 BN","","semestral","GE Healthcare"),{marca:"GE",nroSerie:"636410WX0",consultorio:"3",transductorIds:["TRSD-001","TRSD-002"]}),
+      Object.assign(mkeq("EQ-23","ECO","Ecógrafo GE Vivid T8 BN","","semestral","GE Healthcare"),{marca:"GE",nroSerie:"636410WX0",consultorio:"3",transductorIds:["TRSD-001","TRSD-002","TRSD-015"]}),
       Object.assign(mkeq("EQ-24","ECO","Ecógrafo GE LOGIQ TOTUS","","semestral","GE Healthcare"),{marca:"GE",nroSerie:"LT0100595",consultorio:"8",transductorIds:["TRSD-003","TRSD-004","TRSD-005"]}),
       Object.assign(mkeq("EQ-25","ECO","Ecógrafo GE LOGIQ P9","","semestral","GE Healthcare"),{marca:"GE",nroSerie:"LP9353868",consultorio:"10",transductorIds:["TRSD-006","TRSD-007","TRSD-008"]}),
       Object.assign(mkeq("EQ-26","ECO","Ecógrafo GE Voluson S8E BT22","","semestral","GE Healthcare"),{marca:"GE",nroSerie:"USB203606",consultorio:"13",transductorIds:["TRSD-009","TRSD-010","TRSD-011","TRSD-012"]})
@@ -6118,8 +6119,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.2.48";
-var APP_BUILD="04/06/26 14:00";
+var APP_DISPLAY_VERSION="5.2.49";
+var APP_BUILD="04/06/26 15:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
