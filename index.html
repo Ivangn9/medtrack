@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.04.005 -->
+<!-- v2026.06.04.006 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.04.005">
+<meta name="app-version" content="v2026.06.04.006">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -4827,39 +4827,54 @@ function _doScanLabel(prompt,onResult){
       var mime=(parts[0]||'').replace('data:','').replace(';base64','');
       if(!mime)mime='image/jpeg';
       document.body.removeChild(inp);
-      fetch('https://api.anthropic.com/v1/messages',{
-        method:'POST',
-        headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-calls':'true'},
-        body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:400,messages:[{role:'user',content:[
-          {type:'image',source:{type:'base64',media_type:mime,data:b64}},
-          {type:'text',text:prompt}
-        ]}]})
-      })
-      .then(function(r){
-        return r.json().then(function(d){return {ok:r.ok,status:r.status,data:d};});
-      })
-      .then(function(res){
-        if(!res.ok){
-          var errMsg=((res.data||{}).error||{}).message||'Error desconocido';
-          if(res.status===401)throw new Error('API Key inválida. Verificá que la copiaste completa.');
-          if(res.status===400)throw new Error('Error en la solicitud: '+errMsg);
-          throw new Error('Error '+res.status+': '+errMsg);
-        }
-        var d=res.data;
-        var text=(((d.content||[])[0])||{}).text||'';
-        var m=text.match(/\{[\s\S]*\}/);
-        if(!m)throw new Error('La IA no pudo leer la etiqueta. Intentá con mejor iluminación.');
-        onResult(JSON.parse(m[0]));
-        var sb=document.getElementById('scan-label-btn');
-        if(sb){sb.disabled=false;sb.innerHTML='📷 Escanear otra etiqueta';}
-      })
-      .catch(function(err){
-        console.error('AI scan:',err);
-        var msg=err.message||'Error desconocido';
-        showToast(msg,'err');
-        var sb=document.getElementById('scan-label-btn');
-        if(sb){sb.disabled=false;sb.innerHTML='📷 Escanear etiqueta';}
-      });
+      // Resize image before sending to reduce payload (max 800px, quality 0.7)
+      var canvas=document.createElement('canvas');
+      var img=new Image();
+      img.onload=function(){
+        var maxW=800,maxH=800,w=img.width,h=img.height;
+        if(w>maxW){h=Math.round(h*maxW/w);w=maxW;}
+        if(h>maxH){w=Math.round(w*maxH/h);h=maxH;}
+        canvas.width=w;canvas.height=h;
+        canvas.getContext('2d').drawImage(img,0,0,w,h);
+        var resized=canvas.toDataURL('image/jpeg',0.7);
+        var rb64=resized.split(',')[1]||'';
+        fetch('https://api.anthropic.com/v1/messages',{
+          method:'POST',
+          mode:'cors',
+          headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-calls':'true'},
+          body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:400,messages:[{role:'user',content:[
+            {type:'image',source:{type:'base64',media_type:'image/jpeg',data:rb64}},
+            {type:'text',text:prompt}
+          ]}]})
+        })
+        .then(function(r){
+          return r.json().then(function(d){return {ok:r.ok,status:r.status,data:d};});
+        })
+        .then(function(res){
+          if(!res.ok){
+            var errMsg=((res.data||{}).error||{}).message||'Error desconocido';
+            if(res.status===401)throw new Error('API Key inválida — verificá que la copiaste completa');
+            if(res.status===400)throw new Error('Error en la solicitud: '+errMsg);
+            throw new Error('Error '+res.status+': '+errMsg);
+          }
+          var text=(((res.data.content||[])[0])||{}).text||'';
+          var m=text.match(/\{[\s\S]*\}/);
+          if(!m)throw new Error('La IA no pudo leer la etiqueta — intentá con mejor iluminación');
+          onResult(JSON.parse(m[0]));
+          var sb=document.getElementById('scan-label-btn');
+          if(sb){sb.disabled=false;sb.innerHTML='📷 Escanear otra etiqueta';}
+        })
+        .catch(function(err){
+          console.error('AI scan:',err);
+          var msg=err.message||'';
+          if(!msg||msg.indexOf('fetch')!==-1||msg.indexOf('Load')!==-1||msg.indexOf('network')!==-1){
+            msg='Sin conexión con la API. Verificá que tenés internet y la API Key correcta.';}
+          showToast(msg,'err');
+          var sb=document.getElementById('scan-label-btn');
+          if(sb){sb.disabled=false;sb.innerHTML='📷 Escanear etiqueta';}
+        });
+      };
+      img.src=dataUrl;
     };
     reader.readAsDataURL(file);
   };
@@ -6229,8 +6244,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.2.52";
-var APP_BUILD="04/06/26 19:00";
+var APP_DISPLAY_VERSION="5.2.53";
+var APP_BUILD="04/06/26 20:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
