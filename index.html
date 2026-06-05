@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.05.004 -->
+<!-- v2026.06.05.005 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.05.004">
+<meta name="app-version" content="v2026.06.05.005">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -4464,9 +4464,13 @@ function exportInventarioPDF(){
       }
     }
 
+    var _titleSvg=catSvgIcon(catId,42)||'';
     sections+='<div class="eq-block" style="margin-bottom:18px;page-break-inside:avoid;">'+
-      '<div class="eq-title" style="display:flex;align-items:center;justify-content:space-between;">'+
-        '<span>'+esc(ci.label)+'</span>'+
+      '<div class="eq-title" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;">'+
+        '<div style="display:flex;align-items:center;gap:10px;">'+
+          (_titleSvg?'<div style="width:42px;height:42px;flex-shrink:0;">'+_titleSvg+'</div>':'')+
+          '<span style="font-size:12pt;">'+esc(ci.label)+'</span>'+
+        '</div>'+
         '<span style="font-size:9pt;font-weight:500;opacity:.75;">'+list.length+' equipo'+(list.length!==1?'s':'')+'</span>'+
       '</div>'+
       '<table class="sum"><thead><tr>'+
@@ -4533,13 +4537,22 @@ function expFiltered(){
         mantRows+='<tr><td>'+fD(h.fecha)+'</td><td>'+(h.tecnico?esc(h.tecnico):"—")+'</td><td>'+(h.notas?esc(h.notas):"—")+'</td></tr>';
       }
     });
-    sections+='<div class="eq-block"><div class="eq-hdr"><span class="eq-name">'+esc(eq.nombre)+'</span><span class="eq-cat">'+ci.label+(eq.ubicacion?' · '+esc(eq.ubicacion):'')+'</span></div>';
+    var _hdrSvg=catSvgIcon(eq.cat,54)||'';
+    sections+='<div class="eq-block"><div class="eq-hdr">'+
+      '<div style="display:flex;align-items:center;gap:14px;">'+
+        (_hdrSvg?'<div style="width:54px;height:54px;flex-shrink:0;filter:brightness(1.25) saturate(1.1);">'+_hdrSvg+'</div>':'')+
+        '<div>'+
+          '<span class="eq-name">'+esc(eq.nombre)+'</span>'+
+          '<div class="eq-cat" style="margin-top:3px;">'+ci.label+(eq.ubicacion?' · '+esc(eq.ubicacion):'')+' </div>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
     if(repRows)sections+='<p class="sec-lbl">🔧 Reparaciones</p><table><thead><tr><th>Rotura / Falla</th><th>Notas</th><th>F. Rotura</th><th>F. Arreglo</th></tr></thead><tbody>'+repRows+'</tbody></table>';
     if(mantRows)sections+='<p class="sec-lbl">🔩 Mantenimientos</p><table><thead><tr><th>Fecha</th><th>Ingeniero</th><th>Notas</th></tr></thead><tbody>'+mantRows+'</tbody></table>';
     sections+='</div>';
   });
   if(!hasData){alert("Sin registros en "+fD(desde)+" — "+fD(hasta));return;}
-  var filtCSS='body{font-family:Helvetica,sans-serif;font-size:11px;color:#1d1d1f;margin:0}.hd{background:linear-gradient(135deg,#1a3a6b,#2a5298);color:#fff;padding:20px 24px}.b{padding:16px 24px}.st{display:flex;gap:12px;margin-bottom:18px}.sb{background:#f0f6ff;border:1px solid #dce8f5;border-radius:6px;padding:8px 16px;text-align:center}.eq-block{border:1px solid #e2e8f0;border-radius:8px;margin-bottom:16px;overflow:hidden;page-break-inside:avoid}.eq-hdr{background:#1a3a6b;color:#fff;padding:8px 12px;display:flex;justify-content:space-between;align-items:center}.eq-name{font-size:12px;font-weight:700}.eq-cat{font-size:9px;opacity:.8}.sec-lbl{margin:8px 12px 4px;font-size:9px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em}table{width:100%;border-collapse:collapse;margin-bottom:4px}th{background:#f1f5f9;color:#475569;padding:5px 10px;text-align:left;font-size:8px;text-transform:uppercase}td{padding:5px 10px;border-bottom:1px solid #f1f5f9;font-size:10px}.nav-bar{position:sticky;top:0;z-index:99;background:rgba(255,255,255,.95);backdrop-filter:blur(10px);border-bottom:1px solid #e2e8f0;padding:10px 16px;display:flex;gap:10px;align-items:center}.btn-print{background:#1a3a6b;color:#fff;border:none;border-radius:50px;padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer}@media print{.nav-bar{display:none}body{print-color-adjust:exact;-webkit-print-color-adjust:exact}.eq-block{page-break-inside:avoid}}';
+  var filtCSS='body{font-family:Helvetica,sans-serif;font-size:11px;color:#1d1d1f;margin:0}.hd{background:linear-gradient(135deg,#1a3a6b,#2a5298);color:#fff;padding:20px 24px}.b{padding:16px 24px}.st{display:flex;gap:12px;margin-bottom:18px}.sb{background:#f0f6ff;border:1px solid #dce8f5;border-radius:6px;padding:8px 16px;text-align:center}.eq-block{border:1px solid #e2e8f0;border-radius:8px;margin-bottom:16px;overflow:hidden;page-break-inside:avoid}.eq-hdr{background:#1a3a6b;color:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:center}.eq-name{font-size:12px;font-weight:700}.eq-cat{font-size:9px;opacity:.8}.sec-lbl{margin:8px 12px 4px;font-size:9px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em}table{width:100%;border-collapse:collapse;margin-bottom:4px}th{background:#f1f5f9;color:#475569;padding:5px 10px;text-align:left;font-size:8px;text-transform:uppercase}td{padding:5px 10px;border-bottom:1px solid #f1f5f9;font-size:10px}.nav-bar{position:sticky;top:0;z-index:99;background:rgba(255,255,255,.95);backdrop-filter:blur(10px);border-bottom:1px solid #e2e8f0;padding:10px 16px;display:flex;gap:10px;align-items:center}.btn-print{background:#1a3a6b;color:#fff;border:none;border-radius:50px;padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer}@media print{.nav-bar{display:none}body{print-color-adjust:exact;-webkit-print-color-adjust:exact}.eq-block{page-break-inside:avoid}}';
   var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CIMA Informe</title><style>'+filtCSS+'</style></head><body>'+
     '<div class="nav-bar"><button class="btn-print" onclick="window.print()">🖨 Imprimir</button></div>'+
     '<div class="hd"><div style="font-size:18px;font-weight:700;">CIMA — Informe por Equipo</div><div style="font-size:11px;opacity:.8;margin-top:2px;">'+fD(desde)+' al '+fD(hasta)+'</div></div>'+
@@ -6611,8 +6624,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.2.67";
-var APP_BUILD="05/06/26 14:00";
+var APP_DISPLAY_VERSION="5.2.68";
+var APP_BUILD="05/06/26 15:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
