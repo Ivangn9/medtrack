@@ -1,6 +1,32 @@
 importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js');
 
+// ── Auto-update: keep this in sync with APP_VERSION in index.html ────────────
+const APP_VERSION = '4.27';
+const CACHE_NAME  = 'cima-' + APP_VERSION;
+
+// Activate the new SW immediately — don't wait for tabs to close
+self.addEventListener('install', event => {
+  self.skipWaiting();
+});
+
+// On activation: clear ALL old caches and claim open pages right away
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    Promise.all([
+      caches.keys().then(keys =>
+        Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
+      ),
+      self.clients.claim().then(async () => {
+        // Tell every open tab to reload so it picks up the new HTML
+        const all = await self.clients.matchAll({ type: 'window' });
+        all.forEach(c => c.postMessage({ type: 'SW_UPDATED', version: APP_VERSION }));
+      })
+    ])
+  );
+});
+
+// ── Firebase Cloud Messaging ──────────────────────────────────────────────────
 firebase.initializeApp({
   apiKey: "AIzaSyDpzlN1gaJUH6XGAWv5GRW_suk7zcqKeJE",
   authDomain: "medtrack-cima-3e9c1.firebaseapp.com",
