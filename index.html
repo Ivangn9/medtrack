@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.05.006 -->
+<!-- v2026.06.05.007 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.05.006">
+<meta name="app-version" content="v2026.06.05.007">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -4398,49 +4398,33 @@ function exportInventarioPDF(){
         ?[ubicBase,consStr||'Sin consultorio'].filter(Boolean).join(' · ')
         :[ubicBase,consStr].filter(Boolean).join(' · ')||'—';
       var upsInfo=upsMap[e.id]?('<span style="background:#fef3c7;color:#92400e;border:1px solid #fde68a;border-radius:4px;padding:2px 7px;font-size:8pt;font-weight:700;">⚡ '+esc(upsMap[e.id])+'</span>'):'—';
-      return '<tr>'+
+      var eqRow='<tr style="border-bottom:1px solid #e8edf4;">'+
         '<td style="font-weight:600;">'+esc(e.nombre)+'</td>'+
         '<td style="color:#64748b;font-size:9pt;">'+esc(ubicInfo)+'</td>'+
         '<td style="text-align:center;"><span style="background:'+estadoBg+';color:'+estadoColor+';border:1px solid '+estadoColor+'33;border-radius:20px;padding:3px 10px;font-size:8.5pt;font-weight:700;white-space:nowrap;">'+estadoLabel+'</span></td>'+
         '<td>'+upsInfo+'</td>'+
       '</tr>';
-    }).join('');
-
-    var extraBlock='';
-
-    // Transductores sub-section para ecógrafos
-    if(catId==='ECO'&&transductores.length){
-      var trsdRows='';
-      list.forEach(function(eco){
-        var tIds=eco.transductorIds||[];
+      // Filas de transductores anidadas (solo ECO)
+      var trsdSubRows='';
+      if(catId==='ECO'){
+        var tIds=e.transductorIds||[];
         var trsds=transductores.filter(function(t){return tIds.indexOf(t.id)!==-1;});
         trsds.forEach(function(t){
           var te=(t.estado||'').toLowerCase();
-          var tColor=te==='operativo'?'#15803d':'#dc2626';
-          var tBg=te==='operativo'?'#f0fdf4':'#fef2f2';
+          var tColor=te==='operativo'?'#15803d':'#d97706';
+          var tBg=te==='operativo'?'#f0fdf4':'#fffbeb';
           var tLabel=te==='operativo'?'Operativo':'No Operativo';
-          trsdRows+='<tr>'+
-            '<td style="color:#64748b;font-size:8.5pt;padding-left:20px;">↳ '+esc(eco.nombre)+'</td>'+
-            '<td style="font-weight:600;">'+esc(t.nombre)+'</td>'+
-            '<td style="color:#64748b;font-size:9pt;">'+esc(t.tipo||'—')+'</td>'+
-            '<td style="color:#64748b;font-size:9pt;">'+(t.consultorio?'Cons. '+esc(t.consultorio):'—')+'</td>'+
+          trsdSubRows+='<tr style="background:#f8f9ff;">'+
+            '<td style="padding-left:28px;font-size:8.5pt;color:#4f46e5;border-left:3px solid #ddd6fe;">↳ <strong>'+esc(t.nombre)+'</strong> <span style="color:#94a3b8;font-weight:400;">· '+esc(t.tipo||'—')+'</span></td>'+
+            '<td style="font-size:8.5pt;color:#64748b;">'+(t.consultorio?'Cons. '+esc(t.consultorio):'—')+'</td>'+
             '<td style="text-align:center;"><span style="background:'+tBg+';color:'+tColor+';border:1px solid '+tColor+'33;border-radius:20px;padding:2px 8px;font-size:8pt;font-weight:700;">'+tLabel+'</span></td>'+
+            '<td>—</td>'+
           '</tr>';
         });
-      });
-      if(trsdRows){
-        extraBlock='<div style="margin-top:8px;border-left:3px solid #ddd6fe;">'+
-          '<div style="font-size:9pt;font-weight:700;color:#6d28d9;background:#f5f3ff;padding:5px 12px;border-bottom:1px solid #ddd6fe;">📡 Transductores ('+transductores.length+')</div>'+
-          '<table class="sum"><thead><tr><th>Ecógrafo</th><th>Transductor</th><th>Tipo</th><th>Consultorio</th><th style="text-align:center;">Estado</th></tr></thead><tbody>'+trsdRows+'</tbody></table>'+
-        '</div>';
       }
-    }
-
-    // Antenas RF sub-section para equipos RM
-    if(catId==='RM'&&antenas.length){
-      var antRows='';
-      list.forEach(function(rm){
-        var aIds=rm.antenaIds||[];
+      // Filas de antenas anidadas (solo RM)
+      if(catId==='RM'){
+        var aIds=e.antenaIds||[];
         var ants=antenas.filter(function(a){return aIds.indexOf(a.id)!==-1;});
         ants.forEach(function(a){
           var ae=a.estado||'operativa';
@@ -4448,21 +4432,18 @@ function exportInventarioPDF(){
           var aBg=ae==='fuera_servicio'||ae==='rota'?'#fef2f2':ae==='con_fallas'?'#fffbeb':'#f0fdf4';
           var aLabel=ae==='fuera_servicio'?'Fuera de servicio':ae==='rota'?'Rota':ae==='con_fallas'?'Con fallas':'Operativa';
           var rotAct=(a.roturas||[]).filter(function(r){return r.estado!=='reparado';}).length;
-          antRows+='<tr>'+
-            '<td style="color:#64748b;font-size:8.5pt;padding-left:20px;">↳ '+esc(rm.nombre)+'</td>'+
-            '<td style="font-weight:600;">'+esc(a.nombre)+'</td>'+
+          trsdSubRows+='<tr style="background:#eff6ff;">'+
+            '<td style="padding-left:28px;font-size:8.5pt;color:#1d4ed8;border-left:3px solid #bfdbfe;">↳ 📡 <strong>'+esc(a.nombre)+'</strong></td>'+
+            '<td style="font-size:8.5pt;color:#64748b;">Antena RF</td>'+
             '<td style="text-align:center;"><span style="background:'+aBg+';color:'+aColor+';border:1px solid '+aColor+'33;border-radius:20px;padding:2px 8px;font-size:8pt;font-weight:700;">'+aLabel+'</span></td>'+
-            '<td style="text-align:center;color:'+(rotAct>0?'#dc2626':'#94a3b8')+';font-weight:'+(rotAct>0?'700':'400')+';font-size:9pt;">'+(rotAct>0?rotAct+' activa'+(rotAct!==1?'s':''):'—')+'</td>'+
+            '<td style="text-align:center;font-size:8.5pt;color:'+(rotAct>0?'#dc2626':'#94a3b8')+';font-weight:'+(rotAct>0?'700':'400')+'">'+(rotAct>0?rotAct+' rotura'+(rotAct!==1?'s':''):'—')+'</td>'+
           '</tr>';
         });
-      });
-      if(antRows){
-        extraBlock='<div style="margin-top:8px;border-left:3px solid #bfdbfe;">'+
-          '<div style="font-size:9pt;font-weight:700;color:#1d4ed8;background:#eff6ff;padding:5px 12px;border-bottom:1px solid #bfdbfe;">📡 Antenas RF ('+antenas.length+')</div>'+
-          '<table class="sum"><thead><tr><th>Equipo RM</th><th>Antena</th><th style="text-align:center;">Estado</th><th style="text-align:center;">Roturas activas</th></tr></thead><tbody>'+antRows+'</tbody></table>'+
-        '</div>';
       }
-    }
+      return eqRow+trsdSubRows;
+    }).join('');
+
+    var extraBlock='';
 
     var _titleSvg=catSvgIcon(catId,42)||'';
     sections+='<div class="eq-block" style="margin-bottom:18px;page-break-inside:avoid;">'+
@@ -6625,8 +6606,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.2.69";
-var APP_BUILD="05/06/26 16:00";
+var APP_DISPLAY_VERSION="5.2.70";
+var APP_BUILD="05/06/26 17:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
