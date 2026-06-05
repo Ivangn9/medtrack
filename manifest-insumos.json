@@ -2,7 +2,7 @@
   "name": "Gestión de Insumos CIMA",
   "short_name": "Insumos CIMA",
   "description": "Sistema de gestión de insumos médicos - CIMA",
-  "start_url": "index.html",
+  "start_url": "stock-insumos.html",
   "scope": ".",
   "display": "standalone",
   "orientation": "portrait-primary",
