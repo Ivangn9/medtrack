@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.07.003 -->
+<!-- v2026.06.07.004 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.07.003">
+<meta name="app-version" content="v2026.06.07.004">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -669,6 +669,28 @@ body.dark .sb-card{background:rgba(255,255,255,.07);border-color:rgba(255,255,25
     </filter>
   </defs>
 </svg>
+<!-- SPLASH SCREEN -->
+<div id="splash-screen" style="position:fixed;inset:0;z-index:20000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;pointer-events:none;
+  background:linear-gradient(160deg,#d0d8ec 0%,#ccd8e8 35%,#c8dcea 65%,#ccd8e8 100%);">
+  <!-- Same background blobs as body -->
+  <div style="position:absolute;inset:0;
+    background:
+      radial-gradient(ellipse 80% 60% at 15% 20%,rgba(140,185,240,.55) 0%,transparent 60%),
+      radial-gradient(ellipse 60% 70% at 85% 10%,rgba(130,190,230,.45) 0%,transparent 55%),
+      radial-gradient(ellipse 50% 60% at 90% 70%,rgba(160,220,200,.40) 0%,transparent 55%);
+    pointer-events:none;">
+  </div>
+  <div id="splash-content" style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:18px;animation:splashIn .7s cubic-bezier(.34,1.56,.64,1) both;">
+    <img src="logo.png" alt="CIMA" style="height:110px;width:auto;object-fit:contain;filter:drop-shadow(0 8px 32px rgba(0,80,180,.18));">
+    <div style="font-size:.68rem;color:rgba(30,60,120,.55);font-weight:600;letter-spacing:2.5px;text-transform:uppercase;">Investigaciones Avanzadas</div>
+  </div>
+</div>
+<style>
+@keyframes splashIn{from{opacity:0;transform:scale(.82)}to{opacity:1;transform:scale(1)}}
+@keyframes splashOut{from{opacity:1;transform:scale(1)}to{opacity:0;transform:scale(1.06)}}
+#splash-screen.out{animation:splashOut .45s cubic-bezier(.4,0,.6,1) forwards;}
+</style>
+
 <!-- FIREBASE SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -6688,8 +6710,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.2.73";
-var APP_BUILD="07/06/26 14:00";
+var APP_DISPLAY_VERSION="5.2.74";
+var APP_BUILD="07/06/26 16:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
@@ -6989,6 +7011,20 @@ function init(){
     setInterval(checkForUpdates,60*1000);
   }
 }
+// Splash screen — once per session
+(function(){
+  var sp=document.getElementById("splash-screen");
+  if(!sp)return;
+  var shown=false;
+  try{shown=!!sessionStorage.getItem("mt_splashShown");}catch(e){}
+  if(shown){sp.style.display="none";return;}
+  try{sessionStorage.setItem("mt_splashShown","1");}catch(e){}
+  setTimeout(function(){
+    sp.classList.add("out");
+    setTimeout(function(){sp.style.display="none";},460);
+  },1200);
+})();
+
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
 function sbGlassDonut(ok,fuera,total){
   var s=148,r=50,cx=74,cy=74,sw=14,circ=2*Math.PI*r;
