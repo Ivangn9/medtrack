@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.05.007 -->
+<!-- v2026.06.07.001 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.05.007">
+<meta name="app-version" content="v2026.06.07.001">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -429,6 +429,58 @@ textarea.inp{resize:vertical;}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 .pulse{animation:pulse 2s infinite;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+
+/* ── ANIMATION ENHANCEMENTS ── */
+/* Settings panel — slide from right on open */
+.settings-panel{animation:settingsPanelIn .42s var(--spring);}
+@keyframes settingsPanelIn{from{opacity:.6;transform:translateX(32px)}to{opacity:1;transform:translateX(0)}}
+/* Settings items — cascade in from right */
+.settings-item{animation:settingsItemIn .38s var(--spring) both;}
+.settings-item:nth-child(1){animation-delay:.03s}
+.settings-item:nth-child(2){animation-delay:.07s}
+.settings-item:nth-child(3){animation-delay:.11s}
+.settings-item:nth-child(4){animation-delay:.15s}
+.settings-item:nth-child(5){animation-delay:.19s}
+.settings-item:nth-child(n+6){animation-delay:.23s}
+@keyframes settingsItemIn{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:translateX(0)}}
+/* Dashboard cards — stagger entrance */
+.gc.tap{animation:cardIn .46s var(--spring) both;}
+.gc.tap:nth-child(1){animation-delay:.04s}
+.gc.tap:nth-child(2){animation-delay:.09s}
+.gc.tap:nth-child(3){animation-delay:.14s}
+.gc.tap:nth-child(4){animation-delay:.18s}
+.gc.tap:nth-child(5){animation-delay:.22s}
+.gc.tap:nth-child(6){animation-delay:.26s}
+.gc.tap:nth-child(n+7){animation-delay:.30s}
+@keyframes cardIn{from{opacity:0;transform:translateY(20px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+/* Floating sidebar submenus — pop in */
+#sb-equipos-menu,#sb-ajustes-menu{animation:floatMenuIn .26s var(--spring);}
+@keyframes floatMenuIn{from{opacity:0;transform:scale(.88) translateX(-8px)}to{opacity:1;transform:scale(1) translateX(0)}}
+/* Sidebar sub-items stagger */
+#sb-equipos-menu .sb-sub-btn,#sb-ajustes-menu .sb-sub-btn{animation:sbSubIn .28s var(--spring) both;}
+#sb-equipos-menu .sb-sub-btn:nth-child(1),#sb-ajustes-menu .sb-sub-btn:nth-child(1){animation-delay:.04s}
+#sb-equipos-menu .sb-sub-btn:nth-child(2),#sb-ajustes-menu .sb-sub-btn:nth-child(2){animation-delay:.09s}
+#sb-equipos-menu .sb-sub-btn:nth-child(3),#sb-ajustes-menu .sb-sub-btn:nth-child(3){animation-delay:.13s}
+#sb-equipos-menu .sb-sub-btn:nth-child(n+4),#sb-ajustes-menu .sb-sub-btn:nth-child(n+4){animation-delay:.17s}
+@keyframes sbSubIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}
+/* Sidebar nav button — active feedback */
+.sb-nav-btn:active{transform:scale(.96);}
+/* Input focus glow */
+.ibox:focus-within{box-shadow:0 0 0 3px rgba(0,113,227,.15),0 2px 8px rgba(0,0,0,.06);border-color:rgba(0,113,227,.35)!important;}
+/* Pill entrance micro-animation */
+.pill{animation:pillPop .22s var(--spring) both;}
+@keyframes pillPop{from{opacity:0;transform:scale(.75)}to{opacity:1;transform:scale(1)}}
+/* Hover effects — pointer device (iPad trackpad / desktop mouse) */
+@media(hover:hover){
+  .gc.tap:hover{transform:translateY(-2px) scale(1.012);box-shadow:0 0 0 1px rgba(180,200,255,.38),0 6px 20px rgba(140,160,220,.22),0 20px 48px rgba(140,160,220,.16),0 32px 64px rgba(0,0,0,.08),inset 0 2.5px 0 rgba(255,255,255,1.0),inset 0 0 0 1px rgba(255,255,255,.62);}
+  .li-eq:hover{background:rgba(255,255,255,.74)!important;}
+  .chip:hover{transform:scale(1.06) translateY(-1px);box-shadow:0 5px 16px rgba(0,0,0,.13);}
+  .sb-nav-btn:hover .sb-icon svg{transform:scale(1.12);}
+  .sb-nav-btn .sb-icon svg{transition:transform .2s var(--spring);}
+  .btn-primary:hover{filter:brightness(1.07);}
+  .btn-grad:hover{filter:brightness(1.06);}
+}
+
 .hidden{display:none!important;}
 .tap{cursor:pointer;}
 
@@ -6606,8 +6658,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.2.70";
-var APP_BUILD="05/06/26 17:00";
+var APP_DISPLAY_VERSION="5.2.71";
+var APP_BUILD="07/06/26 10:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
