@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.07.002 -->
+<!-- v2026.06.07.003 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.07.002">
+<meta name="app-version" content="v2026.06.07.003">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -676,7 +676,7 @@ body.dark .sb-card{background:rgba(255,255,255,.07);border-color:rgba(255,255,25
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 
 <!-- LOGIN SCREEN -->
-<div id="login-screen" style="position:fixed;inset:0;z-index:10000;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;gap:0;">
+<div id="login-screen" style="position:fixed;inset:0;z-index:10000;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;padding:24px;gap:0;">
   <div style="width:100%;max-width:400px;">
     <!-- Logo / header -->
     <div style="text-align:center;margin-bottom:32px;">
@@ -6688,8 +6688,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.2.72";
-var APP_BUILD="07/06/26 12:00";
+var APP_DISPLAY_VERSION="5.2.73";
+var APP_BUILD="07/06/26 14:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
@@ -6869,8 +6869,16 @@ function init(){
   checkMonthlyReminder();
   setInterval(function(){var el=document.getElementById("logo-time");if(el)el.textContent=new Date().toLocaleString("es-AR",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"});renderHeader();},6e4);
 
+  // Render immediately with cached data — app appears instant, no login flash for active sessions
+  try{var _cs=localStorage.getItem("mt_v4");if(_cs){var _cp=JSON.parse(_cs);if(Array.isArray(_cp)&&_cp.length>0)eqs=_cp;}}catch(e){}
+  try{var _ca=localStorage.getItem("mt_antenas");if(_ca){var _cpa=JSON.parse(_ca);if(Array.isArray(_cpa))antenas=_cpa;}}catch(e){}
+  try{var _cai=localStorage.getItem("mt_aires");if(_cai){var _cpai=JSON.parse(_cai);if(Array.isArray(_cpai))aires=_cpai;}}catch(e){}
+  try{var _ctr=localStorage.getItem("mt_transductores");if(_ctr){var _cptr=JSON.parse(_ctr);if(Array.isArray(_cptr))transductores=_cptr;}}catch(e){}
+  render();
+
   if(window._fbAuth){
-    showLoginScreen();
+    // Explicit LOCAL persistence helps session survive iOS low-memory clearance
+    try{window._fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);}catch(e){}
     window._fbAuth.onAuthStateChanged(function(user){
       window._fbUser=user;
       if(!user){showLoginScreen();return;}
