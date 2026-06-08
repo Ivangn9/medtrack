@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.08.006 -->
+<!-- v2026.06.08.007 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.08.006">
+<meta name="app-version" content="v2026.06.08.007">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -728,6 +728,11 @@ body.dark .sb-card{background:rgba(255,255,255,.06);border-color:rgba(255,255,25
 .sb-lbl{font-size:.58rem;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);font-weight:600;margin-bottom:6px;}
 .sb-val{font-size:1.5rem;font-weight:800;line-height:1;}
 </style>
+<!-- Animation libraries -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+<link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 </head>
 <body>
 <!-- LIQUID GLASS SVG FILTERS -->
@@ -6817,8 +6822,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.3.1";
-var APP_BUILD="08/06/26 15:00";
+var APP_DISPLAY_VERSION="5.3.2";
+var APP_BUILD="08/06/26 16:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
@@ -7158,6 +7163,7 @@ function init(){
 })();
 
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
+if(typeof AOS!=="undefined")AOS.init({duration:420,easing:"ease-out-cubic",once:true,offset:40});
 function sbGlassDonut(ok,fuera,total){
   var s=148,r=50,cx=74,cy=74,sw=14,circ=2*Math.PI*r;
   var t=total||1;
