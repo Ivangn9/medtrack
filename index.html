@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.08.003 -->
+<!-- v2026.06.08.004 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.08.003">
+<meta name="app-version" content="v2026.06.08.004">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -6820,8 +6820,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.2.8";
-var APP_BUILD="08/06/26 12:00";
+var APP_DISPLAY_VERSION="5.2.9";
+var APP_BUILD="08/06/26 13:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
@@ -7007,6 +7007,31 @@ function init(){
   try{var _cai=localStorage.getItem("mt_aires");if(_cai){var _cpai=JSON.parse(_cai);if(Array.isArray(_cpai))aires=_cpai;}}catch(e){}
   try{var _ctr=localStorage.getItem("mt_transductores");if(_ctr){var _cptr=JSON.parse(_ctr);if(Array.isArray(_cptr))transductores=_cptr;}}catch(e){}
   render();
+
+  // ── DEMO MODE ──
+  var DEMO_MODE=(new URLSearchParams(window.location.search)).get("demo")==="true";
+  if(DEMO_MODE){
+    eqs=[
+      {id:"DEMO-01",cat:"RM",nombre:"MRI Siemens Magnetom Aera",ubicacion:"Sala RM - Subsuelo",instalacion:"2020-03-15",serie:"SN-20481A",tecnico:"Ing. Martínez",contrato:"Siemens",marca:"Siemens",estado:"operativo",frecuencia:"semestral",ultimoMant:"2025-12-10",proximoMant:"2026-06-10",notas:"Helium level 85%. Último service completo sin observaciones.",garantia:false,garantiaHasta:"",tieneServicio:true,partes:[{id:"P1",nombre:"Chiller CW300",estado:"operativo",marca:"Siemens",nroSerie:"CW-4821",notas:"",precio:"",fechaRotura:"",fechaArreglo:"",archivos:[]}],historialMant:[{id:"HM-1",fecha:"2025-12-10",tipo:"mantenimiento",tecnico:"Ing. Martínez",notas:"PM semestral. Verificación helio y gradientes.",registradoEn:"2025-12-10"}]},
+      {id:"DEMO-02",cat:"TC",nombre:"TC Siemens Somatom Go.Up",ubicacion:"Sala TC - PB",instalacion:"2019-06-01",serie:"TC-98210",tecnico:"Ing. García",contrato:"Siemens",marca:"Siemens",estado:"operativo",frecuencia:"trimestral",ultimoMant:"2026-03-05",proximoMant:"2026-06-05",notas:"64 cortes. Sin observaciones.",garantia:false,garantiaHasta:"",tieneServicio:true,partes:[],historialMant:[{id:"HM-2",fecha:"2026-03-05",tipo:"mantenimiento",tecnico:"Ing. García",notas:"Verificación kV, calibración detectores.",registradoEn:"2026-03-05"}]},
+      {id:"DEMO-03",cat:"ECO",nombre:"Ecógrafo GE Logiq E10",ubicacion:"Consultorio 3",instalacion:"2022-08-10",serie:"EC-77421",tecnico:"Ing. López",contrato:"GE Healthcare",marca:"GE",estado:"operativo",frecuencia:"semestral",ultimoMant:"2025-11-20",proximoMant:"2026-05-20",notas:"4 transductores en uso. Calibración correcta.",garantia:false,garantiaHasta:"",tieneServicio:true,partes:[],historialMant:[]},
+      {id:"DEMO-04",cat:"RX",nombre:"RX Carestream DRX-Evolution",ubicacion:"Sala RX 1 - PB",instalacion:"2021-02-28",serie:"RX-34812",tecnico:"Ing. Pérez",contrato:"Carestream",marca:"Carestream",estado:"operativo",frecuencia:"anual",ultimoMant:"2025-09-14",proximoMant:"2026-09-14",notas:"Control de dosis OK.",garantia:false,garantiaHasta:"",tieneServicio:false,partes:[],historialMant:[]},
+      {id:"DEMO-05",cat:"ECO",nombre:"Ecógrafo Mindray Resona 7",ubicacion:"Consultorio 8",instalacion:"2023-01-15",serie:"EC-88120",tecnico:"Ing. López",contrato:"Mindray",marca:"Mindray",estado:"en_servicio",frecuencia:"semestral",ultimoMant:"2026-01-10",proximoMant:"2026-07-10",notas:"En reparación display.",garantia:true,garantiaHasta:"2026-12-31",tieneServicio:true,partes:[{id:"P2",nombre:"Display 24\"",estado:"roto",marca:"Mindray",nroSerie:"",notas:"Pantalla con rayas horizontales",precio:"",fechaRotura:"2026-05-20",fechaArreglo:"",archivos:[]}],historialMant:[]},
+      {id:"DEMO-06",cat:"UPS",nombre:"UPS APC Galaxy 5500 - 80kVA",ubicacion:"UPS Sala de Servidores",instalacion:"2020-11-01",serie:"UPS-11290",tecnico:"Ing. Ramos",contrato:"APC",marca:"APC",estado:"operativo",frecuencia:"semestral",ultimoMant:"2026-02-28",proximoMant:"2026-08-28",notas:"Baterías reemplazadas en 2024.",garantia:false,garantiaHasta:"",tieneServicio:true,partes:[],historialMant:[]}
+    ];
+    antenas=[];aires=[];transductores=[];
+    window._fbUser={displayName:"Demo CIMA",email:"demo@cima.com",photoURL:null};
+    hideLoginScreen();
+    var ui=document.getElementById("user-info");if(ui)ui.textContent="Demo CIMA";
+    // Demo badge
+    var badge=document.createElement("div");
+    badge.id="demo-badge";
+    badge.textContent="MODO DEMO";
+    badge.style.cssText="position:fixed;top:calc(env(safe-area-inset-top,0px)+8px);left:50%;transform:translateX(-50%);z-index:9000;background:rgba(255,149,0,.92);color:#fff;font-size:.65rem;font-weight:800;letter-spacing:.08em;padding:4px 12px;border-radius:20px;pointer-events:none;box-shadow:0 2px 10px rgba(255,149,0,.35);backdrop-filter:blur(8px);";
+    document.body.appendChild(badge);
+    render();
+    return;
+  }
 
   if(window._fbAuth){
     // Explicit LOCAL persistence helps session survive iOS low-memory clearance
