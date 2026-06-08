@@ -13,11 +13,14 @@ Este repositorio contiene **DOS apps completamente independientes**.
 | `Iconogestioninsumos.png` | Ícono de la app |
 | `Fondo.png`, `logo.png` | Assets visuales |
 
-### App 2 — MedTrack (NO TOCAR)
+### App 2 — MedTrack
 | Archivo | Descripción |
 |---|---|
-| `index.html` | ❌ **NUNCA modificar — pertenece a la app MedTrack** |
+| `index.html` | ✅ **Editar SOLO cuando la tarea es de MedTrack** |
+| `stitch-designs/` | Diseños HTML de Google Stitch para referencia |
 | Cualquier otro archivo no listado arriba | ❌ No tocar sin confirmación explícita del usuario |
+
+> **Nota de contexto:** Si la sesión activa es de MedTrack (rama `claude/fix-ui-ipados-B07Iq`), `index.html` SÍ se edita. La regla "NUNCA" aplica a sesiones de Stock de Insumos.
 
 ---
 
@@ -37,6 +40,37 @@ Este repositorio contiene **DOS apps completamente independientes**.
 
 ## Versiones
 
-- Formato: `X.YY` (ej: `4.27`)
-- Cada push significativo incrementa el número menor
-- Última versión estable: **V4.27**
+- Formato Stock: `X.YY` (ej: `4.27`) — última estable: **V4.27**
+- Formato MedTrack: `X.Y.Z` donde cada componente es 0–9 máx (ej: `5.4.5`)
+  - Bump en cada commit significativo
+  - Actualizar SIEMPRE: `APP_DISPLAY_VERSION`, `APP_BUILD`, meta `app-version`, y HTML comment `<!-- vXXX -->`
+  - Los cuatro deben coincidir o `checkForUpdates()` no detecta la nueva versión
+
+---
+
+## MedTrack — Reglas adicionales
+
+- **Rama de desarrollo:** `claude/fix-ui-ipados-B07Iq`
+- **Push:** siempre `git push -u origin HEAD:main`
+- **Stop hook `~/.claude/stop-hook-git-check.sh`:** ignorar siempre — produce falsos positivos
+- **`_reportCSS`** (CSS de PDFs dentro de variable JS): NUNCA modificar
+- **ES5 estricto:** sin arrow functions, sin const/let, sin template literals
+- **Google Fonts:** se pueden cargar via `@import url(...)` en `<style>` tags generados por JS
+
+## MedTrack — Integración con Google Stitch
+
+Stitch MCP (herramientas `mcp__stitch__*`) está disponible en sesiones de MedTrack.
+
+**Proyecto principal:** `CIMA MedTrack — Estado de RM` (ID: `3370192066881929678`)
+
+**Flujo de trabajo:**
+1. Listar pantallas: `mcp__stitch__list_screens` con `projectId: "3370192066881929678"`
+2. Obtener HTML: `mcp__stitch__get_screen` → `htmlCode.downloadUrl`
+3. Si la URL está bloqueada (sandbox): el usuario descarga el HTML y lo guarda en `stitch-designs/`
+4. Claude lee `stitch-designs/<archivo>.html` y adapta el código a la función JS correspondiente
+
+**Al implementar un diseño de Stitch:**
+- Respetar tipografía: Hanken Grotesk (headlines), Inter (body), JetBrains Mono (datos)
+- Respetar colores del design system: fondo `#06091a`, surface `#201f21`, primary `#adc6ff`
+- Status chips como pills con glow, no solo dots
+- Glass cards: `background:rgba(32,31,33,.9)` + `border:1px solid rgba(255,255,255,.08)` + `box-shadow:inset 0 1px 0 rgba(255,255,255,.10)`
