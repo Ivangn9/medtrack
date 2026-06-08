@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.08.008 -->
+<!-- v2026.06.08.009 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.08.008">
+<meta name="app-version" content="v2026.06.08.009">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -500,6 +500,27 @@ textarea.inp{resize:vertical;}
   .btn-primary:hover{filter:brightness(1.08);}
   .btn-grad:hover{filter:brightness(1.07);}
   .btn-secondary:hover{background:rgba(255,255,255,.72);transform:translateY(-1px);}
+}
+
+/* ── ACCESIBILIDAD: Reducir transparencia (iOS "Reduce Transparency") ── */
+@media(prefers-reduced-transparency:reduce){
+  .gc{
+    background:rgba(245,247,252,.94)!important;
+    -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
+    box-shadow:0 1px 4px rgba(0,0,0,.08),0 4px 16px rgba(0,0,0,.06)!important;}
+  .gc::before,.gc::after{display:none!important;}
+  #header-inner{
+    background:rgba(242,245,252,.96)!important;
+    -webkit-backdrop-filter:none!important;backdrop-filter:none!important;}
+  #header-inner::before,#header-inner::after{display:none!important;}
+  #sidebar{
+    background:rgba(248,250,255,.97)!important;
+    -webkit-backdrop-filter:none!important;backdrop-filter:none!important;}
+  #sidebar::before{display:none!important;}
+  .ibox{
+    background:rgba(240,243,250,.96)!important;
+    -webkit-backdrop-filter:none!important;backdrop-filter:none!important;}
+  body::before,body::after{opacity:.30!important;filter:none!important;}
 }
 
 /* ── MOBILE SIDEBAR DRAWER ── */
@@ -6823,8 +6844,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.3.3";
-var APP_BUILD="08/06/26 17:00";
+var APP_DISPLAY_VERSION="5.3.4";
+var APP_BUILD="08/06/26 18:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
