@@ -3621,77 +3621,147 @@ function rmCurrentEq(){
 function rEstadoRM(){
   var rms=eqs.filter(function(e){return e.cat==='RM'&&!e.baja;});
   if(!rms.length){
-    return '<div class="gc" style="text-align:center;padding:40px 20px;"><div style="font-size:2.4rem;margin-bottom:8px;">🧲</div><div style="font-weight:700;font-size:1.05rem;margin-bottom:4px;">Sin resonadores</div><div style="color:var(--text3);font-size:.82rem;">No hay equipos de RM cargados en el sistema.</div></div>';
+    return '<div style="background:linear-gradient(160deg,#060c1c,#0b1425 60%,#07101e);border-radius:var(--r-lg);padding:48px 20px;text-align:center;">'+
+      '<div style="font-size:2.8rem;margin-bottom:10px;filter:drop-shadow(0 0 16px rgba(100,160,255,.4));">🧲</div>'+
+      '<div style="font-weight:700;font-size:1.05rem;color:rgba(220,235,255,.9);margin-bottom:5px;">Sin resonadores</div>'+
+      '<div style="color:rgba(160,185,230,.55);font-size:.82rem;">No hay equipos de RM cargados en el sistema.</div>'+
+    '</div>';
   }
   var eq=rmCurrentEq();
+  var rf=_refrigData(eq);
   var h='';
-  // ── Selector de resonador ──
-  h+='<div class="sec" style="margin-bottom:8px;">Estado de RM</div>';
-  h+='<div style="display:flex;gap:7px;overflow-x:auto;padding-bottom:8px;margin-bottom:14px;scrollbar-width:none;">';
+  // ── Wrapper dark dashboard ──
+  h+='<div style="background:linear-gradient(160deg,#060c1c,#0b1425 55%,#07101e);border-radius:var(--r-lg);padding:16px;margin:-2px;">';
+
+  // ── Header: título + selector ──
+  h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">';
+  h+='<div style="font-size:.68rem;font-weight:700;color:rgba(140,170,220,.60);letter-spacing:.12em;text-transform:uppercase;">Monitor · Estado de RM</div>';
+  h+='<div style="font-size:.62rem;color:rgba(100,140,200,.45);font-family:monospace;">'+new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'})+'</div>';
+  h+='</div>';
+
+  // ── Selector chips ──
+  h+='<div style="display:flex;gap:7px;overflow-x:auto;padding-bottom:10px;margin-bottom:14px;scrollbar-width:none;">';
   rms.forEach(function(r){
     var on=r.id===eq.id;
-    // peor nivel del equipo para el color del chip
     var worst='ok';RM_COMPONENTES.forEach(function(c){var n=rmCompEstado(r,c.id).nivel;if(n==='roto')worst='roto';else if(n==='warn'&&worst!=='roto')worst='warn';});
     var col=rmNivelColor(worst);
-    h+='<button onclick="selectRM(\''+r.id+'\')" style="flex-shrink:0;display:flex;align-items:center;gap:7px;padding:8px 14px;border-radius:var(--r-pill);cursor:pointer;font-size:.78rem;font-weight:700;border:1.5px solid '+(on?col:'rgba(120,120,128,.2)')+';background:'+(on?col+'18':'rgba(120,120,128,.06)')+';color:'+(on?col:'var(--text2)')+';'+(on?'box-shadow:0 0 0 2px '+col+'30;':'')+'transition:all .15s;">'+
-      '<span style="width:8px;height:8px;border-radius:50%;background:'+col+';box-shadow:0 0 7px '+col+';flex-shrink:0;"></span>'+esc(r.nombre)+'</button>';
+    h+='<button onclick="selectRM(\''+r.id+'\')" style="flex-shrink:0;display:flex;align-items:center;gap:8px;padding:8px 16px;border-radius:var(--r-pill);cursor:pointer;font-size:.78rem;font-weight:700;font-family:monospace;letter-spacing:.01em;'+
+      'border:1px solid '+(on?col+'88':'rgba(255,255,255,.10)')+';'+
+      'background:'+(on?'rgba('+_hexToRgb(col)+',0.15)':'rgba(255,255,255,.04)')+';'+
+      'color:'+(on?col:'rgba(200,220,255,.6)')+';'+
+      (on?'box-shadow:0 0 0 1px '+col+'44,0 0 18px '+col+'22;':'')+
+      'transition:all .18s;">'+
+      '<span style="width:7px;height:7px;border-radius:50%;background:'+col+';box-shadow:0 0 8px '+col+',0 0 4px '+col+';flex-shrink:0;"></span>'+
+      esc(r.nombre)+
+    '</button>';
   });
   h+='</div>';
-  // ── Escena (3D WebGL o fallback SVG, montada por mountRM3D) ──
-  h+='<div id="rm3d-wrap" style="position:relative;border-radius:var(--r-lg);overflow:hidden;margin-bottom:14px;background:linear-gradient(160deg,#0b1220,#111a2e 60%,#0d1424);border:1px solid rgba(120,140,200,.18);box-shadow:0 10px 30px rgba(0,0,0,.25);">';
-  h+='<div id="rm3d-container" style="width:100%;height:340px;position:relative;"></div>';
-  h+='<div id="rm3d-hint" style="position:absolute;bottom:8px;left:0;right:0;text-align:center;font-size:.6rem;color:rgba(200,215,255,.55);pointer-events:none;letter-spacing:.04em;">Arrastrá para rotar · pellizcá para zoom</div>';
+
+  // ── Ilustración SVG ──
+  h+='<div id="rm3d-wrap" style="position:relative;border-radius:var(--r-lg);overflow:hidden;margin-bottom:16px;border:1px solid rgba(100,140,200,.15);box-shadow:0 8px 32px rgba(0,0,0,.40);">';
+  h+='<div id="rm3d-container" style="width:100%;height:300px;position:relative;"></div>';
   h+='</div>';
-  // ── Panel de estado por grupos ──
-  function compCard(c){
-    var st=rmCompEstado(eq,c.id);var col=rmNivelColor(st.nivel);
-    var extra='';
-    if(c.id==='tanque_helio'){var pc=rmHelioPct(eq);if(pc!==null)extra='<div style="margin-top:6px;height:6px;border-radius:6px;background:rgba(120,120,128,.18);overflow:hidden;"><div style="height:100%;width:'+pc+'%;background:linear-gradient(90deg,'+col+'cc,'+col+');border-radius:6px;"></div></div>';}
-    return '<div onclick="goDetalle(\''+eq.id+'\')" style="cursor:pointer;background:var(--card,#fff);border:1px solid '+col+'33;border-left:3px solid '+col+';border-radius:var(--r-md);padding:10px 12px;transition:transform .12s;" onmousedown="this.style.transform=\'scale(.98)\'" onmouseup="this.style.transform=\'\'">'+
-      '<div style="display:flex;align-items:center;gap:8px;">'+
-        '<span style="width:9px;height:9px;border-radius:50%;background:'+col+';box-shadow:0 0 8px '+col+';flex-shrink:0;"></span>'+
-        '<div style="flex:1;min-width:0;"><div style="font-size:.78rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+esc(c.label)+'</div>'+
-        '<div style="font-size:.64rem;color:'+col+';font-weight:600;">'+esc(st.detalle)+'</div></div>'+
-      '</div>'+extra+'</div>';
+
+  // ── Tres paneles inferiores: Resonador / Gradientes / Sala ──
+  function darkRow(label,col,extra){
+    return '<div style="display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);">'+
+      '<span style="width:8px;height:8px;border-radius:50%;flex-shrink:0;background:'+col+';box-shadow:0 0 8px '+col+',0 0 3px '+col+';" ></span>'+
+      '<div style="flex:1;min-width:0;">'+
+        '<div style="font-size:.76rem;font-weight:600;color:rgba(215,230,255,.88);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+label+'</div>'+
+        (extra?'<div style="font-size:.62rem;color:'+col+';margin-top:1px;">'+extra+'</div>':'')+
+      '</div>'+
+    '</div>';
   }
-  function grupo(titulo,ids){
-    var comps=RM_COMPONENTES.filter(function(c){return ids.indexOf(c.id)!==-1;});
-    var hh='<div class="sec" style="margin:14px 0 8px;font-size:.7rem;">'+titulo+'</div>';
-    hh+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;">';
-    comps.forEach(function(c){hh+=compCard(c);});
-    hh+='</div>';return hh;
+  function darkPanel(icon,titulo,contenido){
+    return '<div style="background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.09);border-top:1px solid rgba(255,255,255,.15);border-radius:14px;padding:12px 14px;flex:1;min-width:0;">'+
+      '<div style="font-size:.65rem;font-weight:700;color:rgba(140,170,220,.60);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;">'+icon+' '+titulo+'</div>'+
+      contenido+
+    '</div>';
   }
-  h+=grupo('🧲 Resonador',['coldhead','camilla','conectores','tanque_helio']);
-  // ── Shimming con control ──
+
+  var pc=rmHelioPct(eq);
+  var stRes=[
+    darkRow('ColdHead',rmNivelColor(rmCompEstado(eq,'coldhead').nivel),rmCompEstado(eq,'coldhead').detalle),
+    darkRow('Camilla',rmNivelColor(rmCompEstado(eq,'camilla').nivel),rmCompEstado(eq,'camilla').detalle),
+    darkRow('Conectores',rmNivelColor(rmCompEstado(eq,'conectores').nivel),rmCompEstado(eq,'conectores').detalle)
+  ].join('');
+  // Helio row con barra
+  var cTk=rmNivelColor(rmCompEstado(eq,'tanque_helio').nivel);
+  stRes+='<div style="display:flex;align-items:center;gap:9px;padding:8px 0;">'+
+    '<span style="width:8px;height:8px;border-radius:50%;flex-shrink:0;background:'+cTk+';box-shadow:0 0 8px '+cTk+';"></span>'+
+    '<div style="flex:1;min-width:0;">'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">'+
+        '<span style="font-size:.76rem;font-weight:600;color:rgba(215,230,255,.88);">Helio Líquido</span>'+
+        '<span style="font-size:.62rem;color:'+cTk+';font-family:monospace;">'+(pc!==null?Math.round(pc)+'%':'—')+'</span>'+
+      '</div>'+
+      (pc!==null?'<div style="height:4px;border-radius:4px;background:rgba(255,255,255,.10);overflow:hidden;"><div style="height:100%;width:'+pc+'%;background:linear-gradient(90deg,'+cTk+'88,'+cTk+');border-radius:4px;"></div></div>':'')+
+    '</div>'+
+  '</div>';
+
+  var stGrad=[
+    darkRow('Placa Gradiente X',rmNivelColor(rmCompEstado(eq,'grad_x').nivel),rmCompEstado(eq,'grad_x').detalle),
+    darkRow('Placa Gradiente Y',rmNivelColor(rmCompEstado(eq,'grad_y').nivel),rmCompEstado(eq,'grad_y').detalle),
+    darkRow('Placa Gradiente Z',rmNivelColor(rmCompEstado(eq,'grad_z').nivel),rmCompEstado(eq,'grad_z').detalle),
+    darkRow('Placa General',rmNivelColor(rmCompEstado(eq,'grad_gen').nivel),rmCompEstado(eq,'grad_gen').detalle)
+  ].join('');
+
+  var stSala=[
+    darkRow('Compresor Helio',rmNivelColor(rmCompEstado(eq,'compresor').nivel),rmCompEstado(eq,'compresor').detalle),
+    darkRow('Chiller',rmNivelColor(rmCompEstado(eq,'chiller').nivel),rmCompEstado(eq,'chiller').detalle)
+  ].join('');
+
+  h+='<div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;">';
+  h+=darkPanel('🧲','Resonador',stRes);
+  h+=darkPanel('🔌','Gradientes',stGrad);
+  h+=darkPanel('🏭','Sala de Máq.',stSala);
+  h+='</div>';
+
+  // ── Shimming control ──
   var stSh=rmCompEstado(eq,'shimming');var colSh=rmNivelColor(stSh.nivel);
-  h+='<div class="sec" style="margin:14px 0 8px;font-size:.7rem;">🌀 Túnel — Shimming</div>';
-  h+='<div style="background:var(--card,#fff);border:1px solid '+colSh+'33;border-left:3px solid '+colSh+';border-radius:var(--r-md);padding:12px;">';
-  h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;"><span style="width:9px;height:9px;border-radius:50%;background:'+colSh+';box-shadow:0 0 8px '+colSh+';"></span><div style="font-size:.82rem;font-weight:700;">Homogeneización del campo</div><div style="margin-left:auto;font-size:.66rem;font-weight:700;color:'+colSh+';">'+esc(stSh.detalle)+'</div></div>';
+  h+='<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-left:2px solid '+colSh+';border-radius:12px;padding:12px 14px;margin-bottom:14px;">';
+  h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">'+
+    '<span style="width:8px;height:8px;border-radius:50%;background:'+colSh+';box-shadow:0 0 8px '+colSh+';flex-shrink:0;"></span>'+
+    '<span style="font-size:.76rem;font-weight:700;color:rgba(215,230,255,.9);">Shimming — Homogeneización del campo</span>'+
+    '<span style="margin-left:auto;font-size:.64rem;font-weight:700;color:'+colSh+';">'+esc(stSh.detalle)+'</span>'+
+  '</div>';
   h+='<div style="display:flex;gap:7px;">';
-  h+='<button onclick="setShimming(\''+eq.id+'\',\'ok\')" style="flex:1;padding:9px;border-radius:var(--r-sm);font-size:.74rem;font-weight:700;cursor:pointer;border:1.5px solid '+(_refrigData(eq).shimming!=='falta'?'#34c759':'rgba(120,120,128,.2)')+';background:'+(_refrigData(eq).shimming!=='falta'?'rgba(52,199,89,.12)':'rgba(120,120,128,.06)')+';color:'+(_refrigData(eq).shimming!=='falta'?'#34c759':'var(--text3)')+';">✅ Homogéneo</button>';
-  h+='<button onclick="setShimming(\''+eq.id+'\',\'falta\')" style="flex:1;padding:9px;border-radius:var(--r-sm);font-size:.74rem;font-weight:700;cursor:pointer;border:1.5px solid '+(_refrigData(eq).shimming==='falta'?'#ff9500':'rgba(120,120,128,.2)')+';background:'+(_refrigData(eq).shimming==='falta'?'rgba(255,149,0,.12)':'rgba(120,120,128,.06)')+';color:'+(_refrigData(eq).shimming==='falta'?'#ff9500':'var(--text3)')+';">⚠️ Falta homogeneización</button>';
+  h+='<button onclick="setShimming(\''+eq.id+'\',\'ok\')" style="flex:1;padding:8px;border-radius:8px;font-size:.73rem;font-weight:700;cursor:pointer;'+
+    'border:1px solid '+(rf.shimming!=='falta'?'#34c759':'rgba(255,255,255,.10)')+';'+
+    'background:'+(rf.shimming!=='falta'?'rgba(52,199,89,.15)':'rgba(255,255,255,.04)')+';'+
+    'color:'+(rf.shimming!=='falta'?'#34c759':'rgba(180,200,240,.5)')+';">✅ Homogéneo</button>';
+  h+='<button onclick="setShimming(\''+eq.id+'\',\'falta\')" style="flex:1;padding:8px;border-radius:8px;font-size:.73rem;font-weight:700;cursor:pointer;'+
+    'border:1px solid '+(rf.shimming==='falta'?'#ff9500':'rgba(255,255,255,.10)')+';'+
+    'background:'+(rf.shimming==='falta'?'rgba(255,149,0,.15)':'rgba(255,255,255,.04)')+';'+
+    'color:'+(rf.shimming==='falta'?'#ff9500':'rgba(180,200,240,.5)')+';">⚠️ Falta homog.</button>';
   h+='</div></div>';
-  h+=grupo('🔌 Gabinete de Gradientes',['grad_x','grad_y','grad_z','grad_gen']);
-  h+=grupo('🏭 Sala de Máquinas',['compresor','chiller']);
-  // ── Antenas vinculadas ──
+
+  // ── Antenas ──
   var ants=antenas.filter(function(a){return(eq.antenaIds||[]).indexOf(a.id)!==-1;});
-  h+='<div class="sec" style="margin:14px 0 8px;font-size:.7rem;">📡 Antenas ('+ants.length+')</div>';
-  if(!ants.length){h+='<div style="color:var(--text3);font-size:.76rem;padding:6px 2px;">Este resonador no tiene antenas vinculadas. <span onclick="goAntenas(\''+eq.id+'\')" style="color:var(--accent);cursor:pointer;font-weight:600;">Gestionar antenas →</span></div>';}
-  else{
-    h+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;">';
+  h+='<div style="font-size:.65rem;font-weight:700;color:rgba(140,170,220,.55);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">📡 Antenas ('+ants.length+')</div>';
+  if(!ants.length){
+    h+='<div style="color:rgba(140,165,210,.45);font-size:.75rem;padding:4px 0;">Sin antenas vinculadas. <span onclick="goAntenas(\''+eq.id+'\')" style="color:#60a5fa;cursor:pointer;font-weight:600;">Gestionar →</span></div>';
+  } else {
+    h+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;">';
     ants.forEach(function(a){
       var rotAct=(a.roturas||[]).filter(function(r){return r.estado!=='reparado';}).length;
       var nivel=a.estado==='fuera_servicio'?'roto':(a.estado==='con_fallas'||rotAct>0)?'warn':'ok';
       var col=rmNivelColor(nivel);
-      h+='<div onclick="goAntenaDetalle(\''+a.id+'\',\''+eq.id+'\')" style="cursor:pointer;background:var(--card,#fff);border:1px solid '+col+'33;border-left:3px solid '+col+';border-radius:var(--r-md);padding:10px 12px;">'+
-        '<div style="display:flex;align-items:center;gap:8px;"><span style="width:9px;height:9px;border-radius:50%;background:'+col+';box-shadow:0 0 8px '+col+';flex-shrink:0;"></span>'+
-        '<div style="flex:1;min-width:0;"><div style="font-size:.76rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+esc(a.nombre)+'</div>'+
-        '<div style="font-size:.63rem;color:'+col+';font-weight:600;">'+(rotAct>0?rotAct+' rotura'+(rotAct>1?'s':'')+' activa'+(rotAct>1?'s':''):'Operativa')+(a.cantidadCanales?' · '+a.cantidadCanales+' canales':'')+'</div></div></div></div>';
+      h+='<div onclick="goAntenaDetalle(\''+a.id+'\',\''+eq.id+'\')" style="cursor:pointer;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.09);border-left:2px solid '+col+';border-radius:10px;padding:9px 11px;transition:background .12s;" onmousedown="this.style.background=\'rgba(255,255,255,.08)\'" onmouseup="this.style.background=\'rgba(255,255,255,.045)\'">'+
+        '<div style="display:flex;align-items:center;gap:7px;">'+
+          '<span style="width:7px;height:7px;border-radius:50%;background:'+col+';box-shadow:0 0 7px '+col+';flex-shrink:0;"></span>'+
+          '<div style="flex:1;min-width:0;">'+
+            '<div style="font-size:.74rem;font-weight:600;color:rgba(215,230,255,.88);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+esc(a.nombre)+'</div>'+
+            '<div style="font-size:.61rem;color:'+col+';margin-top:1px;">'+(rotAct>0?rotAct+' falla'+(rotAct>1?'s':''):'Operativa')+(a.cantidadCanales?' · '+a.cantidadCanales+'ch':'')+'</div>'+
+          '</div>'+
+        '</div>'+
+      '</div>';
     });
     h+='</div>';
   }
+  h+='</div>'; // close dark wrapper
   return h;
 }
+function _hexToRgb(hex){hex=hex.replace('#','');if(hex.length===3)hex=hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];var r=parseInt(hex.substring(0,2),16),g=parseInt(hex.substring(2,4),16),b=parseInt(hex.substring(4,6),16);return r+','+g+','+b;}
 // ── Escena 2D SVG del resonador — ilustración realista con etiquetas flotantes ──
 function rmSceneSVG(eq){
   function col(id){return rmNivelColor(rmCompEstado(eq,id).nivel);}
@@ -6885,8 +6955,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.4.3";
-var APP_BUILD="09/06/26 04:00";
+var APP_DISPLAY_VERSION="5.4.4";
+var APP_BUILD="08/06/26 19:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
