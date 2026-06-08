@@ -17,10 +17,15 @@ para ser implementados en `index.html`.
 Copiar el HTML desde Stitch y pegarlo en el chat de Claude Code.
 Claude lo leerá e implementará en la función correspondiente.
 
-### Opción C — Automático via MCP (cuando las URLs no estén bloqueadas)
-Claude Code tiene acceso al MCP de Stitch y puede obtener el HTML
-directamente usando `mcp__stitch__get_screen`. Decirle:
-"Actualizá el diseño de Estado de RM con la última pantalla de Stitch"
+### Opción C — Leer archivo local (⭐ recomendado)
+Los HTMLs de Stitch están guardados en este directorio. Claude los lee directamente:
+- `estadorm-screen3-20260608.html` → referencia principal (layout stacked panels)
+- `estadorm-screen1-20260608.html` → variante con accordeón
+
+Decirle a Claude: "Actualizá rEstadoRM() con el diseño de stitch-designs/estadorm-screen3-20260608.html"
+
+Para actualizar los archivos con un nuevo diseño de Stitch: usar Opción A o B y
+reemplazar/agregar un nuevo archivo aquí con la fecha en el nombre.
 
 ## Proyecto Stitch principal
 
