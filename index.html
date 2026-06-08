@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.08.017 -->
+<!-- v2026.06.08.018 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.08.017">
+<meta name="app-version" content="v2026.06.08.018">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3692,147 +3692,168 @@ function rEstadoRM(){
   }
   return h;
 }
-// ── Escena 2D SVG del resonador ──
+// ── Escena 2D SVG del resonador — ilustración realista con etiquetas flotantes ──
 function rmSceneSVG(eq){
   function col(id){return rmNivelColor(rmCompEstado(eq,id).nivel);}
-  var cHead=col('coldhead'),cCam=col('camilla'),cCon=col('conectores'),cTank=col('tanque_helio');
+  function det(id){return rmCompEstado(eq,id).detalle;}
+  var cHead=col('coldhead'),dHead=det('coldhead');
+  var cCam=col('camilla'),dCam=det('camilla');
+  var cCon=col('conectores'),dCon=det('conectores');
+  var cTank=col('tanque_helio'),dTank=det('tanque_helio');
   var cGx=col('grad_x'),cGy=col('grad_y'),cGz=col('grad_z'),cGg=col('grad_gen');
-  var cComp=col('compresor'),cChil=col('chiller');
-  var shN=rmCompEstado(eq,'shimming').nivel,cSh=rmNivelColor(shN);
+  var cComp=col('compresor'),dComp=det('compresor');
+  var cChil=col('chiller'),dChil=det('chiller');
+  var shSt=rmCompEstado(eq,'shimming'),cSh=rmNivelColor(shSt.nivel),dSh=shSt.detalle;
+  var rf=_refrigData(eq);
   var pc=rmHelioPct(eq);if(pc===null)pc=85;
-  var liqH=Math.round(126*(pc/100));
-  var liqY=176-liqH; // bottom of tank inner is ~176, top is ~50
-  var rippleY=liqY;
-  var bub1StartY=172,bub2StartY=172;
+  var heStr=Math.round(pc)+'%'+(rf.helioLiqPresion?' · '+rf.helioLiqPresion+' psi':'');
+  var gasStr=rf.helioGaseoso==='presion_baja'?'Gas: Pres.Baja':'Gas: OK';
+  var gArr=[cGx,cGy,cGz,cGg];
+  var cGrad=gArr.indexOf('#ff3b30')>=0?'#ff3b30':gArr.indexOf('#ff9500')>=0?'#ff9500':'#34c759';
+  var nGFallas=gArr.filter(function(c){return c!=='#34c759';}).length;
+  var dGrad=nGFallas===0?'Operativo':nGFallas+' placa'+(nGFallas>1?'s':'')+' c/falla';
   var eqName=eq&&eq.nombre?eq.nombre:'Resonador';
-  var s='<svg viewBox="0 0 760 320" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" style="display:block;">';
-  // ── defs ──
-  s+='<defs>'+
-    '<radialGradient id="rmBodyGrad" cx="45%" cy="40%" r="60%"><stop offset="0%" stop-color="#c0cce0"/><stop offset="100%" stop-color="#78889e"/></radialGradient>'+
-    '<linearGradient id="rmHelGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#5ee0ff"/><stop offset="100%" stop-color="#1888b5"/></linearGradient>'+
-    '<clipPath id="rmTankClip2"><rect x="27" y="53" width="40" height="126" rx="18"/></clipPath>'+
-    '<filter id="rmGlow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>'+
-  '</defs>';
-  // ── background ──
-  s+='<rect x="0" y="0" width="760" height="320" fill="#080e1c"/>';
-  // dot grid
-  var gi,gj;
-  s+='<g fill="rgba(100,140,220,.10)">';
-  for(gi=0;gi<=760;gi+=20){for(gj=0;gj<=320;gj+=20){s+='<circle cx="'+gi+'" cy="'+gj+'" r="0.8"/>';}}
+  var eqMarca=eq&&eq.marca?eq.marca:'';
+  var liqH=Math.round(148*(pc/100));var liqY=235-liqH;
+  var s='<svg viewBox="0 0 640 310" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" style="display:block;">';
+  // ── DEFS ──
+  s+='<defs>';
+  s+='<linearGradient id="rms_bodyF" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ddeaf6"/><stop offset="55%" stop-color="#b8cede"/><stop offset="100%" stop-color="#8fa8be"/></linearGradient>';
+  s+='<linearGradient id="rms_bodyT" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#c8daea"/><stop offset="100%" stop-color="#8098b2"/></linearGradient>';
+  s+='<radialGradient id="rms_bore" cx="50%" cy="42%" r="55%"><stop offset="0%" stop-color="#070d1e"/><stop offset="100%" stop-color="#040810"/></radialGradient>';
+  s+='<radialGradient id="rms_boreHL" cx="45%" cy="30%" r="52%"><stop offset="0%" stop-color="rgba(255,255,255,.22)"/><stop offset="100%" stop-color="rgba(255,255,255,0)"/></radialGradient>';
+  s+='<linearGradient id="rms_table" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#c4d8ee"/><stop offset="100%" stop-color="#8098b0"/></linearGradient>';
+  s+='<linearGradient id="rms_tank" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#72e4ff"/><stop offset="100%" stop-color="#1270a8"/></linearGradient>';
+  s+='<linearGradient id="rms_pedestal" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#1a2a40"/><stop offset="100%" stop-color="#0e1c2e"/></linearGradient>';
+  s+='<clipPath id="rms_tankClip"><rect x="296" y="88" width="30" height="150" rx="14"/></clipPath>';
+  s+='<filter id="rms_glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>';
+  s+='<filter id="rms_glowSm" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="1.8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>';
+  s+='<filter id="rms_shadow"><feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#000" flood-opacity=".45"/></filter>';
+  s+='</defs>';
+  // ── BACKGROUND ──
+  s+='<rect width="640" height="310" fill="#06091a"/>';
+  var gi,gj;s+='<g fill="rgba(80,120,200,.07)">';
+  for(gi=0;gi<=640;gi+=22){for(gj=0;gj<=310;gj+=22){s+='<circle cx="'+gi+'" cy="'+gj+'" r=".85"/>'; }}
   s+='</g>';
-  // ── connection lines (behind everything) ──
-  // He Tank → ColdHead
-  s+='<path d="M 68 80 L 88 80" fill="none" stroke="'+cTank+'" stroke-width="1.5" stroke-dasharray="4 6"><animate attributeName="stroke-dashoffset" from="20" to="0" dur="1.2s" repeatCount="indefinite"/></path>';
-  // ColdHead → Scanner top
-  s+='<path d="M 106 58 L 180 100" fill="none" stroke="'+cHead+'" stroke-width="1.5" stroke-dasharray="4 6"><animate attributeName="stroke-dashoffset" from="20" to="0" dur="1.2s" repeatCount="indefinite"/></path>';
-  // Scanner → Gradient Cabinet
-  s+='<path d="M 314 160 L 368 160" fill="none" stroke="rgba(100,140,200,.3)" stroke-width="1.5" stroke-dasharray="4 5"><animate attributeName="stroke-dashoffset" from="18" to="0" dur="1s" repeatCount="indefinite"/></path>';
-  // Compressor → Cabinet
-  s+='<path d="M 482 104 L 462 104" fill="none" stroke="'+cComp+'" stroke-width="1.5" stroke-dasharray="5 7"><animate attributeName="stroke-dashoffset" from="24" to="0" dur="1.4s" repeatCount="indefinite"/></path>';
-  // Chiller → Compressor
-  s+='<path d="M 523 172 L 523 158" fill="none" stroke="'+cChil+'" stroke-width="1.2" stroke-dasharray="4 6"><animate attributeName="stroke-dashoffset" from="20" to="0" dur="1.2s" repeatCount="indefinite"/></path>';
-  // ── HELIUM TANK (left) ──
-  s+='<g>';
-  // capsule body
-  s+='<rect x="24" y="50" width="44" height="134" rx="22" fill="#101c30" stroke="'+cTank+'" stroke-width="2"/>';
+  // Ambient backlight behind machine
+  s+='<ellipse cx="245" cy="158" rx="145" ry="110" fill="rgba(90,150,240,.05)"/>';
+
+  // ── CONNECTOR LINES (behind machine) ──
+  function dline(d,c,dur){return'<path d="'+d+'" fill="none" stroke="'+c+'" stroke-width="1.2" stroke-dasharray="4 5" opacity=".75"><animate attributeName="stroke-dashoffset" from="18" to="0" dur="'+dur+'s" repeatCount="indefinite"/></path>';}
+  // ColdHead → top gantry
+  s+=dline('M 160 38 C 196 28 216 38 226 52',cHead,'1.2');
+  // Shimming → left bore rim
+  s+=dline('M 152 142 C 162 142 170 148 176 155',cSh,'1.5');
+  // Helio → bottom-left gantry
+  s+=dline('M 162 240 C 164 228 166 218 168 210',cTank,'1.7');
+  // Compresor → top-right gantry
+  s+=dline('M 452 44 C 410 44 368 65 316 82',cComp,'1.4');
+  // Gradientes → right gantry
+  s+=dline('M 452 148 C 425 148 385 152 316 156',cGrad,'1.1');
+  // Camilla → table surface
+  s+=dline('M 462 247 C 460 230 440 218 400 213',cCam,'1.3');
+
+  // ── PATIENT TABLE ──
+  // Pedestal
+  s+='<rect x="342" y="220" width="38" height="52" rx="5" fill="url(#rms_pedestal)" stroke="rgba(100,140,200,.2)" stroke-width="1"/>';
+  // Floor base
+  s+='<rect x="328" y="268" width="66" height="8" rx="4" fill="#0a1626" stroke="rgba(80,120,180,.2)" stroke-width="1"/>';
+  // Rail tracks
+  s+='<rect x="230" y="220" width="280" height="5" rx="2.5" fill="#18263e" stroke="rgba(100,140,200,.18)" stroke-width=".8"/>';
+  // Table surface
+  s+='<rect x="236" y="202" width="268" height="20" rx="6" fill="url(#rms_table)" stroke="'+cCam+'" stroke-width="1.5"/>';
+  // Headboard
+  s+='<rect x="236" y="196" width="16" height="28" rx="5" fill="#16243a" stroke="rgba(120,160,210,.4)" stroke-width="1"/>';
+  // Table highlight
+  s+='<rect x="238" y="203" width="264" height="7" rx="5" fill="rgba(255,255,255,.10)"/>';
+
+  // ── MRI GANTRY (front perspective view) ──
+  // Drop shadow
+  s+='<ellipse cx="243" cy="272" rx="120" ry="12" fill="rgba(0,0,0,.50)"/>';
+  // Right-face depth illusion
+  s+='<path d="M 316 54 L 328 61 L 328 255 L 316 260 Z" fill="rgba(96,118,148,.60)"/>';
+  // Top-face depth (thin strip)
+  s+='<path d="M 142 54 L 316 54 L 328 61 L 157 61 Z" fill="rgba(200,220,240,.18)"/>';
+  // Main front face
+  s+='<rect x="142" y="54" width="174" height="206" rx="40" fill="url(#rms_bodyF)" stroke="rgba(190,215,240,.30)" stroke-width="1.5" filter="url(#rms_shadow)"/>';
+  // Top bevel highlight
+  s+='<rect x="144" y="56" width="170" height="22" rx="32" fill="rgba(255,255,255,.28)"/>';
+  // Right edge sheen
+  s+='<rect x="309" y="90" width="6" height="128" rx="3" fill="rgba(255,255,255,.14)"/>';
+  // Logo badge (center bottom of face)
+  s+='<rect x="204" y="242" width="50" height="10" rx="5" fill="rgba(10,20,38,.60)" stroke="rgba(140,170,210,.25)" stroke-width="1"/>';
+  s+='<text x="229" y="250" font-family="system-ui,sans-serif" font-size="6.5" fill="rgba(160,190,230,.55)" text-anchor="middle" font-weight="600">'+esc(eqMarca||eqName).substring(0,12)+'</text>';
+
+  // ── BORE OPENING ──
+  s+='<ellipse cx="229" cy="157" rx="70" ry="72" fill="url(#rms_bore)"/>';
+  s+='<ellipse cx="229" cy="149" rx="56" ry="42" fill="url(#rms_boreHL)" opacity=".6"/>';
+  // Shimming rings — pulsing with status color
+  var shDur=shSt.nivel==='ok'?'2.4':shSt.nivel==='roto'?'0.65':'1.4';
+  var shAmp=shSt.nivel==='ok'?'0.3;0.85;0.3':'0.15;1;0.15';
+  s+='<ellipse cx="229" cy="157" rx="70" ry="72" fill="none" stroke="'+cSh+'" stroke-width="3.5" filter="url(#rms_glow)"><animate attributeName="opacity" values="'+shAmp+'" dur="'+shDur+'s" repeatCount="indefinite"/></ellipse>';
+  s+='<ellipse cx="229" cy="157" rx="55" ry="56" fill="none" stroke="'+cSh+'" stroke-width="1.2" opacity=".3"/>';
+  s+='<ellipse cx="229" cy="157" rx="40" ry="41" fill="none" stroke="'+cSh+'" stroke-width=".8" opacity=".18"/>';
+  // Bore bezel rings
+  s+='<ellipse cx="229" cy="157" rx="70" ry="72" fill="none" stroke="rgba(200,218,240,.50)" stroke-width="4.5"/>';
+  s+='<ellipse cx="229" cy="157" rx="65" ry="67" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="1.5"/>';
+  // Bore interior reflection arc
+  s+='<path d="M 168 130 A 70 72 0 0 1 290 130" fill="rgba(255,255,255,.06)" stroke="none"/>';
+
+  // ── COLDHEAD (top of gantry) ──
+  s+='<rect x="209" y="28" width="38" height="26" rx="8" fill="#0e1a2e" stroke="'+cHead+'" stroke-width="1.8"/>';
+  s+='<rect x="211" y="30" width="34" height="10" rx="5" fill="rgba(255,255,255,.06)"/>';
+  s+='<circle cx="228" cy="41" r="5.5" fill="'+cHead+'" filter="url(#rms_glowSm)"><animate attributeName="opacity" values=".5;1;.5" dur="1.5s" repeatCount="indefinite"/></circle>';
+  // Neck connecting ColdHead to gantry body
+  s+='<rect x="219" y="52" width="18" height="6" rx="3" fill="rgba(180,200,230,.15)"/>';
+
+  // ── CONNECTORS PANEL (front face bottom) ──
+  s+='<rect x="196" y="233" width="64" height="14" rx="5" fill="#0b1828" stroke="'+cCon+'" stroke-width="1.2"/>';
+  var ki;for(ki=0;ki<4;ki++){s+='<circle cx="'+(205+ki*14)+'" cy="240" r="3.5" fill="#050c1c" stroke="'+cCon+'" stroke-width="1" filter="url(#rms_glowSm)"/>';}
+
+  // ── HELIUM TANK (far right, visible from side — cryo vessel) ──
+  s+='<g opacity=".88">';
+  // tank body
+  s+='<rect x="294" y="85" width="34" height="158" rx="16" fill="#0b1828" stroke="'+cTank+'" stroke-width="1.8"/>';
   // liquid fill
-  s+='<g clip-path="url(#rmTankClip2)">';
-  s+='<rect x="27" y="'+liqY+'" width="40" height="'+(176-liqY)+'" fill="url(#rmHelGrad)" opacity=".9"/>';
-  // ripple at surface
-  s+='<ellipse cx="47" cy="'+rippleY+'" rx="18" ry="3.5" fill="#5ee0ff" opacity=".55"><animate attributeName="cy" values="'+rippleY+';'+(rippleY-3)+';'+rippleY+'" dur="2.4s" repeatCount="indefinite"/></ellipse>';
+  s+='<g clip-path="url(#rms_tankClip)">';
+  s+='<rect x="296" y="'+liqY+'" width="30" height="'+(237-liqY)+'" fill="url(#rms_tank)" opacity=".9"/>';
+  s+='<ellipse cx="311" cy="'+liqY+'" rx="13" ry="3" fill="#72e4ff" opacity=".6"><animate attributeName="cy" values="'+liqY+';'+(liqY-2)+';'+liqY+'" dur="2.6s" repeatCount="indefinite"/></ellipse>';
   // bubbles
-  s+='<circle cx="40" cy="'+bub1StartY+'" r="2.5" fill="#cdf8ff" opacity=".8"><animate attributeName="cy" values="'+bub1StartY+';'+rippleY+'" dur="2.2s" repeatCount="indefinite"/><animate attributeName="opacity" values=".8;0" dur="2.2s" repeatCount="indefinite"/></circle>';
-  s+='<circle cx="55" cy="'+bub2StartY+'" r="2" fill="#cdf8ff" opacity=".7"><animate attributeName="cy" values="'+bub2StartY+';'+rippleY+'" dur="2.8s" begin=".7s" repeatCount="indefinite"/><animate attributeName="opacity" values=".7;0" dur="2.8s" begin=".7s" repeatCount="indefinite"/></circle>';
+  s+='<circle cx="307" cy="230" r="2" fill="#c8f8ff" opacity=".8"><animate attributeName="cy" values="230;'+liqY+'" dur="2.4s" repeatCount="indefinite"/><animate attributeName="opacity" values=".8;0" dur="2.4s" repeatCount="indefinite"/></circle>';
+  s+='<circle cx="316" cy="228" r="1.5" fill="#c8f8ff" opacity=".7"><animate attributeName="cy" values="228;'+liqY+'" dur="3s" begin=".8s" repeatCount="indefinite"/><animate attributeName="opacity" values=".7;0" dur="3s" begin=".8s" repeatCount="indefinite"/></circle>';
   s+='</g>';
-  // labels
-  s+='<text x="46" y="200" fill="'+cTank+'" font-size="10" font-family="sans-serif" text-anchor="middle" font-weight="700">He '+Math.round(pc)+'%</text>';
-  s+='<text x="46" y="212" fill="rgba(180,200,240,.45)" font-size="7" font-family="sans-serif" text-anchor="middle">Helio L&#237;q.</text>';
-  // status glow dot
-  s+='<circle cx="62" cy="56" r="4" fill="'+cTank+'" filter="url(#rmGlow)" opacity=".9"/>';
+  s+='<text x="311" y="255" fill="'+cTank+'" font-size="7.5" font-family="system-ui,sans-serif" text-anchor="middle" font-weight="700">He '+Math.round(pc)+'%</text>';
   s+='</g>';
-  // ── COLDHEAD (above-right of tank) ──
-  s+='<g>';
-  s+='<text x="106" y="25" fill="'+cHead+'" font-size="8" font-family="sans-serif" text-anchor="middle">ColdHead</text>';
-  s+='<rect x="88" y="30" width="36" height="28" rx="6" fill="#101c30" stroke="'+cHead+'" stroke-width="2"/>';
-  s+='<circle cx="106" cy="44" r="5" fill="'+cHead+'" opacity=".7"><animate attributeName="r" values="3;6;3" dur="1.4s" repeatCount="indefinite"/></circle>';
-  s+='</g>';
-  // ── MRI SCANNER (center) ──
-  s+='<g>';
-  // outer body
-  s+='<circle cx="220" cy="160" r="94" fill="url(#rmBodyGrad)" stroke="rgba(180,200,240,.4)" stroke-width="2"/>';
-  // bore
-  s+='<circle cx="220" cy="160" r="56" fill="#040810"/>';
-  // shimming glow ring
-  s+='<circle cx="220" cy="160" r="56" fill="none" stroke="'+cSh+'" stroke-width="3" filter="url(#rmGlow)"><animate attributeName="opacity" values="'+(shN==='ok'?'0.4;1.0;0.4':shN==='roto'?'0.15;1;0.15':'0.3;0.9;0.3')+'" dur="'+(shN==='ok'?'2s':shN==='roto'?'0.7s':'1.5s')+'" repeatCount="indefinite"/></circle>';
-  // inner shimming ring
-  s+='<circle cx="220" cy="160" r="40" fill="none" stroke="'+cSh+'" stroke-width="1" opacity=".3"/>';
-  // SHIMMING text
-  s+='<text x="220" y="165" fill="'+cSh+'" font-size="7" font-family="sans-serif" text-anchor="middle" letter-spacing="1">SHIMMING</text>';
-  // equipment name
-  s+='<text x="224" y="270" fill="rgba(200,215,255,.8)" font-size="9" font-family="sans-serif" text-anchor="middle" font-weight="700">'+eqName+'</text>';
-  s+='</g>';
-  // ── PATIENT TABLE / CAMILLA ──
-  s+='<g>';
-  s+='<rect x="165" y="172" width="110" height="10" rx="5" fill="#2a3a55" stroke="'+cCam+'" stroke-width="1.8"><animate attributeName="x" values="165;195;165" dur="7s" repeatCount="indefinite"/></rect>';
-  s+='<text x="220" y="198" fill="'+cCam+'" font-size="8" font-family="sans-serif" text-anchor="middle">Camilla</text>';
-  s+='</g>';
-  // ── CONNECTORS PANEL (bottom of scanner) ──
-  s+='<g>';
-  s+='<rect x="192" y="254" width="56" height="18" rx="5" fill="#101c30" stroke="'+cCon+'" stroke-width="1.8"/>';
-  var ki;
-  for(ki=0;ki<4;ki++){s+='<circle cx="'+(202+ki*12)+'" cy="263" r="4" fill="#040810" stroke="'+cCon+'" stroke-width="1.2"/>';}
-  s+='<text x="220" y="287" fill="'+cCon+'" font-size="8" font-family="sans-serif" text-anchor="middle">Conectores</text>';
-  s+='</g>';
-  // ── GRADIENT CABINET (right of scanner) ──
-  s+='<g>';
-  s+='<text x="415" y="55" fill="rgba(160,190,230,.45)" font-size="8" font-family="sans-serif" text-anchor="middle" letter-spacing="2">GRADIENTES</text>';
-  s+='<rect x="368" y="60" width="94" height="180" rx="6" fill="#0c1828" stroke="rgba(100,130,190,.3)" stroke-width="1.5"/>';
-  var boards=[{c:cGx,l:'X'},{c:cGy,l:'Y'},{c:cGz,l:'Z'},{c:cGg,l:'GEN'}];
-  var bi;
-  for(bi=0;bi<boards.length;bi++){
-    var bd=boards[bi];
-    var bY=68+bi*42;
-    s+='<rect x="374" y="'+bY+'" width="82" height="36" rx="3" fill="#080e1e" stroke="'+bd.c+'" stroke-width="1.2"/>';
-    // status LED
-    s+='<circle cx="387" cy="'+(bY+10)+'" r="3.5" fill="'+bd.c+'" filter="url(#rmGlow)"><animate attributeName="opacity" values="0.4;1;0.4" dur="'+(1.2+bi*0.25)+'s" repeatCount="indefinite"/></circle>';
-    s+='<text x="396" y="'+(bY+14)+'" fill="'+bd.c+'" font-size="9" font-weight="700" font-family="sans-serif">'+bd.l+'</text>';
-    // data flow dash
-    s+='<line x1="374" y1="'+(bY+26)+'" x2="456" y2="'+(bY+26)+'" stroke="'+bd.c+'" stroke-width="1" stroke-dasharray="4 5" opacity=".6"><animate attributeName="stroke-dashoffset" from="18" to="0" dur=".9s" repeatCount="indefinite"/></line>';
+
+  // ── LABEL CARD helper ──
+  function lcard(x,y,w,title,detail,color,sub){
+    var h=sub?58:48;
+    var r='<g>';
+    // card body
+    r+='<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="11" fill="rgba(7,12,26,.88)" stroke="'+color+'" stroke-width="1.3"/>';
+    // top highlight strip
+    r+='<rect x="'+(x+1)+'" y="'+(y+1)+'" width="'+(w-2)+'" height="12" rx="10" fill="rgba(255,255,255,.05)"/>';
+    // left accent bar
+    r+='<rect x="'+x+'" y="'+(y+10)+'" width="3" height="'+(h-20)+'" rx="1.5" fill="'+color+'" opacity=".5"/>';
+    // status dot
+    r+='<circle cx="'+(x+16)+'" cy="'+(y+13)+'" r="4.5" fill="'+color+'" filter="url(#rms_glowSm)"/>';
+    // title
+    r+='<text x="'+(x+27)+'" y="'+(y+17)+'" font-family="system-ui,sans-serif" font-size="9" font-weight="700" fill="rgba(225,238,255,.92)">'+title+'</text>';
+    // detail
+    r+='<text x="'+(x+8)+'" y="'+(y+32)+'" font-family="system-ui,sans-serif" font-size="8.5" fill="'+color+'">'+detail+'</text>';
+    if(sub){r+='<text x="'+(x+8)+'" y="'+(y+46)+'" font-family="system-ui,sans-serif" font-size="7.5" fill="rgba(150,175,220,.50)">'+sub+'</text>';}
+    r+='</g>';
+    return r;
   }
-  s+='</g>';
-  // ── COMPRESSOR (top right) ──
-  s+='<g>';
-  s+='<text x="523" y="44" fill="rgba(160,190,230,.45)" font-size="8" font-family="sans-serif" text-anchor="middle" letter-spacing="2">COMPRESOR</text>';
-  s+='<rect x="482" y="50" width="82" height="108" rx="8" fill="#0c1828" stroke="'+cComp+'" stroke-width="2"/>';
-  // fan outer ring
-  s+='<circle cx="523" cy="104" r="28" fill="none" stroke="'+cComp+'" stroke-width="1.5" opacity=".25"/>';
-  // fan blades with rotation animation
-  s+='<g>'+
-    '<ellipse cx="523" cy="90" rx="5" ry="12" fill="'+cComp+'" opacity=".75"/>'+
-    '<ellipse cx="523" cy="90" rx="5" ry="12" fill="'+cComp+'" opacity=".75" transform="rotate(60 523 104)"/>'+
-    '<ellipse cx="523" cy="90" rx="5" ry="12" fill="'+cComp+'" opacity=".75" transform="rotate(120 523 104)"/>'+
-    '<ellipse cx="523" cy="90" rx="5" ry="12" fill="'+cComp+'" opacity=".75" transform="rotate(180 523 104)"/>'+
-    '<ellipse cx="523" cy="90" rx="5" ry="12" fill="'+cComp+'" opacity=".75" transform="rotate(240 523 104)"/>'+
-    '<ellipse cx="523" cy="90" rx="5" ry="12" fill="'+cComp+'" opacity=".75" transform="rotate(300 523 104)"/>'+
-    '<animateTransform attributeName="transform" type="rotate" from="0 523 104" to="360 523 104" dur="'+(cComp==="#ff3b30"?"4.5s":"1.4s")+'" repeatCount="indefinite"/>'+
-  '</g>';
-  // center dot
-  s+='<circle cx="523" cy="104" r="4" fill="'+cComp+'"/>';
-  // status glow dot
-  s+='<circle cx="557" cy="56" r="4" fill="'+cComp+'" filter="url(#rmGlow)" opacity=".9"/>';
-  s+='</g>';
-  // ── CHILLER (bottom right) ──
-  s+='<g>';
-  s+='<rect x="482" y="172" width="82" height="92" rx="8" fill="#0c1828" stroke="'+cChil+'" stroke-width="2"/>';
-  s+='<text x="523" y="278" fill="rgba(160,190,230,.45)" font-size="8" font-family="sans-serif" text-anchor="middle" letter-spacing="2">CHILLER</text>';
-  // cooling fins
-  var fi;
-  for(fi=0;fi<5;fi++){
-    s+='<rect x="492" y="'+(182+fi*14)+'" width="62" height="6" rx="2" fill="'+cChil+'" opacity=".15"><animate attributeName="opacity" values=".2;.8;.2" dur="2s" begin="'+(fi*0.3)+'s" repeatCount="indefinite"/></rect>';
-  }
-  // status glow dot
-  s+='<circle cx="557" cy="178" r="4" fill="'+cChil+'" filter="url(#rmGlow)" opacity=".9"/>';
-  s+='</g>';
+
+  // ── LABEL CARDS ──
+  s+=lcard(8,10,152,'ColdHead',dHead,cHead,eqMarca||null);
+  s+=lcard(8,115,143,'Shimming',dSh,cSh,null);
+  s+=lcard(8,215,155,'Helio Líquido',heStr,cTank,gasStr);
+  s+=lcard(450,10,180,'Compresor Helio',dComp,cComp,dChil!=='Operativo'?'Chiller: '+dChil:'Chiller: '+dChil);
+  s+=lcard(450,115,178,'Gabinete Gradientes',dGrad,cGrad,'X · Y · Z · GEN');
+  s+=lcard(390,248,145,'Camilla',dCam,cCam,null);
+
   s+='</svg>';
   return s;
 }
@@ -6864,8 +6885,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.4.2";
-var APP_BUILD="09/06/26 03:00";
+var APP_DISPLAY_VERSION="5.4.3";
+var APP_BUILD="09/06/26 04:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
