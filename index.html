@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.08.004 -->
+<!-- v2026.06.08.005 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.08.004">
+<meta name="app-version" content="v2026.06.08.005">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -106,28 +106,26 @@ body::after{
 
 /* ── LIQUID GLASS CARD ── */
 .gc{
-  background:rgba(255,255,255,.08);
-  -webkit-backdrop-filter:saturate(200%) contrast(102%) brightness(108%) blur(32px);
-  backdrop-filter:saturate(200%) contrast(102%) brightness(108%) blur(32px);
-  border:1.5px solid rgba(255,255,255,.55);
+  background:rgba(255,255,255,.82);
+  -webkit-backdrop-filter:saturate(160%) brightness(106%) blur(20px);
+  backdrop-filter:saturate(160%) brightness(106%) blur(20px);
+  border:1px solid rgba(255,255,255,.72);
   border-top-color:rgba(255,255,255,1.0);
   border-radius:var(--r-lg);
   box-shadow:
-    0 0 0 1px rgba(160,195,255,.32),
-    0 2px 10px rgba(120,155,225,.14),
-    0 10px 32px rgba(120,155,225,.12),
-    0 24px 56px rgba(0,0,0,.07),
-    inset 0 2.5px 0 rgba(255,255,255,1.0),
-    inset 0 0 0 1px rgba(255,255,255,.52),
-    inset 0 -1px 6px rgba(0,0,0,.03);
+    0 1px 3px rgba(0,0,0,.04),
+    0 4px 16px rgba(120,155,225,.10),
+    0 16px 40px rgba(0,0,0,.06),
+    inset 0 1.5px 0 rgba(255,255,255,1.0),
+    inset 0 -1px 0 rgba(0,0,0,.03);
   position:relative;overflow:hidden;
   transition:transform .32s var(--spring),box-shadow .28s var(--ease-out);}
-/* shimmer layer */
+/* shimmer layer — subtle on opaque white */
 .gc::before{content:'';position:absolute;inset:0;border-radius:inherit;
-  background:var(--lg-shimmer);pointer-events:none;z-index:0;}
-/* top specular highlight — stronger */
-.gc::after{content:'';position:absolute;top:0;left:0;right:0;height:65%;border-radius:inherit;
-  background:linear-gradient(180deg,rgba(255,255,255,.92) 0%,rgba(255,255,255,.42) 28%,rgba(255,255,255,.10) 58%,rgba(255,255,255,.0) 100%);
+  background:var(--lg-shimmer);opacity:.45;pointer-events:none;z-index:0;}
+/* top specular highlight */
+.gc::after{content:'';position:absolute;top:0;left:0;right:0;height:50%;border-radius:inherit;
+  background:linear-gradient(180deg,rgba(255,255,255,.70) 0%,rgba(255,255,255,.22) 40%,rgba(255,255,255,.0) 100%);
   pointer-events:none;z-index:0;}
 .gc:active{transform:scale(.968);
   box-shadow:0 1px 4px rgba(0,0,0,.05),0 3px 12px rgba(0,0,0,.06),inset 0 1px 0 rgba(255,255,255,.8);}
@@ -140,13 +138,13 @@ body::after{
 #app{position:relative;z-index:1;}
 #header{position:sticky;top:0;z-index:100;background:transparent;border-bottom:none;padding:calc(env(safe-area-inset-top,0px)+12px) 20px 28px;}
 #header-inner{display:flex;align-items:center;justify-content:space-between;max-width:1040px;margin:0 auto;
-  background:rgba(255,255,255,.09);-webkit-backdrop-filter:saturate(220%) contrast(102%) brightness(110%) blur(36px);backdrop-filter:saturate(220%) contrast(102%) brightness(110%) blur(36px);
-  border:1.5px solid rgba(255,255,255,.75);border-top-color:rgba(255,255,255,.98);
+  background:rgba(255,255,255,.80);-webkit-backdrop-filter:saturate(160%) brightness(106%) blur(24px);backdrop-filter:saturate(160%) brightness(106%) blur(24px);
+  border:1px solid rgba(255,255,255,.72);border-top-color:rgba(255,255,255,1.0);
   border-radius:var(--r-xl);padding:20px 20px 20px 28px;
-  box-shadow:0 0 0 1px rgba(160,195,255,.28),0 2px 10px rgba(130,155,225,.12),0 10px 40px rgba(0,0,0,.08),inset 0 2.5px 0 rgba(255,255,255,1.0),inset 0 0 0 1px rgba(255,255,255,.58);
+  box-shadow:0 1px 3px rgba(0,0,0,.04),0 4px 20px rgba(0,0,0,.07),inset 0 1.5px 0 rgba(255,255,255,1.0),inset 0 -1px 0 rgba(0,0,0,.03);
   position:relative;overflow:hidden;min-height:96px;}
-#header-inner::before{content:'';position:absolute;inset:0;border-radius:inherit;background:var(--lg-shimmer);pointer-events:none;}
-#header-inner::after{content:'';position:absolute;top:0;left:0;right:0;height:58%;background:linear-gradient(180deg,rgba(255,255,255,.82) 0%,rgba(255,255,255,.30) 40%,transparent 100%);pointer-events:none;}
+#header-inner::before{content:'';position:absolute;inset:0;border-radius:inherit;background:var(--lg-shimmer);opacity:.35;pointer-events:none;}
+#header-inner::after{content:'';position:absolute;top:0;left:0;right:0;height:45%;background:linear-gradient(180deg,rgba(255,255,255,.65) 0%,rgba(255,255,255,.18) 50%,transparent 100%);pointer-events:none;}
 #header-left{display:flex;align-items:center;gap:14px;position:relative;z-index:1;}
 #header-right{display:flex;gap:10px;align-items:center;position:relative;z-index:1;}
 .hdr-time{font-size:.78rem;color:var(--text3);font-variant-numeric:tabular-nums;font-family:monospace;}
@@ -394,11 +392,11 @@ textarea.inp{resize:vertical;}
 /* ── DETAIL ── */
 .det-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
 .ibox{
-  background:rgba(255,255,255,.14);
-  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
-  border:1px solid rgba(255,255,255,.45);border-top-color:rgba(255,255,255,.82);
+  background:rgba(255,255,255,.72);
+  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  border:1px solid rgba(220,228,240,.60);border-top-color:rgba(255,255,255,.92);
   border-radius:var(--r-md);padding:10px 12px;
-  box-shadow:0 1px 4px rgba(0,0,0,.04),inset 0 1.5px 0 rgba(255,255,255,.95),inset 0 0 0 1px rgba(255,255,255,.28);}
+  box-shadow:0 1px 3px rgba(0,0,0,.04),inset 0 1px 0 rgba(255,255,255,.95);}
 .ibox-l{font-size:.58rem;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px;font-weight:600;}
 .ibox-v{font-size:.82rem;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 
@@ -634,24 +632,23 @@ body.dark .ibox{background:rgba(50,50,58,.5);border-color:rgba(80,80,90,.4);}
 }
 /* ── SIDEBAR ── */
 #sidebar{display:none;position:fixed;left:0;top:0;bottom:0;width:280px;z-index:50;
-  background:rgba(255,255,255,.05);
-  -webkit-backdrop-filter:saturate(200%) brightness(112%) blur(48px);
-  backdrop-filter:saturate(200%) brightness(112%) blur(48px);
-  border-right:1px solid rgba(255,255,255,.22);
+  background:rgba(255,255,255,.86);
+  -webkit-backdrop-filter:saturate(140%) brightness(105%) blur(28px);
+  backdrop-filter:saturate(140%) brightness(105%) blur(28px);
+  border-right:1px solid rgba(220,228,240,.70);
   flex-direction:column;overflow-y:auto;overflow-x:hidden;
   padding:calc(env(safe-area-inset-top,0px)+12px) 0 calc(env(safe-area-inset-bottom,0px)+12px);
   box-shadow:
-    2px 0 0 rgba(255,255,255,.18),
-    4px 0 40px rgba(0,0,0,.06),
-    inset -1px 0 0 rgba(255,255,255,.35);}
-/* tinted gradient wash — matches ui-layouts inner glow */
+    2px 0 16px rgba(0,0,0,.05),
+    inset -1px 0 0 rgba(255,255,255,.80);}
+/* subtle top glow */
 #sidebar::before{content:'';position:absolute;inset:0;pointer-events:none;z-index:0;
   background:
-    radial-gradient(ellipse 80% 40% at 50% 0%,rgba(255,255,255,.22) 0%,transparent 70%),
-    linear-gradient(160deg,rgba(190,215,255,.18) 0%,rgba(170,210,250,.12) 30%,rgba(160,230,245,.08) 60%,rgba(180,240,220,.06) 100%);}
+    radial-gradient(ellipse 80% 30% at 50% 0%,rgba(255,255,255,.40) 0%,transparent 70%),
+    linear-gradient(180deg,rgba(245,248,255,.30) 0%,transparent 60%);}
 /* top specular strip */
 #sidebar::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;pointer-events:none;z-index:0;
-  background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,.85) 20%,rgba(255,255,255,.95) 50%,rgba(255,255,255,.85) 80%,transparent 100%);}
+  background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,.95) 20%,rgba(255,255,255,1) 50%,rgba(255,255,255,.95) 80%,transparent 100%);}
 #sidebar>*{position:relative;z-index:1;}
 @media(min-width:900px){
   #sidebar{display:flex;}
@@ -6820,8 +6817,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.2.9";
-var APP_BUILD="08/06/26 13:00";
+var APP_DISPLAY_VERSION="5.3.0";
+var APP_BUILD="08/06/26 14:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
