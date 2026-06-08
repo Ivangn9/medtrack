@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.08.019 -->
+<!-- v2026.06.08.020 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.08.019">
+<meta name="app-version" content="v2026.06.08.020">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3621,144 +3621,182 @@ function rmCurrentEq(){
 function rEstadoRM(){
   var rms=eqs.filter(function(e){return e.cat==='RM'&&!e.baja;});
   if(!rms.length){
-    return '<div style="background:linear-gradient(160deg,#060c1c,#0b1425 60%,#07101e);border-radius:var(--r-lg);padding:48px 20px;text-align:center;">'+
-      '<div style="font-size:2.8rem;margin-bottom:10px;filter:drop-shadow(0 0 16px rgba(100,160,255,.4));">🧲</div>'+
-      '<div style="font-weight:700;font-size:1.05rem;color:rgba(220,235,255,.9);margin-bottom:5px;">Sin resonadores</div>'+
-      '<div style="color:rgba(160,185,230,.55);font-size:.82rem;">No hay equipos de RM cargados en el sistema.</div>'+
-    '</div>';
+    return '<style>@import url("https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");</style>'+
+      '<div style="background:#06091a;border-radius:24px;padding:56px 20px;text-align:center;">'+
+        '<div style="font-size:2.5rem;margin-bottom:14px;filter:drop-shadow(0 0 20px rgba(173,198,255,.4));">🧲</div>'+
+        '<div style="font-family:Hanken Grotesk,sans-serif;font-size:1.1rem;font-weight:600;color:rgba(229,225,227,.9);margin-bottom:6px;">Sin resonadores</div>'+
+        '<div style="font-family:Inter,sans-serif;font-size:.82rem;color:rgba(145,144,151,.7);">No hay equipos de RM cargados en el sistema.</div>'+
+      '</div>';
   }
   var eq=rmCurrentEq();
   var rf=_refrigData(eq);
+  var pc=rmHelioPct(eq);
   var h='';
-  // ── Wrapper dark dashboard ──
-  h+='<div style="background:linear-gradient(160deg,#060c1c,#0b1425 55%,#07101e);border-radius:var(--r-lg);padding:16px;margin:-2px;">';
 
-  // ── Header: título + selector ──
-  h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">';
-  h+='<div style="font-size:.68rem;font-weight:700;color:rgba(140,170,220,.60);letter-spacing:.12em;text-transform:uppercase;">Monitor · Estado de RM</div>';
-  h+='<div style="font-size:.62rem;color:rgba(100,140,200,.45);font-family:monospace;">'+new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'})+'</div>';
+  // ── Stitch design system: Hanken Grotesk + JetBrains Mono ──
+  h+='<style>@import url("https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");'+
+    '#rm-ds *{box-sizing:border-box;}'+
+    '#rm-ds button{font-family:inherit;}'+
+    '#rm-ds .rm-row:last-child{border-bottom:none !important;}'+
+  '</style>';
+
+  // ── Helpers ──
+  function _chip(col,label){
+    var r=_hexToRgb(col);
+    return '<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;font-family:JetBrains Mono,monospace;font-size:10px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;background:rgba('+r+',.16);color:'+col+';border:1px solid rgba('+r+',.28);">'+
+      '<span style="width:5px;height:5px;border-radius:50%;background:'+col+';box-shadow:0 0 5px '+col+';flex-shrink:0;"></span>'+
+      label+'</span>';
+  }
+  function _pRow(label,col,detail){
+    var r=_hexToRgb(col);
+    var lvl=col==='#34c759'?'OK':col==='#ff9500'?'WARN':'ERROR';
+    return '<div class="rm-row" style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(70,70,76,.35);">'+
+      '<span style="font-family:Inter,Hanken Grotesk,sans-serif;font-size:13px;color:rgba(199,197,205,.85);">'+label+'</span>'+
+      '<div style="display:flex;align-items:center;gap:8px;">'+
+        (detail?'<span style="font-family:JetBrains Mono,monospace;font-size:11px;color:rgba(145,144,151,.75);">'+esc(detail)+'</span>':'') +
+        '<span style="padding:3px 9px;border-radius:999px;font-family:JetBrains Mono,monospace;font-size:10px;font-weight:500;letter-spacing:.03em;background:rgba('+r+',.15);color:'+col+';">'+lvl+'</span>'+
+      '</div>'+
+    '</div>';
+  }
+  function _gPanel(icon,title,content){
+    return '<div style="margin:0 14px 10px;background:rgba(32,31,33,.9);border-radius:20px;border:1px solid rgba(255,255,255,.08);box-shadow:inset 0 1px 0 rgba(255,255,255,.10);overflow:hidden;">'+
+      '<div style="padding:14px 16px 0 16px;">'+
+        '<div style="font-family:Hanken Grotesk,sans-serif;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(145,144,151,.75);">'+icon+'&nbsp;&nbsp;'+title+'</div>'+
+      '</div>'+
+      '<div style="padding:2px 16px 14px;">'+content+'</div>'+
+    '</div>';
+  }
+  function _worstOf(r){
+    var w='ok';
+    RM_COMPONENTES.forEach(function(c){var n=rmCompEstado(r,c.id).nivel;if(n==='roto')w='roto';else if(n==='warn'&&w!=='roto')w='warn';});
+    return w;
+  }
+
+  // ── Wrapper ──
+  h+='<div id="rm-ds" style="background:#06091a;border-radius:24px;overflow:hidden;margin:-2px;padding-bottom:6px;">';
+
+  // ── Header ──
+  var worst=_worstOf(eq);
+  var wCol=rmNivelColor(worst);
+  var wLabel=worst==='roto'?'Crítico':worst==='warn'?'Advertencia':'Operativo';
+  h+='<div style="padding:18px 16px 12px;">';
+  h+='<div style="font-family:JetBrains Mono,monospace;font-size:10px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:rgba(145,144,151,.6);margin-bottom:9px;">Monitor · Estado de RM · '+new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'})+'</div>';
+  h+='<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;">';
+  h+='<div style="font-family:Hanken Grotesk,sans-serif;font-size:22px;font-weight:600;color:#e5e1e3;line-height:1.25;flex:1;">'+esc(eq.nombre)+'</div>';
+  h+=_chip(wCol,wLabel);
+  h+='</div>';
+  if(eq.ubicacion)h+='<div style="font-family:Inter,sans-serif;font-size:12px;color:rgba(145,144,151,.65);margin-top:6px;">📍 '+esc(eq.ubicacion)+'</div>';
   h+='</div>';
 
   // ── Selector chips ──
-  h+='<div style="display:flex;gap:7px;overflow-x:auto;padding-bottom:10px;margin-bottom:14px;scrollbar-width:none;">';
+  h+='<div style="display:flex;gap:8px;overflow-x:auto;padding:0 14px 14px;scrollbar-width:none;-webkit-overflow-scrolling:touch;">';
   rms.forEach(function(r){
     var on=r.id===eq.id;
-    var worst='ok';RM_COMPONENTES.forEach(function(c){var n=rmCompEstado(r,c.id).nivel;if(n==='roto')worst='roto';else if(n==='warn'&&worst!=='roto')worst='warn';});
-    var col=rmNivelColor(worst);
-    h+='<button onclick="selectRM(\''+r.id+'\')" style="flex-shrink:0;display:flex;align-items:center;gap:8px;padding:8px 16px;border-radius:var(--r-pill);cursor:pointer;font-size:.78rem;font-weight:700;font-family:monospace;letter-spacing:.01em;'+
-      'border:1px solid '+(on?col+'88':'rgba(255,255,255,.10)')+';'+
-      'background:'+(on?'rgba('+_hexToRgb(col)+',0.15)':'rgba(255,255,255,.04)')+';'+
-      'color:'+(on?col:'rgba(200,220,255,.6)')+';'+
-      (on?'box-shadow:0 0 0 1px '+col+'44,0 0 18px '+col+'22;':'')+
-      'transition:all .18s;">'+
-      '<span style="width:7px;height:7px;border-radius:50%;background:'+col+';box-shadow:0 0 8px '+col+',0 0 4px '+col+';flex-shrink:0;"></span>'+
-      esc(r.nombre)+
-    '</button>';
+    var rw=_worstOf(r);var rc=rmNivelColor(rw);var rr=_hexToRgb(rc);
+    h+='<button onclick="selectRM(\''+r.id+'\')" style="flex-shrink:0;display:flex;align-items:center;gap:7px;padding:7px 14px;border-radius:999px;cursor:pointer;'+
+      'font-family:JetBrains Mono,monospace;font-size:11px;font-weight:500;letter-spacing:.02em;white-space:nowrap;'+
+      'border:1px solid '+(on?rc+'66':'rgba(255,255,255,.1)')+';'+
+      'background:'+(on?'rgba('+rr+',.18)':'rgba(255,255,255,.05)')+';'+
+      'color:'+(on?rc:'rgba(195,197,221,.55)')+';transition:all .15s;">'+
+      '<span style="width:7px;height:7px;border-radius:50%;flex-shrink:0;background:'+rc+';'+(on?'box-shadow:0 0 7px '+rc+',0 0 3px '+rc+';':'')+'"></span>'+
+      esc(r.nombre)+'</button>';
   });
   h+='</div>';
 
-  // ── Ilustración SVG ──
-  h+='<div id="rm3d-wrap" style="position:relative;border-radius:var(--r-lg);overflow:hidden;margin-bottom:16px;border:1px solid rgba(100,140,200,.15);box-shadow:0 8px 32px rgba(0,0,0,.40);">';
-  h+='<div id="rm3d-container" style="width:100%;height:300px;position:relative;"></div>';
-  h+='</div>';
+  // ── SVG container ──
+  h+='<div id="rm3d-wrap" style="margin:0 14px 10px;border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,.07);">'+
+    '<div id="rm3d-container" style="width:100%;height:260px;"></div>'+
+  '</div>';
 
-  // ── Tres paneles inferiores: Resonador / Gradientes / Sala ──
-  function darkRow(label,col,extra){
-    return '<div style="display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);">'+
-      '<span style="width:8px;height:8px;border-radius:50%;flex-shrink:0;background:'+col+';box-shadow:0 0 8px '+col+',0 0 3px '+col+';" ></span>'+
-      '<div style="flex:1;min-width:0;">'+
-        '<div style="font-size:.76rem;font-weight:600;color:rgba(215,230,255,.88);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+label+'</div>'+
-        (extra?'<div style="font-size:.62rem;color:'+col+';margin-top:1px;">'+extra+'</div>':'')+
-      '</div>'+
-    '</div>';
-  }
-  function darkPanel(icon,titulo,contenido){
-    return '<div style="background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.09);border-top:1px solid rgba(255,255,255,.15);border-radius:14px;padding:12px 14px;flex:1;min-width:0;">'+
-      '<div style="font-size:.65rem;font-weight:700;color:rgba(140,170,220,.60);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;">'+icon+' '+titulo+'</div>'+
-      contenido+
-    '</div>';
-  }
-
-  var pc=rmHelioPct(eq);
-  var stRes=[
-    darkRow('ColdHead',rmNivelColor(rmCompEstado(eq,'coldhead').nivel),rmCompEstado(eq,'coldhead').detalle),
-    darkRow('Camilla',rmNivelColor(rmCompEstado(eq,'camilla').nivel),rmCompEstado(eq,'camilla').detalle),
-    darkRow('Conectores',rmNivelColor(rmCompEstado(eq,'conectores').nivel),rmCompEstado(eq,'conectores').detalle)
-  ].join('');
-  // Helio row con barra
+  // ── Panel: Resonador Magnético ──
+  var resC='';
+  resC+=_pRow('ColdHead',rmNivelColor(rmCompEstado(eq,'coldhead').nivel),rmCompEstado(eq,'coldhead').detalle);
+  resC+=_pRow('Camilla',rmNivelColor(rmCompEstado(eq,'camilla').nivel),rmCompEstado(eq,'camilla').detalle);
+  resC+=_pRow('Conectores RF',rmNivelColor(rmCompEstado(eq,'conectores').nivel),rmCompEstado(eq,'conectores').detalle);
+  // Helio readout — datos prominentes
   var cTk=rmNivelColor(rmCompEstado(eq,'tanque_helio').nivel);
-  stRes+='<div style="display:flex;align-items:center;gap:9px;padding:8px 0;">'+
-    '<span style="width:8px;height:8px;border-radius:50%;flex-shrink:0;background:'+cTk+';box-shadow:0 0 8px '+cTk+';"></span>'+
-    '<div style="flex:1;min-width:0;">'+
-      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">'+
-        '<span style="font-size:.76rem;font-weight:600;color:rgba(215,230,255,.88);">Helio Líquido</span>'+
-        '<span style="font-size:.62rem;color:'+cTk+';font-family:monospace;">'+(pc!==null?Math.round(pc)+'%':'—')+'</span>'+
-      '</div>'+
-      (pc!==null?'<div style="height:4px;border-radius:4px;background:rgba(255,255,255,.10);overflow:hidden;"><div style="height:100%;width:'+pc+'%;background:linear-gradient(90deg,'+cTk+'88,'+cTk+');border-radius:4px;"></div></div>':'')+
-    '</div>'+
-  '</div>';
+  var pcInt=pc!==null?Math.round(pc):null;
+  resC+='<div style="margin-top:12px;background:rgba(14,14,15,.65);border-radius:14px;padding:14px 16px;border:1px solid rgba(255,255,255,.06);">';
+  resC+='<div style="font-family:JetBrains Mono,monospace;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.1em;color:rgba(145,144,151,.65);margin-bottom:10px;">⬡ Helio Líquido</div>';
+  resC+='<div style="display:flex;align-items:flex-end;gap:14px;margin-bottom:12px;">';
+  resC+='<div style="font-family:JetBrains Mono,monospace;font-size:42px;font-weight:400;line-height:1;color:'+cTk+';text-shadow:0 0 24px '+cTk+'55;">'+(pcInt!==null?pcInt+'%':'—')+'</div>';
+  if(rf.helioLiqPresion){
+    resC+='<div style="padding-bottom:5px;">'+
+      '<div style="font-family:JetBrains Mono,monospace;font-size:14px;font-weight:500;color:rgba(173,198,255,.9);">'+esc(rf.helioLiqPresion)+' PSI</div>'+
+      '<div style="font-family:Inter,sans-serif;font-size:11px;color:rgba(145,144,151,.6);margin-top:2px;">Presión línea</div>'+
+    '</div>';
+  }
+  resC+='</div>';
+  if(pcInt!==null){
+    var bw=Math.max(2,Math.min(100,pcInt));
+    resC+='<div style="height:5px;border-radius:5px;background:rgba(255,255,255,.08);overflow:hidden;">'+
+      '<div style="height:100%;width:'+bw+'%;background:linear-gradient(90deg,'+cTk+'77,'+cTk+');border-radius:5px;box-shadow:0 0 8px '+cTk+'55;"></div>'+
+    '</div>';
+  }
+  resC+='</div>';
+  h+=_gPanel('🧲','Resonador Magnético',resC);
 
-  var stGrad=[
-    darkRow('Placa Gradiente X',rmNivelColor(rmCompEstado(eq,'grad_x').nivel),rmCompEstado(eq,'grad_x').detalle),
-    darkRow('Placa Gradiente Y',rmNivelColor(rmCompEstado(eq,'grad_y').nivel),rmCompEstado(eq,'grad_y').detalle),
-    darkRow('Placa Gradiente Z',rmNivelColor(rmCompEstado(eq,'grad_z').nivel),rmCompEstado(eq,'grad_z').detalle),
-    darkRow('Placa General',rmNivelColor(rmCompEstado(eq,'grad_gen').nivel),rmCompEstado(eq,'grad_gen').detalle)
-  ].join('');
+  // ── Panel: Gradientes ──
+  var gradC='';
+  gradC+=_pRow('Placa Gradiente X',rmNivelColor(rmCompEstado(eq,'grad_x').nivel),rmCompEstado(eq,'grad_x').detalle);
+  gradC+=_pRow('Placa Gradiente Y',rmNivelColor(rmCompEstado(eq,'grad_y').nivel),rmCompEstado(eq,'grad_y').detalle);
+  gradC+=_pRow('Placa Gradiente Z',rmNivelColor(rmCompEstado(eq,'grad_z').nivel),rmCompEstado(eq,'grad_z').detalle);
+  gradC+=_pRow('Amplificador General',rmNivelColor(rmCompEstado(eq,'grad_gen').nivel),rmCompEstado(eq,'grad_gen').detalle);
+  h+=_gPanel('⚡','Sistema de Gradientes',gradC);
 
-  var stSala=[
-    darkRow('Compresor Helio',rmNivelColor(rmCompEstado(eq,'compresor').nivel),rmCompEstado(eq,'compresor').detalle),
-    darkRow('Chiller',rmNivelColor(rmCompEstado(eq,'chiller').nivel),rmCompEstado(eq,'chiller').detalle)
-  ].join('');
+  // ── Panel: Sala de Máquinas ──
+  var salaC='';
+  salaC+=_pRow('Compresor Helio',rmNivelColor(rmCompEstado(eq,'compresor').nivel),rmCompEstado(eq,'compresor').detalle);
+  var chillerNivel=rf.chiller==='rotura'?'roto':rf.chiller==='service'?'warn':'ok';
+  var chillerLabel=rf.chiller==='rotura'?'Rotura':rf.chiller==='service'?'En Service':'Operativo';
+  salaC+=_pRow('Chiller',rmNivelColor(chillerNivel),chillerLabel);
+  if(rf.helioGaseoso){
+    var gasOk=rf.helioGaseoso!=='presion_baja';
+    salaC+=_pRow('Helio Gaseoso',gasOk?'#34c759':'#ff9500',gasOk?'Presión OK':'Presión Baja');
+  }
+  h+=_gPanel('🏭','Sala de Máquinas',salaC);
 
-  h+='<div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;">';
-  h+=darkPanel('🧲','Resonador',stRes);
-  h+=darkPanel('🔌','Gradientes',stGrad);
-  h+=darkPanel('🏭','Sala de Máq.',stSala);
-  h+='</div>';
-
-  // ── Shimming control ──
+  // ── Panel: Shimming ──
   var stSh=rmCompEstado(eq,'shimming');var colSh=rmNivelColor(stSh.nivel);
-  h+='<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-left:2px solid '+colSh+';border-radius:12px;padding:12px 14px;margin-bottom:14px;">';
-  h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">'+
-    '<span style="width:8px;height:8px;border-radius:50%;background:'+colSh+';box-shadow:0 0 8px '+colSh+';flex-shrink:0;"></span>'+
-    '<span style="font-size:.76rem;font-weight:700;color:rgba(215,230,255,.9);">Shimming — Homogeneización del campo</span>'+
-    '<span style="margin-left:auto;font-size:.64rem;font-weight:700;color:'+colSh+';">'+esc(stSh.detalle)+'</span>'+
-  '</div>';
-  h+='<div style="display:flex;gap:7px;">';
-  h+='<button onclick="setShimming(\''+eq.id+'\',\'ok\')" style="flex:1;padding:8px;border-radius:8px;font-size:.73rem;font-weight:700;cursor:pointer;'+
-    'border:1px solid '+(rf.shimming!=='falta'?'#34c759':'rgba(255,255,255,.10)')+';'+
-    'background:'+(rf.shimming!=='falta'?'rgba(52,199,89,.15)':'rgba(255,255,255,.04)')+';'+
-    'color:'+(rf.shimming!=='falta'?'#34c759':'rgba(180,200,240,.5)')+';">✅ Homogéneo</button>';
-  h+='<button onclick="setShimming(\''+eq.id+'\',\'falta\')" style="flex:1;padding:8px;border-radius:8px;font-size:.73rem;font-weight:700;cursor:pointer;'+
-    'border:1px solid '+(rf.shimming==='falta'?'#ff9500':'rgba(255,255,255,.10)')+';'+
-    'background:'+(rf.shimming==='falta'?'rgba(255,149,0,.15)':'rgba(255,255,255,.04)')+';'+
-    'color:'+(rf.shimming==='falta'?'#ff9500':'rgba(180,200,240,.5)')+';">⚠️ Falta homog.</button>';
+  h+='<div style="margin:0 14px 10px;background:rgba(32,31,33,.9);border-radius:20px;border:1px solid rgba(255,255,255,.08);border-left:3px solid '+colSh+';box-shadow:inset 0 1px 0 rgba(255,255,255,.1);padding:14px 16px;">';
+  h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">';
+  h+='<div><div style="font-family:Hanken Grotesk,sans-serif;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(145,144,151,.75);">🔬&nbsp;&nbsp;Shimming</div>'+
+    '<div style="font-family:Inter,sans-serif;font-size:12px;color:rgba(145,144,151,.55);margin-top:3px;">Homogeneización del campo B₀</div></div>';
+  h+=_chip(colSh,stSh.detalle);
+  h+='</div>';
+  h+='<div style="display:flex;gap:8px;">';
+  var shOk=rf.shimming!=='falta';
+  h+='<button onclick="setShimming(\''+eq.id+'\',\'ok\')" style="flex:1;padding:10px 8px;border-radius:12px;font-family:Hanken Grotesk,sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;'+
+    'border:1px solid '+(shOk?'#34c75966':'rgba(255,255,255,.1)')+';background:'+(shOk?'rgba(52,199,89,.18)':'rgba(255,255,255,.05)')+';color:'+(shOk?'#34c759':'rgba(195,197,221,.45)')+';">✓ Homogéneo</button>';
+  h+='<button onclick="setShimming(\''+eq.id+'\',\'falta\')" style="flex:1;padding:10px 8px;border-radius:12px;font-family:Hanken Grotesk,sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;'+
+    'border:1px solid '+((!shOk)?'#ff950066':'rgba(255,255,255,.1)')+';background:'+((!shOk)?'rgba(255,149,0,.18)':'rgba(255,255,255,.05)')+';color:'+((!shOk)?'#ff9500':'rgba(195,197,221,.45)')+';">⚠ Falta</button>';
   h+='</div></div>';
 
   // ── Antenas ──
   var ants=antenas.filter(function(a){return(eq.antenaIds||[]).indexOf(a.id)!==-1;});
-  h+='<div style="font-size:.65rem;font-weight:700;color:rgba(140,170,220,.55);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">📡 Antenas ('+ants.length+')</div>';
+  h+='<div style="padding:4px 14px 6px;">';
+  h+='<div style="font-family:JetBrains Mono,monospace;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.1em;color:rgba(145,144,151,.6);margin-bottom:10px;">📡 Antenas ('+ants.length+')</div>';
   if(!ants.length){
-    h+='<div style="color:rgba(140,165,210,.45);font-size:.75rem;padding:4px 0;">Sin antenas vinculadas. <span onclick="goAntenas(\''+eq.id+'\')" style="color:#60a5fa;cursor:pointer;font-weight:600;">Gestionar →</span></div>';
+    h+='<div style="font-family:Inter,sans-serif;font-size:13px;color:rgba(145,144,151,.5);text-align:center;padding:14px 0;">Sin antenas vinculadas. <span onclick="goAntenas(\''+eq.id+'\')" style="color:#adc6ff;cursor:pointer;text-decoration:underline;font-weight:500;">Gestionar →</span></div>';
   } else {
-    h+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;">';
+    h+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:8px;">';
     ants.forEach(function(a){
       var rotAct=(a.roturas||[]).filter(function(r){return r.estado!=='reparado';}).length;
       var nivel=a.estado==='fuera_servicio'?'roto':(a.estado==='con_fallas'||rotAct>0)?'warn':'ok';
-      var col=rmNivelColor(nivel);
-      h+='<div onclick="goAntenaDetalle(\''+a.id+'\',\''+eq.id+'\')" style="cursor:pointer;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.09);border-left:2px solid '+col+';border-radius:10px;padding:9px 11px;transition:background .12s;" onmousedown="this.style.background=\'rgba(255,255,255,.08)\'" onmouseup="this.style.background=\'rgba(255,255,255,.045)\'">'+
-        '<div style="display:flex;align-items:center;gap:7px;">'+
-          '<span style="width:7px;height:7px;border-radius:50%;background:'+col+';box-shadow:0 0 7px '+col+';flex-shrink:0;"></span>'+
-          '<div style="flex:1;min-width:0;">'+
-            '<div style="font-size:.74rem;font-weight:600;color:rgba(215,230,255,.88);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+esc(a.nombre)+'</div>'+
-            '<div style="font-size:.61rem;color:'+col+';margin-top:1px;">'+(rotAct>0?rotAct+' falla'+(rotAct>1?'s':''):'Operativa')+(a.cantidadCanales?' · '+a.cantidadCanales+'ch':'')+'</div>'+
-          '</div>'+
+      var col=rmNivelColor(nivel);var rr=_hexToRgb(col);
+      h+='<div onclick="goAntenaDetalle(\''+a.id+'\',\''+eq.id+'\')" style="cursor:pointer;background:rgba(28,27,29,.95);border:1px solid rgba(255,255,255,.08);border-top:2px solid '+col+';border-radius:14px;padding:11px 12px;transition:background .12s;" onmousedown="this.style.background=\'rgba(42,42,43,.95)\'" onmouseup="this.style.background=\'rgba(28,27,29,.95)\'">'+
+        '<div style="font-family:Hanken Grotesk,sans-serif;font-size:12px;font-weight:600;color:rgba(229,225,227,.9);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:6px;">'+esc(a.nombre)+'</div>'+
+        '<div style="display:flex;align-items:center;justify-content:space-between;">'+
+          '<span style="padding:2px 8px;border-radius:999px;font-family:JetBrains Mono,monospace;font-size:10px;background:rgba('+rr+',.15);color:'+col+';">'+(rotAct>0?rotAct+' falla'+(rotAct>1?'s':''):'OK')+'</span>'+
+          (a.cantidadCanales?'<span style="font-family:JetBrains Mono,monospace;font-size:10px;color:rgba(145,144,151,.6);">'+a.cantidadCanales+'ch</span>':'')+
         '</div>'+
       '</div>';
     });
     h+='</div>';
   }
-  h+='</div>'; // close dark wrapper
+  h+='</div>';
+
+  h+='</div>'; // close #rm-ds wrapper
   return h;
 }
 function _hexToRgb(hex){hex=hex.replace('#','');if(hex.length===3)hex=hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];var r=parseInt(hex.substring(0,2),16),g=parseInt(hex.substring(2,4),16),b=parseInt(hex.substring(4,6),16);return r+','+g+','+b;}
@@ -6955,8 +6993,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.4.4";
-var APP_BUILD="08/06/26 19:00";
+var APP_DISPLAY_VERSION="5.4.5";
+var APP_BUILD="08/06/26 22:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
