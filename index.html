@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.08.022 -->
+<!-- v2026.06.08.023 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.08.022">
+<meta name="app-version" content="v2026.06.08.023">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3964,14 +3964,6 @@ function rmSceneSVG(eq){
     return r;
   }
 
-  // ── LABEL CARDS ──
-  s+=lcard(8,10,152,'ColdHead',dHead,cHead,eqMarca||null);
-  s+=lcard(8,115,143,'Shimming',dSh,cSh,null);
-  s+=lcard(8,215,155,'Helio Líquido',heStr,cTank,gasStr);
-  s+=lcard(450,10,180,'Compresor Helio',dComp,cComp,dChil!=='Operativo'?'Chiller: '+dChil:'Chiller: '+dChil);
-  s+=lcard(450,115,178,'Gabinete Gradientes',dGrad,cGrad,'X · Y · Z · GEN');
-  s+=lcard(390,248,145,'Camilla',dCam,cCam,null);
-
   s+='</svg>';
   return s;
 }
@@ -7003,8 +6995,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.4.7";
-var APP_BUILD="09/06/26 00:30";
+var APP_DISPLAY_VERSION="5.4.8";
+var APP_BUILD="09/06/26 01:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
