@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.08.023 -->
+<!-- v2026.06.08.024 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.08.023">
+<meta name="app-version" content="v2026.06.08.024">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3666,6 +3666,17 @@ function rEstadoRM(){
       content+
     '</div>';
   }
+  function _fc(lbl,val,col,right){
+    var dot='<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:'+col+';box-shadow:0 0 5px '+col+';flex-shrink:0;"></span>';
+    return '<div style="background:rgba(10,11,20,.85);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:5px 9px;">'+
+      '<div style="display:flex;align-items:center;gap:5px;'+(right?'flex-direction:row-reverse;':'')+'">'+(right?'':dot)+
+      '<div style="'+(right?'text-align:right;':'')+'">'+
+        '<div style="font-family:JetBrains Mono,monospace;font-size:9px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;color:rgba(145,144,151,.75);">'+lbl+'</div>'+
+        '<div style="font-family:JetBrains Mono,monospace;font-size:10.5px;font-weight:500;color:'+col+';">'+val+'</div>'+
+      '</div>'+(right?dot:'')+
+      '</div>'+
+    '</div>';
+  }
 
   // Wrapper
   h+='<div id="rm-ds" style="background:#06091a;border-radius:24px;overflow:hidden;margin:-2px;padding-bottom:6px;">';
@@ -3698,10 +3709,29 @@ function rEstadoRM(){
   });
   h+='</div>';
 
-  // SVG centerpiece — sin tarjetas flotantes encima
-  h+='<div style="margin:0 14px 12px;border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,.07);position:relative;background:#06091a;">'+
-    '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:220px;height:220px;background:radial-gradient(circle,rgba(173,198,255,.07) 0%,transparent 70%);border-radius:50%;pointer-events:none;z-index:1;"></div>'+
-    '<div id="rm3d-container" style="width:100%;height:260px;position:relative;z-index:0;"></div>'+
+  // Centerpiece: imagen real + 6 cards flotantes (diseño Stitch)
+  var stHead2=rmCompEstado(eq,'coldhead');var colH2=rmNivelColor(stHead2.nivel);var lblH2=stHead2.detalle||'Operativo';
+  var stCam2=rmCompEstado(eq,'camilla');var colCa2=rmNivelColor(stCam2.nivel);var lblCa2=stCam2.detalle||'Operativo';
+  var stComp2=rmCompEstado(eq,'compresor');var colCo2=rmNivelColor(stComp2.nivel);var lblCo2=stComp2.detalle||'Operativo';
+  var stShi2=rmCompEstado(eq,'shimming');var colShi2=rmNivelColor(stShi2.nivel);var lblShi2=stShi2.detalle||'Homógeneo';
+  var colHe2=rmNivelColor(rmCompEstado(eq,'tanque_helio').nivel);
+  var pcCtr=pc!==null?Math.round(pc):null;
+  var lblHe2=(pcCtr!==null?pcCtr+'%':'—')+(rf.helioLiqPresion?' · '+rf.helioLiqPresion+'psi':'');
+  var gArrC2=[rmNivelColor(rmCompEstado(eq,'grad_x').nivel),rmNivelColor(rmCompEstado(eq,'grad_y').nivel),rmNivelColor(rmCompEstado(eq,'grad_z').nivel),rmNivelColor(rmCompEstado(eq,'grad_gen').nivel)];
+  var colG2=gArrC2.indexOf('#ff3b30')>=0?'#ff3b30':gArrC2.indexOf('#ff9500')>=0?'#ff9500':'#34c759';
+  var nGF2=gArrC2.filter(function(c){return c!=='#34c759';}).length;
+  var lblG2=nGF2===0?'X · Y · Z · GEN':nGF2+' placa'+(nGF2>1?'s':'')+' c/falla';
+  h+='<div style="margin:0 14px 12px;border-radius:18px;border:1px solid rgba(255,255,255,.07);position:relative;background:#06091a;height:290px;">'+
+    '<div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 55%,rgba(5,102,217,.06) 0%,transparent 65%);pointer-events:none;z-index:0;border-radius:18px;"></div>'+
+    '<img alt="MRI Scanner" src="https://lh3.googleusercontent.com/aida/AP1WRLvTPoMeFcaxs2rxrZE0Zbaz3JYN7bJqBNtZJiTv2NJIV1At2DPlaervx4S015HntE7vKWMt5ONyHTinKQnL1OJTIZUD_Ys5JBAcWPoJNpxJpJ4XPikFpHEoQDNSKCS6DZMGp7vHDB1UrqWBpJJRsD7Oks3XpLFB-DP2P6qRUAVHMEFNtTeKItTmnc9Pe7vHGchTuefEwTGWWCE0w5ZYne3-_FSI7wQPtE6bkzP4P9ivwfMuLLesmH6MxtE" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:70%;height:auto;object-fit:contain;z-index:1;filter:drop-shadow(0 6px 28px rgba(0,0,0,.75));"/>'+
+    '<div style="position:absolute;inset:0;z-index:2;pointer-events:none;">'+
+      '<div style="position:absolute;top:14px;left:10px;">'+_fc('ColdHead',lblH2,colH2,false)+'</div>'+
+      '<div style="position:absolute;top:calc(45% - 18px);left:8px;">'+_fc('Shimming',lblShi2,colShi2,false)+'</div>'+
+      '<div style="position:absolute;bottom:14px;left:10px;">'+_fc('Helio Líq',lblHe2,colHe2,false)+'</div>'+
+      '<div style="position:absolute;top:14px;right:10px;">'+_fc('Compresor',lblCo2,colCo2,true)+'</div>'+
+      '<div style="position:absolute;top:calc(45% - 18px);right:8px;">'+_fc('Gabinete',lblG2,colG2,true)+'</div>'+
+      '<div style="position:absolute;bottom:14px;right:10px;">'+_fc('Camilla',lblCa2,colCa2,true)+'</div>'+
+    '</div>'+
   '</div>';
 
   // Panel 1: Resonador — barra Helio + dots ColdHead/Camilla/Conectores
@@ -6995,8 +7025,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.4.8";
-var APP_BUILD="09/06/26 01:00";
+var APP_DISPLAY_VERSION="5.4.9";
+var APP_BUILD="09/06/26 01:30";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
