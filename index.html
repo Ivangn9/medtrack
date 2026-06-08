@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.08.011 -->
+<!-- v2026.06.08.012 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.08.011">
+<meta name="app-version" content="v2026.06.08.012">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -51,7 +51,7 @@
   --r-sm:14px; --r-md:18px; --r-lg:24px; --r-xl:30px; --r-pill:50px;
   --accent:#0071e3; --accent2:#0058b0;
   --red:#ff3b30; --orange:#ff9500; --green:#34c759; --purple:#af52de;
-  --bg:#b0c8e0;
+  --bg:#8ab4d8;
   --text:#1c1c1e; --text2:#3a3a3c; --text3:#8e8e93;
   --sep:rgba(60,60,67,.08);
   --spring:cubic-bezier(0.34,1.56,0.64,1);
@@ -75,12 +75,12 @@ body{
 body::before{
   content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
   background:
-    radial-gradient(ellipse 95% 75% at 10% 15%,rgba(100,165,255,.70) 0%,transparent 56%),
-    radial-gradient(ellipse 70% 85% at 88% 6%,rgba(80,190,245,.60) 0%,transparent 50%),
-    radial-gradient(ellipse 80% 60% at 50% 90%,rgba(70,210,235,.65) 0%,transparent 56%),
-    radial-gradient(ellipse 60% 70% at 94% 68%,rgba(120,245,205,.55) 0%,transparent 50%),
-    radial-gradient(ellipse 65% 55% at 30% 52%,rgba(160,140,255,.38) 0%,transparent 52%),
-    linear-gradient(160deg,#baccec 0%,#b8cfe8 35%,#b4d4ee 65%,#b8cfe8 100%);
+    radial-gradient(ellipse 95% 75% at 10% 15%,rgba(80,140,255,.88) 0%,transparent 56%),
+    radial-gradient(ellipse 70% 85% at 88% 6%,rgba(60,180,255,.80) 0%,transparent 50%),
+    radial-gradient(ellipse 80% 60% at 50% 90%,rgba(50,200,230,.82) 0%,transparent 56%),
+    radial-gradient(ellipse 60% 70% at 94% 68%,rgba(100,230,180,.72) 0%,transparent 50%),
+    radial-gradient(ellipse 65% 55% at 30% 52%,rgba(140,110,255,.55) 0%,transparent 52%),
+    linear-gradient(160deg,#7aaced 0%,#6eb0e8 35%,#6abce8 65%,#72b4e8 100%);
   animation:bgShift 26s ease-in-out infinite alternate;}
 /* Second blob layer: contrasting warm+violet tones */
 body::after{
@@ -529,7 +529,8 @@ textarea.inp{resize:vertical;}
     animation-iteration-count:1!important;
     transition-duration:.01ms!important;
     scroll-behavior:auto!important;}
-  body::before,body::after{animation:none!important;}
+  body::before{animation:none!important;filter:hue-rotate(7deg) brightness(1.03) saturate(1.14);}
+  body::after{animation:none!important;opacity:.72;filter:hue-rotate(-6deg) brightness(1.02) saturate(1.08);}
   .gc,.gc.tap,#bb-inner,#header-inner,#sidebar,.sb-nav-btn{transition:none!important;}
   [data-aos]{opacity:1!important;transform:none!important;transition:none!important;}
 }
@@ -784,11 +785,9 @@ body.dark .sb-card{background:rgba(255,255,255,.06);border-color:rgba(255,255,25
 .sb-lbl{font-size:.58rem;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);font-weight:600;margin-bottom:6px;}
 .sb-val{font-size:1.5rem;font-weight:800;line-height:1;}
 </style>
-<!-- Animation libraries -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+<!-- AOS animate-on-scroll -->
 <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js" onerror="document.head.insertAdjacentHTML('beforeend','<style>[data-aos]{opacity:1!important;transform:none!important;transition:none!important;}</style>')"></script>
 </head>
 <body>
 <!-- LIQUID GLASS SVG FILTERS -->
@@ -2688,7 +2687,7 @@ function render(){
     m.appendChild(d);
     var spacer=document.createElement("div");spacer.style.height="80px";spacer.style.flexShrink="0";m.appendChild(spacer);
     if(view==="estadorm")setTimeout(mountRM3D,30);
-    if(typeof AOS!=="undefined")setTimeout(function(){AOS.refresh();},30);
+    if(typeof AOS!=="undefined")requestAnimationFrame(function(){requestAnimationFrame(function(){AOS.refresh();});});
   }catch(err){
     var m=document.getElementById("main");
     if(m)m.innerHTML='<div style="padding:20px;color:var(--red);font-size:.85rem;">Error: '+err.message+'</div>';
@@ -2706,7 +2705,7 @@ function rDash(){
   
   var h='<div class="g3" style="margin-bottom:16px;">';
   [{l:"Total",v:activeEqs.length,c:"var(--accent)",k:"total"},{l:"Operativos",v:opOK,c:"var(--green)",k:"operativo"},{l:"F. de servicio",v:opF,c:"var(--red)",k:"fuera"},{l:"Mant. Urg.",v:mU,c:"var(--red)",k:"manturg"},{l:"Fallas/Roturas",v:rot,c:"var(--red)",k:"rotos"},{l:"Pendientes",v:pend,c:"var(--orange)",k:"pendientes"}].forEach(function(s,si){
-    h+='<div class="gc stat tap" data-aos="fade-up" data-aos-delay="'+(si*55)+'" onclick="applyDashFilter(\''+s.k+'\')" style="cursor:pointer;border-bottom:3px solid '+s.c+'40;transition:transform .18s,box-shadow .18s;">'+
+    h+='<div class="gc stat tap" data-aos="fade-up" data-aos-delay="'+Math.min(si*55,300)+'" onclick="applyDashFilter(\''+s.k+'\')" style="cursor:pointer;border-bottom:3px solid '+s.c+'40;transition:transform .18s,box-shadow .18s;">'+
       '<div class="stat-lbl">'+s.l+'</div>'+
       '<div class="stat-val" style="color:'+s.c+';">'+s.v+'</div>'+
       '<div style="font-size:.58rem;color:var(--text3);margin-top:6px;font-weight:500;">Ver lista →</div>'+
@@ -2722,7 +2721,7 @@ function rDash(){
     var statusColor=fuera?"#ff3b30":urg?"#ff9500":"#34c759";
     var statusLabel=fuera?'🚫 '+fuera+' fuera de servicio':urg?'⚠️ '+urg+' urgente'+(urg!==1?'s':''):'✅ Operativos';
     var iconSvg=catSvgIcon(cat.id,192)||'';
-    h+='<div class="gc tap" data-aos="zoom-in" data-aos-delay="'+(_catIdx++*60)+'" onclick="filtCat=\''+cat.id+'\';setView(\'lista\');" style="padding:0;overflow:hidden;cursor:pointer;border:1.5px solid '+cat.color+'40;min-height:130px;">'+
+    h+='<div class="gc tap" data-aos="zoom-in" data-aos-delay="'+Math.min(_catIdx++*60,360)+'" onclick="filtCat=\''+cat.id+'\';setView(\'lista\');" style="padding:0;overflow:hidden;cursor:pointer;border:1.5px solid '+cat.color+'40;min-height:130px;">'+
       '<div style="height:3px;background:linear-gradient(90deg,'+cat.color+','+cat.color+'55);border-radius:0;"></div>'+
       '<div style="padding:16px 14px 14px;display:flex;flex-direction:column;justify-content:space-between;height:calc(100% - 3px);position:relative;overflow:hidden;">'+
         /* big icon flush right, decorative */
@@ -2910,7 +2909,7 @@ function rLista(){
       var e=r.eq;var ms=semafo(e);var d=diasH(e.proximoMant);var rot=e.partes.filter(function(p){return p.estado==="roto";}).length;
       var rfChipS='';if(e.cat==='RM'){var _rf2=_refrigData(e);var _rp2=_rf2.helioLiqPorcentaje;var _rs2=_rf2.helioLiqPresion;if(_rp2||_rs2){rfChipS='<div style="display:flex;gap:6px;margin-top:5px;align-items:center;">'+(_rp2?'<span style="font-size:.65rem;font-weight:700;color:#0891b2;background:rgba(8,145,178,.10);border:1px solid rgba(8,145,178,.22);border-radius:20px;padding:2px 7px;">❄️ '+esc(_rp2)+'%</span>':'')+(_rs2?'<span style="font-size:.65rem;font-weight:700;color:#0891b2;background:rgba(8,145,178,.10);border:1px solid rgba(8,145,178,.22);border-radius:20px;padding:2px 7px;">📊 '+esc(_rs2)+' psi</span>':'')+'</div>';}}
       var _liSubSR=[];if(e.ubicacion)_liSubSR.push('📍 '+esc(e.ubicacion));if(e.consultorio)_liSubSR.push('🏥 Cons. '+esc(e.consultorio));if(e.serie)_liSubSR.push('SID: '+esc(e.serie));
-      h+='<div class="gc li-eq tap" data-aos="fade-up" data-aos-delay="'+(ri*45)+'" onclick="goDetalle(\''+e.id+'\')" style="border-left-color:'+(CE[e.estado]||"var(--green)")+';"><div style="display:flex;align-items:center;gap:16px;">'+
+      h+='<div class="gc li-eq tap" data-aos="fade-up" data-aos-delay="'+Math.min(ri*45,450)+'" onclick="goDetalle(\''+e.id+'\')" style="border-left-color:'+(CE[e.estado]||"var(--green)")+';"><div style="display:flex;align-items:center;gap:16px;">'+
         '<div class="li-icon">'+iconFor(e,58)+'</div>'+
         '<div style="flex:1;min-width:0;">'+
         '<div class="li-name">'+esc(e.nombre)+'</div>'+
@@ -2944,7 +2943,7 @@ function rLista(){
     var ms=semafo(e);var d=diasH(e.proximoMant);var rot=e.partes.filter(function(p){return p.estado==="roto";}).length;
     var rfChip='';if(e.cat==='RM'){var _rf=_refrigData(e);var _rp=_rf.helioLiqPorcentaje;var _rs=_rf.helioLiqPresion;if(_rp||_rs){rfChip='<div style="display:flex;gap:6px;margin-top:5px;align-items:center;">'+(_rp?'<span style="font-size:.65rem;font-weight:700;color:#0891b2;background:rgba(8,145,178,.10);border:1px solid rgba(8,145,178,.22);border-radius:20px;padding:2px 7px;">❄️ '+esc(_rp)+'%</span>':'')+(_rs?'<span style="font-size:.65rem;font-weight:700;color:#0891b2;background:rgba(8,145,178,.10);border:1px solid rgba(8,145,178,.22);border-radius:20px;padding:2px 7px;">📊 '+esc(_rs)+' psi</span>':'')+'</div>';}}
     var _liSubParts=[];if(e.ubicacion)_liSubParts.push('📍 '+esc(e.ubicacion));if(e.consultorio)_liSubParts.push('🏥 Cons. '+esc(e.consultorio));if(e.serie)_liSubParts.push('SID: '+esc(e.serie));
-    h+='<div class="gc li-eq tap" data-aos="fade-up" data-aos-delay="'+(li*45)+'" onclick="goDetalle(\''+e.id+'\')" style="border-left-color:'+(CE[e.estado]||"var(--green)")+';"><div style="display:flex;align-items:center;gap:16px;">'+
+    h+='<div class="gc li-eq tap" data-aos="fade-up" data-aos-delay="'+Math.min(li*45,450)+'" onclick="goDetalle(\''+e.id+'\')" style="border-left-color:'+(CE[e.estado]||"var(--green)")+';"><div style="display:flex;align-items:center;gap:16px;">'+
       '<div class="li-icon">'+iconFor(e,58)+'</div>'+
       '<div style="flex:1;min-width:0;">'+
       '<div class="li-name">'+esc(e.nombre)+'</div>'+
@@ -6879,8 +6878,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.3.6";
-var APP_BUILD="08/06/26 20:00";
+var APP_DISPLAY_VERSION="5.3.7";
+var APP_BUILD="08/06/26 21:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
@@ -7075,7 +7074,7 @@ function init(){
       {id:"DEMO-02",cat:"TC",nombre:"TC Siemens Somatom Go.Up",ubicacion:"Sala TC - PB",instalacion:"2019-06-01",serie:"TC-98210",tecnico:"Ing. García",contrato:"Siemens",marca:"Siemens",estado:"operativo",frecuencia:"trimestral",ultimoMant:"2026-03-05",proximoMant:"2026-06-05",notas:"64 cortes. Sin observaciones.",garantia:false,garantiaHasta:"",tieneServicio:true,partes:[],historialMant:[{id:"HM-2",fecha:"2026-03-05",tipo:"mantenimiento",tecnico:"Ing. García",notas:"Verificación kV, calibración detectores.",registradoEn:"2026-03-05"}]},
       {id:"DEMO-03",cat:"ECO",nombre:"Ecógrafo GE Logiq E10",ubicacion:"Consultorio 3",instalacion:"2022-08-10",serie:"EC-77421",tecnico:"Ing. López",contrato:"GE Healthcare",marca:"GE",estado:"operativo",frecuencia:"semestral",ultimoMant:"2025-11-20",proximoMant:"2026-05-20",notas:"4 transductores en uso. Calibración correcta.",garantia:false,garantiaHasta:"",tieneServicio:true,partes:[],historialMant:[]},
       {id:"DEMO-04",cat:"RX",nombre:"RX Carestream DRX-Evolution",ubicacion:"Sala RX 1 - PB",instalacion:"2021-02-28",serie:"RX-34812",tecnico:"Ing. Pérez",contrato:"Carestream",marca:"Carestream",estado:"operativo",frecuencia:"anual",ultimoMant:"2025-09-14",proximoMant:"2026-09-14",notas:"Control de dosis OK.",garantia:false,garantiaHasta:"",tieneServicio:false,partes:[],historialMant:[]},
-      {id:"DEMO-05",cat:"ECO",nombre:"Ecógrafo Mindray Resona 7",ubicacion:"Consultorio 8",instalacion:"2023-01-15",serie:"EC-88120",tecnico:"Ing. López",contrato:"Mindray",marca:"Mindray",estado:"en_servicio",frecuencia:"semestral",ultimoMant:"2026-01-10",proximoMant:"2026-07-10",notas:"En reparación display.",garantia:true,garantiaHasta:"2026-12-31",tieneServicio:true,partes:[{id:"P2",nombre:"Display 24\"",estado:"roto",marca:"Mindray",nroSerie:"",notas:"Pantalla con rayas horizontales",precio:"",fechaRotura:"2026-05-20",fechaArreglo:"",archivos:[]}],historialMant:[]},
+      {id:"DEMO-05",cat:"ECO",nombre:"Ecógrafo Mindray Resona 7",ubicacion:"Consultorio 8",instalacion:"2023-01-15",serie:"EC-88120",tecnico:"Ing. López",contrato:"Mindray",marca:"Mindray",estado:"con-fallas",frecuencia:"semestral",ultimoMant:"2026-01-10",proximoMant:"2026-07-10",notas:"En reparación display.",garantia:true,garantiaHasta:"2026-12-31",tieneServicio:true,partes:[{id:"P2",nombre:"Display 24\"",estado:"roto",marca:"Mindray",nroSerie:"",notas:"Pantalla con rayas horizontales",precio:"",fechaRotura:"2026-05-20",fechaArreglo:"",archivos:[]}],historialMant:[]},
       {id:"DEMO-06",cat:"UPS",nombre:"UPS APC Galaxy 5500 - 80kVA",ubicacion:"UPS Sala de Servidores",instalacion:"2020-11-01",serie:"UPS-11290",tecnico:"Ing. Ramos",contrato:"APC",marca:"APC",estado:"operativo",frecuencia:"semestral",ultimoMant:"2026-02-28",proximoMant:"2026-08-28",notas:"Baterías reemplazadas en 2024.",garantia:false,garantiaHasta:"",tieneServicio:true,partes:[],historialMant:[]}
     ];
     antenas=[];aires=[];transductores=[];
@@ -7220,7 +7219,7 @@ function init(){
 })();
 
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
-if(typeof AOS!=="undefined")AOS.init({duration:420,easing:"ease-out-cubic",once:true,offset:40});
+if(typeof AOS!=="undefined")AOS.init({duration:420,easing:"ease-out",once:false,offset:20});
 function sbGlassDonut(ok,fuera,total){
   var s=148,r=50,cx=74,cy=74,sw=14,circ=2*Math.PI*r;
   var t=total||1;
