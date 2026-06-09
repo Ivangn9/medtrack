@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.09.038 --><html lang="es"><head>
+<!-- v2026.06.09.039 --><html lang="es"><head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -33,7 +33,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.09.038"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache">
+<meta name="app-version" content="v2026.06.09.039"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <style>
 :root{
@@ -3088,6 +3088,8 @@ function rUpsSchema(){
     '@keyframes upsGlow{0%,100%{box-shadow:0 0 6px #f59e0b66,0 0 14px #f59e0b33}50%{box-shadow:0 0 12px #f59e0baa,0 0 28px #f59e0b55}}'+
     '@keyframes flowH{0%{background-position:0 0}100%{background-position:24px 0}}'+
     '@keyframes flowV{0%{background-position:0 0}100%{background-position:0 24px}}'+
+    '@keyframes upsEqIn{0%,100%{box-shadow:0 3px 14px rgba(0,0,0,.40),inset 0 1px 0 rgba(255,255,255,.07)}50%{box-shadow:0 3px 18px rgba(0,0,0,.45),0 0 10px rgba(255,255,255,.03),inset 0 1px 0 rgba(255,255,255,.10)}}'+
+    '@keyframes railSpark{0%,100%{opacity:.75}40%{opacity:1}60%{opacity:.4}}'+
     '.ups-flow-v{background:repeating-linear-gradient(to bottom,#f59e0b 0,#f59e0b 7px,transparent 7px,transparent 14px);background-size:3px 14px;animation:flowV .55s linear infinite;}'+
     '.ups-flow-h{background:repeating-linear-gradient(to right,#f59e0b 0,#f59e0b 7px,transparent 7px,transparent 14px);background-size:14px 3px;animation:flowH .55s linear infinite;}'+
     '.ups-eq-card{transition:transform .15s,box-shadow .15s;}'+
@@ -3166,46 +3168,49 @@ function rUpsSchema(){
       return;
     }
 
-    // ── Equipment section: indented with amber rail ──
-    h+='<div style="margin:4px 0 0 24px;padding-left:18px;border-left:2px solid rgba(245,158,11,'+(isActive?'.30':'.14')+');">';
-    h+='<div style="height:8px;"></div>';
-
-    // Grid — horizontal cards, minmax fills width cleanly
-    h+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:7px;">';
+    // ── Equipment section: animated electric rail + solid cards ──
+    h+='<div style="display:flex;align-items:stretch;gap:0;margin:4px 0 0 24px;">'+
+      // Rail eléctrico animado (ups-flow-v = dashes fluyendo)
+      '<div style="flex-shrink:0;width:16px;display:flex;flex-direction:column;align-items:center;padding-top:2px;">'+
+        '<div class="ups-flow-v" style="width:3px;flex:1;min-height:40px;border-radius:2px;opacity:'+(isActive?'.85':'.30')+';'+(isActive?'animation:flowV .45s linear infinite,railSpark 2.1s ease-in-out infinite;':'')+'"></div>'+
+      '</div>'+
+      // Grid de equipos
+      '<div style="flex:1;min-width:0;padding:8px 0 4px 4px;">'+
+        '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:7px;">';
     upsEqs.forEach(function(e){
       var estColor=CE[e.estado]||'#30d158';
       var cat=catById(e.cat);
       var eqInfo=e.consultorio?'Consultorio '+e.consultorio:(e.ubicacion?e.ubicacion:cat.label);
       var isOp=e.estado==='operativo';
+      // "Chispa" lateral: dot pulsante en el borde izquierdo cuando activo
+      var sparkDot=isOp&&isActive
+        ?'<div style="position:absolute;left:-2px;top:50%;transform:translateY(-50%);width:8px;height:8px;border-radius:50%;background:'+cat.color+';box-shadow:0 0 8px '+cat.color+',0 0 14px '+cat.color+'88;animation:upsPulse 1.4s ease-in-out infinite;"></div>'
+        :'';
       h+='<div onclick="goDetalle(\''+e.id+'\')" style="'+
-        'display:flex;align-items:center;gap:10px;'+
-        'padding:11px 12px 11px 10px;'+
+        'position:relative;display:flex;align-items:center;gap:11px;'+
+        'padding:12px 13px 12px 14px;'+
         'border-radius:14px;cursor:pointer;'+
-        'background:rgba(255,255,255,.04);'+
-        'border:1px solid rgba(255,255,255,.07);'+
-        'border-left:3px solid '+cat.color+';'+
-        'box-shadow:0 2px 10px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.05);'+
-        (isOp&&isActive?'box-shadow:0 2px 10px rgba(0,0,0,.28),0 0 0 1px '+cat.color+'18,inset 0 1px 0 rgba(255,255,255,.05);':'')+
+        'background:rgba(38,36,42,.97);'+
+        'border:1px solid rgba(255,255,255,.10);'+
+        'border-left:3px solid '+cat.color+(isOp&&isActive?'':'88')+';'+
+        'box-shadow:0 3px 14px rgba(0,0,0,.40),inset 0 1px 0 rgba(255,255,255,.07);'+
+        (isOp&&isActive?'animation:upsEqIn 2.8s ease-in-out infinite;':'')+
       '">'+
-        // Icon
-        '<div style="flex-shrink:0;width:42px;height:42px;'+
-          'filter:drop-shadow(0 1px 5px '+cat.color+'55);'+
-          (isOp&&isActive?'animation:upsPulse 3.5s ease-in-out infinite;':'')+
-        '">'+catSvgIcon(e.cat,42)+'</div>'+
-        // Text block
+        sparkDot+
+        '<div style="flex-shrink:0;width:44px;height:44px;filter:drop-shadow(0 1px 6px '+cat.color+'60);'+(isOp&&isActive?'animation:upsPulse 3.5s ease-in-out infinite;':'')+'">'+catSvgIcon(e.cat,44)+'</div>'+
         '<div style="flex:1;min-width:0;">'+
-          '<div style="font-size:.76rem;font-weight:700;color:rgba(255,255,255,.90);line-height:1.28;margin-bottom:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;max-height:2.56em;">'+esc(e.nombre)+'</div>'+
-          '<div style="font-size:.65rem;color:rgba(255,255,255,.35);margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+esc(eqInfo)+'</div>'+
-          '<span style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:50px;font-size:.63rem;font-weight:600;background:'+estColor+'18;color:'+estColor+';">'+
-            '<span style="width:5px;height:5px;border-radius:50%;background:'+estColor+';flex-shrink:0;'+(isOp&&isActive?'animation:upsPulse 1.8s ease-in-out infinite;':'')+'box-shadow:0 0 5px '+estColor+';display:inline-block;"></span>'+
+          '<div style="font-size:.77rem;font-weight:700;color:rgba(255,255,255,.93);line-height:1.28;margin-bottom:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;max-height:2.56em;">'+esc(e.nombre)+'</div>'+
+          '<div style="font-size:.65rem;color:rgba(255,255,255,.40);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+esc(eqInfo)+'</div>'+
+          '<span style="display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:50px;font-size:.64rem;font-weight:600;background:'+estColor+'20;color:'+estColor+';">'+
+            '<span style="width:5px;height:5px;border-radius:50%;background:'+estColor+';flex-shrink:0;'+(isOp&&isActive?'animation:upsPulse 1.6s ease-in-out infinite;':'')+'box-shadow:0 0 6px '+estColor+';display:inline-block;"></span>'+
             (e.estado==='operativo'?'Operativo':e.estado==='fuera-de-servicio'?'Fuera de servicio':'Fallas')+
           '</span>'+
         '</div>'+
       '</div>';
     });
     h+='</div>'; // grid
-    h+='<div style="height:4px;"></div>';
-    h+='</div>'; // rail section
+    h+='</div>'; // inner
+    h+='</div>'; // rail+grid flex
     h+='</div>'; // UPS block
   });
 
@@ -3223,19 +3228,20 @@ function rUpsSchema(){
       var cat=catById(e.cat);
       var info=e.consultorio?'Consultorio '+e.consultorio:(e.ubicacion?e.ubicacion:cat.label);
       h+='<div onclick="goDetalle(\''+e.id+'\')" style="'+
-        'display:flex;align-items:center;gap:10px;'+
-        'padding:11px 12px 11px 10px;'+
-        'border-radius:14px;cursor:pointer;opacity:.55;'+
-        'background:rgba(255,255,255,.025);'+
-        'border:1px solid rgba(255,255,255,.05);'+
-        'border-left:3px dashed rgba(255,255,255,.14);'+
+        'display:flex;align-items:center;gap:11px;'+
+        'padding:12px 13px 12px 14px;'+
+        'border-radius:14px;cursor:pointer;'+
+        'background:rgba(34,32,38,.90);'+
+        'border:1px solid rgba(255,255,255,.08);'+
+        'border-left:3px dashed rgba(142,142,147,.40);'+
+        'box-shadow:0 2px 10px rgba(0,0,0,.30),inset 0 1px 0 rgba(255,255,255,.05);'+
       '">'+
-        '<div style="flex-shrink:0;width:40px;height:40px;opacity:.6;">'+catSvgIcon(e.cat,40)+'</div>'+
+        '<div style="flex-shrink:0;width:42px;height:42px;opacity:.55;filter:grayscale(.4);">'+catSvgIcon(e.cat,42)+'</div>'+
         '<div style="flex:1;min-width:0;">'+
-          '<div style="font-size:.76rem;font-weight:700;color:rgba(255,255,255,.75);line-height:1.28;margin-bottom:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">'+esc(e.nombre)+'</div>'+
-          '<div style="font-size:.65rem;color:rgba(255,255,255,.28);margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+esc(info)+'</div>'+
-          '<span style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:50px;font-size:.63rem;font-weight:600;background:'+estColor+'14;color:'+estColor+';">'+
-            '<span style="width:4px;height:4px;border-radius:50%;background:'+estColor+';display:inline-block;flex-shrink:0;"></span>'+
+          '<div style="font-size:.77rem;font-weight:700;color:rgba(255,255,255,.60);line-height:1.28;margin-bottom:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">'+esc(e.nombre)+'</div>'+
+          '<div style="font-size:.65rem;color:rgba(255,255,255,.28);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+esc(info)+'</div>'+
+          '<span style="display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:50px;font-size:.64rem;font-weight:600;background:'+estColor+'14;color:'+estColor+'80;">'+
+            '<span style="width:4px;height:4px;border-radius:50%;background:'+estColor+';display:inline-block;flex-shrink:0;opacity:.6;"></span>'+
             (e.estado==='operativo'?'OK':e.estado==='fuera-de-servicio'?'F.S.':'Fallas')+
           '</span>'+
         '</div>'+
@@ -7327,8 +7333,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.6.4";
-var APP_BUILD="09/06/26 23:20";window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};function doUpdate(){
+var APP_DISPLAY_VERSION="5.6.5";
+var APP_BUILD="09/06/26 23:55";window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
     window.location.href=window.location.href.split('?')[0].split('#')[0]+'?v='+Date.now();
