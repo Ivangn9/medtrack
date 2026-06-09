@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.09.032 -->
+<!-- v2026.06.09.033 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.09.032">
+<meta name="app-version" content="v2026.06.09.033">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3770,10 +3770,10 @@ function rEstadoRM(){
 
   // Imagen MRI
   h+='<div style="background:rgba(12,14,23,.5);border:1px solid rgba(132,149,129,.1);border-bottom:2px solid rgba(0,229,91,.3);'+
-    'border-radius:14px;overflow:hidden;position:relative;min-height:250px;display:flex;align-items:center;justify-content:center;">'+
+    'border-radius:14px;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;">'+
     '<div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,rgba(0,229,91,.04) 0%,transparent 65%);pointer-events:none;z-index:0;"></div>'+
-    '<img alt="MRI Scanner" src="https://lh3.googleusercontent.com/aida/AP1WRLvTPoMeFcaxs2rxrZE0Zbaz3JYN7bJqBNtZJiTv2NJIV1At2DPlaervx4S015HntE7vKWMt5ONyHTinKQnL1OJTIZUD_Ys5JBAcWPoJNpxJpJ4XPikFpHEoQDNSKCS6DZMGp7vHDB1UrqWBpJJRsD7Oks3XpLFB-DP2P6qRUAVHMEFNtTeKItTmnc9Pe7vHGchTuefEwTGWWCE0w5ZYne3-_FSI7wQPtE6bkzP4P9ivowfMuLLesmH6MxtE" '+
-    'style="position:relative;z-index:1;width:72%;height:auto;object-fit:contain;filter:drop-shadow(0 0 22px rgba(0,229,91,.2));transition:filter .3s;" '+
+    '<img alt="MRI Scanner" src="stitch-designs/rm-hero.png" '+
+    'style="position:relative;z-index:1;width:100%;height:auto;object-fit:cover;border-radius:10px;transition:filter .3s;" '+
     'onerror="this.style.display=\'none\';var fb=document.getElementById(\'rm-svg-fb\');if(fb)fb.style.display=\'block\';"/>'+
     '<div id="rm-svg-fb" style="display:none;position:absolute;inset:0;z-index:1;">'+rmSceneSVG(eq)+'</div>'+
     '<div style="position:absolute;top:10px;left:10px;z-index:2;">'+
@@ -7103,8 +7103,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.5.7";
-var APP_BUILD="09/06/26 18:45";
+var APP_DISPLAY_VERSION="5.5.8";
+var APP_BUILD="09/06/26 19:15";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
