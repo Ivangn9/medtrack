@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.09.039 --><html lang="es"><head>
-<meta charset="UTF-8">
+<!-- v2026.06.09.039 --><html lang="es"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -33,8 +32,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.09.039"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
+<meta name="app-version" content="v2026.06.09.039"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0">
 <style>
 :root{
   --glass:rgba(255,255,255,.07);
@@ -1480,8 +1478,9 @@ function migrateEcoData(){
 var eqs=[],view="dash",selId=null,selAntenaEqId=null,selAntenaId=null,selTransdEqId=null,selTransdId=null,filtCat="TODOS",toastTimer=null,darkMode=false,fontScale=100,glassMode=3;
 
 function saveData(){
+  if(!Array.isArray(eqs)||eqs===null){console.warn('saveData aborted: eqs is not a valid array');return;}
   var now=new Date().toISOString();
-  try{localStorage.setItem("mt_v4",JSON.stringify(eqs));localStorage.setItem("mt_antenas",JSON.stringify(antenas));localStorage.setItem("mt_aires",JSON.stringify(aires));localStorage.setItem("mt_transductores",JSON.stringify(transductores));localStorage.setItem("mt_updatedAt",now);}catch(e){}
+  try{localStorage.setItem("mt_v4",JSON.stringify(eqs));localStorage.setItem("mt_antenas",JSON.stringify(antenas));localStorage.setItem("mt_aires",JSON.stringify(aires));localStorage.setItem("mt_transductores",JSON.stringify(transductores));localStorage.setItem("mt_updatedAt",now);}catch(e){showToast('Almacenamiento local lleno — los datos se guardan solo en la nube','warn');}
   firestoreSave();
 }
 var _fsSaveTimer=null,_fsWriting=false,_fsDirty=false,_fsFailed=false;
@@ -1980,7 +1979,7 @@ function renderHistPendingFiles(tipo){
       '<button onclick="removeHistPending(\''+tipo+'\','+i+')" style="background:none;border:none;color:var(--red);font-size:.9rem;cursor:pointer;padding:2px 6px;">✕</button></div>';
   }).join('');
 }
-function removeHistPending(tipo,i){if(tipo==='presupuesto'){_pendingHistPresupuestos.splice(i,1);}else{_pendingHistReportes.splice(i,1);}renderHistPendingFiles(tipo);}
+function removeHistPending(tipo,i){if(!confirm('¿Quitar este archivo? Se eliminará de la lista de pendientes.'))return;if(tipo==='presupuesto'){_pendingHistPresupuestos.splice(i,1);}else{_pendingHistReportes.splice(i,1);}renderHistPendingFiles(tipo);}
 function removeHistFile(fid){
   if(!confirm('¿Eliminar este PDF? Esta acción no se puede deshacer.'))return;
   _deletedHistFiles.push(fid);
@@ -2221,9 +2220,9 @@ function _storageSaveB64(id,nombre,dataUrl,cb,_try){
     }).catch(function(e){
       var t=(_try||0)+1;
       if(t<4){setTimeout(function(){_storageSaveB64(id,nombre,dataUrl,cb,t);},Math.min(1500*t,8000));}
-      else{console.warn('Storage upload failed (kept in queue):',id,e);cb&&cb(false);}
+      else{console.warn('Storage upload failed (kept in queue):',id,e);showToast('Error al subir archivo a la nube (reintentará al reconectar)','warn');cb&&cb(false);}
     });
-  }catch(e){console.warn('_storageSaveB64 error:',e);cb&&cb(false);}
+  }catch(e){console.warn('_storageSaveB64 error:',e);showToast('Error inesperado al guardar archivo en la nube','err');cb&&cb(false);}
 }
 
 // Get a download URL from Firebase Storage for a file ID
@@ -2402,7 +2401,7 @@ function attachParteImage(){
     });
   };inp.click();
 }
-function removeParteImagePending(i){_pendingParteImages.splice(i,1);_renderParteImages();}
+function removeParteImagePending(i){if(!confirm('¿Quitar esta imagen? Se eliminará de la lista de pendientes.'))return;_pendingParteImages.splice(i,1);_renderParteImages();}
 function _renderParteImages(){
   var el=document.getElementById('pt-img-list');if(!el)return;
   el.innerHTML=_pendingParteImages.map(function(f,i){
@@ -2423,7 +2422,7 @@ function attachRotImage(){
     });
   };inp.click();
 }
-function removeRotImage(i){_pendingRotImages.splice(i,1);_renderRotImages();}
+function removeRotImage(i){if(!confirm('¿Quitar esta imagen? Se eliminará de la lista de pendientes.'))return;_pendingRotImages.splice(i,1);_renderRotImages();}
 function _renderRotImages(){
   var el=document.getElementById('rot-img-list');if(!el)return;
   el.innerHTML=_pendingRotImages.map(function(f,i){
@@ -2487,7 +2486,7 @@ function renderPendingFiles(tipo){
       '<button onclick="removePending(\''+tipo+'\','+i+')" style="background:none;border:none;color:var(--red);font-size:.9rem;cursor:pointer;padding:2px 6px;">✕</button></div>';
   }).join('');
 }
-function removePending(tipo,i){if(tipo==='presupuesto'){_pendingPresupuestos.splice(i,1);}else{_pendingReportes.splice(i,1);}renderPendingFiles(tipo);}
+function removePending(tipo,i){if(!confirm('¿Quitar este archivo? Se eliminará de la lista de pendientes.'))return;if(tipo==='presupuesto'){_pendingPresupuestos.splice(i,1);}else{_pendingReportes.splice(i,1);}renderPendingFiles(tipo);}
 
 var RM_COMPONENTES=[
   {id:"coldhead",label:"ColdHead",grupo:"resonador"},
@@ -7334,8 +7333,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var APP_DISPLAY_VERSION="5.6.5";
-var APP_BUILD="09/06/26 23:55";window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};function doUpdate(){
-  showToast("⚡ Actualizando...");
+var APP_BUILD="09/06/26 23:55";window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};function doUpdate(){  showToast("⚡ Actualizando...");
   setTimeout(function(){
     window.location.href=window.location.href.split('?')[0].split('#')[0]+'?v='+Date.now();
   },400);
