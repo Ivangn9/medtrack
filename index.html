@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.09.034 -->
+<!-- v2026.06.09.035 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.09.034">
+<meta name="app-version" content="v2026.06.09.035">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -2692,6 +2692,96 @@ function submitEditMantConfig(eqId){
 }
 
 // ═══════════════════════════════════════════
+//  GOOGLE CALENDAR — ICS EXPORT
+// ═══════════════════════════════════════════
+function _icsDateStr(yyyymmdd,n){
+  if(!yyyymmdd)return'';
+  var p=yyyymmdd.split('-');
+  var d=new Date(parseInt(p[0],10),parseInt(p[1],10)-1,parseInt(p[2],10));
+  d.setDate(d.getDate()+(n||0));
+  var y=d.getFullYear();
+  var mo=d.getMonth()+1;
+  var dd=d.getDate();
+  return y+(mo<10?'0'+mo:''+mo)+(dd<10?'0'+dd:''+dd);
+}
+function _icsNow(){
+  var d=new Date();
+  var y=d.getUTCFullYear();
+  var mo=d.getUTCMonth()+1;
+  var dd=d.getUTCDate();
+  var h=d.getUTCHours();
+  var mi=d.getUTCMinutes();
+  var s=d.getUTCSeconds();
+  return y+(mo<10?'0'+mo:''+mo)+(dd<10?'0'+dd:''+dd)+'T'+(h<10?'0'+h:''+h)+(mi<10?'0'+mi:''+mi)+(s<10?'0'+s:''+s)+'Z';
+}
+function addToCalendar(eqId,tipo){
+  var eq=eqs.find(function(e){return e.id===eqId;});
+  if(!eq)return;
+  var fecha,titulo,desc;
+  var ubicacion=eq.nombre+' — CIMA';
+  if(tipo==='mant'){
+    fecha=eq.proximoMant;
+    titulo='Mantenimiento: '+eq.nombre;
+    desc='Mantenimiento preventivo '+( eq.frecuencia||'')+' | Tecnico: '+(eq.tecnico||'Por asignar')+' | Equipo: '+eq.nombre;
+  }else if(tipo==='garantia'){
+    fecha=eq.garantiaHasta;
+    titulo='Vencimiento Garantia: '+eq.nombre;
+    desc='Vencimiento de garantia del equipo '+eq.nombre;
+  }else if(tipo==='bateria'){
+    fecha=eq.bateria_vencimiento;
+    titulo='Vencimiento Bateria DES: '+eq.nombre;
+    desc='Vencimiento de bateria del desfibrilador '+eq.nombre;
+  }else if(tipo==='parches'){
+    fecha=eq.parches_vencimiento;
+    titulo='Vencimiento Parches DES: '+eq.nombre;
+    desc='Vencimiento de parches del desfibrilador '+eq.nombre;
+  }
+  if(!fecha){showToast('Sin fecha registrada','warn');return;}
+  var fICS=_icsDateStr(fecha,0);
+  var fFin=_icsDateStr(fecha,1);
+  var now=_icsNow();
+  var uid='medtrack-'+eqId+'-'+tipo+'-'+fICS+'@cima';
+  var nl='\r\n';
+  var ics='BEGIN:VCALENDAR'+nl+
+    'VERSION:2.0'+nl+
+    'PRODID:-//CIMA MedTrack//ES'+nl+
+    'CALSCALE:GREGORIAN'+nl+
+    'METHOD:PUBLISH'+nl+
+    'BEGIN:VEVENT'+nl+
+    'UID:'+uid+nl+
+    'DTSTAMP:'+now+nl+
+    'DTSTART;VALUE=DATE:'+fICS+nl+
+    'DTEND;VALUE=DATE:'+fFin+nl+
+    'SUMMARY:'+titulo+nl+
+    'DESCRIPTION:'+desc+nl+
+    'LOCATION:'+ubicacion+nl+
+    'BEGIN:VALARM'+nl+
+    'TRIGGER:-P20D'+nl+
+    'ACTION:DISPLAY'+nl+
+    'DESCRIPTION:Aviso 20 dias — '+titulo+nl+
+    'END:VALARM'+nl+
+    'BEGIN:VALARM'+nl+
+    'TRIGGER:-P7D'+nl+
+    'ACTION:DISPLAY'+nl+
+    'DESCRIPTION:Aviso 7 dias — '+titulo+nl+
+    'END:VALARM'+nl+
+    'BEGIN:VALARM'+nl+
+    'TRIGGER:-P1D'+nl+
+    'ACTION:DISPLAY'+nl+
+    'DESCRIPTION:Manana — '+titulo+nl+
+    'END:VALARM'+nl+
+    'END:VEVENT'+nl+
+    'END:VCALENDAR';
+  var blob=new Blob([ics],{type:'text/calendar;charset=utf-8'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;a.download='evento-medtrack.ics';
+  document.body.appendChild(a);a.click();
+  setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},500);
+  showToast('📅 Evento descargado — abrilo con tu app de calendario','');
+}
+
+// ═══════════════════════════════════════════
 //  RENDER ENGINE
 // ═══════════════════════════════════════════
 function renderHeader(){
@@ -3189,7 +3279,7 @@ function rDetalle(){
   if(eq.cat==='UPS'&&eq.kva){h+='<div class="ibox"><div class="ibox-l">KVA</div><div class="ibox-v" style="font-weight:700;">'+esc(eq.kva)+'</div></div>';}
   if(eq.cat==='UPS'&&eq.equiposConectados&&(Array.isArray(eq.equiposConectados)?eq.equiposConectados.length:eq.equiposConectados)){var _eqConHtml='';if(Array.isArray(eq.equiposConectados)){_eqConHtml=eq.equiposConectados.map(function(id){var e2=eqs.find(function(x){return x.id===id;});return e2?'<span style="display:inline-flex;align-items:center;padding:2px 9px;border-radius:50px;font-size:.72rem;font-weight:600;background:rgba(245,158,11,.14);color:#d97706;">'+esc(e2.nombre)+'</span>':'';}).filter(Boolean).join(' ');}else{_eqConHtml=esc(eq.equiposConectados);}if(_eqConHtml)h+='<div class="ibox" style="grid-column:1/-1;"><div class="ibox-l">Equipos conectados</div><div class="ibox-v" style="display:flex;flex-wrap:wrap;gap:5px;">'+_eqConHtml+'</div></div>';}
   if(eq.cat==='UPS'&&eq.empresaVendio){h+='<div class="ibox"><div class="ibox-l">Empresa vendedora</div><div class="ibox-v">'+esc(eq.empresaVendio)+'</div></div>';}
-  if(eq.garantia){var gd=diasH(eq.garantiaHasta);var gVenc=eq.garantiaHasta&&gd<0;var gProx=!gVenc&&eq.garantiaHasta&&gd<=30;var gColor=gVenc?"var(--red)":gProx?"var(--orange)":"var(--green)";var gBg=gVenc?"rgba(255,59,48,.12)":gProx?"rgba(255,149,0,.12)":"rgba(52,199,89,.12)";var gLabel=gVenc?"❌ Vencida":gProx?"⚠️ Vence en "+gd+"d":"✅ En garantía";h+='<div class="ibox" style="grid-column:1/-1;"><div class="ibox-l">Garantía</div><div class="ibox-v"><span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:50px;font-size:.72rem;font-weight:700;background:'+gBg+';color:'+gColor+';">'+gLabel+(eq.garantiaHasta?' · hasta '+fD(eq.garantiaHasta):'')+'</span></div></div>';}
+  if(eq.garantia){var gd=diasH(eq.garantiaHasta);var gVenc=eq.garantiaHasta&&gd<0;var gProx=!gVenc&&eq.garantiaHasta&&gd<=30;var gColor=gVenc?"var(--red)":gProx?"var(--orange)":"var(--green)";var gBg=gVenc?"rgba(255,59,48,.12)":gProx?"rgba(255,149,0,.12)":"rgba(52,199,89,.12)";var gLabel=gVenc?"❌ Vencida":gProx?"⚠️ Vence en "+gd+"d":"✅ En garantía";h+='<div class="ibox" style="grid-column:1/-1;"><div class="ibox-l">Garantía</div><div class="ibox-v" style="display:flex;align-items:center;gap:6px;"><span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:50px;font-size:.72rem;font-weight:700;background:'+gBg+';color:'+gColor+';">'+gLabel+(eq.garantiaHasta?' · hasta '+fD(eq.garantiaHasta):'')+'</span>'+(eq.garantiaHasta?'<button onclick="addToCalendar(\''+eq.id+'\',\'garantia\')" title="Agregar al calendario" style="background:rgba(0,122,255,.12);border:1px solid rgba(0,122,255,.30);color:#4da3ff;border-radius:6px;padding:2px 7px;font-size:.68rem;cursor:pointer;line-height:1.4;flex-shrink:0;">📅</button>':'')+'</div></div>';}
   if(eq.tieneServicio)h+='<div class="ibox" style="grid-column:1/-1;"><div class="ibox-l">Servicio</div><div class="ibox-v"><span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:50px;font-size:.72rem;font-weight:700;background:rgba(52,199,89,.12);color:var(--green);">✔ Contrato de servicio activo</span></div></div>';
   h+='</div>';
   if(eq.cat==='DES'){
@@ -3197,8 +3287,8 @@ function rDetalle(){
     h+='<div style="background:rgba(244,63,94,.06);border:1.5px solid rgba(244,63,94,.18);border-radius:var(--r-md);padding:12px 14px;margin-bottom:12px;">'+
       '<div style="font-size:.66rem;font-weight:800;color:#f43f5e;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;">⚡ Vencimientos</div>'+
       '<div class="det-grid">'+
-        '<div class="ibox"><div class="ibox-l">Parches</div><div class="ibox-v">'+_desVencChip(eq.parches_vencimiento,'Parches')+'</div></div>'+
-        '<div class="ibox"><div class="ibox-l">Batería</div><div class="ibox-v">'+_desVencChip(eq.bateria_vencimiento,'Batería')+'</div></div>'+
+        '<div class="ibox"><div class="ibox-l">Parches</div><div class="ibox-v" style="display:flex;align-items:center;gap:6px;">'+_desVencChip(eq.parches_vencimiento,'Parches')+(eq.parches_vencimiento?'<button onclick="addToCalendar(\''+eq.id+'\',\'parches\')" title="Agregar al calendario" style="background:rgba(0,122,255,.12);border:1px solid rgba(0,122,255,.30);color:#4da3ff;border-radius:6px;padding:2px 7px;font-size:.68rem;cursor:pointer;line-height:1.4;flex-shrink:0;">📅</button>':'')+'</div></div>'+
+        '<div class="ibox"><div class="ibox-l">Batería</div><div class="ibox-v" style="display:flex;align-items:center;gap:6px;">'+_desVencChip(eq.bateria_vencimiento,'Batería')+(eq.bateria_vencimiento?'<button onclick="addToCalendar(\''+eq.id+'\',\'bateria\')" title="Agregar al calendario" style="background:rgba(0,122,255,.12);border:1px solid rgba(0,122,255,.30);color:#4da3ff;border-radius:6px;padding:2px 7px;font-size:.68rem;cursor:pointer;line-height:1.4;flex-shrink:0;">📅</button>':'')+'</div></div>'+
       '</div>'+
     '</div>';
   }
@@ -3263,7 +3353,7 @@ function rDetalle(){
   h+='<div class="det-grid" style="margin-bottom:10px;">';
   h+='<div class="ibox"><div class="ibox-l">Frecuencia</div><div class="ibox-v">'+esc(eq.frecuencia)+'</div></div>';
   h+='<div class="ibox"><div class="ibox-l">Último Mant.</div><div class="ibox-v">'+esc(fD(eq.ultimoMant))+'</div></div>';
-  h+='<div class="ibox"><div class="ibox-l">Próx. Mant.</div><div class="ibox-v" style="color:'+CM[ms]+';">'+esc(fD(eq.proximoMant))+'</div></div>';
+  h+='<div class="ibox"><div class="ibox-l">Próx. Mant.</div><div class="ibox-v" style="color:'+CM[ms]+';display:flex;align-items:center;gap:6px;">'+esc(fD(eq.proximoMant))+(eq.proximoMant?'<button onclick="addToCalendar(\''+eq.id+'\',\'mant\')" title="Agregar al calendario" style="background:rgba(0,122,255,.12);border:1px solid rgba(0,122,255,.30);color:#4da3ff;border-radius:6px;padding:2px 7px;font-size:.68rem;cursor:pointer;line-height:1.4;flex-shrink:0;">📅</button>':'')+'</div></div>';
   h+='</div>';
   h+='<div style="background:'+(sinMant(eq)?"rgba(120,120,128,.06)":CM[ms]+"0d")+';border-radius:var(--r-md);padding:12px 14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">'+
     '<div><div style="font-size:.64rem;color:var(--text3);margin-bottom:2px;">Días para próximo mantenimiento</div><div style="font-weight:700;font-size:.92rem;color:'+(sinMant(eq)?"var(--text3)":CM[ms])+';">'+(sinMant(eq)?"⚫ Sin mant. programado":ms==="vencido"?"🔴 VENCIDO":ms==="urgente"?"🔴 URGENTE — "+d+" días":ms==="proximo"?"⚠️ "+d+" días":"✅ "+d+" días")+'</div></div>'+
@@ -7107,8 +7197,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.5.9";
-var APP_BUILD="09/06/26 19:40";
+var APP_DISPLAY_VERSION="5.6.0";
+var APP_BUILD="09/06/26 21:30";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
