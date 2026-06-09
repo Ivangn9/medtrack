@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.09.037 --><html lang="es"><head>
+<!-- v2026.06.09.038 --><html lang="es"><head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -33,7 +33,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.09.037"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache">
+<meta name="app-version" content="v2026.06.09.038"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <style>
 :root{
@@ -3109,7 +3109,7 @@ function rUpsSchema(){
   allUps.forEach(function(ups){
     var upsCon=ups.equiposConectados||[];
     var upsEqs=upsCon.map(function(id){return eqs.find(function(e){return e.id===id;});}).filter(Boolean);
-    var upsEstColor=(ups.estado==='operativo')?'#34c759':(ups.estado==='fuera-de-servicio'?'#ff3b30':'#ff9500');
+    var upsEstColor=(ups.estado==='operativo')?'#30d158':(ups.estado==='fuera-de-servicio'?'#ff453a':'#ff9f0a');
     var isActive=ups.estado==='operativo';
     var upsInfo=[];
     if(ups.kva)upsInfo.push(ups.kva+' kVA');
@@ -3117,138 +3117,131 @@ function rUpsSchema(){
     if(ups.ubicacion)upsInfo.push(ups.ubicacion);
     var ms=semafo(ups);
     var msColor=CM[ms]||'var(--text3)';
-    var msLabel=ms==='vencido'?'Mant. vencido':ms==='urgente'?'Mant. urgente':ms==='proximo'?'Mant. próximo':'';
+    var msLabel=ms==='vencido'?'Mant. vencido':ms==='urgente'?'Mant. urgente':ms==='proximo'?'Próx. mant.':'';
 
     h+='<div style="margin-bottom:20px;">';
 
-    // ── UPS header ──
-    h+='<div onclick="goDetalle(\''+ups.id+'\')" style="cursor:pointer;border-radius:14px;overflow:hidden;'+
-      'border:1.5px solid rgba(245,158,11,'+(isActive?'.48':'.20')+');'+
-      'background:rgba(26,24,28,.96);'+
-      'box-shadow:inset 0 1px 0 rgba(255,255,255,.07),'+(isActive?'0 4px 18px rgba(245,158,11,.15)':'0 2px 8px rgba(0,0,0,.22)')+';'+
-      (isActive?'animation:upsGlow 2.5s ease-in-out infinite;':'')+
-    '">'+
-      '<div style="height:2.5px;background:linear-gradient(90deg,transparent,#f59e0b 25%,#fde68a 50%,#f59e0b 75%,transparent);'+(isActive?'background-size:200% 100%;animation:flowH .9s linear infinite;':'')+'"></div>'+
-      '<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;">'+
-        '<div style="position:relative;flex-shrink:0;width:52px;height:52px;">'+
-          (isActive?'<div style="position:absolute;inset:-4px;border-radius:50%;border:1.5px solid rgba(245,158,11,.38);animation:upsPulse 2.2s ease-in-out infinite;"></div>':'')+
-          '<div style="width:52px;height:52px;filter:drop-shadow(0 0 8px rgba(245,158,11,.5));">'+catSvgIcon('UPS',52)+'</div>'+
+    // ── UPS header — Apple style ──
+    h+='<div onclick="goDetalle(\''+ups.id+'\')" style="'+
+      'cursor:pointer;border-radius:18px;'+
+      'background:rgba(30,28,34,.97);'+
+      'border:1px solid rgba(255,255,255,'+(isActive?'.10':'.06')+');'+
+      'box-shadow:0 8px 32px rgba(0,0,0,.40),inset 0 1px 0 rgba(255,255,255,.08);'+
+      (isActive?'box-shadow:0 8px 32px rgba(0,0,0,.40),0 0 0 1px rgba(245,158,11,.12),inset 0 1px 0 rgba(255,255,255,.08);animation:upsGlow 3s ease-in-out infinite;':'')+
+    'overflow:hidden;">'+
+      // Animated power rail
+      '<div style="height:2px;'+
+        'background:linear-gradient(90deg,transparent 0%,rgba(245,158,11,.5) 20%,rgba(253,230,138,.9) 50%,rgba(245,158,11,.5) 80%,transparent 100%);'+
+        (isActive?'background-size:200% 100%;animation:flowH 1.4s linear infinite;':'opacity:.4;')+
+      '"></div>'+
+      '<div style="display:flex;align-items:center;gap:14px;padding:14px 16px 15px;">'+
+        // Icon with ambient glow
+        '<div style="position:relative;flex-shrink:0;width:50px;height:50px;">'+
+          (isActive?'<div style="position:absolute;inset:-8px;border-radius:50%;background:radial-gradient(circle,rgba(245,158,11,.20) 0%,transparent 70%);animation:upsPulse 2.8s ease-in-out infinite;pointer-events:none;"></div>':'')+
+          '<div style="width:50px;height:50px;filter:drop-shadow(0 0 '+(isActive?'10':'4')+'px rgba(245,158,11,.55));">'+catSvgIcon('UPS',50)+'</div>'+
         '</div>'+
         '<div style="flex:1;min-width:0;">'+
-          '<div style="font-weight:800;font-size:.92rem;color:var(--text);letter-spacing:-.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+esc(ups.nombre)+'</div>'+
-          (upsInfo.length?'<div style="font-size:.67rem;color:var(--text3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+upsInfo.join(' · ')+'</div>':'')+
-          '<div style="display:flex;align-items:center;gap:5px;margin-top:7px;flex-wrap:wrap;">'+
-            '<span style="display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:50px;font-size:.62rem;font-weight:700;background:'+upsEstColor+'18;border:1px solid '+upsEstColor+'40;color:'+upsEstColor+';">'+
-              '<span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:'+upsEstColor+';'+(isActive?'animation:upsPulse 2s ease-in-out infinite;':'')+'box-shadow:0 0 5px '+upsEstColor+';"></span>'+
+          '<div style="font-size:.97rem;font-weight:700;color:rgba(255,255,255,.95);letter-spacing:-.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px;">'+esc(ups.nombre)+'</div>'+
+          (upsInfo.length?'<div style="font-size:.71rem;color:rgba(255,255,255,.38);letter-spacing:-.1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:8px;">'+upsInfo.join('  ·  ')+'</div>':'<div style="margin-bottom:8px;"></div>')+
+          '<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">'+
+            '<span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:50px;font-size:.67rem;font-weight:600;background:'+upsEstColor+'1a;color:'+upsEstColor+';">'+
+              '<span style="width:6px;height:6px;border-radius:50%;background:'+upsEstColor+';flex-shrink:0;'+(isActive?'animation:upsPulse 1.8s ease-in-out infinite;':'')+'box-shadow:0 0 7px '+upsEstColor+';display:inline-block;"></span>'+
               (ups.estado==='operativo'?'Operativa':ups.estado==='fuera-de-servicio'?'Fuera de servicio':'Advertencia')+
             '</span>'+
-            '<span style="display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:50px;font-size:.62rem;font-weight:600;background:rgba(245,158,11,.09);border:1px solid rgba(245,158,11,.22);color:rgba(200,130,0,.9);">⚡ '+upsCon.length+' equipo'+(upsCon.length!==1?'s':'')+'</span>'+
-            (msLabel?'<span style="display:inline-flex;align-items:center;padding:2px 7px;border-radius:50px;font-size:.62rem;font-weight:600;background:'+msColor+'15;border:1px solid '+msColor+'35;color:'+msColor+';">'+msLabel+'</span>':'')+
+            '<span style="display:inline-flex;align-items:center;gap:3px;padding:4px 10px;border-radius:50px;font-size:.67rem;font-weight:500;background:rgba(255,255,255,.07);color:rgba(255,255,255,.45);">'+
+              upsCon.length+' equipo'+(upsCon.length!==1?'s':'')+
+            '</span>'+
+            (msLabel?'<span style="display:inline-flex;align-items:center;padding:4px 10px;border-radius:50px;font-size:.67rem;font-weight:600;background:'+msColor+'18;color:'+msColor+';">'+msLabel+'</span>':'')+
           '</div>'+
         '</div>'+
-        '<svg width="6" height="10" viewBox="0 0 6 10" fill="none" style="flex-shrink:0;opacity:.35;"><path d="M1 1l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'+
+        '<svg width="7" height="12" viewBox="0 0 7 12" fill="none" style="flex-shrink:0;opacity:.25;"><path d="M1 1l5 5-5 5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'+
       '</div>'+
     '</div>';
 
     if(!upsEqs.length){
-      h+='<div style="display:flex;align-items:center;justify-content:center;gap:7px;padding:10px;margin-top:2px;border-radius:0 0 12px 12px;background:rgba(245,158,11,.04);border:1px dashed rgba(245,158,11,.18);border-top:none;">'+
-        '<span style="font-size:.7rem;color:var(--text3);">Sin equipos asignados</span>'+
+      h+='<div style="margin:3px 0 0 24px;padding:9px 14px;border-left:2px dashed rgba(245,158,11,.18);">'+
+        '<span style="font-size:.72rem;color:rgba(255,255,255,.22);">Sin equipos conectados</span>'+
       '</div>';
       h+='</div>';
       return;
     }
 
-    // ── Conector vertical + nodo de distribución ──
-    h+='<div style="display:flex;flex-direction:column;align-items:center;gap:0;">'+
-      '<div class="ups-flow-v" style="width:2.5px;height:16px;opacity:.9;"></div>'+
-      '<div style="'+
-        'width:30px;height:30px;border-radius:50%;'+
-        'background:radial-gradient(circle at 40% 35%,rgba(245,158,11,.28),rgba(245,158,11,.08));'+
-        'border:1.5px solid rgba(245,158,11,'+(isActive?'.55':'.28')+');'+
-        'display:flex;align-items:center;justify-content:center;'+
-        'box-shadow:'+(isActive?'0 0 12px rgba(245,158,11,.28)':'none')+';'+
-        (isActive?'animation:upsPulse 2s ease-in-out infinite;':'')+
-      '">'+
-        '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(245,158,11,.9)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>'+
-      '</div>'+
-      '<div class="ups-flow-v" style="width:2.5px;height:10px;opacity:.7;"></div>'+
-    '</div>';
+    // ── Equipment section: indented with amber rail ──
+    h+='<div style="margin:4px 0 0 24px;padding-left:18px;border-left:2px solid rgba(245,158,11,'+(isActive?'.30':'.14')+');">';
+    h+='<div style="height:8px;"></div>';
 
-    // ── Cards de equipos (flex-wrap centrado, ancho fijo) ──
-    h+='<div style="display:flex;flex-wrap:wrap;justify-content:center;gap:10px;padding:2px 0 4px;">';
+    // Grid — horizontal cards, minmax fills width cleanly
+    h+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:7px;">';
     upsEqs.forEach(function(e){
-      var estColor=CE[e.estado]||'var(--green)';
+      var estColor=CE[e.estado]||'#30d158';
       var cat=catById(e.cat);
       var eqInfo=e.consultorio?'Consultorio '+e.consultorio:(e.ubicacion?e.ubicacion:cat.label);
       var isOp=e.estado==='operativo';
       h+='<div onclick="goDetalle(\''+e.id+'\')" style="'+
-        'width:130px;border-radius:16px;overflow:hidden;cursor:pointer;'+
-        'background:linear-gradient(160deg,rgba(32,30,35,.97),rgba(24,22,27,.97));'+
-        'border:1px solid '+cat.color+(isOp&&isActive?'50':'28')+';'+
-        'box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 4px 16px rgba(0,0,0,.28),'+(isOp&&isActive?'0 0 16px '+cat.color+'18':'none')+';'+
+        'display:flex;align-items:center;gap:10px;'+
+        'padding:11px 12px 11px 10px;'+
+        'border-radius:14px;cursor:pointer;'+
+        'background:rgba(255,255,255,.04);'+
+        'border:1px solid rgba(255,255,255,.07);'+
+        'border-left:3px solid '+cat.color+';'+
+        'box-shadow:0 2px 10px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.05);'+
+        (isOp&&isActive?'box-shadow:0 2px 10px rgba(0,0,0,.28),0 0 0 1px '+cat.color+'18,inset 0 1px 0 rgba(255,255,255,.05);':'')+
       '">'+
-        // Stripe animada en la parte superior
-        '<div style="height:3px;background:'+cat.color+';'+
-          (isOp&&isActive?'background:linear-gradient(90deg,'+cat.color+'70,'+cat.color+','+cat.color+'70);background-size:200% 100%;animation:flowH 1.8s linear infinite;':'')+
-          'box-shadow:0 0 8px '+cat.color+'90;'+
-        '"></div>'+
-        '<div style="padding:14px 8px 12px;display:flex;flex-direction:column;align-items:center;gap:7px;">'+
-          // Ícono grande con fondo circular de color
-          '<div style="'+
-            'width:68px;height:68px;border-radius:50%;'+
-            'background:radial-gradient(circle at 40% 35%,'+cat.color+'22,'+cat.color+'08);'+
-            'border:1px solid '+cat.color+'30;'+
-            'display:flex;align-items:center;justify-content:center;'+
-            'box-shadow:0 2px 10px '+cat.color+'20;'+
-            (isOp&&isActive?'animation:upsPulse 3.5s ease-in-out infinite;':'')+
-          '">'+
-            '<div style="width:48px;height:48px;filter:drop-shadow(0 1px 6px '+cat.color+'70);">'+catSvgIcon(e.cat,48)+'</div>'+
-          '</div>'+
-          '<div style="font-size:.67rem;font-weight:700;color:var(--text);text-align:center;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;max-height:2.6em;width:100%;">'+esc(e.nombre)+'</div>'+
-          '<div style="font-size:.59rem;color:var(--text3);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;">'+esc(eqInfo)+'</div>'+
-          '<div style="display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:50px;background:'+estColor+'18;border:1px solid '+estColor+'40;">'+
-            '<span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:'+estColor+';'+(isOp&&isActive?'animation:upsPulse 2s ease-in-out infinite;':'')+'box-shadow:0 0 5px '+estColor+';"></span>'+
-            '<span style="font-size:.6rem;font-weight:700;color:'+estColor+';">'+(e.estado==='operativo'?'Operativo':e.estado==='fuera-de-servicio'?'Fuera servicio':'Fallas')+'</span>'+
-          '</div>'+
+        // Icon
+        '<div style="flex-shrink:0;width:42px;height:42px;'+
+          'filter:drop-shadow(0 1px 5px '+cat.color+'55);'+
+          (isOp&&isActive?'animation:upsPulse 3.5s ease-in-out infinite;':'')+
+        '">'+catSvgIcon(e.cat,42)+'</div>'+
+        // Text block
+        '<div style="flex:1;min-width:0;">'+
+          '<div style="font-size:.76rem;font-weight:700;color:rgba(255,255,255,.90);line-height:1.28;margin-bottom:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;max-height:2.56em;">'+esc(e.nombre)+'</div>'+
+          '<div style="font-size:.65rem;color:rgba(255,255,255,.35);margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+esc(eqInfo)+'</div>'+
+          '<span style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:50px;font-size:.63rem;font-weight:600;background:'+estColor+'18;color:'+estColor+';">'+
+            '<span style="width:5px;height:5px;border-radius:50%;background:'+estColor+';flex-shrink:0;'+(isOp&&isActive?'animation:upsPulse 1.8s ease-in-out infinite;':'')+'box-shadow:0 0 5px '+estColor+';display:inline-block;"></span>'+
+            (e.estado==='operativo'?'Operativo':e.estado==='fuera-de-servicio'?'Fuera de servicio':'Fallas')+
+          '</span>'+
         '</div>'+
       '</div>';
     });
-    h+='</div>'; // flex cards
+    h+='</div>'; // grid
+    h+='<div style="height:4px;"></div>';
+    h+='</div>'; // rail section
     h+='</div>'; // UPS block
   });
 
   // ── Sin UPS asignada ──
   if(unconnected.length){
-    h+='<div style="margin-top:8px;margin-bottom:4px;">'+
-      '<div style="display:flex;align-items:center;gap:7px;padding:8px 14px;border-radius:12px 12px 0 0;background:rgba(142,142,147,.07);border:1px solid rgba(142,142,147,.15);border-bottom:none;">'+
-        '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2.2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'+
-        '<span style="font-size:.63rem;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;">Sin respaldo UPS</span>'+
-        '<span style="margin-left:auto;display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:rgba(142,142,147,.18);font-size:.62rem;font-weight:800;color:var(--text3);">'+unconnected.length+'</span>'+
+    h+='<div style="margin-top:6px;">'+
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">'+
+        '<div style="height:1px;flex:1;background:rgba(255,255,255,.06);"></div>'+
+        '<span style="font-size:.63rem;font-weight:700;color:rgba(255,255,255,.22);text-transform:uppercase;letter-spacing:.09em;">Sin respaldo UPS ('+unconnected.length+')</span>'+
+        '<div style="height:1px;flex:1;background:rgba(255,255,255,.06);"></div>'+
       '</div>'+
-      '<div style="border:1px solid rgba(142,142,147,.15);border-top:none;border-radius:0 0 14px 14px;padding:12px 8px 10px;background:rgba(20,18,22,.6);">'+
-        '<div style="display:flex;flex-wrap:wrap;justify-content:center;gap:10px;">';
+      '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:7px;">';
     unconnected.forEach(function(e){
-      var estColor=CE[e.estado]||'var(--green)';
+      var estColor=CE[e.estado]||'#30d158';
       var cat=catById(e.cat);
       var info=e.consultorio?'Consultorio '+e.consultorio:(e.ubicacion?e.ubicacion:cat.label);
       h+='<div onclick="goDetalle(\''+e.id+'\')" style="'+
-        'width:130px;border-radius:16px;overflow:hidden;cursor:pointer;'+
-        'background:rgba(22,20,25,.7);border:1.5px dashed rgba(142,142,147,.20);'+
-        'box-shadow:inset 0 1px 0 rgba(255,255,255,.04);opacity:.78;">'+
-        '<div style="padding:14px 8px 12px;display:flex;flex-direction:column;align-items:center;gap:7px;">'+
-          '<div style="width:64px;height:64px;border-radius:50%;background:rgba(142,142,147,.08);border:1px solid rgba(142,142,147,.15);display:flex;align-items:center;justify-content:center;">'+
-            '<div style="width:44px;height:44px;opacity:.6;">'+catSvgIcon(e.cat,44)+'</div>'+
-          '</div>'+
-          '<div style="font-size:.67rem;font-weight:700;color:var(--text2);text-align:center;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;max-height:2.6em;width:100%;">'+esc(e.nombre)+'</div>'+
-          '<div style="font-size:.59rem;color:var(--text3);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;">'+esc(info)+'</div>'+
-          '<div style="display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:50px;background:'+estColor+'14;border:1px solid '+estColor+'28;">'+
-            '<span style="display:inline-block;width:4px;height:4px;border-radius:50%;background:'+estColor+';"></span>'+
-            '<span style="font-size:.6rem;font-weight:700;color:'+estColor+';">'+(e.estado==='operativo'?'OK':e.estado==='fuera-de-servicio'?'F.S.':'Fallas')+'</span>'+
-          '</div>'+
+        'display:flex;align-items:center;gap:10px;'+
+        'padding:11px 12px 11px 10px;'+
+        'border-radius:14px;cursor:pointer;opacity:.55;'+
+        'background:rgba(255,255,255,.025);'+
+        'border:1px solid rgba(255,255,255,.05);'+
+        'border-left:3px dashed rgba(255,255,255,.14);'+
+      '">'+
+        '<div style="flex-shrink:0;width:40px;height:40px;opacity:.6;">'+catSvgIcon(e.cat,40)+'</div>'+
+        '<div style="flex:1;min-width:0;">'+
+          '<div style="font-size:.76rem;font-weight:700;color:rgba(255,255,255,.75);line-height:1.28;margin-bottom:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">'+esc(e.nombre)+'</div>'+
+          '<div style="font-size:.65rem;color:rgba(255,255,255,.28);margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+esc(info)+'</div>'+
+          '<span style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:50px;font-size:.63rem;font-weight:600;background:'+estColor+'14;color:'+estColor+';">'+
+            '<span style="width:4px;height:4px;border-radius:50%;background:'+estColor+';display:inline-block;flex-shrink:0;"></span>'+
+            (e.estado==='operativo'?'OK':e.estado==='fuera-de-servicio'?'F.S.':'Fallas')+
+          '</span>'+
         '</div>'+
       '</div>';
     });
-    h+='</div></div></div>';
+    h+='</div></div>';
   }
 
   return h;
@@ -7334,8 +7327,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.6.3";
-var APP_BUILD="09/06/26 22:45";window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};function doUpdate(){
+var APP_DISPLAY_VERSION="5.6.4";
+var APP_BUILD="09/06/26 23:20";window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};function doUpdate(){
   showToast("⚡ Actualizando...");
   setTimeout(function(){
     window.location.href=window.location.href.split('?')[0].split('#')[0]+'?v='+Date.now();
