@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.09.029 -->
+<!-- v2026.06.09.030 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.09.029">
+<meta name="app-version" content="v2026.06.09.030">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -61,14 +61,14 @@
   --lg-shadow-float:0 2px 4px rgba(0,0,0,.04),0 8px 24px rgba(0,0,0,.08),0 24px 64px rgba(0,0,0,.08),inset 0 1.5px 0 rgba(255,255,255,.95),inset 0 -1px 0 rgba(0,0,0,.04);
   --lg-shimmer:linear-gradient(to bottom,rgba(255,255,255,.0),rgba(255,255,255,.0));
   --specular:linear-gradient(180deg,rgba(255,255,255,.88) 0%,rgba(255,255,255,.32) 40%,rgba(255,255,255,.0) 68%);
-  --gc-bg:rgba(255,255,255,.03);
-  --gc-border:rgba(255,255,255,.30);
-  --gc-border-top:rgba(255,255,255,.45);
-  --gc-spec:rgba(255,255,255,.28);
-  --panel-bg:rgba(220,232,248,.06);
-  --item-bg:rgba(255,255,255,.39);
-  --item-border:rgba(255,255,255,.35);
-  --item-border-top:rgba(255,255,255,.48);
+  --gc-bg:rgba(255,255,255,.02);
+  --gc-border:rgba(255,255,255,.15);
+  --gc-border-top:rgba(255,255,255,.23);
+  --gc-spec:rgba(255,255,255,.14);
+  --panel-bg:rgba(220,232,248,.03);
+  --item-bg:rgba(255,255,255,.20);
+  --item-border:rgba(255,255,255,.18);
+  --item-border-top:rgba(255,255,255,.24);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0;}
 html{font-size:100%;}
@@ -605,9 +605,9 @@ body.dark{--bg:#1c1c1e;--text:#f2f2f7;--text2:#aeaeb2;--text3:#636366;--sep:rgba
   --glass:rgba(44,44,46,.65);--glass2:rgba(44,44,46,.82);--glass-border:rgba(100,100,110,.5);
   --lg-shadow:0 2px 4px rgba(0,0,0,.15),0 8px 28px rgba(0,0,0,.2),inset 0 1.5px 0 rgba(255,255,255,.08),inset 0 -1px 0 rgba(0,0,0,.1);
   --lg-shimmer:linear-gradient(135deg,rgba(100,80,120,.12) 0%,rgba(60,80,140,.08) 50%,rgba(40,100,100,.06) 100%);
-  --gc-bg:rgba(44,44,46,.09);--gc-border:rgba(80,80,90,.28);--gc-border-top:rgba(100,100,110,.35);
-  --gc-spec:rgba(255,255,255,.03);--panel-bg:rgba(12,12,22,.21);--item-bg:rgba(40,40,52,.41);
-  --item-border:rgba(255,255,255,.06);--item-border-top:rgba(255,255,255,.10);}
+  --gc-bg:rgba(44,44,46,.05);--gc-border:rgba(80,80,90,.14);--gc-border-top:rgba(100,100,110,.18);
+  --gc-spec:rgba(255,255,255,.02);--panel-bg:rgba(12,12,22,.11);--item-bg:rgba(40,40,52,.21);
+  --item-border:rgba(255,255,255,.03);--item-border-top:rgba(255,255,255,.05);}
 body.dark input,body.dark select,body.dark textarea{background:rgba(60,60,70,.82);color:#f2f2f7;border-color:rgba(80,80,90,.5);-webkit-backdrop-filter:none;backdrop-filter:none;}
 body.dark .modal-box{background:rgba(32,32,36,.94);border-color:rgba(80,80,90,.4);}
 body.dark .settings-panel{background:var(--panel-bg);border-color:rgba(255,255,255,.08);box-shadow:-4px 0 40px rgba(0,0,0,.35),inset 1px 0 0 rgba(255,255,255,.07);}
@@ -618,34 +618,34 @@ body.dark .chip,body.dark .chip-tile{background:rgba(50,50,62,.75);border-color:
 body.dark .ibox{background:rgba(50,50,58,.5);border-color:rgba(80,80,90,.4);}
 
 /* ── GLASS MODES ── */
-/* Mode 1 — Ultra (~2.5% opacity of Mode 3) */
+/* Mode 1 — Ultra */
 body.glass-1{
-  --gc-bg:rgba(255,255,255,.01);--gc-border:rgba(255,255,255,.02);--gc-border-top:rgba(255,255,255,.03);
-  --gc-spec:rgba(255,255,255,.02);--panel-bg:rgba(220,232,248,.01);
-  --item-bg:rgba(255,255,255,.02);--item-border:rgba(255,255,255,.02);--item-border-top:rgba(255,255,255,.03);}
+  --gc-bg:rgba(255,255,255,.01);--gc-border:rgba(255,255,255,.01);--gc-border-top:rgba(255,255,255,.02);
+  --gc-spec:rgba(255,255,255,.01);--panel-bg:rgba(220,232,248,.01);
+  --item-bg:rgba(255,255,255,.01);--item-border:rgba(255,255,255,.01);--item-border-top:rgba(255,255,255,.02);}
 body.glass-1.dark{
-  --gc-bg:rgba(44,44,46,.01);--gc-border:rgba(80,80,90,.02);--gc-border-top:rgba(100,100,110,.02);
+  --gc-bg:rgba(44,44,46,.01);--gc-border:rgba(80,80,90,.01);--gc-border-top:rgba(100,100,110,.01);
   --gc-spec:rgba(255,255,255,.01);--panel-bg:rgba(12,12,22,.01);
-  --item-bg:rgba(40,40,52,.02);--item-border:rgba(255,255,255,.01);--item-border-top:rgba(255,255,255,.01);}
-/* Mode 2 — Alta (10% opacity of Mode 3) */
+  --item-bg:rgba(40,40,52,.01);--item-border:rgba(255,255,255,.01);--item-border-top:rgba(255,255,255,.01);}
+/* Mode 2 — Alta */
 body.glass-2{
-  --gc-bg:rgba(255,255,255,.01);--gc-border:rgba(255,255,255,.06);--gc-border-top:rgba(255,255,255,.09);
-  --gc-spec:rgba(255,255,255,.06);--panel-bg:rgba(220,232,248,.01);
-  --item-bg:rgba(255,255,255,.08);--item-border:rgba(255,255,255,.07);--item-border-top:rgba(255,255,255,.10);}
+  --gc-bg:rgba(255,255,255,.01);--gc-border:rgba(255,255,255,.03);--gc-border-top:rgba(255,255,255,.05);
+  --gc-spec:rgba(255,255,255,.03);--panel-bg:rgba(220,232,248,.01);
+  --item-bg:rgba(255,255,255,.04);--item-border:rgba(255,255,255,.04);--item-border-top:rgba(255,255,255,.05);}
 body.glass-2.dark{
-  --gc-bg:rgba(44,44,46,.02);--gc-border:rgba(80,80,90,.06);--gc-border-top:rgba(100,100,110,.07);
-  --gc-spec:rgba(255,255,255,.01);--panel-bg:rgba(12,12,22,.04);
-  --item-bg:rgba(40,40,52,.08);--item-border:rgba(255,255,255,.01);--item-border-top:rgba(255,255,255,.02);}
+  --gc-bg:rgba(44,44,46,.01);--gc-border:rgba(80,80,90,.03);--gc-border-top:rgba(100,100,110,.04);
+  --gc-spec:rgba(255,255,255,.01);--panel-bg:rgba(12,12,22,.02);
+  --item-bg:rgba(40,40,52,.04);--item-border:rgba(255,255,255,.01);--item-border-top:rgba(255,255,255,.01);}
 /* Mode 3 — Media: default :root / body.dark values, no override needed */
-/* Mode 4 — Sólido (70% opacity of Mode 3 original) */
+/* Mode 4 — Sólido */
 body.glass-4{
-  --gc-bg:rgba(255,255,255,.04);--gc-border:rgba(255,255,255,.42);--gc-border-top:rgba(255,255,255,.49);
-  --gc-spec:rgba(255,255,255,.39);--panel-bg:rgba(220,232,248,.14);
-  --item-bg:rgba(255,255,255,.46);--item-border:rgba(255,255,255,.44);--item-border-top:rgba(255,255,255,.49);}
+  --gc-bg:rgba(255,255,255,.02);--gc-border:rgba(255,255,255,.21);--gc-border-top:rgba(255,255,255,.25);
+  --gc-spec:rgba(255,255,255,.20);--panel-bg:rgba(220,232,248,.07);
+  --item-bg:rgba(255,255,255,.23);--item-border:rgba(255,255,255,.22);--item-border-top:rgba(255,255,255,.25);}
 body.glass-4.dark{
-  --gc-bg:rgba(44,44,46,.14);--gc-border:rgba(80,80,90,.39);--gc-border-top:rgba(100,100,110,.46);
-  --gc-spec:rgba(255,255,255,.05);--panel-bg:rgba(12,12,22,.31);
-  --item-bg:rgba(40,40,52,.48);--item-border:rgba(255,255,255,.09);--item-border-top:rgba(255,255,255,.14);}
+  --gc-bg:rgba(44,44,46,.07);--gc-border:rgba(80,80,90,.20);--gc-border-top:rgba(100,100,110,.23);
+  --gc-spec:rgba(255,255,255,.03);--panel-bg:rgba(12,12,22,.16);
+  --item-bg:rgba(40,40,52,.24);--item-border:rgba(255,255,255,.05);--item-border-top:rgba(255,255,255,.07);}
 
 /* ── PDF VIEWER ── */
 #pdf-viewer-overlay{position:fixed;top:0;right:0;bottom:0;left:0;z-index:2000;background:#1a1a1a;display:flex;flex-direction:column;}
@@ -7066,8 +7066,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.5.4";
-var APP_BUILD="09/06/26 10:45";
+var APP_DISPLAY_VERSION="5.5.5";
+var APP_BUILD="09/06/26 11:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
