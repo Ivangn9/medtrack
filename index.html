@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.09.026 -->
+<!-- v2026.06.09.027 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.09.026">
+<meta name="app-version" content="v2026.06.09.027">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -618,24 +618,24 @@ body.dark .chip,body.dark .chip-tile{background:rgba(50,50,62,.75);border-color:
 body.dark .ibox{background:rgba(50,50,58,.5);border-color:rgba(80,80,90,.4);}
 
 /* ── GLASS MODES ── */
-/* Mode 1 — Ultra (40% opacity of Mode 3) */
+/* Mode 1 — Ultra (10% opacity of Mode 3) */
 body.glass-1{
-  --gc-bg:rgba(255,255,255,.02);--gc-border:rgba(255,255,255,.24);--gc-border-top:rgba(255,255,255,.36);
-  --gc-spec:rgba(255,255,255,.22);--panel-bg:rgba(220,232,248,.05);
-  --item-bg:rgba(255,255,255,.31);--item-border:rgba(255,255,255,.28);--item-border-top:rgba(255,255,255,.38);}
+  --gc-bg:rgba(255,255,255,.01);--gc-border:rgba(255,255,255,.06);--gc-border-top:rgba(255,255,255,.09);
+  --gc-spec:rgba(255,255,255,.06);--panel-bg:rgba(220,232,248,.01);
+  --item-bg:rgba(255,255,255,.08);--item-border:rgba(255,255,255,.07);--item-border-top:rgba(255,255,255,.10);}
 body.glass-1.dark{
-  --gc-bg:rgba(44,44,46,.07);--gc-border:rgba(80,80,90,.22);--gc-border-top:rgba(100,100,110,.28);
-  --gc-spec:rgba(255,255,255,.02);--panel-bg:rgba(12,12,22,.17);
-  --item-bg:rgba(40,40,52,.33);--item-border:rgba(255,255,255,.05);--item-border-top:rgba(255,255,255,.08);}
-/* Mode 2 — Alta (70% opacity of Mode 3) */
+  --gc-bg:rgba(44,44,46,.02);--gc-border:rgba(80,80,90,.06);--gc-border-top:rgba(100,100,110,.07);
+  --gc-spec:rgba(255,255,255,.01);--panel-bg:rgba(12,12,22,.04);
+  --item-bg:rgba(40,40,52,.08);--item-border:rgba(255,255,255,.01);--item-border-top:rgba(255,255,255,.02);}
+/* Mode 2 — Alta (50% opacity of Mode 3) */
 body.glass-2{
-  --gc-bg:rgba(255,255,255,.04);--gc-border:rgba(255,255,255,.42);--gc-border-top:rgba(255,255,255,.63);
-  --gc-spec:rgba(255,255,255,.39);--panel-bg:rgba(220,232,248,.08);
-  --item-bg:rgba(255,255,255,.55);--item-border:rgba(255,255,255,.49);--item-border-top:rgba(255,255,255,.67);}
+  --gc-bg:rgba(255,255,255,.03);--gc-border:rgba(255,255,255,.30);--gc-border-top:rgba(255,255,255,.45);
+  --gc-spec:rgba(255,255,255,.28);--panel-bg:rgba(220,232,248,.06);
+  --item-bg:rgba(255,255,255,.39);--item-border:rgba(255,255,255,.35);--item-border-top:rgba(255,255,255,.48);}
 body.glass-2.dark{
-  --gc-bg:rgba(44,44,46,.13);--gc-border:rgba(80,80,90,.39);--gc-border-top:rgba(100,100,110,.49);
-  --gc-spec:rgba(255,255,255,.04);--panel-bg:rgba(12,12,22,.29);
-  --item-bg:rgba(40,40,52,.57);--item-border:rgba(255,255,255,.08);--item-border-top:rgba(255,255,255,.14);}
+  --gc-bg:rgba(44,44,46,.09);--gc-border:rgba(80,80,90,.28);--gc-border-top:rgba(100,100,110,.35);
+  --gc-spec:rgba(255,255,255,.03);--panel-bg:rgba(12,12,22,.21);
+  --item-bg:rgba(40,40,52,.41);--item-border:rgba(255,255,255,.06);--item-border-top:rgba(255,255,255,.10);}
 /* Mode 3 — Media: default :root / body.dark values, no override needed */
 /* Mode 4 — Sólido (140% opacity of Mode 3) */
 body.glass-4{
@@ -7066,8 +7066,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.5.1";
-var APP_BUILD="09/06/26 10:00";
+var APP_DISPLAY_VERSION="5.5.2";
+var APP_BUILD="09/06/26 10:15";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
