@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.09.039 --><html lang="es"><head><meta charset="UTF-8">
+<!-- v2026.06.09.040 --><html lang="es"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -32,7 +32,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.09.039"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0">
+<meta name="app-version" content="v2026.06.09.040"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0">
 <style>
 :root{
   --glass:rgba(255,255,255,.07);
@@ -1478,7 +1478,7 @@ function migrateEcoData(){
 var eqs=[],view="dash",selId=null,selAntenaEqId=null,selAntenaId=null,selTransdEqId=null,selTransdId=null,filtCat="TODOS",toastTimer=null,darkMode=false,fontScale=100,glassMode=3;
 
 function saveData(){
-  if(!Array.isArray(eqs)||eqs===null){console.warn('saveData aborted: eqs is not a valid array');return;}
+  if(!Array.isArray(eqs)||!Array.isArray(antenas)||!Array.isArray(aires)||!Array.isArray(transductores)){console.warn('saveData aborted: one or more data arrays are invalid');return;}
   var now=new Date().toISOString();
   try{localStorage.setItem("mt_v4",JSON.stringify(eqs));localStorage.setItem("mt_antenas",JSON.stringify(antenas));localStorage.setItem("mt_aires",JSON.stringify(aires));localStorage.setItem("mt_transductores",JSON.stringify(transductores));localStorage.setItem("mt_updatedAt",now);}catch(e){showToast('Almacenamiento local lleno — los datos se guardan solo en la nube','warn');}
   firestoreSave();
@@ -1979,7 +1979,16 @@ function renderHistPendingFiles(tipo){
       '<button onclick="removeHistPending(\''+tipo+'\','+i+')" style="background:none;border:none;color:var(--red);font-size:.9rem;cursor:pointer;padding:2px 6px;">✕</button></div>';
   }).join('');
 }
-function removeHistPending(tipo,i){if(!confirm('¿Quitar este archivo? Se eliminará de la lista de pendientes.'))return;if(tipo==='presupuesto'){_pendingHistPresupuestos.splice(i,1);}else{_pendingHistReportes.splice(i,1);}renderHistPendingFiles(tipo);}
+function _confirmModal(msg,okLabel,okFn){
+  openModal('<div style="padding:20px 16px 12px;text-align:center;">'+
+    '<p style="font-size:.88rem;color:var(--text2);margin:0 0 20px;line-height:1.5;">'+esc(msg)+'</p>'+
+    '<div style="display:flex;gap:10px;">'+
+    '<button onclick="closeModal()" style="flex:1;padding:11px;border-radius:10px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.08);color:var(--text2);font-size:.85rem;cursor:pointer;">Cancelar</button>'+
+    '<button id="_cfm_ok" style="flex:1;padding:11px;border-radius:10px;background:var(--red);border:none;color:#fff;font-size:.85rem;font-weight:600;cursor:pointer;">'+esc(okLabel)+'</button>'+
+    '</div></div>');
+  var btn=document.getElementById('_cfm_ok');if(btn)btn.onclick=function(){closeModal();okFn();};
+}
+function removeHistPending(tipo,i){_confirmModal('¿Quitar este archivo de los pendientes?','Quitar',function(){if(tipo==='presupuesto'){_pendingHistPresupuestos.splice(i,1);}else{_pendingHistReportes.splice(i,1);}renderHistPendingFiles(tipo);});}
 function removeHistFile(fid){
   if(!confirm('¿Eliminar este PDF? Esta acción no se puede deshacer.'))return;
   _deletedHistFiles.push(fid);
@@ -2401,7 +2410,7 @@ function attachParteImage(){
     });
   };inp.click();
 }
-function removeParteImagePending(i){if(!confirm('¿Quitar esta imagen? Se eliminará de la lista de pendientes.'))return;_pendingParteImages.splice(i,1);_renderParteImages();}
+function removeParteImagePending(i){_confirmModal('¿Quitar esta imagen de los pendientes?','Quitar',function(){_pendingParteImages.splice(i,1);_renderParteImages();});}
 function _renderParteImages(){
   var el=document.getElementById('pt-img-list');if(!el)return;
   el.innerHTML=_pendingParteImages.map(function(f,i){
@@ -2422,7 +2431,7 @@ function attachRotImage(){
     });
   };inp.click();
 }
-function removeRotImage(i){if(!confirm('¿Quitar esta imagen? Se eliminará de la lista de pendientes.'))return;_pendingRotImages.splice(i,1);_renderRotImages();}
+function removeRotImage(i){_confirmModal('¿Quitar esta imagen de los pendientes?','Quitar',function(){_pendingRotImages.splice(i,1);_renderRotImages();});}
 function _renderRotImages(){
   var el=document.getElementById('rot-img-list');if(!el)return;
   el.innerHTML=_pendingRotImages.map(function(f,i){
@@ -2486,7 +2495,7 @@ function renderPendingFiles(tipo){
       '<button onclick="removePending(\''+tipo+'\','+i+')" style="background:none;border:none;color:var(--red);font-size:.9rem;cursor:pointer;padding:2px 6px;">✕</button></div>';
   }).join('');
 }
-function removePending(tipo,i){if(!confirm('¿Quitar este archivo? Se eliminará de la lista de pendientes.'))return;if(tipo==='presupuesto'){_pendingPresupuestos.splice(i,1);}else{_pendingReportes.splice(i,1);}renderPendingFiles(tipo);}
+function removePending(tipo,i){_confirmModal('¿Quitar este archivo de los pendientes?','Quitar',function(){if(tipo==='presupuesto'){_pendingPresupuestos.splice(i,1);}else{_pendingReportes.splice(i,1);}renderPendingFiles(tipo);});}
 
 var RM_COMPONENTES=[
   {id:"coldhead",label:"ColdHead",grupo:"resonador"},
@@ -2709,27 +2718,29 @@ function _icsNow(){
   var s=d.getUTCSeconds();
   return y+(mo<10?'0'+mo:''+mo)+(dd<10?'0'+dd:''+dd)+'T'+(h<10?'0'+h:''+h)+(mi<10?'0'+mi:''+mi)+(s<10?'0'+s:''+s)+'Z';
 }
+function _icsEsc(s){return (s||'').replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\n/g,'\\n');}
 function addToCalendar(eqId,tipo){
   var eq=eqs.find(function(e){return e.id===eqId;});
   if(!eq)return;
   var fecha,titulo,desc;
-  var ubicacion=eq.nombre+' — CIMA';
+  var nombre=_icsEsc(eq.nombre);
+  var ubicacion=nombre+' — CIMA';
   if(tipo==='mant'){
     fecha=eq.proximoMant;
-    titulo='Mantenimiento: '+eq.nombre;
-    desc='Mantenimiento preventivo '+( eq.frecuencia||'')+' | Tecnico: '+(eq.tecnico||'Por asignar')+' | Equipo: '+eq.nombre;
+    titulo='Mantenimiento: '+nombre;
+    desc='Mantenimiento preventivo '+_icsEsc(eq.frecuencia||'')+' | Tecnico: '+_icsEsc(eq.tecnico||'Por asignar')+' | Equipo: '+nombre;
   }else if(tipo==='garantia'){
     fecha=eq.garantiaHasta;
-    titulo='Vencimiento Garantia: '+eq.nombre;
-    desc='Vencimiento de garantia del equipo '+eq.nombre;
+    titulo='Vencimiento Garantia: '+nombre;
+    desc='Vencimiento de garantia del equipo '+nombre;
   }else if(tipo==='bateria'){
     fecha=eq.bateria_vencimiento;
-    titulo='Vencimiento Bateria DES: '+eq.nombre;
-    desc='Vencimiento de bateria del desfibrilador '+eq.nombre;
+    titulo='Vencimiento Bateria DES: '+nombre;
+    desc='Vencimiento de bateria del desfibrilador '+nombre;
   }else if(tipo==='parches'){
     fecha=eq.parches_vencimiento;
-    titulo='Vencimiento Parches DES: '+eq.nombre;
-    desc='Vencimiento de parches del desfibrilador '+eq.nombre;
+    titulo='Vencimiento Parches DES: '+nombre;
+    desc='Vencimiento de parches del desfibrilador '+nombre;
   }
   if(!fecha){showToast('Sin fecha registrada','warn');return;}
   var fICS=_icsDateStr(fecha,0);
@@ -3127,8 +3138,8 @@ function rUpsSchema(){
       'cursor:pointer;border-radius:18px;'+
       'background:rgba(30,28,34,.97);'+
       'border:1px solid rgba(255,255,255,'+(isActive?'.10':'.06')+');'+
-      'box-shadow:0 8px 32px rgba(0,0,0,.40),inset 0 1px 0 rgba(255,255,255,.08);'+
-      (isActive?'box-shadow:0 8px 32px rgba(0,0,0,.40),0 0 0 1px rgba(245,158,11,.12),inset 0 1px 0 rgba(255,255,255,.08);animation:upsGlow 3s ease-in-out infinite;':'')+
+      'box-shadow:'+(isActive?'0 8px 32px rgba(0,0,0,.40),0 0 0 1px rgba(245,158,11,.12),inset 0 1px 0 rgba(255,255,255,.08)':'0 8px 32px rgba(0,0,0,.40),inset 0 1px 0 rgba(255,255,255,.08)')+';'+
+      (isActive?'animation:upsGlow 3s ease-in-out infinite;':'')+
     'overflow:hidden;">'+
       // Animated power rail
       '<div style="height:2px;'+
@@ -7332,8 +7343,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.6.5";
-var APP_BUILD="09/06/26 23:55";window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};function doUpdate(){  showToast("⚡ Actualizando...");
+var APP_DISPLAY_VERSION="5.6.6";
+var APP_BUILD="10/06/26 00:30";window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};function doUpdate(){  showToast("⚡ Actualizando...");
   setTimeout(function(){
     window.location.href=window.location.href.split('?')[0].split('#')[0]+'?v='+Date.now();
   },400);
