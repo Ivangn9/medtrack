@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.10.043 -->
+<!-- v2026.06.10.044 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.10.043">
+<meta name="app-version" content="v2026.06.10.044">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3192,9 +3192,14 @@ function _kpiMonthKey(dateStr){
 }
 function _kpiFmtCost(n){
   if(!n||isNaN(n))return'USD 0';
-  if(n>=1000000)return'USD '+(n/1000000).toFixed(2)+'M';
-  if(n>=1000)return'USD '+(n/1000).toFixed(1)+'K';
-  return'USD '+n.toFixed(2);
+  var v=Math.round(n*100)/100;
+  var s=Math.round(v).toString();
+  var result='';
+  for(var i=0;i<s.length;i++){
+    if(i>0&&(s.length-i)%3===0)result+='.';
+    result+=s[i];
+  }
+  return'USD '+result;
 }
 function _kpiMonthLabel(key){
   var M=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
@@ -3248,10 +3253,11 @@ function _kpiAllRoturas(){
 }
 // ── SVG CHARTS ──
 function _kpiSvgBars(monthlyCosts,last12,W,H,darkMode2){
-  var pL=52,pR=12,pT=14,pB=38;
-  var bW=Math.floor((W-pL-pR)/12);
+  var pR=12,pT=14,pB=38;
   var vals=last12.map(function(k){return monthlyCosts[k]||0;});
   var maxV=Math.max.apply(null,vals.concat([1]));
+  var pL=Math.max(52,_kpiFmtCost(maxV).length*6+10);
+  var bW=Math.floor((W-pL-pR)/12);
   var fg=darkMode2?'rgba(255,255,255,.65)':'#6b7280';
   var gridC=darkMode2?'rgba(255,255,255,.06)':'#e5e7eb';
   var axisC=darkMode2?'rgba(255,255,255,.12)':'#d1d5db';
@@ -7609,8 +7615,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.7.1";
-var APP_BUILD="10/06/26 11:30";
+var APP_DISPLAY_VERSION="5.7.2";
+var APP_BUILD="10/06/26 12:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
