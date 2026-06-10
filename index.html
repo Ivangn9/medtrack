@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.10.050 -->
+<!-- v2026.06.10.079 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.10.050">
+<meta name="app-version" content="v2026.06.10.079">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1708,7 +1708,7 @@ function setView(v){
   moveBBIndicator();
   render();
 }
-function goDetalle(id){selId=id;view="detalle";_detalleQ="";_detalleSearchOpen=false;
+function goDetalle(id){selId=id;view="detalle";_detalleQ="";_detalleSearchOpen=false;_detalleTab=null;
   document.getElementById("back-btn").classList.remove("hidden");
   render();
 }
@@ -2906,7 +2906,7 @@ function rDash(){
 var _busqueda="";
 var _filtMarca="";
 var _filtCentro="";
-var _detalleQ="",_detalleSearchOpen=false;
+var _detalleQ="",_detalleSearchOpen=false,_detalleTab=null;
 var _filtDash=null;
 var FDASH={
   total:     {l:"Todos los equipos",     c:"var(--accent)"},
@@ -2921,6 +2921,7 @@ function openListaSearch(){setView("lista");setTimeout(function(){var i=document
 function clearDashFilter(){_filtDash=null;render();}
 function toggleDetalleSearch(){_detalleSearchOpen=!_detalleSearchOpen;if(!_detalleSearchOpen)_detalleQ="";render();if(_detalleSearchOpen){var i=document.getElementById('det-busq');if(i)i.focus();}}
 function setDetalleQ(v){var inp=document.getElementById('det-busq');var sel=inp?inp.selectionStart:null;_detalleQ=v;render();inp=document.getElementById('det-busq');if(inp){inp.focus();if(sel!==null)inp.setSelectionRange(sel,sel);}}
+function setDetalleTab(t){_detalleTab=t;_detalleQ='';_detalleSearchOpen=false;render();var el=document.getElementById('main-content');if(el)el.scrollTop=0;}
 function setBusqueda(v){
   var inp=document.getElementById('busq-inp');
   var sel=inp?inp.selectionStart:null;
@@ -3741,9 +3742,255 @@ function rAlertas(){
   return h;
 }
 
+// ── DETALLE SUB-VIEWS ──
+function _rDetalleRefrig(eq,rf){
+  var h='';
+  h+='<div onclick="setDetalleTab(null)" style="display:flex;align-items:center;gap:8px;padding:10px 14px;margin-bottom:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:var(--r-md);cursor:pointer;" ontouchstart="this.style.opacity=\'.7\'" ontouchend="this.style.opacity=\'1\'">'+
+    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.45)" stroke-width="2.2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>'+
+    '<span style="font-size:.8rem;font-weight:600;color:var(--text2);">'+esc(eq.nombre)+'</span>'+
+    '<span style="font-size:.7rem;color:var(--text3);margin-left:auto;">Equipo</span>'+
+  '</div>';
+  var chCol=rf.chiller==='operativo'?'#16a34a':rf.chiller==='service'?'#d97706':'#dc2626';
+  var chLbl=rf.chiller==='operativo'?'✅ Operativo':rf.chiller==='service'?'🔧 En Service':'🔴 Rotura';
+  h+='<div class="gc" style="padding:0;margin-bottom:10px;overflow:hidden;border-left:4px solid rgba(99,179,237,.5);">'+
+    '<div style="background:linear-gradient(90deg,rgba(8,145,178,.12),rgba(99,179,237,.06));padding:8px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(99,179,237,.08);">'+
+      '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(8,145,178,.9)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/></svg>'+
+      '<span style="font-size:.72rem;font-weight:700;color:#0891b2;text-transform:uppercase;letter-spacing:.06em;">❄️ Refrigeración — Chiller</span>'+
+    '</div>'+
+    '<div style="padding:12px 14px;">'+
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">'+
+        '<span style="font-size:.84rem;font-weight:700;padding:4px 12px;border-radius:20px;background:'+chCol+'18;color:'+chCol+';">'+chLbl+'</span>'+
+      '</div>'+
+      '<div style="display:flex;gap:6px;">'+
+        '<button onclick="setChillerEstado(\''+eq.id+'\',\'operativo\')" style="flex:1;padding:7px 6px;border-radius:var(--r-md);font-size:.7rem;font-weight:600;cursor:pointer;border:1.5px solid rgba(22,163,74,.3);background:'+(rf.chiller==='operativo'?'rgba(22,163,74,.18)':'rgba(22,163,74,.06)')+';color:#16a34a;">✅ Operativo</button>'+
+        '<button onclick="openRegistrarServiceChiller(\''+eq.id+'\')" style="flex:1;padding:7px 6px;border-radius:var(--r-md);font-size:.7rem;font-weight:600;cursor:pointer;border:1.5px solid rgba(217,119,6,.3);background:'+(rf.chiller==='service'?'rgba(217,119,6,.18)':'rgba(217,119,6,.06)')+';color:#d97706;">🔧 Service</button>'+
+        '<button onclick="setChillerEstado(\''+eq.id+'\',\'rotura\')" style="flex:1;padding:7px 6px;border-radius:var(--r-md);font-size:.7rem;font-weight:600;cursor:pointer;border:1.5px solid rgba(220,38,38,.3);background:'+(rf.chiller==='rotura'?'rgba(220,38,38,.18)':'rgba(220,38,38,.06)')+';color:#dc2626;">🔴 Rotura</button>'+
+      '</div>'+
+    '</div>'+
+  '</div>';
+  var gasP=parseFloat(rf.helioGasPresionActual);
+  var gasAlm=!isNaN(gasP)&&(gasP<2.0||gasP>2.3);
+  var gasCol=gasAlm?'#f87171':!isNaN(gasP)?'#63b3ed':'#94a3b8';
+  h+='<div class="gc" style="padding:0;margin-bottom:10px;overflow:hidden;border-left:4px solid rgba(99,179,237,.4);">'+
+    '<div style="background:linear-gradient(90deg,rgba(99,179,237,.10),rgba(8,145,178,.05));padding:8px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(99,179,237,.07);">'+
+      '<span style="font-size:.72rem;font-weight:700;color:#63b3ed;text-transform:uppercase;letter-spacing:.06em;flex:1;">⚗️ Helio Gaseoso</span>'+
+      (gasAlm?'<span style="font-size:.6rem;padding:1px 6px;border-radius:20px;background:rgba(248,113,113,.15);color:#f87171;font-weight:700;">⚠ Alarma</span>':'')+
+    '</div>'+
+    '<div style="padding:12px 14px;">'+
+      '<div style="display:flex;align-items:baseline;gap:6px;margin-bottom:6px;">'+
+        '<span style="font-size:1.5rem;font-weight:900;font-family:JetBrains Mono,monospace;color:'+gasCol+';">'+(isNaN(gasP)?'—':gasP.toFixed(1))+'</span>'+
+        '<span style="font-size:.75rem;color:var(--text3);">MPa</span>'+
+        '<span style="font-size:.67rem;color:'+(gasAlm?'#f87171':'var(--text3)')+';margin-left:4px;">'+(gasAlm?(gasP<2.0?'⚠ baja (mín 2.0)':'⚠ alta (máx 2.3)'):'Óptimo: 2.0–2.3 MPa')+'</span>'+
+      '</div>'+
+      '<div style="display:flex;gap:6px;">'+
+        '<button onclick="openActualizarHelioGaseoso(\''+eq.id+'\')" style="flex:1;padding:7px 10px;border-radius:var(--r-pill);font-size:.72rem;font-weight:600;cursor:pointer;border:1.5px solid rgba(99,179,237,.3);background:rgba(99,179,237,.08);color:#63b3ed;">📝 Actualizar lectura</button>'+
+        '<button onclick="openCargaRealHelioGaseoso(\''+eq.id+'\')" style="flex:1;padding:7px 10px;border-radius:var(--r-pill);font-size:.72rem;font-weight:600;cursor:pointer;border:1.5px solid rgba(8,145,178,.4);background:rgba(8,145,178,.12);color:#0ea5e9;">⚗️ Registrar carga</button>'+
+      '</div>'+
+    '</div>'+
+  '</div>';
+  var liqPorc=parseFloat(rf.helioLiqPorcentaje);
+  var liqPres=parseFloat(rf.helioLiqPresion);
+  var liqAlm=(!isNaN(liqPorc)&&liqPorc<70)||(!isNaN(liqPres)&&(liqPres<0.9||liqPres>2.0));
+  var liqPorcCol=(!isNaN(liqPorc)&&liqPorc<70)?'#f87171':'#0ea5e9';
+  var liqPresCol=(!isNaN(liqPres)&&(liqPres<0.9||liqPres>2.0))?'#f87171':'#34d399';
+  h+='<div class="gc" style="padding:0;margin-bottom:10px;overflow:hidden;border-left:4px solid rgba(14,165,233,.4);">'+
+    '<div style="background:linear-gradient(90deg,rgba(14,165,233,.10),rgba(8,145,178,.05));padding:8px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(14,165,233,.07);">'+
+      '<span style="font-size:.72rem;font-weight:700;color:#0ea5e9;text-transform:uppercase;letter-spacing:.06em;flex:1;">💧 Helio Líquido</span>'+
+      (liqAlm?'<span style="font-size:.6rem;padding:1px 6px;border-radius:20px;background:rgba(248,113,113,.15);color:#f87171;font-weight:700;">⚠ Alarma</span>':'')+
+    '</div>'+
+    '<div style="padding:12px 14px;">'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">'+
+        '<div>'+
+          '<div style="font-size:.6rem;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;">Nivel</div>'+
+          '<div style="font-size:1.5rem;font-weight:900;font-family:JetBrains Mono,monospace;color:'+liqPorcCol+';">'+(isNaN(liqPorc)?'—':liqPorc.toFixed(0))+'<span style="font-size:.7rem;"> %</span></div>'+
+          '<div style="font-size:.62rem;color:'+((!isNaN(liqPorc)&&liqPorc<70)?'#f87171':'var(--text3)')+';">'+((!isNaN(liqPorc)&&liqPorc<70)?'⚠ bajo (mín 70%)':'≥70% óptimo')+'</div>'+
+        '</div>'+
+        '<div>'+
+          '<div style="font-size:.6rem;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;">Presión</div>'+
+          '<div style="font-size:1.5rem;font-weight:900;font-family:JetBrains Mono,monospace;color:'+liqPresCol+';">'+(isNaN(liqPres)?'—':liqPres.toFixed(1))+'<span style="font-size:.7rem;"> PSI</span></div>'+
+          '<div style="font-size:.62rem;color:'+((!isNaN(liqPres)&&(liqPres<0.9||liqPres>2.0))?'#f87171':'var(--text3)')+';">'+((!isNaN(liqPres)&&liqPres<0.9)?'⚠ baja (mín 0.9)':(!isNaN(liqPres)&&liqPres>2.0)?'⚠ alta (máx 2.0)':'0.9–2.0 PSI')+'</div>'+
+        '</div>'+
+      '</div>'+
+      '<div style="display:flex;gap:6px;">'+
+        '<button onclick="openActualizarHelioLiquido(\''+eq.id+'\')" style="flex:1;padding:7px 10px;border-radius:var(--r-pill);font-size:.72rem;font-weight:600;cursor:pointer;border:1.5px solid rgba(14,165,233,.3);background:rgba(14,165,233,.08);color:#38bdf8;">📝 Actualizar lectura</button>'+
+        '<button onclick="openCargaRealHelioLiquido(\''+eq.id+'\')" style="flex:1;padding:7px 10px;border-radius:var(--r-pill);font-size:.72rem;font-weight:600;cursor:pointer;border:1.5px solid rgba(8,145,178,.4);background:rgba(8,145,178,.12);color:#0ea5e9;">💧 Registrar carga</button>'+
+      '</div>'+
+    '</div>'+
+  '</div>';
+  var histCargas=(rf.historial||[]).filter(function(ev){return ev.tipo==='carga_gaseoso'||ev.tipo==='carga_liquido'||ev.tipo==='chiller';}).slice().reverse();
+  h+='<div class="gc" style="padding:0;margin-bottom:10px;overflow:hidden;border-left:4px solid rgba(8,145,178,.35);">'+
+    '<div style="background:linear-gradient(90deg,rgba(8,145,178,.10),rgba(6,182,212,.05));padding:8px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(8,145,178,.07);">'+
+      '<span style="font-size:.72rem;font-weight:700;color:#0891b2;text-transform:uppercase;letter-spacing:.06em;flex:1;">📋 Historial de Cargas</span>'+
+      '<span style="font-size:.64rem;font-weight:700;padding:1px 7px;border-radius:20px;background:rgba(8,145,178,.12);color:#0891b2;">'+histCargas.length+'</span>'+
+    '</div>'+
+    '<div style="padding:10px 14px 12px;">';
+  if(!histCargas.length){
+    h+='<div style="font-size:.78rem;color:var(--text3);text-align:center;padding:10px 0;">Sin cargas registradas</div>';
+  } else {
+    histCargas.slice(0,8).forEach(function(ev){
+      var isGas=ev.tipo==='carga_gaseoso';var isLiq=ev.tipo==='carga_liquido';
+      var evIcon=isGas?'⚗️':isLiq?'💧':'❄️';
+      h+='<div style="display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04);">'+
+        '<span style="font-size:.9rem;flex-shrink:0;margin-top:1px;">'+evIcon+'</span>'+
+        '<div style="flex:1;min-width:0;">'+
+          '<div style="font-size:.75rem;font-weight:600;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(ev.descripcion||ev.tipo)+'</div>'+
+          (ev.tecnico?'<div style="font-size:.66rem;color:var(--text3);">👷 '+esc(ev.tecnico)+'</div>':'')+
+          (ev.notas?'<div style="font-size:.66rem;color:var(--text3);">'+esc(ev.notas)+'</div>':'')+
+        '</div>'+
+        '<div style="font-size:.66rem;color:var(--text3);flex-shrink:0;">'+fD(ev.fecha)+'</div>'+
+      '</div>';
+    });
+    if(histCargas.length>8){h+='<div style="font-size:.7rem;color:var(--text3);padding:5px 0 0;text-align:center;">+'+( histCargas.length-8)+' más</div>';}
+  }
+  h+='</div></div>';
+  h+='<div class="gc" style="padding:0;margin-bottom:10px;overflow:hidden;border-left:4px solid rgba(8,145,178,.35);">'+
+    '<div style="background:linear-gradient(90deg,rgba(8,145,178,.10),rgba(6,182,212,.05));padding:8px 14px;border-bottom:1px solid rgba(8,145,178,.07);">'+
+      '<span style="font-size:.72rem;font-weight:700;color:#0891b2;text-transform:uppercase;letter-spacing:.06em;">📈 Gráficos Helio</span>'+
+    '</div>'+
+    '<div style="padding:10px 14px;overflow-x:auto;">'+
+      _refrigHelioChart(rf,eq.id)+
+    '</div>'+
+  '</div>';
+  return h;
+}
+
+function _rDetalleFallas(eq){
+  var dq=_detalleQ.toLowerCase().trim();
+  var h='';
+  h+='<div onclick="setDetalleTab(null)" style="display:flex;align-items:center;gap:8px;padding:10px 14px;margin-bottom:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:var(--r-md);cursor:pointer;" ontouchstart="this.style.opacity=\'.7\'" ontouchend="this.style.opacity=\'1\'">'+
+    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.45)" stroke-width="2.2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>'+
+    '<span style="font-size:.8rem;font-weight:600;color:var(--text2);">'+esc(eq.nombre)+'</span>'+
+    '<span style="font-size:.7rem;color:var(--text3);margin-left:auto;">Equipo</span>'+
+  '</div>';
+  h+='<div class="gc" style="padding:0;margin-bottom:12px;overflow:hidden;border-left:4px solid rgba(255,59,48,.45);background:linear-gradient(135deg,rgba(255,59,48,.08) 0%,rgba(255,69,58,.04) 100%);">';
+  h+='<div style="background:linear-gradient(90deg,rgba(255,59,48,.12),rgba(255,69,58,.07));padding:9px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(255,59,48,.10);">';
+  h+='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(220,38,38,.9)" stroke-width="2.2" stroke-linecap="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>';
+  h+='<span style="font-size:.72rem;font-weight:700;color:rgba(220,38,38,.9);text-transform:uppercase;letter-spacing:.06em;flex:1;">Roturas y Fallas</span>';
+  h+='<div style="display:flex;align-items:center;gap:6px;">';
+  if(_detalleSearchOpen){
+    h+='<div style="position:relative;">';
+    h+='<input id="det-busq" class="inp" value="'+esc(_detalleQ)+'" placeholder="Buscar..." oninput="setDetalleQ(this.value)" style="padding:5px 28px 5px 10px;font-size:.75rem;width:150px;">';
+    if(_detalleQ)h+='<button onclick="_detalleQ=\'\';render();" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:.9rem;cursor:pointer;color:var(--text3);">✕</button>';
+    h+='</div>';
+  }
+  h+='<button onclick="toggleDetalleSearch()" style="background:'+((_detalleSearchOpen||_detalleQ)?'rgba(220,38,38,.12)':'rgba(255,59,48,.07)')+';border:1px solid '+((_detalleSearchOpen||_detalleQ)?'rgba(220,38,38,.28)':'rgba(255,59,48,.18)')+';border-radius:10px;padding:4px 8px;cursor:pointer;font-size:.82rem;color:'+((_detalleSearchOpen||_detalleQ)?'#dc2626':'rgba(220,38,38,.6)')+';">🔍</button>';
+  h+='<button onclick="openModalParte(\''+eq.id+'\',null)" style="padding:5px 12px;border-radius:var(--r-pill);background:rgba(220,38,38,.10);border:1.5px solid rgba(220,38,38,.28);color:#dc2626;font-weight:700;font-size:.72rem;cursor:pointer;">+ Agregar</button>';
+  h+='</div></div>';
+  h+='<div style="padding:14px 16px;">';
+  var partesActivas=eq.partes.filter(function(p){
+    if(p.estado==='ok'||p.estado==='mejora')return false;
+    if(!dq)return true;
+    return (p.nombre||'').toLowerCase().indexOf(dq)!==-1||(p.descripcion||'').toLowerCase().indexOf(dq)!==-1||(p.notas||'').toLowerCase().indexOf(dq)!==-1||(p.estado||'').toLowerCase().indexOf(dq)!==-1||(p.marca||'').toLowerCase().indexOf(dq)!==-1;
+  });
+  if(!eq.partes.filter(function(p){return p.estado!=='ok'&&p.estado!=='mejora';}).length){h+='<div style="background:rgba(120,120,128,.05);border:1px dashed rgba(120,120,128,.2);border-radius:14px;text-align:center;color:var(--text3);padding:18px;font-size:.82rem;margin-bottom:12px;">Sin partes activas — tocá "+ Agregar"</div>';}
+  else if(dq&&!partesActivas.length){h+='<div style="color:var(--text3);font-size:.78rem;padding:8px 0 12px;text-align:center;">Sin roturas que coincidan</div>';}
+  partesActivas.forEach(function(p){
+    var c=CP[p.estado]||'var(--green)';
+    var bgCard=p.estado==='roto'?'rgba(255,245,245,.95)':p.estado==='pendiente'?'rgba(255,250,240,.95)':'rgba(245,255,248,.95)';
+    h+='<div style="background:'+bgCard+';border:1px solid '+c+'25;border-radius:16px;padding:14px;margin-bottom:10px;border-left:4px solid '+c+';">'+
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;"><div style="flex:1;"><div style="font-weight:700;font-size:.88rem;margin-bottom:2px;">'+esc(p.nombre)+'</div>'+(p.descripcion?'<div style="font-size:.72rem;color:var(--text3);">'+esc(p.descripcion)+'</div>':'')+'</div>'+pillH(c,p.estado==='ok'?'✅ OK':p.estado==='pendiente'?'⚠️ Pend.':'🔴 Roto')+'</div>'+
+      '<div class="det-grid" style="margin-bottom:8px;">'+
+      '<div class="ibox"><div class="ibox-l">Rotura</div><div class="ibox-v"'+(p.fechaRotura?' style="color:var(--red);"':'')+'>'+fD(p.fechaRotura)+'</div></div>'+
+      '<div class="ibox"><div class="ibox-l">Arreglo</div><div class="ibox-v"'+(p.fechaArreglo?' style="color:var(--green);"':' style="color:var(--orange);"')+'>'+fD(p.fechaArreglo)+'</div></div>'+
+      (p.marca?'<div class="ibox"><div class="ibox-l">Marca</div><div class="ibox-v">'+esc(p.marca)+'</div></div>':'')+
+      (p.nroSerie?'<div class="ibox"><div class="ibox-l">N° Serie</div><div class="ibox-v">'+esc(p.nroSerie)+'</div></div>':'')+
+      (p.canalReclamo?'<div class="ibox"><div class="ibox-l">Canal</div><div class="ibox-v">'+canalLabel(p.canalReclamo)+'</div></div>':'')+
+      (p.tecnicoReparacion?'<div class="ibox"><div class="ibox-l">Reparó</div><div class="ibox-v" style="color:var(--accent);">👷 '+esc(p.tecnicoReparacion)+'</div></div>':'')+
+      (p.precio?'<div class="ibox"><div class="ibox-l">Precio</div><div class="ibox-v" style="color:var(--green);">$'+esc(p.precio)+'</div></div>':'')+
+      (p.presupuestoAprobado!==undefined?'<div class="ibox" style="grid-column:1/-1;"><div class="ibox-l">Presupuesto</div><div class="ibox-v">'+
+        (p.presupuestoAprobado?'<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:50px;font-size:.72rem;font-weight:700;background:rgba(52,199,89,.12);color:var(--green);">✅ Aprobado'+(p.fechaAprobacion?' · '+fD(p.fechaAprobacion):'')+'</span>':'<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:50px;font-size:.72rem;font-weight:700;background:rgba(255,149,0,.10);color:var(--orange);">⏳ Pendiente</span>')+
+      '</div></div>':'')+
+      '</div>'+
+      (p.notas?'<div style="font-size:.73rem;color:var(--text2);background:rgba(0,0,0,.04);padding:7px 10px;border-radius:8px;margin-bottom:8px;">'+esc(p.notas)+'</div>':'')+
+      ((p.archivos&&p.archivos.length)?'<div style="margin-bottom:8px;">'+p.archivos.map(function(a){return'<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(0,0,0,.05);"><span>📄</span><span style="font-size:.72rem;flex:1;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(a.nombre)+'</span><button onclick="openPDFViewer(\''+a.id+'\',\''+esc(a.nombre)+'\')" style="background:rgba(0,113,227,.1);color:var(--accent);border:none;border-radius:8px;padding:3px 10px;font-size:.65rem;font-weight:600;cursor:pointer;flex-shrink:0;">Abrir</button><button onclick="delParteFileDirect(\''+eq.id+'\',\''+p.id+'\',\''+a.id+'\')" style="background:none;border:none;color:var(--red);font-size:.85rem;cursor:pointer;padding:2px 5px;flex-shrink:0;">🗑</button></div>';}).join('')+'</div>':'')+
+      (p.estado!=='ok'?'<button onclick="repararParte(\''+eq.id+'\',\''+p.id+'\')" style="width:100%;padding:11px;margin-bottom:8px;border:none;border-radius:12px;background:var(--green);color:#fff;font-size:.86rem;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(52,199,89,.3);">✅ Marcar como Reparado</button>':'')+
+      '<div style="display:flex;gap:6px;"><button class="btn-secondary btn-sm" style="flex:1;" onclick=\'openModalParte("'+eq.id+'",'+JSON.stringify(p).replace(/'/g,"&#39;")+')\'>✏️ Editar</button><button class="btn-danger btn-sm" onclick="delParte(\''+eq.id+'\',\''+p.id+'\')">🗑</button></div></div>';
+  });
+  h+='</div></div>';
+  var mejoras=eq.partes.filter(function(p){
+    if(p.estado!=='mejora')return false;
+    if(!dq)return true;
+    return (p.nombre||'').toLowerCase().indexOf(dq)!==-1||(p.descripcion||'').toLowerCase().indexOf(dq)!==-1||(p.notas||'').toLowerCase().indexOf(dq)!==-1||(p.asignadoA||'').toLowerCase().indexOf(dq)!==-1;
+  });
+  var mejorasTotal=eq.partes.filter(function(p){return p.estado==='mejora';});
+  h+='<div class="gc" style="padding:0;margin-bottom:12px;overflow:hidden;border-left:4px solid rgba(139,92,246,.45);background:linear-gradient(135deg,rgba(139,92,246,.08) 0%,rgba(99,102,241,.04) 100%);">';
+  h+='<div style="background:linear-gradient(90deg,rgba(139,92,246,.12),rgba(99,102,241,.07));padding:9px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(139,92,246,.10);">';
+  h+='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(139,92,246,.9)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>';
+  h+='<span style="font-size:.72rem;font-weight:700;color:rgba(139,92,246,.9);text-transform:uppercase;letter-spacing:.06em;flex:1;">Mejoras</span>';
+  h+='<span style="background:rgba(139,92,246,.12);color:#8b5cf6;border-radius:20px;padding:1px 8px;font-size:.68rem;font-weight:700;margin-right:6px;">'+mejorasTotal.length+'</span>';
+  h+='<button onclick="openModalParte(\''+eq.id+'\',{estado:\'mejora\'})" style="padding:5px 12px;border-radius:var(--r-pill);background:rgba(139,92,246,.10);border:1.5px solid rgba(139,92,246,.28);color:#8b5cf6;font-weight:700;font-size:.72rem;cursor:pointer;">+ Agregar</button>';
+  h+='</div>';
+  h+='<div style="padding:14px 16px;">';
+  if(!mejorasTotal.length){h+='<div style="text-align:center;color:rgba(139,92,246,.5);padding:14px;font-size:.82rem;">Sin mejoras registradas</div>';}
+  else if(dq&&!mejoras.length){h+='<div style="color:var(--text3);font-size:.78rem;padding:6px 0;text-align:center;">Sin mejoras que coincidan</div>';}
+  mejoras.forEach(function(p){
+    h+='<div style="background:rgba(255,255,255,.95);border:1px solid rgba(139,92,246,.18);border-radius:14px;padding:13px;margin-bottom:8px;box-shadow:0 1px 6px rgba(139,92,246,.06);">'+
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">'+
+      '<div style="flex:1;"><div style="font-weight:700;font-size:.86rem;margin-bottom:4px;">'+esc(p.nombre)+'</div>'+
+      (p.descripcion?'<div style="font-size:.72rem;color:var(--text3);margin-bottom:4px;">'+esc(p.descripcion)+'</div>':'')+
+      '<div style="display:flex;gap:6px;flex-wrap:wrap;">'+
+      (p.asignadoA?'<span style="font-size:.68rem;background:rgba(139,92,246,.12);color:#8b5cf6;padding:2px 8px;border-radius:20px;font-weight:600;">👷 '+esc(p.asignadoA)+'</span>':'')+
+      (p.fechaMejora?'<span style="font-size:.68rem;background:rgba(139,92,246,.08);color:#8b5cf6;padding:2px 8px;border-radius:20px;">📅 '+fD(p.fechaMejora)+'</span>':'')+
+      '</div>'+
+      (p.notas?'<div style="font-size:.73rem;color:var(--text2);margin-top:6px;background:rgba(139,92,246,.06);padding:5px 8px;border-radius:8px;">'+esc(p.notas)+'</div>':'')+
+      '</div></div>'+
+      '<div style="display:flex;gap:6px;margin-bottom:8px;">'+
+      '<button style="flex:1;padding:10px;border:none;border-radius:12px;background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;font-size:.84rem;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(139,92,246,.35);" onclick="completarMejora(\''+eq.id+'\',\''+p.id+'\')">✅ Marcar como Completado</button>'+
+      '</div>'+
+      '<div style="display:flex;gap:6px;"><button class="btn-secondary btn-sm" style="flex:1;color:#8b5cf6;" onclick=\'openModalParte("'+eq.id+'",'+JSON.stringify(p).replace(/'/g,"&#39;")+')\'>✏️ Editar</button><button class="btn-danger btn-sm" onclick="delParte(\''+eq.id+'\',\''+p.id+'\')">🗑</button></div>'+
+      '</div>';
+  });
+  h+='</div></div>';
+  var histAll=(eq.historialMant||[]).slice().reverse();
+  var hist=dq?histAll.filter(function(hh){return (hh.nombre||'').toLowerCase().indexOf(dq)!==-1||(hh.notas||'').toLowerCase().indexOf(dq)!==-1||(hh.tecnico||'').toLowerCase().indexOf(dq)!==-1||(hh.tipo||'').toLowerCase().indexOf(dq)!==-1;}) : histAll;
+  h+='<div class="gc" style="padding:0;margin-bottom:12px;overflow:hidden;border-left:4px solid rgba(0,113,227,.45);background:linear-gradient(135deg,rgba(0,113,227,.08) 0%,rgba(0,130,255,.04) 100%);">';
+  h+='<div style="background:linear-gradient(90deg,rgba(0,113,227,.12),rgba(0,130,255,.07));padding:9px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(0,113,227,.10);">';
+  h+='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(0,113,227,.9)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+  h+='<span style="font-size:.72rem;font-weight:700;color:rgba(0,113,227,.9);text-transform:uppercase;letter-spacing:.06em;flex:1;">Historial</span>';
+  h+='<span style="background:rgba(0,113,227,.15);color:var(--accent);border-radius:20px;padding:1px 8px;font-size:.68rem;font-weight:700;">'+(dq?hist.length+'/'+histAll.length:histAll.length)+'</span>';
+  h+='</div>';
+  h+='<div style="padding:14px 16px;">';
+  if(!histAll.length){h+='<div style="background:rgba(120,120,128,.04);border:1px dashed rgba(120,120,128,.2);border-radius:14px;text-align:center;color:var(--text3);padding:16px;font-size:.82rem;">Sin historial</div>';}
+  else if(dq&&!hist.length){h+='<div style="color:var(--text3);font-size:.78rem;padding:8px 0 12px;text-align:center;">Sin historial que coincida</div>';}
+  if(hist.length){
+    h+='<div style="position:relative;padding-left:20px;">';
+    h+='<div style="position:absolute;left:8px;top:8px;bottom:8px;width:2px;background:linear-gradient(180deg,rgba(0,113,227,.3),rgba(52,199,89,.2),rgba(120,120,128,.1));border-radius:2px;"></div>';
+    hist.forEach(function(hh){
+      var isMant=hh.tipo==='mantenimiento';var isMej=hh.tipo==='mejora';var isRefrig=hh.tipo==='refrigeracion';
+      var c=isMant?'var(--accent)':isMej?'#8b5cf6':isRefrig?'#0891b2':'var(--green)';
+      var dotBg=isMant?'rgba(0,113,227,.15)':isMej?'rgba(139,92,246,.15)':isRefrig?'rgba(8,145,178,.15)':'rgba(52,199,89,.15)';
+      var label=isMant?'Mantenimiento':isMej?'Mejora':isRefrig?'❄️ Refrigeración':'Reparación';
+      var hasPdf=(hh.archivos&&hh.archivos.length>0);
+      h+='<div style="position:relative;margin-bottom:10px;">';
+      h+='<div style="position:absolute;left:-16px;top:10px;width:10px;height:10px;border-radius:50%;background:'+c+';box-shadow:0 0 0 3px '+dotBg+';"></div>';
+      h+='<div style="background:rgba(255,255,255,.95);border:1px solid rgba(120,120,128,.12);border-radius:14px;padding:11px 13px;box-shadow:0 1px 4px rgba(0,0,0,.04);">'+
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;"><div style="flex:1;">'+
+        '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">'+
+        '<span style="display:inline-block;padding:2px 8px;border-radius:20px;font-size:.62rem;font-weight:700;background:'+dotBg+';color:'+c+';">'+label+'</span>'+
+        '<span style="font-size:.7rem;color:var(--text3);">'+fD(hh.fecha)+'</span>'+
+        '</div>'+
+        ((!isMant&&!isMej)?'<div style="font-weight:600;font-size:.82rem;margin-bottom:2px;">'+esc(hh.nombre||'')+'</div>':'')+
+        (hh.tecnico?'<div style="font-size:.7rem;color:var(--text3);">👷 Ing. '+esc(hh.tecnico)+'</div>':'')+
+        (hh.precio?'<div style="font-size:.7rem;color:var(--green);font-weight:600;">💲 $'+esc(hh.precio)+'</div>':'')+
+        (hh.notas?'<div style="font-size:.72rem;color:var(--text2);margin-top:4px;background:rgba(0,0,0,.03);padding:4px 8px;border-radius:7px;">'+esc(hh.notas)+'</div>':'')+'</div>'+
+        '<div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;flex-shrink:0;">'+
+        (hasPdf?(hh.archivos).map(function(af){return'<button onclick="openPDFViewer(\''+af.id+'\',\''+esc(af.nombre)+'\')" style="padding:4px 10px;background:rgba(0,113,227,.1);color:var(--accent);border-radius:8px;font-size:.66rem;font-weight:600;border:none;cursor:pointer;">📄 '+esc(af.nombre.length>18?af.nombre.slice(0,16)+'…':af.nombre)+'</button>';}).join(''):'<button onclick="openHistDetail(\''+eq.id+'\',\''+hh.id+'\')" style="padding:4px 10px;background:rgba(0,113,227,.1);color:var(--accent);border-radius:8px;font-size:.66rem;font-weight:600;border:none;cursor:pointer;">🔍 Ver</button>')+
+        '<button onclick="openEditHist(\''+eq.id+'\',\''+hh.id+'\')" style="padding:4px 10px;background:rgba(52,199,89,.1);color:var(--green);border-radius:8px;font-size:.66rem;font-weight:600;border:none;cursor:pointer;">✏️</button>'+
+        '<button onclick="delHist(\''+eq.id+'\',\''+hh.id+'\')" style="padding:4px 8px;background:rgba(255,59,48,.07);color:var(--red);border-radius:8px;font-size:.68rem;border:none;cursor:pointer;">🗑</button>'+
+        '</div></div></div></div>';
+    });
+    h+='</div>';
+  }
+  h+='</div></div>';
+  return h;
+}
+
 // ── DETALLE ──
 function rDetalle(){
   var eq=eqs.find(function(e){return e.id===selId;});if(!eq)return"";
+  var rf=eq.cat==='RM'?_refrigData(eq):null;
+  if(_detalleTab==='refrig'&&rf)return _rDetalleRefrig(eq,rf);
+  if(_detalleTab==='fallas')return _rDetalleFallas(eq);
   var ms=semafo(eq);var d=diasH(eq.proximoMant);var ci=catById(eq.cat);
   var estBtns=["operativo","con-rotura","fuera-de-servicio"].map(function(est){
     var a=eq.estado===est||(est==="con-rotura"&&eq.estado==="advertencia");var c=CE[est]||"var(--green)";
@@ -3869,287 +4116,111 @@ function rDetalle(){
   h+=(eq.notas?'<div class="ibox"><div class="ibox-l">📝 Nota</div><div style="font-size:.8rem;color:var(--text2);margin-top:2px;">'+esc(eq.notas)+'</div></div>':'');
   h+='</div></div>';
 
-  // ── ANTENAS RF (RM only) ──
+  // Inline helpers
+  var cCell=function(lbl,valHtml,sub){return'<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:8px 10px;"><div style="font-size:.58rem;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;">'+lbl+'</div><div style="font-size:.82rem;font-weight:700;line-height:1.3;">'+valHtml+'</div>'+(sub?'<div style="font-size:.61rem;color:var(--text3);margin-top:2px;">'+sub+'</div>':'')+'</div>';};
+  var navRowFn=function(lbl,detail2,fn){return'<div onclick="'+fn+'" style="display:flex;align-items:center;gap:8px;padding:9px 2px;margin-top:6px;cursor:pointer;border-top:1px solid rgba(255,255,255,.06);"><span style="flex:1;font-size:.78rem;font-weight:600;color:var(--text2);">'+lbl+'</span>'+(detail2?'<span style="font-size:.67rem;color:var(--text3);">'+detail2+'</span>':'')+'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="2.2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></div>';};
+
+  // ── ANTENAS RF (RM — compact iOS nav row) ──
   if(eq.cat==='RM'){
     var _antCnt=(eq.antenaIds||[]).length;
     var _antRot=antenas.filter(function(a){return(eq.antenaIds||[]).indexOf(a.id)!==-1;}).reduce(function(s,a){return s+(a.roturas||[]).filter(function(r){return r.estado!=='reparado';}).length;},0);
-    h+='<div class="gc tap" onclick="goAntenas(\''+eq.id+'\')" style="padding:0;margin-bottom:14px;overflow:hidden;cursor:pointer;border-left:4px solid rgba(79,120,224,.5);" ontouchstart="this.style.transform=\'scale(.98)\'" ontouchend="this.style.transform=\'\'">'+
-      '<div style="background:linear-gradient(90deg,rgba(79,120,224,.12),rgba(99,102,241,.07));padding:9px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(79,120,224,.10);">'+
-        antenaSvgIcon(14)+
-        '<span style="font-size:.72rem;font-weight:700;color:rgba(79,120,224,.9);text-transform:uppercase;letter-spacing:.06em;">Antenas RF</span>'+
-        '<svg style="margin-left:auto;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(79,120,224,.6)" stroke-width="2.2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>'+
-      '</div>'+
-      '<div style="padding:16px;position:relative;overflow:hidden;background:linear-gradient(135deg,rgba(79,120,224,.07) 0%,rgba(99,102,241,.04) 100%);">'+
-        '<div style="position:absolute;right:-10px;top:-8px;opacity:.22;pointer-events:none;z-index:0;">'+antenaSvgIcon(120)+'</div>'+
-        '<div style="position:relative;z-index:1;display:flex;align-items:center;gap:12px;">'+
-          '<div style="display:flex;gap:10px;">'+
-            '<div style="background:rgba(79,120,224,.10);border:1px solid rgba(79,120,224,.18);border-radius:var(--r-md);padding:9px 16px;text-align:center;min-width:64px;">'+
-              '<div style="font-size:1.5rem;font-weight:900;color:#4f78e0;line-height:1;">'+_antCnt+'</div>'+
-              '<div style="font-size:.6rem;color:var(--text3);margin-top:3px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;">Antena(s)</div>'+
-            '</div>'+
-            '<div style="background:'+(_antRot>0?'rgba(239,68,68,.10)':'rgba(52,199,89,.08)')+';border:1px solid '+(_antRot>0?'rgba(239,68,68,.18)':'rgba(52,199,89,.15)')+';border-radius:var(--r-md);padding:9px 16px;text-align:center;min-width:64px;">'+
-              '<div style="font-size:1.5rem;font-weight:900;color:'+(_antRot>0?'var(--red)':'var(--green)')+';line-height:1;">'+_antRot+'</div>'+
-              '<div style="font-size:.6rem;color:var(--text3);margin-top:3px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;">Rotura(s)</div>'+
-            '</div>'+
-          '</div>'+
-          '<div style="margin-left:auto;display:flex;align-items:center;gap:4px;color:#4f78e0;font-weight:700;font-size:.78rem;">'+
-            'Ver todas<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>'+
-          '</div>'+
+    h+='<div class="gc tap" onclick="goAntenas(\''+eq.id+'\')" style="padding:0;margin-bottom:8px;overflow:hidden;cursor:pointer;border-left:4px solid rgba(79,120,224,.5);" ontouchstart="this.style.transform=\'scale(.98)\'" ontouchend="this.style.transform=\'\'">'+
+      '<div style="padding:12px 14px;display:flex;align-items:center;gap:11px;">'+
+        antenaSvgIcon(18)+
+        '<div style="flex:1;min-width:0;">'+
+          '<div style="font-size:.84rem;font-weight:700;color:var(--text1);">Antenas RF</div>'+
+          '<div style="font-size:.67rem;color:var(--text3);margin-top:1px;">'+_antCnt+' antena'+(_antCnt!==1?'s':'')+(_antRot===0?' · todas OK':' · '+_antRot+' rotura'+(_antRot!==1?'s':'')+' activa'+(_antRot!==1?'s':''))+'</div>'+
         '</div>'+
+        (_antRot>0?'<span style="font-size:.68rem;font-weight:700;min-width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+_antRot+'</span>':'')+
+        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(79,120,224,.45)" stroke-width="2.2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>'+
       '</div>'+
     '</div>';
 
-    // ── REFRIGERACIÓN (RM only) ──
-    var rf=_refrigData(eq);
-    var _chLastEvt=(rf.historial||[]).filter(function(h){return h.tipo==='chiller';}).slice(-1)[0];
-    var _hgLastEvt=(rf.historial||[]).filter(function(h){return h.tipo==='carga_gaseoso';}).slice(-1)[0];
-    var _hlLastEvt=(rf.historial||[]).filter(function(h){return h.tipo==='carga_liquido';}).slice(-1)[0];
-    h+='<div class="gc" style="padding:0;margin-bottom:14px;overflow:hidden;border-left:4px solid rgba(99,179,237,.5);">';
-    // Header
-    h+='<div style="background:linear-gradient(90deg,rgba(99,179,237,.14),rgba(8,145,178,.07));padding:9px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(99,179,237,.12);">';
-    h+='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(8,145,178,.9)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/></svg>';
-    h+='<span style="font-size:.72rem;font-weight:700;color:#0891b2;text-transform:uppercase;letter-spacing:.06em;">Refrigeración</span>';
-    h+='</div>';
-    h+='<div style="padding:14px 16px;">';
-    // Chiller section
-    h+='<div style="margin-bottom:14px;">';
-    h+='<div style="font-size:.72rem;font-weight:700;color:#0891b2;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">❄️ Chiller</div>';
-    h+='<div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:6px;">';
-    var _chOp=rf.chiller==='operativo';var _chSv=rf.chiller==='service';var _chRt=rf.chiller==='rotura';
-    h+='<button onclick="setChillerEstado(\''+eq.id+'\',\'operativo\')" style="padding:6px 12px;border-radius:var(--r-pill);font-size:.75rem;font-weight:700;cursor:pointer;border:2px solid '+(_chOp?'#16a34a':'rgba(120,120,128,.25)')+';background:'+(_chOp?'rgba(52,199,89,.15)':'rgba(120,120,128,.07)')+';color:'+(_chOp?'#16a34a':'var(--text3)')+';">✅ Operativo</button>';
-    h+='<button onclick="setChillerEstado(\''+eq.id+'\',\'service\')" style="padding:6px 12px;border-radius:var(--r-pill);font-size:.75rem;font-weight:700;cursor:pointer;border:2px solid '+(_chSv?'#c2410c':'rgba(120,120,128,.25)')+';background:'+(_chSv?'rgba(255,149,0,.15)':'rgba(120,120,128,.07)')+';color:'+(_chSv?'#c2410c':'var(--text3)')+';">🔧 Service</button>';
-    h+='<button onclick="setChillerEstado(\''+eq.id+'\',\'rotura\')" style="padding:6px 12px;border-radius:var(--r-pill);font-size:.75rem;font-weight:700;cursor:pointer;border:2px solid '+(_chRt?'#dc2626':'rgba(120,120,128,.25)')+';background:'+(_chRt?'rgba(239,68,68,.15)':'rgba(120,120,128,.07)')+';color:'+(_chRt?'#dc2626':'var(--text3)')+';">🔴 Rotura</button>';
-    h+='<button onclick="openRegistrarServiceChiller(\''+eq.id+'\')" style="padding:6px 12px;border-radius:var(--r-pill);font-size:.75rem;font-weight:700;cursor:pointer;border:1.5px solid rgba(8,145,178,.35);background:rgba(8,145,178,.09);color:#0891b2;margin-left:auto;">📋 Registrar service</button>';
-    h+='</div>';
-    h+=(_chLastEvt?'<div style="font-size:.68rem;color:var(--text3);">Último evento: '+fD(_chLastEvt.fecha)+'</div>':'');
-    h+='</div>';
-    // Compresor de Helio
-    h+='<div style="border-top:1px solid rgba(99,179,237,.15);padding-top:12px;margin-bottom:12px;">';
-    h+='<div style="font-size:.72rem;font-weight:700;color:#0891b2;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;">🧊 Compresor de Helio</div>';
-    // Helio Gaseoso
-    h+='<div style="background:rgba(99,179,237,.06);border:1px solid rgba(99,179,237,.18);border-radius:var(--r-md);padding:10px 12px;margin-bottom:8px;">';
-    h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;">';
-    h+='<span style="font-size:.7rem;font-weight:700;color:var(--text2);">Helio Gaseoso</span>';
-    h+='<span style="font-size:.63rem;color:var(--text3);background:rgba(99,179,237,.08);border:1px solid rgba(99,179,237,.15);border-radius:var(--r-pill);padding:1px 7px;">Actualización diaria</span>';
-    h+='</div>';
-    var _hgOk=rf.helioGaseoso==='ok';var _hgPb=rf.helioGaseoso==='presion_baja';
-    h+='<div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:8px;">';
-    h+='<button onclick="setHelioGaseoso(\''+eq.id+'\',\'ok\')" style="padding:5px 11px;border-radius:var(--r-pill);font-size:.73rem;font-weight:700;cursor:pointer;border:2px solid '+(_hgOk?'#16a34a':'rgba(120,120,128,.25)')+';background:'+(_hgOk?'rgba(52,199,89,.15)':'rgba(120,120,128,.07)')+';color:'+(_hgOk?'#16a34a':'var(--text3)')+';">✅ OK</button>';
-    h+='<button onclick="setHelioGaseoso(\''+eq.id+'\',\'presion_baja\')" style="padding:5px 11px;border-radius:var(--r-pill);font-size:.73rem;font-weight:700;cursor:pointer;border:2px solid '+(_hgPb?'#c2410c':'rgba(120,120,128,.25)')+';background:'+(_hgPb?'rgba(255,149,0,.15)':'rgba(120,120,128,.07)')+';color:'+(_hgPb?'#c2410c':'var(--text3)')+';">⚠️ Presión Baja</button>';
-    if(rf.helioGasPresionActual)h+='<span style="background:rgba(8,145,178,.10);border:1px solid rgba(8,145,178,.25);border-radius:var(--r-pill);padding:3px 9px;font-size:.72rem;font-weight:700;color:#0891b2;">📊 '+esc(rf.helioGasPresionActual)+' psi</span>';
-    h+='<button onclick="openActualizarHelioGaseoso(\''+eq.id+'\')" style="padding:5px 11px;border-radius:var(--r-pill);font-size:.72rem;font-weight:700;cursor:pointer;border:1.5px solid rgba(99,179,237,.3);background:rgba(99,179,237,.08);color:#63b3ed;margin-left:auto;">📝 Actualizar</button>';
-    h+='</div>';
-    h+='<div style="border-top:1px dashed rgba(99,179,237,.18);padding-top:8px;display:flex;align-items:center;justify-content:space-between;">';
-    h+='<span style="font-size:.65rem;color:var(--text3);">'+(_hgLastEvt?'Última carga real: '+fD(_hgLastEvt.fecha):'Sin cargas reales registradas')+'</span>';
-    h+='<button onclick="openCargaRealHelioGaseoso(\''+eq.id+'\')" style="padding:5px 12px;border-radius:var(--r-pill);font-size:.72rem;font-weight:700;cursor:pointer;border:1.5px solid rgba(8,145,178,.5);background:rgba(8,145,178,.14);color:#0ea5e9;">⚗️ Carga Real</button>';
-    h+='</div>';
-    h+='</div>';
-    // Helio Liquido
-    h+='<div style="background:rgba(99,179,237,.06);border:1px solid rgba(99,179,237,.18);border-radius:var(--r-md);padding:10px 12px;">';
-    h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;">';
-    h+='<span style="font-size:.7rem;font-weight:700;color:var(--text2);">Helio Líquido</span>';
-    h+='<span style="font-size:.63rem;color:var(--text3);background:rgba(99,179,237,.08);border:1px solid rgba(99,179,237,.15);border-radius:var(--r-pill);padding:1px 7px;">Estado actual</span>';
-    h+='</div>';
-    h+='<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">';
-    if(rf.helioLiqPresion)h+='<span style="background:rgba(8,145,178,.10);border:1px solid rgba(8,145,178,.25);border-radius:var(--r-pill);padding:3px 9px;font-size:.72rem;font-weight:700;color:#0891b2;">📊 '+esc(rf.helioLiqPresion)+' psi</span>';
-    if(rf.helioLiqPorcentaje)h+='<span style="background:rgba(8,145,178,.10);border:1px solid rgba(8,145,178,.25);border-radius:var(--r-pill);padding:3px 9px;font-size:.72rem;font-weight:700;color:#0891b2;">🔋 '+esc(rf.helioLiqPorcentaje)+'%</span>';
-    if(!rf.helioLiqPresion&&!rf.helioLiqPorcentaje)h+='<span style="font-size:.72rem;color:var(--text3);">Sin datos</span>';
-    h+='<button onclick="openActualizarHelioLiquido(\''+eq.id+'\')" style="padding:5px 11px;border-radius:var(--r-pill);font-size:.72rem;font-weight:700;cursor:pointer;border:1.5px solid rgba(99,179,237,.3);background:rgba(99,179,237,.08);color:#63b3ed;margin-left:auto;">📝 Actualizar</button>';
-    h+='</div>';
-    h+='<div style="border-top:1px dashed rgba(99,179,237,.18);padding-top:8px;display:flex;align-items:center;justify-content:space-between;">';
-    h+='<span style="font-size:.65rem;color:var(--text3);">'+(_hlLastEvt?'Última carga real: '+fD(_hlLastEvt.fecha):'Sin cargas reales registradas')+'</span>';
-    h+='<button onclick="openCargaRealHelioLiquido(\''+eq.id+'\')" style="padding:5px 12px;border-radius:var(--r-pill);font-size:.72rem;font-weight:700;cursor:pointer;border:1.5px solid rgba(8,145,178,.5);background:rgba(8,145,178,.14);color:#0ea5e9;">💧 Carga Real</button>';
-    h+='</div>';
-    h+='</div>';
-    h+='</div>';
-    // Historial de Refrigeración
-    h+='<div style="border-top:1px solid rgba(99,179,237,.15);padding-top:12px;">';
-    h+='<div style="font-size:.7rem;font-weight:700;color:#0891b2;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Historial de Cargas Reales</div>';
-    var _rfHist=(rf.historial||[]).filter(function(ev){return ev.tipo==='carga_gaseoso'||ev.tipo==='carga_liquido';}).slice().reverse().slice(0,10);
-    var _rfTypeLabel={chiller:'Chiller',helio_gaseoso:'Estado Gas',carga_gaseoso:'⚗️ Carga Real Gaseoso',carga_liquido:'💧 Carga Real Líquido'};
-    if(!_rfHist.length){
-      h+='<div style="text-align:center;color:var(--text3);font-size:.78rem;padding:12px 0;">Sin cargas reales registradas</div>';
-    } else {
-      _rfHist.forEach(function(ev){
-        h+='<div style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:1px solid rgba(99,179,237,.10);">'+
-          '<div style="flex:1;">'+
-            '<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">'+
-              '<span style="font-size:.68rem;font-weight:700;background:rgba(8,145,178,.12);color:#0ea5e9;border-radius:var(--r-pill);padding:2px 8px;">'+esc(_rfTypeLabel[ev.tipo]||ev.tipo)+'</span>'+
-              '<span style="font-size:.68rem;color:var(--text3);">'+fD(ev.fecha)+'</span>'+
-            '</div>'+
-            '<div style="font-size:.78rem;color:var(--text2);">'+esc(ev.descripcion)+'</div>'+
-            (ev.empresa?'<div style="font-size:.68rem;color:var(--text3);">🏢 '+esc(ev.empresa)+'</div>':'')+
-            (ev.tecnico?'<div style="font-size:.68rem;color:var(--text3);">👷 '+esc(ev.tecnico)+'</div>':'')+
-          '</div>'+
-          '<button onclick="deleteRefrigEntry(\''+eq.id+'\',\''+ev.id+'\')" style="background:none;border:none;cursor:pointer;font-size:.78rem;color:var(--text3);padding:2px 5px;" title="Eliminar">🗑</button>'+
-        '</div>';
-      });
-    }
-    // Gráfico de cargas por mes
-    h+=_refrigHelioChart(rf,eq.id);
-    h+='</div>';
-    h+='</div></div>';
+    // ── REFRIGERACIÓN (RM — compact summary card) ──
+    var _gasP=parseFloat(rf.helioGasPresionActual);
+    var _liqPorc=parseFloat(rf.helioLiqPorcentaje);
+    var _liqPres=parseFloat(rf.helioLiqPresion);
+    var _gasAlm=!isNaN(_gasP)&&(_gasP<2.0||_gasP>2.3);
+    var _liqAlm=(!isNaN(_liqPorc)&&_liqPorc<70)||(!isNaN(_liqPres)&&(_liqPres<0.9||_liqPres>2.0));
+    var _rfLastCarga=(rf.historial||[]).filter(function(ev){return ev.tipo==='carga_gaseoso'||ev.tipo==='carga_liquido';}).slice(-1)[0];
+    var _chCol=rf.chiller==='operativo'?'#16a34a':rf.chiller==='service'?'#d97706':'#dc2626';
+    var _chLbl=rf.chiller==='operativo'?'✅ Operativo':rf.chiller==='service'?'🔧 Service':'🔴 Rotura';
+    var _gasTxt=!isNaN(_gasP)? _gasP.toFixed(1)+' MPa' : (rf.helioGaseoso==='presion_baja'?'Pres. baja':'OK');
+    var _gasCol=_gasAlm?'#f87171':!isNaN(_gasP)?'#63b3ed':'#4ade80';
+    var _liqPTxt=!isNaN(_liqPorc)?_liqPorc.toFixed(0)+'%':'—';
+    var _liqPCol=(!isNaN(_liqPorc)&&_liqPorc<70)?'#f87171':'#0ea5e9';
+    var _liqPresTxt=!isNaN(_liqPres)?_liqPres.toFixed(1)+' PSI':'—';
+    var _liqPresCol=(!isNaN(_liqPres)&&(_liqPres<0.9||_liqPres>2.0))?'#f87171':'#34d399';
+    h+='<div class="gc" style="padding:0;margin-bottom:8px;overflow:hidden;border-left:4px solid rgba(99,179,237,.5);">'+
+      '<div style="background:linear-gradient(90deg,rgba(8,145,178,.12),rgba(99,179,237,.06));padding:8px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(99,179,237,.08);">'+
+        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(8,145,178,.9)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/></svg>'+
+        '<span style="font-size:.72rem;font-weight:700;color:#0891b2;text-transform:uppercase;letter-spacing:.06em;flex:1;">Refrigeración</span>'+
+        ((_gasAlm||_liqAlm)?'<span style="font-size:.62rem;font-weight:700;padding:2px 7px;border-radius:20px;background:rgba(248,113,113,.15);color:#f87171;border:1px solid rgba(248,113,113,.3);">⚠ Alarma</span>':'')+
+      '</div>'+
+      '<div style="padding:10px 14px 12px;">'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:10px;">'+
+          cCell('Chiller','<span style="font-size:.76rem;font-weight:700;padding:2px 8px;border-radius:20px;background:'+_chCol+'18;color:'+_chCol+';">'+_chLbl+'</span>',null)+
+          cCell('Helio Gas','<span style="color:'+_gasCol+';font-family:JetBrains Mono,monospace;">'+_gasTxt+'</span>',(_gasAlm?'⚠ fuera de rango':'2.0–2.3 MPa'))+
+          cCell('Nivel Líq.','<span style="color:'+_liqPCol+';font-family:JetBrains Mono,monospace;">'+_liqPTxt+'</span>',(!isNaN(_liqPorc)&&_liqPorc<70?'⚠ bajo (mín 70%)':'≥70% óptimo'))+
+          cCell('Pres. Líq.','<span style="color:'+_liqPresCol+';font-family:JetBrains Mono,monospace;">'+_liqPresTxt+'</span>',(!isNaN(_liqPres)&&(_liqPres<0.9||_liqPres>2.0)?'⚠ fuera de rango':'0.9–2.0 PSI'))+
+        '</div>'+
+        '<div style="display:flex;gap:5px;flex-wrap:wrap;">'+
+          '<button onclick="event.stopPropagation();openActualizarHelioGaseoso(\''+eq.id+'\')" style="padding:5px 10px;border-radius:var(--r-pill);font-size:.7rem;font-weight:600;cursor:pointer;border:1.5px solid rgba(99,179,237,.3);background:rgba(99,179,237,.08);color:#63b3ed;">📝 Gas</button>'+
+          '<button onclick="event.stopPropagation();openActualizarHelioLiquido(\''+eq.id+'\')" style="padding:5px 10px;border-radius:var(--r-pill);font-size:.7rem;font-weight:600;cursor:pointer;border:1.5px solid rgba(99,179,237,.3);background:rgba(99,179,237,.08);color:#63b3ed;">📝 Líq</button>'+
+          '<button onclick="event.stopPropagation();openCargaRealHelioGaseoso(\''+eq.id+'\')" style="padding:5px 10px;border-radius:var(--r-pill);font-size:.7rem;font-weight:600;cursor:pointer;border:1.5px solid rgba(8,145,178,.4);background:rgba(8,145,178,.12);color:#0ea5e9;">⚗️ Gas</button>'+
+          '<button onclick="event.stopPropagation();openCargaRealHelioLiquido(\''+eq.id+'\')" style="padding:5px 10px;border-radius:var(--r-pill);font-size:.7rem;font-weight:600;cursor:pointer;border:1.5px solid rgba(8,145,178,.4);background:rgba(8,145,178,.12);color:#0ea5e9;">💧 Líq</button>'+
+        '</div>'+
+        navRowFn('Historial · Cargas · Gráficos',_rfLastCarga?('Últ. '+fD(_rfLastCarga.fecha)):'Sin cargas','setDetalleTab(\'refrig\')')+
+      '</div>'+
+    '</div>';
   }
 
-  // ── TRANSDUCTORES (ECO only) ──
+  // ── TRANSDUCTORES (ECO — compact iOS nav row) ──
   if(eq.cat==='ECO'){
     var _tCnt=(eq.transductorIds||[]).length;
     var _tRot=transductores.filter(function(t){return(eq.transductorIds||[]).indexOf(t.id)!==-1;}).reduce(function(s,t){return s+(t.roturas||[]).filter(function(r){return r.estado!=='reparado';}).length;},0);
-    h+='<div class="gc tap" onclick="goTransductores(\''+eq.id+'\')" style="padding:0;margin-bottom:14px;overflow:hidden;cursor:pointer;border-left:4px solid rgba(14,165,233,.5);" ontouchstart="this.style.transform=\'scale(.98)\'" ontouchend="this.style.transform=\'\'">'+
-      '<div style="background:linear-gradient(90deg,rgba(14,165,233,.12),rgba(6,182,212,.07));padding:9px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(14,165,233,.10);">'+
-        transductorSvgIcon(14)+
-        '<span style="font-size:.72rem;font-weight:700;color:rgba(14,165,233,.9);text-transform:uppercase;letter-spacing:.06em;">Transductores</span>'+
-        '<svg style="margin-left:auto;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(14,165,233,.6)" stroke-width="2.2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>'+
-      '</div>'+
-      '<div style="padding:16px;position:relative;overflow:hidden;background:linear-gradient(135deg,rgba(14,165,233,.07) 0%,rgba(6,182,212,.04) 100%);">'+
-        '<div style="position:absolute;right:-10px;top:-8px;opacity:.22;pointer-events:none;z-index:0;">'+transductorSvgIcon(120)+'</div>'+
-        '<div style="position:relative;z-index:1;display:flex;align-items:center;gap:12px;">'+
-          '<div style="display:flex;gap:10px;">'+
-            '<div style="background:rgba(14,165,233,.10);border:1px solid rgba(14,165,233,.18);border-radius:var(--r-md);padding:9px 16px;text-align:center;min-width:64px;">'+
-              '<div style="font-size:1.5rem;font-weight:900;color:#0ea5e9;line-height:1;">'+_tCnt+'</div>'+
-              '<div style="font-size:.6rem;color:var(--text3);margin-top:3px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;">Transductor(es)</div>'+
-            '</div>'+
-            '<div style="background:'+(_tRot>0?'rgba(239,68,68,.10)':'rgba(52,199,89,.08)')+';border:1px solid '+(_tRot>0?'rgba(239,68,68,.18)':'rgba(52,199,89,.15)')+';border-radius:var(--r-md);padding:9px 16px;text-align:center;min-width:64px;">'+
-              '<div style="font-size:1.5rem;font-weight:900;color:'+(_tRot>0?'var(--red)':'var(--green)')+';line-height:1;">'+_tRot+'</div>'+
-              '<div style="font-size:.6rem;color:var(--text3);margin-top:3px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;">Rotura(s)</div>'+
-            '</div>'+
-          '</div>'+
-          '<div style="font-size:.72rem;color:var(--text3);">Ver transductores →</div>'+
+    h+='<div class="gc tap" onclick="goTransductores(\''+eq.id+'\')" style="padding:0;margin-bottom:8px;overflow:hidden;cursor:pointer;border-left:4px solid rgba(14,165,233,.5);" ontouchstart="this.style.transform=\'scale(.98)\'" ontouchend="this.style.transform=\'\'">'+
+      '<div style="padding:12px 14px;display:flex;align-items:center;gap:11px;">'+
+        transductorSvgIcon(18)+
+        '<div style="flex:1;min-width:0;">'+
+          '<div style="font-size:.84rem;font-weight:700;color:var(--text1);">Transductores</div>'+
+          '<div style="font-size:.67rem;color:var(--text3);margin-top:1px;">'+_tCnt+' transductor'+(_tCnt!==1?'es':'')+(_tRot===0?' · todos OK':' · '+_tRot+' rotura'+(_tRot!==1?'s':'')+' activa'+(_tRot!==1?'s':''))+'</div>'+
         '</div>'+
+        (_tRot>0?'<span style="font-size:.68rem;font-weight:700;min-width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+_tRot+'</span>':'')+
+        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(14,165,233,.45)" stroke-width="2.2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>'+
       '</div>'+
     '</div>';
   }
 
-  // PARTES + HISTORIAL search bar
-  var dq=_detalleQ.toLowerCase().trim();
-  h+='<div class="gc" style="padding:0;margin-bottom:14px;overflow:hidden;border-left:4px solid rgba(255,59,48,.45);background:linear-gradient(135deg,rgba(255,59,48,.08) 0%,rgba(255,69,58,.04) 100%);">';
-  h+='<div style="background:linear-gradient(90deg,rgba(255,59,48,.12),rgba(255,69,58,.07));padding:9px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(255,59,48,.10);">';
-  h+='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(220,38,38,.9)" stroke-width="2.2" stroke-linecap="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>';
-  h+='<span style="font-size:.72rem;font-weight:700;color:rgba(220,38,38,.9);text-transform:uppercase;letter-spacing:.06em;flex:1;">Roturas y Fallas</span>';
-  h+='<div style="display:flex;align-items:center;gap:6px;">';
-  if(_detalleSearchOpen){
-    h+='<div style="position:relative;">';
-    h+='<input id="det-busq" class="inp" value="'+esc(_detalleQ)+'" placeholder="Buscar roturas y fallas e historial..." oninput="setDetalleQ(this.value)" style="padding:5px 28px 5px 10px;font-size:.75rem;width:160px;">';
-    if(_detalleQ)h+='<button onclick="_detalleQ=\'\';render();setTimeout(function(){var i=document.getElementById(\'det-busq\');if(i)i.focus();},50);" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:.9rem;cursor:pointer;color:var(--text3);">✕</button>';
-    h+='</div>';
-  }
-  h+='<button onclick="toggleDetalleSearch()" style="background:'+((_detalleSearchOpen||_detalleQ)?'rgba(220,38,38,.12)':'rgba(255,59,48,.07)')+';border:1px solid '+( (_detalleSearchOpen||_detalleQ)?'rgba(220,38,38,.28)':'rgba(255,59,48,.18)')+';border-radius:10px;padding:4px 8px;cursor:pointer;font-size:.82rem;color:'+( (_detalleSearchOpen||_detalleQ)?'#dc2626':'rgba(220,38,38,.6)')+';" title="Buscar">🔍</button>';
-  h+='<button onclick="openModalParte(\''+eq.id+'\',null)" style="padding:5px 12px;border-radius:var(--r-pill);background:rgba(220,38,38,.10);border:1.5px solid rgba(220,38,38,.28);color:#dc2626;font-weight:700;font-size:.72rem;cursor:pointer;box-shadow:inset 0 1.5px 0 rgba(255,255,255,.8);">+ Agregar</button>';
-  h+='</div></div>';
-  h+='<div style="padding:14px 16px;">';
+  // ── ROTURAS Y FALLAS (compact preview) ──
+  var _rotActivas=eq.partes.filter(function(p){return p.estado!=='ok'&&p.estado!=='mejora';});
+  var _rotTotal=_rotActivas.length;
+  var _mejTotal=eq.partes.filter(function(p){return p.estado==='mejora';}).length;
+  var _histTotal=(eq.historialMant||[]).length;
+  h+='<div class="gc" style="padding:0;margin-bottom:8px;overflow:hidden;border-left:4px solid rgba(255,59,48,.45);background:linear-gradient(135deg,rgba(255,59,48,.08) 0%,rgba(255,69,58,.04) 100%);">';
+  h+='<div style="background:linear-gradient(90deg,rgba(255,59,48,.12),rgba(255,69,58,.07));padding:8px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(255,59,48,.10);">'+
+    '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(220,38,38,.9)" stroke-width="2.2" stroke-linecap="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>'+
+    '<span style="font-size:.72rem;font-weight:700;color:rgba(220,38,38,.9);text-transform:uppercase;letter-spacing:.06em;flex:1;">Roturas y Fallas</span>'+
+    (_rotTotal>0?'<span style="font-size:.62rem;font-weight:700;padding:1px 7px;border-radius:20px;background:rgba(220,38,38,.15);color:#dc2626;border:1px solid rgba(220,38,38,.25);">'+_rotTotal+' activa'+(_rotTotal!==1?'s':'')+'</span>':'')+
+    '<button onclick="event.stopPropagation();openModalParte(\''+eq.id+'\',null)" style="margin-left:4px;padding:4px 10px;border-radius:var(--r-pill);background:rgba(220,38,38,.10);border:1.5px solid rgba(220,38,38,.28);color:#dc2626;font-weight:700;font-size:.68rem;cursor:pointer;">+ Agregar</button>'+
+  '</div>';
+  h+='<div style="padding:10px 14px 12px;">';
 
-  var partesActivas=eq.partes.filter(function(p){
-    if(p.estado==="ok"||p.estado==="mejora")return false;
-    if(!dq)return true;
-    return (p.nombre||"").toLowerCase().includes(dq)||(p.descripcion||"").toLowerCase().includes(dq)||(p.notas||"").toLowerCase().includes(dq)||(p.estado||"").toLowerCase().includes(dq)||(p.marca||"").toLowerCase().includes(dq)||(p.nroSerie||"").toLowerCase().includes(dq);
-  });
-  if(!eq.partes.filter(function(p){return p.estado!=="ok"&&p.estado!=="mejora";}).length){h+='<div style="background:rgba(120,120,128,.05);border:1px dashed rgba(120,120,128,.2);border-radius:14px;text-align:center;color:var(--text3);padding:18px;font-size:.82rem;margin-bottom:12px;">Sin partes activas — tocá "+ Agregar"</div>';}
-  else if(dq&&!partesActivas.length){h+='<div style="color:var(--text3);font-size:.78rem;padding:8px 0 12px;text-align:center;">Sin roturas que coincidan</div>';}
-  partesActivas.forEach(function(p){
-    var c=CP[p.estado]||"var(--green)";
-    var bgCard=p.estado==="roto"?"rgba(255,245,245,.95)":p.estado==="pendiente"?"rgba(255,250,240,.95)":"rgba(245,255,248,.95)";
-    h+='<div style="background:'+bgCard+';border:1px solid '+c+'25;border-radius:16px;padding:14px;margin-bottom:10px;border-left:4px solid '+c+';">'+
-      '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;"><div style="flex:1;"><div style="font-weight:700;font-size:.88rem;margin-bottom:2px;">'+esc(p.nombre)+'</div>'+(p.descripcion?'<div style="font-size:.72rem;color:var(--text3);">'+esc(p.descripcion)+'</div>':'')+'</div>'+pillH(c,p.estado==="ok"?"✅ OK":p.estado==="pendiente"?"⚠️ Pend.":"🔴 Roto")+'</div>'+
-      '<div class="det-grid" style="margin-bottom:8px;">'+
-      '<div class="ibox"><div class="ibox-l">Rotura</div><div class="ibox-v"'+(p.fechaRotura?' style="color:var(--red);"':'')+'>'+fD(p.fechaRotura)+'</div></div>'+
-      '<div class="ibox"><div class="ibox-l">Arreglo</div><div class="ibox-v"'+(p.fechaArreglo?' style="color:var(--green);"':' style="color:var(--orange);"')+'>'+fD(p.fechaArreglo)+'</div></div>'+
-      (p.marca?'<div class="ibox"><div class="ibox-l">Marca</div><div class="ibox-v">'+esc(p.marca)+'</div></div>':'')+
-      (p.nroSerie?'<div class="ibox"><div class="ibox-l">N° Serie</div><div class="ibox-v">'+esc(p.nroSerie)+'</div></div>':'')+
-      (p.canalReclamo?'<div class="ibox"><div class="ibox-l">Canal</div><div class="ibox-v">'+canalLabel(p.canalReclamo)+'</div></div>':'')+
-      (p.tecnicoReparacion?'<div class="ibox"><div class="ibox-l">Reparó</div><div class="ibox-v" style="color:var(--accent);">👷 '+esc(p.tecnicoReparacion)+'</div></div>':'')+
-      (p.precio?'<div class="ibox"><div class="ibox-l">Precio</div><div class="ibox-v" style="color:var(--green);">$'+esc(p.precio)+'</div></div>':'')+
-      (p.presupuestoAprobado!==undefined?'<div class="ibox" style="grid-column:1/-1;"><div class="ibox-l">Presupuesto</div><div class="ibox-v">'+
-        (p.presupuestoAprobado
-          ?'<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:50px;font-size:.72rem;font-weight:700;background:rgba(52,199,89,.12);color:var(--green);">✅ Aprobado'+(p.fechaAprobacion?' · '+fD(p.fechaAprobacion):'')+'</span>'
-          :'<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:50px;font-size:.72rem;font-weight:700;background:rgba(255,149,0,.10);color:var(--orange);">⏳ Pendiente de aprobación</span>')+
-      '</div></div>':'')+
-      '</div>'+
-      (p.notas?'<div style="font-size:.73rem;color:var(--text2);background:rgba(0,0,0,.04);padding:7px 10px;border-radius:8px;margin-bottom:8px;">'+esc(p.notas)+'</div>':'')+
-      ((p.archivos&&p.archivos.length)?'<div style="margin-bottom:8px;">'+p.archivos.map(function(a){return'<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(0,0,0,.05);"><span>📄</span><span style="font-size:.72rem;flex:1;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(a.nombre)+'</span><button onclick="openPDFViewer(\''+a.id+'\',\''+esc(a.nombre)+'\')" style="background:rgba(0,113,227,.1);color:var(--accent);border:none;border-radius:8px;padding:3px 10px;font-size:.65rem;font-weight:600;cursor:pointer;flex-shrink:0;">Abrir</button><button onclick="delParteFileDirect(\''+eq.id+'\',\''+p.id+'\',\''+a.id+'\')" style="background:none;border:none;color:var(--red);font-size:.85rem;cursor:pointer;padding:2px 5px;flex-shrink:0;" title="Eliminar PDF">🗑</button></div>';}).join('')+'</div>':'')+
-      (p.estado!=="ok"?'<button onclick="repararParte(\''+eq.id+'\',\''+p.id+'\')" style="width:100%;padding:11px;margin-bottom:8px;border:none;border-radius:12px;background:var(--green);color:#fff;font-size:.86rem;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(52,199,89,.3);">✅ Marcar como Reparado</button>':'')+
-      '<div style="display:flex;gap:6px;"><button class="btn-secondary btn-sm" style="flex:1;" onclick=\'openModalParte("'+eq.id+'",'+JSON.stringify(p).replace(/'/g,"&#39;")+')\'>✏️ Editar</button><button class="btn-danger btn-sm" onclick="delParte(\''+eq.id+'\',\''+p.id+'\')">🗑</button></div></div>';
-  });
-  h+='</div></div>';
-
-  // ── MEJORAS ──
-  var mejoras=eq.partes.filter(function(p){
-    if(p.estado!=="mejora")return false;
-    if(!dq)return true;
-    return (p.nombre||"").toLowerCase().includes(dq)||(p.descripcion||"").toLowerCase().includes(dq)||(p.notas||"").toLowerCase().includes(dq)||(p.asignadoA||"").toLowerCase().includes(dq);
-  });
-  var mejorasTotal=eq.partes.filter(function(p){return p.estado==="mejora";});
-  h+='<div class="gc" style="padding:0;margin-bottom:14px;overflow:hidden;border-left:4px solid rgba(139,92,246,.45);background:linear-gradient(135deg,rgba(139,92,246,.08) 0%,rgba(99,102,241,.04) 100%);">';
-  h+='<div style="background:linear-gradient(90deg,rgba(139,92,246,.12),rgba(99,102,241,.07));padding:9px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(139,92,246,.10);">';
-  h+='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(139,92,246,.9)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>';
-  h+='<span style="font-size:.72rem;font-weight:700;color:rgba(139,92,246,.9);text-transform:uppercase;letter-spacing:.06em;flex:1;">Mejoras</span>';
-  h+='<span style="background:rgba(139,92,246,.12);color:#8b5cf6;border-radius:20px;padding:1px 8px;font-size:.68rem;font-weight:700;margin-right:6px;">'+(dq?mejoras.length+'/'+mejorasTotal.length:mejorasTotal.length)+'</span>';
-  h+='<button onclick="openModalParte(\''+eq.id+'\',{estado:\'mejora\'})" style="padding:5px 12px;border-radius:var(--r-pill);background:rgba(139,92,246,.10);border:1.5px solid rgba(139,92,246,.28);color:#8b5cf6;font-weight:700;font-size:.72rem;cursor:pointer;box-shadow:inset 0 1.5px 0 rgba(255,255,255,.8);">+ Agregar</button>';
-  h+='</div>';
-  h+='<div style="padding:14px 16px;">';
-  if(!mejorasTotal.length){h+='<div style="text-align:center;color:rgba(139,92,246,.5);padding:14px;font-size:.82rem;">Sin mejoras registradas</div>';}
-  else if(dq&&!mejoras.length){h+='<div style="color:var(--text3);font-size:.78rem;padding:6px 0;text-align:center;">Sin mejoras que coincidan</div>';}
-  mejoras.forEach(function(p){
-    h+='<div style="background:rgba(255,255,255,.95);border:1px solid rgba(139,92,246,.18);border-radius:14px;padding:13px;margin-bottom:8px;box-shadow:0 1px 6px rgba(139,92,246,.06);">'+
-      '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">'+
-      '<div style="flex:1;"><div style="font-weight:700;font-size:.86rem;margin-bottom:4px;">'+esc(p.nombre)+'</div>'+
-      (p.descripcion?'<div style="font-size:.72rem;color:var(--text3);margin-bottom:4px;">'+esc(p.descripcion)+'</div>':'')+
-      '<div style="display:flex;gap:6px;flex-wrap:wrap;">'+
-      (p.asignadoA?'<span style="font-size:.68rem;background:rgba(139,92,246,.12);color:#8b5cf6;padding:2px 8px;border-radius:20px;font-weight:600;">👷 '+esc(p.asignadoA)+'</span>':'')+
-      (p.fechaMejora?'<span style="font-size:.68rem;background:rgba(139,92,246,.08);color:#8b5cf6;padding:2px 8px;border-radius:20px;">📅 '+fD(p.fechaMejora)+'</span>':'')+
-      '</div>'+
-      (p.notas?'<div style="font-size:.73rem;color:var(--text2);margin-top:6px;background:rgba(139,92,246,.06);padding:5px 8px;border-radius:8px;">'+esc(p.notas)+'</div>':'')+
-      '</div></div>'+
-      '<div style="display:flex;gap:6px;margin-bottom:8px;">'+
-      '<button style="flex:1;padding:10px;border:none;border-radius:12px;background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;font-size:.84rem;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(139,92,246,.35);" onclick="completarMejora(\''+eq.id+'\',\''+p.id+'\')">✅ Marcar como Completado</button>'+
-      '</div>'+
-      '<div style="display:flex;gap:6px;"><button class="btn-secondary btn-sm" style="flex:1;color:#8b5cf6;" onclick=\'openModalParte("'+eq.id+'",'+JSON.stringify(p).replace(/'/g,"&#39;")+')\'>✏️ Editar</button><button class="btn-danger btn-sm" onclick="delParte(\''+eq.id+'\',\''+p.id+'\')">🗑</button></div>'+
+  if(!_rotTotal){
+    h+='<div style="font-size:.78rem;color:var(--text3);text-align:center;padding:10px 0;">Sin roturas activas ✅</div>';
+  } else {
+    _rotActivas.slice(0,3).forEach(function(p){
+      var c=CP[p.estado]||'var(--green)';
+      var sl=p.estado==='roto'?'🔴 Roto':p.estado==='pendiente'?'⚠️ Pendiente':'🔧 '+p.estado;
+      h+='<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);">'+
+        '<div style="width:6px;height:6px;border-radius:50%;background:'+c+';flex-shrink:0;"></div>'+
+        '<span style="flex:1;font-size:.78rem;font-weight:600;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(p.nombre)+'</span>'+
+        '<span style="font-size:.63rem;padding:1px 7px;border-radius:20px;background:'+c+'15;color:'+c+';font-weight:700;flex-shrink:0;">'+sl+'</span>'+
       '</div>';
-  });
-  h+='</div></div>';
-
-  // ── HISTORIAL ──
-  var histAll=(eq.historialMant||[]).slice().reverse();
-  var hist=dq?histAll.filter(function(hh){return (hh.nombre||"").toLowerCase().includes(dq)||(hh.notas||"").toLowerCase().includes(dq)||(hh.tecnico||"").toLowerCase().includes(dq)||(hh.tipo||"").toLowerCase().includes(dq)||(hh.precio||"").toString().includes(dq);}) : histAll;
-  h+='<div class="gc" style="padding:0;margin-bottom:14px;overflow:hidden;border-left:4px solid rgba(0,113,227,.45);background:linear-gradient(135deg,rgba(0,113,227,.08) 0%,rgba(0,130,255,.04) 100%);">';
-  h+='<div style="background:linear-gradient(90deg,rgba(0,113,227,.12),rgba(0,130,255,.07));padding:9px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(0,113,227,.10);">';
-  h+='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(0,113,227,.9)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
-  h+='<span style="font-size:.72rem;font-weight:700;color:rgba(0,113,227,.9);text-transform:uppercase;letter-spacing:.06em;flex:1;">Historial</span>';
-  h+='<span style="background:rgba(0,113,227,.15);color:var(--accent);border-radius:20px;padding:1px 8px;font-size:.68rem;font-weight:700;">'+(dq?hist.length+'/'+histAll.length:histAll.length)+'</span>';
-  h+='</div>';
-  h+='<div style="padding:14px 16px;">';
-  if(!histAll.length){h+='<div style="background:rgba(120,120,128,.04);border:1px dashed rgba(120,120,128,.2);border-radius:14px;text-align:center;color:var(--text3);padding:16px;font-size:.82rem;">Sin historial</div>';}
-  else if(dq&&!hist.length){h+='<div style="color:var(--text3);font-size:.78rem;padding:8px 0 12px;text-align:center;">Sin historial que coincida</div>';}
-  if(hist.length){
-    h+='<div style="position:relative;padding-left:20px;">';
-    h+='<div style="position:absolute;left:8px;top:8px;bottom:8px;width:2px;background:linear-gradient(180deg,rgba(0,113,227,.3),rgba(52,199,89,.2),rgba(120,120,128,.1));border-radius:2px;"></div>';
-    hist.forEach(function(hh){
-      var isMant=hh.tipo==="mantenimiento";var isMej=hh.tipo==="mejora";var isRefrig=hh.tipo==="refrigeracion";
-      var c=isMant?"var(--accent)":isMej?"#8b5cf6":isRefrig?"#0891b2":"var(--green)";
-      var dotBg=isMant?"rgba(0,113,227,.15)":isMej?"rgba(139,92,246,.15)":isRefrig?"rgba(8,145,178,.15)":"rgba(52,199,89,.15)";
-      var label=isMant?"Mantenimiento":isMej?"Mejora":isRefrig?"❄️ Refrigeración":"Reparación";
-      var hasPdf=(hh.archivos&&hh.archivos.length>0);
-      h+='<div style="position:relative;margin-bottom:10px;">';
-      h+='<div style="position:absolute;left:-16px;top:10px;width:10px;height:10px;border-radius:50%;background:'+c+';box-shadow:0 0 0 3px '+dotBg+';"></div>';
-      h+='<div style="background:rgba(255,255,255,.95);border:1px solid rgba(120,120,128,.12);border-radius:14px;padding:11px 13px;box-shadow:0 1px 4px rgba(0,0,0,.04);">'+
-        '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">'+
-        '<div style="flex:1;">'+
-        '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">'+
-        '<span style="display:inline-block;padding:2px 8px;border-radius:20px;font-size:.62rem;font-weight:700;background:'+dotBg+';color:'+c+';">'+label+'</span>'+
-        '<span style="font-size:.7rem;color:var(--text3);">'+fD(hh.fecha)+'</span>'+
-        '</div>'+
-        ((!isMant&&!isMej)?'<div style="font-weight:600;font-size:.82rem;margin-bottom:2px;">'+esc(hh.nombre||"")+'</div>':'')+
-        (hh.tecnico?'<div style="font-size:.7rem;color:var(--text3);">👷 Ing. '+esc(hh.tecnico)+'</div>':'')+
-        (!isMant&&hh.fechaRotura?'<div style="font-size:.68rem;color:var(--text3);">Rotura: '+fD(hh.fechaRotura)+'</div>':'')+
-        (hh.precio?'<div style="font-size:.7rem;color:var(--green);font-weight:600;">💲 $'+esc(hh.precio)+'</div>':'')+
-        (hh.notas?'<div style="font-size:.72rem;color:var(--text2);margin-top:4px;background:rgba(0,0,0,.03);padding:4px 8px;border-radius:7px;">'+esc(hh.notas)+'</div>':'')+'</div>'+
-        '<div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;flex-shrink:0;">'+
-        (hasPdf?(hh.archivos).map(function(af){return '<div style="display:flex;align-items:center;gap:3px;"><button onclick="openPDFViewer(\''+af.id+'\',\''+esc(af.nombre)+'\')" style="padding:4px 10px;background:rgba(0,113,227,.1);color:var(--accent);border-radius:8px;font-size:.66rem;font-weight:600;border:none;cursor:pointer;white-space:nowrap;">📄 '+esc(af.nombre.length>18?af.nombre.slice(0,16)+'…':af.nombre)+'</button><button onclick="delHistFileDirect(\''+eq.id+'\',\''+hh.id+'\',\''+af.id+'\')" style="background:rgba(255,59,48,.08);border:1px solid rgba(255,59,48,.2);color:var(--red);border-radius:8px;padding:4px 7px;font-size:.7rem;cursor:pointer;flex-shrink:0;" title="Eliminar PDF">🗑</button></div>';}).join(''):'<button onclick="openHistDetail(\''+eq.id+'\',\''+hh.id+'\')" style="padding:4px 10px;background:rgba(0,113,227,.1);color:var(--accent);border-radius:8px;font-size:.66rem;font-weight:600;border:none;cursor:pointer;white-space:nowrap;">🔍 Ver</button>')+
-        '<button onclick="openEditHist(\''+eq.id+'\',\''+hh.id+'\')" style="padding:4px 10px;background:rgba(52,199,89,.1);color:var(--green);border-radius:8px;font-size:.66rem;font-weight:600;border:none;cursor:pointer;">✏️</button>'+
-        '<button onclick="delHist(\''+eq.id+'\',\''+hh.id+'\')" style="padding:4px 8px;background:rgba(255,59,48,.07);color:var(--red);border-radius:8px;font-size:.68rem;border:none;cursor:pointer;">🗑</button>'+
-        '</div></div></div></div>';
     });
-    h+='</div>';
+    if(_rotTotal>3){h+='<div style="font-size:.7rem;color:var(--text3);padding:5px 0 0;">+'+(_rotTotal-3)+' más...</div>';}
   }
+  h+=navRowFn('Roturas · Mejoras · Historial',(_mejTotal?_mejTotal+' mejora'+(_mejTotal!==1?'s':'')+' · ':'')+_histTotal+' en historial','setDetalleTab(\'fallas\')');
   h+='</div></div>';
   return h;
 }
@@ -6735,8 +6806,8 @@ function _refrigHelioChart(rf,eqId){
   function alarmBadge(txt,col){return'<span style="display:inline-flex;align-items:center;gap:3px;font-size:.6rem;padding:2px 7px;border-radius:20px;background:'+col+'22;color:'+col+';font-weight:700;border:1px solid '+col+'55;">⚠ '+txt+'</span>';}
   var liqAlarms='';
   if(!isNaN(curLiqPorc)&&curLiqPorc<LIQ_PORC_MIN)liqAlarms+=alarmBadge('Nivel bajo '+curLiqPorc+'%','#f87171');
-  if(!isNaN(curLiqPres)&&curLiqPres>LIQ_PRES_MAX)liqAlarms+=alarmBadge('Presión alta '+curLiqPres+' bar','#fb923c');
-  if(!isNaN(curLiqPres)&&curLiqPres<LIQ_PRES_MIN)liqAlarms+=alarmBadge('Presión baja '+curLiqPres+' bar','#f87171');
+  if(!isNaN(curLiqPres)&&curLiqPres>LIQ_PRES_MAX)liqAlarms+=alarmBadge('Presión alta '+curLiqPres+' PSI','#fb923c');
+  if(!isNaN(curLiqPres)&&curLiqPres<LIQ_PRES_MIN)liqAlarms+=alarmBadge('Presión baja '+curLiqPres+' PSI','#f87171');
   var gasAlarms='';
   if(!isNaN(curGas)&&curGas>GAS_MAX)gasAlarms+=alarmBadge('Presión alta '+curGas+' MPa','#fb923c');
   if(!isNaN(curGas)&&curGas<GAS_MIN)gasAlarms+=alarmBadge('Presión baja '+curGas+' MPa','#f87171');
@@ -6775,7 +6846,7 @@ function _refrigHelioChart(rf,eqId){
   sA+='<line x1="'+(WA-pRA)+'" y1="'+pTA+'" x2="'+(WA-pRA)+'" y2="'+(pTA+plotHA)+'" stroke="rgba(52,211,153,.2)" stroke-width="1"/>';
   sA+='<line x1="'+pLA+'" y1="'+(pTA+plotHA)+'" x2="'+(WA-pRA)+'" y2="'+(pTA+plotHA)+'" stroke="rgba(255,255,255,.08)" stroke-width="1"/>';
   sA+='<text x="'+(pLA-2)+'" y="'+(pTA-6)+'" text-anchor="end" fill="rgba(8,145,178,.7)" font-size="7.5" font-family="system-ui,sans-serif" font-weight="700">%</text>';
-  sA+='<text x="'+(WA-pRA+2)+'" y="'+(pTA-6)+'" text-anchor="start" fill="rgba(52,211,153,.7)" font-size="7.5" font-family="system-ui,sans-serif" font-weight="700">bar</text>';
+  sA+='<text x="'+(WA-pRA+2)+'" y="'+(pTA-6)+'" text-anchor="start" fill="rgba(52,211,153,.7)" font-size="7.5" font-family="system-ui,sans-serif" font-weight="700">PSI</text>';
   // X labels
   for(var xiA=0;xiA<n;xiA++){
     if(xiA%xStep===0){
@@ -6904,13 +6975,13 @@ function _refrigHelioChart(rf,eqId){
   h2+='<div style="margin-bottom:14px;">';
   h2+='<div style="display:flex;align-items:center;flex-wrap:wrap;gap:5px;margin-bottom:6px;">';
   h2+='<span style="font-size:.7rem;font-weight:700;color:#0ea5e9;">💧 Helio Líquido</span>';
-  h2+='<span style="font-size:.6rem;color:var(--text3);">óptimo: ≥'+LIQ_PORC_MIN+'% · '+LIQ_PRES_MIN+'–'+LIQ_PRES_MAX+' bar</span>';
+  h2+='<span style="font-size:.6rem;color:var(--text3);">óptimo: ≥'+LIQ_PORC_MIN+'% · '+LIQ_PRES_MIN+'–'+LIQ_PRES_MAX+' PSI</span>';
   h2+=liqAlarms;
   h2+='</div>';
   h2+='<div style="border-radius:8px;background:rgba(8,145,178,.03);border:1px solid rgba(99,179,237,.1);padding:8px 4px 4px;overflow:hidden;">'+sA+'</div>';
   h2+='<div style="display:flex;gap:16px;margin-top:5px;justify-content:center;">';
   h2+='<div style="display:flex;align-items:center;gap:5px;font-size:.65rem;color:rgba(255,255,255,.45);"><svg width="20" height="9" viewBox="0 0 20 9"><line x1="0" y1="4.5" x2="20" y2="4.5" stroke="#0891b2" stroke-width="2.2"/><circle cx="10" cy="4.5" r="3" fill="#0ea5e9"/></svg>Nivel %</div>';
-  h2+='<div style="display:flex;align-items:center;gap:5px;font-size:.65rem;color:rgba(255,255,255,.45);"><svg width="20" height="9" viewBox="0 0 20 9"><line x1="0" y1="4.5" x2="5" y2="4.5" stroke="#34d399" stroke-width="2" stroke-dasharray="4,3"/><line x1="7" y1="4.5" x2="13" y2="4.5" stroke="#34d399" stroke-width="2" stroke-dasharray="4,3"/><line x1="15" y1="4.5" x2="20" y2="4.5" stroke="#34d399" stroke-width="2" stroke-dasharray="4,3"/><circle cx="10" cy="4.5" r="3" fill="#34d399"/></svg>Presión bar</div>';
+  h2+='<div style="display:flex;align-items:center;gap:5px;font-size:.65rem;color:rgba(255,255,255,.45);"><svg width="20" height="9" viewBox="0 0 20 9"><line x1="0" y1="4.5" x2="5" y2="4.5" stroke="#34d399" stroke-width="2" stroke-dasharray="4,3"/><line x1="7" y1="4.5" x2="13" y2="4.5" stroke="#34d399" stroke-width="2" stroke-dasharray="4,3"/><line x1="15" y1="4.5" x2="20" y2="4.5" stroke="#34d399" stroke-width="2" stroke-dasharray="4,3"/><circle cx="10" cy="4.5" r="3" fill="#34d399"/></svg>Presión PSI</div>';
   h2+='</div></div>';
   // Chart B
   h2+='<div>';
@@ -8037,8 +8108,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.7.8";
-var APP_BUILD="10/06/26 16:30";
+var APP_DISPLAY_VERSION="5.7.9";
+var APP_BUILD="10/06/26 20:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
