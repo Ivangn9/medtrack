@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.10.079 -->
+<!-- v2026.06.10.080 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.10.079">
+<meta name="app-version" content="v2026.06.10.080">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1491,7 +1491,7 @@ function saveData(){
 }
 var _kpiUsdRate=null;
 var _kpiUsdRateTS=0;
-var _kpiUsdRateSrc='blue';
+var _kpiUsdRateSrc='oficial';
 var _refrigChartYear={};
 var _refrigChartMonth={};
 var _refrigChartMode={};
@@ -1502,10 +1502,10 @@ function _kpiUpdateHint(sel){
   var hint=document.getElementById(hintId);
   if(!hint)return;
   if(isARS&&_kpiUsdRate){
-    hint.textContent='TC Blue: $'+_kpiUsdRate+'/USD — se convertirá al guardar';
+    hint.textContent='TC Oficial BNA: $'+_kpiUsdRate+'/USD — se convertirá al guardar';
   }else if(isARS){
     hint.textContent='Cargando cotización USD...';
-    _kpiFetchRate(function(r){if(r&&hint)hint.textContent='TC Blue: $'+r+'/USD — se convertirá al guardar';});
+    _kpiFetchRate(function(r){if(r&&hint)hint.textContent='TC Oficial BNA: $'+r+'/USD — se convertirá al guardar';});
   }else{
     hint.textContent='';
   }
@@ -1513,14 +1513,14 @@ function _kpiUpdateHint(sel){
 function _kpiFetchRate(cb){
   var now=Date.now();
   var cached=null;
-  try{var s=localStorage.getItem('mt_usdRate');if(s){var p=JSON.parse(s);if(p&&p.r&&p.ts&&(now-p.ts)<3600000){_kpiUsdRate=p.r;_kpiUsdRateTS=p.ts;if(cb)cb(p.r);return;}}}catch(e){}
-  fetch('https://dolarapi.com/v1/dolares/blue')
+  try{var s=localStorage.getItem('mt_usdRateOficial');if(s){var p=JSON.parse(s);if(p&&p.r&&p.ts&&(now-p.ts)<3600000){_kpiUsdRate=p.r;_kpiUsdRateTS=p.ts;if(cb)cb(p.r);return;}}}catch(e){}
+  fetch('https://dolarapi.com/v1/dolares/oficial')
     .then(function(res){return res.json();})
     .then(function(d){
       var rate=d&&d.venta?parseFloat(d.venta):null;
       if(rate&&rate>0){
         _kpiUsdRate=rate;_kpiUsdRateTS=now;
-        try{localStorage.setItem('mt_usdRate',JSON.stringify({r:rate,ts:now,src:'blue'}));}catch(e){}
+        try{localStorage.setItem('mt_usdRateOficial',JSON.stringify({r:rate,ts:now,src:'oficial'}));}catch(e){}
         if(cb)cb(rate);
       }else{if(cb)cb(null);}
     })
@@ -3412,7 +3412,7 @@ function _kpiSvgHBars(items,W,H,darkMode2){
 }
 // ── KPI MAIN VIEW ──
 function rKpi(){
-  _kpiFetchRate(function(r){var b=document.getElementById('kpi-tc-badge');if(b&&r)b.textContent='TC Blue: $'+r;});
+  _kpiFetchRate(function(r){var b=document.getElementById('kpi-tc-badge');if(b&&r)b.textContent='TC Oficial BNA: $'+r;});
   var last12=_kpiLast12Months();
   var allCosts=_kpiAllCosts();
   var allRot=_kpiAllRoturas();
@@ -3452,7 +3452,7 @@ function rKpi(){
   h+='<div><div style="font-size:1.05rem;font-weight:700;font-family:Hanken Grotesk,system-ui;">📊 KPI &amp; Estadísticas</div>';
   h+='<div style="font-size:.68rem;color:var(--text3);margin-top:1px;">'+curYear+' · '+activeEqs.length+' equipos activos</div></div>';
   h+='<div style="display:flex;gap:6px;align-items:center;">';
-  h+='<div id="kpi-tc-badge" onclick="_kpiFetchRate(function(r){if(r)document.getElementById(\'kpi-tc-badge\').textContent=\'TC Blue: $\'+r;else showToast(\'Sin cotización disponible\',\'warn\');})" style="font-size:.63rem;font-family:JetBrains Mono,monospace;color:var(--text3);cursor:pointer;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px;">'+(_kpiUsdRate?'TC Blue: $'+_kpiUsdRate:'↺ Cotización USD')+'</div>';
+  h+='<div id="kpi-tc-badge" onclick="_kpiFetchRate(function(r){if(r)document.getElementById(\'kpi-tc-badge\').textContent=\'TC Oficial BNA: $\'+r;else showToast(\'Sin cotización disponible\',\'warn\');})" style="font-size:.63rem;font-family:JetBrains Mono,monospace;color:var(--text3);cursor:pointer;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px;">'+(_kpiUsdRate?'TC Oficial BNA: $'+_kpiUsdRate:'↺ Cotización USD')+'</div>';
   h+='<button onclick="exportKpiPDF()" style="display:flex;align-items:center;gap:5px;background:rgba(0,122,255,.14);border:1px solid rgba(0,122,255,.3);color:#4da3ff;border-radius:8px;padding:7px 12px;font-size:.75rem;font-weight:600;cursor:pointer;">📄 PDF</button>';
   h+='</div>';
   h+='</div>';
@@ -3651,7 +3651,7 @@ function exportKpiPDF(){
     var pct2=totalAllCosts?Math.round(100*d.v/totalAllCosts):0;
     catLegend+='<tr><td style="display:flex;align-items:center;gap:6px;padding:4px 8px;"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:'+d.col+';flex-shrink:0;"></span>'+d.cat+'</td><td style="text-align:right;padding:4px 8px;font-weight:700;">'+_kpiFmtCost(d.v)+'</td><td style="text-align:center;padding:4px 8px;">'+pct2+'%</td></tr>';
   });
-  var tcInfo=_kpiUsdRate?'TC Blue USD: $'+_kpiUsdRate+' ARS al momento del informe':'(costos en USD)';
+  var tcInfo=_kpiUsdRate?'TC Oficial BNA USD: $'+_kpiUsdRate+' ARS al momento del informe':'(costos en USD)';
   var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CIMA KPI '+curYear+'</title>'+
     '<style>'+_reportCSS+'</style></head><body>'+
     '<div class="nav-bar"><button class="btn-print" onclick="window.print()">🖨 Imprimir / Exportar PDF</button></div>'+
@@ -8108,8 +8108,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.7.9";
-var APP_BUILD="10/06/26 20:00";
+var APP_DISPLAY_VERSION="5.8.0";
+var APP_BUILD="10/06/26 20:30";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
