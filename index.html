@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.10.049 -->
+<!-- v2026.06.10.050 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.10.049">
+<meta name="app-version" content="v2026.06.10.050">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -6684,31 +6684,29 @@ function _refrigHelioChart(rf,eqId){
   var mNames=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
   var lecturas=(rf.lecturas||[]).slice();
   lecturas.sort(function(a,b){return(a.fecha||'')<(b.fecha||'')?-1:1;});
-  // Build x-axis and aggregate data
-  var xLabels=[];var gasArr=[];var liqArr=[];
+  var xLabels=[];var gasArr=[];var liqArr=[];var liqPresArr=[];
   if(mode==='anual'){
-    // Default: last 12 months rolling (year offset 0 = current 12 months)
     var baseDate=new Date(nowY,nowM,1);
     for(var ai=11;ai>=0;ai--){
       var md=new Date(baseDate.getFullYear(),baseDate.getMonth()-ai+(year-nowY)*12,1);
       xLabels.push(mNames[md.getMonth()]+(md.getFullYear()!==nowY?' \''+String(md.getFullYear()).slice(2):''));
       var mk=md.getFullYear()+'-'+(md.getMonth()<9?'0':'')+(md.getMonth()+1);
-      var lastGas=null;var lastLiq=null;
+      var lastGas=null;var lastLiq=null;var lastLiqP=null;
       lecturas.forEach(function(r){
         if(!r.fecha)return;
-        var rk=r.fecha.slice(0,7);
-        if(rk!==mk)return;
+        if(r.fecha.slice(0,7)!==mk)return;
         if(r.helioGasPresion!=null)lastGas=parseFloat(r.helioGasPresion);
         if(r.helioLiqPorc!=null)lastLiq=parseFloat(r.helioLiqPorc);
+        if(r.helioLiqPresion!=null)lastLiqP=parseFloat(r.helioLiqPresion);
       });
-      gasArr.push(lastGas);
-      liqArr.push(lastLiq);
+      gasArr.push(lastGas);liqArr.push(lastLiq);liqPresArr.push(lastLiqP);
     }
   } else {
     var daysInM=new Date(year,month+1,0).getDate();
     for(var di=1;di<=daysInM;di++)xLabels.push(di);
     gasArr=new Array(daysInM).fill(null);
     liqArr=new Array(daysInM).fill(null);
+    liqPresArr=new Array(daysInM).fill(null);
     lecturas.forEach(function(r){
       if(!r.fecha)return;
       var dt=new Date(r.fecha+'T12:00:00');
@@ -6716,78 +6714,167 @@ function _refrigHelioChart(rf,eqId){
       var day=dt.getDate()-1;
       if(r.helioGasPresion!=null)gasArr[day]=parseFloat(r.helioGasPresion);
       if(r.helioLiqPorc!=null)liqArr[day]=parseFloat(r.helioLiqPorc);
+      if(r.helioLiqPresion!=null)liqPresArr[day]=parseFloat(r.helioLiqPresion);
     });
   }
   var n=xLabels.length;
-  var W=560;var H=170;var pL=40;var pR=42;var pT=18;var pB=32;
-  var plotW=W-pL-pR;var plotH=H-pT-pB;
-  // Y scales
-  var gasVals=gasArr.filter(function(v){return v!=null;});
-  var liqVals=liqArr.filter(function(v){return v!=null;});
-  var gasMax=gasVals.length?Math.max(Math.ceil(Math.max.apply(null,gasVals)*1.15),10):200;
-  var fg='rgba(255,255,255,.42)';var gridC='rgba(255,255,255,.05)';
-  function xp(i){return pL+(n>1?i/(n-1)*plotW:plotW/2);}
-  function liqYp(v){return pT+plotH-(v/100)*plotH;}
-  function gasYp(v){return pT+plotH-(v/gasMax)*plotH;}
-  var s='<svg width="100%" viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg" style="display:block;">';
-  // Grid + axes labels
-  for(var gi=0;gi<=4;gi++){
-    var gy=pT+plotH*gi/4;
-    s+='<line x1="'+pL+'" y1="'+gy.toFixed(1)+'" x2="'+(W-pR)+'" y2="'+gy.toFixed(1)+'" stroke="'+gridC+'" stroke-width="1"/>';
-    s+='<text x="'+(pL-3)+'" y="'+(gy+3.5).toFixed(1)+'" text-anchor="end" fill="rgba(8,145,178,.65)" font-size="8" font-family="JetBrains Mono,monospace">'+Math.round(100*(1-gi/4))+'</text>';
-    s+='<text x="'+(W-pR+3)+'" y="'+(gy+3.5).toFixed(1)+'" text-anchor="start" fill="rgba(99,179,237,.6)" font-size="8" font-family="JetBrains Mono,monospace">'+Math.round(gasMax*(1-gi/4))+'</text>';
-  }
-  // Axis lines
-  s+='<line x1="'+pL+'" y1="'+pT+'" x2="'+pL+'" y2="'+(pT+plotH)+'" stroke="rgba(8,145,178,.2)" stroke-width="1"/>';
-  s+='<line x1="'+(W-pR)+'" y1="'+pT+'" x2="'+(W-pR)+'" y2="'+(pT+plotH)+'" stroke="rgba(99,179,237,.2)" stroke-width="1"/>';
-  s+='<line x1="'+pL+'" y1="'+(pT+plotH)+'" x2="'+(W-pR)+'" y2="'+(pT+plotH)+'" stroke="rgba(255,255,255,.08)" stroke-width="1"/>';
-  // Y axis unit labels
-  s+='<text x="'+(pL-2)+'" y="'+(pT-5)+'" text-anchor="end" fill="rgba(8,145,178,.7)" font-size="7.5" font-family="system-ui,sans-serif" font-weight="700">%</text>';
-  s+='<text x="'+(W-pR+2)+'" y="'+(pT-5)+'" text-anchor="start" fill="rgba(99,179,237,.7)" font-size="7.5" font-family="system-ui,sans-serif" font-weight="700">psi</text>';
-  // X axis labels (skip some if monthly to avoid crowding)
   var xStep=mode==='mensual'?Math.ceil(n/10):1;
-  for(var xi=0;xi<n;xi++){
-    if(xi%xStep===0){
-      var isNowX=(mode==='anual'&&year===nowY&&xi===11)||(mode==='mensual'&&year===nowY&&month===nowM&&xi===(nowD.getDate()-1));
-      s+='<text x="'+xp(xi).toFixed(1)+'" y="'+(pT+plotH+12)+'" text-anchor="middle" fill="'+(isNowX?'#38bdf8':fg)+'" font-size="8" font-family="system-ui,sans-serif" font-weight="'+(isNowX?700:400)+'">'+xLabels[xi]+'</text>';
+  var curIdx=mode==='anual'&&year===nowY?11:(mode==='mensual'&&year===nowY&&month===nowM?(nowD.getDate()-1):-1);
+  var fg='rgba(255,255,255,.42)';var gridC='rgba(255,255,255,.05)';
+  function xpOf(i,pL2,plotW2){return pL2+(n>1?i/(n-1)*plotW2:plotW2/2);}
+
+  // ── Alarm thresholds ──
+  var LIQ_PORC_MIN=70;
+  var LIQ_PRES_MIN=0.9;var LIQ_PRES_MAX=2.0;
+  var GAS_MIN=2.0;var GAS_MAX=2.3;
+
+  // Current values for alarm badges
+  var curLiqPorc=parseFloat(rf.helioLiqPorcentaje);
+  var curLiqPres=parseFloat(rf.helioLiqPresion);
+  var curGas=parseFloat(rf.helioGasPresionActual);
+  function alarmBadge(txt,col){return'<span style="display:inline-flex;align-items:center;gap:3px;font-size:.6rem;padding:2px 7px;border-radius:20px;background:'+col+'22;color:'+col+';font-weight:700;border:1px solid '+col+'55;">⚠ '+txt+'</span>';}
+  var liqAlarms='';
+  if(!isNaN(curLiqPorc)&&curLiqPorc<LIQ_PORC_MIN)liqAlarms+=alarmBadge('Nivel bajo '+curLiqPorc+'%','#f87171');
+  if(!isNaN(curLiqPres)&&curLiqPres>LIQ_PRES_MAX)liqAlarms+=alarmBadge('Presión alta '+curLiqPres+' bar','#fb923c');
+  if(!isNaN(curLiqPres)&&curLiqPres<LIQ_PRES_MIN)liqAlarms+=alarmBadge('Presión baja '+curLiqPres+' bar','#f87171');
+  var gasAlarms='';
+  if(!isNaN(curGas)&&curGas>GAS_MAX)gasAlarms+=alarmBadge('Presión alta '+curGas+' MPa','#fb923c');
+  if(!isNaN(curGas)&&curGas<GAS_MIN)gasAlarms+=alarmBadge('Presión baja '+curGas+' MPa','#f87171');
+
+  // ── Chart A: Helio Líquido (% left, bar right) ──
+  var WA=560;var HA=165;var pLA=40;var pRA=44;var pTA=20;var pBA=30;
+  var plotWA=WA-pLA-pRA;var plotHA=HA-pTA-pBA;
+  var liqPresVals=liqPresArr.filter(function(v){return v!=null;});
+  var liqPresTop=liqPresVals.length?Math.max(Math.ceil(Math.max.apply(null,liqPresVals)*1.25),LIQ_PRES_MAX*1.3):3.0;
+  function liqPorcYp(v){return pTA+plotHA-(v/100)*plotHA;}
+  function liqPresYp(v){return pTA+plotHA-(v/liqPresTop)*plotHA;}
+  function xpA(i){return xpOf(i,pLA,plotWA);}
+  var sA='<svg width="100%" viewBox="0 0 '+WA+' '+HA+'" xmlns="http://www.w3.org/2000/svg" style="display:block;">';
+  // Alarm zone: below 70% (red tint)
+  var y70=liqPorcYp(LIQ_PORC_MIN);
+  sA+='<rect x="'+pLA+'" y="'+y70.toFixed(1)+'" width="'+plotWA+'" height="'+(pTA+plotHA-y70).toFixed(1)+'" fill="rgba(248,113,113,.06)"/>';
+  // Optimal pressure band: 0.9–2.0 (green tint, right axis)
+  var yLP09=liqPresYp(LIQ_PRES_MIN);var yLP20=liqPresYp(LIQ_PRES_MAX);
+  sA+='<rect x="'+pLA+'" y="'+yLP20.toFixed(1)+'" width="'+plotWA+'" height="'+(yLP09-yLP20).toFixed(1)+'" fill="rgba(52,211,153,.05)"/>';
+  // Threshold lines
+  sA+='<line x1="'+pLA+'" y1="'+y70.toFixed(1)+'" x2="'+(WA-pRA)+'" y2="'+y70.toFixed(1)+'" stroke="rgba(248,113,113,.4)" stroke-width="1" stroke-dasharray="5,3"/>';
+  sA+='<line x1="'+pLA+'" y1="'+yLP09.toFixed(1)+'" x2="'+(WA-pRA)+'" y2="'+yLP09.toFixed(1)+'" stroke="rgba(52,211,153,.35)" stroke-width="1" stroke-dasharray="3,3"/>';
+  sA+='<line x1="'+pLA+'" y1="'+yLP20.toFixed(1)+'" x2="'+(WA-pRA)+'" y2="'+yLP20.toFixed(1)+'" stroke="rgba(251,146,60,.4)" stroke-width="1" stroke-dasharray="3,3"/>';
+  // Threshold labels (right side)
+  sA+='<text x="'+(WA-pRA+3)+'" y="'+(y70+3).toFixed(1)+'" text-anchor="start" fill="rgba(248,113,113,.7)" font-size="7" font-family="JetBrains Mono,monospace">70</text>';
+  sA+='<text x="'+(WA-2)+'" y="'+(yLP09+3).toFixed(1)+'" text-anchor="end" fill="rgba(52,211,153,.7)" font-size="7" font-family="JetBrains Mono,monospace">0.9</text>';
+  sA+='<text x="'+(WA-2)+'" y="'+(yLP20-2).toFixed(1)+'" text-anchor="end" fill="rgba(251,146,60,.7)" font-size="7" font-family="JetBrains Mono,monospace">2.0</text>';
+  // Grid
+  for(var giA=0;giA<=4;giA++){
+    var gyA=pTA+plotHA*giA/4;
+    sA+='<line x1="'+pLA+'" y1="'+gyA.toFixed(1)+'" x2="'+(WA-pRA)+'" y2="'+gyA.toFixed(1)+'" stroke="'+gridC+'" stroke-width="1"/>';
+    sA+='<text x="'+(pLA-3)+'" y="'+(gyA+3.5).toFixed(1)+'" text-anchor="end" fill="rgba(8,145,178,.65)" font-size="8" font-family="JetBrains Mono,monospace">'+Math.round(100*(1-giA/4))+'</text>';
+    sA+='<text x="'+(WA-pRA+3)+'" y="'+(gyA+3.5).toFixed(1)+'" text-anchor="start" fill="rgba(52,211,153,.55)" font-size="8" font-family="JetBrains Mono,monospace">'+(liqPresTop*(1-giA/4)).toFixed(1)+'</text>';
+  }
+  sA+='<line x1="'+pLA+'" y1="'+pTA+'" x2="'+pLA+'" y2="'+(pTA+plotHA)+'" stroke="rgba(8,145,178,.2)" stroke-width="1"/>';
+  sA+='<line x1="'+(WA-pRA)+'" y1="'+pTA+'" x2="'+(WA-pRA)+'" y2="'+(pTA+plotHA)+'" stroke="rgba(52,211,153,.2)" stroke-width="1"/>';
+  sA+='<line x1="'+pLA+'" y1="'+(pTA+plotHA)+'" x2="'+(WA-pRA)+'" y2="'+(pTA+plotHA)+'" stroke="rgba(255,255,255,.08)" stroke-width="1"/>';
+  sA+='<text x="'+(pLA-2)+'" y="'+(pTA-6)+'" text-anchor="end" fill="rgba(8,145,178,.7)" font-size="7.5" font-family="system-ui,sans-serif" font-weight="700">%</text>';
+  sA+='<text x="'+(WA-pRA+2)+'" y="'+(pTA-6)+'" text-anchor="start" fill="rgba(52,211,153,.7)" font-size="7.5" font-family="system-ui,sans-serif" font-weight="700">bar</text>';
+  // X labels
+  for(var xiA=0;xiA<n;xiA++){
+    if(xiA%xStep===0){
+      var isNowA=(mode==='anual'&&year===nowY&&xiA===11)||(mode==='mensual'&&year===nowY&&month===nowM&&xiA===(nowD.getDate()-1));
+      sA+='<text x="'+xpA(xiA).toFixed(1)+'" y="'+(pTA+plotHA+12)+'" text-anchor="middle" fill="'+(isNowA?'#38bdf8':fg)+'" font-size="8" font-family="system-ui,sans-serif" font-weight="'+(isNowA?700:400)+'">'+xLabels[xiA]+'</text>';
     }
   }
-  // Current period indicator line
-  var curIdx=mode==='anual'&&year===nowY?11:(mode==='mensual'&&year===nowY&&month===nowM?(nowD.getDate()-1):-1);
-  if(curIdx>=0&&curIdx<n){s+='<line x1="'+xp(curIdx).toFixed(1)+'" y1="'+pT+'" x2="'+xp(curIdx).toFixed(1)+'" y2="'+(pT+plotH)+'" stroke="rgba(56,189,248,.3)" stroke-width="1.5" stroke-dasharray="3,3"/>';}
-  // Build point arrays
-  function buildPts(arr,yFn){
-    var pts=[];
-    for(var pi=0;pi<arr.length;pi++){if(arr[pi]!=null)pts.push({x:xp(pi),y:yFn(arr[pi])});}
-    return pts;
-  }
-  var liqPts=buildPts(liqArr,liqYp);
-  var gasPts=buildPts(gasArr,gasYp);
-  // Draw Helio Liquido (solid blue, left axis %)
+  if(curIdx>=0&&curIdx<n)sA+='<line x1="'+xpA(curIdx).toFixed(1)+'" y1="'+pTA+'" x2="'+xpA(curIdx).toFixed(1)+'" y2="'+(pTA+plotHA)+'" stroke="rgba(56,189,248,.3)" stroke-width="1.5" stroke-dasharray="3,3"/>';
+  // Build point sets
+  var liqPts=[];for(var li=0;li<n;li++){if(liqArr[li]!=null)liqPts.push({x:xpA(li),y:liqPorcYp(liqArr[li]),v:liqArr[li]});}
+  var liqPresPts=[];for(var lpi=0;lpi<n;lpi++){if(liqPresArr[lpi]!=null)liqPresPts.push({x:xpA(lpi),y:liqPresYp(liqPresArr[lpi]),v:liqPresArr[lpi]});}
+  // Draw % area+line
   if(liqPts.length>1){
-    var la='M '+liqPts[0].x.toFixed(1)+' '+(pT+plotH)+' L '+liqPts[0].x.toFixed(1)+' '+liqPts[0].y.toFixed(1);
-    for(var lpi=1;lpi<liqPts.length;lpi++)la+=' L '+liqPts[lpi].x.toFixed(1)+' '+liqPts[lpi].y.toFixed(1);
-    la+=' L '+liqPts[liqPts.length-1].x.toFixed(1)+' '+(pT+plotH)+' Z';
-    s+='<path d="'+la+'" fill="rgba(8,145,178,.13)"/>';
+    var la='M '+liqPts[0].x.toFixed(1)+' '+(pTA+plotHA)+' L '+liqPts[0].x.toFixed(1)+' '+liqPts[0].y.toFixed(1);
+    for(var li2=1;li2<liqPts.length;li2++)la+=' L '+liqPts[li2].x.toFixed(1)+' '+liqPts[li2].y.toFixed(1);
+    la+=' L '+liqPts[liqPts.length-1].x.toFixed(1)+' '+(pTA+plotHA)+' Z';
+    sA+='<path d="'+la+'" fill="rgba(8,145,178,.12)"/>';
     var ll='M '+liqPts[0].x.toFixed(1)+' '+liqPts[0].y.toFixed(1);
-    for(var lpi2=1;lpi2<liqPts.length;lpi2++)ll+=' L '+liqPts[lpi2].x.toFixed(1)+' '+liqPts[lpi2].y.toFixed(1);
-    s+='<path d="'+ll+'" fill="none" stroke="#0891b2" stroke-width="2.2" stroke-linejoin="round"/>';
+    for(var li3=1;li3<liqPts.length;li3++)ll+=' L '+liqPts[li3].x.toFixed(1)+' '+liqPts[li3].y.toFixed(1);
+    sA+='<path d="'+ll+'" fill="none" stroke="#0891b2" stroke-width="2.2" stroke-linejoin="round"/>';
   }
-  for(var ld=0;ld<liqPts.length;ld++)s+='<circle cx="'+liqPts[ld].x.toFixed(1)+'" cy="'+liqPts[ld].y.toFixed(1)+'" r="3.5" fill="#0ea5e9" stroke="rgba(0,0,0,.5)" stroke-width="1"/>';
-  // Draw Helio Gaseoso (dashed cyan, right axis psi)
-  if(gasPts.length>1){
-    var ga='M '+gasPts[0].x.toFixed(1)+' '+(pT+plotH)+' L '+gasPts[0].x.toFixed(1)+' '+gasPts[0].y.toFixed(1);
-    for(var gpi=1;gpi<gasPts.length;gpi++)ga+=' L '+gasPts[gpi].x.toFixed(1)+' '+gasPts[gpi].y.toFixed(1);
-    ga+=' L '+gasPts[gasPts.length-1].x.toFixed(1)+' '+(pT+plotH)+' Z';
-    s+='<path d="'+ga+'" fill="rgba(99,179,237,.07)"/>';
-    var gl='M '+gasPts[0].x.toFixed(1)+' '+gasPts[0].y.toFixed(1);
-    for(var gpi2=1;gpi2<gasPts.length;gpi2++)gl+=' L '+gasPts[gpi2].x.toFixed(1)+' '+gasPts[gpi2].y.toFixed(1);
-    s+='<path d="'+gl+'" fill="none" stroke="#63b3ed" stroke-width="2" stroke-linejoin="round" stroke-dasharray="6,3"/>';
+  for(var ld=0;ld<liqPts.length;ld++){
+    sA+='<circle cx="'+liqPts[ld].x.toFixed(1)+'" cy="'+liqPts[ld].y.toFixed(1)+'" r="3.5" fill="'+(liqPts[ld].v<LIQ_PORC_MIN?'#f87171':'#0ea5e9')+'" stroke="rgba(0,0,0,.5)" stroke-width="1"/>';
   }
-  for(var gd=0;gd<gasPts.length;gd++)s+='<circle cx="'+gasPts[gd].x.toFixed(1)+'" cy="'+gasPts[gd].y.toFixed(1)+'" r="3.5" fill="#63b3ed" stroke="rgba(0,0,0,.5)" stroke-width="1"/>';
-  if(liqPts.length===0&&gasPts.length===0)s+='<text x="'+(W/2)+'" y="'+(H/2+4)+'" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="12" font-family="system-ui,sans-serif">Sin lecturas registradas para este período</text>';
-  s+='</svg>';
-  // Navigation - prev/next
+  // Draw pressure area+line (right axis, green dashed)
+  if(liqPresPts.length>1){
+    var lpa='M '+liqPresPts[0].x.toFixed(1)+' '+(pTA+plotHA)+' L '+liqPresPts[0].x.toFixed(1)+' '+liqPresPts[0].y.toFixed(1);
+    for(var lpi2=1;lpi2<liqPresPts.length;lpi2++)lpa+=' L '+liqPresPts[lpi2].x.toFixed(1)+' '+liqPresPts[lpi2].y.toFixed(1);
+    lpa+=' L '+liqPresPts[liqPresPts.length-1].x.toFixed(1)+' '+(pTA+plotHA)+' Z';
+    sA+='<path d="'+lpa+'" fill="rgba(52,211,153,.07)"/>';
+    var lpl='M '+liqPresPts[0].x.toFixed(1)+' '+liqPresPts[0].y.toFixed(1);
+    for(var lpi3=1;lpi3<liqPresPts.length;lpi3++)lpl+=' L '+liqPresPts[lpi3].x.toFixed(1)+' '+liqPresPts[lpi3].y.toFixed(1);
+    sA+='<path d="'+lpl+'" fill="none" stroke="#34d399" stroke-width="2" stroke-dasharray="5,3" stroke-linejoin="round"/>';
+  }
+  for(var lpd=0;lpd<liqPresPts.length;lpd++){
+    var lpv=liqPresPts[lpd].v;
+    sA+='<circle cx="'+liqPresPts[lpd].x.toFixed(1)+'" cy="'+liqPresPts[lpd].y.toFixed(1)+'" r="3.5" fill="'+(lpv<LIQ_PRES_MIN||lpv>LIQ_PRES_MAX?'#f87171':'#34d399')+'" stroke="rgba(0,0,0,.5)" stroke-width="1"/>';
+  }
+  if(liqPts.length===0&&liqPresPts.length===0)sA+='<text x="'+(WA/2)+'" y="'+(HA/2+4)+'" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="11" font-family="system-ui,sans-serif">Sin lecturas para este período</text>';
+  sA+='</svg>';
+
+  // ── Chart B: Helio Gaseoso (MPa) ──
+  var WB=560;var HB=155;var pLB=46;var pRB=20;var pTB=20;var pBB=30;
+  var plotWB=WB-pLB-pRB;var plotHB=HB-pTB-pBB;
+  var gasVals=gasArr.filter(function(v){return v!=null;});
+  var gasTop=gasVals.length?Math.max(Math.max.apply(null,gasVals)*1.25,GAS_MAX*1.3):3.0;
+  function gasYp2(v){return pTB+plotHB-(v/gasTop)*plotHB;}
+  function xpB(i){return xpOf(i,pLB,plotWB);}
+  var sB='<svg width="100%" viewBox="0 0 '+WB+' '+HB+'" xmlns="http://www.w3.org/2000/svg" style="display:block;">';
+  // Optimal band 2.0–2.3 (green)
+  var yG20=gasYp2(GAS_MIN);var yG23=gasYp2(GAS_MAX);
+  sB+='<rect x="'+pLB+'" y="'+yG23.toFixed(1)+'" width="'+plotWB+'" height="'+(yG20-yG23).toFixed(1)+'" fill="rgba(52,211,153,.08)"/>';
+  // Low zone (<2.0, red tint)
+  sB+='<rect x="'+pLB+'" y="'+yG20.toFixed(1)+'" width="'+plotWB+'" height="'+(pTB+plotHB-yG20).toFixed(1)+'" fill="rgba(248,113,113,.05)"/>';
+  // High zone (>2.3, orange tint)
+  if(yG23>pTB)sB+='<rect x="'+pLB+'" y="'+pTB+'" width="'+plotWB+'" height="'+(yG23-pTB).toFixed(1)+'" fill="rgba(251,146,60,.05)"/>';
+  // Threshold lines
+  sB+='<line x1="'+pLB+'" y1="'+yG20.toFixed(1)+'" x2="'+(WB-pRB)+'" y2="'+yG20.toFixed(1)+'" stroke="rgba(248,113,113,.45)" stroke-width="1" stroke-dasharray="5,3"/>';
+  sB+='<line x1="'+pLB+'" y1="'+yG23.toFixed(1)+'" x2="'+(WB-pRB)+'" y2="'+yG23.toFixed(1)+'" stroke="rgba(251,146,60,.45)" stroke-width="1" stroke-dasharray="5,3"/>';
+  sB+='<text x="'+(WB-pRB-3)+'" y="'+(yG20-3).toFixed(1)+'" text-anchor="end" fill="rgba(248,113,113,.75)" font-size="7.5" font-family="JetBrains Mono,monospace">2.0 min</text>';
+  sB+='<text x="'+(WB-pRB-3)+'" y="'+(yG23-3).toFixed(1)+'" text-anchor="end" fill="rgba(251,146,60,.75)" font-size="7.5" font-family="JetBrains Mono,monospace">2.3 max</text>';
+  // Grid
+  var gasStep=gasTop/4;
+  for(var giB=0;giB<=4;giB++){
+    var gyB=pTB+plotHB*giB/4;
+    var gVal=gasTop-gasStep*giB;
+    sB+='<line x1="'+pLB+'" y1="'+gyB.toFixed(1)+'" x2="'+(WB-pRB)+'" y2="'+gyB.toFixed(1)+'" stroke="'+gridC+'" stroke-width="1"/>';
+    sB+='<text x="'+(pLB-3)+'" y="'+(gyB+3.5).toFixed(1)+'" text-anchor="end" fill="rgba(99,179,237,.65)" font-size="8" font-family="JetBrains Mono,monospace">'+gVal.toFixed(1)+'</text>';
+  }
+  sB+='<line x1="'+pLB+'" y1="'+pTB+'" x2="'+pLB+'" y2="'+(pTB+plotHB)+'" stroke="rgba(99,179,237,.2)" stroke-width="1"/>';
+  sB+='<line x1="'+pLB+'" y1="'+(pTB+plotHB)+'" x2="'+(WB-pRB)+'" y2="'+(pTB+plotHB)+'" stroke="rgba(255,255,255,.08)" stroke-width="1"/>';
+  sB+='<text x="'+(pLB-2)+'" y="'+(pTB-6)+'" text-anchor="end" fill="rgba(99,179,237,.7)" font-size="7.5" font-family="system-ui,sans-serif" font-weight="700">MPa</text>';
+  // X labels
+  for(var xiB=0;xiB<n;xiB++){
+    if(xiB%xStep===0){
+      var isNowB=(mode==='anual'&&year===nowY&&xiB===11)||(mode==='mensual'&&year===nowY&&month===nowM&&xiB===(nowD.getDate()-1));
+      sB+='<text x="'+xpB(xiB).toFixed(1)+'" y="'+(pTB+plotHB+12)+'" text-anchor="middle" fill="'+(isNowB?'#38bdf8':fg)+'" font-size="8" font-family="system-ui,sans-serif" font-weight="'+(isNowB?700:400)+'">'+xLabels[xiB]+'</text>';
+    }
+  }
+  if(curIdx>=0&&curIdx<n)sB+='<line x1="'+xpB(curIdx).toFixed(1)+'" y1="'+pTB+'" x2="'+xpB(curIdx).toFixed(1)+'" y2="'+(pTB+plotHB)+'" stroke="rgba(56,189,248,.3)" stroke-width="1.5" stroke-dasharray="3,3"/>';
+  // Gas points
+  var gasPts2=[];for(var gi2=0;gi2<n;gi2++){if(gasArr[gi2]!=null)gasPts2.push({x:xpB(gi2),y:gasYp2(gasArr[gi2]),v:gasArr[gi2]});}
+  if(gasPts2.length>1){
+    var ga='M '+gasPts2[0].x.toFixed(1)+' '+(pTB+plotHB)+' L '+gasPts2[0].x.toFixed(1)+' '+gasPts2[0].y.toFixed(1);
+    for(var gpi=1;gpi<gasPts2.length;gpi++)ga+=' L '+gasPts2[gpi].x.toFixed(1)+' '+gasPts2[gpi].y.toFixed(1);
+    ga+=' L '+gasPts2[gasPts2.length-1].x.toFixed(1)+' '+(pTB+plotHB)+' Z';
+    sB+='<path d="'+ga+'" fill="rgba(99,179,237,.09)"/>';
+    var gl='M '+gasPts2[0].x.toFixed(1)+' '+gasPts2[0].y.toFixed(1);
+    for(var gpi2=1;gpi2<gasPts2.length;gpi2++)gl+=' L '+gasPts2[gpi2].x.toFixed(1)+' '+gasPts2[gpi2].y.toFixed(1);
+    sB+='<path d="'+gl+'" fill="none" stroke="#63b3ed" stroke-width="2.2" stroke-linejoin="round"/>';
+  }
+  for(var gd=0;gd<gasPts2.length;gd++){
+    var gv=gasPts2[gd].v;
+    sB+='<circle cx="'+gasPts2[gd].x.toFixed(1)+'" cy="'+gasPts2[gd].y.toFixed(1)+'" r="3.5" fill="'+(gv<GAS_MIN||gv>GAS_MAX?'#f87171':'#63b3ed')+'" stroke="rgba(0,0,0,.5)" stroke-width="1"/>';
+  }
+  if(gasPts2.length===0)sB+='<text x="'+(WB/2)+'" y="'+(HB/2+4)+'" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="11" font-family="system-ui,sans-serif">Sin lecturas para este período</text>';
+  sB+='</svg>';
+
+  // Navigation
   var btnSt='background:none;border:1px solid rgba(99,179,237,.3);border-radius:5px;color:#63b3ed;cursor:pointer;padding:2px 10px;font-size:.82rem;line-height:1.5;';
   var navLabel='';var prevArgs='';var nextArgs='';
   if(mode==='anual'){
@@ -6807,23 +6894,32 @@ function _refrigHelioChart(rf,eqId){
   h2+='<div style="display:flex;gap:3px;">';
   h2+='<button onclick="setRefrigChartMode(\''+eqId+'\',\'anual\')" style="padding:3px 11px;border-radius:var(--r-pill);font-size:.7rem;font-weight:700;cursor:pointer;border:1.5px solid rgba(99,179,237,'+(mode==='anual'?.5:.2)+');'+(mode==='anual'?'background:rgba(8,145,178,.18);color:#63b3ed;':'background:none;color:var(--text3);')+'">Anual</button>';
   h2+='<button onclick="setRefrigChartMode(\''+eqId+'\',\'mensual\')" style="padding:3px 11px;border-radius:var(--r-pill);font-size:.7rem;font-weight:700;cursor:pointer;border:1.5px solid rgba(99,179,237,'+(mode==='mensual'?.5:.2)+');'+(mode==='mensual'?'background:rgba(8,145,178,.18);color:#63b3ed;':'background:none;color:var(--text3);')+'">Mensual</button>';
-  h2+='</div>';
-  h2+='</div>';
-  h2+='<div style="display:flex;align-items:center;justify-content:flex-end;gap:6px;margin-bottom:8px;">';
+  h2+='</div></div>';
+  h2+='<div style="display:flex;align-items:center;justify-content:flex-end;gap:6px;margin-bottom:12px;">';
   h2+='<button onclick="setRefrigChartNav('+prevArgs+')" style="'+btnSt+'">‹</button>';
   h2+='<span style="font-size:.78rem;font-weight:700;color:var(--text2);min-width:80px;text-align:center;">'+navLabel+'</span>';
   h2+='<button onclick="setRefrigChartNav('+nextArgs+')" style="'+btnSt+'">›</button>';
   h2+='</div>';
-  h2+='<div style="border-radius:8px;background:rgba(8,145,178,.03);border:1px solid rgba(99,179,237,.1);padding:8px 4px 4px;overflow:hidden;">';
-  h2+=s;
+  // Chart A
+  h2+='<div style="margin-bottom:14px;">';
+  h2+='<div style="display:flex;align-items:center;flex-wrap:wrap;gap:5px;margin-bottom:6px;">';
+  h2+='<span style="font-size:.7rem;font-weight:700;color:#0ea5e9;">💧 Helio Líquido</span>';
+  h2+='<span style="font-size:.6rem;color:var(--text3);">óptimo: ≥'+LIQ_PORC_MIN+'% · '+LIQ_PRES_MIN+'–'+LIQ_PRES_MAX+' bar</span>';
+  h2+=liqAlarms;
   h2+='</div>';
-  h2+='<div style="display:flex;gap:16px;margin-top:8px;justify-content:center;">';
-  h2+='<div style="display:flex;align-items:center;gap:5px;font-size:.67rem;color:rgba(255,255,255,.5);">'+
-    '<svg width="22" height="10" viewBox="0 0 22 10"><line x1="0" y1="5" x2="22" y2="5" stroke="#0891b2" stroke-width="2.2"/><circle cx="11" cy="5" r="3.5" fill="#0ea5e9"/></svg>'+
-    'Helio Líquido % (eje izq.)</div>';
-  h2+='<div style="display:flex;align-items:center;gap:5px;font-size:.67rem;color:rgba(255,255,255,.5);">'+
-    '<svg width="22" height="10" viewBox="0 0 22 10"><line x1="0" y1="5" x2="6" y2="5" stroke="#63b3ed" stroke-width="2" stroke-dasharray="5,3"/><line x1="8" y1="5" x2="14" y2="5" stroke="#63b3ed" stroke-width="2" stroke-dasharray="5,3"/><line x1="16" y1="5" x2="22" y2="5" stroke="#63b3ed" stroke-width="2" stroke-dasharray="5,3"/><circle cx="11" cy="5" r="3.5" fill="#63b3ed"/></svg>'+
-    'Helio Gaseoso psi (eje der.)</div>';
+  h2+='<div style="border-radius:8px;background:rgba(8,145,178,.03);border:1px solid rgba(99,179,237,.1);padding:8px 4px 4px;overflow:hidden;">'+sA+'</div>';
+  h2+='<div style="display:flex;gap:16px;margin-top:5px;justify-content:center;">';
+  h2+='<div style="display:flex;align-items:center;gap:5px;font-size:.65rem;color:rgba(255,255,255,.45);"><svg width="20" height="9" viewBox="0 0 20 9"><line x1="0" y1="4.5" x2="20" y2="4.5" stroke="#0891b2" stroke-width="2.2"/><circle cx="10" cy="4.5" r="3" fill="#0ea5e9"/></svg>Nivel %</div>';
+  h2+='<div style="display:flex;align-items:center;gap:5px;font-size:.65rem;color:rgba(255,255,255,.45);"><svg width="20" height="9" viewBox="0 0 20 9"><line x1="0" y1="4.5" x2="5" y2="4.5" stroke="#34d399" stroke-width="2" stroke-dasharray="4,3"/><line x1="7" y1="4.5" x2="13" y2="4.5" stroke="#34d399" stroke-width="2" stroke-dasharray="4,3"/><line x1="15" y1="4.5" x2="20" y2="4.5" stroke="#34d399" stroke-width="2" stroke-dasharray="4,3"/><circle cx="10" cy="4.5" r="3" fill="#34d399"/></svg>Presión bar</div>';
+  h2+='</div></div>';
+  // Chart B
+  h2+='<div>';
+  h2+='<div style="display:flex;align-items:center;flex-wrap:wrap;gap:5px;margin-bottom:6px;">';
+  h2+='<span style="font-size:.7rem;font-weight:700;color:#63b3ed;">💨 Helio Gaseoso</span>';
+  h2+='<span style="font-size:.6rem;color:var(--text3);">óptimo: '+GAS_MIN+'–'+GAS_MAX+' MPa</span>';
+  h2+=gasAlarms;
+  h2+='</div>';
+  h2+='<div style="border-radius:8px;background:rgba(99,179,237,.03);border:1px solid rgba(99,179,237,.1);padding:8px 4px 4px;overflow:hidden;">'+sB+'</div>';
   h2+='</div>';
   h2+='</div>';
   return h2;
@@ -7941,8 +8037,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.7.7";
-var APP_BUILD="10/06/26 16:00";
+var APP_DISPLAY_VERSION="5.7.8";
+var APP_BUILD="10/06/26 16:30";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
