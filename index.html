@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.10.048 -->
+<!-- v2026.06.10.049 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.10.048">
+<meta name="app-version" content="v2026.06.10.049">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3355,15 +3355,16 @@ function _kpiSvgFailBars(monthlyFails,last12,W,H,darkMode2){
   s+='</svg>';
   return s;
 }
+var _KPAL=['#818cf8','#38bdf8','#34d399','#f87171','#f59e0b','#a78bfa','#fb923c','#e879f9','#4ade80','#94a3b8','#67e8f9','#fcd34d'];
+function _kpiAddColors(arr){arr.forEach(function(d,i){if(!d.col)d.col=_KPAL[i%_KPAL.length];});return arr;}
 function _kpiSvgDonut(catData,sz,darkMode2){
   var total=0;catData.forEach(function(d){total+=d.v;});
   var bg=darkMode2?'transparent':'#fff';
   if(!total)return'<svg width="'+sz+'" height="'+sz+'" xmlns="http://www.w3.org/2000/svg" style="background:'+bg+';"><text x="'+(sz/2)+'" y="'+(sz/2+4)+'" text-anchor="middle" fill="'+(darkMode2?'rgba(255,255,255,.3)':'#9ca3af')+'" font-size="11">Sin datos</text></svg>';
   var cx=sz/2,cy=sz/2,R=sz/2-10,ri=R*0.56;
-  var CC={'RM':'#818cf8','ECO':'#38bdf8','DES':'#f87171','UPS':'#f59e0b','ANTENA':'#a78bfa','OTRO':'#94a3b8'};
   var s='<svg width="'+sz+'" height="'+sz+'" viewBox="0 0 '+sz+' '+sz+'" xmlns="http://www.w3.org/2000/svg" style="background:'+bg+';border-radius:4px;">';
   var angle=-Math.PI/2;
-  catData.forEach(function(d){
+  catData.forEach(function(d,di){
     var sweep=2*Math.PI*d.v/total;
     if(sweep<0.001)return;
     var x1=cx+R*Math.cos(angle),y1=cy+R*Math.sin(angle);
@@ -3371,7 +3372,7 @@ function _kpiSvgDonut(catData,sz,darkMode2){
     var lg=sweep>Math.PI?1:0;
     var xi1=cx+ri*Math.cos(angle),yi1=cy+ri*Math.sin(angle);
     var xi2=cx+ri*Math.cos(angle+sweep),yi2=cy+ri*Math.sin(angle+sweep);
-    var col=CC[d.cat]||'#94a3b8';
+    var col=d.col||_KPAL[di%_KPAL.length];
     s+='<path d="M '+x1.toFixed(2)+' '+y1.toFixed(2)+' A '+R.toFixed(1)+' '+R.toFixed(1)+' 0 '+lg+' 1 '+x2.toFixed(2)+' '+y2.toFixed(2)+' L '+xi2.toFixed(2)+' '+yi2.toFixed(2)+' A '+ri.toFixed(1)+' '+ri.toFixed(1)+' 0 '+lg+' 0 '+xi1.toFixed(2)+' '+yi1.toFixed(2)+' Z" fill="'+col+'" opacity=".9"/>';
     angle+=sweep;
   });
@@ -3429,6 +3430,7 @@ function rKpi(){
   var avgRT=rtimes.length?Math.round(rtimes.reduce(function(a,b){return a+b;},0)/rtimes.length):0;
   var byCat={};allCosts.forEach(function(c){byCat[c.eqCat]=(byCat[c.eqCat]||0)+c.monto;});
   var catData=[];Object.keys(byCat).forEach(function(k){catData.push({cat:k,v:byCat[k]});});catData.sort(function(a,b){return b.v-a.v;});
+  _kpiAddColors(catData);
   var byEq={};allCosts.forEach(function(c){if(!byEq[c.eqId])byEq[c.eqId]={nombre:c.eqNombre,cat:c.eqCat,total:0};byEq[c.eqId].total+=c.monto;});
   var eqCostArr=[];Object.keys(byEq).forEach(function(k){eqCostArr.push(byEq[k]);});eqCostArr.sort(function(a,b){return b.total-a.total;});
   var byEqFail={};allRot.forEach(function(r){if(!byEqFail[r.eqId])byEqFail[r.eqId]={nombre:r.eqNombre,count:0};byEqFail[r.eqId].count++;});
@@ -3467,13 +3469,13 @@ function rKpi(){
   h+='</div></div>';
   h+='<div style="display:grid;grid-template-columns:auto 1fr;gap:8px;padding:0 14px 10px;">';
   h+='<div class="gc" style="padding:14px;min-width:190px;">';
-  h+='<div style="font-size:.77rem;font-weight:700;margin-bottom:8px;">🥧 Por Categoría</div>';
+  h+='<div style="font-size:.77rem;font-weight:700;margin-bottom:8px;">📊 Por Categoría</div>';
   h+=_kpiSvgDonut(catData,186,true);
   catData.forEach(function(d){
     var tot2=0;catData.forEach(function(x){tot2+=x.v;});
     var pct=tot2?Math.round(100*d.v/tot2):0;
     h+='<div style="display:flex;align-items:center;gap:6px;margin-top:5px;font-size:.68rem;">';
-    h+='<span style="width:7px;height:7px;border-radius:50%;background:'+(CC[d.cat]||'#94a3b8')+';flex-shrink:0;"></span>';
+    h+='<span style="width:7px;height:7px;border-radius:50%;background:'+d.col+';flex-shrink:0;"></span>';
     h+='<span style="color:var(--text2);">'+d.cat+'</span>';
     h+='<span style="margin-left:auto;color:var(--text3);font-family:JetBrains Mono,monospace;">'+_kpiFmtCost(d.v)+' ('+pct+'%)</span></div>';
   });
@@ -3505,6 +3507,52 @@ function rKpi(){
       h+='<div style="height:100%;width:'+pct2.toFixed(1)+'%;background:'+(FCOLS[fi%FCOLS.length])+';border-radius:3px;"></div></div></div>';
     });
   }else{h+='<div style="font-size:.7rem;color:var(--text3);text-align:center;padding:20px 0;">Sin roturas registradas</div>';}
+  h+='</div></div>';
+  h+='<div style="padding:0 14px 10px;"><div class="gc" style="padding:14px;">';
+  h+='<div style="font-size:.77rem;font-weight:700;margin-bottom:10px;">⏱ Tiempo de Reparación por Equipo</div>';
+  var repRows=allRot.filter(function(r){return r.fechaRotura||r.estado==='roto';});
+  if(repRows.length){
+    var todayMs=new Date().getTime();
+    h+='<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:.7rem;">';
+    h+='<thead><tr style="border-bottom:1px solid rgba(255,255,255,.08);">';
+    ['Equipo','Ítem','F. Rotura','F. Arreglo','Días','Estado'].forEach(function(col,ci){
+      h+='<th style="padding:5px '+(ci===0?'8':'6')+'px;text-align:'+(ci>=4?'center':'left')+';color:var(--text3);font-weight:600;white-space:nowrap;">'+col+'</th>';
+    });
+    h+='</tr></thead><tbody>';
+    repRows.sort(function(a,b){
+      if(!a.fechaArreglo&&b.fechaArreglo)return-1;
+      if(a.fechaArreglo&&!b.fechaArreglo)return 1;
+      return(a.fechaRotura||'')>(b.fechaRotura||'')?-1:1;
+    }).forEach(function(r,ri){
+      var dias='—';var diasNum=-1;var estadoLabel='';var estadoCol='';var barCol='';
+      if(r.fechaRotura&&r.fechaArreglo){
+        diasNum=Math.round((new Date(r.fechaArreglo)-new Date(r.fechaRotura))/86400000);
+        if(diasNum<0)diasNum=0;
+        dias=diasNum+'d';
+        if(diasNum<=7){barCol='#34d399';estadoLabel='Reparado';estadoCol='#34d399';}
+        else if(diasNum<=30){barCol='#f59e0b';estadoLabel='Reparado';estadoCol='#f59e0b';}
+        else{barCol='#f87171';estadoLabel='Reparado';estadoCol='#f87171';}
+      }else if(r.fechaRotura){
+        diasNum=Math.round((todayMs-new Date(r.fechaRotura).getTime())/86400000);
+        if(diasNum<0)diasNum=0;
+        dias=diasNum+'d';barCol='#f87171';estadoLabel='Pendiente';estadoCol='#f87171';
+      }else{
+        estadoLabel='Pendiente';estadoCol='#f87171';
+      }
+      var maxBar=90;var barW=diasNum>0?Math.min(100,diasNum/maxBar*100):100;
+      h+='<tr style="border-bottom:1px solid rgba(255,255,255,.04);'+(ri%2===1?'background:rgba(255,255,255,.015);':'')+'">'+
+        '<td style="padding:6px 8px;color:var(--text1);white-space:nowrap;">'+esc(r.eqNombre)+'</td>'+
+        '<td style="padding:6px;color:var(--text2);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(r.descripcion||'—')+'</td>'+
+        '<td style="padding:6px;color:var(--text3);white-space:nowrap;font-family:JetBrains Mono,monospace;">'+(r.fechaRotura||'—')+'</td>'+
+        '<td style="padding:6px;color:var(--text3);white-space:nowrap;font-family:JetBrains Mono,monospace;">'+(r.fechaArreglo||'—')+'</td>'+
+        '<td style="padding:6px;text-align:center;min-width:80px;">'+
+          (diasNum>=0?'<div style="display:flex;align-items:center;gap:4px;"><div style="flex:1;height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;"><div style="height:100%;width:'+barW.toFixed(1)+'%;background:'+barCol+';border-radius:3px;"></div></div><span style="font-family:JetBrains Mono,monospace;font-weight:700;color:'+barCol+';white-space:nowrap;">'+dias+'</span></div>':'<span style="color:var(--text3);">—</span>')+
+        '</td>'+
+        '<td style="padding:6px;text-align:center;"><span style="font-size:.62rem;padding:2px 6px;border-radius:20px;background:'+estadoCol+'22;color:'+estadoCol+';font-weight:600;">'+estadoLabel+'</span></td>'+
+        '</tr>';
+    });
+    h+='</tbody></table></div>';
+  }else{h+='<div style="font-size:.7rem;color:var(--text3);text-align:center;padding:16px 0;">Sin roturas registradas</div>';}
   h+='</div></div>';
   h+='<div style="padding:0 14px 10px;"><div class="gc" style="padding:14px;">';
   h+='<div style="font-size:.77rem;font-weight:700;margin-bottom:10px;">📋 Detalle por Equipo</div>';
@@ -3557,6 +3605,7 @@ function exportKpiPDF(){
   var avgRT=rtimes.length?Math.round(rtimes.reduce(function(a,b){return a+b;},0)/rtimes.length):0;
   var byCat={};allCosts.forEach(function(c){byCat[c.eqCat]=(byCat[c.eqCat]||0)+c.monto;});
   var catData=[];Object.keys(byCat).forEach(function(k){catData.push({cat:k,v:byCat[k]});});catData.sort(function(a,b){return b.v-a.v;});
+  _kpiAddColors(catData);
   var byEq={};allCosts.forEach(function(c){if(!byEq[c.eqId])byEq[c.eqId]={nombre:c.eqNombre,cat:c.eqCat,total:0};byEq[c.eqId].total+=c.monto;});
   var eqCostArr=[];Object.keys(byEq).forEach(function(k){eqCostArr.push(byEq[k]);});eqCostArr.sort(function(a,b){return b.total-a.total;});
   var byEqFail={};allRot.forEach(function(r){if(!byEqFail[r.eqId])byEqFail[r.eqId]={nombre:r.eqNombre,cat:r.eqCat||'',count:0};byEqFail[r.eqId].count++;});
@@ -3597,10 +3646,9 @@ function exportKpiPDF(){
   var donutSvg=_kpiSvgDonut(catData,220,false);
   // Category legend for PDF
   var catLegend='';
-  var CC2={'RM':'#818cf8','ECO':'#38bdf8','DES':'#ef4444','UPS':'#f59e0b','ANTENA':'#a78bfa','OTRO':'#94a3b8'};
   catData.forEach(function(d){
     var pct2=totalAllCosts?Math.round(100*d.v/totalAllCosts):0;
-    catLegend+='<tr><td style="display:flex;align-items:center;gap:6px;padding:4px 8px;"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:'+(CC2[d.cat]||'#94a3b8')+';flex-shrink:0;"></span>'+d.cat+'</td><td style="text-align:right;padding:4px 8px;font-weight:700;">'+_kpiFmtCost(d.v)+'</td><td style="text-align:center;padding:4px 8px;">'+pct2+'%</td></tr>';
+    catLegend+='<tr><td style="display:flex;align-items:center;gap:6px;padding:4px 8px;"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:'+d.col+';flex-shrink:0;"></span>'+d.cat+'</td><td style="text-align:right;padding:4px 8px;font-weight:700;">'+_kpiFmtCost(d.v)+'</td><td style="text-align:center;padding:4px 8px;">'+pct2+'%</td></tr>';
   });
   var tcInfo=_kpiUsdRate?'TC Blue USD: $'+_kpiUsdRate+' ARS al momento del informe':'(costos en USD)';
   var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CIMA KPI '+curYear+'</title>'+
@@ -7893,8 +7941,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.7.6";
-var APP_BUILD="10/06/26 15:30";
+var APP_DISPLAY_VERSION="5.7.7";
+var APP_BUILD="10/06/26 16:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
