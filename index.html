@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.10.082 -->
+<!-- v2026.06.11.083 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,12 +35,22 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.10.082">
+<meta name="app-version" content="v2026.06.11.083">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <style>
 :root{
+  /* ── iOS semantic palette (HIG) ── */
+  --sys-bg:#f2f2f7;            /* systemGroupedBackground */
+  --sys-bg2:#ffffff;           /* secondarySystemGroupedBackground (cards) */
+  --sys-bg3:#f2f2f7;           /* tertiary */
+  --sys-fill:rgba(120,120,128,.12);
+  --sys-fill2:rgba(120,120,128,.08);
+  --label:#000000;
+  --label2:rgba(60,60,67,.6);
+  --label3:rgba(60,60,67,.3);
+  --hairline:rgba(60,60,67,.12);
   --glass:rgba(255,255,255,.07);
   --glass2:rgba(255,255,255,.55);
   --glass-tint:rgba(232,234,244,.35);
@@ -48,10 +58,10 @@
   --glass-border-top:rgba(255,255,255,.90);
   --blur:saturate(320%) contrast(108%) brightness(110%) blur(30px);
   --blur-heavy:saturate(360%) contrast(110%) brightness(112%) blur(44px);
-  --r-sm:14px; --r-md:18px; --r-lg:24px; --r-xl:30px; --r-pill:50px;
+  --r-sm:14px; --r-md:18px; --r-lg:22px; --r-xl:28px; --r-pill:50px;
   --accent:#0071e3; --accent2:#0058b0;
   --red:#ff3b30; --orange:#ff9500; --green:#34c759; --purple:#af52de;
-  --bg:#e8eef6;
+  --bg:#f2f2f7;
   --text:#1c1c1e; --text2:#3a3a3c; --text3:#8e8e93;
   --sep:rgba(60,60,67,.08);
   --spring:cubic-bezier(0.34,1.56,0.64,1);
@@ -79,57 +89,27 @@ body{
   background:var(--bg);color:var(--text);min-height:100vh;min-height:100dvh;
   overscroll-behavior:none;-webkit-font-smoothing:antialiased;
 }
-/* iOS 26 dynamic background with color blobs */
+/* iOS 26 — fondo calmo monocromático (deferencia al contenido) */
 body::before{
   content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
   background:
-    radial-gradient(ellipse 120% 60% at 50% 0%,rgba(180,210,255,.55) 0%,transparent 55%),
-    radial-gradient(ellipse 80% 50% at 0% 100%,rgba(160,200,240,.35) 0%,transparent 50%),
-    radial-gradient(ellipse 60% 40% at 100% 60%,rgba(200,220,255,.25) 0%,transparent 50%),
-    linear-gradient(175deg,#d6e8f8 0%,#e2edf7 35%,#eaf2fa 65%,#f2f6fc 100%);
-  animation:bgShift 32s ease-in-out infinite alternate;}
-body::after{
-  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
-  background:
-    radial-gradient(ellipse 50% 40% at 80% 20%,rgba(200,190,255,.18) 0%,transparent 50%),
-    radial-gradient(ellipse 40% 50% at 20% 80%,rgba(170,230,220,.14) 0%,transparent 50%);
-  animation:bgShift2 24s ease-in-out infinite alternate-reverse;}
-@keyframes bgShift{
-  0%{filter:hue-rotate(0deg) brightness(1.0) saturate(1.0);}
-  50%{filter:hue-rotate(8deg) brightness(1.02) saturate(1.06);}
-  100%{filter:hue-rotate(-5deg) brightness(1.01) saturate(1.04);}
-}
-@keyframes bgShift2{
-  0%{opacity:.60;}
-  50%{opacity:1;}
-  100%{opacity:.70;}
-}
+    radial-gradient(ellipse 120% 50% at 50% 0%,rgba(180,200,230,.28) 0%,transparent 60%),
+    linear-gradient(178deg,#eef1f7 0%,#f2f2f7 45%,#f4f4f8 100%);}
+body::after{content:none;}
 #app,#login-screen{position:relative;z-index:1;}
 
-/* ── LIQUID GLASS CARD ── */
+/* ── CARD iOS (HIG): contenido opaco y limpio — el glass queda para el chrome ── */
 .gc{
-  background:var(--gc-bg);
-  -webkit-backdrop-filter:blur(24px);
-  backdrop-filter:blur(24px);
-  border:1px solid var(--gc-border);
-  border-top-color:var(--gc-border-top);
+  background:var(--sys-bg2);
+  border:0.5px solid rgba(60,60,67,.10);
   border-radius:var(--r-lg);
-  box-shadow:
-    0 0 0 0.5px rgba(255,255,255,.50),
-    0 2px 8px rgba(0,0,0,.05),
-    0 8px 24px rgba(0,0,0,.06),
-    inset 0 1px 0 rgba(255,255,255,.95);
+  box-shadow:0 1px 2px rgba(0,0,0,.04),0 2px 8px rgba(0,0,0,.03);
   position:relative;overflow:hidden;
   transition:transform .32s var(--spring),box-shadow .28s var(--ease-out);}
-/* shimmer — transparent, no fake colors */
-.gc::before{content:'';position:absolute;inset:0;border-radius:inherit;
-  background:rgba(255,255,255,0);pointer-events:none;z-index:0;}
-/* specular top strip */
-.gc::after{content:'';position:absolute;top:0;left:0;right:0;height:36%;border-radius:inherit;
-  background:linear-gradient(180deg,var(--gc-spec) 0%,rgba(255,255,255,.0) 100%);
-  pointer-events:none;z-index:0;}
-.gc:active{transform:scale(.968);
-  box-shadow:0 1px 4px rgba(0,0,0,.05),0 3px 12px rgba(0,0,0,.06),inset 0 1px 0 rgba(255,255,255,.8);}
+.gc::before{content:none;}
+.gc::after{content:none;}
+.gc:active{transform:scale(.974);
+  box-shadow:0 1px 3px rgba(0,0,0,.05);}
 /* chromatic refraction edge — subtle prism at bottom */
 .gc-chroma::after{
   background:linear-gradient(180deg,rgba(255,255,255,.50) 0%,rgba(255,255,255,.0) 50%),
@@ -139,11 +119,11 @@ body::after{
 #app{position:relative;z-index:1;}
 #header{position:sticky;top:0;z-index:100;background:transparent;border-bottom:none;padding:calc(env(safe-area-inset-top,0px)+12px) 20px 28px;}
 #header-inner{display:flex;align-items:center;justify-content:space-between;max-width:1040px;margin:0 auto;
-  background:var(--gc-bg);-webkit-backdrop-filter:blur(32px);backdrop-filter:blur(32px);
-  border:1px solid var(--gc-border);border-top-color:var(--gc-border-top);
-  border-radius:var(--r-xl);padding:20px 20px 20px 28px;
-  box-shadow:0 0 0 0.5px rgba(255,255,255,.55),0 4px 20px rgba(0,0,0,.05),inset 0 1.5px 0 rgba(255,255,255,.95);
-  position:relative;overflow:hidden;min-height:96px;}
+  background:rgba(250,250,252,.72);-webkit-backdrop-filter:saturate(180%) blur(28px);backdrop-filter:saturate(180%) blur(28px);
+  border:0.5px solid rgba(60,60,67,.12);
+  border-radius:var(--r-xl);padding:16px 18px 16px 24px;
+  box-shadow:0 1px 2px rgba(0,0,0,.04),0 6px 20px rgba(0,0,0,.06);
+  position:relative;overflow:hidden;min-height:84px;}
 #header-inner::before{content:'';position:absolute;inset:0;border-radius:inherit;background:var(--lg-shimmer);pointer-events:none;}
 #header-inner::after{content:'';position:absolute;top:0;left:0;right:0;height:45%;background:linear-gradient(180deg,var(--gc-spec) 0%,rgba(255,255,255,0) 100%);pointer-events:none;}
 #header-left{display:flex;align-items:center;gap:14px;position:relative;z-index:1;}
@@ -161,17 +141,15 @@ body::after{
 #bb-inner{
   width:100%;max-width:420px;margin:0 auto;
   display:flex;align-items:center;gap:4px;
-  background:rgba(255,255,255,.06);
-  -webkit-backdrop-filter:blur(32px);
-  backdrop-filter:blur(32px);
-  border:1px solid rgba(255,255,255,.65);border-top-color:rgba(255,255,255,.92);
+  background:rgba(250,250,252,.72);
+  -webkit-backdrop-filter:saturate(180%) blur(28px);
+  backdrop-filter:saturate(180%) blur(28px);
+  border:0.5px solid rgba(60,60,67,.14);
   border-radius:var(--r-pill);
   padding:5px;
   box-shadow:
-    0 0 0 0.5px rgba(255,255,255,.55),
-    0 2px 8px rgba(0,0,0,.05),
-    0 12px 32px rgba(0,0,0,.08),
-    inset 0 1.5px 0 rgba(255,255,255,.95);
+    0 1px 2px rgba(0,0,0,.04),
+    0 10px 30px rgba(0,0,0,.10);
   pointer-events:auto;
   position:relative;overflow:hidden;}
 /* shimmer */
@@ -315,12 +293,28 @@ textarea.inp{resize:vertical;}
 .pill{display:inline-flex;align-items:center;gap:3px;border-radius:20px;padding:3px 10px;font-size:.65rem;font-weight:600;}
 
 /* ── SECTION ── */
-.sec{font-size:.65rem;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:10px;color:var(--text3);}
+.sec{font-size:.65rem;text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:8px;color:var(--label2);padding-left:4px;}
+/* ── iOS Large Title ── */
+.lt-wrap{padding:2px 4px 14px;}
+.lt-title{font-size:2.1rem;font-weight:700;letter-spacing:-.6px;color:var(--label);line-height:1.15;transition:font-size .2s var(--ease-out);}
+.lt-sub{font-size:.86rem;color:var(--label2);margin-top:3px;font-weight:400;}
+/* ── iOS Inset Grouped List ── */
+.ig{background:var(--sys-bg2);border:0.5px solid rgba(60,60,67,.10);border-radius:var(--r-lg);overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.04),0 2px 8px rgba(0,0,0,.03);}
+.ig-row{display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;position:relative;background:transparent;transition:background .15s;}
+.ig-row:active{background:var(--sys-fill2);}
+.ig-row+.ig-row::before{content:'';position:absolute;top:0;left:62px;right:0;height:0.5px;background:var(--hairline);}
+.ig-row.ig-flat+.ig-row.ig-flat::before{left:16px;}
+.ig-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ig-chev{flex-shrink:0;color:var(--label3);}
+.ig-main{flex:1;min-width:0;}
+.ig-t{font-size:.94rem;font-weight:500;color:var(--label);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.2px;}
+.ig-s{font-size:.76rem;color:var(--label2);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ig-val{font-size:.9rem;color:var(--label2);flex-shrink:0;font-variant-numeric:tabular-nums;}
 
 /* ── STAT CARD ── */
 .stat{padding:14px 16px;}
-.stat-lbl{font-size:.6rem;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;font-weight:500;margin-bottom:4px;}
-.stat-val{font-size:1.9rem;font-weight:800;line-height:1;letter-spacing:-.8px;}
+.stat-lbl{font-size:.68rem;color:var(--label2);letter-spacing:-.1px;font-weight:500;margin-bottom:5px;}
+.stat-val{font-size:1.9rem;font-weight:700;line-height:1;letter-spacing:-.8px;font-variant-numeric:tabular-nums;}
 
 /* ── LIST ITEM ── */
 .li-eq{padding:14px 16px;margin-bottom:10px;cursor:pointer;
@@ -1129,7 +1123,6 @@ body.dark .sb-card{background:rgba(255,255,255,.06);border-color:rgba(255,255,25
     <button class="bar-btn-blue" onclick="openModalEq(null)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-right:4px;vertical-align:middle;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Equipo</button>
     </div>
   </div>
-  <div style="height:1px;margin:0 20px;background:linear-gradient(90deg,transparent,rgba(120,120,128,.18),transparent);"></div>
   <div id="main"></div>
 </div>
 
@@ -2841,89 +2834,111 @@ function rDash(){
   var opOK=activeEqs.length-opF;
   var mU=activeEqs.filter(function(e){return!sinMant(e)&&(semafo(e)==="vencido"||semafo(e)==="urgente");}).length;
   var rot=0,pend=0;activeEqs.forEach(function(e){e.partes.forEach(function(p){if(p.estado==="roto")rot++;if(p.estado==="pendiente")pend++;});});
-  
-  var h='<div class="g3" style="margin-bottom:16px;">';
-  [{l:"Total",v:activeEqs.length,c:"var(--accent)",k:"total"},{l:"Operativos",v:opOK,c:"var(--green)",k:"operativo"},{l:"F. de servicio",v:opF,c:"var(--red)",k:"fuera"},{l:"Mant. Urg.",v:mU,c:"var(--red)",k:"manturg"},{l:"Fallas/Roturas",v:rot,c:"var(--red)",k:"rotos"},{l:"Pendientes",v:pend,c:"var(--orange)",k:"pendientes"}].forEach(function(s,si){
-    h+='<div class="gc stat tap" data-aos="fade-up" data-aos-delay="'+Math.min(si*55,300)+'" onclick="applyDashFilter(\''+s.k+'\')" style="cursor:pointer;border-bottom:3px solid '+s.c+'40;transition:transform .18s,box-shadow .18s;">'+
-      '<div class="stat-lbl">'+s.l+'</div>'+
+
+  // ── Large Title (HIG) ──
+  var _dias=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+  var _meses=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  var _hoy=new Date();
+  var _fechaStr=_dias[_hoy.getDay()]+' '+_hoy.getDate()+' de '+_meses[_hoy.getMonth()];
+  var h='<div class="lt-wrap">'+
+    '<div class="lt-title">Panel</div>'+
+    '<div class="lt-sub" style="text-transform:capitalize;">'+_fechaStr+'</div>'+
+  '</div>';
+
+  // ── Stats: monocromático, acento semántico solo en lo crítico ──
+  var _statIco=function(path){return'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+path+'</svg>';};
+  var stats=[
+    {l:"Equipos",v:activeEqs.length,c:"var(--label)",ic:_statIco('<rect x="3" y="3" width="7" height="8" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="15" width="7" height="6" rx="1.5"/>'),k:"total"},
+    {l:"Operativos",v:opOK,c:"var(--green)",ic:_statIco('<path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>'),k:"operativo"},
+    {l:"Fuera de servicio",v:opF,c:opF>0?"var(--red)":"var(--label3)",ic:_statIco('<circle cx="12" cy="12" r="10"/><line x1="4.9" y1="4.9" x2="19.1" y2="19.1"/>'),k:"fuera"},
+    {l:"Mant. urgente",v:mU,c:mU>0?"var(--red)":"var(--label3)",ic:_statIco('<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>'),k:"manturg"},
+    {l:"Roturas",v:rot,c:rot>0?"var(--red)":"var(--label3)",ic:_statIco('<path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>'),k:"rotos"},
+    {l:"Pendientes",v:pend,c:pend>0?"var(--orange)":"var(--label3)",ic:_statIco('<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>'),k:"pendientes"}
+  ];
+  h+='<div class="g3" style="margin-bottom:22px;">';
+  stats.forEach(function(s){
+    h+='<div class="gc stat tap" onclick="applyDashFilter(\''+s.k+'\')" style="cursor:pointer;">'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">'+
+        '<div class="stat-lbl" style="margin-bottom:0;">'+s.l+'</div>'+
+        '<span style="color:var(--label3);display:flex;">'+s.ic+'</span>'+
+      '</div>'+
       '<div class="stat-val" style="color:'+s.c+';">'+s.v+'</div>'+
-      '<div style="font-size:.58rem;color:var(--text3);margin-top:6px;font-weight:500;">Ver lista →</div>'+
       '</div>';
   });
   h+='</div>';
 
-  h+='<div class="sec">Por Categoría</div><div class="g2cat" style="margin-bottom:18px;">';
-  var _catIdx=0;CATS.forEach(function(cat){
+  // ── Categorías: lista agrupada estilo iOS Settings ──
+  h+='<div class="sec">Categorías</div>';
+  h+='<div class="ig" style="margin-bottom:22px;">';
+  var _chev='<svg class="ig-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>';
+  CATS.forEach(function(cat){
     var ces=eqs.filter(function(e){return e.cat===cat.id&&!e.baja;});if(!ces.length)return;
     var fuera=ces.filter(function(e){return e.estado==="fuera-de-servicio";}).length;
     var urg=ces.filter(function(e){return!sinMant(e)&&(semafo(e)==="vencido"||semafo(e)==="urgente");}).length;
-    var statusColor=fuera?"#ff3b30":urg?"#ff9500":"#34c759";
-    var statusLabel=fuera?'🚫 '+fuera+' fuera de servicio':urg?'⚠️ '+urg+' urgente'+(urg!==1?'s':''):'✅ Operativos';
-    var iconSvg=catSvgIcon(cat.id,192)||'';
-    h+='<div class="gc tap" data-aos="zoom-in" data-aos-delay="'+Math.min(_catIdx++*60,360)+'" onclick="filtCat=\''+cat.id+'\';setView(\'lista\');" style="padding:0;overflow:hidden;cursor:pointer;border:1.5px solid '+cat.color+'40;min-height:130px;">'+
-      '<div style="height:3px;background:linear-gradient(90deg,'+cat.color+','+cat.color+'55);border-radius:0;"></div>'+
-      '<div style="padding:16px 14px 14px;display:flex;flex-direction:column;justify-content:space-between;height:calc(100% - 3px);position:relative;overflow:hidden;">'+
-        /* big icon flush right, decorative */
-        '<div style="position:absolute;right:-18px;top:50%;transform:translateY(-50%);width:210px;height:210px;display:flex;align-items:center;justify-content:center;opacity:.55;pointer-events:none;">'+iconSvg+'</div>'+
-        /* count top-left */
-        '<div style="display:flex;flex-direction:column;gap:0;z-index:1;">'+
-          '<div style="font-weight:900;font-size:2.6rem;color:'+cat.color+';line-height:1;letter-spacing:-2px;">'+ces.length+'</div>'+
-          '<div style="font-size:.56rem;color:'+cat.color+'aa;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-top:1px;">equipo'+(ces.length!==1?'s':'')+'</div>'+
-        '</div>'+
-        /* label + status bottom */
-        '<div style="z-index:1;">'+
-          '<div style="font-weight:800;font-size:1.05rem;letter-spacing:-.3px;color:var(--text);margin-bottom:7px;">'+cat.label+'</div>'+
-          '<div style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:20px;background:'+statusColor+'16;border:1px solid '+statusColor+'30;">'+
-            '<span style="font-size:.72rem;font-weight:600;color:'+statusColor+';">'+statusLabel+'</span>'+
-          '</div>'+
-        '</div>'+
+    var stC=fuera?"var(--red)":urg?"var(--orange)":"var(--green)";
+    var stT=fuera?fuera+' fuera de servicio':urg?urg+' urgente'+(urg!==1?'s':''):'Operativos';
+    h+='<div class="ig-row" onclick="filtCat=\''+cat.id+'\';setView(\'lista\');">'+
+      '<div class="ig-icon" style="background:'+cat.color+'1a;">'+(catSvgIcon(cat.id,24)||'<span style="font-size:1rem;">'+cat.icon+'</span>')+'</div>'+
+      '<div class="ig-main">'+
+        '<div class="ig-t">'+cat.label+'</div>'+
+        '<div class="ig-s" style="display:flex;align-items:center;gap:5px;"><span style="width:6px;height:6px;border-radius:50%;background:'+stC+';flex-shrink:0;"></span>'+stT+'</div>'+
       '</div>'+
+      '<span class="ig-val">'+ces.length+'</span>'+_chev+
     '</div>';
   });
-  if(aires.length>0||true){ // always show
-    var aireFallas=aires.filter(function(a){return a.estado==='falla'||a.estado==='fuera_servicio';}).length;
-    var aireColor='#06b6d4';
-    var aireStatus=aireFallas>0?'⚠️ '+aireFallas+' con falla':'✅ Operativos';
-    var aireStatusColor=aireFallas>0?'#f59e0b':'#34c759';
-    var aireSvg='<svg viewBox="'+_AIRE_VB+'" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" width="200" height="200">'+_AIRE_ILLUS+'</svg>';
-    h+='<div class="gc tap" onclick="setView(\'aires\');" style="padding:0;overflow:hidden;cursor:pointer;border:1.5px solid '+aireColor+'40;min-height:130px;">'+
-      '<div style="height:3px;background:linear-gradient(90deg,'+aireColor+','+aireColor+'55);border-radius:0;"></div>'+
-      '<div style="padding:16px 14px 14px;display:flex;flex-direction:column;justify-content:space-between;height:calc(100% - 3px);position:relative;overflow:hidden;">'+
-        '<div style="position:absolute;right:-18px;top:50%;transform:translateY(-50%);width:210px;height:210px;display:flex;align-items:center;justify-content:center;opacity:.55;pointer-events:none;">'+aireSvg+'</div>'+
-        '<div style="display:flex;flex-direction:column;gap:0;z-index:1;">'+
-          '<div style="font-weight:900;font-size:2.6rem;color:'+aireColor+';line-height:1;letter-spacing:-2px;">'+aires.length+'</div>'+
-          '<div style="font-size:.56rem;color:'+aireColor+'aa;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-top:1px;">unidad'+(aires.length!==1?'es':'')+'</div>'+
-        '</div>'+
-        '<div style="z-index:1;">'+
-          '<div style="font-weight:800;font-size:1.05rem;letter-spacing:-.3px;color:var(--text);margin-bottom:7px;">Aires Acondicionados</div>'+
-          '<div style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:20px;background:'+aireStatusColor+'16;border:1px solid '+aireStatusColor+'30;">'+
-            '<span style="font-size:.72rem;font-weight:600;color:'+aireStatusColor+';">'+aireStatus+'</span>'+
-          '</div>'+
-        '</div>'+
-      '</div>'+
-    '</div>';
-  }
+  // Aires acondicionados
+  var aireFallas=aires.filter(function(a){return a.estado==='falla'||a.estado==='fuera_servicio';}).length;
+  var aireStC=aireFallas>0?'var(--orange)':'var(--green)';
+  var aireStT=aireFallas>0?aireFallas+' con falla':'Operativos';
+  h+='<div class="ig-row" onclick="setView(\'aires\');">'+
+    '<div class="ig-icon" style="background:rgba(6,182,212,.1);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#06b6d4" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="5" width="20" height="9" rx="2"/><path d="M6 18c0 1.5-1 2-1 2M12 18c0 2-1.5 3-1.5 3M18 18c0 1.5-1 2-1 2"/></svg></div>'+
+    '<div class="ig-main">'+
+      '<div class="ig-t">Aires Acondicionados</div>'+
+      '<div class="ig-s" style="display:flex;align-items:center;gap:5px;"><span style="width:6px;height:6px;border-radius:50%;background:'+aireStC+';flex-shrink:0;"></span>'+aireStT+'</div>'+
+    '</div>'+
+    '<span class="ig-val">'+aires.length+'</span>'+_chev+
+  '</div>';
   h+='</div>';
 
-  h+='<div class="sec">Próximos Mantenimientos</div>';
+  // ── Próximos mantenimientos: tarjeta agrupada única ──
+  h+='<div class="sec">Próximos mantenimientos</div>';
   var sorted=eqs.filter(function(e){return!e.baja&&!sinMant(e);}).sort(function(a,b){return new Date(a.proximoMant)-new Date(b.proximoMant);}).slice(0,8);
-  sorted.forEach(function(e){
-    var ms=semafo(e);var d=diasH(e.proximoMant);
-    h+='<div class="gc tap" onclick="goDetalle(\''+e.id+'\')" style="padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px;cursor:pointer;">'+
-      '<div style="flex-shrink:0;">'+iconFor(e,36)+'</div>'+
-      '<div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:.84rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+esc(e.nombre)+'</div><div style="font-size:.7rem;color:var(--text3);">'+(esc(e.ubicacion)||catById(e.cat).label)+'</div></div>'+
-      '<div style="text-align:right;flex-shrink:0;"><div style="font-size:.82rem;font-weight:700;color:'+CM[ms]+';">'+(d<0?"VENC.":d===0?"HOY":d+"d")+'</div><div style="font-size:.64rem;color:var(--text3);">'+fD(e.proximoMant)+'</div></div></div>';
-  });
+  if(sorted.length){
+    h+='<div class="ig" style="margin-bottom:22px;">';
+    sorted.forEach(function(e){
+      var ms=semafo(e);var d=diasH(e.proximoMant);
+      var dC=CM[ms];
+      var dT=d<0?"Vencido":d===0?"Hoy":d+" días";
+      h+='<div class="ig-row" onclick="goDetalle(\''+e.id+'\')">'+
+        '<div style="flex-shrink:0;">'+iconFor(e,34)+'</div>'+
+        '<div class="ig-main">'+
+          '<div class="ig-t">'+esc(e.nombre)+'</div>'+
+          '<div class="ig-s">'+(esc(e.ubicacion)||catById(e.cat).label)+' · '+fD(e.proximoMant)+'</div>'+
+        '</div>'+
+        '<span style="flex-shrink:0;font-size:.74rem;font-weight:600;color:'+dC+';background:'+dC+'14;padding:4px 10px;border-radius:50px;font-variant-numeric:tabular-nums;">'+dT+'</span>'+_chev+
+      '</div>';
+    });
+    h+='</div>';
+  }else{
+    h+='<div class="ig" style="margin-bottom:22px;"><div style="padding:22px;text-align:center;color:var(--label2);font-size:.84rem;">Sin mantenimientos programados</div></div>';
+  }
 
+  // ── Componentes defectuosos ──
   var rotas=[];eqs.forEach(function(e){e.partes.forEach(function(p){if(p.estado==="roto")rotas.push(Object.assign({},p,{eq:e}));});});
   if(rotas.length){
-    h+='<div class="sec" style="color:var(--red);margin-top:14px;">🔴 Componentes Defectuosos</div>';
+    h+='<div class="sec" style="color:var(--red);">Componentes defectuosos</div>';
+    h+='<div class="ig" style="margin-bottom:22px;">';
     rotas.forEach(function(p){
-      h+='<div class="gc tap" onclick="goDetalle(\''+p.eq.id+'\')" style="padding:10px 14px;margin-bottom:8px;border-left:3px solid var(--red);cursor:pointer;">'+
-        '<div style="font-weight:600;font-size:.84rem;color:var(--red);">🔴 '+esc(p.nombre)+'</div>'+
-        '<div style="font-size:.72rem;color:var(--text3);margin-top:1px;">'+esc(p.eq.nombre)+'</div>'+
-        '<div style="display:flex;gap:14px;margin-top:5px;font-size:.7rem;"><span>Rotura: <span style="color:var(--red);">'+fD(p.fechaRotura)+'</span></span>'+(p.fechaArreglo?'<span>Arreglo: <span style="color:var(--green);">'+fD(p.fechaArreglo)+'</span></span>':'<span style="color:var(--orange);">Sin arreglo</span>')+'</div></div>';
+      h+='<div class="ig-row" onclick="goDetalle(\''+p.eq.id+'\')">'+
+        '<div class="ig-icon" style="background:rgba(255,59,48,.1);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>'+
+        '<div class="ig-main">'+
+          '<div class="ig-t">'+esc(p.nombre)+'</div>'+
+          '<div class="ig-s">'+esc(p.eq.nombre)+' · Rotura: '+fD(p.fechaRotura)+'</div>'+
+        '</div>'+
+        (p.fechaArreglo?'<span style="flex-shrink:0;font-size:.72rem;color:var(--green);">'+fD(p.fechaArreglo)+'</span>':'<span style="flex-shrink:0;font-size:.72rem;font-weight:600;color:var(--orange);">Sin arreglo</span>')+_chev+
+      '</div>';
     });
+    h+='</div>';
   }
   return h;
 }
@@ -8015,8 +8030,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.8.2";
-var APP_BUILD="10/06/26 22:00";
+var APP_DISPLAY_VERSION="5.8.3";
+var APP_BUILD="11/06/26 09:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
