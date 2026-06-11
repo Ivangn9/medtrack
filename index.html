@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.11.115 -->
+<!-- v2026.06.11.120 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.11.115">
+<meta name="app-version" content="v2026.06.11.120">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1812,8 +1812,7 @@ function getAlertas(){
     if(e.cat!=='UPS')return;
     var batH=(e.historialCambioBaterias||[]);
     var lastBat=batH.length?batH.slice().sort(function(a,b){return a.fecha<b.fecha?1:-1;})[0].fecha:null;
-    if(!lastBat){a.push({k:e.id+'batnodata',niv:'info',tit:e.nombre,desc:'🔋 Sin cambio de baterías registrado',eid:e.id});}
-    else{var dBat=diasH(lastBat);if((-dBat)>730)a.push({k:e.id+'batold',niv:'advertencia',tit:e.nombre,desc:'🔋 Baterías con más de 2 años — verificar cambio',eid:e.id});}
+    if(lastBat){var dBat=diasH(lastBat);if((-dBat)>730)a.push({k:e.id+'batold',niv:'advertencia',tit:e.nombre,desc:'🔋 Baterías con más de 2 años — verificar cambio',eid:e.id});}
   });
   activeEqs.forEach(function(e){if(e.cat!=='DES')return;if(e.parches_vencimiento){var dp=diasH(e.parches_vencimiento);if(dp<0)a.push({k:e.id+"pv",niv:"critico",tit:e.nombre,desc:"⚡ Parches VENCIDOS — "+fD(e.parches_vencimiento),eid:e.id});else if(dp<=60)a.push({k:e.id+"pp",niv:"advertencia",tit:e.nombre,desc:"⚡ Parches vencen en "+dp+"d — "+fD(e.parches_vencimiento),eid:e.id});}if(e.bateria_vencimiento){var db=diasH(e.bateria_vencimiento);if(db<0)a.push({k:e.id+"bv",niv:"critico",tit:e.nombre,desc:"⚡ Batería VENCIDA — "+fD(e.bateria_vencimiento),eid:e.id});else if(db<=60)a.push({k:e.id+"bp",niv:"advertencia",tit:e.nombre,desc:"⚡ Batería vence en "+db+"d — "+fD(e.bateria_vencimiento),eid:e.id});}});
   return a;
@@ -8278,8 +8277,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.9.1";
-var APP_BUILD="11/06/26 16:00";
+var APP_DISPLAY_VERSION="5.9.2";
+var APP_BUILD="11/06/26 16:30";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
