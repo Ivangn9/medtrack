@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.11.130 -->
+<!-- v2026.06.11.135 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.11.130">
+<meta name="app-version" content="v2026.06.11.135">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -616,6 +616,8 @@ body.dark .ig{box-shadow:0 2px 8px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255
   .sec{margin-top:6px;}
 }
 
+.det-2col{display:flex;gap:14px;align-items:flex-start;}
+@media(max-width:700px){.det-2col{display:block;}}
 .hidden{display:none!important;}
 .tap{cursor:pointer;}
 
@@ -767,7 +769,7 @@ body.glass-4.dark{
   #header-inner{padding:8px 6px 8px 12px;}
 }
 /* ── SIDEBAR ── */
-#sidebar{display:none;position:fixed;left:0;top:0;bottom:0;width:280px;z-index:50;
+#sidebar{display:none;position:fixed;left:0;top:0;bottom:0;width:220px;z-index:50;
   background:rgba(255,255,255,.05);
   -webkit-backdrop-filter:blur(40px);
   backdrop-filter:blur(40px);
@@ -4236,17 +4238,26 @@ function rDetalle(){
   if(_detalleTab==='fallas')return _rDetalleFallas(eq);
   if(_detalleTab==='admin')return _rDetalleAdmin(eq);
   var ms=semafo(eq);var d=diasH(eq.proximoMant);var ci=catById(eq.cat);
+  var cCell=function(lbl,valHtml,sub){return'<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:8px 10px;"><div style="font-size:.58rem;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;">'+lbl+'</div><div style="font-size:.82rem;font-weight:700;line-height:1.3;">'+valHtml+'</div>'+(sub?'<div style="font-size:.61rem;color:var(--text3);margin-top:2px;">'+sub+'</div>':'')+'</div>';};
+  var navRowFn=function(lbl,detail2,fn){return'<div onclick="'+fn+'" style="display:flex;align-items:center;gap:8px;padding:9px 2px;margin-top:6px;cursor:pointer;border-top:1px solid rgba(255,255,255,.06);"><span style="flex:1;font-size:.78rem;font-weight:600;color:var(--text2);">'+lbl+'</span>'+(detail2?'<span style="font-size:.67rem;color:var(--text3);">'+detail2+'</span>':'')+'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="2.2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></div>';};
   var estBtns=["operativo","con-rotura","fuera-de-servicio"].map(function(est){
     var a=eq.estado===est||(est==="con-rotura"&&eq.estado==="advertencia");var c=CE[est]||"var(--green)";
     return'<button style="flex:1;padding:9px 4px;border-radius:var(--r-sm);font-size:.64rem;font-weight:600;border:none;cursor:pointer;background:'+(a?c+"18":"rgba(120,120,128,.08)")+';color:'+(a?c:"var(--text3)")+';'+(a?"box-shadow:0 0 0 2px "+c+"40;":"")+'" onclick="setEst(\''+eq.id+'\',\''+est+'\')">'+(est==="operativo"?"✅ OK":est==="con-rotura"?"🔧 Roto/Con Fallas":"🚫 Fuera de servicio")+'</button>';
   }).join("");
-
-  // ── CARD 1: ESTADO ──
   var catIconBig=catSvgIcon(eq.cat,110)||'';
-  var h='<div class="gc" style="padding:0;margin-bottom:12px;overflow:hidden;border-left:4px solid rgba(0,113,227,.6);background:linear-gradient(135deg,rgba(0,113,227,.07) 0%,rgba(0,180,255,.04) 100%);">'+
-    '<div style="background:linear-gradient(90deg,rgba(0,113,227,.13),rgba(0,180,255,.07));padding:9px 16px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(0,113,227,.12);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(0,113,227,.9)" stroke-width="2.2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg><span style="font-size:.72rem;font-weight:700;color:rgba(0,113,227,.9);text-transform:uppercase;letter-spacing:.06em;">Equipo</span></div>'+
-    '<div style="padding:16px;position:relative;overflow:hidden;">';
-  /* big category icon — top right decorative */
+
+  /* ══ LEFT COLUMN ══ */
+  var h='';
+
+  /* CARD 1: EQUIPMENT INFO */
+  h+='<div class="gc" style="padding:0;margin-bottom:12px;overflow:hidden;border-left:4px solid rgba(0,113,227,.6);background:linear-gradient(135deg,rgba(0,113,227,.07) 0%,rgba(0,180,255,.04) 100%);">';
+  h+='<div style="background:linear-gradient(90deg,rgba(0,113,227,.13),rgba(0,180,255,.07));padding:9px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(0,113,227,.12);">';
+  h+='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(0,113,227,.9)" stroke-width="2.2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>';
+  h+='<span style="font-size:.72rem;font-weight:700;color:rgba(0,113,227,.9);text-transform:uppercase;letter-spacing:.06em;flex:1;">Equipo</span>';
+  h+='<button class="btn-secondary" style="padding:4px 11px;font-size:.68rem;" onclick="openModalEq('+JSON.stringify(eq).replace(/"/g,'&quot;')+')">✏️ Editar</button>';
+  h+='<button onclick="openDarDeBajaModal(\''+eq.id+'\')" style="margin-left:5px;padding:4px 11px;border-radius:var(--r-pill);background:rgba(255,59,48,.10);border:1.5px solid rgba(255,59,48,.28);color:var(--red);font-weight:700;font-size:.68rem;cursor:pointer;">Dar de baja</button>';
+  h+='</div>';
+  h+='<div style="padding:16px;position:relative;overflow:hidden;">';
   h+='<div style="position:absolute;right:-12px;top:-8px;width:130px;height:130px;display:flex;align-items:center;justify-content:center;opacity:.45;pointer-events:none;z-index:0;">'+catIconBig+'</div>';
   h+='<div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:14px;position:relative;z-index:1;"><div style="flex-shrink:0;">'+iconFor(eq,50)+'</div>';
   h+='<div style="flex:1;min-width:0;"><div style="font-weight:700;font-size:1rem;letter-spacing:-.3px;margin-bottom:2px;">'+esc(eq.nombre)+'</div>';
@@ -4269,54 +4280,78 @@ function rDetalle(){
   if(eq.tieneServicio)h+='<div class="ibox" style="grid-column:1/-1;"><div class="ibox-l">Servicio</div><div class="ibox-v"><span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:50px;font-size:.72rem;font-weight:700;background:rgba(52,199,89,.12);color:var(--green);">✔ Contrato de servicio activo</span></div></div>';
   h+='</div>';
   if(eq.cat==='DES'){
-    function _desVencChip(fecha,label){if(!fecha)return'<span style="font-size:.72rem;color:var(--text3);">Sin fecha</span>';var d=diasH(fecha);var venc=d<0;var prox=!venc&&d<=60;var c=venc?'var(--red)':prox?'var(--orange)':'var(--green)';var bg=venc?'rgba(255,59,48,.12)':prox?'rgba(255,149,0,.12)':'rgba(52,199,89,.12)';var lbl=venc?'❌ VENCIDO':prox?'⚠️ Vence en '+d+'d':'✅ '+fD(fecha);return'<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:50px;font-size:.72rem;font-weight:700;background:'+bg+';color:'+c+';">'+lbl+'</span>';}
-    h+='<div style="background:rgba(244,63,94,.06);border:1.5px solid rgba(244,63,94,.18);border-radius:var(--r-md);padding:12px 14px;margin-bottom:12px;">'+
-      '<div style="font-size:.66rem;font-weight:800;color:#f43f5e;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;">⚡ Vencimientos</div>'+
-      '<div class="det-grid">'+
-        '<div class="ibox"><div class="ibox-l">Parches</div><div class="ibox-v">'+_desVencChip(eq.parches_vencimiento,'Parches')+'</div></div>'+
-        '<div class="ibox"><div class="ibox-l">Batería</div><div class="ibox-v">'+_desVencChip(eq.bateria_vencimiento,'Batería')+'</div></div>'+
-      '</div>'+
-    '</div>';
+    function _desVencChip(fecha,label){if(!fecha)return'<span style="font-size:.72rem;color:var(--text3);">Sin fecha</span>';var dv=diasH(fecha);var venc=dv<0;var prox=!venc&&dv<=60;var cv=venc?'var(--red)':prox?'var(--orange)':'var(--green)';var bv=venc?'rgba(255,59,48,.12)':prox?'rgba(255,149,0,.12)':'rgba(52,199,89,.12)';var lbl=venc?'❌ VENCIDO':prox?'⚠️ Vence en '+dv+'d':'✅ '+fD(fecha);return'<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:50px;font-size:.72rem;font-weight:700;background:'+bv+';color:'+cv+';">'+lbl+'</span>';}
+    h+='<div style="background:rgba(244,63,94,.06);border:1.5px solid rgba(244,63,94,.18);border-radius:var(--r-md);padding:12px 14px;margin-bottom:12px;"><div style="font-size:.66rem;font-weight:800;color:#f43f5e;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;">⚡ Vencimientos</div><div class="det-grid"><div class="ibox"><div class="ibox-l">Parches</div><div class="ibox-v">'+_desVencChip(eq.parches_vencimiento,'Parches')+'</div></div><div class="ibox"><div class="ibox-l">Batería</div><div class="ibox-v">'+_desVencChip(eq.bateria_vencimiento,'Batería')+'</div></div></div></div>';
   }
   if(eq.cat==='UPS'){
     var _batHist=(eq.historialCambioBaterias||[]).slice().sort(function(a,b){return a.fecha<b.fecha?1:-1;});
     var _lastBat=_batHist.length?_batHist[0].fecha:null;
     var _batDias=_lastBat?diasH(_lastBat):-1;
     var _batAlert=!_lastBat||(-_batDias)>730;
-    h+='<div style="background:rgba(245,158,11,.06);border:1.5px solid rgba(245,158,11,.20);border-radius:var(--r-md);padding:12px 14px;margin-bottom:12px;">'+
-      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">'+
-        '<div style="font-size:.66rem;font-weight:800;color:#f59e0b;text-transform:uppercase;letter-spacing:.07em;">🔋 Cambios de Baterías</div>'+
-        '<button onclick="openCambioBateriasModal(\''+eq.id+'\')" style="font-size:.7rem;padding:4px 10px;border-radius:12px;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.30);color:#d97706;cursor:pointer;font-weight:600;">+ Registrar</button>'+
-      '</div>'+
-      (_batAlert?'<div style="background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.30);border-radius:var(--r-md);padding:8px 10px;margin-bottom:10px;font-size:.74rem;color:#d97706;font-weight:600;">⚠️ '+(!_lastBat?'Sin cambio de baterías registrado':'Último cambio hace más de 2 años — verificar')+'</div>':'')+
-      (_batHist.length?
-        '<div class="det-grid">'+_batHist.slice(0,3).map(function(b){return '<div class="ibox"><div class="ibox-l">'+fD(b.fecha)+'</div><div class="ibox-v" style="font-size:.74rem;">'+(b.proveedor?'🏢 '+esc(b.proveedor):'')+((b.proveedor&&b.tecnico)?' · ':'')+( b.tecnico?'Téc: '+esc(b.tecnico):'')+( b.notas?'<br><span style="color:var(--text3);font-size:.68rem;">'+esc(b.notas)+'</span>':'')+'</div></div>';}).join('')+
-        (_batHist.length>3?'<div class="ibox" style="grid-column:1/-1;"><div style="font-size:.7rem;color:var(--text3);">+'+(_batHist.length-3)+' cambio(s) anteriores</div></div>':'')+
-        '</div>'
-        :'<div style="font-size:.78rem;color:var(--text3);padding:8px 0;">Sin cambios de baterías registrados</div>'
-      )+
-    '</div>';
+    h+='<div style="background:rgba(245,158,11,.06);border:1.5px solid rgba(245,158,11,.20);border-radius:var(--r-md);padding:12px 14px;margin-bottom:12px;"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;"><div style="font-size:.66rem;font-weight:800;color:#f59e0b;text-transform:uppercase;letter-spacing:.07em;">🔋 Cambios de Baterías</div><button onclick="openCambioBateriasModal(\''+eq.id+'\')" style="font-size:.7rem;padding:4px 10px;border-radius:12px;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.30);color:#d97706;cursor:pointer;font-weight:600;">+ Registrar</button></div>'+(_batAlert?'<div style="background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.30);border-radius:var(--r-md);padding:8px 10px;margin-bottom:10px;font-size:.74rem;color:#d97706;font-weight:600;">⚠️ '+(!_lastBat?'Sin cambio de baterías registrado':'Último cambio hace más de 2 años — verificar')+'</div>':'')+(_batHist.length?'<div class="det-grid">'+_batHist.slice(0,3).map(function(b){return '<div class="ibox"><div class="ibox-l">'+fD(b.fecha)+'</div><div class="ibox-v" style="font-size:.74rem;">'+(b.proveedor?'🏢 '+esc(b.proveedor):'')+((b.proveedor&&b.tecnico)?' · ':'')+( b.tecnico?'Téc: '+esc(b.tecnico):'')+( b.notas?'<br><span style="color:var(--text3);font-size:.68rem;">'+esc(b.notas)+'</span>':'')+'</div></div>';}).join('')+(_batHist.length>3?'<div class="ibox" style="grid-column:1/-1;"><div style="font-size:.7rem;color:var(--text3);">+'+(_batHist.length-3)+' cambio(s) anteriores</div></div>':'')+
+    '</div>':'<div style="font-size:.78rem;color:var(--text3);padding:8px 0;">Sin cambios de baterías registrados</div>')+'</div>';
   }
-  h+='<div style="display:flex;gap:8px;margin-bottom:8px;"><button class="btn-secondary" style="flex:1;" onclick="openModalEq('+JSON.stringify(eq).replace(/"/g,"&quot;")+')">✏️ Editar</button><button class="btn-danger" onclick="delEq(\''+eq.id+'\')">🗑</button></div>'+
-  '<button onclick="openDarDeBajaModal(\''+eq.id+'\')" style="width:100%;padding:11px;border-radius:var(--r-pill);background:rgba(255,59,48,.10);border:1.5px solid rgba(255,59,48,.30);color:var(--red);font-weight:700;font-size:.8rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;">'+
-    '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>Dar de baja equipo'+
-  '</button>'+
-  '</div></div></div></div>';
+  h+='</div></div></div>';
 
-  // ── CARD: DATOS DE RED ──
+  /* LEFT: REFRIGERACIÓN (RM) */
+  if(eq.cat==='RM'){
+    var _gasP=parseFloat(rf.helioGasPresionActual);
+    var _liqPorc=parseFloat(rf.helioLiqPorcentaje);
+    var _liqPres=parseFloat(rf.helioLiqPresion);
+    var _gasAlm=!isNaN(_gasP)&&(_gasP<2.0||_gasP>2.3);
+    var _liqAlm=(!isNaN(_liqPorc)&&_liqPorc<70)||(!isNaN(_liqPres)&&(_liqPres<0.9||_liqPres>2.0));
+    var _rfLastCarga=(rf.historial||[]).filter(function(ev){return ev.tipo==='carga_gaseoso'||ev.tipo==='carga_liquido';}).slice(-1)[0];
+    var _chCol=rf.chiller==='operativo'?'#16a34a':rf.chiller==='service'?'#d97706':'#dc2626';
+    var _chLbl=rf.chiller==='operativo'?'✅ Operativo':rf.chiller==='service'?'🔧 Service':'🔴 Rotura';
+    var _gasTxt=!isNaN(_gasP)?_gasP.toFixed(1)+' MPa':(rf.helioGaseoso==='presion_baja'?'Pres. baja':'OK');
+    var _gasCol=_gasAlm?'#f87171':!isNaN(_gasP)?'#63b3ed':'#4ade80';
+    var _liqPTxt=!isNaN(_liqPorc)?_liqPorc.toFixed(0)+'%':'—';
+    var _liqPCol=(!isNaN(_liqPorc)&&_liqPorc<70)?'#f87171':'#0ea5e9';
+    var _liqPresTxt=!isNaN(_liqPres)?_liqPres.toFixed(1)+' PSI':'—';
+    var _liqPresCol=(!isNaN(_liqPres)&&(_liqPres<0.9||_liqPres>2.0))?'#f87171':'#34d399';
+    h+='<div class="gc" style="padding:0;margin-bottom:12px;overflow:hidden;border-left:4px solid rgba(99,179,237,.5);">';
+    h+='<div style="background:linear-gradient(90deg,rgba(8,145,178,.12),rgba(99,179,237,.06));padding:8px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(99,179,237,.08);">';
+    h+='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(8,145,178,.9)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/></svg>';
+    h+='<span style="font-size:.72rem;font-weight:700;color:#0891b2;text-transform:uppercase;letter-spacing:.06em;flex:1;">Refrigeración</span>';
+    h+=((_gasAlm||_liqAlm)?'<span style="font-size:.62rem;font-weight:700;padding:2px 7px;border-radius:20px;background:rgba(248,113,113,.15);color:#f87171;border:1px solid rgba(248,113,113,.3);">⚠ Alarma</span>':'');
+    h+='</div>';
+    h+='<div style="padding:10px 14px 12px;">';
+    h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:10px;">';
+    h+=cCell('Chiller','<span style="font-size:.76rem;font-weight:700;padding:2px 8px;border-radius:20px;background:'+_chCol+'18;color:'+_chCol+';">'+_chLbl+'</span>',null);
+    h+=cCell('Helio Gas','<span style="color:'+_gasCol+';font-family:JetBrains Mono,monospace;">'+_gasTxt+'</span>',(_gasAlm?'⚠ fuera de rango':'2.0–2.3 MPa'));
+    h+=cCell('Nivel Líq.','<span style="color:'+_liqPCol+';font-family:JetBrains Mono,monospace;">'+_liqPTxt+'</span>',(!isNaN(_liqPorc)&&_liqPorc<70?'⚠ bajo (mín 70%)':'≥70% óptimo'));
+    h+=cCell('Pres. Líq.','<span style="color:'+_liqPresCol+';font-family:JetBrains Mono,monospace;">'+_liqPresTxt+'</span>',(!isNaN(_liqPres)&&(_liqPres<0.9||_liqPres>2.0)?'⚠ fuera de rango':'0.9–2.0 PSI'));
+    h+='</div>';
+    h+='<div style="display:flex;gap:5px;flex-wrap:wrap;">';
+    h+='<button onclick="event.stopPropagation();openActualizarHelioGaseoso(\''+eq.id+'\')" style="padding:5px 10px;border-radius:var(--r-pill);font-size:.7rem;font-weight:600;cursor:pointer;border:1.5px solid rgba(99,179,237,.3);background:rgba(99,179,237,.08);color:#63b3ed;">📝 Gas</button>';
+    h+='<button onclick="event.stopPropagation();openActualizarHelioLiquido(\''+eq.id+'\')" style="padding:5px 10px;border-radius:var(--r-pill);font-size:.7rem;font-weight:600;cursor:pointer;border:1.5px solid rgba(99,179,237,.3);background:rgba(99,179,237,.08);color:#63b3ed;">📝 Líq</button>';
+    h+='<button onclick="event.stopPropagation();openCargaRealHelioGaseoso(\''+eq.id+'\')" style="padding:5px 10px;border-radius:var(--r-pill);font-size:.7rem;font-weight:600;cursor:pointer;border:1.5px solid rgba(8,145,178,.4);background:rgba(8,145,178,.12);color:#0ea5e9;">⚗️ Gas</button>';
+    h+='<button onclick="event.stopPropagation();openCargaRealHelioLiquido(\''+eq.id+'\')" style="padding:5px 10px;border-radius:var(--r-pill);font-size:.7rem;font-weight:600;cursor:pointer;border:1.5px solid rgba(8,145,178,.4);background:rgba(8,145,178,.12);color:#0ea5e9;">💧 Líq</button>';
+    h+='</div>';
+    h+=navRowFn('Historial · Cargas · Gráficos',_rfLastCarga?('Últ. '+fD(_rfLastCarga.fecha)):'Sin cargas','setDetalleTab(\'refrig\')');
+    h+='</div></div>';
+  }
+
+  /* LEFT: TRANSDUCTORES (ECO) */
+  if(eq.cat==='ECO'){
+    var _tCnt=(eq.transductorIds||[]).length;
+    var _tRot=transductores.filter(function(t){return(eq.transductorIds||[]).indexOf(t.id)!==-1;}).reduce(function(s,t){return s+(t.roturas||[]).filter(function(r){return r.estado!=='reparado';}).length;},0);
+    h+='<div class="gc tap" onclick="goTransductores(\''+eq.id+'\')" style="padding:0;margin-bottom:8px;overflow:hidden;cursor:pointer;border-left:4px solid rgba(14,165,233,.5);" ontouchstart="this.style.transform=\'scale(.98)\'" ontouchend="this.style.transform=\'\'"><div style="padding:12px 14px;display:flex;align-items:center;gap:11px;">'+transductorSvgIcon(18)+'<div style="flex:1;min-width:0;"><div style="font-size:.84rem;font-weight:700;color:var(--text1);">Transductores</div><div style="font-size:.67rem;color:var(--text3);margin-top:1px;">'+_tCnt+' transductor'+(_tCnt!==1?'es':'')+(_tRot===0?' · todos OK':' · '+_tRot+' rotura'+(_tRot!==1?'s':'')+' activa'+(_tRot!==1?'s':''))+'</div></div>'+(_tRot>0?'<span style="font-size:.68rem;font-weight:700;min-width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+_tRot+'</span>':'')+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(14,165,233,.45)" stroke-width="2.2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></div></div>';
+  }
+
+  /* LEFT: NETWORK (collapsible) */
   var _hasNet=eq.cat==='UPS'?!!eq.macAddress:!!(eq.pacsIp||eq.pacsPuerto||eq.pacsAE||eq.wlIp||eq.wlAE);
-  h+='<div class="gc" style="padding:0;margin-bottom:14px;overflow:hidden;border-left:4px solid rgba(8,145,178,.45);background:linear-gradient(135deg,rgba(8,145,178,.07) 0%,rgba(6,182,212,.04) 100%);">'+
-    '<div onclick="(function(){var c=document.getElementById(\'net-body\');var ic=document.getElementById(\'net-ic\');var op=c.style.display!==\'none\';c.style.display=op?\'none\':\'block\';ic.style.transform=op?\'rotate(-90deg)\':\'rotate(0deg)\';})()" style="cursor:pointer;background:linear-gradient(90deg,rgba(8,145,178,.12),rgba(6,182,212,.07));padding:9px 14px;display:flex;align-items:center;gap:7px;user-select:none;">'+
-    '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(8,145,178,.9)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="16" y="16" width="6" height="6" rx="1"/><rect x="2" y="16" width="6" height="6" rx="1"/><rect x="9" y="2" width="6" height="6" rx="1"/><path d="M5 16v-4h14v4"/><path d="M12 12V8"/></svg>'+
-    '<span style="font-size:.72rem;font-weight:700;color:rgba(8,145,178,.9);text-transform:uppercase;letter-spacing:.06em;flex:1;">Datos de Red</span>'+
-    (_hasNet?'<span style="background:rgba(8,145,178,.15);color:#0891b2;border-radius:20px;padding:1px 8px;font-size:.64rem;font-weight:700;margin-right:4px;">Configurado</span>':'')+
-    '<svg id="net-ic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(8,145,178,.6)" stroke-width="2.2" stroke-linecap="round" style="transition:transform .2s;transform:rotate(-90deg);flex-shrink:0;"><polyline points="9 18 15 12 9 6"/></svg>'+
-    '</div>'+
-    '<div id="net-body" style="display:none;padding:14px 16px;">'+
-    (eq.cat==='UPS'?
-      '<div class="det-grid"><div class="ibox" style="grid-column:1/-1;"><div class="ibox-l">MAC Address</div><div class="ibox-v" style="font-family:monospace;font-size:.82rem;">'+(eq.macAddress?esc(eq.macAddress):'<span style="color:var(--text3);">—</span>')+'</div></div></div>'
-      :
-      '<div style="font-size:.63rem;font-weight:800;color:#0891b2;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">PACS</div>'+
+  h+='<div class="gc" style="padding:0;margin-bottom:14px;overflow:hidden;border-left:4px solid rgba(8,145,178,.45);background:linear-gradient(135deg,rgba(8,145,178,.07) 0%,rgba(6,182,212,.04) 100%);">';
+  h+='<div onclick="(function(){var c=document.getElementById(\'net-body\');var ic=document.getElementById(\'net-ic\');var op=c.style.display!==\'none\';c.style.display=op?\'none\':\'block\';ic.style.transform=op?\'rotate(-90deg)\':\'rotate(0deg)\';})()" style="cursor:pointer;background:linear-gradient(90deg,rgba(8,145,178,.12),rgba(6,182,212,.07));padding:9px 14px;display:flex;align-items:center;gap:7px;user-select:none;">';
+  h+='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(8,145,178,.9)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="16" y="16" width="6" height="6" rx="1"/><rect x="2" y="16" width="6" height="6" rx="1"/><rect x="9" y="2" width="6" height="6" rx="1"/><path d="M5 16v-4h14v4"/><path d="M12 12V8"/></svg>';
+  h+='<span style="font-size:.72rem;font-weight:700;color:rgba(8,145,178,.9);text-transform:uppercase;letter-spacing:.06em;flex:1;">Datos de Red</span>';
+  h+=(_hasNet?'<span style="background:rgba(8,145,178,.15);color:#0891b2;border-radius:20px;padding:1px 8px;font-size:.64rem;font-weight:700;margin-right:4px;">Configurado</span>':'');
+  h+='<svg id="net-ic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(8,145,178,.6)" stroke-width="2.2" stroke-linecap="round" style="transition:transform .2s;transform:rotate(-90deg);flex-shrink:0;"><polyline points="9 18 15 12 9 6"/></svg></div>';
+  h+='<div id="net-body" style="display:none;padding:14px 16px;">';
+  h+=(eq.cat==='UPS'?
+    '<div class="det-grid"><div class="ibox" style="grid-column:1/-1;"><div class="ibox-l">MAC Address</div><div class="ibox-v" style="font-family:monospace;font-size:.82rem;">'+(eq.macAddress?esc(eq.macAddress):'<span style="color:var(--text3);">—</span>')+'</div></div></div>'
+    :
+    '<div style="font-size:.63rem;font-weight:800;color:#0891b2;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">PACS</div>'+
     '<div class="det-grid" style="margin-bottom:12px;">'+
     '<div class="ibox"><div class="ibox-l">IP Local</div><div class="ibox-v" style="font-family:monospace;font-size:.78rem;">'+(eq.pacsIp?esc(eq.pacsIp):'<span style="color:var(--text3);">—</span>')+'</div></div>'+
     '<div class="ibox"><div class="ibox-l">Puerto TCP</div><div class="ibox-v" style="font-family:monospace;font-size:.78rem;">'+(eq.pacsPuerto?esc(eq.pacsPuerto):'<span style="color:var(--text3);">—</span>')+'</div></div>'+
@@ -4327,164 +4362,76 @@ function rDetalle(){
     '<div class="ibox"><div class="ibox-l">IP Local</div><div class="ibox-v" style="font-family:monospace;font-size:.78rem;">'+(eq.wlIp?esc(eq.wlIp):'<span style="color:var(--text3);">—</span>')+'</div></div>'+
     '<div class="ibox"><div class="ibox-l">AE Title</div><div class="ibox-v" style="font-family:monospace;font-size:.78rem;">'+(eq.wlAE?esc(eq.wlAE):'<span style="color:var(--text3);">—</span>')+'</div></div>'+
     '</div>'
-    )+
-    '</div></div>';
-
-  // ── CARD 2: MANTENIMIENTO ──
-  h+='<div class="gc" style="padding:0;margin-bottom:14px;overflow:hidden;border-left:4px solid rgba(255,149,0,.45);background:linear-gradient(135deg,rgba(255,149,0,.08) 0%,rgba(255,204,0,.04) 100%);">'+
-    '<div style="background:linear-gradient(90deg,rgba(255,149,0,.12),rgba(255,204,0,.07));padding:9px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,149,0,.10);">'+
-    '<div style="display:flex;align-items:center;gap:7px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(200,110,0,.9)" stroke-width="2.2" stroke-linecap="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg><span style="font-size:.72rem;font-weight:700;color:rgba(200,110,0,.9);text-transform:uppercase;letter-spacing:.06em;">Mantenimiento</span></div>'+
-    '<button onclick="openEditMantConfigModal(\''+eq.id+'\')" style="font-size:.7rem;padding:4px 10px;border-radius:12px;background:rgba(255,149,0,.10);border:1px solid rgba(255,149,0,.28);color:rgba(160,90,0,.9);cursor:pointer;font-weight:600;box-shadow:inset 0 1px 0 rgba(255,255,255,.8);">✏️ Editar</button></div>'+
-    '<div style="padding:14px 16px;">';
-  h+='<div class="det-grid" style="margin-bottom:10px;">';
-  h+='<div class="ibox"><div class="ibox-l">Frecuencia</div><div class="ibox-v">'+esc(eq.frecuencia)+'</div></div>';
-  h+='<div class="ibox"><div class="ibox-l">Último Mant.</div><div class="ibox-v">'+esc(fD(eq.ultimoMant))+'</div></div>';
-  h+='<div class="ibox"><div class="ibox-l">Próx. Mant.</div><div class="ibox-v" style="color:'+CM[ms]+';">'+esc(fD(eq.proximoMant))+'</div></div>';
-  h+='</div>';
-  h+='<div style="background:'+(sinMant(eq)?"rgba(120,120,128,.06)":CM[ms]+"0d")+';border-radius:var(--r-md);padding:12px 14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">'+
-    '<div><div style="font-size:.64rem;color:var(--text3);margin-bottom:2px;">Días para próximo mantenimiento</div><div style="font-weight:700;font-size:.92rem;color:'+(sinMant(eq)?"var(--text3)":CM[ms])+';">'+(sinMant(eq)?"⚫ Sin mant. programado":ms==="vencido"?"🔴 VENCIDO":ms==="urgente"?"🔴 URGENTE — "+d+" días":ms==="proximo"?"⚠️ "+d+" días":"✅ "+d+" días")+'</div></div>'+
-    (sinMant(eq)?'':'<button onclick="openModalMant(\''+eq.id+'\')" style="padding:7px 16px;border-radius:var(--r-pill);background:rgba(255,149,0,.12);border:1.5px solid rgba(255,149,0,.35);color:rgba(160,90,0,.9);font-weight:700;font-size:.78rem;cursor:pointer;box-shadow:inset 0 1.5px 0 rgba(255,255,255,.8);">Registrar</button>')+'</div>';
-  // Servicio contratado con precio
-  if(eq.tieneServicio&&parseFloat(eq.servicioContratoPrecio)>0){
-    var _svP=parseFloat(eq.servicioContratoPrecio);
-    var _svMon=eq.servicioContratoMoneda||'USD';
-    h+='<div style="display:flex;align-items:center;justify-content:space-between;background:rgba(52,199,89,.07);border:1px solid rgba(52,199,89,.2);border-radius:var(--r-md);padding:10px 14px;margin-bottom:8px;">'+
-      '<div>'+
-        '<div style="font-size:.65rem;font-weight:700;color:rgba(52,199,89,.8);text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;">💰 Cuota mensual de servicio</div>'+
-        '<div style="font-size:.88rem;font-weight:700;color:var(--text2);">'+_svMon+' '+_svP.toLocaleString('es-AR',{minimumFractionDigits:0,maximumFractionDigits:2})+' / mes</div>'+
-        '<div style="font-size:.66rem;color:var(--text3);margin-top:1px;">Impacta en KPI de gastos mensuales</div>'+
-      '</div>'+
-      '<div style="font-size:1.6rem;opacity:.35;">🤝</div>'+
-    '</div>';
-  }
-  h+=(eq.notas?'<div class="ibox"><div class="ibox-l">📝 Nota</div><div style="font-size:.8rem;color:var(--text2);margin-top:2px;">'+esc(eq.notas)+'</div></div>':'');
+  );
   h+='</div></div>';
 
-  // Inline helpers
-  var cCell=function(lbl,valHtml,sub){return'<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:8px 10px;"><div style="font-size:.58rem;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;">'+lbl+'</div><div style="font-size:.82rem;font-weight:700;line-height:1.3;">'+valHtml+'</div>'+(sub?'<div style="font-size:.61rem;color:var(--text3);margin-top:2px;">'+sub+'</div>':'')+'</div>';};
-  var navRowFn=function(lbl,detail2,fn){return'<div onclick="'+fn+'" style="display:flex;align-items:center;gap:8px;padding:9px 2px;margin-top:6px;cursor:pointer;border-top:1px solid rgba(255,255,255,.06);"><span style="flex:1;font-size:.78rem;font-weight:600;color:var(--text2);">'+lbl+'</span>'+(detail2?'<span style="font-size:.67rem;color:var(--text3);">'+detail2+'</span>':'')+'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="2.2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></div>';};
+  /* ══ RIGHT COLUMN ══ */
+  var hR='';
 
-  // ── ADMINISTRATIVO (todos los equipos — compact iOS nav row) ──
+  /* RIGHT: MANTENIMIENTO */
+  hR+='<div class="gc" style="padding:0;margin-bottom:14px;overflow:hidden;border-left:4px solid rgba(255,149,0,.45);background:linear-gradient(135deg,rgba(255,149,0,.08) 0%,rgba(255,204,0,.04) 100%);">';
+  hR+='<div style="background:linear-gradient(90deg,rgba(255,149,0,.12),rgba(255,204,0,.07));padding:9px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,149,0,.10);">';
+  hR+='<div style="display:flex;align-items:center;gap:7px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(200,110,0,.9)" stroke-width="2.2" stroke-linecap="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg><span style="font-size:.72rem;font-weight:700;color:rgba(200,110,0,.9);text-transform:uppercase;letter-spacing:.06em;">Mantenimiento</span></div>';
+  hR+='<button onclick="openEditMantConfigModal(\''+eq.id+'\')" style="font-size:.7rem;padding:4px 10px;border-radius:12px;background:rgba(255,149,0,.10);border:1px solid rgba(255,149,0,.28);color:rgba(160,90,0,.9);cursor:pointer;font-weight:600;box-shadow:inset 0 1px 0 rgba(255,255,255,.8);">✏️ Editar</button></div>';
+  hR+='<div style="padding:14px 16px;">';
+  hR+='<div class="det-grid" style="margin-bottom:10px;">';
+  hR+='<div class="ibox"><div class="ibox-l">Frecuencia</div><div class="ibox-v">'+esc(eq.frecuencia)+'</div></div>';
+  hR+='<div class="ibox"><div class="ibox-l">Último Mant.</div><div class="ibox-v">'+esc(fD(eq.ultimoMant))+'</div></div>';
+  hR+='<div class="ibox"><div class="ibox-l">Próx. Mant.</div><div class="ibox-v" style="color:'+CM[ms]+';">'+esc(fD(eq.proximoMant))+'</div></div>';
+  hR+='</div>';
+  hR+='<div style="background:'+(sinMant(eq)?"rgba(120,120,128,.06)":CM[ms]+"0d")+';border-radius:var(--r-md);padding:12px 14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">';
+  hR+='<div><div style="font-size:.64rem;color:var(--text3);margin-bottom:2px;">Días para próximo mantenimiento</div><div style="font-weight:700;font-size:.92rem;color:'+(sinMant(eq)?"var(--text3)":CM[ms])+';">'+(sinMant(eq)?"⚫ Sin mant. programado":ms==="vencido"?"🔴 VENCIDO":ms==="urgente"?"🔴 URGENTE — "+d+" días":ms==="proximo"?"⚠️ "+d+" días":"✅ "+d+" días")+'</div></div>';
+  hR+=(sinMant(eq)?'':'<button onclick="openModalMant(\''+eq.id+'\')" style="padding:7px 16px;border-radius:var(--r-pill);background:rgba(255,149,0,.12);border:1.5px solid rgba(255,149,0,.35);color:rgba(160,90,0,.9);font-weight:700;font-size:.78rem;cursor:pointer;box-shadow:inset 0 1.5px 0 rgba(255,255,255,.8);">Registrar</button>')+'</div>';
+  if(eq.tieneServicio&&parseFloat(eq.servicioContratoPrecio)>0){var _svP=parseFloat(eq.servicioContratoPrecio);var _svMon=eq.servicioContratoMoneda||'USD';hR+='<div style="display:flex;align-items:center;justify-content:space-between;background:rgba(52,199,89,.07);border:1px solid rgba(52,199,89,.2);border-radius:var(--r-md);padding:10px 14px;margin-bottom:8px;"><div><div style="font-size:.65rem;font-weight:700;color:rgba(52,199,89,.8);text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;">💰 Cuota mensual de servicio</div><div style="font-size:.88rem;font-weight:700;color:var(--text2);">'+_svMon+' '+_svP.toLocaleString('es-AR',{minimumFractionDigits:0,maximumFractionDigits:2})+' / mes</div><div style="font-size:.66rem;color:var(--text3);margin-top:1px;">Impacta en KPI de gastos mensuales</div></div><div style="font-size:1.6rem;opacity:.35;">🤝</div></div>';}
+  hR+=(eq.notas?'<div class="ibox"><div class="ibox-l">📝 Nota</div><div style="font-size:.8rem;color:var(--text2);margin-top:2px;">'+esc(eq.notas)+'</div></div>':'');
+  hR+='</div></div>';
+
+  /* RIGHT: ROTURAS Y FALLAS */
+  var _rotActivas=eq.partes.filter(function(p){return p.estado!=='ok'&&p.estado!=='mejora';});
+  var _rotTotal=_rotActivas.length;
+  var _mejTotal=eq.partes.filter(function(p){return p.estado==='mejora';}).length;
+  var _histTotal=(eq.historialMant||[]).length;
+  hR+='<div class="gc" style="padding:0;margin-bottom:8px;overflow:hidden;border-left:4px solid rgba(255,59,48,.45);background:linear-gradient(135deg,rgba(255,59,48,.08) 0%,rgba(255,69,58,.04) 100%);">';
+  hR+='<div style="background:linear-gradient(90deg,rgba(255,59,48,.12),rgba(255,69,58,.07));padding:8px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(255,59,48,.10);">';
+  hR+='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(220,38,38,.9)" stroke-width="2.2" stroke-linecap="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>';
+  hR+='<span style="font-size:.72rem;font-weight:700;color:rgba(220,38,38,.9);text-transform:uppercase;letter-spacing:.06em;flex:1;">Roturas y Fallas</span>';
+  hR+=(_rotTotal>0?'<span style="font-size:.62rem;font-weight:700;padding:1px 7px;border-radius:20px;background:rgba(220,38,38,.15);color:#dc2626;border:1px solid rgba(220,38,38,.25);">'+_rotTotal+' activa'+(_rotTotal!==1?'s':'')+'</span>':'');
+  hR+='<button onclick="event.stopPropagation();openModalParte(\''+eq.id+'\',null)" style="margin-left:4px;padding:4px 10px;border-radius:var(--r-pill);background:rgba(220,38,38,.10);border:1.5px solid rgba(220,38,38,.28);color:#dc2626;font-weight:700;font-size:.68rem;cursor:pointer;">+ Agregar</button>';
+  hR+='</div>';
+  hR+='<div style="padding:10px 14px 12px;">';
+  if(!_rotTotal){
+    hR+='<div style="font-size:.78rem;color:var(--text3);text-align:center;padding:10px 0;">Sin roturas activas ✅</div>';
+  } else {
+    _rotActivas.slice(0,3).forEach(function(p){
+      var c=CP[p.estado]||'var(--green)';
+      var sl=p.estado==='roto'?'🔴 Roto':p.estado==='pendiente'?'⚠️ Pendiente':'🔧 '+p.estado;
+      hR+='<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);">';
+      hR+='<div style="width:6px;height:6px;border-radius:50%;background:'+c+';flex-shrink:0;"></div>';
+      hR+='<span style="flex:1;font-size:.78rem;font-weight:600;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(p.nombre)+'</span>';
+      hR+='<span style="font-size:.63rem;padding:1px 7px;border-radius:20px;background:'+c+'15;color:'+c+';font-weight:700;flex-shrink:0;">'+sl+'</span>';
+      hR+='</div>';
+    });
+    if(_rotTotal>3){hR+='<div style="font-size:.7rem;color:var(--text3);padding:5px 0 0;">+'+(_rotTotal-3)+' más...</div>';}
+  }
+  hR+=navRowFn('Roturas · Mejoras · Historial',(_mejTotal?_mejTotal+' mejora'+(_mejTotal!==1?'s':'')+' · ':'')+_histTotal+' en historial','setDetalleTab(\'fallas\')');
+  hR+='</div></div>';
+
+  /* RIGHT: ADMINISTRATIVO NAV */
   var _admVencs=[];
   if(eq.seguroAlta&&eq.seguroVenc){var _dSeg=diasH(eq.seguroVenc);if(_dSeg<0)_admVencs.push('póliza vencida');else if(_dSeg<=30)_admVencs.push('póliza vence en '+_dSeg+'d');}
   if(eq.rugepresaAlta&&eq.rugepresaVenc){var _dRug=diasH(eq.rugepresaVenc);if(_dRug<0)_admVencs.push('habilitación vencida');else if(_dRug<=30)_admVencs.push('habilitación vence en '+_dRug+'d');}
   var _admAltas=(eq.seguroAlta?1:0)+(eq.epecAlta?1:0)+(eq.rugepresaAlta?1:0);
   var _admSub=_admVencs.length?_admVencs.join(' · '):(_admAltas?_admAltas+' de 3 altas registradas':'Seguro · EPEC · R.U.GE.PRE.SA');
-  h+='<div class="gc tap" onclick="setDetalleTab(\'admin\')" style="padding:0;margin-bottom:8px;overflow:hidden;cursor:pointer;border-left:4px solid rgba(94,92,230,.5);" ontouchstart="this.style.transform=\'scale(.98)\'" ontouchend="this.style.transform=\'\'">'+
-    '<div style="padding:12px 14px;display:flex;align-items:center;gap:11px;">'+
-      adminSvgIcon(20)+
-      '<div style="flex:1;min-width:0;">'+
-        '<div style="font-size:.84rem;font-weight:700;color:var(--text1);">Administrativo</div>'+
-        '<div style="font-size:.67rem;color:'+(_admVencs.length?'var(--red)':'var(--text3)')+';margin-top:1px;">'+_admSub+'</div>'+
-      '</div>'+
-      (_admVencs.length?'<span style="font-size:.68rem;font-weight:700;min-width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+_admVencs.length+'</span>':'')+
-      '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(94,92,230,.45)" stroke-width="2.2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>'+
-    '</div>'+
-  '</div>';
+  hR+='<div class="gc tap" onclick="setDetalleTab(\'admin\')" style="padding:0;margin-bottom:8px;overflow:hidden;cursor:pointer;border-left:4px solid rgba(94,92,230,.5);" ontouchstart="this.style.transform=\'scale(.98)\'" ontouchend="this.style.transform=\'\'"><div style="padding:12px 14px;display:flex;align-items:center;gap:11px;">'+adminSvgIcon(20)+'<div style="flex:1;min-width:0;"><div style="font-size:.84rem;font-weight:700;color:var(--text1);">Administrativo</div><div style="font-size:.67rem;color:'+(_admVencs.length?'var(--red)':'var(--text3)')+';margin-top:1px;">'+_admSub+'</div></div>'+(_admVencs.length?'<span style="font-size:.68rem;font-weight:700;min-width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+_admVencs.length+'</span>':'')+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(94,92,230,.45)" stroke-width="2.2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></div></div>';
 
-  // ── ANTENAS RF (RM — compact iOS nav row) ──
+  /* RIGHT: ANTENAS RF (RM) */
   if(eq.cat==='RM'){
     var _antCnt=(eq.antenaIds||[]).length;
     var _antRot=antenas.filter(function(a){return(eq.antenaIds||[]).indexOf(a.id)!==-1;}).reduce(function(s,a){return s+(a.roturas||[]).filter(function(r){return r.estado!=='reparado';}).length;},0);
-    h+='<div class="gc tap" onclick="goAntenas(\''+eq.id+'\')" style="padding:0;margin-bottom:8px;overflow:hidden;cursor:pointer;border-left:4px solid rgba(79,120,224,.5);" ontouchstart="this.style.transform=\'scale(.98)\'" ontouchend="this.style.transform=\'\'">'+
-      '<div style="padding:12px 14px;display:flex;align-items:center;gap:11px;">'+
-        antenaSvgIcon(18)+
-        '<div style="flex:1;min-width:0;">'+
-          '<div style="font-size:.84rem;font-weight:700;color:var(--text1);">Antenas RF</div>'+
-          '<div style="font-size:.67rem;color:var(--text3);margin-top:1px;">'+_antCnt+' antena'+(_antCnt!==1?'s':'')+(_antRot===0?' · todas OK':' · '+_antRot+' rotura'+(_antRot!==1?'s':'')+' activa'+(_antRot!==1?'s':''))+'</div>'+
-        '</div>'+
-        (_antRot>0?'<span style="font-size:.68rem;font-weight:700;min-width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+_antRot+'</span>':'')+
-        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(79,120,224,.45)" stroke-width="2.2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>'+
-      '</div>'+
-    '</div>';
-
-    // ── REFRIGERACIÓN (RM — compact summary card) ──
-    var _gasP=parseFloat(rf.helioGasPresionActual);
-    var _liqPorc=parseFloat(rf.helioLiqPorcentaje);
-    var _liqPres=parseFloat(rf.helioLiqPresion);
-    var _gasAlm=!isNaN(_gasP)&&(_gasP<2.0||_gasP>2.3);
-    var _liqAlm=(!isNaN(_liqPorc)&&_liqPorc<70)||(!isNaN(_liqPres)&&(_liqPres<0.9||_liqPres>2.0));
-    var _rfLastCarga=(rf.historial||[]).filter(function(ev){return ev.tipo==='carga_gaseoso'||ev.tipo==='carga_liquido';}).slice(-1)[0];
-    var _chCol=rf.chiller==='operativo'?'#16a34a':rf.chiller==='service'?'#d97706':'#dc2626';
-    var _chLbl=rf.chiller==='operativo'?'✅ Operativo':rf.chiller==='service'?'🔧 Service':'🔴 Rotura';
-    var _gasTxt=!isNaN(_gasP)? _gasP.toFixed(1)+' MPa' : (rf.helioGaseoso==='presion_baja'?'Pres. baja':'OK');
-    var _gasCol=_gasAlm?'#f87171':!isNaN(_gasP)?'#63b3ed':'#4ade80';
-    var _liqPTxt=!isNaN(_liqPorc)?_liqPorc.toFixed(0)+'%':'—';
-    var _liqPCol=(!isNaN(_liqPorc)&&_liqPorc<70)?'#f87171':'#0ea5e9';
-    var _liqPresTxt=!isNaN(_liqPres)?_liqPres.toFixed(1)+' PSI':'—';
-    var _liqPresCol=(!isNaN(_liqPres)&&(_liqPres<0.9||_liqPres>2.0))?'#f87171':'#34d399';
-    h+='<div class="gc" style="padding:0;margin-bottom:8px;overflow:hidden;border-left:4px solid rgba(99,179,237,.5);">'+
-      '<div style="background:linear-gradient(90deg,rgba(8,145,178,.12),rgba(99,179,237,.06));padding:8px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(99,179,237,.08);">'+
-        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(8,145,178,.9)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/></svg>'+
-        '<span style="font-size:.72rem;font-weight:700;color:#0891b2;text-transform:uppercase;letter-spacing:.06em;flex:1;">Refrigeración</span>'+
-        ((_gasAlm||_liqAlm)?'<span style="font-size:.62rem;font-weight:700;padding:2px 7px;border-radius:20px;background:rgba(248,113,113,.15);color:#f87171;border:1px solid rgba(248,113,113,.3);">⚠ Alarma</span>':'')+
-      '</div>'+
-      '<div style="padding:10px 14px 12px;">'+
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:10px;">'+
-          cCell('Chiller','<span style="font-size:.76rem;font-weight:700;padding:2px 8px;border-radius:20px;background:'+_chCol+'18;color:'+_chCol+';">'+_chLbl+'</span>',null)+
-          cCell('Helio Gas','<span style="color:'+_gasCol+';font-family:JetBrains Mono,monospace;">'+_gasTxt+'</span>',(_gasAlm?'⚠ fuera de rango':'2.0–2.3 MPa'))+
-          cCell('Nivel Líq.','<span style="color:'+_liqPCol+';font-family:JetBrains Mono,monospace;">'+_liqPTxt+'</span>',(!isNaN(_liqPorc)&&_liqPorc<70?'⚠ bajo (mín 70%)':'≥70% óptimo'))+
-          cCell('Pres. Líq.','<span style="color:'+_liqPresCol+';font-family:JetBrains Mono,monospace;">'+_liqPresTxt+'</span>',(!isNaN(_liqPres)&&(_liqPres<0.9||_liqPres>2.0)?'⚠ fuera de rango':'0.9–2.0 PSI'))+
-        '</div>'+
-        '<div style="display:flex;gap:5px;flex-wrap:wrap;">'+
-          '<button onclick="event.stopPropagation();openActualizarHelioGaseoso(\''+eq.id+'\')" style="padding:5px 10px;border-radius:var(--r-pill);font-size:.7rem;font-weight:600;cursor:pointer;border:1.5px solid rgba(99,179,237,.3);background:rgba(99,179,237,.08);color:#63b3ed;">📝 Gas</button>'+
-          '<button onclick="event.stopPropagation();openActualizarHelioLiquido(\''+eq.id+'\')" style="padding:5px 10px;border-radius:var(--r-pill);font-size:.7rem;font-weight:600;cursor:pointer;border:1.5px solid rgba(99,179,237,.3);background:rgba(99,179,237,.08);color:#63b3ed;">📝 Líq</button>'+
-          '<button onclick="event.stopPropagation();openCargaRealHelioGaseoso(\''+eq.id+'\')" style="padding:5px 10px;border-radius:var(--r-pill);font-size:.7rem;font-weight:600;cursor:pointer;border:1.5px solid rgba(8,145,178,.4);background:rgba(8,145,178,.12);color:#0ea5e9;">⚗️ Gas</button>'+
-          '<button onclick="event.stopPropagation();openCargaRealHelioLiquido(\''+eq.id+'\')" style="padding:5px 10px;border-radius:var(--r-pill);font-size:.7rem;font-weight:600;cursor:pointer;border:1.5px solid rgba(8,145,178,.4);background:rgba(8,145,178,.12);color:#0ea5e9;">💧 Líq</button>'+
-        '</div>'+
-        navRowFn('Historial · Cargas · Gráficos',_rfLastCarga?('Últ. '+fD(_rfLastCarga.fecha)):'Sin cargas','setDetalleTab(\'refrig\')')+
-      '</div>'+
-    '</div>';
+    hR+='<div class="gc tap" onclick="goAntenas(\''+eq.id+'\')" style="padding:0;margin-bottom:8px;overflow:hidden;cursor:pointer;border-left:4px solid rgba(79,120,224,.5);" ontouchstart="this.style.transform=\'scale(.98)\'" ontouchend="this.style.transform=\'\'"><div style="padding:12px 14px;display:flex;align-items:center;gap:11px;">'+antenaSvgIcon(18)+'<div style="flex:1;min-width:0;"><div style="font-size:.84rem;font-weight:700;color:var(--text1);">Antenas RF</div><div style="font-size:.67rem;color:var(--text3);margin-top:1px;">'+_antCnt+' antena'+(_antCnt!==1?'s':'')+(_antRot===0?' · todas OK':' · '+_antRot+' rotura'+(_antRot!==1?'s':'')+' activa'+(_antRot!==1?'s':''))+'</div></div>'+(_antRot>0?'<span style="font-size:.68rem;font-weight:700;min-width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+_antRot+'</span>':'')+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(79,120,224,.45)" stroke-width="2.2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></div></div>';
   }
 
-  // ── TRANSDUCTORES (ECO — compact iOS nav row) ──
-  if(eq.cat==='ECO'){
-    var _tCnt=(eq.transductorIds||[]).length;
-    var _tRot=transductores.filter(function(t){return(eq.transductorIds||[]).indexOf(t.id)!==-1;}).reduce(function(s,t){return s+(t.roturas||[]).filter(function(r){return r.estado!=='reparado';}).length;},0);
-    h+='<div class="gc tap" onclick="goTransductores(\''+eq.id+'\')" style="padding:0;margin-bottom:8px;overflow:hidden;cursor:pointer;border-left:4px solid rgba(14,165,233,.5);" ontouchstart="this.style.transform=\'scale(.98)\'" ontouchend="this.style.transform=\'\'">'+
-      '<div style="padding:12px 14px;display:flex;align-items:center;gap:11px;">'+
-        transductorSvgIcon(18)+
-        '<div style="flex:1;min-width:0;">'+
-          '<div style="font-size:.84rem;font-weight:700;color:var(--text1);">Transductores</div>'+
-          '<div style="font-size:.67rem;color:var(--text3);margin-top:1px;">'+_tCnt+' transductor'+(_tCnt!==1?'es':'')+(_tRot===0?' · todos OK':' · '+_tRot+' rotura'+(_tRot!==1?'s':'')+' activa'+(_tRot!==1?'s':''))+'</div>'+
-        '</div>'+
-        (_tRot>0?'<span style="font-size:.68rem;font-weight:700;min-width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+_tRot+'</span>':'')+
-        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(14,165,233,.45)" stroke-width="2.2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>'+
-      '</div>'+
-    '</div>';
-  }
-
-  // ── ROTURAS Y FALLAS (compact preview) ──
-  var _rotActivas=eq.partes.filter(function(p){return p.estado!=='ok'&&p.estado!=='mejora';});
-  var _rotTotal=_rotActivas.length;
-  var _mejTotal=eq.partes.filter(function(p){return p.estado==='mejora';}).length;
-  var _histTotal=(eq.historialMant||[]).length;
-  h+='<div class="gc" style="padding:0;margin-bottom:8px;overflow:hidden;border-left:4px solid rgba(255,59,48,.45);background:linear-gradient(135deg,rgba(255,59,48,.08) 0%,rgba(255,69,58,.04) 100%);">';
-  h+='<div style="background:linear-gradient(90deg,rgba(255,59,48,.12),rgba(255,69,58,.07));padding:8px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(255,59,48,.10);">'+
-    '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(220,38,38,.9)" stroke-width="2.2" stroke-linecap="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>'+
-    '<span style="font-size:.72rem;font-weight:700;color:rgba(220,38,38,.9);text-transform:uppercase;letter-spacing:.06em;flex:1;">Roturas y Fallas</span>'+
-    (_rotTotal>0?'<span style="font-size:.62rem;font-weight:700;padding:1px 7px;border-radius:20px;background:rgba(220,38,38,.15);color:#dc2626;border:1px solid rgba(220,38,38,.25);">'+_rotTotal+' activa'+(_rotTotal!==1?'s':'')+'</span>':'')+
-    '<button onclick="event.stopPropagation();openModalParte(\''+eq.id+'\',null)" style="margin-left:4px;padding:4px 10px;border-radius:var(--r-pill);background:rgba(220,38,38,.10);border:1.5px solid rgba(220,38,38,.28);color:#dc2626;font-weight:700;font-size:.68rem;cursor:pointer;">+ Agregar</button>'+
-  '</div>';
-  h+='<div style="padding:10px 14px 12px;">';
-
-  if(!_rotTotal){
-    h+='<div style="font-size:.78rem;color:var(--text3);text-align:center;padding:10px 0;">Sin roturas activas ✅</div>';
-  } else {
-    _rotActivas.slice(0,3).forEach(function(p){
-      var c=CP[p.estado]||'var(--green)';
-      var sl=p.estado==='roto'?'🔴 Roto':p.estado==='pendiente'?'⚠️ Pendiente':'🔧 '+p.estado;
-      h+='<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);">'+
-        '<div style="width:6px;height:6px;border-radius:50%;background:'+c+';flex-shrink:0;"></div>'+
-        '<span style="flex:1;font-size:.78rem;font-weight:600;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(p.nombre)+'</span>'+
-        '<span style="font-size:.63rem;padding:1px 7px;border-radius:20px;background:'+c+'15;color:'+c+';font-weight:700;flex-shrink:0;">'+sl+'</span>'+
-      '</div>';
-    });
-    if(_rotTotal>3){h+='<div style="font-size:.7rem;color:var(--text3);padding:5px 0 0;">+'+(_rotTotal-3)+' más...</div>';}
-  }
-  h+=navRowFn('Roturas · Mejoras · Historial',(_mejTotal?_mejTotal+' mejora'+(_mejTotal!==1?'s':'')+' · ':'')+_histTotal+' en historial','setDetalleTab(\'fallas\')');
-  h+='</div></div>';
-  return h;
+  return '<div class="det-2col"><div style="flex:6;min-width:0;">'+h+'</div><div style="flex:4;min-width:0;">'+hR+'</div></div>';
 }
 
 // ── ANTENAS VIEW ──
@@ -8284,8 +8231,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.9.4";
-var APP_BUILD="11/06/26 18:00";
+var APP_DISPLAY_VERSION="5.9.5";
+var APP_BUILD="11/06/26 19:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
