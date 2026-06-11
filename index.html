@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.11.125 -->
+<!-- v2026.06.11.130 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.11.125">
+<meta name="app-version" content="v2026.06.11.130">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1813,6 +1813,10 @@ function getAlertas(){
     var lastBat=batH.length?batH.slice().sort(function(a,b){return a.fecha<b.fecha?1:-1;})[0].fecha:null;
     if(lastBat){var dBat=diasH(lastBat);if((-dBat)>730)a.push({k:e.id+'batold',niv:'advertencia',tit:e.nombre,desc:'🔋 Baterías con más de 2 años — verificar cambio',eid:e.id});}
   });
+  activeEqs.forEach(function(e){
+    if(e.seguroAlta&&e.seguroVenc){var dSeg=diasH(e.seguroVenc);if(dSeg<0)a.push({k:e.id+'segvenc',niv:'critico',tit:e.nombre,desc:'📋 Póliza de seguro VENCIDA — '+fD(e.seguroVenc),eid:e.id});else if(dSeg<=30)a.push({k:e.id+'segprox',niv:'advertencia',tit:e.nombre,desc:'📋 Póliza de seguro vence en '+dSeg+'d — '+fD(e.seguroVenc),eid:e.id});}
+    if(e.rugepresaAlta&&e.rugepresaVenc){var dRug=diasH(e.rugepresaVenc);if(dRug<0)a.push({k:e.id+'rugvenc',niv:'critico',tit:e.nombre,desc:'📌 Habilitación R.U.GE.PRE.SA VENCIDA — '+fD(e.rugepresaVenc),eid:e.id});else if(dRug<=30)a.push({k:e.id+'rugprox',niv:'advertencia',tit:e.nombre,desc:'📌 Habilitación R.U.GE.PRE.SA vence en '+dRug+'d — '+fD(e.rugepresaVenc),eid:e.id});}
+  });
   activeEqs.forEach(function(e){if(e.cat!=='DES')return;if(e.parches_vencimiento){var dp=diasH(e.parches_vencimiento);if(dp<0)a.push({k:e.id+"pv",niv:"critico",tit:e.nombre,desc:"⚡ Parches VENCIDOS — "+fD(e.parches_vencimiento),eid:e.id});else if(dp<=60)a.push({k:e.id+"pp",niv:"advertencia",tit:e.nombre,desc:"⚡ Parches vencen en "+dp+"d — "+fD(e.parches_vencimiento),eid:e.id});}if(e.bateria_vencimiento){var db=diasH(e.bateria_vencimiento);if(db<0)a.push({k:e.id+"bv",niv:"critico",tit:e.nombre,desc:"⚡ Batería VENCIDA — "+fD(e.bateria_vencimiento),eid:e.id});else if(db<=60)a.push({k:e.id+"bp",niv:"advertencia",tit:e.nombre,desc:"⚡ Batería vence en "+db+"d — "+fD(e.bateria_vencimiento),eid:e.id});}});
   return a;
 }
@@ -3139,7 +3143,8 @@ function rLista(){
     h+='<div style="font-size:.72rem;color:var(--text3);margin-bottom:10px;">'+resultados.length+' resultado'+(resultados.length!==1?'s':'')+'</div>';
     resultados.forEach(function(r,ri){
       var e=r.eq;var ms=semafo(e);var d=diasH(e.proximoMant);var rot=e.partes.filter(function(p){return p.estado==="roto";}).length;
-      var rfChipS='';if(e.cat==='RM'){var _rf2=_refrigData(e);var _rp2=_rf2.helioLiqPorcentaje;var _rs2=_rf2.helioLiqPresion;if(_rp2||_rs2){rfChipS='<div style="display:flex;gap:6px;margin-top:5px;align-items:center;">'+(_rp2?'<span style="font-size:.65rem;font-weight:700;color:#0891b2;background:rgba(8,145,178,.10);border:1px solid rgba(8,145,178,.22);border-radius:20px;padding:2px 7px;">❄️ '+esc(_rp2)+'%</span>':'')+(_rs2?'<span style="font-size:.65rem;font-weight:700;color:#0891b2;background:rgba(8,145,178,.10);border:1px solid rgba(8,145,178,.22);border-radius:20px;padding:2px 7px;">📊 '+esc(_rs2)+' psi</span>':'')+'</div>';}}
+      var rfChipS='';if(e.cat==='RM'){var _rf2=_refrigData(e);var _rp2=_rf2.helioLiqPorcentaje;var _rs2=_rf2.helioLiqPresion;var _gp2=_rf2.helioGasPresionActual;var _gs2=_rf2.helioGaseoso;var _hasHe2=_rp2||_rs2||_gp2||_gs2;if(_hasHe2){var _gasOk2=_gs2!=='presion_baja';var _gasColor2=_gasOk2?'#10b981':'#f59e0b';var _gasLbl2=_gp2?(_gp2+' MPa'):(_gs2==='presion_baja'?'Pres. baja':'OK');rfChipS='<div style="display:flex;gap:5px;margin-top:5px;align-items:center;flex-wrap:wrap;">'+(_rp2?'<span style="font-size:.62rem;font-weight:700;color:#0891b2;background:rgba(8,145,178,.10);border:1px solid rgba(8,145,178,.22);border-radius:20px;padding:2px 7px;">❄️ Líq '+esc(_rp2)+'%</span>':'')+(_rs2?'<span style="font-size:.62rem;font-weight:700;color:#0891b2;background:rgba(8,145,178,.10);border:1px solid rgba(8,145,178,.22);border-radius:20px;padding:2px 7px;">'+esc(_rs2)+' psi</span>':'')+(_gp2||_gs2?'<span style="font-size:.62rem;font-weight:700;color:'+_gasColor2+';background:rgba(8,145,178,.08);border:1px solid '+_gasColor2+'33;border-radius:20px;padding:2px 7px;">⚗️ Gas '+_gasLbl2+'</span>':'')+'</div>';}}
+      var _admChipS='';var _segVDS=e.seguroAlta&&e.seguroVenc&&diasH(e.seguroVenc)<=30;var _rugVDS=e.rugepresaAlta&&e.rugepresaVenc&&diasH(e.rugepresaVenc)<=30;var _admPS=[];if(e.seguroAlta)_admPS.push('<span style="font-size:.61rem;font-weight:700;color:'+(_segVDS?'#f59e0b':'#6366f1')+';background:rgba(99,102,241,.09);border:1px solid rgba(99,102,241,.22);border-radius:20px;padding:2px 6px;">📋 Seg'+(_segVDS?' ⚠':'')+'</span>');if(e.epecAlta)_admPS.push('<span style="font-size:.61rem;font-weight:700;color:#6366f1;background:rgba(99,102,241,.09);border:1px solid rgba(99,102,241,.22);border-radius:20px;padding:2px 6px;">⚡ EPEC</span>');if(e.rugepresaAlta)_admPS.push('<span style="font-size:.61rem;font-weight:700;color:'+(_rugVDS?'#f59e0b':'#6366f1')+';background:rgba(99,102,241,.09);border:1px solid rgba(99,102,241,.22);border-radius:20px;padding:2px 6px;">📌 RUG'+(_rugVDS?' ⚠':'')+'</span>');if(_admPS.length)_admChipS='<div style="display:flex;gap:5px;margin-top:4px;flex-wrap:wrap;">'+_admPS.join('')+'</div>';
       var _liSubSR=[];if(e.ubicacion)_liSubSR.push('📍 '+esc(e.ubicacion));if(e.consultorio)_liSubSR.push('🏥 Cons. '+esc(e.consultorio));if(e.serie)_liSubSR.push('SID: '+esc(e.serie));
       h+='<div class="gc li-eq tap" data-aos="fade-up" data-aos-delay="'+Math.min(ri*45,450)+'" onclick="goDetalle(\''+e.id+'\')" style="border-left-color:'+(CE[e.estado]||"var(--green)")+';"><div style="display:flex;align-items:center;gap:16px;">'+
         '<div class="li-icon">'+iconFor(e,58)+'</div>'+
@@ -3147,6 +3152,7 @@ function rLista(){
         '<div class="li-name">'+esc(e.nombre)+'</div>'+
         '<div class="li-sub">'+_liSubSR.join(' · ')+'</div>'+
         rfChipS+
+        _admChipS+
         '<div style="display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;">'+
           pillH(CE[e.estado]||"var(--green)",e.estado==="operativo"?"✅ OK":e.estado==="fuera-de-servicio"?"🚫 Fuera de servicio":"🔧 Roto/Con Fallas")+
           (sinMant(e)?pillH("#8e8e93","⚫ Sin mant."):pillH(CM[ms],"🔧 "+(ms==="vencido"?"VENC":ms==="urgente"?d+"d URG":ms==="proximo"?d+"d prox":d+"d")))+
@@ -3173,7 +3179,8 @@ function rLista(){
   if(!lista.length){h+='<div style="text-align:center;color:var(--text3);padding:40px 0;font-size:.88rem;">Sin equipos</div>';return h;}
   lista.forEach(function(e,li){
     var ms=semafo(e);var d=diasH(e.proximoMant);var rot=e.partes.filter(function(p){return p.estado==="roto";}).length;
-    var rfChip='';if(e.cat==='RM'){var _rf=_refrigData(e);var _rp=_rf.helioLiqPorcentaje;var _rs=_rf.helioLiqPresion;if(_rp||_rs){rfChip='<div style="display:flex;gap:6px;margin-top:5px;align-items:center;">'+(_rp?'<span style="font-size:.65rem;font-weight:700;color:#0891b2;background:rgba(8,145,178,.10);border:1px solid rgba(8,145,178,.22);border-radius:20px;padding:2px 7px;">❄️ '+esc(_rp)+'%</span>':'')+(_rs?'<span style="font-size:.65rem;font-weight:700;color:#0891b2;background:rgba(8,145,178,.10);border:1px solid rgba(8,145,178,.22);border-radius:20px;padding:2px 7px;">📊 '+esc(_rs)+' psi</span>':'')+'</div>';}}
+    var rfChip='';if(e.cat==='RM'){var _rf=_refrigData(e);var _rp=_rf.helioLiqPorcentaje;var _rs=_rf.helioLiqPresion;var _gp=_rf.helioGasPresionActual;var _gs=_rf.helioGaseoso;var _hasHe=_rp||_rs||_gp||_gs;if(_hasHe){var _gasOk=_gs!=='presion_baja';var _gasColor=_gasOk?'#10b981':'#f59e0b';var _gasLbl=_gp?(_gp+' MPa'):(_gs==='presion_baja'?'Pres. baja':'OK');rfChip='<div style="display:flex;gap:5px;margin-top:5px;align-items:center;flex-wrap:wrap;">'+(_rp?'<span style="font-size:.62rem;font-weight:700;color:#0891b2;background:rgba(8,145,178,.10);border:1px solid rgba(8,145,178,.22);border-radius:20px;padding:2px 7px;">❄️ Líq '+esc(_rp)+'%</span>':'')+(_rs?'<span style="font-size:.62rem;font-weight:700;color:#0891b2;background:rgba(8,145,178,.10);border:1px solid rgba(8,145,178,.22);border-radius:20px;padding:2px 7px;">'+esc(_rs)+' psi</span>':'')+(_gp||_gs?'<span style="font-size:.62rem;font-weight:700;color:'+_gasColor+';background:rgba(8,145,178,.08);border:1px solid '+_gasColor+'33;border-radius:20px;padding:2px 7px;">⚗️ Gas '+_gasLbl+'</span>':'')+'</div>';}}
+    var _admChip='';var _segVD=e.seguroAlta&&e.seguroVenc&&diasH(e.seguroVenc)<=30;var _rugVD=e.rugepresaAlta&&e.rugepresaVenc&&diasH(e.rugepresaVenc)<=30;var _admPills=[];if(e.seguroAlta)_admPills.push('<span style="font-size:.61rem;font-weight:700;color:'+(_segVD?'#f59e0b':'#6366f1')+';background:rgba(99,102,241,.09);border:1px solid rgba(99,102,241,.22);border-radius:20px;padding:2px 6px;">📋 Seg'+(_segVD?' ⚠':'')+'</span>');if(e.epecAlta)_admPills.push('<span style="font-size:.61rem;font-weight:700;color:#6366f1;background:rgba(99,102,241,.09);border:1px solid rgba(99,102,241,.22);border-radius:20px;padding:2px 6px;">⚡ EPEC</span>');if(e.rugepresaAlta)_admPills.push('<span style="font-size:.61rem;font-weight:700;color:'+(_rugVD?'#f59e0b':'#6366f1')+';background:rgba(99,102,241,.09);border:1px solid rgba(99,102,241,.22);border-radius:20px;padding:2px 6px;">📌 RUG'+(_rugVD?' ⚠':'')+'</span>');if(_admPills.length)_admChip='<div style="display:flex;gap:5px;margin-top:4px;flex-wrap:wrap;">'+_admPills.join('')+'</div>';
     var _liSubParts=[];if(e.ubicacion)_liSubParts.push('📍 '+esc(e.ubicacion));if(e.consultorio)_liSubParts.push('🏥 Cons. '+esc(e.consultorio));if(e.serie)_liSubParts.push('SID: '+esc(e.serie));
     h+='<div class="gc li-eq tap" data-aos="fade-up" data-aos-delay="'+Math.min(li*45,450)+'" onclick="goDetalle(\''+e.id+'\')" style="border-left-color:'+(CE[e.estado]||"var(--green)")+';"><div style="display:flex;align-items:center;gap:16px;">'+
       '<div class="li-icon">'+iconFor(e,58)+'</div>'+
@@ -3181,6 +3188,7 @@ function rLista(){
       '<div class="li-name">'+esc(e.nombre)+'</div>'+
       '<div class="li-sub">'+_liSubParts.join(' · ')+'</div>'+
       rfChip+
+      _admChip+
       '<div style="display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;">'+
         pillH(CE[e.estado]||"var(--green)",e.estado==="operativo"?"✅ OK":e.estado==="fuera-de-servicio"?"🚫 Fuera de servicio":"🔧 Roto/Con Fallas")+
         (sinMant(e)?pillH("#8e8e93","⚫ Sin mant."):pillH(CM[ms],"🔧 "+(ms==="vencido"?"VENC":ms==="urgente"?d+"d URG":ms==="proximo"?d+"d prox":d+"d")))+
@@ -8276,8 +8284,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.9.3";
-var APP_BUILD="11/06/26 17:00";
+var APP_DISPLAY_VERSION="5.9.4";
+var APP_BUILD="11/06/26 18:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
