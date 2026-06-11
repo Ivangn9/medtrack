@@ -5,7 +5,6 @@
   "start_url": "stock-insumos.html",
   "scope": ".",
   "display": "standalone",
-  "orientation": "portrait-primary",
   "background_color": "#f5f7fa",
   "theme_color": "#0071e3",
   "lang": "es",

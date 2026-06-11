@@ -1,8 +1,8 @@
 importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js');
 
-// ── Auto-update: keep this in sync with APP_VERSION in index.html ────────────
-const APP_VERSION = '4.27';
+// ── Auto-update: keep this in sync with APP_VERSION in stock-insumos.html ────
+const APP_VERSION = '4.28';
 const CACHE_NAME  = 'cima-' + APP_VERSION;
 
 // Activate the new SW immediately — don't wait for tabs to close
@@ -24,6 +24,45 @@ self.addEventListener('activate', event => {
       })
     ])
   );
+});
+
+// ── Cache del app shell: apertura instantánea ─────────────────────────────────
+// SOLO se cachean los archivos de Stock de Insumos y sus librerías CDN.
+// Cualquier otra URL (index.html / MedTrack, Firestore, Auth, FCM) pasa
+// directo a la red sin tocarse — este SW jamás interfiere con MedTrack.
+const CDN_ASSETS = [
+  'https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js',
+  'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js',
+  'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js',
+  'https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js',
+  'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js'
+];
+const LOCAL_ASSETS = /\/(stock-insumos\.html|manifest-insumos\.json|logo\.png|Fondo\.png|Iconogestioninsumos\.png)$/;
+
+function _isCacheable(url) {
+  if (url.origin === self.location.origin) return LOCAL_ASSETS.test(url.pathname);
+  return CDN_ASSETS.includes(url.href);
+}
+
+self.addEventListener('fetch', event => {
+  if (event.request.method !== 'GET') return;
+  const url = new URL(event.request.url);
+  // Chequeos de versión y recargas forzadas siempre van a la red
+  if (url.searchParams.has('_nocache') || url.searchParams.has('_sw')) return;
+  if (!_isCacheable(url)) return;
+  // Stale-while-revalidate: respuesta instantánea desde cache + refresco en
+  // segundo plano. El bump de APP_VERSION borra el cache viejo entero.
+  event.respondWith((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    const cached = await cache.match(event.request);
+    const network = fetch(event.request).then(resp => {
+      if (resp && (resp.ok || resp.type === 'opaque')) cache.put(event.request, resp.clone());
+      return resp;
+    }).catch(() => null);
+    return cached || (await network) || Response.error();
+  })());
 });
 
 // ── Firebase Cloud Messaging ──────────────────────────────────────────────────

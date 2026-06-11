@@ -19,13 +19,20 @@
   <link rel="icon" type="image/png" sizes="512x512" href="Iconogestioninsumos.png" />
   <link rel="shortcut icon" href="Iconogestioninsumos.png" />
   <title>Stock de Insumos · CIMA</title>
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin />
+  <link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin />
+  <link rel="preconnect" href="https://securetoken.googleapis.com" crossorigin />
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+  <!-- Chart.js y jsPDF se usan recién al renderizar gráficas/exportar — defer no bloquea el arranque -->
+  <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -1203,6 +1210,13 @@
 </head>
 <body>
 
+<!-- ─── Boot splash: feedback inmediato mientras se restaura la sesión ── -->
+<div id="bootLoader" style="position:fixed;inset:0;z-index:600;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:linear-gradient(160deg,#dde0f0 0%,#e4e2f4 35%,#dde8f2 65%,#e0e8f8 100%)">
+  <img src="logo.png" alt="CIMA" style="height:64px;width:auto;object-fit:contain" />
+  <div style="width:26px;height:26px;border:3px solid rgba(0,113,227,.25);border-top-color:#0071e3;border-radius:50%;animation:spin .8s linear infinite"></div>
+  <div style="font-size:13px;color:#6e6e80;font-family:inherit">Cargando…</div>
+</div>
+
 <!-- ─── Login overlay ────────────────────────────────── -->
 <div class="login-overlay" id="loginOverlay">
   <div class="login-card gc">
@@ -2078,25 +2092,30 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "4.27";
+const APP_VERSION = "4.28";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
   if(el) el.textContent = "V" + APP_VERSION;
 })();
 
+// El chequeo de versión lee firebase-messaging-sw.js (~4KB, mismo APP_VERSION
+// por regla del repo) en vez de descargar todo el HTML (~370KB) cada 5 min
+const _VERSION_PROBE = new URL("firebase-messaging-sw.js", location.href).pathname;
 function checkForUpdates(silent){
   const btn = document.getElementById("refreshBtn");
   const icon = document.getElementById("refreshIcon");
   if(!silent){ btn && btn.classList.add("spin"); icon && (icon.style.display="inline-block"); }
-  fetch(location.pathname + "?_nocache=" + Date.now(), {cache:"no-store"})
+  fetch(_VERSION_PROBE + "?_nocache=" + Date.now(), {cache:"no-store"})
     .then(r => r.text())
     .then(html => {
-      const m = html.match(/APP_VERSION\s*=\s*"([^"]+)"/);
+      const m = html.match(/APP_VERSION\s*=\s*["']([^"']+)["']/);
       if(m && m[1] !== APP_VERSION){
         showUpdateBanner(m[1]);
-      } else if(!silent){
-        toast("✓ Ya tenés la versión más reciente (V" + APP_VERSION + ")");
+      } else {
+        // Versión al día: rehabilitar el auto-update para futuras versiones
+        if(m) try{ sessionStorage.removeItem("_updTries"); }catch(e){}
+        if(!silent) toast("✓ Ya tenés la versión más reciente (V" + APP_VERSION + ")");
       }
     })
     .catch(()=>{ if(!silent) toast("⚠️ Sin conexión para verificar actualización"); })
@@ -2105,11 +2124,18 @@ function checkForUpdates(silent){
 
 let _autoUpdateTimer = null;
 function showUpdateBanner(newVer){
+  // Nunca "actualizar" hacia una versión anterior (CDN sirviendo archivos viejos)
+  if(parseFloat(newVer) <= parseFloat(APP_VERSION)) return;
+  // Tope de auto-recargas por sesión: ante cualquier inconsistencia de CDN el
+  // banner queda en modo manual en vez de entrar en bucle de recargas
+  const tries = +(sessionStorage.getItem("_updTries")||0);
+  const auto = tries < 3;
   const b = document.getElementById("updateBanner");
   if(b){
-    b.querySelector(".update-banner-btn") && (b.innerHTML = `🆕 Nueva versión V${escHtml(String(newVer))} — actualizando en <span id="updateCountdown">5</span>s <button class="update-banner-btn" onclick="applyUpdate()">Ahora</button> <button style="background:transparent;border:none;color:rgba(255,255,255,0.55);cursor:pointer;font-size:16px;padding:0 0 0 4px;line-height:1" onclick="dismissUpdateBanner()">×</button>`);
+    b.querySelector(".update-banner-btn") && (b.innerHTML = `🆕 Nueva versión V${escHtml(String(newVer))}${auto?' — actualizando en <span id="updateCountdown">5</span>s':''} <button class="update-banner-btn" onclick="applyUpdate()">Ahora</button> <button style="background:transparent;border:none;color:rgba(255,255,255,0.55);cursor:pointer;font-size:16px;padding:0 0 0 4px;line-height:1" onclick="dismissUpdateBanner()">×</button>`);
     b.classList.add("visible");
   }
+  if(!auto) return;
   // Auto-apply after 5 seconds — countdown visible
   let secs = 5;
   if(_autoUpdateTimer) clearInterval(_autoUpdateTimer);
@@ -2127,6 +2153,7 @@ function dismissUpdateBanner(){
 }
 async function applyUpdate(){
   if(_autoUpdateTimer){ clearInterval(_autoUpdateTimer); _autoUpdateTimer = null; }
+  try{ sessionStorage.setItem("_updTries", String(+(sessionStorage.getItem("_updTries")||0)+1)); }catch(e){}
   // Clear all SW caches before reloading so new version is always fetched from network
   if('caches' in window){
     try{ const keys=await caches.keys(); await Promise.all(keys.map(k=>caches.delete(k))); }catch(e){}
@@ -2138,10 +2165,10 @@ function manualRefresh(){
   const icon = document.getElementById("refreshIcon");
   if(btn) btn.classList.add("spin");
   if(icon) icon.textContent = "Verificando…";
-  fetch(location.pathname + "?_nocache=" + Date.now(), {cache:"no-store"})
+  fetch(_VERSION_PROBE + "?_nocache=" + Date.now(), {cache:"no-store"})
     .then(r => r.text())
     .then(txt => {
-      const m = txt.match(/APP_VERSION\s*=\s*"([^"]+)"/);
+      const m = txt.match(/APP_VERSION\s*=\s*["']([^"']+)["']/);
       if(m && m[1] !== APP_VERSION){
         showUpdateBanner(m[1]);
         if(icon) icon.textContent = "Actualizar";
@@ -2359,13 +2386,28 @@ const firebaseConfig = {
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const _auth = firebase.auth();
 const _db   = firebase.firestore();
+// Sesión persistente: el login queda guardado en el dispositivo hasta cerrar sesión
+_auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(()=>{});
+// Cache offline de Firestore: la app abre al instante con los últimos datos
+// conocidos. Las ESCRITURAS siguen bloqueadas hasta recibir datos frescos del
+// servidor (_markLoaded solo se dispara con snapshots de servidor).
+try{ _db.enablePersistence({synchronizeTabs:true}).catch(e=>console.warn('[Cache offline]',e.code||e)); }catch(e){}
+// Pedir almacenamiento persistente: evita que Android borre la sesión y el
+// cache del sitio bajo presión de espacio (causa típica de re-logins)
+if(navigator.storage && navigator.storage.persist){
+  navigator.storage.persist().then(ok=>console.log('[Storage] Persistente:',ok)).catch(()=>{});
+}
 
 const ADMIN_EMAIL = "ivangarcian@gmail.com";
 const DB_COL      = "insumos_cima";
 const DB_USERS    = "insumos_users";
 
 let currentUser = null, isAdmin = false, _lastUsers = [];
-let _unsubSupplies, _unsubGN, _unsubSarm, _unsubUsers, _unsubSolicitudes, _unsubPrac;
+let _unsubSupplies, _unsubGN, _unsubSarm, _unsubUsers, _unsubSolicitudes, _unsubPrac, _unsubPracMes;
+function _stopListeners(){
+  [_unsubSupplies,_unsubGN,_unsubSarm,_unsubUsers,_unsubSolicitudes,_unsubPrac,_unsubPracMes].forEach(u=>{ if(u) try{u();}catch(e){} });
+  _unsubSupplies=_unsubGN=_unsubSarm=_unsubUsers=_unsubSolicitudes=_unsubPrac=_unsubPracMes=null;
+}
 let _pracConfig = null;          // {practicas:[...]}
 let _pracMes = {};               // {"2026-06": {"rmn__reso_simple": qty, ...}}
 let _pracView = 'costos';        // 'costos' | 'cierre'
@@ -2391,12 +2433,21 @@ let cs = {GN:{stock:{},movements:[],lotes:{}},Sarmiento:{stock:{},movements:[],l
 // defaults over real data during the startup race window.
 let _loadedFlags = {supplies:false, GN:false, Sarmiento:false};
 let _dataReady = false;
-function _markLoaded(key){
+function _markLoaded(key, snap){
+  // Solo datos confirmados por el SERVIDOR habilitan escrituras — el cache
+  // offline sirve para renderizar rápido pero nunca para autorizar persist().
+  // La regla vive acá para que ningún listener futuro pueda olvidarla.
+  if(snap && snap.metadata && snap.metadata.fromCache) return;
   _loadedFlags[key]=true;
   if(!_dataReady && _loadedFlags.supplies && _loadedFlags.GN && _loadedFlags.Sarmiento){
     _dataReady=true;
     console.log('[Safety] Datos cargados — escrituras habilitadas');
   }
+}
+// Aviso VISIBLE cuando una escritura se bloquea: el usuario debe saber que su
+// cambio no se guardó, no solo la consola
+function _warnWriteBlocked(){
+  toast("⚠️ Sin conexión con el servidor — el cambio NO se guardó. Reintentá cuando vuelva la señal.");
 }
 
 // ─── Persist queue ────────────────────────────────────────────────────────────
@@ -2405,7 +2456,7 @@ let _persistQ = Promise.resolve();
 function _enqueue(fn){ _persistQ = _persistQ.then(fn).catch(e=>console.warn('[Persist]',e)); return _persistQ; }
 
 function persist(){
-  if(!_dataReady){ console.warn('[Safety] persist() bloqueado — datos aún cargando'); return Promise.resolve(); }
+  if(!_dataReady){ console.warn('[Safety] persist() bloqueado — datos aún cargando'); _warnWriteBlocked(); return Promise.resolve(); }
   if(!supplies.length){ console.warn('[Safety] persist() bloqueado — supplies vacío'); return Promise.resolve(); }
   return _enqueue(()=>{
     const batch = _db.batch();
@@ -2416,12 +2467,12 @@ function persist(){
   });
 }
 function persistCenter(c){
-  if(!_dataReady){ console.warn('[Safety] persistCenter() bloqueado — datos aún cargando'); return Promise.resolve(); }
+  if(!_dataReady){ console.warn('[Safety] persistCenter() bloqueado — datos aún cargando'); _warnWriteBlocked(); return Promise.resolve(); }
   const key = c==="GN"?"center_GN":"center_Sarmiento";
   return _enqueue(()=>_db.collection(DB_COL).doc(key).set(cs[c]).catch(e=>toast("⚠️ Error guardando")));
 }
 function persistSupplies(){
-  if(!_dataReady){ console.warn('[Safety] persistSupplies() bloqueado — datos aún cargando'); return Promise.resolve(); }
+  if(!_dataReady){ console.warn('[Safety] persistSupplies() bloqueado — datos aún cargando'); _warnWriteBlocked(); return Promise.resolve(); }
   if(!supplies.length){ console.warn('[Safety] persistSupplies() bloqueado — supplies vacío'); return Promise.resolve(); }
   return _enqueue(()=>_db.collection(DB_COL).doc("supplies").set({data:supplies,suppliers}).catch(e=>toast("⚠️ Error guardando")));
 }
@@ -3454,12 +3505,7 @@ function signIn(){
 }
 function signOut(){
   _auth.signOut();
-  if(_unsubSupplies) _unsubSupplies();
-  if(_unsubGN) _unsubGN();
-  if(_unsubSarm) _unsubSarm();
-  if(_unsubUsers) _unsubUsers();
-  if(_unsubSolicitudes) _unsubSolicitudes();
-  if(_unsubPrac) _unsubPrac();
+  _stopListeners();
   // Reset data-ready state so next login starts fresh
   _loadedFlags={supplies:false,GN:false,Sarmiento:false};
   _dataReady=false;
@@ -3467,6 +3513,7 @@ function signOut(){
 }
 
 function showLogin(unauthorized){
+  document.getElementById("bootLoader")?.remove();
   document.getElementById("mainApp").style.display="none";
   document.getElementById("loginOverlay").classList.add("visible");
   document.getElementById("unauthorizedMsg").style.display=unauthorized?"block":"none";
@@ -3474,6 +3521,7 @@ function showLogin(unauthorized){
   document.getElementById("loginSignout").style.display=unauthorized?"block":"none";
 }
 function showApp(){
+  document.getElementById("bootLoader")?.remove();
   document.getElementById("loginOverlay").classList.remove("visible");
   document.getElementById("mainApp").style.display="";
   renderUserBar();
@@ -3518,6 +3566,9 @@ function renderUserBar(){
 
 // ─── Firestore listeners ──────────────────────────────────────────────────────
 function startListeners(){
+  // Defensa contra doble suscripción (re-login, reintentos de acceso):
+  // siempre cancelar listeners previos antes de crear nuevos
+  _stopListeners();
   _unsubSupplies = _db.collection(DB_COL).doc("supplies").onSnapshot(snap=>{
     if(snap.exists && snap.data().data){
       supplies = snap.data().data;
@@ -3532,7 +3583,7 @@ function startListeners(){
       if(!cs[c].lotes) cs[c].lotes={};
       supplies.forEach(s=>{if(cs[c].stock[s.id]===undefined)cs[c].stock[s.id]=0;});
     });
-    _markLoaded('supplies');
+    _markLoaded('supplies', snap);
     updateCenterStats();
     if(currentTab==="inventario") renderInventario();
     if(currentTab==="gestion") renderGestion();
@@ -3541,7 +3592,7 @@ function startListeners(){
 
   _unsubGN = _db.collection(DB_COL).doc("center_GN").onSnapshot(snap=>{
     if(snap.exists){ cs.GN=snap.data(); if(!cs.GN.stock)cs.GN.stock={}; if(!cs.GN.movements)cs.GN.movements=[]; if(!cs.GN.lotes)cs.GN.lotes={}; }
-    _markLoaded('GN');
+    _markLoaded('GN', snap);
     updateCenterStats(); updateVencBadge();
     if(!activeCenter)setTimeout(updateHomeStats,0);
     if(activeCenter==="GN") renderCurrentTab();
@@ -3566,7 +3617,7 @@ function startListeners(){
 
   _unsubSarm = _db.collection(DB_COL).doc("center_Sarmiento").onSnapshot(snap=>{
     if(snap.exists){ cs.Sarmiento=snap.data(); if(!cs.Sarmiento.stock)cs.Sarmiento.stock={}; if(!cs.Sarmiento.movements)cs.Sarmiento.movements=[]; if(!cs.Sarmiento.lotes)cs.Sarmiento.lotes={}; }
-    _markLoaded('Sarmiento');
+    _markLoaded('Sarmiento', snap);
     updateCenterStats(); updateVencBadge();
     if(!activeCenter)setTimeout(updateHomeStats,0);
     if(activeCenter==="Sarmiento") renderCurrentTab();
@@ -3576,8 +3627,9 @@ function startListeners(){
   _unsubPrac = _db.collection(DB_COL).doc("practicas_config").onSnapshot(snap=>{
     if(snap.exists){
       _pracConfig = snap.data();
-    } else if(!_pracConfig) {
-      // Seed defaults only on very first load when doc truly doesn't exist yet
+    } else if(!_pracConfig && !snap.metadata.fromCache) {
+      // Seed defaults only when el SERVIDOR confirma que el doc no existe —
+      // un miss del cache offline nunca debe disparar la siembra de defaults
       _pracConfig = PRAC_DEFAULT_CONFIG;
       _db.collection(DB_COL).doc("practicas_config").set(_pracConfig)
         .catch(e=>console.warn('[PracConfig seed]',e));
@@ -3585,7 +3637,7 @@ function startListeners(){
     if(currentTab==="contable") renderContable();
   });
 
-  _db.collection(DB_COL).doc("practicas_mes").onSnapshot(snap=>{
+  _unsubPracMes = _db.collection(DB_COL).doc("practicas_mes").onSnapshot(snap=>{
     _pracMes = snap.exists ? snap.data() : {};
     if(currentTab==="contable" && _pracView==="cierre") renderContable();
   });
@@ -3749,16 +3801,41 @@ function _showPushPrompt(reg){
   };
 }
 
+// Verifica si el usuario está autorizado. Ante errores transitorios (sin red)
+// NUNCA muestra la pantalla de login: la sesión sigue válida, solo reintenta.
+// _accessSeq invalida cadenas de reintento viejas cuando cambia la sesión.
+let _accessSeq = 0;
+async function _checkUserAccess(user, attempt, seq){
+  attempt = attempt||0;
+  if(seq===undefined) seq=_accessSeq;
+  if(seq!==_accessSeq) return; // la sesión cambió — esta cadena quedó obsoleta
+  const email=user.email.toLowerCase();
+  try{
+    const doc=await _db.collection(DB_USERS).doc(email).get();
+    if(seq!==_accessSeq) return;
+    if(doc.exists){ isAdmin=false; showApp(); startListeners(); initPushNotifications(); _handleNotifTabParam(); return; }
+    // Solo el servidor puede confirmar "no autorizado" — un miss del cache
+    // offline no alcanza para echar a un usuario con sesión activa
+    if(!doc.metadata.fromCache){ showLogin(true); return; }
+    throw new Error('cache-miss');
+  }catch(e){
+    if(seq!==_accessSeq) return;
+    if(attempt===0) toast("⚠️ Verificando acceso — reintentando…");
+    // Feedback en el splash para que la espera nunca parezca un cuelgue
+    const bl=document.querySelector('#bootLoader div:last-child');
+    if(bl) bl.textContent="Sin conexión — reintentando…";
+    const wait=Math.min(2000*Math.pow(2,attempt),30000);
+    setTimeout(()=>{ if(_auth.currentUser) _checkUserAccess(_auth.currentUser, attempt+1, seq); }, wait);
+  }
+}
+
 _auth.onAuthStateChanged(async user=>{
+  _accessSeq++;
   if(!user){ showLogin(false); currentUser=null; isAdmin=false; return; }
   const email=user.email.toLowerCase();
   currentUser=user;
   if(email===ADMIN_EMAIL){ isAdmin=true; showApp(); startListeners(); initPushNotifications(); _handleNotifTabParam(); return; }
-  try{
-    const doc=await _db.collection(DB_USERS).doc(email).get();
-    if(doc.exists){ isAdmin=false; showApp(); startListeners(); initPushNotifications(); _handleNotifTabParam(); }
-    else{ showLogin(true); }
-  }catch(e){ toast("⚠️ Error verificando acceso"); showLogin(false); }
+  _checkUserAccess(user);
 });
 // ─── Notification tab navigation ─────────────────────────────────────────────
 function _handleNotifTabParam(){
