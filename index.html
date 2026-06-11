@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.11.085 -->
+<!-- v2026.06.11.090 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.11.085">
+<meta name="app-version" content="v2026.06.11.090">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -2922,7 +2922,7 @@ function rDash(){
       '<div style="height:3px;background:linear-gradient(90deg,'+cat.color+','+cat.color+'55);border-radius:0;"></div>'+
       '<div style="padding:16px 14px 14px;display:flex;flex-direction:column;justify-content:space-between;height:calc(100% - 3px);position:relative;overflow:hidden;">'+
         /* big icon flush right, decorative */
-        '<div style="position:absolute;right:-18px;top:50%;transform:translateY(-50%);width:210px;height:210px;display:flex;align-items:center;justify-content:center;opacity:.55;pointer-events:none;">'+iconSvg+'</div>'+
+        '<div style="position:absolute;right:-18px;top:50%;transform:translateY(-50%);width:210px;height:210px;display:flex;align-items:center;justify-content:center;opacity:.82;pointer-events:none;">'+iconSvg+'</div>'+
         /* count top-left */
         '<div style="display:flex;flex-direction:column;gap:0;z-index:1;">'+
           '<div style="font-weight:900;font-size:2.6rem;color:'+cat.color+';line-height:1;letter-spacing:-2px;">'+ces.length+'</div>'+
@@ -2947,7 +2947,7 @@ function rDash(){
     h+='<div class="gc tap" onclick="setView(\'aires\');" style="padding:0;overflow:hidden;cursor:pointer;border:1.5px solid '+aireColor+'40;min-height:130px;">'+
       '<div style="height:3px;background:linear-gradient(90deg,'+aireColor+','+aireColor+'55);border-radius:0;"></div>'+
       '<div style="padding:16px 14px 14px;display:flex;flex-direction:column;justify-content:space-between;height:calc(100% - 3px);position:relative;overflow:hidden;">'+
-        '<div style="position:absolute;right:-18px;top:50%;transform:translateY(-50%);width:210px;height:210px;display:flex;align-items:center;justify-content:center;opacity:.55;pointer-events:none;">'+aireSvg+'</div>'+
+        '<div style="position:absolute;right:-18px;top:50%;transform:translateY(-50%);width:210px;height:210px;display:flex;align-items:center;justify-content:center;opacity:.82;pointer-events:none;">'+aireSvg+'</div>'+
         '<div style="display:flex;flex-direction:column;gap:0;z-index:1;">'+
           '<div style="font-weight:900;font-size:2.6rem;color:'+aireColor+';line-height:1;letter-spacing:-2px;">'+aires.length+'</div>'+
           '<div style="font-size:.56rem;color:'+aireColor+'aa;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-top:1px;">unidad'+(aires.length!==1?'es':'')+'</div>'+
@@ -8263,8 +8263,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.8.5";
-var APP_BUILD="11/06/26 11:00";
+var APP_DISPLAY_VERSION="5.8.6";
+var APP_BUILD="11/06/26 12:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
