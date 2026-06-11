@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.11.090 -->
+<!-- v2026.06.11.095 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.11.090">
+<meta name="app-version" content="v2026.06.11.095">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -119,37 +119,41 @@ body::after{
 /* ── LIQUID GLASS CARD ── */
 .gc{
   background:var(--gc-bg);
-  -webkit-backdrop-filter:blur(24px);
-  backdrop-filter:blur(24px);
+  -webkit-backdrop-filter:saturate(200%) brightness(108%) blur(28px);
+  backdrop-filter:saturate(200%) brightness(108%) blur(28px);
   border:1px solid var(--gc-border);
   border-top-color:var(--gc-border-top);
   border-radius:var(--r-lg);
   box-shadow:
-    0 0 0 0.5px rgba(255,255,255,.50),
+    0 0 0 0.5px rgba(255,255,255,.55),
     0 2px 8px rgba(0,0,0,.05),
     0 8px 24px rgba(0,0,0,.06),
-    inset 0 1px 0 rgba(255,255,255,.95);
+    inset 0 1.5px 0 rgba(255,255,255,.98),
+    inset 0 -0.5px 0 rgba(0,0,0,.06),
+    inset 1px 0 0 rgba(120,180,255,.06),
+    inset -1px 0 0 rgba(255,100,180,.05);
   position:relative;overflow:hidden;
   transition:transform .32s var(--spring),box-shadow .28s var(--ease-out);}
-/* shimmer — transparent, no fake colors */
+/* noise grain — simulates Apple's glass micro-texture */
 .gc::before{content:'';position:absolute;inset:0;border-radius:inherit;
-  background:rgba(255,255,255,0);pointer-events:none;z-index:0;}
-/* specular top strip */
-.gc::after{content:'';position:absolute;top:0;left:0;right:0;height:36%;border-radius:inherit;
-  background:linear-gradient(180deg,var(--gc-spec) 0%,rgba(255,255,255,.0) 100%);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity:.042;mix-blend-mode:overlay;pointer-events:none;z-index:0;}
+/* specular top strip — bright lens reflection */
+.gc::after{content:'';position:absolute;top:0;left:0;right:0;height:50%;border-radius:inherit;
+  background:linear-gradient(180deg,rgba(255,255,255,.82) 0%,rgba(255,255,255,.18) 35%,rgba(255,255,255,.0) 100%);
   pointer-events:none;z-index:0;}
 .gc:active{transform:scale(.968);
-  box-shadow:0 1px 4px rgba(0,0,0,.05),0 3px 12px rgba(0,0,0,.06),inset 0 1px 0 rgba(255,255,255,.8);}
+  box-shadow:0 1px 4px rgba(0,0,0,.05),0 3px 12px rgba(0,0,0,.06),inset 0 1.5px 0 rgba(255,255,255,.98);}
 /* chromatic refraction edge — subtle prism at bottom */
 .gc-chroma::after{
-  background:linear-gradient(180deg,rgba(255,255,255,.50) 0%,rgba(255,255,255,.0) 50%),
-    linear-gradient(0deg,rgba(120,180,255,.12) 0%,rgba(180,100,255,.06) 20%,transparent 40%);}
+  background:linear-gradient(180deg,rgba(255,255,255,.82) 0%,rgba(255,255,255,.0) 50%),
+    linear-gradient(0deg,rgba(120,180,255,.14) 0%,rgba(180,100,255,.07) 20%,transparent 40%);}
 
 /* ── LAYOUT ── */
 #app{position:relative;z-index:1;}
 #header{position:sticky;top:0;z-index:100;background:transparent;border-bottom:none;padding:calc(env(safe-area-inset-top,0px)+12px) 20px 28px;}
 #header-inner{display:flex;align-items:center;justify-content:space-between;max-width:1040px;margin:0 auto;
-  background:var(--gc-bg);-webkit-backdrop-filter:blur(32px);backdrop-filter:blur(32px);
+  background:var(--gc-bg);-webkit-backdrop-filter:saturate(200%) brightness(108%) blur(32px);backdrop-filter:saturate(200%) brightness(108%) blur(32px);
   border:1px solid var(--gc-border);border-top-color:var(--gc-border-top);
   border-radius:var(--r-xl);padding:20px 20px 20px 28px;
   box-shadow:0 0 0 0.5px rgba(255,255,255,.55),0 4px 20px rgba(0,0,0,.05),inset 0 1.5px 0 rgba(255,255,255,.95);
@@ -619,8 +623,8 @@ body.dark .ig{box-shadow:0 2px 8px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255
 /* ── SETTINGS ── */
 .settings-panel{
   background:var(--panel-bg);
-  -webkit-backdrop-filter:saturate(180%) brightness(112%) blur(36px);
-  backdrop-filter:saturate(180%) brightness(112%) blur(36px);
+  -webkit-backdrop-filter:saturate(220%) brightness(110%) blur(40px);
+  backdrop-filter:saturate(220%) brightness(110%) blur(40px);
   border-left:1px solid rgba(255,255,255,.30);
   border-radius:var(--r-xl) 0 0 var(--r-xl);width:320px;max-width:85vw;height:100%;overflow-y:auto;padding:20px;
   box-shadow:-4px 0 40px rgba(0,0,0,.10),inset 1px 0 0 rgba(255,255,255,.60);}
@@ -8263,8 +8267,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.8.6";
-var APP_BUILD="11/06/26 12:00";
+var APP_DISPLAY_VERSION="5.8.7";
+var APP_BUILD="11/06/26 13:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
