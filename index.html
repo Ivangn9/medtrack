@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.11.110 -->
+<!-- v2026.06.11.115 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.11.110">
+<meta name="app-version" content="v2026.06.11.115">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -89,38 +89,40 @@ body{
   background:var(--bg);color:var(--text);min-height:100vh;min-height:100dvh;
   overscroll-behavior:none;-webkit-font-smoothing:antialiased;
 }
-/* iOS 26 dynamic background with color blobs */
+/* iOS 26 dynamic background — blobs más saturados para que se vean a través del glass */
 body::before{
   content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
   background:
-    radial-gradient(ellipse 120% 60% at 50% 0%,rgba(180,210,255,.55) 0%,transparent 55%),
-    radial-gradient(ellipse 80% 50% at 0% 100%,rgba(160,200,240,.35) 0%,transparent 50%),
-    radial-gradient(ellipse 60% 40% at 100% 60%,rgba(200,220,255,.25) 0%,transparent 50%),
-    linear-gradient(175deg,#d6e8f8 0%,#e2edf7 35%,#eaf2fa 65%,#f2f6fc 100%);
+    radial-gradient(ellipse 130% 70% at 50% -5%,rgba(120,180,255,.80) 0%,transparent 55%),
+    radial-gradient(ellipse 90% 60% at -5% 100%,rgba(100,170,240,.65) 0%,transparent 50%),
+    radial-gradient(ellipse 70% 50% at 105% 55%,rgba(160,200,255,.50) 0%,transparent 50%),
+    radial-gradient(ellipse 50% 40% at 50% 100%,rgba(180,240,220,.45) 0%,transparent 50%),
+    linear-gradient(175deg,#c8dff5 0%,#d8eaf5 35%,#e4f0f8 65%,#f0f6fc 100%);
   animation:bgShift 32s ease-in-out infinite alternate;}
 body::after{
   content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
   background:
-    radial-gradient(ellipse 50% 40% at 80% 20%,rgba(200,190,255,.18) 0%,transparent 50%),
-    radial-gradient(ellipse 40% 50% at 20% 80%,rgba(170,230,220,.14) 0%,transparent 50%);
+    radial-gradient(ellipse 60% 45% at 85% 15%,rgba(180,160,255,.38) 0%,transparent 50%),
+    radial-gradient(ellipse 50% 55% at 15% 75%,rgba(140,220,210,.30) 0%,transparent 50%),
+    radial-gradient(ellipse 40% 35% at 55% 50%,rgba(255,200,180,.18) 0%,transparent 50%);
   animation:bgShift2 24s ease-in-out infinite alternate-reverse;}
 @keyframes bgShift{
-  0%{filter:hue-rotate(0deg) brightness(1.0) saturate(1.0);}
-  50%{filter:hue-rotate(8deg) brightness(1.02) saturate(1.06);}
-  100%{filter:hue-rotate(-5deg) brightness(1.01) saturate(1.04);}
+  0%{filter:hue-rotate(0deg) brightness(1.0) saturate(1.1);}
+  50%{filter:hue-rotate(10deg) brightness(1.02) saturate(1.15);}
+  100%{filter:hue-rotate(-6deg) brightness(1.01) saturate(1.08);}
 }
 @keyframes bgShift2{
-  0%{opacity:.60;}
+  0%{opacity:.70;}
   50%{opacity:1;}
-  100%{opacity:.70;}
+  100%{opacity:.75;}
 }
 #app,#login-screen{position:relative;z-index:1;}
 
 /* ── LIQUID GLASS CARD ── */
 .gc{
   background:var(--gc-bg);
-  -webkit-backdrop-filter:saturate(120%) brightness(104%) blur(32px);
-  backdrop-filter:saturate(120%) brightness(104%) blur(32px);
+  -webkit-backdrop-filter:saturate(120%) brightness(103%) blur(16px);
+  backdrop-filter:saturate(120%) brightness(103%) blur(16px);
   border:1px solid var(--gc-border);
   border-top-color:var(--gc-border-top);
   border-radius:var(--r-lg);
@@ -151,7 +153,7 @@ body::after{
 #app{position:relative;z-index:1;}
 #header{position:sticky;top:0;z-index:100;background:transparent;border-bottom:none;padding:calc(env(safe-area-inset-top,0px)+12px) 20px 28px;}
 #header-inner{display:flex;align-items:center;justify-content:space-between;max-width:1040px;margin:0 auto;
-  background:var(--gc-bg);-webkit-backdrop-filter:saturate(120%) brightness(104%) blur(36px);backdrop-filter:saturate(120%) brightness(104%) blur(36px);
+  background:var(--gc-bg);-webkit-backdrop-filter:saturate(120%) brightness(103%) blur(16px);backdrop-filter:saturate(120%) brightness(103%) blur(16px);
   border:1px solid var(--gc-border);border-top-color:var(--gc-border-top);
   border-radius:var(--r-xl);padding:20px 20px 20px 28px;
   box-shadow:0 0 0 0.5px rgba(255,255,255,.55),0 4px 20px rgba(0,0,0,.05),inset 0 1.5px 0 rgba(255,255,255,.95);
@@ -621,8 +623,8 @@ body.dark .ig{box-shadow:0 2px 8px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255
 /* ── SETTINGS ── */
 .settings-panel{
   background:var(--panel-bg);
-  -webkit-backdrop-filter:saturate(120%) brightness(104%) blur(40px);
-  backdrop-filter:saturate(120%) brightness(104%) blur(40px);
+  -webkit-backdrop-filter:saturate(120%) brightness(103%) blur(20px);
+  backdrop-filter:saturate(120%) brightness(103%) blur(20px);
   border-left:1px solid rgba(255,255,255,.30);
   border-radius:var(--r-xl) 0 0 var(--r-xl);width:320px;max-width:85vw;height:100%;overflow-y:auto;padding:20px;
   box-shadow:-4px 0 40px rgba(0,0,0,.10),inset 1px 0 0 rgba(255,255,255,.60);}
@@ -8276,8 +8278,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.9.0";
-var APP_BUILD="11/06/26 15:00";
+var APP_DISPLAY_VERSION="5.9.1";
+var APP_BUILD="11/06/26 16:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
