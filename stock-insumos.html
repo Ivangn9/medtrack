@@ -546,6 +546,8 @@
     .type-toggle-btn.entrada.selected { background: var(--green); border-color: var(--green); color: white; box-shadow: 0 4px 12px rgba(52,199,89,.35); }
     .type-toggle-btn.salida  { background: rgba(255,59,48,.10); border-color: rgba(255,59,48,.18); color: #c0271f; }
     .type-toggle-btn.salida.selected  { background: var(--red); border-color: var(--red); color: white; box-shadow: 0 4px 12px rgba(255,59,48,.35); }
+    .fmt-pill { display:inline-flex; align-items:center; gap:5px; padding:7px 14px; border-radius:20px; border:1.5px solid rgba(0,0,0,0.10); background:rgba(0,0,0,0.04); cursor:pointer; font-size:.82rem; font-weight:600; color:var(--text3); transition:all .15s; user-select:none; -webkit-tap-highlight-color:transparent; }
+    .fmt-pill.active { background:rgba(0,113,227,0.10); border-color:#0071e3; color:#0071e3; }
     .modal-footer { display: flex; gap: 8px; padding: 16px 24px 0; }
     .modal-footer .btn { flex: 1; justify-content: center; }
 
@@ -1908,7 +1910,7 @@
       </div>
       <!-- Presentación: unitario o por caja -->
       <div class="form-group">
-        <label>Presentación</label>
+        <label>Presentación (gestión de stock)</label>
         <div class="mov-type-toggle" style="width:100%">
           <button id="addTogUnitario" class="type-toggle-btn entrada selected" style="flex:1" onclick="selectAddPresentacion('unitario')">📦 Unitario</button>
           <button id="addTogCaja"     class="type-toggle-btn salida"           style="flex:1" onclick="selectAddPresentacion('caja')">🗃️ Caja</button>
@@ -1918,6 +1920,16 @@
         <label>Unidades por caja</label>
         <input type="number" id="addUnidadesPorCaja" min="1" placeholder="Ej: 50" />
         <div style="font-size:.72rem;color:var(--text3);margin-top:4px">Al registrar entradas podrás ingresar cantidad de cajas y el sistema calculará las unidades automáticamente.</div>
+      </div>
+      <!-- Formatos para pedidos (pedido-insumos.html) -->
+      <div class="form-group">
+        <label>Formatos disponibles para pedidos</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">
+          <button class="fmt-pill" id="addFmtUnidad" onclick="_toggleFmt('add','unidad')">📦 Unidad</button>
+          <button class="fmt-pill" id="addFmtCaja"   onclick="_toggleFmt('add','caja')">🗃️ Caja</button>
+          <button class="fmt-pill" id="addFmtPack"   onclick="_toggleFmt('add','pack')">🎁 Pack</button>
+        </div>
+        <div style="font-size:.7rem;color:var(--text3);margin-top:5px">Formatos en que se puede pedir este insumo en la app de Pedidos. Seleccioná al menos uno.</div>
       </div>
       <div class="form-row">
         <div class="form-group"><label>Precio por unidad ($)</label><input type="number" id="addPrice" min="0" step="0.01" placeholder="0.00" /></div>
@@ -2025,7 +2037,7 @@
         </div>
       </div>
       <div class="ff">
-        <div class="ff-label">Presentación</div>
+        <div class="ff-label">Presentación (gestión de stock)</div>
         <div class="mov-type-toggle" style="width:100%;margin-top:4px">
           <button id="editTogUnitario" class="type-toggle-btn entrada selected" style="flex:1" onclick="selectEditPresentacion('unitario')">📦 Unitario</button>
           <button id="editTogCaja"     class="type-toggle-btn salida"           style="flex:1" onclick="selectEditPresentacion('caja')">🗃️ Caja</button>
@@ -2034,6 +2046,16 @@
       <div class="ff" id="editCajaGroup" style="display:none">
         <div class="ff-label">Unidades por caja</div>
         <input class="inp" type="number" id="editUnidadesPorCaja" min="1" placeholder="Ej: 50" />
+      </div>
+      <!-- Formatos para pedidos (pedido-insumos.html) -->
+      <div class="ff">
+        <div class="ff-label">Formatos disponibles para pedidos</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">
+          <button class="fmt-pill" id="editFmtUnidad" onclick="_toggleFmt('edit','unidad')">📦 Unidad</button>
+          <button class="fmt-pill" id="editFmtCaja"   onclick="_toggleFmt('edit','caja')">🗃️ Caja</button>
+          <button class="fmt-pill" id="editFmtPack"   onclick="_toggleFmt('edit','pack')">🎁 Pack</button>
+        </div>
+        <div style="font-size:.7rem;color:var(--text3);margin-top:5px">Formatos en que se puede pedir este insumo en la app de Pedidos. Seleccioná al menos uno.</div>
       </div>
       <input type="hidden" id="editSupplyId" />
       <div style="display:flex;gap:10px;margin-top:20px">
@@ -2092,7 +2114,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "4.28";
+const APP_VERSION = "4.29";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -2871,6 +2893,33 @@ function renderGestion(){
 }
 function updatePrice(id,val){const s=supplies.find(x=>x.id===id);if(s){s.price=parseFloat(val)||0;persist();toast("Precio actualizado");}}
 
+// ─── Formatos de pedido ────────────────────────────────────────────────────────
+// Controla qué formatos (Unidad / Caja / Pack) aparecen en la app de Pedidos
+// para este insumo. Campo puramente aditivo — no toca datos existentes.
+const _ALL_FMTS = ['unidad','caja','pack'];
+const _FMT_LABELS = {unidad:'addFmtUnidad',caja:'addFmtCaja',pack:'addFmtPack'};
+const _FMT_ELABELS = {unidad:'editFmtUnidad',caja:'editFmtCaja',pack:'editFmtPack'};
+let _editFmts = new Set(_ALL_FMTS);
+let _addFmts  = new Set(_ALL_FMTS);
+
+function _toggleFmt(modal, fmt) {
+  const set = modal==='edit' ? _editFmts : _addFmts;
+  if(set.has(fmt)){ if(set.size>1) set.delete(fmt); } // al menos 1 siempre activo
+  else set.add(fmt);
+  _refreshFmtPills(modal);
+}
+function _refreshFmtPills(modal) {
+  const set = modal==='edit' ? _editFmts : _addFmts;
+  const ids = modal==='edit' ? _FMT_ELABELS : _FMT_LABELS;
+  _ALL_FMTS.forEach(f=>{ const el=document.getElementById(ids[f]); if(el)el.classList.toggle('active',set.has(f)); });
+}
+function _setFmts(modal, arr) {
+  const set = modal==='edit' ? _editFmts : _addFmts;
+  set.clear();
+  (arr && arr.length ? arr : _ALL_FMTS).forEach(f=>set.add(f));
+  _refreshFmtPills(modal);
+}
+
 // ─── Edit Supply ──────────────────────────────────────────────────────────────
 let _editPresentacion="unitario";
 function selectEditPresentacion(p){
@@ -2889,6 +2938,7 @@ function openEditSupplyModal(id){
   const catSel=document.getElementById("editSupplyCategory");
   catSel.innerHTML=getCategories().map(c=>`<option value="${escAttr(c)}"${c===s.category?" selected":""}>${escHtml(c)}</option>`).join("");
   selectEditPresentacion(s.presentacion||"unitario");
+  _setFmts('edit', s.pedidoFormatos || _ALL_FMTS);
   document.getElementById("editSupplyOverlay").classList.add("open");
   setTimeout(()=>document.getElementById("editSupplyName").focus(),80);
 }
@@ -2901,9 +2951,10 @@ function saveEditSupply(){
   const category=document.getElementById("editSupplyCategory").value;
   const presentacion=_editPresentacion||"unitario";
   const unidadesPorCaja=presentacion==="caja"?(parseInt(document.getElementById("editUnidadesPorCaja").value)||1):1;
+  const pedidoFormatos=Array.from(_editFmts);
   if(!name){toast("⚠️ El nombre es obligatorio");return;}
   const s=supplies.find(x=>x.id===id); if(!s)return;
-  Object.assign(s,{name,code,unit,category,presentacion,unidadesPorCaja});
+  Object.assign(s,{name,code,unit,category,presentacion,unidadesPorCaja,pedidoFormatos});
   persist();
   closeEditSupplyModal();
   renderGestion();
@@ -3440,12 +3491,14 @@ function openAddModal(id){
       const pres=s.presentacion||"unitario";
       document.getElementById("addUnidadesPorCaja").value=s.unidadesPorCaja||"";
       selectAddPresentacion(pres);
+      _setFmts('add', s.pedidoFormatos || _ALL_FMTS);
     }
   } else {
     ["addName","addCode","addPrice","addMinStock","addInitStock","addUnidadesPorCaja"].forEach(i=>document.getElementById(i).value="");
     document.getElementById("addCategory").value="Descartables";
     document.getElementById("addUnit").value="UND";
     selectAddPresentacion("unitario");
+    _setFmts('add', _ALL_FMTS);
   }
   document.getElementById("addModal").classList.add("open");
 }
@@ -3460,17 +3513,18 @@ function saveSupply(){
   const initStk=parseInt(document.getElementById("addInitStock").value)||0;
   const presentacion=_addPresentacion||"unitario";
   const unidadesPorCaja=presentacion==="caja"?(parseInt(document.getElementById("addUnidadesPorCaja").value)||1):1;
+  const pedidoFormatos=Array.from(_addFmts);
   if(!name){toast("⚠️ Ingresá el nombre del insumo");return;}
   if(presentacion==="caja"&&unidadesPorCaja<1){toast("⚠️ Ingresá las unidades por caja");return;}
   if(_editId){
     const s=supplies.find(x=>x.id===_editId);
     const before=s?{name:s.name,code:s.code,price:s.price,category:s.category}:null;
-    if(s){Object.assign(s,{name,code,category,unit,price,minStock,presentacion,unidadesPorCaja});cs[activeCenter].stock[s.id]=initStk;}
+    if(s){Object.assign(s,{name,code,category,unit,price,minStock,presentacion,unidadesPorCaja,pedidoFormatos});cs[activeCenter].stock[s.id]=initStk;}
     _auditLog('supply_edit',`Insumo editado: "${name}"`,before,{name,code,price,category});
     toast("✓ Insumo actualizado");
   }else{
     const id="cus_"+Date.now();
-    supplies.push({id,name,code:code||"USR-"+supplies.length,category,unit,price,minStock,active:true,presentacion,unidadesPorCaja});
+    supplies.push({id,name,code:code||"USR-"+supplies.length,category,unit,price,minStock,active:true,presentacion,unidadesPorCaja,pedidoFormatos});
     CENTERS.forEach(c=>{if(!cs[c].stock[id])cs[c].stock[id]=0;});
     cs[activeCenter].stock[id]=initStk;
     if(initStk>0)cs[activeCenter].movements.push({id:"mov_init_"+id,supplyId:id,supplyName:name,type:"entrada",qty:initStk,date:new Date().toISOString().slice(0,10),time:new Date().toTimeString().slice(0,5),note:"Stock inicial"});
