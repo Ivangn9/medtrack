@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.15.174 -->
+<!-- v2026.06.15.175 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.15.174">
+<meta name="app-version" content="v2026.06.15.175">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -2851,16 +2851,29 @@ function clearSig(){
 function openQRModal(eqId){
   var eq=eqs.find(function(e){return e.id===eqId;});if(!eq)return;
   var url='https://ivangn9.github.io/medtrack/eq-public.html?id='+eqId;
+  var ci=catById(eq.cat);
   openModal(
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">'+
     '<div class="modal-title">📱 Código QR</div>'+
     '<button class="modal-close" onclick="closeModal()">✕</button></div>'+
-    '<div style="font-weight:700;font-size:.9rem;margin-bottom:12px;">'+esc(eq.nombre)+'</div>'+
-    '<div id="qr-wrap" style="display:flex;justify-content:center;align-items:center;min-height:200px;padding:20px;">'+
-      '<div id="qr-box" style="background:#fff;padding:16px;border-radius:12px;display:inline-block;"></div>'+
+    '<div style="display:flex;justify-content:center;padding:8px 0 18px;">'+
+      '<div id="qr-card" style="background:#fff;border-radius:16px;padding:20px 20px 16px;box-shadow:0 4px 24px rgba(0,0,0,.18),0 1px 4px rgba(0,0,0,.12);display:inline-flex;flex-direction:column;align-items:center;border:2px solid #e2e8f0;">'+
+        '<div style="font-size:.5rem;font-weight:900;color:#1a3a6b;letter-spacing:3px;text-transform:uppercase;margin-bottom:10px;text-align:center;">CIMA · Ingeniería Biomédica</div>'+
+        '<div id="qr-box" style="display:inline-block;border:1px solid #f0f0f0;border-radius:4px;"></div>'+
+        '<div style="margin-top:12px;text-align:center;max-width:200px;">'+
+          '<div style="font-size:.75rem;font-weight:800;color:#1a3a6b;line-height:1.3;">'+esc(eq.nombre)+'</div>'+
+          '<div style="font-size:.6rem;color:#64748b;margin-top:3px;font-weight:600;">'+esc(ci.label||eq.cat)+(eq.ubicacion?' · 📍 '+esc(eq.ubicacion):'')+'</div>'+
+          (eq.serie?'<div style="font-size:.52rem;color:#94a3b8;margin-top:3px;font-family:monospace;">SID: '+esc(eq.serie)+'</div>':'')+
+        '</div>'+
+        '<div style="margin-top:10px;width:100%;border-top:1px dashed #cbd5e1;padding-top:8px;text-align:center;">'+
+          '<div style="font-size:.5rem;color:#94a3b8;letter-spacing:.04em;">Escaneá para ver estado en tiempo real</div>'+
+        '</div>'+
+      '</div>'+
     '</div>'+
-    '<div style="font-size:.62rem;color:var(--text3);text-align:center;margin-bottom:14px;word-break:break-all;">'+esc(url)+'</div>'+
-    '<button onclick="downloadQR(\''+eqId+'\')" style="width:100%;padding:12px;border-radius:var(--r-md);background:rgba(0,113,227,.1);border:1.5px solid rgba(0,113,227,.2);color:var(--accent);font-weight:700;font-size:.82rem;cursor:pointer;">⬇️ Descargar PNG</button>'
+    '<div style="display:flex;gap:8px;">'+
+      '<button onclick="downloadQRCard(\''+eqId+'\')" style="flex:1;padding:12px;border-radius:var(--r-md);background:rgba(0,113,227,.1);border:1.5px solid rgba(0,113,227,.2);color:var(--accent);font-weight:700;font-size:.8rem;cursor:pointer;">⬇️ Descargar PNG</button>'+
+      '<button onclick="printQRCard()" style="padding:12px 16px;border-radius:var(--r-md);background:rgba(52,199,89,.1);border:1.5px solid rgba(52,199,89,.2);color:var(--green);font-weight:700;font-size:.8rem;cursor:pointer;">🖨 Imprimir</button>'+
+    '</div>'
   );
   setTimeout(function(){_loadQRLib(url);},50);
 }
@@ -2877,9 +2890,24 @@ function _genQR(url){
   b.innerHTML='';
   try{new QRCode(b,{text:url,width:200,height:200,colorDark:'#1a3a6b',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});}catch(e){b.textContent='Error al generar QR';}
 }
-function downloadQR(eqId){
-  var canvas=document.querySelector('#qr-box canvas');if(!canvas){showToast('Esperá que cargue el QR','warn');return;}
-  var a=document.createElement('a');a.download='qr-'+eqId+'.png';a.href=canvas.toDataURL('image/png');a.click();
+function downloadQRCard(eqId){
+  var card=document.getElementById('qr-card');
+  var canvas=document.querySelector('#qr-box canvas');
+  if(!canvas){showToast('Esperá que cargue el QR','warn');return;}
+  // Use html2canvas if available, else fall back to QR canvas only
+  if(typeof html2canvas!=='undefined'){
+    html2canvas(card,{backgroundColor:'#ffffff',scale:3}).then(function(c){
+      var a=document.createElement('a');a.download='qr-'+eqId+'.png';a.href=c.toDataURL('image/png');a.click();
+    });
+  }else{
+    var a=document.createElement('a');a.download='qr-'+eqId+'.png';a.href=canvas.toDataURL('image/png');a.click();
+  }
+}
+function printQRCard(){
+  var card=document.getElementById('qr-card');if(!card)return;
+  var w=window.open('','_blank','width=400,height=500');
+  w.document.write('<html><head><title>QR Equipo</title><style>body{margin:0;display:flex;justify-content:center;align-items:center;min-height:100vh;background:#fff;font-family:-apple-system,sans-serif;}@media print{body{margin:0;}}</style></head><body>'+card.outerHTML+'<script>window.onload=function(){window.print();window.close();}<\/script></body></html>');
+  w.document.close();
 }
 function openModalMant(eqId){
   var eq=eqs.find(function(e){return e.id===eqId;});var ci=catById(eq.cat);var td=today();var px=calcP(td,eq.frecuencia);
@@ -9081,8 +9109,8 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="6.1.1";
-var APP_BUILD="15/06/26 21:30";
+var APP_DISPLAY_VERSION="6.1.2";
+var APP_BUILD="15/06/26 22:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
