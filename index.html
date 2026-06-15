@@ -10197,7 +10197,8 @@ function _renderHdrStatus(){
     '</svg>';
   var label=issues===0?'<div style="font-size:.72rem;font-weight:800;color:#34c759;line-height:1.1;letter-spacing:-.3px;">100%</div><div style="font-size:.52rem;font-weight:600;color:rgba(52,199,89,.7);white-space:nowrap;">Operativos</div>':
     '<div style="font-size:.72rem;font-weight:800;color:'+clr+';line-height:1.1;letter-spacing:-.3px;">'+pct+'%</div><div style="font-size:.52rem;font-weight:600;color:'+clr+'99;white-space:nowrap;">'+issues+' fuera srv</div>';
-  el.innerHTML=svg+'<div>'+label+'</div>';
+  var verBadge='<div style="font-size:.52rem;font-weight:700;color:var(--text3);font-family:monospace;padding:2px 7px;border-radius:6px;background:rgba(0,0,0,.05);border:1px solid rgba(0,0,0,.06);white-space:nowrap;">v'+(APP_DISPLAY_VERSION||APP_VERSION||'')+'</div>';
+  el.innerHTML=svg+'<div>'+label+'</div>'+verBadge;
 }
 
 // ── SIDEBAR CALENDAR (kept for buildCalEvents used elsewhere) ──
