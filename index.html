@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.15.155 -->
+<!-- v2026.06.15.160 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.15.155">
+<meta name="app-version" content="v2026.06.15.160">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3966,7 +3966,100 @@ function _rDetalleAdmin(eq){
       '</div>'+
     '</div>'+
   '</div>';
+  // ── Documentos (pólizas, habilitaciones, manuales, órdenes de servicio) ──
+  var _docs=eq.documentos||[];
+  h+='<div class="gc" style="padding:0;margin-bottom:10px;overflow:hidden;border-left:4px solid rgba(14,165,233,.5);">'+
+    '<div style="background:linear-gradient(90deg,rgba(14,165,233,.12),rgba(14,165,233,.05));padding:9px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(14,165,233,.10);">'+
+      '<span style="font-size:1rem;">📁</span>'+
+      '<span style="font-size:.72rem;font-weight:700;color:#0ea5e9;text-transform:uppercase;letter-spacing:.06em;flex:1;">Documentos'+(_docs.length?' ('+_docs.length+')':'')+'</span>'+
+      '<button onclick="openDocsModal(\''+eq.id+'\')" style="padding:5px 12px;border-radius:var(--r-pill);background:rgba(14,165,233,.10);border:1.5px solid rgba(14,165,233,.28);color:#0ea5e9;font-weight:700;font-size:.72rem;cursor:pointer;">+ Agregar</button>'+
+    '</div>'+
+    '<div style="padding:12px 14px;">';
+  if(!_docs.length){
+    h+='<div style="font-size:.78rem;color:var(--text3);text-align:center;padding:8px 0;">Sin documentos cargados</div>';
+  } else {
+    _docs.forEach(function(d){
+      h+='<div style="display:flex;align-items:center;gap:10px;padding:8px;background:rgba(14,165,233,.05);border-radius:var(--r-sm);margin-bottom:6px;">'+
+        '<span style="font-size:1.3rem;">📄</span>'+
+        '<div style="flex:1;min-width:0;">'+
+          '<div style="font-size:.78rem;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(d.nombre)+'</div>'+
+          '<div style="font-size:.62rem;color:var(--text3);margin-top:1px;">'+_docTipoLbl(d.tipo)+(d.fecha?' · '+fD(d.fecha):'')+'</div>'+
+        '</div>'+
+        '<button onclick="openPDFViewer(\''+d.id+'\',\''+esc(d.nombre)+'\')" style="background:#0ea5e9;color:#fff;border:none;border-radius:50px;padding:6px 14px;font-size:.72rem;font-weight:700;cursor:pointer;flex-shrink:0;">Abrir</button>'+
+        '<button onclick="delDoc(\''+eq.id+'\',\''+d.id+'\')" style="background:rgba(255,59,48,.10);border:1.5px solid rgba(255,59,48,.25);color:var(--red);border-radius:50px;padding:6px 10px;font-size:.78rem;cursor:pointer;flex-shrink:0;" title="Eliminar">🗑</button>'+
+      '</div>';
+    });
+  }
+  h+='</div></div>';
   return h;
+}
+// ── Documentos del equipo ──
+var _DOC_TIPOS=[{id:'poliza',lbl:'🛡 Póliza'},{id:'habilitacion',lbl:'🏛 Habilitación'},{id:'manual',lbl:'📘 Manual'},{id:'orden',lbl:'🧾 Orden de servicio'},{id:'otro',lbl:'📄 Otro'}];
+function _docTipoLbl(t){for(var i=0;i<_DOC_TIPOS.length;i++){if(_DOC_TIPOS[i].id===t)return _DOC_TIPOS[i].lbl;}return '📄 Documento';}
+var _pendingDocs=[];
+function openDocsModal(eqId){
+  var eq=eqs.find(function(e){return e.id===eqId;});if(!eq)return;
+  _pendingDocs=[];
+  var tipoOpts=_DOC_TIPOS.map(function(t){return'<option value="'+t.id+'">'+t.lbl+'</option>';}).join('');
+  openModal(
+    '<div style="background:linear-gradient(90deg,rgba(14,165,233,.14),rgba(14,165,233,.06));margin:-16px -16px 14px -16px;padding:12px 16px;border-bottom:1px solid rgba(14,165,233,.18);border-radius:var(--r-md) var(--r-md) 0 0;display:flex;align-items:center;gap:8px;">'+
+      '<span style="font-size:1.2rem;">📁</span>'+
+      '<div><div style="font-size:.82rem;font-weight:700;color:#0ea5e9;">Agregar documentos</div>'+
+        '<div style="font-size:.66rem;color:rgba(14,165,233,.7);">'+esc(eq.nombre)+'</div></div>'+
+    '</div>'+
+    '<div class="ff"><div class="ff-label">Tipo de documento</div><select class="inp" id="doc-tipo">'+tipoOpts+'</select></div>'+
+    '<div class="ff"><div class="ff-label">Fecha (opcional)</div><input class="inp" type="date" id="doc-fecha" value="'+today()+'"></div>'+
+    '<button onclick="attachDocPDF()" style="width:100%;padding:11px;border-radius:var(--r-md);background:rgba(14,165,233,.10);border:1.5px dashed rgba(14,165,233,.4);color:#0ea5e9;font-weight:700;font-size:.82rem;cursor:pointer;margin-bottom:10px;">📎 Adjuntar PDF</button>'+
+    '<div id="doc-pending-list" style="margin-bottom:12px;"></div>'+
+    '<button class="btn-grad btn-grad-blue" style="background:linear-gradient(135deg,#0ea5e9,#0284c7);" onclick="submitDocs(\''+eqId+'\')">💾 Guardar documentos</button>'
+  );
+}
+function attachDocPDF(){
+  var tipo=((document.getElementById('doc-tipo')||{}).value)||'otro';
+  var fecha=((document.getElementById('doc-fecha')||{}).value)||'';
+  var input=document.createElement('input');input.type='file';input.accept='application/pdf,image/*';input.multiple=true;
+  input.onchange=function(){
+    Array.from(input.files).forEach(function(file){
+      var reader=new FileReader();
+      reader.onload=function(e){
+        _pendingDocs.push({id:'F-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),nombre:file.name,size:file.size,tipo:tipo,fecha:fecha,data:e.target.result});
+        renderDocPending();
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+  input.click();
+}
+function renderDocPending(){
+  var el=document.getElementById('doc-pending-list');if(!el)return;
+  el.innerHTML=_pendingDocs.map(function(f,i){
+    return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(0,0,0,.05);">'+
+      '<span style="font-size:1.1rem;">📄</span>'+
+      '<div style="flex:1;min-width:0;"><div style="font-size:.74rem;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(f.nombre)+'</div>'+
+      '<div style="font-size:.6rem;color:var(--text3);">'+_docTipoLbl(f.tipo)+' · '+(f.size/1024).toFixed(0)+'KB</div></div>'+
+      '<button onclick="removeDocPending('+i+')" style="background:none;border:none;color:var(--red);font-size:.9rem;cursor:pointer;padding:2px 6px;">✕</button></div>';
+  }).join('');
+}
+function removeDocPending(i){_pendingDocs.splice(i,1);renderDocPending();}
+function submitDocs(eqId){
+  if(!_pendingDocs.length){closeModal();return;}
+  var refs=_pendingDocs.map(function(f){return{id:f.id,nombre:f.nombre,size:f.size,tipo:f.tipo,fecha:f.fecha};});
+  _pendingDocs.forEach(function(f){dbSave(f.id,f.nombre,f.data);});
+  eqs=eqs.map(function(e){
+    if(e.id!==eqId)return e;
+    return Object.assign({},e,{documentos:(e.documentos||[]).concat(refs)});
+  });
+  _pendingDocs=[];
+  saveData();render();closeModal();showToast('✅ Documentos guardados','');
+}
+function delDoc(eqId,fileId){
+  if(!confirm('¿Eliminar este documento? Esta acción no se puede deshacer.'))return;
+  dbDel(fileId);
+  eqs=eqs.map(function(e){
+    if(e.id!==eqId)return e;
+    return Object.assign({},e,{documentos:(e.documentos||[]).filter(function(d){return d.id!==fileId;})});
+  });
+  saveData();render();showToast('Documento eliminado','warn');
 }
 function openAdminModal(eqId){
   var eq=eqs.find(function(e){return e.id===eqId;});if(!eq)return;
@@ -8427,8 +8520,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.9.9";
-var APP_BUILD="15/06/26 17:45";
+var APP_DISPLAY_VERSION="6.0.0";
+var APP_BUILD="15/06/26 18:10";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
