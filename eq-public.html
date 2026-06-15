@@ -32,7 +32,7 @@ body{background:#06091a;color:rgba(255,255,255,.9);font-family:-apple-system,Bli
 .nivel-bar{height:100%;border-radius:6px;transition:width .4s;}
 .falla-item{padding:9px 0;border-bottom:1px solid rgba(255,255,255,.05);display:flex;align-items:flex-start;gap:10px;}
 .falla-item:last-child{border-bottom:none;}
-.falla-dot{width:8px;height:8px;border-radius:50%;background:#ff3b30;flex-shrink:0;margin-top:4px;box-shadow:0 0 6px #ff3b30;}
+.falla-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px;}
 .falla-nom{font-size:.82rem;font-weight:600;}
 .falla-desc{font-size:.7rem;color:rgba(255,255,255,.45);margin-top:2px;}
 .empty-state{text-align:center;padding:18px 0;color:rgba(255,255,255,.3);font-size:.8rem;}
@@ -206,21 +206,28 @@ function renderEq(eq) {
   }
   html += '</div></div>';
 
-  // ── Roturas activas ──
-  var roturas = (eq.partes || []).filter(function(p){ return p.estado === 'roto'; });
+  // ── Fallas y pendientes ──
+  var roturas = (eq.partes || []).filter(function(p){ return p.estado === 'roto' || p.estado === 'pendiente'; });
+  var hayProblemas = roturas.length > 0;
   html += '<div class="card">';
-  html += '<div class="card-hdr"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="' + (roturas.length ? '#ff9500' : 'rgba(52,199,89,.8)') + '" stroke-width="2.2" stroke-linecap="round"><path d="M14.5 10c-.83 0-1.5-.67-1.5-1.5v-5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5z"/><path d="M20.5 10H19V8.5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/><path d="M9.5 14c.83 0 1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5S8 21.33 8 20.5v-5c0-.83.67-1.5 1.5-1.5z"/><path d="M3.5 14H5v1.5c0 .83-.67 1.5-1.5 1.5S2 16.33 2 15.5 2.67 14 3.5 14z"/><path d="M14 14.5c0-.83.67-1.5 1.5-1.5h5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5h-5c-.83 0-1.5-.67-1.5-1.5z"/><path d="M15.5 9H14v1.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5S16.33 9 15.5 9z"/><path d="M10 9.5C10 8.67 9.33 8 8.5 8h-5C2.67 8 2 8.67 2 9.5S2.67 11 3.5 11h5c.83 0 1.5-.67 1.5-1.5z"/><path d="M8.5 15H10v-1.5c0-.83-.67-1.5-1.5-1.5S7 12.67 7 13.5 7.67 15 8.5 15z"/></svg>';
-  html += '<span class="card-hdr-label" style="color:' + (roturas.length ? '#ff9500' : 'rgba(52,199,89,.8)') + ';">Fallas / Roturas activas ' + (roturas.length ? '(' + roturas.length + ')' : '') + '</span></div>';
+  html += '<div class="card-hdr"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="' + (hayProblemas ? '#ff9500' : 'rgba(52,199,89,.8)') + '" stroke-width="2.2" stroke-linecap="round"><path d="M14.5 10c-.83 0-1.5-.67-1.5-1.5v-5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5z"/><path d="M20.5 10H19V8.5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/><path d="M9.5 14c.83 0 1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5S8 21.33 8 20.5v-5c0-.83.67-1.5 1.5-1.5z"/><path d="M3.5 14H5v1.5c0 .83-.67 1.5-1.5 1.5S2 16.33 2 15.5 2.67 14 3.5 14z"/><path d="M14 14.5c0-.83.67-1.5 1.5-1.5h5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5h-5c-.83 0-1.5-.67-1.5-1.5z"/><path d="M15.5 9H14v1.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5S16.33 9 15.5 9z"/><path d="M10 9.5C10 8.67 9.33 8 8.5 8h-5C2.67 8 2 8.67 2 9.5S2.67 11 3.5 11h5c.83 0 1.5-.67 1.5-1.5z"/><path d="M8.5 15H10v-1.5c0-.83-.67-1.5-1.5-1.5S7 12.67 7 13.5 7.67 15 8.5 15z"/></svg>';
+  html += '<span class="card-hdr-label" style="color:' + (hayProblemas ? '#ff9500' : 'rgba(52,199,89,.8)') + ';">Fallas y pendientes' + (hayProblemas ? ' (' + roturas.length + ')' : '') + '</span></div>';
   html += '<div class="card-body">';
-  if (!roturas.length) {
-    html += '<div class="empty-state">✅ Sin fallas activas</div>';
+  if (!hayProblemas) {
+    html += '<div class="empty-state">✅ Sin fallas ni pendientes</div>';
   } else {
     roturas.forEach(function(p) {
+      var esRoto = p.estado === 'roto';
+      var dotColor = esRoto ? '#ff3b30' : '#ff9500';
+      var estadoLabel = esRoto ? 'Roto' : 'Pendiente';
       var diasRoto = p.fechaRotura ? diasH(p.fechaRotura) : null;
       html += '<div class="falla-item">';
-      html += '<div class="falla-dot"></div>';
+      html += '<div class="falla-dot" style="background:' + dotColor + ';box-shadow:0 0 6px ' + dotColor + ';"></div>';
       html += '<div style="flex:1;">';
-      html += '<div class="falla-nom">' + esc(p.nombre) + '</div>';
+      html += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">';
+      html += '<span class="falla-nom">' + esc(p.nombre) + '</span>';
+      html += '<span style="font-size:.55rem;font-weight:700;padding:1px 6px;border-radius:10px;background:' + dotColor + '22;color:' + dotColor + ';">' + estadoLabel + '</span>';
+      html += '</div>';
       if (p.descripcion || p.notas) html += '<div class="falla-desc">' + esc(p.descripcion || p.notas) + '</div>';
       if (diasRoto !== null) html += '<div style="font-size:.65rem;color:#ff9500;margin-top:3px;">Desde: ' + fD(p.fechaRotura) + ' (hace ' + Math.abs(diasRoto) + ' días)</div>';
       html += '</div></div>';
