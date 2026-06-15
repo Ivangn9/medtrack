@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.11.145 -->
+<!-- v2026.06.11.150 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.11.145">
+<meta name="app-version" content="v2026.06.11.150">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1779,7 +1779,8 @@ function goDetalle(id){selId=id;view="detalle";_detalleQ="";_detalleSearchOpen=f
 function goBack(){
   if(view==="antenaDetalle"){view="antenas";render();}
   else if(view==="antenas"){selId=selAntenaEqId;view="detalle";_detalleQ="";_detalleSearchOpen=false;render();}
-  else if(view==="aireDetalle"){view="aires";render();}
+  else if(view==="aireDetalle"){view="aires";document.getElementById("back-btn").classList.remove("hidden");render();}
+  else if(view==="aires"){setView("dash");}
   else if(view==="transductorDetalle"){view="transductores";render();}
   else if(view==="transductores"){selId=selTransdEqId;view="detalle";_detalleQ="";_detalleSearchOpen=false;render();}
   else if(view==="reporte"){setView("dash");}
@@ -4362,7 +4363,7 @@ function rDetalle(){
     var _liqPCol=(!isNaN(_liqPorc)&&_liqPorc<70)?'#f87171':'#0ea5e9';
     var _liqPresTxt=!isNaN(_liqPres)?_liqPres.toFixed(1)+' PSI':'—';
     var _liqPresCol=(!isNaN(_liqPres)&&(_liqPres<0.9||_liqPres>2.0))?'#f87171':'#34d399';
-    h+='<div class="gc" style="padding:0;margin-bottom:12px;overflow:hidden;border-left:4px solid rgba(99,179,237,.5);">';
+    h+='<div class="gc tap" onclick="setDetalleTab(\'refrig\')" style="cursor:pointer;padding:0;margin-bottom:12px;overflow:hidden;border-left:4px solid rgba(99,179,237,.5);" ontouchstart="this.style.transform=\'scale(.98)\'" ontouchend="this.style.transform=\'\'">';
     h+='<div style="background:linear-gradient(90deg,rgba(8,145,178,.12),rgba(99,179,237,.06));padding:8px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(99,179,237,.08);">';
     h+='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(8,145,178,.9)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/></svg>';
     h+='<span style="font-size:.72rem;font-weight:700;color:#0891b2;text-transform:uppercase;letter-spacing:.06em;flex:1;">Refrigeración</span>';
@@ -4444,7 +4445,7 @@ function rDetalle(){
   var _rotTotal=_rotActivas.length;
   var _mejTotal=eq.partes.filter(function(p){return p.estado==='mejora';}).length;
   var _histTotal=(eq.historialMant||[]).length;
-  hR+='<div class="gc" style="padding:0;margin-bottom:8px;overflow:hidden;border-left:4px solid rgba(255,59,48,.45);background:linear-gradient(135deg,rgba(255,59,48,.08) 0%,rgba(255,69,58,.04) 100%);">';
+  hR+='<div class="gc tap" onclick="setDetalleTab(\'fallas\')" style="cursor:pointer;padding:0;margin-bottom:8px;overflow:hidden;border-left:4px solid rgba(255,59,48,.45);background:linear-gradient(135deg,rgba(255,59,48,.08) 0%,rgba(255,69,58,.04) 100%);" ontouchstart="this.style.transform=\'scale(.98)\'" ontouchend="this.style.transform=\'\'">';
   hR+='<div style="background:linear-gradient(90deg,rgba(255,59,48,.12),rgba(255,69,58,.07));padding:8px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(255,59,48,.10);">';
   hR+='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(220,38,38,.9)" stroke-width="2.2" stroke-linecap="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>';
   hR+='<span style="font-size:.72rem;font-weight:700;color:rgba(220,38,38,.9);text-transform:uppercase;letter-spacing:.06em;flex:1;">Roturas y Fallas</span>';
@@ -8411,8 +8412,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.9.7";
-var APP_BUILD="11/06/26 21:00";
+var APP_DISPLAY_VERSION="5.9.8";
+var APP_BUILD="15/06/26 17:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
