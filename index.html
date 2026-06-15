@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.15.175 -->
+<!-- v2026.06.15.177 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.15.175">
+<meta name="app-version" content="v2026.06.15.177">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1111,6 +1111,9 @@ body.dark .sb-card{background:rgba(255,255,255,.06);border-color:rgba(255,255,25
     <button class="sb-nav-btn" data-sb="kpi" onclick="setView('kpi')"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg></span>KPI & Gastos</button>
     <button class="sb-nav-btn" data-sb="ejecutivo" onclick="setView('ejecutivo')"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M7 8h10M7 12h6"/></svg></span>Ejecutivo</button>
     <button class="sb-nav-btn" data-sb="bajas" onclick="setView('bajas')"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></span>Bajas</button>
+    <button class="sb-nav-btn" data-sb="calendario" onclick="setView('calendario')"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>Calendario PM</button>
+    <button class="sb-nav-btn" data-sb="ordenes" onclick="setView('ordenes')"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg></span>Órdenes de Trabajo</button>
+    <button class="sb-nav-btn" data-sb="repuestos" onclick="setView('repuestos')"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg></span>Repuestos</button>
     <button class="sb-nav-btn" id="sb-ajustes-btn" onclick="toggleSbAjustesMenu(event)"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span>Ajustes<span style="margin-left:auto;font-size:.65rem;opacity:.5;transition:transform .2s;" id="sb-aj-chevron">▸</span></button>
   </div>
   <!-- Charts section -->
@@ -1573,10 +1576,12 @@ var _pendingGEParams=null;
   }
 })();
 var eqs=[],view="dash",selId=null,selAntenaEqId=null,selAntenaId=null,selTransdEqId=null,selTransdId=null,filtCat="TODOS",toastTimer=null,darkMode=false,fontScale=100,glassMode=3;
+var ordenesTrabajo=[];
+var repuestos=[];
 
 function saveData(){
   var now=new Date().toISOString();
-  try{localStorage.setItem("mt_v4",JSON.stringify(eqs));localStorage.setItem("mt_antenas",JSON.stringify(antenas));localStorage.setItem("mt_aires",JSON.stringify(aires));localStorage.setItem("mt_transductores",JSON.stringify(transductores));localStorage.setItem("mt_updatedAt",now);}catch(e){}
+  try{localStorage.setItem("mt_v4",JSON.stringify(eqs));localStorage.setItem("mt_antenas",JSON.stringify(antenas));localStorage.setItem("mt_aires",JSON.stringify(aires));localStorage.setItem("mt_transductores",JSON.stringify(transductores));localStorage.setItem("mt_ordenes",JSON.stringify(ordenesTrabajo));localStorage.setItem("mt_repuestos",JSON.stringify(repuestos));localStorage.setItem("mt_updatedAt",now);}catch(e){}
   firestoreSave();
 }
 var _kpiUsdRate=null;
@@ -1616,6 +1621,82 @@ function _kpiFetchRate(cb){
     })
     .catch(function(){if(cb)cb(null);});
 }
+function _pad2(n){return n<10?'0'+n:String(n);}
+function calcMTBF(eq){
+  var faults=(eq.partes||[]).filter(function(p){return p.fechaRotura;});
+  if(faults.length<2)return null;
+  faults.sort(function(a,b){return a.fechaRotura>b.fechaRotura?1:-1;});
+  var totalGap=0;var count=0;
+  for(var i=1;i<faults.length;i++){
+    var d1=new Date(faults[i-1].fechaRotura+'T12:00:00');
+    var d2=new Date(faults[i].fechaRotura+'T12:00:00');
+    var gap=Math.round((d2-d1)/86400000);
+    if(gap>0){totalGap+=gap;count++;}
+  }
+  return count>0?Math.round(totalGap/count):null;
+}
+function calcMTTR(eq){
+  var repaired=(eq.partes||[]).filter(function(p){return p.fechaRotura&&p.fechaArreglo;});
+  if(!repaired.length)return null;
+  var total=0;
+  repaired.forEach(function(p){
+    var d1=new Date(p.fechaRotura+'T12:00:00');
+    var d2=new Date(p.fechaArreglo+'T12:00:00');
+    var diff=Math.round((d2-d1)/86400000);
+    if(diff>=0)total+=diff;
+  });
+  return Math.round(total/repaired.length);
+}
+function calcAvailability(eq){
+  var instDate=eq.instalacion?new Date(eq.instalacion+'T12:00:00'):null;
+  if(!instDate)return null;
+  var totalDays=Math.round((new Date()-instDate)/86400000);
+  if(totalDays<=0)return null;
+  var repaired=(eq.partes||[]).filter(function(p){return p.fechaRotura&&p.fechaArreglo;});
+  var downDays=0;
+  repaired.forEach(function(p){
+    var d1=new Date(p.fechaRotura+'T12:00:00');
+    var d2=new Date(p.fechaArreglo+'T12:00:00');
+    var diff=Math.round((d2-d1)/86400000);
+    if(diff>=0)downDays+=diff;
+  });
+  return Math.min(100,Math.max(0,Math.round((1-downDays/totalDays)*100)));
+}
+var _RISK_CAT_WEIGHT={RM:5,TC:5,ARC:4,RX:4,DES:5,VEN:5,ANE:5,MON:3,ECO:3,UPS:4,LAB:2,OTR:1};
+function calcRiskScore(eq){
+  var clinical=_RISK_CAT_WEIGHT[eq.cat]||2;
+  var maintScore={trimestral:5,semestral:4,anual:2,ninguna:1}[eq.frecuencia]||3;
+  var faultCount=(eq.partes||[]).filter(function(p){return p.fechaRotura;}).length;
+  var incidentScore=faultCount>=5?5:faultCount>=3?4:faultCount>=2?3:faultCount>=1?2:1;
+  var ageScore=1;
+  if(eq.instalacion){
+    var ageYrs=(new Date()-new Date(eq.instalacion+'T12:00:00'))/(365.25*86400000);
+    var lifespan={RM:15,TC:15,RX:12,ECO:10,DES:8,VEN:10,ANE:10,MON:7,UPS:8,ARC:12,LAB:8,OTR:8}[eq.cat]||10;
+    var agePct=ageYrs/lifespan;
+    ageScore=agePct>=1?5:agePct>=.8?4:agePct>=.6?3:agePct>=.4?2:1;
+  }
+  var total=clinical+maintScore+incidentScore+ageScore;
+  var level=total>=17?'critico':total>=13?'alto':total>=9?'medio':'bajo';
+  return{score:total,level:level,clinical:clinical,maint:maintScore,incident:incidentScore,age:ageScore};
+}
+function riskLevelColor(level){return{critico:'var(--red)',alto:'var(--orange)',medio:'#f59e0b',bajo:'var(--green)'}[level]||'var(--text3)';}
+function riskLevelLabel(level){return{critico:'🔴 Crítico',alto:'🟠 Alto',medio:'🟡 Medio',bajo:'🟢 Bajo'}[level]||level;}
+function calcLifecycle(eq){
+  if(!eq.instalacion)return null;
+  var ageMs=new Date()-new Date(eq.instalacion+'T12:00:00');
+  var ageYrs=ageMs/(365.25*86400000);
+  var lifespan=parseFloat(eq.vidaUtilAnios)||{RM:15,TC:15,RX:12,ECO:10,DES:8,VEN:10,ANE:10,MON:7,UPS:8,ARC:12,LAB:8,OTR:8}[eq.cat]||10;
+  var agePct=Math.round(ageYrs/lifespan*100);
+  var totalRepairCost=0;
+  (eq.historialMant||[]).forEach(function(h){var p=parseFloat(h.precio);if(p>0)totalRepairCost+=(h.precioMoneda==='ARS'?_kpiArsToUsd(p):p);});
+  (eq.partes||[]).forEach(function(p2){var pc=parseFloat(p2.precio);if(pc>0)totalRepairCost+=(p2.precioMoneda==='ARS'?_kpiArsToUsd(pc):pc);});
+  var valorRepos=parseFloat(eq.valorReposicion)||0;
+  var costPct=valorRepos>0?Math.round(totalRepairCost/valorRepos*100):null;
+  var zone='ok';
+  if(agePct>=100||(costPct!==null&&costPct>=75))zone='reemplazo';
+  else if(agePct>=75||(costPct!==null&&costPct>=50))zone='atencion';
+  return{ageYrs:Math.round(ageYrs*10)/10,agePct:agePct,lifespan:lifespan,totalRepairCost:totalRepairCost,valorRepos:valorRepos,costPct:costPct,zone:zone};
+}
 function _kpiArsToUsd(ars){
   if(!_kpiUsdRate||_kpiUsdRate<=0)return ars;
   return ars/_kpiUsdRate;
@@ -1633,7 +1714,7 @@ function _fsWrite(tryN){
   if(!window._fbUser||!window._fbdb){_fsWriting=false;return;}
   _fsWriting=true;
   orgDataRef()
-    .set({eqs:eqs,antenas:antenas,aires:aires,transductores:transductores,updatedAt:new Date().toISOString()},{merge:true})
+    .set({eqs:eqs,antenas:antenas,aires:aires,transductores:transductores,ordenesTrabajo:ordenesTrabajo,repuestos:repuestos,updatedAt:new Date().toISOString()},{merge:true})
     .then(function(){_fsWriting=false;_fsDirty=false;_fsFailed=false;})
     .catch(function(e){
       _fsWriting=false;
@@ -1867,6 +1948,21 @@ function getAlertas(){
     }
   });
   activeEqs.forEach(function(e){if(e.cat!=='DES')return;if(e.parches_vencimiento){var dp=diasH(e.parches_vencimiento);if(dp<0)a.push({k:e.id+"pv",niv:"critico",tit:e.nombre,desc:"⚡ Parches VENCIDOS — "+fD(e.parches_vencimiento),eid:e.id});else if(dp<=60)a.push({k:e.id+"pp",niv:"advertencia",tit:e.nombre,desc:"⚡ Parches vencen en "+dp+"d — "+fD(e.parches_vencimiento),eid:e.id});}if(e.bateria_vencimiento){var db=diasH(e.bateria_vencimiento);if(db<0)a.push({k:e.id+"bv",niv:"critico",tit:e.nombre,desc:"⚡ Batería VENCIDA — "+fD(e.bateria_vencimiento),eid:e.id});else if(db<=60)a.push({k:e.id+"bp",niv:"advertencia",tit:e.nombre,desc:"⚡ Batería vence en "+db+"d — "+fD(e.bateria_vencimiento),eid:e.id});}});
+  activeEqs.forEach(function(e){
+    var _rsk=calcRiskScore(e);
+    if(_rsk.level==='critico')a.push({k:e.id+'rsk',niv:'advertencia',tit:e.nombre,desc:'⚠️ Riesgo institucional CRÍTICO (score '+_rsk.score+'/20)',eid:e.id});
+  });
+  activeEqs.forEach(function(e){
+    var _lc=calcLifecycle(e);
+    if(!_lc)return;
+    if(_lc.zone==='reemplazo')a.push({k:e.id+'lcrep',niv:'advertencia',tit:e.nombre,desc:'♻️ Reemplazo sugerido — '+_lc.agePct+'% de vida útil'+(_lc.costPct!==null?', costo acum. '+_lc.costPct+'% del valor':''),eid:e.id});
+  });
+  repuestos.forEach(function(r){
+    var cant=parseFloat(r.cantidad);if(isNaN(cant))cant=0;
+    var minimo=parseFloat(r.stockMinimo);if(isNaN(minimo))minimo=0;
+    if(cant<=0)a.push({k:'rep'+r.id+'out',niv:'critico',tit:r.nombre,desc:'📦 Repuesto SIN STOCK',eid:''});
+    else if(minimo>0&&cant<=minimo)a.push({k:'rep'+r.id+'low',niv:'advertencia',tit:r.nombre,desc:'📦 Stock bajo: '+cant+' (mín '+minimo+')',eid:''});
+  });
   return a;
 }
 
@@ -2324,6 +2420,11 @@ function openModalEq(eq){
       +'<div class="ff"><div class="ff-label">AE Title</div><input class="inp" id="eq-wl-ae" value="'+esc(f.wlAE||'')+'" placeholder="WORKLIST_SCP"></div></div>'
     )
     +'</div>'
+    +'<div class="ff-sect">📈 Ciclo de Vida</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">'
+    +'<div class="ff"><div class="ff-label">Valor de reposición (USD)</div><input class="inp" type="number" id="eq-valor-repos" value="'+(f.valorReposicion?esc(f.valorReposicion):'')+'" placeholder="Ej: 200000" min="0"></div>'
+    +'<div class="ff"><div class="ff-label">Vida útil esperada (años)</div><input class="inp" type="number" id="eq-vida-util" value="'+(f.vidaUtilAnios?esc(f.vidaUtilAnios):'')+'" placeholder="Ej: 10" min="1" max="30"></div>'
+    +'</div>'
     +'<button class="btn-primary" style="width:100%;padding:14px;font-size:.92rem;" onclick="submitEq(\''+((f.id)||"")+'\')">'+(n?"✅ Agregar":"💾 Guardar")+'</button>');
 }
 function submitEq(eid){
@@ -2359,6 +2460,8 @@ function submitEq(eid){
   d.pacsAE=((document.getElementById("eq-pacs-ae")||{}).value||'').trim();
   d.wlIp=((document.getElementById("eq-wl-ip")||{}).value||'').trim();
   d.wlAE=((document.getElementById("eq-wl-ae")||{}).value||'').trim();
+  d.valorReposicion=((document.getElementById('eq-valor-repos')||{}).value||'').trim();
+  d.vidaUtilAnios=((document.getElementById('eq-vida-util')||{}).value||'').trim();
   saveEq(d);
 }
 // ── FILE STORE (IndexedDB + Firebase Storage mirror) ──
@@ -3036,6 +3139,9 @@ function render(){
     else if(view==="ups")d.innerHTML=rUpsSchema();
     else if(view==="kpi")d.innerHTML=rKpi();
     else if(view==="ejecutivo")d.innerHTML=rEjecutivo();
+    else if(view==="calendario")d.innerHTML=rCalendarioPM();
+    else if(view==="ordenes")d.innerHTML=rOrdenes();
+    else if(view==="repuestos")d.innerHTML=rRepuestos();
     m.appendChild(d);
     var spacer=document.createElement("div");spacer.style.height="80px";spacer.style.flexShrink="0";m.appendChild(spacer);
     if(typeof AOS!=="undefined")requestAnimationFrame(function(){requestAnimationFrame(function(){AOS.refresh();});});
@@ -3368,7 +3474,8 @@ function rLista(){
         '<div style="display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;">'+
           pillH(CE[e.estado]||"var(--green)",e.estado==="operativo"?"✅ OK":e.estado==="fuera-de-servicio"?"🚫 Fuera de servicio":"🔧 Roto/Con Fallas")+
           (sinMant(e)?pillH("#8e8e93","⚫ Sin mant."):pillH(CM[ms],"🔧 "+(ms==="vencido"?"VENC":ms==="urgente"?d+"d URG":ms==="proximo"?d+"d prox":d+"d")))+
-          (rot>0?pillH("var(--red)","🔴 "+rot+" roto"+(rot>1?"s":"")):"")+(e.tieneServicio?pillH("var(--green)","✔ Servicio"):"")+'</div></div>'+
+          (rot>0?pillH("var(--red)","🔴 "+rot+" roto"+(rot>1?"s":"")):"")+(e.tieneServicio?pillH("var(--green)","✔ Servicio"):"")+
+        (function(){var _rse=calcRiskScore(e);return _rse.level==='critico'||_rse.level==='alto'?'<span style="font-size:.6rem;font-weight:700;padding:2px 7px;border-radius:10px;background:'+riskLevelColor(_rse.level)+'22;color:'+riskLevelColor(_rse.level)+';border:1px solid '+riskLevelColor(_rse.level)+'44;">'+riskLevelLabel(_rse.level)+'</span>':'';})()+'</div></div>'+
         '<div style="color:var(--text3);font-size:1.2rem;flex-shrink:0;">›</div></div></div>';
       if(r.matchParts.length){
         r.matchParts.forEach(function(p){
@@ -3404,7 +3511,8 @@ function rLista(){
       '<div style="display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;">'+
         pillH(CE[e.estado]||"var(--green)",e.estado==="operativo"?"✅ OK":e.estado==="fuera-de-servicio"?"🚫 Fuera de servicio":"🔧 Roto/Con Fallas")+
         (sinMant(e)?pillH("#8e8e93","⚫ Sin mant."):pillH(CM[ms],"🔧 "+(ms==="vencido"?"VENC":ms==="urgente"?d+"d URG":ms==="proximo"?d+"d prox":d+"d")))+
-        (rot>0?pillH("var(--red)","🔴 "+rot+" roto"+(rot>1?"s":"")):"")+(e.tieneServicio?pillH("var(--green)","✔ Servicio"):"")+'</div></div>'+
+        (rot>0?pillH("var(--red)","🔴 "+rot+" roto"+(rot>1?"s":"")):"")+(e.tieneServicio?pillH("var(--green)","✔ Servicio"):"")+
+      (function(){var _rse=calcRiskScore(e);return _rse.level==='critico'||_rse.level==='alto'?'<span style="font-size:.6rem;font-weight:700;padding:2px 7px;border-radius:10px;background:'+riskLevelColor(_rse.level)+'22;color:'+riskLevelColor(_rse.level)+';border:1px solid '+riskLevelColor(_rse.level)+'44;">'+riskLevelLabel(_rse.level)+'</span>':'';})()+'</div></div>'+
       '<div style="color:var(--text3);font-size:1.2rem;flex-shrink:0;">›</div></div></div>';
   });
   return h;
@@ -3750,6 +3858,369 @@ function _kpiSvgHBars(items,W,H,darkMode2){
   s+='</svg>';
   return s;
 }
+// ── CALENDARIO PM ──
+var _calYear=new Date().getFullYear();
+var _calMonth=new Date().getMonth();
+function rCalendarioPM(){
+  var monthNames=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  var y=_calYear;var m=_calMonth;
+  var firstDay=new Date(y,m,1);var lastDay=new Date(y,m+1,0);
+  var activeEqs2=eqs.filter(function(e){return !e.baja&&_sedeMatch(e)&&!sinMant(e);});
+  var thisMonthMants=[];
+  activeEqs2.forEach(function(e){
+    if(!e.proximoMant)return;
+    var d2=new Date(e.proximoMant+'T12:00:00');
+    if(d2.getFullYear()===y&&d2.getMonth()===m)thisMonthMants.push({eq:e,fecha:e.proximoMant,day:d2.getDate()});
+  });
+  var daysInMonth=lastDay.getDate();var startDow=firstDay.getDay();
+  var byDay={};
+  thisMonthMants.forEach(function(item){if(!byDay[item.day])byDay[item.day]=[];byDay[item.day].push(item);});
+  var h='';
+  h+=sedeBarHTML();
+  h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">';
+  h+='<button onclick="_calMonth--;if(_calMonth<0){_calMonth=11;_calYear--;}render();" style="padding:8px 14px;border-radius:var(--r-pill);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--text2);font-size:.82rem;cursor:pointer;">‹ Anterior</button>';
+  h+='<div style="font-size:1rem;font-weight:800;color:var(--text);">'+monthNames[m]+' '+y+'</div>';
+  h+='<button onclick="_calMonth++;if(_calMonth>11){_calMonth=0;_calYear++;}render();" style="padding:8px 14px;border-radius:var(--r-pill);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--text2);font-size:.82rem;cursor:pointer;">Siguiente ›</button>';
+  h+='</div>';
+  if(thisMonthMants.length){h+='<div style="text-align:center;margin-bottom:14px;"><span style="background:rgba(0,113,227,.12);border:1px solid rgba(0,113,227,.25);color:var(--accent);padding:5px 16px;border-radius:50px;font-size:.78rem;font-weight:700;">'+thisMonthMants.length+' mantenimiento'+(thisMonthMants.length!==1?'s':'')+' este mes</span></div>';}
+  else{h+='<div style="text-align:center;margin-bottom:14px;"><span style="background:rgba(52,199,89,.1);border:1px solid rgba(52,199,89,.2);color:var(--green);padding:5px 16px;border-radius:50px;font-size:.78rem;font-weight:700;">✅ Sin mantenimientos programados este mes</span></div>';}
+  var dow=['Dom','Lun','Mar','Mi\xe9','Jue','Vie','S\xe1b'];
+  h+='<div class="gc" style="padding:12px 14px;margin-bottom:12px;">';
+  h+='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:8px;">';
+  for(var di=0;di<dow.length;di++){h+='<div style="text-align:center;font-size:.62rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;padding:4px 0;">'+dow[di]+'</div>';}
+  h+='</div><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;">';
+  for(var i=0;i<startDow;i++){h+='<div></div>';}
+  var today3=today();
+  for(var day=1;day<=daysInMonth;day++){
+    var dateStr=y+'-'+_pad2(m+1)+'-'+_pad2(day);
+    var isToday=(dateStr===today3);
+    var items=(byDay[day]||[]);var hasMant=items.length>0;
+    var cellBg=isToday?'rgba(0,113,227,.2)':hasMant?'rgba(52,199,89,.1)':'rgba(255,255,255,.03)';
+    var cellBorder=isToday?'rgba(0,113,227,.5)':hasMant?'rgba(52,199,89,.3)':'rgba(255,255,255,.06)';
+    h+='<div style="border:1.5px solid '+cellBorder+';border-radius:10px;background:'+cellBg+';min-height:52px;padding:5px;position:relative;">';
+    h+='<div style="font-size:.68rem;font-weight:'+(isToday?'800':'600')+';color:'+(isToday?'var(--accent)':hasMant?'var(--green)':'var(--text3)')+';">'+day+'</div>';
+    if(hasMant){
+      var maxS=items.length<2?items.length:2;
+      for(var ii=0;ii<maxS;ii++){
+        var item2=items[ii];var ci4=catById(item2.eq.cat);
+        h+='<div onclick="event.stopPropagation();goDetalle(\''+item2.eq.id+'\')" style="margin-top:2px;padding:2px 4px;border-radius:5px;background:'+ci4.color+'22;border:1px solid '+ci4.color+'44;cursor:pointer;" title="'+esc(item2.eq.nombre)+'">';
+        h+='<div style="font-size:.5rem;font-weight:700;color:'+ci4.color+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+esc((item2.eq.nombre.split(' ').slice(0,2)).join(' '))+'</div></div>';
+      }
+      if(items.length>2)h+='<div style="font-size:.48rem;color:var(--text3);margin-top:1px;">+'+(items.length-2)+' m\xe1s</div>';
+    }
+    h+='</div>';
+  }
+  h+='</div></div>';
+  if(thisMonthMants.length){
+    h+='<div class="sec">Detalle del mes</div>';
+    var sorted=thisMonthMants.slice().sort(function(a,b){return a.fecha>b.fecha?1:-1;});
+    for(var si=0;si<sorted.length;si++){
+      var sitem=sorted[si];var ci5=catById(sitem.eq.cat);var d5=diasH(sitem.fecha);
+      var urgC=d5<0?'var(--red)':d5<=7?'var(--orange)':'var(--green)';
+      h+='<div class="gc tap" onclick="goDetalle(\''+sitem.eq.id+'\')" style="padding:12px 14px;margin-bottom:8px;cursor:pointer;border-left:4px solid '+ci5.color+';">';
+      h+='<div style="display:flex;align-items:center;gap:10px;"><div style="flex:1;min-width:0;">';
+      h+='<div style="font-weight:700;font-size:.86rem;">'+esc(sitem.eq.nombre)+'</div>';
+      h+='<div style="font-size:.7rem;color:var(--text3);">'+ci5.label+(sitem.eq.ubicacion?' \xb7 📍 '+esc(sitem.eq.ubicacion):'')+'</div>';
+      h+='</div><div style="text-align:right;flex-shrink:0;">';
+      h+='<div style="font-size:.8rem;font-weight:700;color:'+urgC+';">'+fD(sitem.fecha)+'</div>';
+      h+='<div style="font-size:.65rem;color:var(--text3);">'+(d5<0?'Vencido hace '+Math.abs(d5)+'d':d5===0?'Hoy':d5+'d restantes')+'</div>';
+      h+='</div></div></div>';
+    }
+  }
+  return h;
+}
+// ── ÓRDENES DE TRABAJO ──
+var OT_ESTADOS={pendiente:'Pendiente',asignada:'Asignada',en_progreso:'En progreso',cerrada:'Cerrada',cancelada:'Cancelada'};
+var OT_TIPOS={correctivo:'Correctivo',preventivo:'Preventivo',mejora:'Mejora'};
+var OT_PRIORIDADES={urgente:'Urgente',alta:'Alta',normal:'Normal',baja:'Baja'};
+var _otFiltroEstado='todos';
+function rOrdenes(){
+  var h='';
+  h+=sedeBarHTML();
+  h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">';
+  h+='<div style="font-weight:800;font-size:1rem;color:var(--text);">Órdenes de Trabajo</div>';
+  h+='<div style="display:flex;gap:8px;">';
+  h+='<button onclick="generarPDFOrdenes()" style="padding:7px 14px;border-radius:var(--r-pill);background:rgba(0,113,227,.12);border:1.5px solid rgba(0,113,227,.28);color:var(--accent);font-weight:700;font-size:.75rem;cursor:pointer;">📄 PDF</button>';
+  h+='<button onclick="openModalOT(null,null)" style="padding:7px 14px;border-radius:var(--r-pill);background:rgba(52,199,89,.12);border:1.5px solid rgba(52,199,89,.28);color:var(--green);font-weight:700;font-size:.75rem;cursor:pointer;">+ Nueva OT</button>';
+  h+='</div></div>';
+  var estadoFiltros=['todos','pendiente','asignada','en_progreso','cerrada','cancelada'];
+  var estadoLbls={todos:'Todas',pendiente:'Pendiente',asignada:'Asignada',en_progreso:'En progreso',cerrada:'Cerrada',cancelada:'Cancelada'};
+  h+='<div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:12px;scrollbar-width:none;">';
+  estadoFiltros.forEach(function(f){h+='<button onclick="_otFiltroEstado=\''+f+'\';render();" style="white-space:nowrap;padding:5px 13px;border-radius:50px;font-size:.72rem;font-weight:700;border:1.5px solid rgba(255,255,255,.12);background:'+(_otFiltroEstado===f?'rgba(0,113,227,.15)':'rgba(255,255,255,.05)')+';color:'+(_otFiltroEstado===f?'var(--accent)':'var(--text2)')+';cursor:pointer;">'+estadoLbls[f]+'</button>';});
+  h+='</div>';
+  var filtered=ordenesTrabajo.filter(function(ot){
+    if(_sedeActiva&&_sedeActiva!==''){
+      var eq2=eqs.find(function(e){return e.id===ot.eqId;});
+      if(eq2&&(eq2.ubicacion||'').toUpperCase()!==_sedeActiva.toUpperCase())return false;
+    }
+    return _otFiltroEstado==='todos'||ot.estado===_otFiltroEstado;
+  });
+  filtered=filtered.slice().sort(function(a,b){return a.fechaCreacion<b.fechaCreacion?1:-1;});
+  if(!filtered.length){h+='<div style="text-align:center;color:var(--text3);padding:40px 0;font-size:.88rem;">Sin órdenes de trabajo</div>';return h;}
+  var prioColor={urgente:'var(--red)',alta:'var(--orange)',normal:'var(--accent)',baja:'var(--green)'};
+  var estadoColor={pendiente:'#8e8e93',asignada:'var(--accent)',en_progreso:'var(--orange)',cerrada:'var(--green)',cancelada:'#8e8e93'};
+  filtered.forEach(function(ot){
+    var eq3=eqs.find(function(e){return e.id===ot.eqId;});
+    var eqNom=eq3?eq3.nombre:'Equipo desconocido';
+    var pc=prioColor[ot.prioridad]||'var(--text3)';
+    var ec=estadoColor[ot.estado]||'var(--text3)';
+    h+='<div class="gc" style="padding:0;margin-bottom:10px;overflow:hidden;border-left:4px solid '+pc+';">';
+    h+='<div style="padding:10px 14px;display:flex;align-items:flex-start;gap:10px;">';
+    h+='<div style="flex:1;min-width:0;">';
+    h+='<div style="display:flex;align-items:center;gap:7px;margin-bottom:3px;">';
+    h+='<span style="font-size:.58rem;font-weight:700;font-family:monospace;color:var(--text3);">'+ot.id+'</span>';
+    h+='<span style="font-size:.6rem;font-weight:700;padding:1px 7px;border-radius:20px;background:'+ec+'22;color:'+ec+';border:1px solid '+ec+'44;">'+OT_ESTADOS[ot.estado]+'</span>';
+    h+='<span style="font-size:.6rem;font-weight:700;padding:1px 7px;border-radius:20px;background:'+pc+'22;color:'+pc+';border:1px solid '+pc+'44;">'+OT_PRIORIDADES[ot.prioridad]+'</span>';
+    h+='</div>';
+    h+='<div style="font-weight:700;font-size:.88rem;margin-bottom:2px;">'+esc(ot.titulo)+'</div>';
+    h+='<div style="font-size:.72rem;color:var(--text3);">'+esc(eqNom)+(ot.tecnicoAsignado?' \xb7 '+esc(ot.tecnicoAsignado):'')+'</div>';
+    if(ot.descripcion)h+='<div style="font-size:.72rem;color:var(--text2);margin-top:3px;">'+esc(ot.descripcion)+'</div>';
+    h+='<div style="font-size:.65rem;color:var(--text3);margin-top:4px;">Creada: '+fD(ot.fechaCreacion)+(ot.fechaCierre?' \xb7 Cerrada: '+fD(ot.fechaCierre):'')+'</div>';
+    h+='</div>';
+    h+='<div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end;flex-shrink:0;">';
+    if(ot.estado!=='cerrada'&&ot.estado!=='cancelada'){
+      h+='<button onclick="cerrarOT(\''+ot.id+'\')" style="padding:4px 10px;border-radius:var(--r-pill);background:rgba(52,199,89,.12);border:1px solid rgba(52,199,89,.28);color:var(--green);font-size:.65rem;font-weight:700;cursor:pointer;white-space:nowrap;">✅ Cerrar</button>';
+      h+='<button onclick="openModalOT(\''+ot.eqId+'\',\''+ot.id+'\')" style="padding:4px 10px;border-radius:var(--r-pill);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:var(--text2);font-size:.65rem;font-weight:700;cursor:pointer;">✏️ Editar</button>';
+    }
+    h+='<button onclick="deleteOT(\''+ot.id+'\')" style="padding:4px 10px;border-radius:var(--r-pill);background:rgba(255,59,48,.10);border:1px solid rgba(255,59,48,.25);color:var(--red);font-size:.65rem;font-weight:700;cursor:pointer;">🗑</button>';
+    h+='</div></div></div>';
+  });
+  return h;
+}
+function openModalOT(eqId,otId){
+  var ot=otId?ordenesTrabajo.find(function(o){return o.id===otId;}):null;
+  var eq4=eqId?eqs.find(function(e){return e.id===eqId;}):{};
+  var eqOpts='<option value="">— Seleccionar equipo —</option>';
+  var activeEqs4=eqs.filter(function(e){return !e.baja;});
+  activeEqs4.sort(function(a,b){return a.nombre>b.nombre?1:-1;});
+  activeEqs4.forEach(function(e){eqOpts+='<option value="'+e.id+'"'+(((ot&&ot.eqId)||eqId)===e.id?' selected':'')+'>'+esc(e.nombre)+'</option>';});
+  var tipoOpts='';Object.keys(OT_TIPOS).forEach(function(k){tipoOpts+='<option value="'+k+'"'+((ot&&ot.tipo||'correctivo')===k?' selected':'')+'>'+OT_TIPOS[k]+'</option>';});
+  var prioOpts='';Object.keys(OT_PRIORIDADES).forEach(function(k){prioOpts+='<option value="'+k+'"'+((ot&&ot.prioridad||'normal')===k?' selected':'')+'>'+OT_PRIORIDADES[k]+'</option>';});
+  var estadoOpts='';Object.keys(OT_ESTADOS).forEach(function(k){estadoOpts+='<option value="'+k+'"'+((ot&&ot.estado||'pendiente')===k?' selected':'')+'>'+OT_ESTADOS[k]+'</option>';});
+  openModal(
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">'+
+    '<div class="modal-title">'+(ot?'Editar':'Nueva')+' Orden de Trabajo</div>'+
+    '<button class="modal-close" onclick="closeModal()">&#x2715;</button></div>'+
+    '<div class="ff"><div class="ff-label">Equipo *</div><select class="inp" id="ot-eq">'+eqOpts+'</select></div>'+
+    '<div class="ff"><div class="ff-label">Título *</div><input class="inp" id="ot-titulo" value="'+(ot?esc(ot.titulo):'')+'" placeholder="Descripción breve de la OT"></div>'+
+    '<div class="ff"><div class="ff-label">Descripción</div><textarea class="inp" id="ot-desc" rows="2" placeholder="Detalles...">'+(ot?esc(ot.descripcion||''):'')+'</textarea></div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">'+
+    '<div class="ff"><div class="ff-label">Tipo</div><select class="inp" id="ot-tipo">'+tipoOpts+'</select></div>'+
+    '<div class="ff"><div class="ff-label">Prioridad</div><select class="inp" id="ot-prio">'+prioOpts+'</select></div>'+
+    '<div class="ff"><div class="ff-label">Estado</div><select class="inp" id="ot-estado">'+estadoOpts+'</select></div>'+
+    '</div>'+
+    '<div class="ff"><div class="ff-label">Técnico asignado</div><input class="inp" id="ot-tec" value="'+(ot?esc(ot.tecnicoAsignado||''):'')+'"></div>'+
+    '<div class="ff"><div class="ff-label">Fecha programada</div><input class="inp" type="date" id="ot-fecha" value="'+(ot&&ot.fechaProgramada?ot.fechaProgramada:today())+'"></div>'+
+    '<button class="btn-primary" style="width:100%;padding:13px;margin-top:8px;" onclick="submitOT(\''+((ot&&ot.id)||'')+'\')">'+(ot?'Guardar cambios':'Crear OT')+'</button>'
+  );
+}
+function submitOT(otId){
+  var eqId2=((document.getElementById('ot-eq')||{}).value||'').trim();
+  var titulo=((document.getElementById('ot-titulo')||{}).value||'').trim();
+  if(!titulo)return alert('Título obligatorio');
+  var desc=((document.getElementById('ot-desc')||{}).value||'').trim();
+  var tipo2=((document.getElementById('ot-tipo')||{}).value||'correctivo');
+  var prio=((document.getElementById('ot-prio')||{}).value||'normal');
+  var estado2=((document.getElementById('ot-estado')||{}).value||'pendiente');
+  var tec=((document.getElementById('ot-tec')||{}).value||'').trim();
+  var fecha2=((document.getElementById('ot-fecha')||{}).value||'');
+  if(otId){
+    ordenesTrabajo=ordenesTrabajo.map(function(o){
+      if(o.id!==otId)return o;
+      return Object.assign({},o,{eqId:eqId2,titulo:titulo,descripcion:desc,tipo:tipo2,prioridad:prio,estado:estado2,tecnicoAsignado:tec,fechaProgramada:fecha2,fechaCierre:estado2==='cerrada'&&!o.fechaCierre?today():o.fechaCierre});
+    });
+    showToast('OT actualizada');
+  } else {
+    ordenesTrabajo.push({id:'OT-'+Date.now(),eqId:eqId2,titulo:titulo,descripcion:desc,tipo:tipo2,prioridad:prio,estado:estado2,tecnicoAsignado:tec,fechaProgramada:fecha2,fechaCreacion:today(),fechaCierre:''});
+    showToast('OT creada');
+  }
+  saveData();closeModal();render();
+}
+function cerrarOT(otId){
+  ordenesTrabajo=ordenesTrabajo.map(function(o){
+    if(o.id!==otId)return o;
+    return Object.assign({},o,{estado:'cerrada',fechaCierre:today()});
+  });
+  saveData();showToast('OT cerrada');render();
+}
+function deleteOT(otId){
+  if(!confirm('Eliminar esta OT?'))return;
+  ordenesTrabajo=ordenesTrabajo.filter(function(o){return o.id!==otId;});
+  saveData();showToast('OT eliminada','warn');render();
+}
+function otFromFalla(eqId5,parteId){
+  var eq5=eqs.find(function(e){return e.id===eqId5;});if(!eq5)return;
+  var pt=eq5.partes.find(function(p){return p.id===parteId;});if(!pt)return;
+  ordenesTrabajo.push({id:'OT-'+Date.now(),eqId:eqId5,titulo:'Correctivo: '+pt.nombre,descripcion:(pt.descripcion||''),tipo:'correctivo',prioridad:'alta',estado:'pendiente',tecnicoAsignado:eq5.tecnico||'',fechaProgramada:today(),fechaCreacion:today(),fechaCierre:''});
+  saveData();showToast('OT correctiva creada');setView('ordenes');
+}
+function generarPDFOrdenes(){
+  var pdfLib=window.jspdf&&window.jspdf.jsPDF;
+  if(!pdfLib){
+    var s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+    s.onload=function(){generarPDFOrdenes();};document.head.appendChild(s);return;
+  }
+  var doc=new pdfLib({orientation:'p',unit:'mm',format:'a4'});
+  var pgW=doc.internal.pageSize.getWidth();
+  var now2=new Date();var nowStr=now2.toLocaleDateString('es-AR')+' '+now2.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
+  doc.setFillColor(26,58,107);doc.rect(0,0,pgW,22,'F');
+  doc.setTextColor(255,255,255);doc.setFontSize(11);doc.setFont(undefined,'bold');
+  doc.text('CIMA \xb7 Ingenier\xeda Biom\xe9dica',14,9);
+  doc.setFontSize(8);doc.setFont(undefined,'normal');
+  doc.text('\xd3rdenes de Trabajo \xb7 Generado: '+nowStr,14,15);
+  doc.setTextColor(40,40,40);
+  var y=30;var cols=[['ID',22],['Equipo',50],['Título',50],['Tipo',20],['Prioridad',20],['Estado',25],['Fecha',20]];
+  var xPos=10;doc.setFillColor(26,58,107);doc.rect(10,y-4,pgW-20,7,'F');
+  doc.setTextColor(255,255,255);doc.setFontSize(7);doc.setFont(undefined,'bold');
+  cols.forEach(function(c){doc.text(c[0],xPos+1,y);xPos+=c[1];});
+  y+=5;doc.setFont(undefined,'normal');doc.setTextColor(40,40,40);
+  var rows2=ordenesTrabajo.slice().sort(function(a,b){return a.fechaCreacion<b.fechaCreacion?1:-1;});
+  rows2.forEach(function(ot,ri2){
+    if(y>270){doc.addPage();doc.setFillColor(26,58,107);doc.rect(0,0,pgW,15,'F');doc.setTextColor(255,255,255);doc.setFontSize(8);doc.text('CIMA \xb7 \xd3rdenes de Trabajo (cont.)',14,9);doc.setTextColor(40,40,40);y=20;}
+    if(ri2%2===0)doc.setFillColor(240,244,255);else doc.setFillColor(255,255,255);
+    doc.rect(10,y-3.5,pgW-20,6,'F');
+    var xP2=10;doc.setFontSize(6.5);
+    var eq5b=eqs.find(function(e){return e.id===ot.eqId;});
+    [ot.id,eq5b?eq5b.nombre:'—',ot.titulo,OT_TIPOS[ot.tipo]||ot.tipo,OT_PRIORIDADES[ot.prioridad]||ot.prioridad,OT_ESTADOS[ot.estado]||ot.estado,fD(ot.fechaCreacion)].forEach(function(txt,ti){
+      var maxW=cols[ti][1]-3;var truncated=doc.splitTextToSize(String(txt||'—'),maxW)[0]||'';
+      doc.text(truncated,xP2+1,y);xP2+=cols[ti][1];
+    });
+    y+=6;
+  });
+  y+=8;doc.setFontSize(7);doc.setTextColor(120,120,130);doc.text('CIMA Hub v6.2.0 \xb7 Generado: '+nowStr+' \xb7 Total: '+rows2.length+' \xf3rdenes',14,y);
+  doc.save('OrdenesTrabajo_'+today().replace(/-/g,'')+'.pdf');
+}
+// ── REPUESTOS ──
+function rRepuestos(){
+  var h='';
+  h+=sedeBarHTML();
+  h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">';
+  h+='<div style="font-weight:800;font-size:1rem;color:var(--text);">Stock de Repuestos</div>';
+  h+='<div style="display:flex;gap:8px;">';
+  h+='<button onclick="generarPDFRepuestos()" style="padding:7px 14px;border-radius:var(--r-pill);background:rgba(0,113,227,.12);border:1.5px solid rgba(0,113,227,.28);color:var(--accent);font-weight:700;font-size:.75rem;cursor:pointer;">📄 PDF</button>';
+  h+='<button onclick="openModalRepuesto(null)" style="padding:7px 14px;border-radius:var(--r-pill);background:rgba(52,199,89,.12);border:1.5px solid rgba(52,199,89,.28);color:var(--green);font-weight:700;font-size:.75rem;cursor:pointer;">+ Nuevo</button>';
+  h+='</div></div>';
+  var stockAlerts=repuestos.filter(function(r){var c=parseFloat(r.cantidad)||0;var m=parseFloat(r.stockMinimo)||0;return c<=0||(m>0&&c<=m);});
+  if(stockAlerts.length){
+    h+='<div style="background:rgba(255,149,0,.08);border:1px solid rgba(255,149,0,.2);border-radius:var(--r-md);padding:10px 14px;margin-bottom:12px;">';
+    h+='<div style="font-size:.72rem;font-weight:700;color:var(--orange);margin-bottom:4px;">⚠️ Stock bajo o agotado ('+stockAlerts.length+')</div>';
+    stockAlerts.forEach(function(r2){var c2=parseFloat(r2.cantidad)||0;h+='<div style="font-size:.7rem;color:var(--text2);">'+esc(r2.nombre)+' — Stock: '+c2+' '+esc(r2.unidad||'u')+(c2<=0?' 🔴 AGOTADO':' ⚠️ Bajo mínimo')+'</div>';});
+    h+='</div>';
+  }
+  if(!repuestos.length){h+='<div style="text-align:center;color:var(--text3);padding:40px 0;font-size:.88rem;">Sin repuestos registrados</div>';return h;}
+  repuestos.forEach(function(r3){
+    var cant3=parseFloat(r3.cantidad)||0;var min3=parseFloat(r3.stockMinimo)||0;
+    var stockColor=cant3<=0?'var(--red)':min3>0&&cant3<=min3?'var(--orange)':'var(--green)';
+    h+='<div class="gc" style="padding:0;margin-bottom:10px;overflow:hidden;border-left:4px solid '+stockColor+';">';
+    h+='<div style="padding:10px 14px;display:flex;align-items:flex-start;gap:10px;">';
+    h+='<div style="flex:1;min-width:0;">';
+    h+='<div style="font-weight:700;font-size:.88rem;margin-bottom:2px;">'+esc(r3.nombre)+'</div>';
+    h+='<div style="font-size:.72rem;color:var(--text3);">'+(r3.codigo?'Cód: '+esc(r3.codigo)+' \xb7 ':'')+esc(r3.categoria||'General')+(r3.proveedor?' \xb7 '+esc(r3.proveedor):'')+'</div>';
+    if(r3.descripcion)h+='<div style="font-size:.71rem;color:var(--text2);margin-top:3px;">'+esc(r3.descripcion)+'</div>';
+    h+='<div style="display:flex;gap:6px;margin-top:8px;align-items:center;">';
+    h+='<span style="font-size:.72rem;font-weight:700;color:'+stockColor+';">Stock: '+cant3+' '+esc(r3.unidad||'u')+'</span>';
+    if(min3>0)h+='<span style="font-size:.67rem;color:var(--text3);">(mín '+min3+')</span>';
+    h+='<button onclick="ajustarStock(\''+r3.id+'\',-1)" style="padding:2px 9px;border-radius:6px;background:rgba(255,59,48,.10);border:1px solid rgba(255,59,48,.25);color:var(--red);font-weight:700;font-size:.8rem;cursor:pointer;">−</button>';
+    h+='<button onclick="ajustarStock(\''+r3.id+'\',1)" style="padding:2px 9px;border-radius:6px;background:rgba(52,199,89,.10);border:1px solid rgba(52,199,89,.25);color:var(--green);font-weight:700;font-size:.8rem;cursor:pointer;">+</button>';
+    h+='</div></div>';
+    h+='<div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end;flex-shrink:0;">';
+    h+='<button onclick="openModalRepuesto(\''+r3.id+'\')" style="padding:4px 10px;border-radius:var(--r-pill);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:var(--text2);font-size:.65rem;font-weight:700;cursor:pointer;">✏️ Editar</button>';
+    h+='<button onclick="deleteRepuesto(\''+r3.id+'\')" style="padding:4px 10px;border-radius:var(--r-pill);background:rgba(255,59,48,.10);border:1px solid rgba(255,59,48,.25);color:var(--red);font-size:.65rem;font-weight:700;cursor:pointer;">🗑</button>';
+    h+='</div></div></div>';
+  });
+  return h;
+}
+function openModalRepuesto(repId){
+  var rep=repId?repuestos.find(function(r){return r.id===repId;}):null;
+  openModal(
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">'+
+    '<div class="modal-title">'+(rep?'Editar':'Nuevo')+' Repuesto</div>'+
+    '<button class="modal-close" onclick="closeModal()">&#x2715;</button></div>'+
+    '<div class="ff"><div class="ff-label">Nombre *</div><input class="inp" id="rep-n" value="'+(rep?esc(rep.nombre):'')+'" placeholder="Ej: Filtro de aceite"></div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">'+
+    '<div class="ff"><div class="ff-label">Código</div><input class="inp" id="rep-cod" value="'+(rep?esc(rep.codigo||''):'')+'" placeholder="SKU o referencia"></div>'+
+    '<div class="ff"><div class="ff-label">Categoría</div><input class="inp" id="rep-cat" value="'+(rep?esc(rep.categoria||''):'')+'" placeholder="Ej: Filtros, Cables..."></div>'+
+    '</div>'+
+    '<div class="ff"><div class="ff-label">Descripción</div><input class="inp" id="rep-desc" value="'+(rep?esc(rep.descripcion||''):'')+'" placeholder="Descripción o uso"></div>'+
+    '<div class="ff"><div class="ff-label">Proveedor</div><input class="inp" id="rep-prov" value="'+(rep?esc(rep.proveedor||''):'')+'" placeholder="Nombre del proveedor"></div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">'+
+    '<div class="ff"><div class="ff-label">Cantidad *</div><input class="inp" type="number" id="rep-cant" value="'+(rep?esc(rep.cantidad||'0'):'0')+'" min="0"></div>'+
+    '<div class="ff"><div class="ff-label">Stock mínimo</div><input class="inp" type="number" id="rep-min" value="'+(rep?esc(rep.stockMinimo||'0'):'0')+'" min="0"></div>'+
+    '<div class="ff"><div class="ff-label">Unidad</div><input class="inp" id="rep-uni" value="'+(rep?esc(rep.unidad||'u'):'u')+'" placeholder="u, kg, m..."></div>'+
+    '</div>'+
+    '<button class="btn-primary" style="width:100%;padding:13px;margin-top:8px;" onclick="submitRepuesto(\''+((rep&&rep.id)||'')+'\')">'+(rep?'Guardar':'Agregar repuesto')+'</button>'
+  );
+}
+function submitRepuesto(repId){
+  var nombre2=((document.getElementById('rep-n')||{}).value||'').trim();
+  if(!nombre2)return alert('Nombre obligatorio');
+  var cod=((document.getElementById('rep-cod')||{}).value||'').trim();
+  var cat6=((document.getElementById('rep-cat')||{}).value||'').trim();
+  var desc2=((document.getElementById('rep-desc')||{}).value||'').trim();
+  var prov=((document.getElementById('rep-prov')||{}).value||'').trim();
+  var cant=((document.getElementById('rep-cant')||{}).value||'0').trim();
+  var min4=((document.getElementById('rep-min')||{}).value||'0').trim();
+  var uni=((document.getElementById('rep-uni')||{}).value||'u').trim();
+  if(repId){
+    repuestos=repuestos.map(function(r){if(r.id!==repId)return r;return Object.assign({},r,{nombre:nombre2,codigo:cod,categoria:cat6,descripcion:desc2,proveedor:prov,cantidad:cant,stockMinimo:min4,unidad:uni});});
+    showToast('Repuesto actualizado');
+  } else {
+    repuestos.push({id:'REP-'+Date.now(),nombre:nombre2,codigo:cod,categoria:cat6,descripcion:desc2,proveedor:prov,cantidad:cant,stockMinimo:min4,unidad:uni,creadoEn:new Date().toISOString()});
+    showToast('Repuesto agregado');
+  }
+  saveData();closeModal();render();
+}
+function deleteRepuesto(repId){
+  if(!confirm('Eliminar este repuesto?'))return;
+  repuestos=repuestos.filter(function(r){return r.id!==repId;});
+  saveData();showToast('Repuesto eliminado','warn');render();
+}
+function ajustarStock(repId,delta){
+  repuestos=repuestos.map(function(r){
+    if(r.id!==repId)return r;
+    var newCant=Math.max(0,(parseFloat(r.cantidad)||0)+delta);
+    return Object.assign({},r,{cantidad:String(newCant)});
+  });
+  saveData();render();
+}
+function generarPDFRepuestos(){
+  var pdfLib=window.jspdf&&window.jspdf.jsPDF;
+  if(!pdfLib){
+    var s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+    s.onload=function(){generarPDFRepuestos();};document.head.appendChild(s);return;
+  }
+  var doc=new pdfLib({orientation:'p',unit:'mm',format:'a4'});
+  var pgW2=doc.internal.pageSize.getWidth();
+  var now3=new Date();var nowStr3=now3.toLocaleDateString('es-AR')+' '+now3.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
+  doc.setFillColor(26,58,107);doc.rect(0,0,pgW2,22,'F');
+  doc.setTextColor(255,255,255);doc.setFontSize(11);doc.setFont(undefined,'bold');
+  doc.text('CIMA \xb7 Ingenier\xeda Biom\xe9dica',14,9);
+  doc.setFontSize(8);doc.setFont(undefined,'normal');
+  doc.text('Stock de Repuestos \xb7 Generado: '+nowStr3,14,15);
+  doc.setTextColor(40,40,40);
+  var y2=30;var cols2=[['Nombre',45],['Código',22],['Categoría',28],['Proveedor',30],['Cant.',15],['Mín.',15],['Unidad',15]];
+  var xP3=10;doc.setFillColor(26,58,107);doc.rect(10,y2-4,pgW2-20,7,'F');
+  doc.setTextColor(255,255,255);doc.setFontSize(7);doc.setFont(undefined,'bold');
+  cols2.forEach(function(c){doc.text(c[0],xP3+1,y2);xP3+=c[1];});
+  y2+=5;doc.setFont(undefined,'normal');doc.setTextColor(40,40,40);
+  repuestos.forEach(function(r4,ri4){
+    if(y2>270){doc.addPage();doc.setFillColor(26,58,107);doc.rect(0,0,pgW2,15,'F');doc.setTextColor(255,255,255);doc.setFontSize(8);doc.text('CIMA \xb7 Repuestos (cont.)',14,9);doc.setTextColor(40,40,40);y2=20;}
+    var cant4=parseFloat(r4.cantidad)||0;var min5=parseFloat(r4.stockMinimo)||0;
+    var isBajo=(cant4<=0)||(min5>0&&cant4<=min5);
+    if(ri4%2===0)doc.setFillColor(isBajo?255:240,isBajo?240:244,isBajo?240:255);else doc.setFillColor(isBajo?255:255,isBajo?245:255,isBajo?245:255);
+    doc.rect(10,y2-3.5,pgW2-20,6,'F');
+    var xP4=10;
+    [r4.nombre,r4.codigo||'—',r4.categoria||'General',r4.proveedor||'—',r4.cantidad||'0',r4.stockMinimo||'0',r4.unidad||'u'].forEach(function(txt2,ti2){
+      var maxW2=cols2[ti2][1]-3;var trunc2=doc.splitTextToSize(String(txt2||'—'),maxW2)[0]||'';
+      doc.text(trunc2,xP4+1,y2);xP4+=cols2[ti2][1];
+    });
+    y2+=6;
+  });
+  var low4=repuestos.filter(function(r){return (parseFloat(r.cantidad)||0)<=0||(parseFloat(r.stockMinimo)>0&&(parseFloat(r.cantidad)||0)<=(parseFloat(r.stockMinimo)||0));}).length;
+  y2+=8;doc.setFontSize(7);doc.setTextColor(120,120,130);
+  doc.text('CIMA Hub v6.2.0 \xb7 Generado: '+nowStr3+' \xb7 Total: '+repuestos.length+' repuestos \xb7 Bajo stock: '+low4,14,y2);
+  doc.save('Repuestos_'+today().replace(/-/g,'')+'.pdf');
+}
 // ── EXECUTIVE VIEW ──
 function rEjecutivo(){
   var todayStr=today();
@@ -3860,6 +4331,23 @@ function rEjecutivo(){
         '</div>'+
         '<div style="font-size:.7rem;color:var(--text3);flex-shrink:0;">'+fD(hm2.fecha)+'</div>'+
       '</div>';
+    });
+    h+='</div></div>';
+  }
+  var lcAlert=eqs.filter(function(e){if(e.baja)return false;var lc6=calcLifecycle(e);return lc6&&(lc6.zone==='reemplazo'||lc6.zone==='atencion');});
+  if(lcAlert.length){
+    h+='<div class="gc" style="padding:0;overflow:hidden;margin-bottom:12px;">';
+    h+='<div style="background:linear-gradient(90deg,rgba(255,149,0,.1),rgba(255,149,0,.05));padding:9px 14px;font-size:.7rem;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid rgba(255,149,0,.1);">📈 Reemplazos Sugeridos ('+lcAlert.length+')</div>';
+    h+='<div style="padding:10px 14px;">';
+    lcAlert.forEach(function(e7){
+      var lc7=calcLifecycle(e7);var ci7=catById(e7.cat);
+      var zc7=lc7.zone==='reemplazo'?'var(--red)':'var(--orange)';
+      var zl7=lc7.zone==='reemplazo'?'Reemplazo':'Atención';
+      h+='<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.05);">';
+      h+='<div style="flex:1;min-width:0;"><div style="font-size:.78rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+esc(e7.nombre)+'</div>';
+      h+='<div style="font-size:.65rem;color:var(--text3);">'+ci7.label+' \xb7 '+lc7.ageYrs+' años ('+lc7.agePct+'% vida \xfatil)'+(lc7.costPct!==null?' \xb7 costo '+lc7.costPct+'%':'')+'</div></div>';
+      h+='<span style="font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:20px;background:'+zc7+'22;color:'+zc7+';border:1px solid '+zc7+'44;">'+zl7+'</span>';
+      h+='</div>';
     });
     h+='</div></div>';
   }
@@ -4963,6 +5451,44 @@ function rDetalle(){
   if(eq.tieneServicio&&parseFloat(eq.servicioContratoPrecio)>0){var _svP=parseFloat(eq.servicioContratoPrecio);var _svMon=eq.servicioContratoMoneda||'USD';hR+='<div style="display:flex;align-items:center;justify-content:space-between;background:rgba(52,199,89,.07);border:1px solid rgba(52,199,89,.2);border-radius:var(--r-md);padding:10px 14px;margin-bottom:8px;"><div><div style="font-size:.65rem;font-weight:700;color:rgba(52,199,89,.8);text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;">💰 Cuota mensual de servicio</div><div style="font-size:.88rem;font-weight:700;color:var(--text2);">'+_svMon+' '+_svP.toLocaleString('es-AR',{minimumFractionDigits:0,maximumFractionDigits:2})+' / mes</div><div style="font-size:.66rem;color:var(--text3);margin-top:1px;">Impacta en KPI de gastos mensuales</div></div><div style="font-size:1.6rem;opacity:.35;">🤝</div></div>';}
   hR+=(eq.notas?'<div class="ibox"><div class="ibox-l">📝 Nota</div><div style="font-size:.8rem;color:var(--text2);margin-top:2px;">'+esc(eq.notas)+'</div></div>':'');
   hR+='</div></div>';
+
+  /* RIGHT: MTBF/MTTR & RISK & LIFECYCLE */
+  var _mtbf=calcMTBF(eq);var _mttr=calcMTTR(eq);var _avail=calcAvailability(eq);
+  var _rs2=calcRiskScore(eq);var _lc=calcLifecycle(eq);
+  if(_mtbf!==null||_mttr!==null||_avail!==null){
+    hR+='<div class="gc" style="padding:0;margin-bottom:8px;overflow:hidden;border-left:4px solid rgba(139,92,246,.45);background:linear-gradient(135deg,rgba(139,92,246,.07) 0%,rgba(167,139,250,.04) 100%);">';
+    hR+='<div style="background:linear-gradient(90deg,rgba(139,92,246,.12),rgba(167,139,250,.07));padding:8px 14px;display:flex;align-items:center;gap:6px;border-bottom:1px solid rgba(139,92,246,.10);">';
+    hR+='<span style="font-size:.72rem;font-weight:700;color:rgba(139,92,246,.9);text-transform:uppercase;letter-spacing:.06em;">📊 MTBF / MTTR</span></div>';
+    hR+='<div class="det-grid" style="padding:10px 14px;">';
+    if(_mtbf!==null)hR+='<div class="ibox"><div class="ibox-l">MTBF</div><div class="ibox-v" style="font-family:monospace;font-weight:700;">'+_mtbf+' días</div><div style="font-size:.6rem;color:var(--text3);margin-top:1px;">Tiempo medio entre fallas</div></div>';
+    if(_mttr!==null)hR+='<div class="ibox"><div class="ibox-l">MTTR</div><div class="ibox-v" style="font-family:monospace;font-weight:700;">'+_mttr+' días</div><div style="font-size:.6rem;color:var(--text3);margin-top:1px;">Tiempo medio de reparación</div></div>';
+    if(_avail!==null){var _ac=_avail>=95?'var(--green)':_avail>=80?'var(--orange)':'var(--red)';hR+='<div class="ibox"><div class="ibox-l">Disponibilidad</div><div class="ibox-v" style="color:'+_ac+';font-weight:800;">'+_avail+'%</div><div style="font-size:.6rem;color:var(--text3);margin-top:1px;">Uptime desde instalación</div></div>';}
+    hR+='</div></div>';
+  }
+  hR+='<div class="gc" style="padding:0;margin-bottom:8px;overflow:hidden;border-left:4px solid '+riskLevelColor(_rs2.level)+'88;background:linear-gradient(135deg,'+riskLevelColor(_rs2.level)+'11 0%,'+riskLevelColor(_rs2.level)+'07 100%);">';
+  hR+='<div style="background:linear-gradient(90deg,'+riskLevelColor(_rs2.level)+'18,'+riskLevelColor(_rs2.level)+'09);padding:8px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid '+riskLevelColor(_rs2.level)+'22;">';
+  hR+='<span style="font-size:.72rem;font-weight:700;color:'+riskLevelColor(_rs2.level)+';text-transform:uppercase;letter-spacing:.06em;">⚠️ Riesgo Institucional</span>';
+  hR+='<span style="font-size:.78rem;font-weight:800;color:'+riskLevelColor(_rs2.level)+';">'+riskLevelLabel(_rs2.level)+' ('+_rs2.score+'/20)</span></div>';
+  hR+='<div class="det-grid" style="padding:10px 14px;">';
+  hR+='<div class="ibox"><div class="ibox-l">Criticidad clínica</div><div class="ibox-v">'+_rs2.clinical+'/5</div></div>';
+  hR+='<div class="ibox"><div class="ibox-l">Complejidad mant.</div><div class="ibox-v">'+_rs2.maint+'/5</div></div>';
+  hR+='<div class="ibox"><div class="ibox-l">Historial fallas</div><div class="ibox-v">'+_rs2.incident+'/5</div></div>';
+  hR+='<div class="ibox"><div class="ibox-l">Antigüedad</div><div class="ibox-v">'+_rs2.age+'/5</div></div>';
+  hR+='</div></div>';
+  if(_lc){
+    var _zc=_lc.zone==='reemplazo'?'var(--red)':_lc.zone==='atencion'?'var(--orange)':'var(--green)';
+    var _zl=_lc.zone==='reemplazo'?'♻️ Reemplazo sugerido':_lc.zone==='atencion'?'⚠️ Atención':' ✅ OK';
+    hR+='<div class="gc" style="padding:0;margin-bottom:8px;overflow:hidden;border-left:4px solid '+_zc+'88;background:linear-gradient(135deg,'+_zc+'10 0%,'+_zc+'06 100%);">';
+    hR+='<div style="background:linear-gradient(90deg,'+_zc+'16,'+_zc+'09);padding:8px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid '+_zc+'22;">';
+    hR+='<span style="font-size:.72rem;font-weight:700;color:'+_zc+';text-transform:uppercase;letter-spacing:.06em;">📈 Ciclo de Vida</span>';
+    hR+='<span style="font-size:.75rem;font-weight:700;color:'+_zc+';">'+_zl+'</span></div>';
+    hR+='<div class="det-grid" style="padding:10px 14px;">';
+    hR+='<div class="ibox"><div class="ibox-l">Antigüedad</div><div class="ibox-v" style="font-family:monospace;">'+_lc.ageYrs+' años</div></div>';
+    hR+='<div class="ibox"><div class="ibox-l">Vida útil</div><div class="ibox-v" style="font-family:monospace;color:'+_zc+';">'+_lc.agePct+'%</div><div style="font-size:.6rem;color:var(--text3);margin-top:1px;">de '+_lc.lifespan+' años est.</div></div>';
+    if(_lc.valorRepos>0)hR+='<div class="ibox"><div class="ibox-l">Valor reposición</div><div class="ibox-v" style="font-family:monospace;">USD '+_lc.valorRepos.toLocaleString()+'</div></div>';
+    if(_lc.costPct!==null)hR+='<div class="ibox"><div class="ibox-l">Costo acum. / reposi.</div><div class="ibox-v" style="font-family:monospace;color:'+_zc+';">'+_lc.costPct+'%</div></div>';
+    hR+='</div></div>';
+  }
 
   /* RIGHT: ROTURAS Y FALLAS */
   var _rotActivas=eq.partes.filter(function(p){return p.estado!=='ok'&&p.estado!=='mejora';});
@@ -9109,8 +9635,8 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="6.1.2";
-var APP_BUILD="15/06/26 22:00";
+var APP_DISPLAY_VERSION="6.2.0";
+var APP_BUILD="15/06/26 22:30";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
@@ -9298,6 +9824,8 @@ function init(){
   try{var _ca=localStorage.getItem("mt_antenas");if(_ca){var _cpa=JSON.parse(_ca);if(Array.isArray(_cpa))antenas=_cpa;}}catch(e){}
   try{var _cai=localStorage.getItem("mt_aires");if(_cai){var _cpai=JSON.parse(_cai);if(Array.isArray(_cpai))aires=_cpai;}}catch(e){}
   try{var _ctr=localStorage.getItem("mt_transductores");if(_ctr){var _cptr=JSON.parse(_ctr);if(Array.isArray(_cptr))transductores=_cptr;}}catch(e){}
+  try{var _cot=localStorage.getItem("mt_ordenes");if(_cot){var _cpot=JSON.parse(_cot);if(Array.isArray(_cpot))ordenesTrabajo=_cpot;}}catch(e){}
+  try{var _crp=localStorage.getItem("mt_repuestos");if(_crp){var _cprp=JSON.parse(_crp);if(Array.isArray(_cprp))repuestos=_cprp;}}catch(e){}
   render();
   // Deep-link: #EQ-xxx opens equipment directly
   try{
@@ -9358,6 +9886,8 @@ function init(){
             if(Array.isArray(d.antenas))antenas=d.antenas;
             if(Array.isArray(d.aires))aires=d.aires;
             if(Array.isArray(d.transductores))transductores=d.transductores;
+            if(Array.isArray(d.ordenesTrabajo))ordenesTrabajo=d.ordenesTrabajo;
+            if(Array.isArray(d.repuestos))repuestos=d.repuestos;
           }
         }
         function _lsLoad(){
@@ -9365,6 +9895,8 @@ function init(){
           try{var sa=localStorage.getItem("mt_antenas");if(sa){var pa=JSON.parse(sa);if(Array.isArray(pa))antenas=pa;}}catch(e){}
           try{var sai=localStorage.getItem("mt_aires");if(sai){var pai=JSON.parse(sai);if(Array.isArray(pai))aires=pai;}}catch(e){}
           try{var str=localStorage.getItem("mt_transductores");if(str){var ptr=JSON.parse(str);if(Array.isArray(ptr))transductores=ptr;}}catch(e){}
+          try{var sot=localStorage.getItem("mt_ordenes");if(sot){var pot=JSON.parse(sot);if(Array.isArray(pot))ordenesTrabajo=pot;}}catch(e){}
+          try{var srp=localStorage.getItem("mt_repuestos");if(srp){var prp=JSON.parse(srp);if(Array.isArray(prp))repuestos=prp;}}catch(e){}
         }
         function _finishLoad(){
           migrateEqs();
