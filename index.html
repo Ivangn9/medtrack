@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.15.165 -->
+<!-- v2026.06.15.170 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.15.165">
+<meta name="app-version" content="v2026.06.15.170">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3405,6 +3405,7 @@ function _kpiAllCosts(){
   var last12=_kpiLast12Months();
   eqs.forEach(function(eq){
     if(eq.baja)return;
+    if(!_sedeMatch(eq))return;
     (eq.historialMant||[]).forEach(function(h){
       var m=parseFloat(h.precio);
       if(m>0){
@@ -3435,6 +3436,7 @@ function _kpiAllRoturas(){
   var result=[];
   eqs.forEach(function(eq){
     if(eq.baja)return;
+    if(!_sedeMatch(eq))return;
     (eq.partes||[]).forEach(function(p){
       if(p.estado==='roto'||p.fechaRotura)result.push({fechaRotura:p.fechaRotura,fechaArreglo:p.fechaArreglo,eqId:eq.id,eqNombre:eq.nombre,eqCat:eq.cat,estado:p.estado,descripcion:p.nombre,precio:parseFloat(p.precio)||0});
     });
@@ -3613,9 +3615,10 @@ function rKpi(){
       '</div>';
   }
   var h='<div style="padding:0 0 80px;">';
+  h+=sedeBarHTML();
   h+='<div style="display:flex;align-items:center;justify-content:space-between;padding:16px 14px 10px;">';
   h+='<div><div style="font-size:1.05rem;font-weight:700;font-family:Hanken Grotesk,system-ui;">📊 KPI &amp; Estadísticas</div>';
-  h+='<div style="font-size:.68rem;color:var(--text3);margin-top:1px;">'+curYear+' · '+activeEqs.length+' equipos activos</div></div>';
+  h+='<div style="font-size:.68rem;color:var(--text3);margin-top:1px;">'+curYear+(_sedeActiva?' · 📍 '+esc(_sedeActiva):'')+' · '+activeEqs.length+' equipos activos</div></div>';
   h+='<div style="display:flex;gap:6px;align-items:center;">';
   h+='<div id="kpi-tc-badge" onclick="_kpiFetchRate(function(r){if(r)document.getElementById(\'kpi-tc-badge\').textContent=\'TC Oficial BNA: $\'+r;else showToast(\'Sin cotización disponible\',\'warn\');})" style="font-size:.63rem;font-family:JetBrains Mono,monospace;color:var(--text3);cursor:pointer;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px;">'+(_kpiUsdRate?'TC Oficial BNA: $'+_kpiUsdRate:'↺ Cotización USD')+'</div>';
   h+='<button onclick="exportKpiPDF()" style="display:flex;align-items:center;gap:5px;background:rgba(0,122,255,.14);border:1px solid rgba(0,122,255,.3);color:#4da3ff;border-radius:8px;padding:7px 12px;font-size:.75rem;font-weight:600;cursor:pointer;">📄 PDF</button>';
@@ -3748,6 +3751,78 @@ function rKpi(){
       '</tr>';
   });
   h+='</tbody></table></div></div></div>';
+
+  // ── Componentes que más fallan ──
+  var byPart={};
+  eqs.filter(function(e){return!e.baja&&_sedeMatch(e);}).forEach(function(eq){
+    (eq.partes||[]).forEach(function(p){
+      if(p.estado==='roto'||p.fechaRotura){
+        var key=(p.nombre||'Sin nombre').toUpperCase().trim();
+        if(!byPart[key])byPart[key]={nombre:p.nombre||'Sin nombre',count:0,eqs:{}};
+        byPart[key].count++;
+        byPart[key].eqs[eq.id]=1;
+      }
+    });
+  });
+  var partArr=[];Object.keys(byPart).forEach(function(k){partArr.push({nombre:byPart[k].nombre,count:byPart[k].count,eqs:Object.keys(byPart[k].eqs).length});});
+  partArr.sort(function(a,b){return b.count-a.count;});
+  h+='<div style="padding:0 14px 10px;"><div class="gc" style="padding:14px;">';
+  h+='<div style="font-size:.77rem;font-weight:700;margin-bottom:10px;">🔩 Componentes que más fallan</div>';
+  if(partArr.length){
+    var mxP=partArr[0].count||1;
+    var PCOLS=['#f87171','#fb923c','#fbbf24','#a78bfa','#818cf8','#38bdf8','#34d399','#4ade80'];
+    partArr.slice(0,10).forEach(function(item,pi){
+      var pct=100*item.count/mxP;
+      var lbl=item.nombre.length>28?item.nombre.slice(0,26)+'…':item.nombre;
+      var col=PCOLS[pi%PCOLS.length];
+      h+='<div style="margin-bottom:9px;">';
+      h+='<div style="display:flex;justify-content:space-between;margin-bottom:3px;font-size:.7rem;">';
+      h+='<span style="color:var(--text2);">'+esc(lbl)+'</span>';
+      h+='<span style="color:var(--text3);font-family:JetBrains Mono,monospace;">'+item.count+' falla'+(item.count!==1?'s':'')+' · '+item.eqs+' eq.</span></div>';
+      h+='<div style="height:7px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden;">';
+      h+='<div style="height:100%;width:'+pct.toFixed(1)+'%;background:'+col+';border-radius:4px;transition:width .4s;"></div></div></div>';
+    });
+  }else{h+='<div style="font-size:.7rem;color:var(--text3);text-align:center;padding:16px 0;">Sin roturas registradas</div>';}
+  h+='</div></div>';
+
+  // ── Comparativa por sede ──
+  var SEDES_CMP=['GN','CRS','Pedernera'];
+  var sedeCmp=[];
+  SEDES_CMP.forEach(function(s){
+    var seEqs=eqs.filter(function(e){return!e.baja&&(e.ubicacion||'').toUpperCase()===s.toUpperCase();});
+    if(!seEqs.length)return;
+    var rot=0,mant=0,fuera=0,totalCost=0;
+    seEqs.forEach(function(eq){
+      fuera+=(eq.estado==='fuera-de-servicio'?1:0);
+      mant+=(!sinMant(eq)&&(semafo(eq)==='vencido'||semafo(eq)==='urgente')?1:0);
+      (eq.partes||[]).forEach(function(p){if(p.estado==='roto'||p.fechaRotura)rot++;});
+      (eq.historialMant||[]).forEach(function(hh){var m=parseFloat(hh.precio);if(m>0)totalCost+=((hh.precioMoneda==='ARS')?_kpiArsToUsd(m):m);});
+      (eq.partes||[]).forEach(function(p){var m=parseFloat(p.precio);if(m>0)totalCost+=((p.precioMoneda==='ARS')?_kpiArsToUsd(m):m);});
+    });
+    sedeCmp.push({s:s,eqs:seEqs.length,rot:rot,mant:mant,fuera:fuera,cost:totalCost});
+  });
+  if(sedeCmp.length>0){
+    h+='<div style="padding:0 14px 10px;"><div class="gc" style="padding:14px;">';
+    h+='<div style="font-size:.77rem;font-weight:700;margin-bottom:10px;">📍 Comparativa por Sede</div>';
+    h+='<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:.7rem;">';
+    h+='<thead><tr style="border-bottom:1px solid rgba(255,255,255,.08);">';
+    ['Sede','Equipos','Roturas','Fuera srv.','Mant. Urg.','Gasto Total'].forEach(function(col,ci){
+      h+='<th style="padding:6px '+(ci===0?'8':'6')+'px;text-align:'+(ci===0?'left':'center')+';color:var(--text3);font-weight:600;white-space:nowrap;">'+col+'</th>';
+    });
+    h+='</tr></thead><tbody>';
+    sedeCmp.forEach(function(sc,ri){
+      h+='<tr style="border-bottom:1px solid rgba(255,255,255,.04);'+(ri%2===1?'background:rgba(255,255,255,.015);':'')+'">'+
+        '<td style="padding:6px 8px;font-weight:700;color:var(--text1);">📍 '+esc(sc.s)+'</td>'+
+        '<td style="padding:6px;text-align:center;font-family:JetBrains Mono,monospace;color:#38bdf8;">'+sc.eqs+'</td>'+
+        '<td style="padding:6px;text-align:center;font-family:JetBrains Mono,monospace;color:'+(sc.rot>0?'#f87171':'#34d399')+';">'+sc.rot+'</td>'+
+        '<td style="padding:6px;text-align:center;font-family:JetBrains Mono,monospace;color:'+(sc.fuera>0?'#f87171':'var(--text3)')+';">'+sc.fuera+'</td>'+
+        '<td style="padding:6px;text-align:center;font-family:JetBrains Mono,monospace;color:'+(sc.mant>0?'#f59e0b':'var(--text3)')+';">'+sc.mant+'</td>'+
+        '<td style="padding:6px;text-align:center;font-family:JetBrains Mono,monospace;color:'+(sc.cost>0?'#4ade80':'var(--text3)');+';">'+(sc.cost>0?_kpiFmtCost(sc.cost):'—')+'</td>'+
+      '</tr>';
+    });
+    h+='</tbody></table></div></div></div>';
+  }
+
   h+='</div>';
   return h;
 }
@@ -8578,8 +8653,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="6.0.1";
-var APP_BUILD="15/06/26 18:30";
+var APP_DISPLAY_VERSION="6.0.2";
+var APP_BUILD="15/06/26 18:50";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
