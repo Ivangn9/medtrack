@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.11.150 -->
+<!-- v2026.06.15.155 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.11.150">
+<meta name="app-version" content="v2026.06.15.155">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1815,7 +1815,7 @@ function closeModal(){document.getElementById("modal-overlay").classList.add("hi
 // ═══════════════════════════════════════════
 function getAlertas(){
   var a=[];
-  var activeEqs=eqs.filter(function(e){return !e.baja;});
+  var activeEqs=eqs.filter(function(e){return !e.baja&&_sedeMatch(e);});
   activeEqs.forEach(function(e){if(e.estado==="fuera-de-servicio")a.push({k:e.id+"fs",niv:"critico",tit:e.nombre,desc:"Fuera de servicio",eid:e.id});});
   activeEqs.forEach(function(e){if(!sinMant(e)&&semafo(e)==="vencido")a.push({k:e.id+"mv",niv:"critico",tit:e.nombre,desc:"Mant. VENCIDO — "+fD(e.proximoMant),eid:e.id});});
   activeEqs.forEach(function(e){e.partes.forEach(function(p){if(p.estado==="roto")a.push({k:e.id+p.id+"r",niv:"critico",tit:e.nombre,desc:"Falla/Rotura: "+p.nombre,eid:e.id});});});
@@ -2904,7 +2904,7 @@ function render(){
 
 // ── DASHBOARD ──
 function rDash(){
-  var activeEqs=eqs.filter(function(e){return !e.baja;});
+  var activeEqs=eqs.filter(function(e){return !e.baja&&_sedeMatch(e);});
   var opF=activeEqs.filter(function(e){return e.estado==="fuera-de-servicio";}).length;
   var opOK=activeEqs.length-opF;
   var mU=activeEqs.filter(function(e){return!sinMant(e)&&(semafo(e)==="vencido"||semafo(e)==="urgente");}).length;
@@ -2915,7 +2915,8 @@ function rDash(){
   var _meses=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
   var _hoy=new Date();
   var _fechaStr=_dias[_hoy.getDay()]+' '+_hoy.getDate()+' de '+_meses[_hoy.getMonth()];
-  var h='<div class="lt-wrap">'+
+  var h=sedeBarHTML()+
+    '<div class="lt-wrap">'+
     '<div class="lt-title">Panel</div>'+
     '<div class="lt-sub" style="text-transform:capitalize;">'+_fechaStr+'</div>'+
   '</div>';
@@ -2947,7 +2948,7 @@ function rDash(){
 
   hL+='<div class="sec">Por Categoría</div><div class="g2cat">';
   var _catIdx=0;CATS.forEach(function(cat){
-    var ces=eqs.filter(function(e){return e.cat===cat.id&&!e.baja;});if(!ces.length)return;
+    var ces=eqs.filter(function(e){return e.cat===cat.id&&!e.baja&&_sedeMatch(e);});if(!ces.length)return;
     var fuera=ces.filter(function(e){return e.estado==="fuera-de-servicio";}).length;
     var urg=ces.filter(function(e){return!sinMant(e)&&(semafo(e)==="vencido"||semafo(e)==="urgente");}).length;
     var statusColor=fuera?"#ff3b30":urg?"#ff9500":"#34c759";
@@ -2998,7 +2999,7 @@ function rDash(){
   // RIGHT: mantenimientos
   var _chev='<svg class="ig-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>';
   hR+='<div class="sec">Próximos mantenimientos</div>';
-  var sorted=eqs.filter(function(e){return!e.baja&&!sinMant(e);}).sort(function(a,b){return new Date(a.proximoMant)-new Date(b.proximoMant);}).slice(0,8);
+  var sorted=eqs.filter(function(e){return!e.baja&&!sinMant(e)&&_sedeMatch(e);}).sort(function(a,b){return new Date(a.proximoMant)-new Date(b.proximoMant);}).slice(0,8);
   if(sorted.length){
     hR+='<div class="ig" style="margin-bottom:14px;">';
     sorted.forEach(function(e){
@@ -3020,7 +3021,7 @@ function rDash(){
   }
 
   // RIGHT: defectuosos
-  var rotas=[];eqs.forEach(function(e){e.partes.forEach(function(p){if(p.estado==="roto")rotas.push(Object.assign({},p,{eq:e}));});});
+  var rotas=[];eqs.forEach(function(e){if(e.baja||!_sedeMatch(e))return;e.partes.forEach(function(p){if(p.estado==="roto")rotas.push(Object.assign({},p,{eq:e}));});});
   if(rotas.length){
     hR+='<div class="sec" style="color:var(--red);">Componentes defectuosos</div>';
     hR+='<div class="ig" style="margin-bottom:14px;">';
@@ -3044,6 +3045,20 @@ function rDash(){
 var _busqueda="";
 var _filtMarca="";
 var _filtCentro="";
+// ── Sede global (multi-centro): "" = Todas ──
+var _sedeActiva="";try{_sedeActiva=localStorage.getItem("mt_sede")||"";}catch(e){}
+var _SEDES=[{id:"",lbl:"🏥 Todas"},{id:"Pedernera",lbl:"📍 Pedernera"},{id:"CRS",lbl:"📍 CRS"},{id:"GN",lbl:"📍 GN"}];
+function _sedeMatch(e){return !_sedeActiva||((e.ubicacion||"").toUpperCase()===_sedeActiva.toUpperCase());}
+function setSede(s){_sedeActiva=s;_filtCentro=s;try{localStorage.setItem("mt_sede",s);}catch(e){}render();}
+function sedeBarHTML(){
+  var h='<div style="display:flex;gap:7px;overflow-x:auto;padding:2px 2px 10px;-webkit-overflow-scrolling:touch;">';
+  _SEDES.forEach(function(s){
+    var on=_sedeActiva===s.id;
+    h+='<button class="chip'+(on?" on":"")+'" onclick="setSede(\''+s.id+'\')"><span>'+s.lbl+'</span></button>';
+  });
+  h+='</div>';
+  return h;
+}
 var _detalleQ="",_detalleSearchOpen=false,_detalleTab=null;
 var _filtDash=null;
 var FDASH={
@@ -3054,7 +3069,7 @@ var FDASH={
   rotos:     {l:"Con componentes rotos", c:"var(--red)"},
   pendientes:{l:"Con fallas pendientes", c:"var(--orange)"}
 };
-function applyDashFilter(key){_filtDash=key;filtCat="TODOS";_busqueda="";_filtMarca="";_filtCentro="";setView("lista");}
+function applyDashFilter(key){_filtDash=key;filtCat="TODOS";_busqueda="";_filtMarca="";_filtCentro=_sedeActiva;setView("lista");}
 function openListaSearch(){setView("lista");setTimeout(function(){var i=document.getElementById("busq-inp");if(i){i.focus();i.scrollIntoView({behavior:"smooth",block:"center"});}},120);}
 function clearDashFilter(){_filtDash=null;render();}
 function toggleDetalleSearch(){_detalleSearchOpen=!_detalleSearchOpen;if(!_detalleSearchOpen)_detalleQ="";render();if(_detalleSearchOpen){var i=document.getElementById('det-busq');if(i)i.focus();}}
@@ -3107,8 +3122,8 @@ function rLista(){
   // ── Filtro Centro ──
   h+='<div style="margin-bottom:6px;font-size:.58rem;text-transform:uppercase;letter-spacing:.8px;font-weight:700;color:var(--text3);">Centro</div>';
   h+='<div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:10px;scrollbar-width:none;">';
-  h+='<button class="chip'+(_filtCentro===""?" on":"")+'" onclick="_filtCentro=\'\';render();">Todos</button>';
-  ["Pedernera","CRS","GN"].forEach(function(cn){h+='<button class="chip'+(_filtCentro===cn?" on":"")+'" onclick="_filtCentro=\''+cn+'\';render();">📍 '+cn+'</button>';});
+  h+='<button class="chip'+(_filtCentro===""?" on":"")+'" onclick="setSede(\'\');">Todos</button>';
+  ["Pedernera","CRS","GN"].forEach(function(cn){h+='<button class="chip'+(_filtCentro===cn?" on":"")+'" onclick="setSede(\''+cn+'\');">📍 '+cn+'</button>';});
   h+='</div>';
 
   // ── Filtro Marca ──
@@ -3854,7 +3869,7 @@ function exportKpiPDF(){
 // ── ALERTAS ──
 function rAlertas(){
   var al=getAlertas();
-  if(!al.length)return'<div style="text-align:center;padding:60px 0;"><div style="font-size:2.5rem;margin-bottom:10px;">✅</div><div style="font-weight:600;color:var(--green);font-size:.97rem;">Sin alertas</div><div style="color:var(--text3);font-size:.82rem;margin-top:4px;">Todo en orden</div></div>';
+  if(!al.length)return sedeBarHTML()+'<div style="text-align:center;padding:60px 0;"><div style="font-size:2.5rem;margin-bottom:10px;">✅</div><div style="font-weight:600;color:var(--green);font-size:.97rem;">Sin alertas</div><div style="color:var(--text3);font-size:.82rem;margin-top:4px;">Todo en orden'+(_sedeActiva?' en '+esc(_sedeActiva):'')+'</div></div>';
   var groups=[["critico","🔴 Crítico","var(--red)"],["advertencia","⚠️ Advertencia","var(--orange)"],["info","ℹ️ Info","var(--accent)"]];
   var rAlG=function(g){
     var sub=al.filter(function(a){return a.niv===g[0];});if(!sub.length)return'';
@@ -3882,9 +3897,9 @@ function rAlertas(){
   };
   var critH=rAlG(groups[0]);
   var warnH=rAlG(groups[1])+rAlG(groups[2]);
-  if(!critH)return warnH;
-  if(!warnH)return critH;
-  return'<div class="det-2col"><div style="flex:1;min-width:0;">'+critH+'</div><div style="flex:1;min-width:0;">'+warnH+'</div></div>';
+  if(!critH)return sedeBarHTML()+warnH;
+  if(!warnH)return sedeBarHTML()+critH;
+  return sedeBarHTML()+'<div class="det-2col"><div style="flex:1;min-width:0;">'+critH+'</div><div style="flex:1;min-width:0;">'+warnH+'</div></div>';
 }
 // ── ADMINISTRATIVO (seguro / EPEC / R.U.GE.PRE.SA) ──
 function adminSvgIcon(sz){
@@ -8412,8 +8427,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="5.9.8";
-var APP_BUILD="15/06/26 17:00";
+var APP_DISPLAY_VERSION="5.9.9";
+var APP_BUILD="15/06/26 17:45";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
