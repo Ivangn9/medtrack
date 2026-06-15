@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.15.160 -->
+<!-- v2026.06.15.165 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.15.160">
+<meta name="app-version" content="v2026.06.15.165">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -992,6 +992,14 @@ body.dark .sb-card{background:rgba(255,255,255,.06);border-color:rgba(255,255,25
         <div><div class="settings-title">🔔 Recordatorio Mensual</div><div class="settings-desc">Aviso el último día del mes para generar el reporte</div><div id="reminder-status" style="font-size:.62rem;color:var(--text3);margin-top:3px;"></div></div>
         <button id="reminder-toggle" onclick="toggleMonthlyReminder()" style="width:50px;height:30px;border-radius:15px;border:none;cursor:pointer;position:relative;transition:background .3s;background:#e5e5ea;flex-shrink:0;margin-left:12px;">
           <div id="reminder-dot" style="width:24px;height:24px;border-radius:50%;background:#fff;position:absolute;top:3px;left:3px;transition:left .3s;box-shadow:0 1px 3px rgba(0,0,0,.2);"></div>
+        </button>
+      </div>
+    </div>
+    <div class="settings-item">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div><div class="settings-title">🚨 Alertas Críticas</div><div class="settings-desc">Notificaciones automáticas cuando un equipo vence o falla</div><div id="alertnotif-status" style="font-size:.62rem;color:var(--text3);margin-top:3px;"></div></div>
+        <button id="alertnotif-toggle" onclick="toggleAlertNotif()" style="width:50px;height:30px;border-radius:15px;border:none;cursor:pointer;position:relative;transition:background .3s;background:#e5e5ea;flex-shrink:0;margin-left:12px;">
+          <div id="alertnotif-dot" style="width:24px;height:24px;border-radius:50%;background:#fff;position:absolute;top:3px;left:3px;transition:left .3s;box-shadow:0 1px 3px rgba(0,0,0,.2);"></div>
         </button>
       </div>
     </div>
@@ -5703,6 +5711,51 @@ function checkMonthlyReminder(){
     new Notification('📋 CIMA Hub — Reporte '+mes,{body:'Hoy es el último día del mes. Generá y compartí el informe mensual.',tag:'cima-monthly',icon:''});
   }catch(e){}
 }
+// ── Alertas críticas automáticas ──
+function toggleAlertNotif(){
+  var on=localStorage.getItem('mt_alertnotif')==='1';
+  if(on){localStorage.setItem('mt_alertnotif','0');updateSettingsUI();showToast('Alertas desactivadas','');}
+  else{
+    if(!('Notification' in window)){showToast('Notificaciones no soportadas en este navegador','warn');return;}
+    if(Notification.permission==='denied'){showToast('Notificaciones bloqueadas — habilitálas en Ajustes del sistema → Notificaciones','warn');return;}
+    var _grant=function(perm){
+      if(perm==='granted'){
+        localStorage.setItem('mt_alertnotif','1');
+        localStorage.removeItem('mt_notif_sent');
+        updateSettingsUI();
+        showToast('✅ Alertas críticas activadas','');
+        checkAlertNotifs();
+      }else{showToast('Permiso denegado para notificaciones','warn');}
+    };
+    var p=Notification.requestPermission();
+    if(p&&typeof p.then==='function')p.then(_grant);else _grant(p);
+  }
+}
+function checkAlertNotifs(){
+  try{
+    if(localStorage.getItem('mt_alertnotif')!=='1')return;
+    if(!('Notification' in window)||Notification.permission!=='granted')return;
+    var al=getAlertas().filter(function(a){return a.niv==='critico';});
+    if(!al.length)return;
+    var sent={};try{sent=JSON.parse(localStorage.getItem('mt_notif_sent')||'{}');}catch(e){}
+    var now=Date.now();
+    var COOLDOWN=8*60*60*1000; // 8 horas entre notificaciones del mismo alerta
+    al.forEach(function(a){
+      if(sent[a.k]&&(now-sent[a.k])<COOLDOWN)return;
+      try{
+        var n=new Notification('🚨 MedTrack — '+a.tit,{
+          body:a.desc,
+          tag:'mt-alert-'+a.k,
+          icon:'/medtrack/logo.png',
+          badge:'/medtrack/logo.png'
+        });
+        n.onclick=function(){window.focus();closeModal&&closeModal();goDetalle&&goDetalle(a.eid);n.close();};
+        sent[a.k]=now;
+      }catch(e){}
+    });
+    localStorage.setItem('mt_notif_sent',JSON.stringify(sent));
+  }catch(e){}
+}
 function updateSettingsUI(){
   var b=document.getElementById("dark-toggle"),d=document.getElementById("dark-dot"),l=document.getElementById("font-label"),vl=document.getElementById("ver-label"),sf=document.getElementById("settings-footer");
   if(b){b.style.background=darkMode?"var(--accent)":"#e5e5ea";}if(d){d.style.left=darkMode?"23px":"3px";}if(l)l.textContent=fontScale+"%";
@@ -5715,6 +5768,11 @@ function updateSettingsUI(){
   if(rt)rt.style.background=re?'var(--accent)':'#e5e5ea';
   if(rd)rd.style.left=re?'23px':'3px';
   if(rs){if(!('Notification' in window))rs.textContent='No soportado en este navegador';else if(Notification.permission==='denied')rs.textContent='⚠️ Bloqueado — habilitá en Ajustes del sistema';else rs.textContent=re?'Activo — avisa el último día del mes':'Inactivo';}
+  var an=localStorage.getItem('mt_alertnotif')==='1';
+  var at=document.getElementById('alertnotif-toggle'),ad=document.getElementById('alertnotif-dot'),as2=document.getElementById('alertnotif-status');
+  if(at)at.style.background=an?'var(--accent)':'#e5e5ea';
+  if(ad)ad.style.left=an?'23px':'3px';
+  if(as2){if(!('Notification' in window))as2.textContent='No soportado en este navegador';else if(Notification.permission==='denied')as2.textContent='⚠️ Bloqueado — habilitá en Ajustes del sistema';else{var _an_criticos=an?getAlertas().filter(function(a){return a.niv==='critico';}).length:0;as2.textContent=an?'Activo'+(_an_criticos?' — '+_an_criticos+' alerta'+((_an_criticos!==1)?'s':'')+' crítica'+((_an_criticos!==1)?'s':''):''):'Inactivo';}}
   for(var _gn=1;_gn<=4;_gn++){
     var _gb=document.getElementById("glass-btn-"+_gn);
     if(_gb){_gb.style.background=glassMode===_gn?"var(--accent)":"rgba(0,113,227,.1)";_gb.style.color=glassMode===_gn?"#fff":"var(--accent)";}
@@ -8520,8 +8578,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="6.0.0";
-var APP_BUILD="15/06/26 18:10";
+var APP_DISPLAY_VERSION="6.0.1";
+var APP_BUILD="15/06/26 18:30";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
@@ -8543,6 +8601,8 @@ function doClearCache(){
   },500);
 }
 function checkForUpdates(){
+  checkMonthlyReminder();
+  checkAlertNotifs();
   var base=window.location.href.split('?')[0].split('#')[0];
   fetch(base+'?_chk='+Date.now(),{cache:'no-store',method:'GET'})
     .then(function(r){return r.text();})
