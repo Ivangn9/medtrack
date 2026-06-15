@@ -2836,7 +2836,7 @@ function clearSig(){
 }
 function openQRModal(eqId){
   var eq=eqs.find(function(e){return e.id===eqId;});if(!eq)return;
-  var url='https://ivangn9.github.io/medtrack/#'+eqId;
+  var url='https://ivangn9.github.io/medtrack/eq-public.html?id='+eqId;
   openModal(
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">'+
     '<div class="modal-title">📱 Código QR</div>'+

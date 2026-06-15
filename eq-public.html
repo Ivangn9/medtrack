@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>CIMA Hub — Equipo</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{background:#06091a;color:rgba(255,255,255,.9);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',sans-serif;min-height:100vh;padding:0 0 40px;}
+.top-bar{background:linear-gradient(135deg,#0a0f2c 0%,#06091a 100%);border-bottom:1px solid rgba(255,255,255,.07);padding:14px 18px 12px;display:flex;align-items:center;gap:12px;}
+.cima-logo{font-size:1.1rem;font-weight:900;color:#adc6ff;letter-spacing:-.5px;}
+.cima-sub{font-size:.6rem;color:rgba(255,255,255,.4);letter-spacing:2px;text-transform:uppercase;margin-top:1px;}
+.badge-ro{margin-left:auto;padding:3px 10px;border-radius:20px;background:rgba(120,120,128,.12);border:1px solid rgba(120,120,128,.2);font-size:.62rem;font-weight:700;color:rgba(255,255,255,.4);letter-spacing:.05em;text-transform:uppercase;}
+.wrap{max-width:560px;margin:0 auto;padding:20px 16px 0;}
+.card{background:rgba(32,31,33,.9);border:1px solid rgba(255,255,255,.08);border-radius:18px;margin-bottom:12px;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.07);}
+.card-hdr{padding:10px 16px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:8px;}
+.card-hdr-label{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;}
+.card-body{padding:14px 16px;}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:50px;font-size:.72rem;font-weight:700;}
+.chip-green{background:rgba(52,199,89,.15);color:#34c759;border:1px solid rgba(52,199,89,.3);}
+.chip-red{background:rgba(255,59,48,.15);color:#ff3b30;border:1px solid rgba(255,59,48,.3);}
+.chip-orange{background:rgba(255,149,0,.15);color:#ff9500;border:1px solid rgba(255,149,0,.3);}
+.chip-gray{background:rgba(120,120,128,.12);color:rgba(255,255,255,.45);border:1px solid rgba(120,120,128,.2);}
+.irow{display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);}
+.irow:last-child{border-bottom:none;}
+.irow-l{font-size:.72rem;color:rgba(255,255,255,.45);font-weight:500;}
+.irow-v{font-size:.8rem;font-weight:600;text-align:right;max-width:55%;}
+.eq-name{font-size:1.15rem;font-weight:800;letter-spacing:-.3px;margin-bottom:6px;line-height:1.25;}
+.eq-meta{font-size:.7rem;color:rgba(255,255,255,.45);margin-bottom:10px;}
+.nivel-bar-wrap{background:rgba(255,255,255,.06);border-radius:6px;height:10px;overflow:hidden;margin-top:4px;}
+.nivel-bar{height:100%;border-radius:6px;transition:width .4s;}
+.falla-item{padding:9px 0;border-bottom:1px solid rgba(255,255,255,.05);display:flex;align-items:flex-start;gap:10px;}
+.falla-item:last-child{border-bottom:none;}
+.falla-dot{width:8px;height:8px;border-radius:50%;background:#ff3b30;flex-shrink:0;margin-top:4px;box-shadow:0 0 6px #ff3b30;}
+.falla-nom{font-size:.82rem;font-weight:600;}
+.falla-desc{font-size:.7rem;color:rgba(255,255,255,.45);margin-top:2px;}
+.empty-state{text-align:center;padding:18px 0;color:rgba(255,255,255,.3);font-size:.8rem;}
+.spinner{display:flex;justify-content:center;align-items:center;padding:60px 0;gap:10px;color:rgba(255,255,255,.3);font-size:.85rem;}
+.spinner-circle{width:22px;height:22px;border:2.5px solid rgba(255,255,255,.1);border-top-color:#adc6ff;border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.err-state{text-align:center;padding:50px 16px;}
+.err-icon{font-size:2.5rem;margin-bottom:10px;}
+.err-msg{font-size:.85rem;color:rgba(255,255,255,.4);line-height:1.5;}
+.footer-info{text-align:center;padding:28px 16px 0;font-size:.65rem;color:rgba(255,255,255,.22);line-height:1.6;}
+.lectura-ts{font-size:.62rem;color:rgba(255,255,255,.3);margin-top:8px;text-align:right;}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div>
+    <div class="cima-logo">CIMA Hub</div>
+    <div class="cima-sub">Ingeniería Biomédica</div>
+  </div>
+  <div class="badge-ro">Solo lectura</div>
+</div>
+
+<div class="wrap">
+  <div id="root"><div class="spinner"><div class="spinner-circle"></div>Cargando equipo…</div></div>
+</div>
+
+<div class="footer-info">
+  CIMA Investigaciones Avanzadas · Vista pública de equipo<br>
+  Para reportar fallas o urgencias, contactar a Ingeniería Biomédica<br>
+  Esta página no permite ediciones
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyDpzlN1gaJUH6XGAWv5GRW_suk7zcqKeJE",
+  authDomain:"medtrack-cima-3e9c1.firebaseapp.com",
+  projectId:"medtrack-cima-3e9c1",
+  storageBucket:"medtrack-cima-3e9c1.firebasestorage.app",
+  messagingSenderId:"110780335014",
+  appId:"1:110780335014:web:b991d26e01637bdc884567"
+});
+
+var db = firebase.firestore();
+var root = document.getElementById('root');
+
+// Parse ?id= from URL
+var params = new URLSearchParams(window.location.search);
+var eqId = params.get('id') || '';
+
+if (!eqId) {
+  showError('No se especificó un equipo.', 'Escaneá el código QR del equipo correcto.');
+} else {
+  // Sign in anonymously — no UI, fully transparent to the user
+  firebase.auth().signInAnonymously()
+    .then(function() {
+      return db.collection('orgs').doc('cima').collection('app').doc('data').get();
+    })
+    .then(function(doc) {
+      if (!doc.exists) { showError('Sin datos', 'No se encontraron equipos en el sistema.'); return; }
+      var data = doc.data();
+      var allEqs = data.eqs || [];
+      var eq = null;
+      for (var i = 0; i < allEqs.length; i++) {
+        if (allEqs[i].id === eqId) { eq = allEqs[i]; break; }
+      }
+      if (!eq) { showError('Equipo no encontrado', 'El ID ' + eqId + ' no existe o fue dado de baja.'); return; }
+      renderEq(eq);
+    })
+    .catch(function(e) {
+      showError('Error de conexión', e.message || 'No se pudo acceder a los datos.');
+    });
+}
+
+function fD(s) {
+  if (!s) return '—';
+  var p = s.split('-');
+  if (p.length !== 3) return s;
+  return p[2] + '/' + p[1] + '/' + p[0];
+}
+function diasH(s) {
+  if (!s) return null;
+  var d = new Date(s + 'T12:00:00');
+  var n = new Date();
+  n.setHours(12,0,0,0);
+  return Math.round((d - n) / 86400000);
+}
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+var CAT_LABELS = {
+  RM:'Resonancia Magnética', TC:'Tomógrafo', ECO:'Ecógrafo', RX:'Rayos X',
+  DES:'Desfibrilador', UPS:'UPS', MON:'Monitor', ARC:'Arco Quirúrgico',
+  LAB:'Laboratorio', ANE:'Anestesia', VEN:'Ventilador', OTR:'Otro'
+};
+
+function renderEq(eq) {
+  var cat = CAT_LABELS[eq.cat] || eq.cat || '—';
+  var estado = eq.estado || 'operativo';
+  var estadoChip = '';
+  if (estado === 'operativo') estadoChip = '<span class="chip chip-green">✅ Operativo</span>';
+  else if (estado === 'fuera-de-servicio') estadoChip = '<span class="chip chip-red">🚫 Fuera de servicio</span>';
+  else estadoChip = '<span class="chip chip-orange">🔧 Con fallas</span>';
+
+  var html = '';
+
+  // ── Header card ──
+  html += '<div class="card">';
+  html += '<div class="card-body">';
+  html += '<div class="eq-name">' + esc(eq.nombre) + '</div>';
+  html += '<div class="eq-meta">' + esc(cat) + (eq.ubicacion ? ' · 📍 ' + esc(eq.ubicacion) : '') + '</div>';
+  html += '<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">';
+  html += estadoChip;
+  if (eq.serie) html += '<span style="font-family:monospace;font-size:.72rem;color:rgba(255,255,255,.5);background:rgba(255,255,255,.05);padding:3px 9px;border-radius:8px;border:1px solid rgba(255,255,255,.08);">SID: ' + esc(eq.serie) + '</span>';
+  html += '</div>';
+  html += '</div>';
+  html += '</div>';
+
+  // ── Mantenimiento ──
+  var lastMant = null;
+  var allHist = (eq.historialMant || []).filter(function(h){ return h.tipo === 'mantenimiento'; });
+  if (allHist.length) {
+    allHist.sort(function(a,b){ return a.fecha < b.fecha ? 1 : -1; });
+    lastMant = allHist[0];
+  }
+  var proxDias = diasH(eq.proximoMant);
+
+  html += '<div class="card">';
+  html += '<div class="card-hdr"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(173,198,255,.8)" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span class="card-hdr-label" style="color:rgba(173,198,255,.8);">Mantenimiento</span></div>';
+  html += '<div class="card-body">';
+
+  // Último mant
+  html += '<div class="irow"><span class="irow-l">Último mantenimiento</span>';
+  if (lastMant) {
+    html += '<div style="text-align:right;"><div class="irow-v">' + fD(lastMant.fecha) + '</div>';
+    if (lastMant.tecnico) html += '<div style="font-size:.65rem;color:rgba(255,255,255,.35);margin-top:2px;">👷 ' + esc(lastMant.tecnico) + '</div>';
+    if (lastMant.empresa) html += '<div style="font-size:.65rem;color:rgba(255,255,255,.35);">🏢 ' + esc(lastMant.empresa) + '</div>';
+    if (lastMant.nroOrden) html += '<div style="font-size:.63rem;color:rgba(173,198,255,.7);font-family:monospace;">OS: ' + esc(lastMant.nroOrden) + '</div>';
+    html += '</div>';
+  } else {
+    html += '<span class="irow-v" style="color:rgba(255,255,255,.3);">Sin registro</span>';
+  }
+  html += '</div>';
+
+  // Próximo mant
+  html += '<div class="irow"><span class="irow-l">Próximo servicio</span>';
+  if (eq.proximoMant && eq.frecuencia !== 'ninguna') {
+    var pc = '';
+    if (proxDias === null) pc = '<span class="irow-v">—</span>';
+    else if (proxDias < 0) pc = '<span class="irow-v" style="color:#ff3b30;">' + fD(eq.proximoMant) + ' <span style="font-size:.65rem;">(vencido hace ' + Math.abs(proxDias) + 'd)</span></span>';
+    else if (proxDias <= 30) pc = '<span class="irow-v" style="color:#ff9500;">' + fD(eq.proximoMant) + ' <span style="font-size:.65rem;">(' + proxDias + 'd)</span></span>';
+    else pc = '<span class="irow-v" style="color:rgba(255,255,255,.7);">' + fD(eq.proximoMant) + ' <span style="font-size:.65rem;color:rgba(255,255,255,.35);">(' + proxDias + 'd)</span></span>';
+    html += pc;
+  } else {
+    html += '<span class="irow-v" style="color:rgba(255,255,255,.3);">—</span>';
+  }
+  html += '</div>';
+
+  if (eq.frecuencia && eq.frecuencia !== 'ninguna') {
+    html += '<div class="irow"><span class="irow-l">Frecuencia</span><span class="irow-v" style="text-transform:capitalize;">' + esc(eq.frecuencia) + '</span></div>';
+  }
+  if (eq.contrato) {
+    html += '<div class="irow"><span class="irow-l">Proveedor de servicio</span><span class="irow-v">' + esc(eq.contrato) + '</span></div>';
+  }
+  if (eq.tieneServicio && eq.servicioContratoNumero) {
+    html += '<div class="irow"><span class="irow-l">Nº de contrato</span><span class="irow-v" style="font-family:monospace;">' + esc(eq.servicioContratoNumero) + '</span></div>';
+  }
+  html += '</div></div>';
+
+  // ── Roturas activas ──
+  var roturas = (eq.partes || []).filter(function(p){ return p.estado === 'roto'; });
+  html += '<div class="card">';
+  html += '<div class="card-hdr"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="' + (roturas.length ? '#ff9500' : 'rgba(52,199,89,.8)') + '" stroke-width="2.2" stroke-linecap="round"><path d="M14.5 10c-.83 0-1.5-.67-1.5-1.5v-5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5z"/><path d="M20.5 10H19V8.5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/><path d="M9.5 14c.83 0 1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5S8 21.33 8 20.5v-5c0-.83.67-1.5 1.5-1.5z"/><path d="M3.5 14H5v1.5c0 .83-.67 1.5-1.5 1.5S2 16.33 2 15.5 2.67 14 3.5 14z"/><path d="M14 14.5c0-.83.67-1.5 1.5-1.5h5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5h-5c-.83 0-1.5-.67-1.5-1.5z"/><path d="M15.5 9H14v1.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5S16.33 9 15.5 9z"/><path d="M10 9.5C10 8.67 9.33 8 8.5 8h-5C2.67 8 2 8.67 2 9.5S2.67 11 3.5 11h5c.83 0 1.5-.67 1.5-1.5z"/><path d="M8.5 15H10v-1.5c0-.83-.67-1.5-1.5-1.5S7 12.67 7 13.5 7.67 15 8.5 15z"/></svg>';
+  html += '<span class="card-hdr-label" style="color:' + (roturas.length ? '#ff9500' : 'rgba(52,199,89,.8)') + ';">Fallas / Roturas activas ' + (roturas.length ? '(' + roturas.length + ')' : '') + '</span></div>';
+  html += '<div class="card-body">';
+  if (!roturas.length) {
+    html += '<div class="empty-state">✅ Sin fallas activas</div>';
+  } else {
+    roturas.forEach(function(p) {
+      var diasRoto = p.fechaRotura ? diasH(p.fechaRotura) : null;
+      html += '<div class="falla-item">';
+      html += '<div class="falla-dot"></div>';
+      html += '<div style="flex:1;">';
+      html += '<div class="falla-nom">' + esc(p.nombre) + '</div>';
+      if (p.descripcion || p.notas) html += '<div class="falla-desc">' + esc(p.descripcion || p.notas) + '</div>';
+      if (diasRoto !== null) html += '<div style="font-size:.65rem;color:#ff9500;margin-top:3px;">Desde: ' + fD(p.fechaRotura) + ' (hace ' + Math.abs(diasRoto) + ' días)</div>';
+      html += '</div></div>';
+    });
+  }
+  html += '</div></div>';
+
+  // ── Criogénicos y presiones (solo RM) ──
+  if (eq.cat === 'RM') {
+    var rf = eq.refrig || {};
+    var helioLiq = parseFloat(rf.helioLiqPorcentaje);
+    var helioGas = rf.helioGaseoso || 'ok';
+    var helioGasP = rf.helioGasPresionActual || '';
+    var helioLiqP = rf.helioLiqPresion || '';
+    var chTemp = rf.chillerTempC ? parseFloat(rf.chillerTempC).toFixed(1) : null;
+    var chFlujo = rf.chillerFlujoLMin || '';
+    var compState = rf.compresorHelio || 'operativo';
+
+    html += '<div class="card">';
+    html += '<div class="card-hdr"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round"><path d="M12 2v20M2 12h20"/><circle cx="12" cy="12" r="4"/></svg>';
+    html += '<span class="card-hdr-label" style="color:#38bdf8;">Criogénicos y Refrigeración</span></div>';
+    html += '<div class="card-body">';
+
+    // Helio líquido nivel
+    if (!isNaN(helioLiq)) {
+      var barColor = helioLiq >= 80 ? '#34c759' : helioLiq >= 60 ? '#ff9500' : '#ff3b30';
+      html += '<div style="margin-bottom:12px;">';
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">';
+      html += '<span style="font-size:.72rem;color:rgba(255,255,255,.45);">Nivel de Helio Líquido</span>';
+      html += '<span style="font-size:.82rem;font-weight:700;color:' + barColor + ';">' + Math.round(helioLiq) + '%</span>';
+      html += '</div>';
+      html += '<div class="nivel-bar-wrap"><div class="nivel-bar" style="width:' + Math.min(100,Math.max(0,helioLiq)) + '%;background:' + barColor + ';"></div></div>';
+      html += '</div>';
+    }
+
+    // Grid de valores
+    html += '<div>';
+    if (helioGasP) html += '<div class="irow"><span class="irow-l">Presión He gaseoso</span><span class="irow-v" style="font-family:monospace;">' + esc(helioGasP) + ' MPa</span></div>';
+    if (helioLiqP) html += '<div class="irow"><span class="irow-l">Presión He líquido</span><span class="irow-v" style="font-family:monospace;">' + esc(helioLiqP) + '</span></div>';
+    html += '<div class="irow"><span class="irow-l">He gaseoso</span><span class="irow-v">' + (helioGas === 'presion_baja' ? '<span style="color:#ff9500;">⚠️ Presión baja</span>' : '<span style="color:#34c759;">✅ OK</span>') + '</span></div>';
+    if (chTemp !== null) html += '<div class="irow"><span class="irow-l">Temp. chiller</span><span class="irow-v" style="font-family:monospace;">' + chTemp + ' °C</span></div>';
+    if (chFlujo) html += '<div class="irow"><span class="irow-l">Flujo chiller</span><span class="irow-v" style="font-family:monospace;">' + esc(chFlujo) + ' L/min</span></div>';
+    if (rf.eficienciaCriostat) html += '<div class="irow"><span class="irow-l">Eficiencia criostato</span><span class="irow-v">' + esc(rf.eficienciaCriostat) + '</span></div>';
+    html += '<div class="irow"><span class="irow-l">Compresor de helio</span><span class="irow-v">' + (compState === 'operativo' ? '<span style="color:#34c759;">✅ Operativo</span>' : compState === 'falla' ? '<span style="color:#ff3b30;">🚫 Con falla</span>' : '<span style="color:#ff9500;">⚠️ ' + esc(compState) + '</span>') + '</span></div>';
+    html += '</div>';
+
+    // Última lectura
+    var lecturas = rf.lecturas || [];
+    if (lecturas.length) {
+      lecturas.sort(function(a,b){ return a.fecha < b.fecha ? 1 : -1; });
+      var ult = lecturas[0];
+      html += '<div class="lectura-ts">Última lectura registrada: ' + fD(ult.fecha) + (ult.tecnico ? ' · ' + esc(ult.tecnico) : '') + '</div>';
+    }
+
+    html += '</div></div>';
+  }
+
+  root.innerHTML = html;
+}
+
+function showError(title, msg) {
+  root.innerHTML = '<div class="err-state"><div class="err-icon">⚠️</div><div style="font-size:.9rem;font-weight:700;margin-bottom:8px;">' + esc(title) + '</div><div class="err-msg">' + esc(msg) + '</div></div>';
+}
+</script>
+</body>
+</html>
