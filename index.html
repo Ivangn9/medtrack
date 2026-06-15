@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.15.171 -->
+<!-- v2026.06.15.172 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.15.171">
+<meta name="app-version" content="v2026.06.15.172">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -453,6 +453,7 @@ body.dark .ig{box-shadow:0 2px 8px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255
 .fade{animation:fadeIn .2s var(--ease-out);}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes syncpulse{0%{box-shadow:0 0 0 0 rgba(245,158,11,.5)}70%{box-shadow:0 0 0 5px rgba(245,158,11,0)}100%{box-shadow:0 0 0 0 rgba(245,158,11,0)}}
+@keyframes pulse-red{0%,100%{opacity:1}50%{opacity:.55}}
 /* Staggered list entrance */
 .li-eq{animation:listItemIn .36s var(--spring) both;}
 @keyframes listItemIn{
@@ -3070,6 +3071,43 @@ function rDash(){
 var _busqueda="";
 var _filtMarca="";
 var _filtCentro="";
+// ── Alert aging + snooze ──
+var _alertFirstSeen={};try{_alertFirstSeen=JSON.parse(localStorage.getItem('mt_afirst')||'{}');}catch(e){}
+var _alertSnoozes={};try{_alertSnoozes=JSON.parse(localStorage.getItem('mt_asnooze')||'{}');}catch(e){}
+function _saveAlertSnooze(){try{localStorage.setItem('mt_asnooze',JSON.stringify(_alertSnoozes));}catch(e){}}
+function _saveAlertFirst(){try{localStorage.setItem('mt_afirst',JSON.stringify(_alertFirstSeen));}catch(e){}}
+function _trackAlertsSeen(alerts){
+  var now=Date.now();var changed=false;
+  alerts.forEach(function(a){if(!_alertFirstSeen[a.k]){_alertFirstSeen[a.k]=now;changed=true;}});
+  if(changed)_saveAlertFirst();
+}
+function _alertDaysSince(key){return Math.floor((Date.now()-(_alertFirstSeen[key]||Date.now()))/86400000);}
+function _isAlertSnoozed(key){
+  var s=_alertSnoozes[key];if(!s)return false;
+  if(Date.now()>s.until){delete _alertSnoozes[key];_saveAlertSnooze();return false;}
+  return true;
+}
+function snoozeAlert(key,days){
+  var nota=(document.getElementById('snooze-nota')||{}).value||'';
+  _alertSnoozes[key]={until:Date.now()+days*86400000,nota:nota};
+  _saveAlertSnooze();closeModal();render();showToast('Alerta pospuesta '+days+'d');
+}
+function openSnoozeModal(key,tit){
+  openModal(
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">'+
+    '<div class="modal-title">⏰ Posponer alerta</div>'+
+    '<button class="modal-close" onclick="closeModal()">✕</button></div>'+
+    '<div style="background:rgba(255,149,0,.09);border:1px solid rgba(255,149,0,.22);border-radius:var(--r-md);padding:9px 13px;margin-bottom:14px;font-size:.82rem;font-weight:600;color:var(--orange);">'+esc(tit)+'</div>'+
+    '<div class="ff-label" style="margin-bottom:8px;">¿Cuánto tiempo posponer?</div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">'+
+      [3,7,15,30].map(function(d){
+        return '<button onclick="snoozeAlert(\''+key+'\','+d+')" style="padding:12px 8px;border-radius:var(--r-md);background:rgba(0,113,227,.08);border:1.5px solid rgba(0,113,227,.22);color:var(--accent);font-weight:700;font-size:.85rem;cursor:pointer;">'+d+' días</button>';
+      }).join('')+
+    '</div>'+
+    '<div class="ff"><div class="ff-label">Nota (opcional)</div><input class="inp" id="snooze-nota" placeholder="ej: esperando repuesto, técnico viene el jueves..."></div>'+
+    '<button onclick="closeModal()" style="width:100%;padding:11px;border-radius:var(--r-md);background:rgba(120,120,128,.1);border:none;color:var(--text3);font-size:.82rem;cursor:pointer;margin-top:4px;">Cancelar</button>'
+  );
+}
 // ── Sede global (multi-centro): "" = Todas ──
 var _sedeActiva="";try{_sedeActiva=localStorage.getItem("mt_sede")||"";}catch(e){}
 var _SEDES=[{id:"",lbl:"🏥 Todas"},{id:"Pedernera",lbl:"📍 Pedernera"},{id:"CRS",lbl:"📍 CRS"},{id:"GN",lbl:"📍 GN"}];
@@ -3967,39 +4005,74 @@ function exportKpiPDF(){
 }
 
 // ── ALERTAS ──
+function _alertAgeBadge(key,niv){
+  var d=_alertDaysSince(key);
+  if(d<1)return'';
+  var c,bg,pulse='';
+  if(d>=7){c='var(--red)';bg='rgba(255,59,48,.15)';pulse=' style="display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:20px;font-size:.6rem;font-weight:700;background:rgba(255,59,48,.15);color:var(--red);animation:pulse-red 1.4s infinite;"';}
+  else if(d>=3){c='var(--orange)';bg='rgba(255,149,0,.15)';pulse=' style="display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:20px;font-size:.6rem;font-weight:700;background:rgba(255,149,0,.15);color:var(--orange);"';}
+  else{c='rgba(120,120,128,.7)';bg='rgba(120,120,128,.1)';pulse=' style="display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:20px;font-size:.6rem;font-weight:700;background:rgba(120,120,128,.1);color:rgba(120,120,128,.8);"';}
+  return'<span'+pulse+'>🕐 '+d+'d</span>';
+}
 function rAlertas(){
   var al=getAlertas();
-  if(!al.length)return sedeBarHTML()+'<div style="text-align:center;padding:60px 0;"><div style="font-size:2.5rem;margin-bottom:10px;">✅</div><div style="font-weight:600;color:var(--green);font-size:.97rem;">Sin alertas</div><div style="color:var(--text3);font-size:.82rem;margin-top:4px;">Todo en orden'+(_sedeActiva?' en '+esc(_sedeActiva):'')+'</div></div>';
+  _trackAlertsSeen(al);
+  var active=al.filter(function(a){return !_isAlertSnoozed(a.k);});
+  var snoozed=al.filter(function(a){return _isAlertSnoozed(a.k);});
+  if(!active.length&&!snoozed.length)return sedeBarHTML()+'<div style="text-align:center;padding:60px 0;"><div style="font-size:2.5rem;margin-bottom:10px;">✅</div><div style="font-weight:600;color:var(--green);font-size:.97rem;">Sin alertas</div><div style="color:var(--text3);font-size:.82rem;margin-top:4px;">Todo en orden'+(_sedeActiva?' en '+esc(_sedeActiva):'')+'</div></div>';
   var groups=[["critico","🔴 Crítico","var(--red)"],["advertencia","⚠️ Advertencia","var(--orange)"],["info","ℹ️ Info","var(--accent)"]];
-  var rAlG=function(g){
-    var sub=al.filter(function(a){return a.niv===g[0];});if(!sub.length)return'';
+  var rAlG=function(g,list){
+    var sub=list.filter(function(a){return a.niv===g[0];});if(!sub.length)return'';
     var out='<div class="sec" style="color:'+g[2]+';">'+g[1]+' ('+sub.length+')</div>';
     sub.forEach(function(a){
       var eq=eqs.find(function(e){return e.id===a.eid;})||{};
       var cat=catById(eq.cat);var catColor=cat.color||"#64748b";var nivColor=g[2];
-      out+='<div class="gc tap" onclick="goDetalle(\''+a.eid+'\')" style="padding:13px 14px;margin-bottom:8px;border-left:4px solid '+nivColor+';cursor:pointer;">'+
+      var ageBadge=_alertAgeBadge(a.k,a.niv);
+      out+='<div class="gc" style="padding:13px 14px;margin-bottom:8px;border-left:4px solid '+nivColor+';">'+
         '<div style="display:flex;align-items:center;gap:12px;">'+
-        '<div style="width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:'+catColor+'18;border:1px solid '+catColor+'30;box-shadow:0 2px 8px rgba(0,0,0,.06),inset 0 1px 0 rgba(255,255,255,.8);">'+
+        '<div onclick="goDetalle(\''+a.eid+'\')" style="width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:'+catColor+'18;border:1px solid '+catColor+'30;box-shadow:0 2px 8px rgba(0,0,0,.06),inset 0 1px 0 rgba(255,255,255,.8);cursor:pointer;">'+
         (catSvgIcon(eq.cat,30)||'<span style="font-size:1.2rem;">'+cat.icon+'</span>')+
         '</div>'+
-        '<div style="flex:1;min-width:0;">'+
-        '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">'+
+        '<div style="flex:1;min-width:0;cursor:pointer;" onclick="goDetalle(\''+a.eid+'\')">'+
+        '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px;">'+
         '<span style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:.6rem;font-weight:700;background:'+nivColor+'18;color:'+nivColor+';">'+g[1].split(' ')[0]+'</span>'+
         '<span style="font-size:.62rem;font-weight:600;color:'+catColor+';background:'+catColor+'14;padding:2px 8px;border-radius:20px;">'+cat.label+'</span>'+
+        ageBadge+
         '</div>'+
         '<div style="font-weight:700;font-size:.86rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+esc(a.tit)+'</div>'+
         '<div style="font-size:.74rem;color:var(--text3);margin-top:2px;">'+esc(a.desc)+'</div>'+
         '</div>'+
-        '<div style="color:var(--text3);font-size:1.1rem;flex-shrink:0;">›</div>'+
+        '<button onclick="openSnoozeModal(\''+a.k+'\',\''+esc(a.tit)+' — '+esc(a.desc)+'\')" style="flex-shrink:0;padding:6px 9px;border-radius:var(--r-md);background:rgba(255,149,0,.10);border:1px solid rgba(255,149,0,.25);color:var(--orange);font-size:.7rem;font-weight:600;cursor:pointer;" title="Posponer">⏰</button>'+
         '</div></div>';
     });
     return out;
   };
-  var critH=rAlG(groups[0]);
-  var warnH=rAlG(groups[1])+rAlG(groups[2]);
-  if(!critH)return sedeBarHTML()+warnH;
-  if(!warnH)return sedeBarHTML()+critH;
-  return sedeBarHTML()+'<div class="det-2col"><div style="flex:1;min-width:0;">'+critH+'</div><div style="flex:1;min-width:0;">'+warnH+'</div></div>';
+  var critH=rAlG(groups[0],active);
+  var warnH=rAlG(groups[1],active)+rAlG(groups[2],active);
+  var snoozeH='';
+  if(snoozed.length){
+    snoozeH='<div style="margin-top:14px;border-top:1px solid rgba(255,255,255,.07);padding-top:12px;">';
+    snoozeH+='<div style="font-size:.65rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">⏸ Pospuestas ('+snoozed.length+')</div>';
+    snoozed.forEach(function(a){
+      var s=_alertSnoozes[a.k];
+      var daysLeft=s?Math.ceil((s.until-Date.now())/86400000):0;
+      snoozeH+='<div style="display:flex;align-items:center;gap:10px;padding:8px 11px;margin-bottom:6px;background:rgba(120,120,128,.06);border:1px solid rgba(120,120,128,.12);border-radius:var(--r-md);opacity:.75;">'+
+        '<div style="flex:1;min-width:0;">'+
+        '<div style="font-size:.78rem;font-weight:600;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+esc(a.tit)+'</div>'+
+        '<div style="font-size:.68rem;color:var(--text3);">'+esc(a.desc)+(s&&s.nota?' · '+esc(s.nota):'')+'</div>'+
+        '</div>'+
+        '<span style="font-size:.65rem;color:var(--text3);flex-shrink:0;white-space:nowrap;">'+daysLeft+'d restante'+(daysLeft!==1?'s':'')+'</span>'+
+        '<button onclick="delete _alertSnoozes[\''+a.k+'\'];_saveAlertSnooze();render();" style="padding:4px 8px;border-radius:var(--r-sm);background:rgba(255,59,48,.08);border:none;color:var(--red);font-size:.65rem;cursor:pointer;">✕</button>'+
+      '</div>';
+    });
+    snoozeH+='</div>';
+  }
+  var mainH='';
+  if(!critH&&!warnH)mainH='';
+  else if(!critH)mainH=warnH;
+  else if(!warnH)mainH=critH;
+  else mainH='<div class="det-2col"><div style="flex:1;min-width:0;">'+critH+'</div><div style="flex:1;min-width:0;">'+warnH+'</div></div>';
+  return sedeBarHTML()+mainH+snoozeH;
 }
 // ── ADMINISTRATIVO (seguro / EPEC / R.U.GE.PRE.SA) ──
 function adminSvgIcon(sz){
@@ -5829,25 +5902,30 @@ function checkAlertNotifs(){
   try{
     if(localStorage.getItem('mt_alertnotif')!=='1')return;
     if(!('Notification' in window)||Notification.permission!=='granted')return;
-    var al=getAlertas().filter(function(a){return a.niv==='critico';});
-    if(!al.length)return;
-    var sent={};try{sent=JSON.parse(localStorage.getItem('mt_notif_sent')||'{}');}catch(e){}
-    var now=Date.now();
-    var COOLDOWN=8*60*60*1000; // 8 horas entre notificaciones del mismo alerta
-    al.forEach(function(a){
-      if(sent[a.k]&&(now-sent[a.k])<COOLDOWN)return;
-      try{
-        var n=new Notification('🚨 MedTrack — '+a.tit,{
-          body:a.desc,
-          tag:'mt-alert-'+a.k,
-          icon:'/medtrack/logo.png',
-          badge:'/medtrack/logo.png'
-        });
-        n.onclick=function(){window.focus();closeModal&&closeModal();goDetalle&&goDetalle(a.eid);n.close();};
-        sent[a.k]=now;
-      }catch(e){}
-    });
-    localStorage.setItem('mt_notif_sent',JSON.stringify(sent));
+    // Digest diario: una sola notificación por día, solo a partir de las 8am
+    var now=new Date();
+    var todayStr=now.getFullYear()+'-'+(now.getMonth()+1)+'-'+now.getDate();
+    var lastDigest=localStorage.getItem('mt_digest_last')||'';
+    if(lastDigest===todayStr)return; // ya se envió hoy
+    if(now.getHours()<8)return;     // esperar a las 8am
+    var allAl=getAlertas();
+    // Registrar primera vez que aparece cada alerta (para envejecimiento)
+    _trackAlertsSeen(allAl);
+    // Solo críticas no snoozadas
+    var criticos=allAl.filter(function(a){return a.niv==='critico'&&!_isAlertSnoozed(a.k);});
+    if(!criticos.length)return;
+    var body=criticos.slice(0,3).map(function(a){return '• '+a.tit+': '+a.desc;}).join('\n');
+    if(criticos.length>3)body+='\n… y '+(criticos.length-3)+' más';
+    try{
+      var n=new Notification('🚨 MedTrack — '+criticos.length+' alerta'+(criticos.length!==1?'s':'')+' crítica'+(criticos.length!==1?'s':'')+' sin resolver',{
+        body:body,
+        tag:'mt-digest',
+        icon:'/medtrack/logo.png',
+        badge:'/medtrack/logo.png'
+      });
+      n.onclick=function(){window.focus();closeModal&&closeModal();setView&&setView('alertas');n.close();};
+      localStorage.setItem('mt_digest_last',todayStr);
+    }catch(e){}
   }catch(e){}
 }
 function updateSettingsUI(){
@@ -8672,8 +8750,8 @@ var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content
 var antenas=[];
 var aires=[];
 var transductores=[];
-var APP_DISPLAY_VERSION="6.0.3";
-var APP_BUILD="15/06/26 20:00";
+var APP_DISPLAY_VERSION="6.0.4";
+var APP_BUILD="15/06/26 20:20";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
