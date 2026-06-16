@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.16.181 -->
+<!-- v2026.06.16.182 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.16.181">
+<meta name="app-version" content="v2026.06.16.182">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -7941,13 +7941,17 @@ function _narrativeEq(eq,mantHist,repHist,mejHist,actToShow,mejPendToShow,trasla
       if(segs.length){
         html+='<div style="margin-top:8px;padding:8px 10px;background:rgba(255,149,0,.06);border-left:3px solid #ff9500;border-radius:0 6px 6px 0;">';
         html+='<div style="font-size:.68rem;font-weight:700;color:#ff9500;letter-spacing:.05em;margin-bottom:6px;">SEGUIMIENTO DE GESTIÓN</div>';
-        segs.slice().sort(function(a,b){return a.fecha>b.fecha?1:-1;}).forEach(function(sg){
+        var segsSorted=segs.slice().sort(function(a,b){return a.fecha>b.fecha?1:-1;});
+        for(var _si=0;_si<segsSorted.length;_si++){
+          var sg=segsSorted[_si];
+          var _num=_si+1;
           html+='<div style="display:flex;gap:6px;padding:4px 0;border-bottom:1px solid rgba(255,149,0,.1);align-items:flex-start;">';
-          html+='<span style="font-size:.7rem;font-weight:700;color:#ff9500;white-space:nowrap;min-width:70px;">'+_fmtFechaCort(sg.fecha)+'</span>';
+          html+='<span style="font-size:.65rem;font-weight:700;color:rgba(255,149,0,.5);min-width:16px;padding-top:1px;">#'+_num+'</span>';
+          html+='<span style="font-size:.7rem;font-weight:700;color:#ff9500;white-space:nowrap;min-width:68px;">'+_fmtFechaCort(sg.fecha)+'</span>';
           html+='<span style="font-size:.73rem;color:var(--text);flex:1;line-height:1.4;">'+esc(sg.nota||'')+'</span>';
           html+='<button onclick="event.stopPropagation();_delSeguimientoFalla(\''+eq.id+'\',\''+p.id+'\',\''+sg.id+'\');" style="background:none;border:none;color:rgba(120,120,128,.4);font-size:.75rem;cursor:pointer;padding:0 2px;flex-shrink:0;">✕</button>';
           html+='</div>';
-        });
+        }
         html+='</div>';
       }
       html+='<div style="margin-top:6px;">';
@@ -10428,10 +10432,10 @@ function generarPDFEjecutivo(){
             if(y>270){doc.addPage();y=20;}
             var sgF=segsF[sfi];
             doc.setFontSize(8);doc.setFont('helvetica','bold');doc.setTextColor(180,70,0);
-            doc.text(_fmtFechaCort(sgF.fecha),margin+3,y);
+            doc.text('#'+(sfi+1)+'  '+_fmtFechaCort(sgF.fecha),margin+3,y);
             doc.setFont('helvetica','normal');doc.setTextColor(28,28,30);
-            var sgFLines=doc.splitTextToSize((sgF.nota||''),W-2*margin-22);
-            doc.text(sgFLines[0]||'',margin+22,y);y+=4.5;
+            var sgFLines=doc.splitTextToSize((sgF.nota||''),W-2*margin-26);
+            doc.text(sgFLines[0]||'',margin+26,y);y+=4.5;
             for(var sfll=1;sfll<sgFLines.length;sfll++){
               if(y>270){doc.addPage();y=20;}
               doc.text(sgFLines[sfll],margin+22,y);y+=4.5;
@@ -10462,8 +10466,8 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="6.3.3";
-var APP_BUILD="16/06/26 13:55";
+var APP_DISPLAY_VERSION="6.3.4";
+var APP_BUILD="16/06/26 14:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
