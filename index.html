@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.16.188 -->
+<!-- v2026.06.16.189 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.16.188">
+<meta name="app-version" content="v2026.06.16.189">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -6392,6 +6392,63 @@ function _rDetalleFallas(eq){
       '<div style="display:flex;gap:6px;"><button class="btn-secondary btn-sm" style="flex:1;" onclick=\'openModalParte("'+eq.id+'",'+JSON.stringify(p).replace(/'/g,"&#39;")+')\'>✏️ Editar</button><button class="btn-danger btn-sm" onclick="delParte(\''+eq.id+'\',\''+p.id+'\')">🗑</button></div></div>';
   });
   h+='</div></div>';
+  // ── Fallas de componentes vinculados (transductores, antenas, UPS) ──
+  var _linkedFaults=[];
+  (eq.transductorIds||[]).forEach(function(tid){
+    var t=transductores.find(function(x){return x.id===tid;});
+    if(!t)return;
+    (t.roturas||[]).filter(function(r){return r.estado!=='reparado';}).forEach(function(r){
+      _linkedFaults.push({tipo:'transductor',obj:t,rotura:r});
+    });
+  });
+  (eq.antenaIds||[]).forEach(function(aid){
+    var a=antenas.find(function(x){return x.id===aid;});
+    if(!a)return;
+    (a.roturas||[]).filter(function(r){return r.estado!=='reparado';}).forEach(function(r){
+      _linkedFaults.push({tipo:'antena',obj:a,rotura:r});
+    });
+  });
+  eqs.filter(function(u){return u.cat==='UPS'&&!u.baja&&(u.equiposConectados||[]).indexOf(eq.id)!==-1;}).forEach(function(u){
+    (u.partes||[]).filter(function(p){return p.estado!=='ok'&&p.estado!=='mejora';}).forEach(function(p){
+      _linkedFaults.push({tipo:'ups',obj:u,rotura:p});
+    });
+  });
+  if(_linkedFaults.length){
+    h+='<div class="gc" style="padding:0;margin-bottom:12px;overflow:hidden;border-left:4px solid rgba(8,145,178,.55);background:linear-gradient(135deg,rgba(8,145,178,.08) 0%,rgba(6,182,212,.04) 100%);">';
+    h+='<div style="background:linear-gradient(90deg,rgba(8,145,178,.14),rgba(6,182,212,.07));padding:9px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(8,145,178,.12);">';
+    h+='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(8,145,178,.9)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>';
+    h+='<span style="font-size:.72rem;font-weight:700;color:rgba(8,145,178,.95);text-transform:uppercase;letter-spacing:.06em;flex:1;">Fallas de Componentes Vinculados</span>';
+    h+='<span style="background:rgba(8,145,178,.15);color:#0891b2;border-radius:20px;padding:1px 8px;font-size:.68rem;font-weight:700;">'+_linkedFaults.length+'</span>';
+    h+='</div>';
+    h+='<div style="padding:14px 16px;">';
+    h+='<div style="font-size:.68rem;color:rgba(8,145,178,.7);margin-bottom:10px;padding:5px 9px;background:rgba(8,145,178,.07);border-radius:8px;">Estas fallas pertenecen a componentes vinculados a este equipo. Para editarlas, ir al detalle del componente.</div>';
+    _linkedFaults.forEach(function(lf){
+      var r=lf.rotura;var obj=lf.obj;
+      var tipoLabel=lf.tipo==='transductor'?'Transductor':lf.tipo==='antena'?'Antena':'UPS';
+      var tipoIcon=lf.tipo==='transductor'?'📡':lf.tipo==='antena'?'📶':'🔋';
+      var navFn=lf.tipo==='transductor'?'goTransductorDetalle(\''+obj.id+'\',\''+eq.id+'\')':lf.tipo==='antena'?'goAntenaDetalle(\''+obj.id+'\',\''+eq.id+'\')':'setDetalleTab(null);selId=\''+obj.id+'\';view=\'detalle\';render();';
+      var estadoColor=r.estado==='roto'?'var(--red)':'var(--orange)';
+      var estadoLabel=r.estado==='roto'?'🔴 Roto':'⚠️ Pend.';
+      var bgCard=r.estado==='roto'?'rgba(255,245,245,.95)':'rgba(255,250,240,.95)';
+      var borderColor=r.estado==='roto'?'rgba(220,38,38,.3)':'rgba(245,158,11,.3)';
+      var nombreParte=r.nombre||r.parte||r.descripcion||'Falla sin nombre';
+      h+='<div style="background:'+bgCard+';border:1px solid '+borderColor+';border-radius:14px;padding:12px;margin-bottom:10px;border-left:3px solid '+estadoColor+';">';
+      h+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">';
+      h+='<span style="font-size:.68rem;background:rgba(8,145,178,.12);color:#0891b2;padding:2px 8px;border-radius:20px;font-weight:700;">'+tipoIcon+' '+tipoLabel+'</span>';
+      h+='<span style="font-weight:700;font-size:.84rem;flex:1;">'+esc(obj.nombre||obj.modelo||'Sin nombre')+'</span>';
+      h+='<span style="display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:.68rem;font-weight:700;background:'+estadoColor+'22;color:'+estadoColor+';">'+estadoLabel+'</span>';
+      h+='</div>';
+      h+='<div style="font-size:.8rem;font-weight:600;margin-bottom:4px;">'+esc(nombreParte)+'</div>';
+      if(r.descripcion&&r.descripcion!==nombreParte)h+='<div style="font-size:.72rem;color:var(--text3);margin-bottom:4px;">'+esc(r.descripcion)+'</div>';
+      h+='<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px;">';
+      if(r.fecha||r.fechaRotura)h+='<span style="font-size:.68rem;color:var(--text3);">📅 '+fD(r.fecha||r.fechaRotura)+'</span>';
+      if(r.canal||r.canalReclamo)h+='<span style="font-size:.68rem;color:var(--text3);">📞 '+esc(canalLabel(r.canal||r.canalReclamo))+'</span>';
+      h+='</div>';
+      h+='<button onclick="'+navFn+'" style="width:100%;padding:8px;border:1.5px solid rgba(8,145,178,.35);border-radius:10px;background:rgba(8,145,178,.08);color:#0891b2;font-size:.76rem;font-weight:700;cursor:pointer;">🔗 Ver detalle del '+tipoLabel+'</button>';
+      h+='</div>';
+    });
+    h+='</div></div>';
+  }
   var mejoras=eq.partes.filter(function(p){
     if(p.estado!=='mejora')return false;
     if(!dq)return true;
@@ -11006,8 +11063,8 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="6.4.3";
-var APP_BUILD="16/06/26 19:45";
+var APP_DISPLAY_VERSION="6.4.4";
+var APP_BUILD="16/06/26 20:15";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
