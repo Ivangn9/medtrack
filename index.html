@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.16.198 -->
+<!-- v2026.06.16.199 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.16.198">
+<meta name="app-version" content="v2026.06.16.199">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -2947,15 +2947,44 @@ var RM_PARTES_DEFAULT=[
 ];
 var CAT_COMPONENTES={
   RM:[
-    "Gating Respiratorio","Gating PG","Gating Cardiaco",
-    "Luz t\xfanel","Luz exterior","Laser",
-    "Bobina de gradientes","Ruedas camilla","Camilla",
+    // Sistema criogénico
+    "Helio L\xedquido","Helio Gaseoso","ColdHead","Compresor de Helio (Sumitomo F-50H)",
+    "L\xedneas flex de helio","Adsorber del compresor","Tubo / v\xe1lvula de quench","Gauge de presi\xf3n del magneto",
+    // Magneto y campo
+    "Bobinas shim activas","Shims pasivos de hierro","Shimming","Homogeneizaci\xf3n",
+    // Sistema de gradientes
     "M\xf3dulo Gradiente X","M\xf3dulo Gradiente Y","M\xf3dulo Gradiente Z","M\xf3dulo Gradiente General",
-    "ColdHead","Compresor de Helio","Chiller de L\xedquido Rosa","Chiller de Agua",
-    "Enchufe A","Enchufe B","Bater\xeda MRU",
-    "Shimming","Homogeneizaci\xf3n","Helio L\xedquido","Helio Gaseoso",
+    "Amplificador gradiente X","Amplificador gradiente Y","Amplificador gradiente Z",
+    "Ventiladores filtro de gradiente","Filtros de gradiente",
+    // Sistema RF y antenas
+    "Amplificador RF","Body coil integrada",
+    "Gating Respiratorio","Gating PG","Gating Cardiaco",
     "Antena de cabeza","Antena de columna","Antena de cuerpo","Antena de rodilla","Antena de hombro",
-    "Antena de mama (coil)","Antena phased array"
+    "Antena de mama (coil)","Antena phased array",
+    "Pines y conectores de bobinas","Cable y conector de bobina",
+    // Sistema de enfriamiento (chiller)
+    "Chiller de L\xedquido Rosa","Chiller de Agua",
+    "Filtros primarios y secundarios del chiller","Bomba de circulaci\xf3n de agua",
+    "Sensor de temperatura y flujo (chiller)","Mangueras y conexiones del circuito de agua",
+    // Gabinete electrónico
+    "Fuentes de poder del sistema","Tarjetas PCB del gabinete RF / gradiente",
+    "Bater\xeda MRU","Enchufe A","Enchufe B","Cables de alta tensi\xf3n",
+    // Mesa de paciente
+    "Camilla","Ruedas camilla","Motor de traslaci\xf3n longitudinal","Motor de elevaci\xf3n de mesa",
+    "Correas y cadenas de transmisi\xf3n","Sensores de posici\xf3n y fin de carrera",
+    "Colchoneta y apoyos de paciente","Bot\xf3n de llamada / pera de emergencia",
+    // Comunicación con paciente e iluminación
+    "Intercomunicador (micr\xf3fono / parlante)","Sistema de auriculares / cancelaci\xf3n de ruido",
+    "Espejo y sistema de iluminaci\xf3n del bore","Luz t\xfanel","Luz exterior","Laser",
+    // Sala del imán / infraestructura
+    "Puerta RF blindada","Panel de filtros RF","Sistema de iluminaci\xf3n de la sala",
+    "Sensor de ox\xedgeno O₂","Sistema de ventilaci\xf3n de la sala",
+    // Software y calibración
+    "Software de adquisici\xf3n (GE)","Calibraci\xf3n del sistema (transmitter gain / receiver)",
+    "Phantoms de calibraci\xf3n (ACR / SNR)","Logs de error del sistema",
+    // Mantenimiento rutinario
+    "Filtros de aire del gabinete electr\xf3nico","Limpieza de bobinas y accesorios",
+    "Registro de presi\xf3n y temperatura del compresor","Lubricaci\xf3n de mesa de paciente"
   ],
   TC:[
     "Tubo de rayos X","M\xf3dulos detectores","Generador de alta tensi\xf3n",
@@ -11136,8 +11165,8 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="6.5.3";
-var APP_BUILD="16/06/26 22:30";
+var APP_DISPLAY_VERSION="6.5.4";
+var APP_BUILD="16/06/26 22:45";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
