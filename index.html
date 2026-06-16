@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.16.178 -->
+<!-- v2026.06.16.179 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.16.178">
+<meta name="app-version" content="v2026.06.16.179">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1114,6 +1114,7 @@ body.dark .sb-card{background:rgba(255,255,255,.06);border-color:rgba(255,255,25
     <button class="sb-nav-btn" data-sb="calendario" onclick="setView('calendario')"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>Calendario PM</button>
     <button class="sb-nav-btn" data-sb="ordenes" onclick="setView('ordenes')"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg></span>Órdenes de Trabajo</button>
     <button class="sb-nav-btn" data-sb="repuestos" onclick="setView('repuestos')"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg></span>Repuestos</button>
+    <button class="sb-nav-btn" data-sb="reclamos" onclick="setView('reclamos')"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>Reclamos<span id="sb-reclamos-badge" style="display:none;background:#ff9500;color:#fff;border-radius:10px;padding:1px 6px;font-size:.6rem;font-weight:700;margin-left:auto;"></span></button>
     <button class="sb-nav-btn" data-sb="auditoria" onclick="setView('auditoria')"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></span>Auditoría</button>
     <button class="sb-nav-btn" id="sb-ajustes-btn" onclick="toggleSbAjustesMenu(event)"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span>Ajustes<span style="margin-left:auto;font-size:.65rem;opacity:.5;transition:transform .2s;" id="sb-aj-chevron">▸</span></button>
   </div>
@@ -1558,6 +1559,7 @@ var ordenesTrabajo=[];
 var repuestos=[];
 var pmProgramados=[];
 var auditLog=[];
+var reclamos=[];
 var _otViewMode='lista';
 var _auditFiltEnt='todos';
 var _pmPasosTemp=[];
@@ -1704,7 +1706,7 @@ function _fsWrite(tryN){
   if(!window._fbUser||!window._fbdb){_fsWriting=false;return;}
   _fsWriting=true;
   orgDataRef()
-    .set({eqs:eqs,antenas:antenas,aires:aires,transductores:transductores,ordenesTrabajo:ordenesTrabajo,repuestos:repuestos,pmProgramados:pmProgramados,auditLog:auditLog,updatedAt:new Date().toISOString()},{merge:true})
+    .set({eqs:eqs,antenas:antenas,aires:aires,transductores:transductores,ordenesTrabajo:ordenesTrabajo,repuestos:repuestos,pmProgramados:pmProgramados,auditLog:auditLog,reclamos:reclamos,updatedAt:new Date().toISOString()},{merge:true})
     .then(function(){_fsWriting=false;_fsDirty=false;_fsFailed=false;})
     .catch(function(e){
       _fsWriting=false;
@@ -3132,6 +3134,7 @@ function render(){
     else if(view==="calendario")d.innerHTML=rCalendarioPM();
     else if(view==="ordenes")d.innerHTML=rOrdenes();
     else if(view==="repuestos")d.innerHTML=rRepuestos();
+    else if(view==="reclamos")d.innerHTML=rReclamos();
     else if(view==="auditoria")d.innerHTML=rAuditoria();
     m.appendChild(d);
     var spacer=document.createElement("div");spacer.style.height="80px";spacer.style.flexShrink="0";m.appendChild(spacer);
@@ -4564,6 +4567,268 @@ function generarPDFRepuestos(){
   doc.text('CIMA Hub v6.2.0 \xb7 Generado: '+nowStr3+' \xb7 Total: '+repuestos.length+' repuestos \xb7 Bajo stock: '+low4,14,y2);
   doc.save('Repuestos_'+today().replace(/-/g,'')+'.pdf');
 }
+// ── HELPERS ──
+function htmlEsc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ── RECLAMOS Y SEGUIMIENTOS ──
+function _saveReclamos(){
+  try{localStorage.setItem('mt_reclamos',JSON.stringify(reclamos));}catch(e){}
+  firestoreSave();
+}
+
+function rReclamos(){
+  var filtEst=_reclamosFilt||'activos';
+  var filtered=reclamos.filter(function(r){
+    if(filtEst==='activos')return r.estado!=='resuelto';
+    if(filtEst==='resueltos')return r.estado==='resuelto';
+    return true;
+  });
+  filtered.sort(function(a,b){return a.fecha<b.fecha?1:-1;});
+
+  var fBtns='';
+  var filts=[['activos','Activos'],['resueltos','Resueltos'],['todos','Todos']];
+  for(var fi=0;fi<filts.length;fi++){
+    var fk=filts[fi][0];var fl=filts[fi][1];
+    var fon=filtEst===fk;
+    fBtns+='<button onclick="_reclamosFilt=\''+fk+'\';render();" style="padding:5px 14px;border-radius:20px;border:none;cursor:pointer;font-size:.75rem;font-weight:600;background:'+(fon?'var(--accent)':'rgba(120,120,128,.13)')+';color:'+(fon?'#fff':'var(--text2)')+';">'+fl+'</button>';
+  }
+
+  var cards='';
+  if(!filtered.length){
+    cards='<div style="text-align:center;color:var(--text3);padding:40px;font-size:.85rem;">Sin reclamos registrados</div>';
+  }else{
+    for(var i=0;i<filtered.length;i++){
+      var rc=filtered[i];
+      var eq=eqs.find(function(e){return e.id===rc.eqId;})||{};
+      var segs=rc.seguimientos||[];
+      var estColor=rc.estado==='resuelto'?'#30d158':rc.estado==='en-gestion'?'#ff9500':'#ff3b30';
+      var estLabel=rc.estado==='resuelto'?'Resuelto':rc.estado==='en-gestion'?'En Gestion':'Abierto';
+      var medioIcon={email:'&#9993;',telefono:'&#128222;',presencial:'&#129309;',carta:'&#128196;'}[rc.medio]||'&#128203;';
+      var segHtml='';
+      if(segs.length){
+        segHtml='<div style="margin-top:10px;border-top:1px solid rgba(120,120,128,.1);padding-top:8px;">';
+        segHtml+='<div style="font-size:.68rem;font-weight:700;color:var(--text3);margin-bottom:6px;letter-spacing:.05em;">SEGUIMIENTOS</div>';
+        for(var si=0;si<segs.length;si++){
+          var sg=segs[si];
+          var sgIcon={email:'&#9993;',telefono:'&#128222;',presencial:'&#129309;',carta:'&#128196;'}[sg.medio]||'&#128203;';
+          segHtml+='<div style="display:flex;gap:8px;padding:6px 0;border-bottom:1px solid rgba(120,120,128,.06);">'+
+            '<div style="font-size:.85rem;flex-shrink:0;margin-top:1px;">'+sgIcon+'</div>'+
+            '<div style="flex:1;">'+
+              '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">'+
+                '<span style="font-size:.72rem;font-weight:700;color:var(--text);">'+_fmtFechaCort(sg.fecha)+'</span>'+
+                '<span style="font-size:.68rem;color:var(--text2);">'+htmlEsc(sg.contacto||'—')+'</span>'+
+                (sg.cargo?'<span style="font-size:.62rem;color:var(--text3);">('+htmlEsc(sg.cargo)+')</span>':'')+
+              '</div>'+
+              '<div style="font-size:.73rem;color:var(--text2);margin-top:3px;line-height:1.4;">'+htmlEsc(sg.nota||'')+'</div>'+
+            '</div>'+
+            '<button onclick="event.stopPropagation();_delSeguimiento(\''+rc.id+'\',\''+sg.id+'\');" style="background:none;border:none;color:rgba(120,120,128,.5);font-size:.8rem;cursor:pointer;padding:0 2px;flex-shrink:0;">&#10005;</button>'+
+          '</div>';
+        }
+        segHtml+='</div>';
+      }
+      cards+='<div class="glass-card" style="margin-bottom:12px;padding:14px 16px;">'+
+        '<div style="display:flex;align-items:flex-start;gap:10px;">'+
+          '<div style="font-size:1.1rem;margin-top:2px;">'+medioIcon+'</div>'+
+          '<div style="flex:1;min-width:0;">'+
+            '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">'+
+              '<span style="font-size:.85rem;font-weight:700;color:var(--text);">'+htmlEsc(rc.titulo||'Reclamo')+'</span>'+
+              '<span style="font-size:.65rem;font-weight:700;color:'+estColor+';background:'+estColor+'18;padding:2px 8px;border-radius:10px;">'+estLabel+'</span>'+
+            '</div>'+
+            '<div style="font-size:.73rem;color:var(--accent);font-weight:600;margin-bottom:3px;">'+htmlEsc(eq.nombre||rc.eqId||'Equipo no especificado')+'</div>'+
+            '<div style="font-size:.73rem;color:var(--text2);margin-bottom:2px;">'+_fmtFechaCort(rc.fecha)+' · '+htmlEsc(rc.contacto||'—')+(rc.cargo?' ('+htmlEsc(rc.cargo)+')':'')+' · via '+htmlEsc(rc.medio||'—')+'</div>'+
+            '<div style="font-size:.75rem;color:var(--text);margin-top:6px;line-height:1.5;">'+htmlEsc(rc.descripcion||'')+'</div>'+
+            (rc.resultado?'<div style="font-size:.72rem;color:var(--text2);margin-top:4px;font-style:italic;">Resultado: '+htmlEsc(rc.resultado)+'</div>':'')+
+            segHtml+
+          '</div>'+
+          '<div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;">'+
+            '<button onclick="openModalReclamo(\''+rc.id+'\');" style="background:rgba(120,120,128,.12);border:none;border-radius:8px;padding:5px 10px;font-size:.68rem;font-weight:600;color:var(--text2);cursor:pointer;">Editar</button>'+
+            '<button onclick="openModalSeguimiento(\''+rc.id+'\');" style="background:rgba(173,198,255,.15);border:1px solid rgba(173,198,255,.3);border-radius:8px;padding:5px 10px;font-size:.68rem;font-weight:600;color:#adc6ff;cursor:pointer;">+ Seguim.</button>'+
+            '<button onclick="_deleteReclamo(\''+rc.id+'\');" style="background:none;border:none;color:rgba(120,120,128,.5);font-size:.7rem;cursor:pointer;padding:2px;">Eliminar</button>'+
+          '</div>'+
+        '</div>'+
+      '</div>';
+    }
+  }
+
+  var h='<div class="view-wrap">';
+  h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;">';
+  h+='<h2 style="font-size:1.1rem;font-weight:700;color:var(--text);margin:0;">Reclamos y Seguimientos</h2>';
+  h+='<button onclick="openModalReclamo(null);" style="background:var(--accent);color:#fff;border:none;border-radius:var(--r-md);padding:9px 18px;font-weight:700;font-size:.8rem;cursor:pointer;">+ Nuevo Reclamo</button>';
+  h+='</div>';
+  h+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;">'+fBtns+'</div>';
+  h+=cards;
+  h+='</div>';
+  return h;
+}
+var _reclamosFilt='activos';
+
+function _fmtFechaCort(f){
+  if(!f)return '—';
+  var p=f.split('-');if(p.length!==3)return f;
+  return p[2]+'/'+p[1]+'/'+p[0];
+}
+
+function openModalReclamo(rcId){
+  var rc=reclamos.find(function(r){return r.id===rcId;})||null;
+  var eqOpts='<option value="">— Seleccionar equipo —</option>';
+  var activeEqs=eqs.filter(function(e){return !e.baja;});
+  for(var i=0;i<activeEqs.length;i++){
+    var e=activeEqs[i];
+    eqOpts+='<option value="'+e.id+'"'+(rc&&rc.eqId===e.id?' selected':'')+'>'+htmlEsc(e.nombre||e.id)+(e.sede?' ('+e.sede+')':'')+'</option>';
+  }
+  var html='<div style="padding:4px 0 8px;">';
+  html+='<h3 style="margin:0 0 16px;font-size:1rem;font-weight:700;color:var(--text);">'+(rc?'Editar Reclamo':'Nuevo Reclamo')+'</h3>';
+  html+='<div style="margin-bottom:12px;"><label style="font-size:.72rem;color:var(--text2);font-weight:600;display:block;margin-bottom:4px;">Equipo</label>';
+  html+='<select class="inp" id="rc-eq" style="width:100%;">'+eqOpts+'</select></div>';
+  html+='<div style="margin-bottom:12px;"><label style="font-size:.72rem;color:var(--text2);font-weight:600;display:block;margin-bottom:4px;">Titulo del reclamo</label>';
+  html+='<input class="inp" id="rc-titulo" type="text" placeholder="Ej: Reclamo repuestos compresor chiller" value="'+htmlEsc(rc&&rc.titulo?rc.titulo:'')+'" style="width:100%;"></div>';
+  html+='<div style="display:flex;gap:10px;margin-bottom:12px;">';
+  html+='<div style="flex:1;"><label style="font-size:.72rem;color:var(--text2);font-weight:600;display:block;margin-bottom:4px;">Fecha del contacto</label>';
+  html+='<input class="inp" id="rc-fecha" type="date" value="'+(rc&&rc.fecha?rc.fecha:today())+'" style="width:100%;"></div>';
+  html+='<div style="flex:1;"><label style="font-size:.72rem;color:var(--text2);font-weight:600;display:block;margin-bottom:4px;">Via</label>';
+  html+='<select class="inp" id="rc-medio" style="width:100%;">';
+  var medios=[['telefono','Telefono'],['email','Email'],['presencial','Presencial'],['carta','Carta/Nota']];
+  for(var mi=0;mi<medios.length;mi++){
+    html+='<option value="'+medios[mi][0]+'"'+(rc&&rc.medio===medios[mi][0]?' selected':'')+'>'+medios[mi][1]+'</option>';
+  }
+  html+='</select></div></div>';
+  html+='<div style="display:flex;gap:10px;margin-bottom:12px;">';
+  html+='<div style="flex:1;"><label style="font-size:.72rem;color:var(--text2);font-weight:600;display:block;margin-bottom:4px;">Contacto (nombre)</label>';
+  html+='<input class="inp" id="rc-contacto" type="text" placeholder="Ej: Juan Perez" value="'+htmlEsc(rc&&rc.contacto?rc.contacto:'')+'" style="width:100%;"></div>';
+  html+='<div style="flex:1;"><label style="font-size:.72rem;color:var(--text2);font-weight:600;display:block;margin-bottom:4px;">Cargo / Empresa</label>';
+  html+='<input class="inp" id="rc-cargo" type="text" placeholder="Ej: Jefe Servicio Tecnico" value="'+htmlEsc(rc&&rc.cargo?rc.cargo:'')+'" style="width:100%;"></div>';
+  html+='</div>';
+  html+='<div style="margin-bottom:12px;"><label style="font-size:.72rem;color:var(--text2);font-weight:600;display:block;margin-bottom:4px;">Descripcion del reclamo</label>';
+  html+='<textarea class="inp" id="rc-desc" rows="3" placeholder="Describi el problema, que se reclamó y el contexto..." style="width:100%;resize:vertical;">'+htmlEsc(rc&&rc.descripcion?rc.descripcion:'')+'</textarea></div>';
+  html+='<div style="margin-bottom:12px;"><label style="font-size:.72rem;color:var(--text2);font-weight:600;display:block;margin-bottom:4px;">Resultado / Proximo paso</label>';
+  html+='<input class="inp" id="rc-resultado" type="text" placeholder="Ej: Enviarán presupuesto en 48hs" value="'+htmlEsc(rc&&rc.resultado?rc.resultado:'')+'" style="width:100%;"></div>';
+  html+='<div style="margin-bottom:16px;"><label style="font-size:.72rem;color:var(--text2);font-weight:600;display:block;margin-bottom:4px;">Estado</label>';
+  html+='<select class="inp" id="rc-estado" style="width:100%;">';
+  var estados=[['abierto','Abierto'],['en-gestion','En Gestion'],['resuelto','Resuelto']];
+  for(var ei=0;ei<estados.length;ei++){
+    html+='<option value="'+estados[ei][0]+'"'+(rc&&rc.estado===estados[ei][0]?' selected':'')+'>'+estados[ei][1]+'</option>';
+  }
+  html+='</select></div>';
+  html+='<div style="display:flex;gap:10px;">';
+  html+='<button onclick="submitReclamo(\''+(rc?rc.id:'')+'\');" style="flex:1;background:var(--accent);color:#fff;border:none;border-radius:var(--r-md);padding:12px;font-weight:700;font-size:.88rem;cursor:pointer;">Guardar</button>';
+  html+='<button onclick="closeModal();" style="background:rgba(120,120,128,.13);color:var(--text2);border:none;border-radius:var(--r-md);padding:12px 18px;font-weight:600;font-size:.88rem;cursor:pointer;">Cancelar</button>';
+  html+='</div></div>';
+  openModal(html);
+}
+
+function submitReclamo(rcId){
+  var eqId=(document.getElementById('rc-eq')||{}).value||'';
+  var titulo=((document.getElementById('rc-titulo')||{}).value||'').trim();
+  var fecha=(document.getElementById('rc-fecha')||{}).value||today();
+  var medio=(document.getElementById('rc-medio')||{}).value||'telefono';
+  var contacto=((document.getElementById('rc-contacto')||{}).value||'').trim();
+  var cargo=((document.getElementById('rc-cargo')||{}).value||'').trim();
+  var descripcion=((document.getElementById('rc-desc')||{}).value||'').trim();
+  var resultado=((document.getElementById('rc-resultado')||{}).value||'').trim();
+  var estado=(document.getElementById('rc-estado')||{}).value||'abierto';
+  if(!titulo)return showToast('Completa el titulo del reclamo','warn');
+  if(!descripcion)return showToast('Completa la descripcion','warn');
+  var eq=eqs.find(function(e){return e.id===eqId;})||{};
+  var now=new Date().toISOString();
+  if(rcId){
+    var idx=reclamos.findIndex(function(r){return r.id===rcId;});
+    if(idx>=0){
+      reclamos[idx].eqId=eqId;reclamos[idx].titulo=titulo;reclamos[idx].fecha=fecha;
+      reclamos[idx].medio=medio;reclamos[idx].contacto=contacto;reclamos[idx].cargo=cargo;
+      reclamos[idx].descripcion=descripcion;reclamos[idx].resultado=resultado;reclamos[idx].estado=estado;
+      reclamos[idx].updatedAt=now;
+    }
+    auditEntry('modificar','reclamo',rcId,titulo,'Reclamo actualizado — estado: '+estado);
+  }else{
+    var newRc={id:'RC-'+Date.now(),eqId:eqId,titulo:titulo,fecha:fecha,medio:medio,contacto:contacto,cargo:cargo,descripcion:descripcion,resultado:resultado,estado:estado,seguimientos:[],creadoEn:now,creadoPor:(window._fbUser&&window._fbUser.email)||'local'};
+    reclamos.unshift(newRc);
+    auditEntry('crear','reclamo',newRc.id,titulo,'Reclamo creado para '+(eq.nombre||eqId||'equipo'));
+  }
+  _saveReclamos();
+  _updateReclamosBadge();
+  closeModal();render();
+  showToast('Reclamo guardado');
+}
+
+function openModalSeguimiento(rcId){
+  var rc=reclamos.find(function(r){return r.id===rcId;});
+  if(!rc)return;
+  var html='<div style="padding:4px 0 8px;">';
+  html+='<h3 style="margin:0 0 4px;font-size:1rem;font-weight:700;color:var(--text);">Agregar Seguimiento</h3>';
+  html+='<div style="font-size:.75rem;color:var(--accent);margin-bottom:16px;">'+htmlEsc(rc.titulo||'')+'</div>';
+  html+='<div style="display:flex;gap:10px;margin-bottom:12px;">';
+  html+='<div style="flex:1;"><label style="font-size:.72rem;color:var(--text2);font-weight:600;display:block;margin-bottom:4px;">Fecha</label>';
+  html+='<input class="inp" id="sg-fecha" type="date" value="'+today()+'" style="width:100%;"></div>';
+  html+='<div style="flex:1;"><label style="font-size:.72rem;color:var(--text2);font-weight:600;display:block;margin-bottom:4px;">Via</label>';
+  html+='<select class="inp" id="sg-medio" style="width:100%;"><option value="telefono">Telefono</option><option value="email">Email</option><option value="presencial">Presencial</option><option value="carta">Carta/Nota</option></select></div>';
+  html+='</div>';
+  html+='<div style="display:flex;gap:10px;margin-bottom:12px;">';
+  html+='<div style="flex:1;"><label style="font-size:.72rem;color:var(--text2);font-weight:600;display:block;margin-bottom:4px;">Contacto (nombre)</label>';
+  html+='<input class="inp" id="sg-contacto" type="text" placeholder="Con quien hablaste" style="width:100%;"></div>';
+  html+='<div style="flex:1;"><label style="font-size:.72rem;color:var(--text2);font-weight:600;display:block;margin-bottom:4px;">Cargo / Empresa</label>';
+  html+='<input class="inp" id="sg-cargo" type="text" placeholder="Ej: Tecnico de guardia" style="width:100%;"></div>';
+  html+='</div>';
+  html+='<div style="margin-bottom:16px;"><label style="font-size:.72rem;color:var(--text2);font-weight:600;display:block;margin-bottom:4px;">Nota del seguimiento</label>';
+  html+='<textarea class="inp" id="sg-nota" rows="3" placeholder="Que se habló, que se acordó, proximos pasos..." style="width:100%;resize:vertical;"></textarea></div>';
+  html+='<div style="margin-bottom:16px;"><label style="font-size:.72rem;color:var(--text2);font-weight:600;display:block;margin-bottom:4px;">Actualizar estado</label>';
+  html+='<select class="inp" id="sg-estado" style="width:100%;">';
+  html+='<option value="">Sin cambio de estado</option>';
+  html+='<option value="abierto">Abierto</option><option value="en-gestion">En Gestion</option><option value="resuelto">Resuelto</option>';
+  html+='</select></div>';
+  html+='<div style="display:flex;gap:10px;">';
+  html+='<button onclick="submitSeguimiento(\''+rcId+'\');" style="flex:1;background:var(--accent);color:#fff;border:none;border-radius:var(--r-md);padding:12px;font-weight:700;font-size:.88rem;cursor:pointer;">Guardar</button>';
+  html+='<button onclick="closeModal();" style="background:rgba(120,120,128,.13);color:var(--text2);border:none;border-radius:var(--r-md);padding:12px 18px;font-weight:600;font-size:.88rem;cursor:pointer;">Cancelar</button>';
+  html+='</div></div>';
+  openModal(html);
+}
+
+function submitSeguimiento(rcId){
+  var idx=reclamos.findIndex(function(r){return r.id===rcId;});
+  if(idx<0)return;
+  var fecha=(document.getElementById('sg-fecha')||{}).value||today();
+  var medio=(document.getElementById('sg-medio')||{}).value||'telefono';
+  var contacto=((document.getElementById('sg-contacto')||{}).value||'').trim();
+  var nota=((document.getElementById('sg-nota')||{}).value||'').trim();
+  var cargo=((document.getElementById('sg-cargo')||{}).value||'').trim();
+  var nuevoEstado=(document.getElementById('sg-estado')||{}).value||'';
+  if(!nota)return showToast('Escribi una nota','warn');
+  var sg={id:'SG-'+Date.now(),fecha:fecha,medio:medio,contacto:contacto,cargo:cargo,nota:nota,creadoEn:new Date().toISOString()};
+  if(!reclamos[idx].seguimientos)reclamos[idx].seguimientos=[];
+  reclamos[idx].seguimientos.push(sg);
+  if(nuevoEstado)reclamos[idx].estado=nuevoEstado;
+  reclamos[idx].updatedAt=new Date().toISOString();
+  auditEntry('modificar','reclamo',rcId,reclamos[idx].titulo||rcId,'Seguimiento agregado — '+fecha+' via '+medio+' con '+contacto);
+  _saveReclamos();
+  _updateReclamosBadge();
+  closeModal();render();
+  showToast('Seguimiento registrado');
+}
+
+function _delSeguimiento(rcId,sgId){
+  var idx=reclamos.findIndex(function(r){return r.id===rcId;});
+  if(idx<0)return;
+  reclamos[idx].seguimientos=(reclamos[idx].seguimientos||[]).filter(function(s){return s.id!==sgId;});
+  _saveReclamos();render();
+}
+
+function _deleteReclamo(rcId){
+  if(!confirm('Eliminar este reclamo y todo su historial de seguimientos?'))return;
+  var rc=reclamos.find(function(r){return r.id===rcId;})||{};
+  reclamos=reclamos.filter(function(r){return r.id!==rcId;});
+  auditEntry('eliminar','reclamo',rcId,rc.titulo||rcId,'Reclamo eliminado');
+  _saveReclamos();
+  _updateReclamosBadge();
+  render();showToast('Reclamo eliminado','warn');
+}
+
+function _updateReclamosBadge(){
+  var badge=document.getElementById('sb-reclamos-badge');
+  if(!badge)return;
+  var n=reclamos.filter(function(r){return r.estado!=='resuelto';}).length;
+  if(n>0){badge.textContent=String(n);badge.style.display='';}
+  else{badge.style.display='none';}
+}
+
 // ── AUDITORÍA ──
 function rAuditoria(){
   var filtEnt=_auditFiltEnt||'todos';
@@ -10050,6 +10315,76 @@ function generarPDFEjecutivo(){
       });
       y+=4;
     }
+    // ── SECCIÓN RECLAMOS Y SEGUIMIENTOS ──
+    var reclamosActivos=reclamos.filter(function(r){return r.estado!=='resuelto';});
+    if(reclamosActivos.length){
+      if(y>200){doc.addPage();y=20;}
+      doc.setTextColor(180,70,0);doc.setFontSize(11);doc.setFont('helvetica','bold');
+      doc.text('Gestion de Reclamos Activos',margin,y);y+=6;
+      doc.setDrawColor(180,70,0);doc.setLineWidth(0.4);doc.line(margin,y,W-margin,y);y+=5;
+      for(var ri=0;ri<reclamosActivos.length;ri++){
+        if(y>255){doc.addPage();y=20;}
+        var rcPDF=reclamosActivos[ri];
+        var eqPDF=eqs.find(function(e){return e.id===rcPDF.eqId;})||{};
+        var estPDFLabel=rcPDF.estado==='en-gestion'?'EN GESTION':'ABIERTO';
+        doc.setFillColor(255,248,240);doc.rect(margin,y,W-2*margin,8,'F');
+        doc.setTextColor(180,70,0);doc.setFontSize(9);doc.setFont('helvetica','bold');
+        doc.text('['+estPDFLabel+'] '+(eqPDF.nombre||rcPDF.eqId||'Equipo no especificado').slice(0,35),margin+2,y+5.5);
+        doc.setTextColor(100,80,60);doc.setFont('helvetica','normal');
+        var tituloSlice=(rcPDF.titulo||'').slice(0,50);
+        doc.text(tituloSlice,margin+2+Math.min((eqPDF.nombre||'').length*2.2+20,70),y+5.5);
+        y+=10;
+        var medioLabelPDF={telefono:'via telefonica',email:'por correo electronico',presencial:'de forma presencial',carta:'mediante carta/nota'}[rcPDF.medio]||'via contacto';
+        var narrativa='Con fecha '+_fmtFechaCort(rcPDF.fecha)+' se realizo contacto '+medioLabelPDF;
+        if(rcPDF.contacto){narrativa+=' con el/la Sr./Sra. '+rcPDF.contacto;if(rcPDF.cargo)narrativa+=', '+rcPDF.cargo;}
+        narrativa+='.';
+        doc.setTextColor(28,28,30);doc.setFontSize(8);doc.setFont('helvetica','normal');
+        var narLines=doc.splitTextToSize(narrativa,W-2*margin-4);
+        for(var nl=0;nl<narLines.length;nl++){
+          if(y>270){doc.addPage();y=20;}
+          doc.text(narLines[nl],margin+3,y);y+=4.5;
+        }
+        if(rcPDF.descripcion){
+          var descLines=doc.splitTextToSize(rcPDF.descripcion,W-2*margin-6);
+          for(var dl=0;dl<descLines.length;dl++){
+            if(y>270){doc.addPage();y=20;}
+            doc.text(descLines[dl],margin+3,y);y+=4.5;
+          }
+        }
+        if(rcPDF.resultado){
+          doc.setFont('helvetica','italic');
+          var resLines=doc.splitTextToSize('Resultado esperado: '+rcPDF.resultado,W-2*margin-6);
+          for(var rl=0;rl<resLines.length;rl++){
+            if(y>270){doc.addPage();y=20;}
+            doc.text(resLines[rl],margin+3,y);y+=4.5;
+          }
+          doc.setFont('helvetica','normal');
+        }
+        y+=2;
+        var segsActivos=rcPDF.seguimientos||[];
+        if(segsActivos.length){
+          doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.setTextColor(100,80,60);
+          doc.text('Historial de seguimientos:',margin+3,y);y+=4;
+          doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(28,28,30);
+          for(var sgi=0;sgi<segsActivos.length;sgi++){
+            if(y>270){doc.addPage();y=20;}
+            var sgPDF=segsActivos[sgi];
+            var sgMedioLabel={telefono:'telefonico',email:'por email',presencial:'presencial',carta:'por carta'}[sgPDF.medio]||'';
+            var sgNarr=_fmtFechaCort(sgPDF.fecha)+' — Seguimiento '+sgMedioLabel;
+            if(sgPDF.contacto){sgNarr+=' con '+sgPDF.contacto;if(sgPDF.cargo)sgNarr+=' ('+sgPDF.cargo+')';}
+            sgNarr+=': '+(sgPDF.nota||'');
+            doc.setFillColor(250,248,245);doc.rect(margin+2,y-1,W-2*margin-2,1,'F');
+            doc.text('• ',margin+3,y);
+            var sgLines=doc.splitTextToSize(sgNarr,W-2*margin-10);
+            for(var sgl=0;sgl<sgLines.length;sgl++){
+              if(y>270){doc.addPage();y=20;}
+              doc.text(sgLines[sgl],margin+7,y);y+=4.5;
+            }
+          }
+        }
+        y+=6;
+      }
+    }
     var totalPages=doc.internal.getNumberOfPages();
     for(var pi=1;pi<=totalPages;pi++){
       doc.setPage(pi);
@@ -10071,8 +10406,8 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="6.3.0";
-var APP_BUILD="16/06/26 10:45";
+var APP_DISPLAY_VERSION="6.3.1";
+var APP_BUILD="16/06/26 12:30";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
@@ -10254,6 +10589,7 @@ function init(){
   updateSettingsUI();
   checkMonthlyReminder();
   checkWeeklyReport();
+  _updateReclamosBadge();
   setInterval(function(){var el=document.getElementById("logo-time");if(el)el.textContent=new Date().toLocaleString("es-AR",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"});renderHeader();},6e4);
 
   // Render immediately with cached data — app appears instant, no login flash for active sessions
@@ -10265,6 +10601,7 @@ function init(){
   try{var _crp=localStorage.getItem("mt_repuestos");if(_crp){var _cprp=JSON.parse(_crp);if(Array.isArray(_cprp))repuestos=_cprp;}}catch(e){}
   try{var _cpm=localStorage.getItem("mt_pm_prog");if(_cpm){var _cppm=JSON.parse(_cpm);if(Array.isArray(_cppm))pmProgramados=_cppm;}}catch(e){}
   try{var _cau=localStorage.getItem('mt_audit');if(_cau){var _cpau=JSON.parse(_cau);if(Array.isArray(_cpau))auditLog=_cpau;}}catch(e){}
+  try{var _cre=localStorage.getItem('mt_reclamos');if(_cre){var _cpre=JSON.parse(_cre);if(Array.isArray(_cpre))reclamos=_cpre;}}catch(e){}
   render();
   // Deep-link: #EQ-xxx opens equipment directly
   try{
@@ -10329,6 +10666,7 @@ function init(){
             if(Array.isArray(d.repuestos))repuestos=d.repuestos;
             if(Array.isArray(d.pmProgramados))pmProgramados=d.pmProgramados;
             if(Array.isArray(d.auditLog))auditLog=d.auditLog;
+            if(Array.isArray(d.reclamos))reclamos=d.reclamos;
           }
         }
         function _lsLoad(){
@@ -10340,6 +10678,7 @@ function init(){
           try{var srp=localStorage.getItem("mt_repuestos");if(srp){var prp=JSON.parse(srp);if(Array.isArray(prp))repuestos=prp;}}catch(e){}
           try{var spm=localStorage.getItem("mt_pm_prog");if(spm){var ppm=JSON.parse(spm);if(Array.isArray(ppm))pmProgramados=ppm;}}catch(e){}
           try{var sau=localStorage.getItem('mt_audit');if(sau){var pau=JSON.parse(sau);if(Array.isArray(pau))auditLog=pau;}}catch(e){}
+          try{var sre=localStorage.getItem('mt_reclamos');if(sre){var pre=JSON.parse(sre);if(Array.isArray(pre))reclamos=pre;}}catch(e){}
         }
         function _finishLoad(){
           migrateEqs();
@@ -10536,6 +10875,7 @@ function rSidebar(){
   if(sbb){sbb.style.display=alertCount>0?"inline":"none";sbb.textContent=alertCount;}
   // Header status widget
   _renderHdrStatus();
+  _updateReclamosBadge();
 }
 function _renderHdrStatus(){
   var el=document.getElementById('hdr-equip-status');if(!el)return;
