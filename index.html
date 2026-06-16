@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.16.195 -->
+<!-- v2026.06.16.196 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.16.195">
+<meta name="app-version" content="v2026.06.16.196">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -2979,9 +2979,12 @@ var CAT_COMPONENTES={
   ],
   ECO:[
     "Transductor lineal","Transductor convexo","Transductor sectorial","Transductor microconvexo",
-    "Transductor endocavitario","Transductor transesofágico","Transductor 4D","Transductor tridimensional",
-    "Panel de control","Monitor","Teclado","Trackball","Impresora de imágenes",
-    "Puerto USB","Batería interna"
+    "Transductor endocavitario","Transductor transesof\xe1gico (TEE)","Transductor 4D / volum\xe9trico 3D","Transductor phased array",
+    "Fuente de poder (PSU)","Tarjetas PCB de beamforming","Disco duro / SSD del sistema","Tarjeta de video / monitor interno",
+    "Trackball","Teclas y encoders del teclado","Pantalla t\xe1ctil secundaria","Monitor principal",
+    "Filtros de aire","Ventiladores (fan tray assembly)","Sensores t\xe9rmicos",
+    "Puertos de conectores de sondas","Impresora de video / grabadora","UPS interno (bater\xeda)",
+    "Software del sistema","Actualizaciones de firmware","Calibraci\xf3n de imagen"
   ],
   DES:[
     "Paletas externas","Paletas internas","Cables ECG","Sensor SpO2","Cable SpO2",
@@ -11109,8 +11112,8 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="6.5.0";
-var APP_BUILD="16/06/26 21:45";
+var APP_DISPLAY_VERSION="6.5.1";
+var APP_BUILD="16/06/26 22:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
