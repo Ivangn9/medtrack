@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.16.186 -->
+<!-- v2026.06.16.187 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.16.186">
+<meta name="app-version" content="v2026.06.16.187">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -2078,6 +2078,45 @@ function confirmarReparacion(eqId,pid){
   });
   saveData();closeModal();showToast("✅ Reparación registrada en historial");render();
 }
+function openModalParteById(eqId,ptId){
+  var eq=eqs.find(function(e){return e.id===eqId;});if(!eq)return;
+  var pt=(eq.partes||[]).find(function(p){return p.id===ptId;})||null;
+  openModalParte(eqId,pt);
+}
+function setParteEstadoRapido(eqId,pid,nuevoEstado){
+  eqs=eqs.map(function(e){
+    if(e.id!==eqId)return e;
+    var partes=(e.partes||[]).map(function(p){
+      if(p.id!==pid)return p;
+      var upd={estado:nuevoEstado};
+      if(nuevoEstado==='roto'&&!p.fechaRotura)upd.fechaRotura=today();
+      if(nuevoEstado==='ok')upd.fechaArreglo=today();
+      return Object.assign({},p,upd);
+    });
+    return Object.assign({},e,{partes:partes});
+  });
+  saveData();render();
+  var estadoLabel={ok:'OK ✅',pendiente:'Pendiente ⚠️',roto:'Roto 🔴',mejora:'Mejora 🎨'};
+  showToast('Estado actualizado: '+(estadoLabel[nuevoEstado]||nuevoEstado));
+}
+function _initComponentesEquipo(eqId){
+  var eq=eqs.find(function(e){return e.id===eqId;});if(!eq)return;
+  var lista=CAT_COMPONENTES[eq.cat]||[];
+  if(!lista.length)return showToast('No hay lista predefinida para este tipo de equipo','warn');
+  var nombresExist=(eq.partes||[]).map(function(p){return (p.nombre||'').toLowerCase();});
+  var nuevas=[];
+  lista.forEach(function(nombre){
+    if(nombresExist.indexOf(nombre.toLowerCase())===-1){
+      nuevas.push({id:'PT-'+Date.now()+'-'+Math.random().toString(36).slice(2,6),nombre:nombre,descripcion:'',estado:'ok',fechaRotura:'',fechaArreglo:'',marca:'',nroSerie:'',notas:'',precio:'',archivos:[],seguimientos:[]});
+    }
+  });
+  if(!nuevas.length)return showToast('Todos los componentes ya est\xe1n cargados','');
+  eqs=eqs.map(function(e){
+    if(e.id!==eqId)return e;
+    return Object.assign({},e,{partes:(e.partes||[]).concat(nuevas)});
+  });
+  saveData();render();showToast(nuevas.length+' componentes cargados');
+}
 function completarMejora(eqId,pid){
   var eq=eqs.find(function(e){return e.id===eqId;});if(!eq)return;
   var pt=eq.partes.find(function(p){return p.id===pid;});if(!pt)return;
@@ -2836,15 +2875,26 @@ var RM_COMPONENTES=[
   {id:"compresor",label:"Compresor Helio Gaseoso",grupo:"sala"},
   {id:"chiller",label:"Chiller",grupo:"sala"}
 ];
+var RM_PARTES_DEFAULT=[
+  "Gating Respiratorio","Gating PG","Gating Cardiaco",
+  "Luz t\xfanel","Luz exterior","Laser",
+  "Bobina de gradientes","Ruedas camilla","Camilla",
+  "M\xf3dulo Gradiente X","M\xf3dulo Gradiente Y","M\xf3dulo Gradiente Z","M\xf3dulo Gradiente General",
+  "ColdHead","Compresor de Helio","Chiller de L\xedquido Rosa","Chiller de Agua",
+  "Enchufe A","Enchufe B","Bater\xeda MRU",
+  "Shimming","Homogeneizaci\xf3n","Helio L\xedquido","Helio Gaseoso"
+];
 var CAT_COMPONENTES={
   RM:[
+    "Gating Respiratorio","Gating PG","Gating Cardiaco",
+    "Luz t\xfanel","Luz exterior","Laser",
+    "Bobina de gradientes","Ruedas camilla","Camilla",
+    "M\xf3dulo Gradiente X","M\xf3dulo Gradiente Y","M\xf3dulo Gradiente Z","M\xf3dulo Gradiente General",
+    "ColdHead","Compresor de Helio","Chiller de L\xedquido Rosa","Chiller de Agua",
+    "Enchufe A","Enchufe B","Bater\xeda MRU",
+    "Shimming","Homogeneizaci\xf3n","Helio L\xedquido","Helio Gaseoso",
     "Antena de cabeza","Antena de columna","Antena de cuerpo","Antena de rodilla","Antena de hombro",
-    "Antena de muñeca","Antena de pie/tobillo","Antena de mama (coil)","Antena de superficie flexible",
-    "Antena de neurovascular","Antena phased array","Antena de pelvis",
-    "ColdHead","Compresor Helio Gaseoso","Tanque Helio Líquido","Chiller",
-    "Placa de Gradiente X","Placa de Gradiente Y","Placa de Gradiente Z","Placa General de Gradientes",
-    "Shimming","Conectores de antena","Camilla / Mesa","Panel de control","Gantry","Túnel",
-    "RF Amplifier","Transmitter","Gradient Amplifier","UPS del sistema"
+    "Antena de mama (coil)","Antena phased array"
   ],
   TC:[
     "Tubo de RX","Detector de TC","Gantry","Mesa de paciente","Chiller",
@@ -6081,6 +6131,75 @@ function _rDetalleRefrig(eq,rf){
   return h;
 }
 
+function _rDetalleComponentes(eq){
+  var h='';
+  var todasPartes=(eq.partes||[]).slice().sort(function(a,b){
+    var ord={roto:0,pendiente:1,mejora:2,ok:3};
+    return (ord[a.estado]||3)-(ord[b.estado]||3);
+  });
+  var okCount=todasPartes.filter(function(p){return p.estado==='ok';}).length;
+  var fallasCount=todasPartes.filter(function(p){return p.estado==='roto'||p.estado==='pendiente';}).length;
+  h+='<div onclick="setDetalleTab(null)" style="display:flex;align-items:center;gap:8px;padding:10px 14px;margin-bottom:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:var(--r-md);cursor:pointer;" ontouchstart="this.style.opacity=\'.7\'" ontouchend="this.style.opacity=\'1\'">'+
+    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.45)" stroke-width="2.2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>'+
+    '<span style="font-size:.8rem;font-weight:600;color:var(--text2);">'+esc(eq.nombre)+'</span>'+
+    '<span style="font-size:.7rem;color:var(--text3);margin-left:auto;">Componentes</span>'+
+  '</div>';
+  h+='<div class="gc" style="padding:0;margin-bottom:12px;overflow:hidden;border-left:4px solid rgba(173,198,255,.5);background:linear-gradient(135deg,rgba(173,198,255,.06) 0%,rgba(173,198,255,.02) 100%);">';
+  h+='<div style="background:linear-gradient(90deg,rgba(173,198,255,.1),rgba(173,198,255,.04));padding:9px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(173,198,255,.08);">';
+  h+='<span style="font-size:.72rem;font-weight:700;color:#adc6ff;text-transform:uppercase;letter-spacing:.06em;flex:1;">🔧 Componentes del Equipo</span>';
+  if(todasPartes.length)h+='<span style="font-size:.68rem;font-weight:700;color:'+(fallasCount>0?'#ff3b30':'#30d158')+';">'+okCount+'/'+todasPartes.length+' OK</span>';
+  h+='</div>';
+  h+='<div style="padding:10px 14px;">';
+  // Init button for RM
+  var catList=CAT_COMPONENTES[eq.cat]||[];
+  var nombresExist=(eq.partes||[]).map(function(p){return (p.nombre||'').toLowerCase();});
+  var faltantes=catList.filter(function(n){return nombresExist.indexOf(n.toLowerCase())===-1;});
+  if(faltantes.length>0){
+    h+='<div style="padding:10px 12px;margin-bottom:10px;background:rgba(173,198,255,.08);border:1px dashed rgba(173,198,255,.3);border-radius:12px;display:flex;align-items:center;gap:10px;">';
+    h+='<div style="flex:1;font-size:.72rem;color:var(--text2);">'+faltantes.length+' componente'+(faltantes.length!==1?'s':'')+' de la lista est\xe1ndar sin cargar</div>';
+    h+='<button onclick="_initComponentesEquipo(\''+eq.id+'\')" style="padding:6px 14px;border-radius:var(--r-pill);background:rgba(173,198,255,.15);border:1.5px solid rgba(173,198,255,.35);color:#adc6ff;font-weight:700;font-size:.7rem;cursor:pointer;white-space:nowrap;">+ Cargar lista</button>';
+    h+='</div>';
+  }
+  if(!todasPartes.length){
+    h+='<div style="text-align:center;color:var(--text3);padding:20px;font-size:.82rem;">Sin componentes registrados</div>';
+  } else {
+    for(var i=0;i<todasPartes.length;i++){
+      var p=todasPartes[i];
+      var stClr=p.estado==='roto'?'#ff3b30':p.estado==='pendiente'?'#ff9500':p.estado==='mejora'?'#bf5af2':'#30d158';
+      var stIcon=p.estado==='roto'?'🔴':p.estado==='pendiente'?'⚠️':p.estado==='mejora'?'🎨':'✅';
+      h+='<div style="display:flex;align-items:center;gap:10px;padding:8px 6px;border-bottom:1px solid rgba(255,255,255,.04);">';
+      h+='<div style="width:8px;height:8px;border-radius:50%;background:'+stClr+';flex-shrink:0;box-shadow:0 0 0 2px '+stClr+'22;"></div>';
+      h+='<div style="flex:1;min-width:0;">';
+      h+='<div style="font-size:.8rem;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(p.nombre)+'</div>';
+      if(p.estado==='roto'&&p.fechaRotura)h+='<div style="font-size:.62rem;color:#ff3b30;margin-top:1px;">Roto desde: '+_fmtFechaCort(p.fechaRotura)+'</div>';
+      if(p.estado==='pendiente'&&p.fechaRotura)h+='<div style="font-size:.62rem;color:#ff9500;margin-top:1px;">Detectado: '+_fmtFechaCort(p.fechaRotura)+'</div>';
+      h+='</div>';
+      h+='<div style="display:flex;gap:4px;flex-shrink:0;">';
+      if(p.estado!=='ok')h+='<button onclick="setParteEstadoRapido(\''+eq.id+'\',\''+p.id+'\',\'ok\')" style="padding:3px 9px;border-radius:20px;font-size:.6rem;font-weight:700;border:1px solid rgba(52,199,89,.4);background:rgba(52,199,89,.1);color:#30d158;cursor:pointer;">✅ OK</button>';
+      if(p.estado!=='pendiente')h+='<button onclick="setParteEstadoRapido(\''+eq.id+'\',\''+p.id+'\',\'pendiente\')" style="padding:3px 9px;border-radius:20px;font-size:.6rem;font-weight:700;border:1px solid rgba(255,149,0,.4);background:rgba(255,149,0,.1);color:#ff9500;cursor:pointer;">⚠️</button>';
+      if(p.estado!=='roto')h+='<button onclick="setParteEstadoRapido(\''+eq.id+'\',\''+p.id+'\',\'roto\')" style="padding:3px 9px;border-radius:20px;font-size:.6rem;font-weight:700;border:1px solid rgba(255,59,48,.4);background:rgba(255,59,48,.1);color:#ff3b30;cursor:pointer;">🔴</button>';
+      h+='<button onclick="openModalParteById(\''+eq.id+'\',\''+p.id+'\')" style="padding:3px 8px;border-radius:20px;font-size:.6rem;font-weight:700;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:var(--text2);cursor:pointer;">✏️</button>';
+      h+='</div></div>';
+    }
+  }
+  h+='<button onclick="openModalParte(\''+eq.id+'\',null)" style="width:100%;margin-top:10px;padding:10px;border:1.5px dashed rgba(173,198,255,.3);border-radius:12px;background:rgba(173,198,255,.05);color:#adc6ff;font-size:.78rem;font-weight:600;cursor:pointer;">+ Agregar componente</button>';
+  h+='</div></div>';
+  // Historial de componentes OK (reparados)
+  var histPartes=(eq.historialMant||[]).filter(function(hm){return hm._parteOriginal||hm.tipo==='reparacion';});
+  if(histPartes.length){
+    h+='<div class="gc" style="padding:12px 14px;margin-bottom:8px;border-left:4px solid rgba(52,199,89,.3);">';
+    h+='<div style="font-size:.72rem;font-weight:700;color:#30d158;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">✅ Historial de reparaciones</div>';
+    histPartes.slice(0,5).forEach(function(hm){
+      h+='<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);">';
+      h+='<div style="width:6px;height:6px;border-radius:50%;background:#30d158;flex-shrink:0;"></div>';
+      h+='<span style="flex:1;font-size:.76rem;color:var(--text2);">'+esc(hm.nombre||'—')+'</span>';
+      h+='<span style="font-size:.62rem;color:var(--text3);">'+_fmtFechaCort(hm.fecha)+'</span>';
+      h+='</div>';
+    });
+    h+='</div>';
+  }
+  return h;
+}
 function _rDetalleTimeline(eq){
   var h='';
   h+='<div onclick="setDetalleTab(null)" style="display:flex;align-items:center;gap:8px;padding:10px 14px;margin-bottom:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:var(--r-md);cursor:pointer;" ontouchstart="this.style.opacity=\'.7\'" ontouchend="this.style.opacity=\'1\'">'+
@@ -6304,6 +6423,7 @@ function rDetalle(){
   var rf=eq.cat==='RM'?_refrigData(eq):null;
   if(_detalleTab==='refrig'&&rf)return _rDetalleRefrig(eq,rf);
   if(_detalleTab==='timeline')return _rDetalleTimeline(eq);
+  if(_detalleTab==='componentes')return _rDetalleComponentes(eq);
   if(_detalleTab==='fallas')return _rDetalleFallas(eq);
   if(_detalleTab==='admin')return _rDetalleAdmin(eq);
   var ms=semafo(eq);var d=diasH(eq.proximoMant);var ci=catById(eq.cat);
@@ -6510,6 +6630,22 @@ function rDetalle(){
     if(_lc.costPct!==null)hR+='<div class="ibox"><div class="ibox-l">Costo acum. / reposi.</div><div class="ibox-v" style="font-family:monospace;color:'+_zc+';">'+_lc.costPct+'%</div></div>';
     hR+='</div></div>';
   }
+
+  /* RIGHT: COMPONENTES NAV */
+  var _totalParts=(eq.partes||[]).length;
+  var _okParts=(eq.partes||[]).filter(function(p){return p.estado==='ok';}).length;
+  var _fallaParts=(eq.partes||[]).filter(function(p){return p.estado==='roto'||p.estado==='pendiente';}).length;
+  var _compColor=_fallaParts>0?'rgba(255,59,48,.5)':_totalParts>0?'rgba(48,209,88,.5)':'rgba(173,198,255,.4)';
+  var _compBg=_fallaParts>0?'rgba(255,59,48,.07)':_totalParts>0?'rgba(48,209,88,.06)':'rgba(173,198,255,.06)';
+  hR+='<div class="gc tap" onclick="setDetalleTab(\'componentes\')" style="cursor:pointer;padding:11px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px;border-left:4px solid '+_compColor+';background:linear-gradient(135deg,'+_compBg+' 0%,rgba(0,0,0,0) 100%);" ontouchstart="this.style.transform=\'scale(.98)\'" ontouchend="this.style.transform=\'\'">';
+  hR+='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(173,198,255,.7)" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="4" rx="1"/><rect x="2" y="10" width="20" height="4" rx="1"/><rect x="2" y="17" width="20" height="4" rx="1"/></svg>';
+  hR+='<div style="flex:1;min-width:0;">';
+  hR+='<div style="font-size:.82rem;font-weight:700;color:var(--text1);">Componentes del Equipo</div>';
+  hR+='<div style="font-size:.67rem;color:'+(_fallaParts>0?'var(--red)':'var(--text3)')+';margin-top:1px;">'+(_totalParts?_okParts+'/'+_totalParts+' OK'+(_fallaParts?' · '+_fallaParts+' con falla':''):'Toc\xe1 para ver y gestionar')+'</div>';
+  hR+='</div>';
+  if(_fallaParts>0)hR+='<span style="font-size:.68rem;font-weight:700;min-width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+_fallaParts+'</span>';
+  hR+='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(173,198,255,.4)" stroke-width="2.2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>';
+  hR+='</div>';
 
   /* RIGHT: TIMELINE NAV */
   hR+='<div class="gc tap" onclick="setDetalleTab(\'timeline\')" style="cursor:pointer;padding:11px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px;border-left:4px solid rgba(173,198,255,.4);background:linear-gradient(135deg,rgba(173,198,255,.06) 0%,rgba(173,198,255,.02) 100%);" ontouchstart="this.style.transform=\'scale(.98)\'" ontouchend="this.style.transform=\'\'">';
@@ -10814,8 +10950,8 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="6.4.1";
-var APP_BUILD="16/06/26 16:10";
+var APP_DISPLAY_VERSION="6.4.2";
+var APP_BUILD="16/06/26 17:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
