@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.16.182 -->
+<!-- v2026.06.16.183 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.16.182">
+<meta name="app-version" content="v2026.06.16.183">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -5933,6 +5933,26 @@ function _rDetalleFallas(eq){
       '</div>'+
       (p.notas?'<div style="font-size:.73rem;color:var(--text2);background:rgba(0,0,0,.04);padding:7px 10px;border-radius:8px;margin-bottom:8px;">'+esc(p.notas)+'</div>':'')+
       ((p.archivos&&p.archivos.length)?'<div style="margin-bottom:8px;">'+p.archivos.map(function(a){return'<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(0,0,0,.05);"><span>📄</span><span style="font-size:.72rem;flex:1;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(a.nombre)+'</span><button onclick="openPDFViewer(\''+a.id+'\',\''+esc(a.nombre)+'\')" style="background:rgba(0,113,227,.1);color:var(--accent);border:none;border-radius:8px;padding:3px 10px;font-size:.65rem;font-weight:600;cursor:pointer;flex-shrink:0;">Abrir</button><button onclick="delParteFileDirect(\''+eq.id+'\',\''+p.id+'\',\''+a.id+'\')" style="background:none;border:none;color:var(--red);font-size:.85rem;cursor:pointer;padding:2px 5px;flex-shrink:0;">🗑</button></div>';}).join('')+'</div>':'')+
+      (function(){
+        var sgHtml='';
+        var pSegs=(p.seguimientos||[]).slice().sort(function(a,b){return a.fecha>b.fecha?1:-1;});
+        if(pSegs.length){
+          sgHtml+='<div style="margin-bottom:8px;padding:8px 10px;background:rgba(255,149,0,.07);border-left:3px solid #ff9500;border-radius:0 8px 8px 0;">';
+          sgHtml+='<div style="font-size:.62rem;font-weight:700;color:#ff9500;letter-spacing:.06em;margin-bottom:6px;text-transform:uppercase;">Seguimiento de gestión</div>';
+          for(var _si=0;_si<pSegs.length;_si++){
+            var _sg=pSegs[_si];
+            sgHtml+='<div style="display:flex;gap:6px;padding:3px 0;border-bottom:1px solid rgba(255,149,0,.1);align-items:flex-start;">';
+            sgHtml+='<span style="font-size:.6rem;font-weight:700;color:rgba(255,149,0,.6);min-width:18px;">#'+(_si+1)+'</span>';
+            sgHtml+='<span style="font-size:.67rem;font-weight:700;color:#ff9500;white-space:nowrap;min-width:68px;">'+_fmtFechaCort(_sg.fecha)+'</span>';
+            sgHtml+='<span style="font-size:.72rem;color:#555;flex:1;line-height:1.4;">'+esc(_sg.nota||'')+'</span>';
+            sgHtml+='<button onclick="event.stopPropagation();_delSeguimientoFalla(\''+eq.id+'\',\''+p.id+'\',\''+_sg.id+'\');" style="background:none;border:none;color:rgba(120,120,128,.35);font-size:.75rem;cursor:pointer;padding:0 2px;flex-shrink:0;">✕</button>';
+            sgHtml+='</div>';
+          }
+          sgHtml+='</div>';
+        }
+        sgHtml+='<button onclick="openModalSeguimientoFalla(\''+eq.id+'\',\''+p.id+'\')" style="width:100%;padding:8px;margin-bottom:8px;border:1.5px dashed rgba(255,149,0,.4);border-radius:10px;background:rgba(255,149,0,.06);color:#ff9500;font-size:.78rem;font-weight:700;cursor:pointer;">📝 '+( pSegs.length?'Agregar novedad (#'+(pSegs.length+1)+')':'Agregar novedad de seguimiento')+'</button>';
+        return sgHtml;
+      })()+
       (p.estado!=='ok'?'<button onclick="repararParte(\''+eq.id+'\',\''+p.id+'\')" style="width:100%;padding:11px;margin-bottom:8px;border:none;border-radius:12px;background:var(--green);color:#fff;font-size:.86rem;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(52,199,89,.3);">✅ Marcar como Reparado</button>':'')+
       '<div style="display:flex;gap:6px;"><button class="btn-secondary btn-sm" style="flex:1;" onclick=\'openModalParte("'+eq.id+'",'+JSON.stringify(p).replace(/'/g,"&#39;")+')\'>✏️ Editar</button><button class="btn-danger btn-sm" onclick="delParte(\''+eq.id+'\',\''+p.id+'\')">🗑</button></div></div>';
   });
@@ -10466,8 +10486,8 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="6.3.4";
-var APP_BUILD="16/06/26 14:00";
+var APP_DISPLAY_VERSION="6.3.5";
+var APP_BUILD="16/06/26 14:10";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
