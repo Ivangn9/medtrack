@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.16.191 -->
+<!-- v2026.06.16.192 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.16.191">
+<meta name="app-version" content="v2026.06.16.192">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1696,9 +1696,32 @@ function calcHealthScore(eq){
   var rs=calcRiskScore(eq);
   var riskScore=rs?Math.round((1-(rs.score-4)/16)*100):70;
   score+=riskScore*0.30;breakdown.risk=riskScore;
+  // Contar TODAS las fallas activas: partes propias + vinculadas + refrigeración
   var faults=(eq.partes||[]).filter(function(p){return p.estado!=='ok'&&p.estado!=='mejora';}).length;
-  var faultScore=Math.max(0,100-faults*20);
-  score+=faultScore*0.20;breakdown.faults=faultScore;
+  (eq.transductorIds||[]).forEach(function(tid){
+    var t=transductores.find(function(x){return x.id===tid;});
+    if(!t)return;
+    faults+=(t.roturas||[]).filter(function(r){return r.estado!=='reparado';}).length;
+  });
+  (eq.antenaIds||[]).forEach(function(aid){
+    var a=antenas.find(function(x){return x.id===aid;});
+    if(!a)return;
+    faults+=(a.roturas||[]).filter(function(r){return r.estado!=='reparado';}).length;
+  });
+  eqs.filter(function(u){return u.cat==='UPS'&&!u.baja&&(u.equiposConectados||[]).indexOf(eq.id)!==-1;}).forEach(function(u){
+    faults+=(u.partes||[]).filter(function(p){return p.estado!=='ok'&&p.estado!=='mejora';}).length;
+  });
+  if(eq.cat==='RM'){
+    var rf=_refrigData(eq);
+    if(rf.chiller==='rotura')faults+=2;
+    else if(rf.chiller==='service')faults+=1;
+    if(rf.compresorHelio&&rf.compresorHelio!=='operativo')faults+=2;
+    if(rf.shimming&&rf.shimming!=='ok')faults+=1;
+    var hlp=parseFloat(rf.helioLiqPorcentaje||'100');
+    if(!isNaN(hlp)){if(hlp<20)faults+=2;else if(hlp<40)faults+=1;}
+  }
+  var faultScore=Math.max(0,100-faults*12);
+  score+=faultScore*0.20;breakdown.faults=faultScore;breakdown.faultCount=faults;
   var sixMonAgo=new Date();sixMonAgo.setMonth(sixMonAgo.getMonth()-6);
   var sixStr=sixMonAgo.toISOString().slice(0,10);
   var pmPast=(pmProgramados||[]).filter(function(p){return p.eqId===eq.id&&p.fecha<=today()&&p.fecha>=sixStr;});
@@ -6681,7 +6704,7 @@ function rDetalle(){
   hR+='<div class="gc" style="padding:12px 16px;margin-bottom:12px;display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,rgba('+_hsClr+',.08) 0%,rgba(0,0,0,0) 100%);border-left:4px solid '+_hsBrdr+';">';
   hR+=_healthScoreSVG(_hs.score,52);
   hR+='<div style="flex:1;min-width:0;"><div style="font-size:.72rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px;">Salud del Equipo</div>';
-  hR+='<div style="font-size:.68rem;color:var(--text3);">Disp. '+_hs.breakdown.av+'%  \xb7  Riesgo '+_hs.breakdown.risk+'%  \xb7  Fallas '+_hs.breakdown.faults+'%  \xb7  PM '+_hs.breakdown.pm+'%</div>';
+  hR+='<div style="font-size:.68rem;color:var(--text3);">Disp. '+_hs.breakdown.av+'%  \xb7  Riesgo '+_hs.breakdown.risk+'%  \xb7  Fallas '+(_hs.breakdown.faultCount||0)+' ('+_hs.breakdown.faults+'%)  \xb7  PM '+_hs.breakdown.pm+'%</div>';
   hR+='</div></div>';
 
   /* RIGHT: MANTENIMIENTO */
@@ -11059,8 +11082,8 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="6.4.6";
-var APP_BUILD="16/06/26 20:45";
+var APP_DISPLAY_VERSION="6.4.7";
+var APP_BUILD="16/06/26 21:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
