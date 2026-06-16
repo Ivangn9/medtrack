@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.16.183 -->
+<!-- v2026.06.16.184 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.16.183">
+<meta name="app-version" content="v2026.06.16.184">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -7969,14 +7969,10 @@ function _narrativeEq(eq,mantHist,repHist,mejHist,actToShow,mejPendToShow,trasla
           html+='<span style="font-size:.65rem;font-weight:700;color:rgba(255,149,0,.5);min-width:16px;padding-top:1px;">#'+_num+'</span>';
           html+='<span style="font-size:.7rem;font-weight:700;color:#ff9500;white-space:nowrap;min-width:68px;">'+_fmtFechaCort(sg.fecha)+'</span>';
           html+='<span style="font-size:.73rem;color:var(--text);flex:1;line-height:1.4;">'+esc(sg.nota||'')+'</span>';
-          html+='<button onclick="event.stopPropagation();_delSeguimientoFalla(\''+eq.id+'\',\''+p.id+'\',\''+sg.id+'\');" style="background:none;border:none;color:rgba(120,120,128,.4);font-size:.75rem;cursor:pointer;padding:0 2px;flex-shrink:0;">✕</button>';
           html+='</div>';
         }
         html+='</div>';
       }
-      html+='<div style="margin-top:6px;">';
-      html+='<button onclick="event.stopPropagation();openModalSeguimientoFalla(\''+eq.id+'\',\''+p.id+'\');" style="font-size:.7rem;font-weight:600;color:#ff9500;background:rgba(255,149,0,.12);border:1px solid rgba(255,149,0,.25);border-radius:8px;padding:4px 12px;cursor:pointer;">+ Agregar novedad</button>';
-      html+='</div>';
       html+='</li>';
     });
     html+='</ul>';
@@ -10486,8 +10482,8 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="6.3.5";
-var APP_BUILD="16/06/26 14:10";
+var APP_DISPLAY_VERSION="6.3.6";
+var APP_BUILD="16/06/26 14:20";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
