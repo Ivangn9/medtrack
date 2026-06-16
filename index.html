@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.16.196 -->
+<!-- v2026.06.16.197 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.16.196">
+<meta name="app-version" content="v2026.06.16.197">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3037,6 +3037,16 @@ var CAT_COMPONENTES={
   LAB:[
     "Módulo de análisis","Reactivos","Sensor","Centrífuga","Pipeta automática",
     "Impresora de resultados","Pantalla","Teclado","Fuente de alimentación"
+  ],
+  OD:[
+    "Tubo de rayos X","Sensor / detector panor\xe1mico (sensor head)","Generador de alta frecuencia (DSP)",
+    "Motor de rotaci\xf3n del brazo","Correas de transmisi\xf3n (drive belts)","Rodamientos del brazo rotativo",
+    "Colimador primario (slit collimator)","Motor de la columna vertical (up/down)",
+    "Apoyabarbillas y apoyafrente","Mordedor / biteblock","Luces l\xe1ser de posicionamiento","Soportes de oreja (ear rods)",
+    "Tarjetas PCB de control del generador","Tarjeta de control del motor",
+    "Cable flex del sensor (ribbon cable)","PC de adquisici\xf3n / interfaz digital",
+    "Calibraci\xf3n del sensor panor\xe1mico","Software Romexis / CS Imaging","Ajuste del colimador y alineaci\xf3n del haz",
+    "Filtros de aire del gabinete","Limpieza del sensor y superficies","Lubricaci\xf3n de rodamientos y rieles"
   ],
   OTR:[
     "Panel de control","Pantalla","Sensor","Fuente de alimentación",
@@ -11112,8 +11122,8 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="6.5.1";
-var APP_BUILD="16/06/26 22:00";
+var APP_DISPLAY_VERSION="6.5.2";
+var APP_BUILD="16/06/26 22:15";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
