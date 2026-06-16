@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.16.180 -->
+<!-- v2026.06.16.181 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.16.180">
+<meta name="app-version" content="v2026.06.16.181">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1114,7 +1114,6 @@ body.dark .sb-card{background:rgba(255,255,255,.06);border-color:rgba(255,255,25
     <button class="sb-nav-btn" data-sb="calendario" onclick="setView('calendario')"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>Calendario PM</button>
     <button class="sb-nav-btn" data-sb="ordenes" onclick="setView('ordenes')"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg></span>Órdenes de Trabajo</button>
     <button class="sb-nav-btn" data-sb="repuestos" onclick="setView('repuestos')"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg></span>Repuestos</button>
-    <button class="sb-nav-btn" data-sb="reclamos" onclick="setView('reclamos')"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>Reclamos<span id="sb-reclamos-badge" style="display:none;background:#ff9500;color:#fff;border-radius:10px;padding:1px 6px;font-size:.6rem;font-weight:700;margin-left:auto;"></span></button>
     <button class="sb-nav-btn" data-sb="auditoria" onclick="setView('auditoria')"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></span>Auditoría</button>
     <button class="sb-nav-btn" id="sb-ajustes-btn" onclick="toggleSbAjustesMenu(event)"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span>Ajustes<span style="margin-left:auto;font-size:.65rem;opacity:.5;transition:transform .2s;" id="sb-aj-chevron">▸</span></button>
   </div>
@@ -4570,6 +4569,55 @@ function generarPDFRepuestos(){
 // ── HELPERS ──
 function htmlEsc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
+// ── SEGUIMIENTO DE FALLAS POR EQUIPO ──
+function openModalSeguimientoFalla(eqId,parteId){
+  var eq=eqs.find(function(e){return e.id===eqId;})||{};
+  var parte=(eq.partes||[]).find(function(p){return p.id===parteId;})||{};
+  var html='<div style="padding:4px 0 8px;">';
+  html+='<h3 style="margin:0 0 4px;font-size:1rem;font-weight:700;color:var(--text);">Nueva Novedad</h3>';
+  html+='<div style="font-size:.75rem;color:#ff9500;margin-bottom:16px;">'+htmlEsc(eq.nombre||'')+(parte.nombre?' — '+htmlEsc(parte.nombre):'')+'</div>';
+  html+='<div style="margin-bottom:12px;"><label style="font-size:.72rem;color:var(--text2);font-weight:600;display:block;margin-bottom:4px;">Fecha</label>';
+  html+='<input class="inp" id="sfalla-fecha" type="date" value="'+today()+'" style="width:100%;"></div>';
+  html+='<div style="margin-bottom:16px;"><label style="font-size:.72rem;color:var(--text2);font-weight:600;display:block;margin-bottom:4px;">Descripción de la novedad</label>';
+  html+='<textarea class="inp" id="sfalla-nota" rows="4" placeholder="Ej: Se realizó reclamo telefónico al servicio técnico. Atendió Juan Pérez (Jefe de Guardia) quien informó que los repuestos están en tránsito..." style="width:100%;resize:vertical;"></textarea></div>';
+  html+='<div style="display:flex;gap:10px;">';
+  html+='<button onclick="submitSeguimientoFalla(\''+eqId+'\',\''+parteId+'\');" style="flex:1;background:#ff9500;color:#fff;border:none;border-radius:var(--r-md);padding:12px;font-weight:700;font-size:.88rem;cursor:pointer;">Guardar</button>';
+  html+='<button onclick="closeModal();" style="background:rgba(120,120,128,.13);color:var(--text2);border:none;border-radius:var(--r-md);padding:12px 18px;font-weight:600;font-size:.88rem;cursor:pointer;">Cancelar</button>';
+  html+='</div></div>';
+  openModal(html);
+}
+function submitSeguimientoFalla(eqId,parteId){
+  var fecha=(document.getElementById('sfalla-fecha')||{}).value||today();
+  var nota=((document.getElementById('sfalla-nota')||{}).value||'').trim();
+  if(!nota)return showToast('Escribí la novedad','warn');
+  eqs=eqs.map(function(e){
+    if(e.id!==eqId)return e;
+    var partes=(e.partes||[]).map(function(p){
+      if(p.id!==parteId)return p;
+      var sg={id:'SG-'+Date.now(),fecha:fecha,nota:nota,creadoEn:new Date().toISOString()};
+      var segs=(p.seguimientos||[]).concat(sg);
+      return Object.assign({},p,{seguimientos:segs});
+    });
+    return Object.assign({},e,{partes:partes});
+  });
+  var eq=eqs.find(function(e){return e.id===eqId;})||{};
+  var parte=(eq.partes||[]).find(function(p){return p.id===parteId;})||{};
+  auditEntry('modificar','eq',eqId,eq.nombre||eqId,'Novedad en falla "'+( parte.nombre||parteId)+'": '+nota.slice(0,60));
+  saveData();closeModal();render();
+  showToast('Novedad registrada');
+}
+function _delSeguimientoFalla(eqId,parteId,sgId){
+  eqs=eqs.map(function(e){
+    if(e.id!==eqId)return e;
+    var partes=(e.partes||[]).map(function(p){
+      if(p.id!==parteId)return p;
+      return Object.assign({},p,{seguimientos:(p.seguimientos||[]).filter(function(s){return s.id!==sgId;})});
+    });
+    return Object.assign({},e,{partes:partes});
+  });
+  saveData();render();
+}
+
 // ── RECLAMOS Y SEGUIMIENTOS ──
 function _saveReclamos(){
   try{localStorage.setItem('mt_reclamos',JSON.stringify(reclamos));}catch(e){}
@@ -7888,6 +7936,23 @@ function _narrativeEq(eq,mantHist,repHist,mejHist,actToShow,mejPendToShow,trasla
       else if(p.precio)html+='<br><span class="list-note swarn">Presupuesto presentado a gerencia: <strong>$'+esc(p.precio)+'</strong> — pendiente aprobación</span>';
       else html+='<br><span class="list-note swarn">Presupuesto pendiente de cotización</span>';
       if(p.notas)html+='<br><span class="list-note">'+esc(p.notas)+'</span>';
+      // Seguimientos de gestión
+      var segs=p.seguimientos||[];
+      if(segs.length){
+        html+='<div style="margin-top:8px;padding:8px 10px;background:rgba(255,149,0,.06);border-left:3px solid #ff9500;border-radius:0 6px 6px 0;">';
+        html+='<div style="font-size:.68rem;font-weight:700;color:#ff9500;letter-spacing:.05em;margin-bottom:6px;">SEGUIMIENTO DE GESTIÓN</div>';
+        segs.slice().sort(function(a,b){return a.fecha>b.fecha?1:-1;}).forEach(function(sg){
+          html+='<div style="display:flex;gap:6px;padding:4px 0;border-bottom:1px solid rgba(255,149,0,.1);align-items:flex-start;">';
+          html+='<span style="font-size:.7rem;font-weight:700;color:#ff9500;white-space:nowrap;min-width:70px;">'+_fmtFechaCort(sg.fecha)+'</span>';
+          html+='<span style="font-size:.73rem;color:var(--text);flex:1;line-height:1.4;">'+esc(sg.nota||'')+'</span>';
+          html+='<button onclick="event.stopPropagation();_delSeguimientoFalla(\''+eq.id+'\',\''+p.id+'\',\''+sg.id+'\');" style="background:none;border:none;color:rgba(120,120,128,.4);font-size:.75rem;cursor:pointer;padding:0 2px;flex-shrink:0;">✕</button>';
+          html+='</div>';
+        });
+        html+='</div>';
+      }
+      html+='<div style="margin-top:6px;">';
+      html+='<button onclick="event.stopPropagation();openModalSeguimientoFalla(\''+eq.id+'\',\''+p.id+'\');" style="font-size:.7rem;font-weight:600;color:#ff9500;background:rgba(255,149,0,.12);border:1px solid rgba(255,149,0,.25);border-radius:8px;padding:4px 12px;cursor:pointer;">+ Agregar novedad</button>';
+      html+='</div>';
       html+='</li>';
     });
     html+='</ul>';
@@ -10315,74 +10380,65 @@ function generarPDFEjecutivo(){
       });
       y+=4;
     }
-    // ── SECCIÓN RECLAMOS Y SEGUIMIENTOS ──
-    var reclamosActivos=reclamos.filter(function(r){return r.estado!=='resuelto';});
-    if(reclamosActivos.length){
+    // ── SEGUIMIENTO DE FALLAS ACTIVAS ──
+    var eqsConSeguimiento=[];
+    eqs.filter(function(e){return !e.baja;}).forEach(function(e){
+      var fallasConSeg=(e.partes||[]).filter(function(p){
+        return (p.estado==='roto'||p.estado==='pendiente')&&(p.seguimientos||[]).length>0;
+      });
+      if(fallasConSeg.length)eqsConSeguimiento.push({eq:e,fallas:fallasConSeg});
+    });
+    if(eqsConSeguimiento.length){
       if(y>200){doc.addPage();y=20;}
       doc.setTextColor(180,70,0);doc.setFontSize(11);doc.setFont('helvetica','bold');
-      doc.text('Gestion de Reclamos Activos',margin,y);y+=6;
+      doc.text('Seguimiento de Fallas Activas',margin,y);y+=6;
       doc.setDrawColor(180,70,0);doc.setLineWidth(0.4);doc.line(margin,y,W-margin,y);y+=5;
-      for(var ri=0;ri<reclamosActivos.length;ri++){
-        if(y>255){doc.addPage();y=20;}
-        var rcPDF=reclamosActivos[ri];
-        var eqPDF=eqs.find(function(e){return e.id===rcPDF.eqId;})||{};
-        var estPDFLabel=rcPDF.estado==='en-gestion'?'EN GESTION':'ABIERTO';
-        doc.setFillColor(255,248,240);doc.rect(margin,y,W-2*margin,8,'F');
-        doc.setTextColor(180,70,0);doc.setFontSize(9);doc.setFont('helvetica','bold');
-        doc.text('['+estPDFLabel+'] '+(eqPDF.nombre||rcPDF.eqId||'Equipo no especificado').slice(0,35),margin+2,y+5.5);
-        doc.setTextColor(100,80,60);doc.setFont('helvetica','normal');
-        var tituloSlice=(rcPDF.titulo||'').slice(0,50);
-        doc.text(tituloSlice,margin+2+Math.min((eqPDF.nombre||'').length*2.2+20,70),y+5.5);
-        y+=10;
-        var medioLabelPDF={telefono:'via telefonica',email:'por correo electronico',presencial:'de forma presencial',carta:'mediante carta/nota'}[rcPDF.medio]||'via contacto';
-        var narrativa='Con fecha '+_fmtFechaCort(rcPDF.fecha)+' se realizo contacto '+medioLabelPDF;
-        if(rcPDF.contacto){narrativa+=' con el/la Sr./Sra. '+rcPDF.contacto;if(rcPDF.cargo)narrativa+=', '+rcPDF.cargo;}
-        narrativa+='.';
-        doc.setTextColor(28,28,30);doc.setFontSize(8);doc.setFont('helvetica','normal');
-        var narLines=doc.splitTextToSize(narrativa,W-2*margin-4);
-        for(var nl=0;nl<narLines.length;nl++){
-          if(y>270){doc.addPage();y=20;}
-          doc.text(narLines[nl],margin+3,y);y+=4.5;
-        }
-        if(rcPDF.descripcion){
-          var descLines=doc.splitTextToSize(rcPDF.descripcion,W-2*margin-6);
-          for(var dl=0;dl<descLines.length;dl++){
-            if(y>270){doc.addPage();y=20;}
-            doc.text(descLines[dl],margin+3,y);y+=4.5;
+      for(var efi=0;efi<eqsConSeguimiento.length;efi++){
+        var efd=eqsConSeguimiento[efi];
+        var eqF=efd.eq;
+        for(var ffi=0;ffi<efd.fallas.length;ffi++){
+          if(y>250){doc.addPage();y=20;}
+          var pF=efd.fallas[ffi];
+          // Encabezado falla
+          doc.setFillColor(255,248,240);doc.rect(margin,y,W-2*margin,8,'F');
+          doc.setTextColor(180,70,0);doc.setFontSize(9);doc.setFont('helvetica','bold');
+          var eqNomF=(eqF.nombre||'').slice(0,30);
+          var partNomF=(pF.nombre||'Falla').slice(0,40);
+          doc.text(eqNomF+' — '+partNomF,margin+2,y+5.5);
+          if(pF.fechaRotura){
+            doc.setTextColor(130,80,40);doc.setFont('helvetica','normal');doc.setFontSize(7.5);
+            doc.text('Detectada: '+_fmtFechaCort(pF.fechaRotura),W-margin-45,y+5.5);
           }
-        }
-        if(rcPDF.resultado){
-          doc.setFont('helvetica','italic');
-          var resLines=doc.splitTextToSize('Resultado esperado: '+rcPDF.resultado,W-2*margin-6);
-          for(var rl=0;rl<resLines.length;rl++){
-            if(y>270){doc.addPage();y=20;}
-            doc.text(resLines[rl],margin+3,y);y+=4.5;
-          }
-          doc.setFont('helvetica','normal');
-        }
-        y+=2;
-        var segsActivos=rcPDF.seguimientos||[];
-        if(segsActivos.length){
-          doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.setTextColor(100,80,60);
-          doc.text('Historial de seguimientos:',margin+3,y);y+=4;
-          doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(28,28,30);
-          for(var sgi=0;sgi<segsActivos.length;sgi++){
-            if(y>270){doc.addPage();y=20;}
-            var sgPDF=segsActivos[sgi];
-            var sgMedioLabel={telefono:'telefonico',email:'por email',presencial:'presencial',carta:'por carta'}[sgPDF.medio]||'';
-            var sgNarr=_fmtFechaCort(sgPDF.fecha)+' — Seguimiento '+sgMedioLabel;
-            if(sgPDF.contacto){sgNarr+=' con '+sgPDF.contacto;if(sgPDF.cargo)sgNarr+=' ('+sgPDF.cargo+')';}
-            sgNarr+=': '+(sgPDF.nota||'');
-            doc.setFillColor(250,248,245);doc.rect(margin+2,y-1,W-2*margin-2,1,'F');
-            doc.text('• ',margin+3,y);
-            var sgLines=doc.splitTextToSize(sgNarr,W-2*margin-10);
-            for(var sgl=0;sgl<sgLines.length;sgl++){
+          y+=10;
+          // Descripción de la falla
+          if(pF.descripcion){
+            doc.setTextColor(28,28,30);doc.setFontSize(8);doc.setFont('helvetica','normal');
+            var fdLines=doc.splitTextToSize(pF.descripcion,W-2*margin-4);
+            for(var fdl=0;fdl<fdLines.length;fdl++){
               if(y>270){doc.addPage();y=20;}
-              doc.text(sgLines[sgl],margin+7,y);y+=4.5;
+              doc.text(fdLines[fdl],margin+3,y);y+=4.5;
+            }
+            y+=2;
+          }
+          // Seguimientos cronológicos
+          var segsF=(pF.seguimientos||[]).slice().sort(function(a,b){return a.fecha>b.fecha?1:-1;});
+          doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.setTextColor(130,80,40);
+          doc.text('Historial de gestión:',margin+3,y);y+=5;
+          for(var sfi=0;sfi<segsF.length;sfi++){
+            if(y>270){doc.addPage();y=20;}
+            var sgF=segsF[sfi];
+            doc.setFontSize(8);doc.setFont('helvetica','bold');doc.setTextColor(180,70,0);
+            doc.text(_fmtFechaCort(sgF.fecha),margin+3,y);
+            doc.setFont('helvetica','normal');doc.setTextColor(28,28,30);
+            var sgFLines=doc.splitTextToSize((sgF.nota||''),W-2*margin-22);
+            doc.text(sgFLines[0]||'',margin+22,y);y+=4.5;
+            for(var sfll=1;sfll<sgFLines.length;sfll++){
+              if(y>270){doc.addPage();y=20;}
+              doc.text(sgFLines[sfll],margin+22,y);y+=4.5;
             }
           }
+          y+=6;
         }
-        y+=6;
       }
     }
     var totalPages=doc.internal.getNumberOfPages();
@@ -10406,8 +10462,8 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="6.3.2";
-var APP_BUILD="16/06/26 12:35";
+var APP_DISPLAY_VERSION="6.3.3";
+var APP_BUILD="16/06/26 13:55";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
