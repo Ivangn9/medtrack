@@ -4527,8 +4527,18 @@ function generarPDFOrdenes(){
       doc.text(truncated,xP2+1,y);xP2+=cols[ti][1];
     });
     y+=6;
+    if(ot.resolucion&&ot.estado==='cerrada'){
+      if(y>260){doc.addPage();doc.setFillColor(26,58,107);doc.rect(0,0,pgW,15,'F');doc.setTextColor(255,255,255);doc.setFontSize(8);doc.text('CIMA \xb7 \xd3rdenes de Trabajo (cont.)',14,9);doc.setTextColor(40,40,40);y=20;}
+      doc.setFontSize(6.5);doc.setFont(undefined,'bold');doc.setTextColor(40,100,40);
+      doc.text('Resoluci\xf3n: ',10,y);doc.setFont(undefined,'normal');doc.setTextColor(40,40,40);
+      var resLines=doc.splitTextToSize(ot.resolucion,pgW-30);
+      doc.text(resLines[0]||'',35,y);y+=5;
+      if(ot.firma){
+        try{doc.addImage(ot.firma,'PNG',10,y,60,15);y+=18;doc.setFontSize(6.5);doc.setTextColor(100,100,120);doc.text('Firma del t\xe9cnico',10,y);doc.setTextColor(40,40,40);y+=5;}catch(e){}
+      }
+    }
   });
-  y+=8;doc.setFontSize(7);doc.setTextColor(120,120,130);doc.text('CIMA Hub v6.2.0 \xb7 Generado: '+nowStr+' \xb7 Total: '+rows2.length+' \xf3rdenes',14,y);
+  y+=8;doc.setFontSize(7);doc.setTextColor(120,120,130);doc.text('CIMA Hub '+APP_DISPLAY_VERSION+' \xb7 Generado: '+nowStr+' \xb7 Total: '+rows2.length+' \xf3rdenes',14,y);
   doc.save('OrdenesTrabajo_'+today().replace(/-/g,'')+'.pdf');
 }
 // ── REPUESTOS ──
