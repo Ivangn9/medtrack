@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.16.193 -->
+<!-- v2026.06.16.194 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.16.193">
+<meta name="app-version" content="v2026.06.16.194">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -2967,9 +2967,15 @@ var CAT_COMPONENTES={
     "Data acquisition system (DAS)","Compresor de aire"
   ],
   RX:[
-    "Tubo de RX","Detector plano (flat panel)","Mesa de fluoroscopía",
-    "Gantry","Generador","Colimador","Pedal disparador",
-    "Panel de control","Consola","Monitor","Arco en C","Compresor"
+    "Tubo de rayos X (suspensi\xf3n techo)","Panel detector DR (CsI)","Generador de alta frecuencia",
+    "Bater\xeda del detector DR","Firmware / calibraci\xf3n del detector",
+    "Rodamientos y rieles de suspensi\xf3n (OTS)","Frenos magn\xe9ticos del brazo telesc\xf3pico",
+    "Cables flex del brazo","Motor de autotracking / autocentering",
+    "L\xe1minas del colimador","L\xe1mpara campo luminoso del colimador","Motor del colimador",
+    "Grid (rejilla antidifusora)","Rodamientos mesa elevadora","Frenos mesa flotante",
+    "Tarjetas PCB del generador","Software MUSICA / NX","AEC (control autom\xe1tico exposici\xf3n)","Cables de alta tensi\xf3n",
+    "Filtros de aire del gabinete","Filtros del sistema de refrigeraci\xf3n","Limpieza y desinfecci\xf3n del detector",
+    "Pedal disparador","Panel de control","Consola","Monitor"
   ],
   ECO:[
     "Transductor lineal","Transductor convexo","Transductor sectorial","Transductor microconvexo",
@@ -11085,8 +11091,8 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="6.4.8";
-var APP_BUILD="16/06/26 21:15";
+var APP_DISPLAY_VERSION="6.4.9";
+var APP_BUILD="16/06/26 21:30";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
