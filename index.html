@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.16.192 -->
+<!-- v2026.06.16.193 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.16.192">
+<meta name="app-version" content="v2026.06.16.193">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -2958,10 +2958,13 @@ var CAT_COMPONENTES={
     "Antena de mama (coil)","Antena phased array"
   ],
   TC:[
-    "Tubo de RX","Detector de TC","Gantry","Mesa de paciente","Chiller",
-    "Generador de alta tensión","Colimador","Compresor de aire","Panel de control",
-    "Consola de operador","Monitor de operador","UPS","Slip ring","Cooling system",
-    "Data acquisition system (DAS)"
+    "Tubo de rayos X","M\xf3dulos detectores","Generador de alta tensi\xf3n",
+    "Rodamientos del gantry","Motor del gantry","Slip rings / anillos colectores","Escobillas","Colimadores",
+    "Cables de alta tensi\xf3n","PCBs / tarjetas electr\xf3nicas","Generador de pulsos",
+    "Filtros de aire del gantry","Filtros de aire del gabinete","Filtros del chiller","Bow-tie filters","Ventiladores",
+    "Calibraci\xf3n de detectores","Actualizaciones de software","Phantoms de calibraci\xf3n",
+    "Mesa de paciente","Chiller","Panel de control","Consola de operador","Monitor de operador",
+    "Data acquisition system (DAS)","Compresor de aire"
   ],
   RX:[
     "Tubo de RX","Detector plano (flat panel)","Mesa de fluoroscopía",
@@ -11082,8 +11085,8 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="6.4.7";
-var APP_BUILD="16/06/26 21:00";
+var APP_DISPLAY_VERSION="6.4.8";
+var APP_BUILD="16/06/26 21:15";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
