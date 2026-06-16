@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.16.194 -->
+<!-- v2026.06.16.195 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.16.194">
+<meta name="app-version" content="v2026.06.16.195">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3008,6 +3008,24 @@ var CAT_COMPONENTES={
   UPS:[
     "Batería","Bloque de baterías","Inversor","Cargador",
     "Ventilador interno","Display / Panel","Bypass","Rectificador"
+  ],
+  MG:[
+    "Tubo de rayos X (\xe1nodo Mo/Rh)","Panel detector FPD (flat panel)","Generador de alta frecuencia",
+    "Motor del sistema de compresi\xf3n","Paleta de compresi\xf3n est\xe1ndar","Paleta de compresi\xf3n spot","Paleta de magnificaci\xf3n",
+    "Sensores de fuerza / presi\xf3n del compresor","Correas / mecanismo de transmisi\xf3n del compresor",
+    "Filtro de molibdeno / rodio (Mo/Rh)","Motor y l\xe1minas del colimador","L\xe1mpara campo luminoso del colimador",
+    "Rodamientos del brazo en C","Motor de rotaci\xf3n del brazo","Frenos del brazo en C","Cables flex internos del brazo",
+    "Tarjetas PCB del generador","AEC (control autom\xe1tico de exposici\xf3n)","Software de adquisici\xf3n (AWS)","Grid antidifusor",
+    "Sistema SmartCurve / Dueta (compresi\xf3n asistida)","Pantalla t\xe1ctil del brazo lateral (patient interface)",
+    "Filtros de aire del gabinete","Phantom de calibraci\xf3n (ACR/flatfield)","Calibraci\xf3n del detector","Limpieza de paletas y detector"
+  ],
+  DM:[
+    "Tubo de rayos X (Performa / LNR8743)","Fuente de alta tensi\xf3n (HVPS / LNR7681)","Ensamble detector s\xf3lido (16/64 canales)",
+    "Cables del brazo esc\xe1ner","Motor del brazo esc\xe1ner","Correas de transmisi\xf3n del carro","Rodamientos del carro / rieles","Motor de posicionamiento lateral",
+    "Tarjeta madre del detector","Tarjeta del colim\xe1dor (collimator board)","PC de adquisici\xf3n (host PC / AWS)",
+    "Filtro K-edge","Colim\xe1dor","Filtros de aire del gabinete",
+    "Phantom QA block","Phantom de columna (spine phantom)","Calibraci\xf3n del detector",
+    "Software enCORE","Licencias de aplicaciones (body composition / VFA)"
   ],
   ARC:[
     "Tubo de RX","Detector (flat panel)","Estructura (arco en C)","Pedal disparador",
@@ -11091,8 +11109,8 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="6.4.9";
-var APP_BUILD="16/06/26 21:30";
+var APP_DISPLAY_VERSION="6.5.0";
+var APP_BUILD="16/06/26 21:45";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
