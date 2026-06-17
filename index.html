@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.17.240 -->
+<!-- v2026.06.17.250 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.17.240">
+<meta name="app-version" content="v2026.06.17.250">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -8399,9 +8399,14 @@ function _sbToggle(key,e){
   var open=m.style.display==="none"||m.style.display==="";
   if(open){
     var r=btn.getBoundingClientRect();
-    m.style.left=(r.right+8)+"px";m.style.top=r.top+"px";
+    m.style.left=(r.right+8)+"px";
+    m.style.top="";m.style.bottom="";
     if(c.beforeOpen)c.beforeOpen();
     m.style.display="block";
+    var mh=m.offsetHeight;
+    var vh=window.innerHeight||document.documentElement.clientHeight;
+    if(r.top+mh+12>vh){m.style.top="auto";m.style.bottom=(vh-r.bottom)+"px";}
+    else{m.style.bottom="auto";m.style.top=r.top+"px";}
     if(ch)ch.style.transform="rotate(90deg)";
     c.outside=function(ev){if(!m.contains(ev.target)&&!btn.contains(ev.target))_sbClose(key);};
     setTimeout(function(){document.addEventListener("click",c.outside);},0);
@@ -11661,8 +11666,8 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="6.8.0";
-var APP_BUILD="17/06/26 11:00";
+var APP_DISPLAY_VERSION="6.8.1";
+var APP_BUILD="17/06/26 12:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
