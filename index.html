@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.17.210 -->
+<!-- v2026.06.17.220 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.17.210">
+<meta name="app-version" content="v2026.06.17.220">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1114,7 +1114,6 @@ body.dark .sb-card{background:rgba(255,255,255,.06);border-color:rgba(255,255,25
     <button class="sb-nav-btn" data-sb="calendario" onclick="setView('calendario')"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>Calendario PM</button>
     <button class="sb-nav-btn" data-sb="ordenes" onclick="setView('ordenes')"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg></span>Órdenes de Trabajo</button>
     <button class="sb-nav-btn" data-sb="repuestos" onclick="setView('repuestos')"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg></span>Repuestos</button>
-    <button class="sb-nav-btn" data-sb="mejoras" onclick="setView('mejoras')"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></span>Mejoras</button>
     <button class="sb-nav-btn" data-sb="auditoria" onclick="setView('auditoria')"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></span>Auditoría</button>
     <button class="sb-nav-btn" id="sb-ajustes-btn" onclick="toggleSbAjustesMenu(event)"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span>Ajustes<span style="margin-left:auto;font-size:.65rem;opacity:.5;transition:transform .2s;" id="sb-aj-chevron">▸</span></button>
   </div>
@@ -1570,6 +1569,38 @@ function _migrarMejorasDeEqs(){
   return count;
 }
 
+function _migrarMejorasAOTs(){
+  var count=0;
+  mejoras.forEach(function(m){
+    var yaExiste=ordenesTrabajo.some(function(o){return o._mejId===m.id;});
+    if(yaExiste)return;
+    var estadoOT=m.estado==='completado'?'cerrada':m.estado==='en_curso'?'en_progreso':'pendiente';
+    ordenesTrabajo.push({
+      id:'OT-MEJ-'+m.id,
+      eqId:m.eqId||'',
+      titulo:m.descripcion,
+      descripcion:m.notas||'',
+      tipo:'mejora',
+      tipoObra:m.tipo||'otro',
+      sala:m.sala||'',
+      prioridad:m.prioridad||'normal',
+      estado:estadoOT,
+      tecnicoAsignado:m.responsable||'',
+      fechaProgramada:m.fechaEstimada||'',
+      slaHoras:0,
+      fechaCreacion:m.fechaCreacion||today(),
+      fechaCierre:m.fechaCompletado||'',
+      resolucion:'',
+      generadoDesdePM:null,
+      migradoDesdeMejora:true,
+      _mejId:m.id
+    });
+    count++;
+  });
+  if(count>0)mejoras=[];
+  return count;
+}
+
 // ═══════════════════════════════════════════
 //  STATE
 // ═══════════════════════════════════════════
@@ -1745,6 +1776,10 @@ function calcHealthScore(eq){
   });
   eqs.filter(function(u){return u.cat==='UPS'&&!u.baja&&(u.equiposConectados||[]).indexOf(eq.id)!==-1;}).forEach(function(u){
     faults+=(u.partes||[]).filter(function(p){return p.estado!=='ok'&&p.estado!=='mejora';}).length;
+  });
+  aires.filter(function(ai){return !ai.baja&&(ai.equiposServidos||[]).indexOf(eq.id)!==-1;}).forEach(function(ai){
+    if(ai.estado==='falla')faults+=1;
+    else if(ai.estado==='fuera_servicio'||ai.estado==='fuera-de-servicio')faults+=2;
   });
   if(eq.cat==='RM'){
     var rf=_refrigData(eq);
@@ -2045,6 +2080,22 @@ function getAlertas(){
     if(cant<=0)a.push({k:'rep'+r.id+'out',niv:'critico',tit:r.nombre,desc:'📦 Repuesto SIN STOCK',eid:''});
     else if(minimo>0&&cant<=minimo)a.push({k:'rep'+r.id+'low',niv:'advertencia',tit:r.nombre,desc:'📦 Stock bajo: '+cant+' (mín '+minimo+')',eid:''});
   });
+  activeEqs.forEach(function(e){
+    if(e.cat!=='RM')return;
+    var rf=_refrigData(e);
+    if(rf.chiller==='rotura')a.push({k:e.id+'chillerrot',niv:'critico',tit:e.nombre,desc:'❄️ Chiller en ROTURA — RM sin refrigeración',eid:e.id});
+    else if(rf.chiller==='service')a.push({k:e.id+'chillerserv',niv:'advertencia',tit:e.nombre,desc:'❄️ Chiller en service',eid:e.id});
+    if(rf.compresorHelio&&rf.compresorHelio!=='operativo')a.push({k:e.id+'comphelio',niv:'advertencia',tit:e.nombre,desc:'⚙️ Compresor de helio: '+rf.compresorHelio,eid:e.id});
+    var hlp=parseFloat(rf.helioLiqPorcentaje||'100');
+    if(!isNaN(hlp)){
+      if(hlp<20)a.push({k:e.id+'heliocrit',niv:'critico',tit:e.nombre,desc:'🧊 Helio líquido CRÍTICO: '+hlp+'%',eid:e.id});
+      else if(hlp<40)a.push({k:e.id+'heliobajo',niv:'advertencia',tit:e.nombre,desc:'🧊 Nivel de helio bajo: '+hlp+'%',eid:e.id});
+    }
+  });
+  aires.filter(function(ai){return !ai.baja;}).forEach(function(ai){
+    if(ai.estado==='falla')a.push({k:'aire'+ai.id+'falla',niv:'advertencia',tit:ai.nombre||ai.ubicacion||'Aire acondicionado',desc:'❄️ Aire con falla'+((ai.equiposServidos||[]).length?' — afecta '+ai.equiposServidos.length+' equipo(s)':''),eid:''});
+    else if(ai.estado==='fuera_servicio'||ai.estado==='fuera-de-servicio')a.push({k:'aire'+ai.id+'fs',niv:'critico',tit:ai.nombre||ai.ubicacion||'Aire acondicionado',desc:'❄️ Aire FUERA DE SERVICIO'+((ai.equiposServidos||[]).length?' — afecta '+ai.equiposServidos.length+' equipo(s)':''),eid:''});
+  });
   return a;
 }
 
@@ -2084,7 +2135,20 @@ function saveEq(d){
   else{d.id="EQ-"+Date.now();d.partes=[];d.historialMant=[];eqs.push(d);showToast("Equipo agregado");}
   saveData();closeModal();render();
 }
-function delEq(id){if(!confirm("¿Eliminar este equipo?"))return;eqs=eqs.filter(function(e){return e.id!==id;});saveData();showToast("Eliminado","warn");goBack();}
+function delEq(id){
+  if(!confirm("¿Eliminar este equipo? Se limpiarán PMs programados, mejoras y vínculos asociados. Las OTs e historial quedan como registro."))return;
+  var eq=eqs.find(function(e){return e.id===id;})||{};
+  var nombre=eq.nombre||id;
+  eqs=eqs.filter(function(e){return e.id!==id;});
+  pmProgramados=pmProgramados.filter(function(p){return p.eqId!==id;});
+  mejoras=mejoras.filter(function(m){return m.eqId!==id;});
+  eqs.forEach(function(u){if(u.cat==='UPS')u.equiposConectados=(u.equiposConectados||[]).filter(function(x){return x!==id;});});
+  antenas.forEach(function(a){if((a.eqIds||[]).indexOf(id)!==-1)a.eqIds=a.eqIds.filter(function(x){return x!==id;});});
+  transductores.forEach(function(t){if((t.eqIds||[]).indexOf(id)!==-1)t.eqIds=t.eqIds.filter(function(x){return x!==id;});});
+  aires.forEach(function(a){a.equiposServidos=(a.equiposServidos||[]).filter(function(x){return x!==id;});});
+  auditEntry('eliminar','eq',id,nombre,'Equipo eliminado — PMs y vínculos limpiados');
+  saveData();showToast("Equipo eliminado","warn");goBack();
+}
 function saveParte(eqId,pt){
   eqs=eqs.map(function(e){
     if(e.id!==eqId)return e;
@@ -3491,7 +3555,6 @@ function render(){
     else if(view==="ordenes")d.innerHTML=rOrdenes();
     else if(view==="repuestos")d.innerHTML=rRepuestos();
     else if(view==="reclamos")d.innerHTML=rReclamos();
-    else if(view==="mejoras")d.innerHTML=rMejoras();
     else if(view==="auditoria")d.innerHTML=rAuditoria();
     m.appendChild(d);
     var spacer=document.createElement("div");spacer.style.height="80px";spacer.style.flexShrink="0";m.appendChild(spacer);
@@ -4078,6 +4141,11 @@ function _kpiAllRoturas(){
       result.push({fechaRotura:r.fecha,fechaArreglo:r.fechaArreglo,eqId:'ant-'+ant.id,eqNombre:ant.nombre+' (Antena)',eqCat:'ANTENA',estado:r.estado,descripcion:r.queSeRompio||'',precio:0});
     });
   });
+  transductores.forEach(function(tr){
+    (tr.roturas||[]).forEach(function(r){
+      result.push({fechaRotura:r.fecha,fechaArreglo:r.fechaArreglo,eqId:'tr-'+tr.id,eqNombre:(tr.nombre||tr.modelo||tr.id)+' (Transductor)',eqCat:'TC',estado:r.estado,descripcion:r.queSeRompio||r.descripcion||'',precio:0});
+    });
+  });
   return result;
 }
 // ── SVG CHARTS ──
@@ -4559,9 +4627,10 @@ function rOrdenes(){
   if(!filtered.length){h+='<div style="text-align:center;color:var(--text3);padding:40px 0;font-size:.88rem;">Sin órdenes de trabajo</div>';return h;}
   var prioColor={urgente:'var(--red)',alta:'var(--orange)',normal:'var(--accent)',baja:'var(--green)'};
   var estadoColor={pendiente:'#8e8e93',asignada:'var(--accent)',en_progreso:'var(--orange)',cerrada:'var(--green)',cancelada:'#8e8e93'};
+  var tipoObraLabel={pintura:'Pintura',carpinteria:'Carpintería',electricidad:'Electricidad',plomeria:'Plomería',mobiliario:'Mobiliario',obra:'Obra civil',limpieza:'Limpieza',otro:'Obra/Mejora'};
   filtered.forEach(function(ot){
     var eq3=eqs.find(function(e){return e.id===ot.eqId;});
-    var eqNom=eq3?eq3.nombre:'Equipo desconocido';
+    var eqNom=eq3?eq3.nombre:(ot.sala||'Sin equipo');
     var pc=prioColor[ot.prioridad]||'var(--text3)';
     var ec=estadoColor[ot.estado]||'var(--text3)';
     var slaBadge='';
@@ -4573,17 +4642,20 @@ function rOrdenes(){
       var slaLabel=slaPct>=100?('SLA +'+(Math.round(elapsedH-ot.slaHoras))+'h'):('SLA '+Math.round(ot.slaHoras-elapsedH)+'h');
       slaBadge='<span style="font-size:.62rem;font-weight:700;color:'+slaColor+';background:'+slaColor+'18;padding:2px 7px;border-radius:10px;">'+slaLabel+'</span>';
     }
-    h+='<div class="gc" style="padding:0;margin-bottom:10px;overflow:hidden;border-left:4px solid '+pc+';">';
+    var isMejOT=ot.tipo==='mejora';
+    var borderColor=isMejOT?'rgba(139,92,246,.7)':pc;
+    h+='<div class="gc" style="padding:0;margin-bottom:10px;overflow:hidden;border-left:4px solid '+borderColor+';">';
     h+='<div style="padding:10px 14px;display:flex;align-items:flex-start;gap:10px;">';
     h+='<div style="flex:1;min-width:0;">';
     h+='<div style="display:flex;align-items:center;gap:7px;margin-bottom:3px;flex-wrap:wrap;">';
     h+='<span style="font-size:.58rem;font-weight:700;font-family:monospace;color:var(--text3);">'+ot.id+'</span>';
     h+='<span style="font-size:.6rem;font-weight:700;padding:1px 7px;border-radius:20px;background:'+ec+'22;color:'+ec+';border:1px solid '+ec+'44;">'+OT_ESTADOS[ot.estado]+'</span>';
     h+='<span style="font-size:.6rem;font-weight:700;padding:1px 7px;border-radius:20px;background:'+pc+'22;color:'+pc+';border:1px solid '+pc+'44;">'+OT_PRIORIDADES[ot.prioridad]+'</span>';
+    if(isMejOT)h+='<span style="font-size:.6rem;font-weight:700;padding:1px 7px;border-radius:20px;background:rgba(139,92,246,.14);color:#8b5cf6;border:1px solid rgba(139,92,246,.3);">✏️ '+(tipoObraLabel[ot.tipoObra]||'Mejora')+'</span>';
     h+=slaBadge;
     h+='</div>';
-    h+='<div style="font-weight:700;font-size:.88rem;margin-bottom:2px;">'+esc(ot.titulo)+(ot.generadoDesdePM?'<span style="margin-left:6px;font-size:.58rem;font-weight:700;background:rgba(52,199,89,.12);color:var(--green);border-radius:20px;padding:1px 6px;vertical-align:middle;">📅 Desde PM</span>':'')+'</div>';
-    h+='<div style="font-size:.72rem;color:var(--text3);">'+esc(eqNom)+(ot.tecnicoAsignado?' \xb7 '+esc(ot.tecnicoAsignado):'')+'</div>';
+    h+='<div style="font-weight:700;font-size:.88rem;margin-bottom:2px;">'+esc(ot.titulo)+(ot.generadoDesdePM?'<span style="margin-left:6px;font-size:.58rem;font-weight:700;background:rgba(52,199,89,.12);color:var(--green);border-radius:20px;padding:1px 6px;vertical-align:middle;">📅 Desde PM</span>':'')+( ot.migradoDesdeMejora?'<span style="margin-left:6px;font-size:.58rem;font-weight:700;background:rgba(139,92,246,.12);color:#8b5cf6;border-radius:20px;padding:1px 6px;vertical-align:middle;">migrada</span>':'')+'</div>';
+    h+='<div style="font-size:.72rem;color:var(--text3);">'+esc(eqNom)+(ot.sala?' 📍 '+esc(ot.sala):'')+(ot.tecnicoAsignado?' \xb7 👷 '+esc(ot.tecnicoAsignado):'')+'</div>';
     if(ot.descripcion)h+='<div style="font-size:.72rem;color:var(--text2);margin-top:3px;">'+esc(ot.descripcion)+'</div>';
     h+='<div style="font-size:.65rem;color:var(--text3);margin-top:4px;">Creada: '+fD(ot.fechaCreacion)+(ot.fechaCierre?' \xb7 Cerrada: '+fD(ot.fechaCierre):'')+'</div>';
     if(ot.resolucion)h+='<div style="font-size:.68rem;color:var(--text2);margin-top:3px;padding:5px 8px;background:rgba(52,199,89,.07);border-radius:6px;border-left:3px solid rgba(52,199,89,.4);">'+esc(ot.resolucion.slice(0,80))+(ot.resolucion.length>80?'…':'')+'</div>';
@@ -4609,23 +4681,35 @@ function openModalOT(eqId,otId){
   var tipoOpts='';Object.keys(OT_TIPOS).forEach(function(k){tipoOpts+='<option value="'+k+'"'+((ot&&ot.tipo||'correctivo')===k?' selected':'')+'>'+OT_TIPOS[k]+'</option>';});
   var prioOpts='';Object.keys(OT_PRIORIDADES).forEach(function(k){prioOpts+='<option value="'+k+'"'+((ot&&ot.prioridad||'normal')===k?' selected':'')+'>'+OT_PRIORIDADES[k]+'</option>';});
   var estadoOpts='';Object.keys(OT_ESTADOS).forEach(function(k){estadoOpts+='<option value="'+k+'"'+((ot&&ot.estado||'pendiente')===k?' selected':'')+'>'+OT_ESTADOS[k]+'</option>';});
+  var isMejora=(ot&&ot.tipo==='mejora');
+  var tipoObraOpts=[['pintura','Pintura'],['carpinteria','Carpintería'],['electricidad','Electricidad'],['plomeria','Plomería'],['mobiliario','Mobiliario'],['obra','Obra civil'],['limpieza','Limpieza'],['otro','Otro']];
+  var tipoObraSelect='';tipoObraOpts.forEach(function(o){tipoObraSelect+='<option value="'+o[0]+'"'+((ot&&ot.tipoObra===o[0])?' selected':'')+'>'+o[1]+'</option>';});
   openModal(
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">'+
     '<div class="modal-title">'+(ot?'Editar':'Nueva')+' Orden de Trabajo</div>'+
     '<button class="modal-close" onclick="closeModal()">&#x2715;</button></div>'+
-    '<div class="ff"><div class="ff-label">Equipo *</div><select class="inp" id="ot-eq">'+eqOpts+'</select></div>'+
+    '<div class="ff"><div class="ff-label">Equipo (opcional para Mejoras)</div><select class="inp" id="ot-eq">'+eqOpts+'</select></div>'+
     '<div class="ff"><div class="ff-label">Título *</div><input class="inp" id="ot-titulo" value="'+(ot?esc(ot.titulo):'')+'" placeholder="Descripción breve de la OT"></div>'+
     '<div class="ff"><div class="ff-label">Descripción</div><textarea class="inp" id="ot-desc" rows="2" placeholder="Detalles...">'+(ot?esc(ot.descripcion||''):'')+'</textarea></div>'+
     '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">'+
-    '<div class="ff"><div class="ff-label">Tipo</div><select class="inp" id="ot-tipo">'+tipoOpts+'</select></div>'+
+    '<div class="ff"><div class="ff-label">Tipo</div><select class="inp" id="ot-tipo" onchange="_toggleMejoraFields(this.value)">'+tipoOpts+'</select></div>'+
     '<div class="ff"><div class="ff-label">Prioridad</div><select class="inp" id="ot-prio">'+prioOpts+'</select></div>'+
     '<div class="ff"><div class="ff-label">Estado</div><select class="inp" id="ot-estado">'+estadoOpts+'</select></div>'+
     '</div>'+
-    '<div class="ff"><div class="ff-label">Técnico asignado</div><input class="inp" id="ot-tec" value="'+(ot?esc(ot.tecnicoAsignado||''):'')+'"></div>'+
+    '<div id="ot-mejora-fields" style="'+(isMejora?'':'display:none;')+'">' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">'+
+    '<div class="ff"><div class="ff-label">Sala / Zona</div><input class="inp" id="ot-sala" value="'+(ot?esc(ot.sala||''):'')+'" placeholder="Sala RM, Recepción, Pasillo..."></div>'+
+    '<div class="ff"><div class="ff-label">Tipo de obra</div><select class="inp" id="ot-tipo-obra">'+tipoObraSelect+'</select></div>'+
+    '</div></div>'+
+    '<div class="ff"><div class="ff-label">Técnico / Responsable</div><input class="inp" id="ot-tec" value="'+(ot?esc(ot.tecnicoAsignado||''):'')+'"></div>'+
     '<div class="ff"><div class="ff-label">Fecha programada</div><input class="inp" type="date" id="ot-fecha" value="'+(ot&&ot.fechaProgramada?ot.fechaProgramada:today())+'"></div>'+
     '<div style="display:flex;gap:10px;"><div style="flex:1;"><label style="font-size:.72rem;color:var(--text2);font-weight:600;">SLA (horas)</label><input class="inp" type="number" id="ot-sla" min="0" placeholder="ej: 24" value="'+(ot&&ot.slaHoras?ot.slaHoras:'')+'" style="margin-top:4px;"></div></div>'+
     '<button class="btn-primary" style="width:100%;padding:13px;margin-top:8px;" onclick="submitOT(\''+((ot&&ot.id)||'')+'\')">'+(ot?'Guardar cambios':'Crear OT')+'</button>'
   );
+}
+function _toggleMejoraFields(val){
+  var el=document.getElementById('ot-mejora-fields');
+  if(el)el.style.display=(val==='mejora'?'':'none');
 }
 function submitOT(otId){
   var eqId2=((document.getElementById('ot-eq')||{}).value||'').trim();
@@ -4638,17 +4722,19 @@ function submitOT(otId){
   var tec=((document.getElementById('ot-tec')||{}).value||'').trim();
   var fecha2=((document.getElementById('ot-fecha')||{}).value||'');
   var slaH=parseInt(((document.getElementById('ot-sla')||{}).value||'0'))||0;
+  var sala=((document.getElementById('ot-sala')||{}).value||'').trim();
+  var tipoObra=((document.getElementById('ot-tipo-obra')||{}).value||'');
   if(otId){
     ordenesTrabajo=ordenesTrabajo.map(function(o){
       if(o.id!==otId)return o;
-      return Object.assign({},o,{eqId:eqId2,titulo:titulo,descripcion:desc,tipo:tipo2,prioridad:prio,estado:estado2,tecnicoAsignado:tec,fechaProgramada:fecha2,slaHoras:slaH,fechaCierre:estado2==='cerrada'&&!o.fechaCierre?today():o.fechaCierre});
+      return Object.assign({},o,{eqId:eqId2,titulo:titulo,descripcion:desc,tipo:tipo2,prioridad:prio,estado:estado2,tecnicoAsignado:tec,fechaProgramada:fecha2,slaHoras:slaH,sala:sala,tipoObra:tipoObra,fechaCierre:estado2==='cerrada'&&!o.fechaCierre?today():o.fechaCierre});
     });
     showToast('OT actualizada');
     saveData();closeModal();render();
     auditEntry('modificar','ot',otId,titulo,'OT actualizada');
   } else {
     var newOTId='OT-'+Date.now();
-    ordenesTrabajo.push({id:newOTId,eqId:eqId2,titulo:titulo,descripcion:desc,tipo:tipo2,prioridad:prio,estado:estado2,tecnicoAsignado:tec,fechaProgramada:fecha2,slaHoras:slaH,fechaCreacion:today(),fechaCierre:''});
+    ordenesTrabajo.push({id:newOTId,eqId:eqId2,titulo:titulo,descripcion:desc,tipo:tipo2,prioridad:prio,estado:estado2,tecnicoAsignado:tec,fechaProgramada:fecha2,slaHoras:slaH,sala:sala,tipoObra:tipoObra,fechaCreacion:today(),fechaCierre:''});
     showToast('OT creada');
     saveData();closeModal();render();
     auditEntry('crear','ot',newOTId,titulo,'OT '+( OT_TIPOS[tipo2]||tipo2)+' creada — prioridad: '+(OT_PRIORIDADES[prio]||prio));
@@ -6692,6 +6778,9 @@ function _rDetalleFallas(eq){
       _linkedFaults.push({tipo:'ups',obj:u,rotura:p});
     });
   });
+  aires.filter(function(ai){return !ai.baja&&(ai.equiposServidos||[]).indexOf(eq.id)!==-1&&ai.estado!=='operativo';}).forEach(function(ai){
+    _linkedFaults.push({tipo:'aire',obj:ai,rotura:{queSeRompio:ai.estado==='falla'?'Con falla':'Fuera de servicio',estado:ai.estado,fecha:''}});
+  });
   h+='<div onclick="setDetalleTab(null)" style="display:flex;align-items:center;gap:8px;padding:10px 14px;margin-bottom:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:var(--r-md);cursor:pointer;" ontouchstart="this.style.opacity=\'.7\'" ontouchend="this.style.opacity=\'1\'">'+
     '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.45)" stroke-width="2.2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>'+
     '<span style="font-size:.8rem;font-weight:600;color:var(--text2);">'+esc(eq.nombre)+'</span>'+
@@ -6784,14 +6873,14 @@ function _rDetalleFallas(eq){
     h+='Componentes vinculados — editá desde el detalle del componente</div>';
     _linkedFaults.forEach(function(lf){
       var r=lf.rotura;var obj=lf.obj;
-      var tipoLabel=lf.tipo==='transductor'?'Transductor':lf.tipo==='antena'?'Antena':'UPS';
-      var tipoSvg=lf.tipo==='transductor'?transductorSvgIcon(16):lf.tipo==='antena'?antenaSvgIcon(16):catSvgIcon('UPS',16);
-      var navFn=lf.tipo==='transductor'?'goTransductorDetalle(\''+obj.id+'\',\''+eq.id+'\')':lf.tipo==='antena'?'goAntenaDetalle(\''+obj.id+'\',\''+eq.id+'\')':'setDetalleTab(null);selId=\''+obj.id+'\';view=\'detalle\';render();';
+      var tipoLabel=lf.tipo==='transductor'?'Transductor':lf.tipo==='antena'?'Antena':lf.tipo==='aire'?'Aire AC':'UPS';
+      var tipoSvg=lf.tipo==='transductor'?transductorSvgIcon(16):lf.tipo==='antena'?antenaSvgIcon(16):lf.tipo==='aire'?'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#06b6d4" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="8" rx="2"/><path d="M2 11h20M6 19v-4M12 19v-6M18 19v-4"/></svg>':catSvgIcon('UPS',16);
+      var navFn=lf.tipo==='transductor'?'goTransductorDetalle(\''+obj.id+'\',\''+eq.id+'\')':lf.tipo==='antena'?'goAntenaDetalle(\''+obj.id+'\',\''+eq.id+'\')':lf.tipo==='aire'?'selAireId=\''+obj.id+'\';view=\'aire-detalle\';render();':'setDetalleTab(null);selId=\''+obj.id+'\';view=\'detalle\';render();';
       var estadoColor=r.estado==='roto'?'var(--red)':'var(--orange)';
       var estadoLabel=r.estado==='roto'?'🔴 Roto':'⚠️ Pend.';
       var bgCard=r.estado==='roto'?'rgba(255,245,245,.95)':'rgba(255,250,240,.95)';
       var borderColor=r.estado==='roto'?'rgba(220,38,38,.25)':'rgba(245,158,11,.25)';
-      var nombreParte=r.nombre||r.parte||r.descripcion||'Falla sin nombre';
+      var nombreParte=r.nombre||r.parte||r.queSeRompio||r.descripcion||'Falla sin nombre';
       h+='<div style="background:'+bgCard+';border:1px solid '+borderColor+';border-radius:14px;padding:12px;margin-bottom:10px;border-left:3px solid '+estadoColor+';">';
       h+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">';
       h+='<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(8,145,178,.10);padding:2px 7px 2px 4px;border-radius:20px;flex-shrink:0;">'+tipoSvg+'<span style="font-size:.66rem;color:#0891b2;font-weight:700;">'+tipoLabel+'</span></span>';
@@ -8009,6 +8098,7 @@ function rAntenaDetalle(){
   if(selAntenaEqId){
     h+='<button onclick="if(confirm(\'¿Quitar esta antena del equipo?\'))removeAntennaFromEq(\''+ant.id+'\',\''+selAntenaEqId+'\');" style="width:100%;padding:11px;border-radius:var(--r-pill);background:rgba(255,59,48,.08);border:1.5px solid rgba(255,59,48,.18);color:var(--red);font-weight:600;font-size:.78rem;cursor:pointer;">Quitar del equipo</button>';
   }
+  h+='<button onclick="deleteAntena(\''+ant.id+'\')" style="width:100%;padding:11px;border-radius:var(--r-pill);background:rgba(255,59,48,.05);border:1px dashed rgba(255,59,48,.25);color:rgba(255,59,48,.7);font-weight:600;font-size:.72rem;cursor:pointer;margin-top:8px;">🗑 Eliminar antena permanentemente</button>';
   return h;
 }
 
@@ -8184,6 +8274,7 @@ function rTransductorDetalle(){
     h+='<button onclick="openTrasladoTransductorModal(\''+tr.id+'\',\''+selTransdEqId+'\')" style="width:100%;padding:11px;border-radius:var(--r-pill);background:rgba(14,165,233,.08);border:1.5px solid rgba(14,165,233,.30);color:#0ea5e9;font-weight:600;font-size:.78rem;cursor:pointer;margin-top:8px;">🔄 Trasladar a otro ecógrafo</button>';
     h+='<button onclick="if(confirm(\'¿Quitar este transductor del equipo?\'))removeTransductorFromEq(\''+tr.id+'\',\''+selTransdEqId+'\');" style="width:100%;padding:11px;border-radius:var(--r-pill);background:rgba(255,59,48,.08);border:1.5px solid rgba(255,59,48,.18);color:var(--red);font-weight:600;font-size:.78rem;cursor:pointer;margin-top:8px;">Quitar del equipo</button>';
   }
+  h+='<button onclick="deleteTransductor(\''+tr.id+'\')" style="width:100%;padding:11px;border-radius:var(--r-pill);background:rgba(255,59,48,.05);border:1px dashed rgba(255,59,48,.25);color:rgba(255,59,48,.7);font-weight:600;font-size:.72rem;cursor:pointer;margin-top:8px;">🗑 Eliminar transductor permanentemente</button>';
   return h;
 }
 
@@ -9469,6 +9560,22 @@ function removeAntennaFromEq(antenaId,rmEquipId){
   eqs=eqs.map(function(e){if(e.id===rmEquipId)return Object.assign({},e,{antenaIds:(e.antenaIds||[]).filter(function(id){return id!==antenaId;})});return e;});
   saveData();closeModal();showToast('Antena quitada del equipo','');
   render();
+}
+function deleteAntena(antenaId){
+  if(!confirm('¿Eliminar esta antena permanentemente? Se quitará de todos los equipos vinculados.'))return;
+  var a=antenas.find(function(x){return x.id===antenaId;})||{};
+  antenas=antenas.filter(function(x){return x.id!==antenaId;});
+  eqs=eqs.map(function(e){return Object.assign({},e,{antenaIds:(e.antenaIds||[]).filter(function(id){return id!==antenaId;})});});
+  auditEntry('eliminar','eq',antenaId,a.nombre||antenaId,'Antena eliminada y desvinculada de todos los equipos');
+  saveData();showToast('Antena eliminada','warn');render();
+}
+function deleteTransductor(transductorId){
+  if(!confirm('¿Eliminar este transductor permanentemente? Se quitará de todos los equipos vinculados.'))return;
+  var t=transductores.find(function(x){return x.id===transductorId;})||{};
+  transductores=transductores.filter(function(x){return x.id!==transductorId;});
+  eqs=eqs.map(function(e){return Object.assign({},e,{transductorIds:(e.transductorIds||[]).filter(function(id){return id!==transductorId;})});});
+  auditEntry('eliminar','eq',transductorId,t.nombre||transductorId,'Transductor eliminado y desvinculado de todos los equipos');
+  saveData();showToast('Transductor eliminado','warn');render();
 }
 
 // ─── REFRIGERACIÓN (RM) ───
@@ -11002,6 +11109,30 @@ function rAireDetalle(){
       '<button onclick="setAireEstado(\''+a.id+'\',\'fuera_servicio\')" style="padding:6px 14px;border-radius:var(--r-pill);font-size:.75rem;font-weight:700;cursor:pointer;border:2px solid '+(a.estado==='fuera_servicio'?'#dc2626':'rgba(120,120,128,.25)')+';background:'+(a.estado==='fuera_servicio'?'rgba(239,68,68,.15)':'rgba(120,120,128,.07)')+';color:'+(a.estado==='fuera_servicio'?'#dc2626':'var(--text3)')+';">🔴 Fuera de servicio</button>'+
     '</div>'+
   '</div>';
+  // Equipos vinculados
+  var vinculados=a.equiposServidos||[];
+  h+='<div class="gc" style="padding:14px 16px;margin-bottom:12px;">';
+  h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">';
+  h+='<div style="font-size:.66rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;">Equipos que sirve ('+vinculados.length+')</div>';
+  h+='<button onclick="openModalVincularAireEquipo(\''+a.id+'\')" style="padding:4px 12px;border-radius:var(--r-pill);border:1.5px solid rgba(6,182,212,.3);background:rgba(6,182,212,.07);color:#06b6d4;font-size:.7rem;font-weight:700;cursor:pointer;">+ Vincular</button>';
+  h+='</div>';
+  if(!vinculados.length){
+    h+='<div style="font-size:.76rem;color:var(--text3);text-align:center;padding:8px 0;">Sin equipos vinculados</div>';
+  }else{
+    vinculados.forEach(function(eId){
+      var eq2=eqs.find(function(e){return e.id===eId;})||{nombre:'Equipo eliminado',cat:''};
+      var cat2=catById(eq2.cat);
+      h+='<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(120,120,128,.07);">';
+      h+='<div style="width:28px;height:28px;flex-shrink:0;">'+catSvgIcon(eq2.cat,28)+'</div>';
+      h+='<div onclick="goDetalle(\''+eId+'\')" style="flex:1;cursor:pointer;">';
+      h+='<div style="font-size:.8rem;font-weight:700;color:var(--text);">'+esc(eq2.nombre||eId)+'</div>';
+      if(eq2.ubicacion)h+='<div style="font-size:.67rem;color:var(--text3);">'+esc(eq2.ubicacion)+'</div>';
+      h+='</div>';
+      h+='<button onclick="desvincularAireEquipo(\''+a.id+'\',\''+eId+'\')" style="padding:3px 8px;border-radius:8px;border:1px solid rgba(255,59,48,.25);background:rgba(255,59,48,.06);color:var(--red);font-size:.65rem;cursor:pointer;">✕</button>';
+      h+='</div>';
+    });
+  }
+  h+='</div>';
   // Historial
   var hist=(a.historial||[]).slice().reverse();
   h+='<div class="gc" style="padding:14px 16px;margin-bottom:12px;">'+
@@ -11136,6 +11267,37 @@ function setAireEstado(id,estado){
   aires=aires.map(function(a){return a.id!==id?a:Object.assign({},a,{estado:estado});});
   var lbl={operativo:'✅ Operativo',falla:'⚠️ Con falla',fuera_servicio:'🔴 Fuera de servicio'}[estado]||estado;
   saveData();showToast(lbl,'');render();
+}
+function openModalVincularAireEquipo(aireId){
+  var a=aires.find(function(x){return x.id===aireId;});if(!a)return;
+  var vinculados=a.equiposServidos||[];
+  var eqOpts='<option value="">— Seleccionar equipo —</option>';
+  eqs.filter(function(e){return !e.baja&&vinculados.indexOf(e.id)===-1;}).sort(function(a,b){return a.nombre>b.nombre?1:-1;}).forEach(function(e){
+    eqOpts+='<option value="'+e.id+'">'+(e.cat||'')+' · '+esc(e.nombre)+(e.ubicacion?' ('+esc(e.ubicacion)+')':'')+'</option>';
+  });
+  openModal(
+    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;"><span style="font-size:1.3rem;">🔗</span><span style="font-size:.85rem;font-weight:700;color:#06b6d4;">Vincular equipo a este aire</span></div>'+
+    '<div class="ff"><div class="ff-label">Equipo a vincular</div><select class="inp" id="aire-eq-link">'+eqOpts+'</select></div>'+
+    '<button class="btn-grad" style="background:linear-gradient(135deg,#06b6d4,#0891b2);color:#fff;" onclick="submitVincularAireEquipo(\''+aireId+'\')">🔗 Vincular</button>'
+  );
+}
+function submitVincularAireEquipo(aireId){
+  var eqId=((document.getElementById('aire-eq-link')||{}).value||'').trim();
+  if(!eqId){showToast('Seleccioná un equipo','warn');return;}
+  aires=aires.map(function(a){
+    if(a.id!==aireId)return a;
+    var vinc=(a.equiposServidos||[]).slice();
+    if(vinc.indexOf(eqId)===-1)vinc.push(eqId);
+    return Object.assign({},a,{equiposServidos:vinc});
+  });
+  saveData();closeModal();showToast('✅ Equipo vinculado al aire','');render();
+}
+function desvincularAireEquipo(aireId,eqId){
+  aires=aires.map(function(a){
+    if(a.id!==aireId)return a;
+    return Object.assign({},a,{equiposServidos:(a.equiposServidos||[]).filter(function(x){return x!==eqId;})});
+  });
+  saveData();showToast('Equipo desvinculado','warn');render();
 }
 
 function deleteAire(id){
@@ -11393,8 +11555,8 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="6.5.6";
-var APP_BUILD="17/06/26 02:10";
+var APP_DISPLAY_VERSION="6.6.0";
+var APP_BUILD="17/06/26 04:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
@@ -11676,7 +11838,8 @@ function init(){
           migrateEcoData();
           migrateTransductores();
           var _mejCount=_migrarMejorasDeEqs();
-          if(_ecoChanged||_mejCount>0){saveData();}
+          var _mejOTCount=_migrarMejorasAOTs();
+          if(_ecoChanged||_mejCount>0||_mejOTCount>0){saveData();}
           render();
           if(window._pendingGEParams)setTimeout(_processGEUrlUpdate,600);
           setTimeout(checkForUpdates,3000);
