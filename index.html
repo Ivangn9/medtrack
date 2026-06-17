@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.17.220 -->
+<!-- v2026.06.17.230 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.17.220">
+<meta name="app-version" content="v2026.06.17.230">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -879,6 +879,111 @@ body.dark .sb-sub-btn:hover{background:rgba(255,255,255,.08);color:#fff;}
 body.dark .sb-card{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.10);box-shadow:0 2px 8px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.07);}
 .sb-lbl{font-size:.58rem;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);font-weight:600;margin-bottom:6px;}
 .sb-val{font-size:1.5rem;font-weight:800;line-height:1;}
+
+/* ── v6.7.0 VISUAL POLISH ── */
+
+/* 1. Glass card — unified depth tokens */
+.gc{
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.90) inset,
+    0 -0.5px 0 rgba(0,0,0,.04) inset,
+    0 2px 6px rgba(0,0,0,.04),
+    0 6px 20px rgba(0,0,0,.06),
+    0 20px 48px rgba(0,0,0,.05);}
+.gc.tap:hover{
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.95) inset,
+    0 0 0 1px rgba(160,195,255,.40),
+    0 8px 28px rgba(110,150,230,.22),
+    0 28px 60px rgba(0,0,0,.08);}
+body.dark .gc{
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.07) inset,
+    0 -0.5px 0 rgba(0,0,0,.20) inset,
+    0 2px 6px rgba(0,0,0,.18),
+    0 8px 24px rgba(0,0,0,.24);}
+
+/* 2. Typography hierarchy — headings via Hanken Grotesk when available */
+.lt-title,.stat-val,.sb-val{font-family:'Hanken Grotesk',system-ui,-apple-system,sans-serif;}
+.ibox-v,.hdr-time{font-family:'JetBrains Mono','SF Mono',ui-monospace,monospace;}
+.sec,.ff-label,.ibox-l,.sb-lbl{letter-spacing:.06em;font-weight:700;}
+
+/* 3. Status pills — consistent glow system for pillH() output */
+.pill{
+  border-radius:9999px;
+  padding:4px 11px;
+  font-size:.64rem;
+  font-weight:700;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  border:1px solid transparent;
+  transition:box-shadow .18s var(--ease-out);}
+/* green */
+.pill[style*="#34c759"],.pill[style*="--green"]{
+  box-shadow:0 0 8px rgba(52,199,89,.28);}
+/* red */
+.pill[style*="#ff3b30"],.pill[style*="--red"]{
+  box-shadow:0 0 8px rgba(255,59,48,.28);}
+/* orange */
+.pill[style*="#ff9500"],.pill[style*="--orange"]{
+  box-shadow:0 0 8px rgba(255,149,0,.28);}
+/* gray */
+.pill[style*="#8e8e93"]{
+  box-shadow:none;}
+
+/* 4. Empty states */
+.empty-state{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:10px;padding:42px 20px;text-align:center;
+  color:var(--label3);}
+.empty-state-icon{
+  font-size:2.8rem;opacity:.45;
+  filter:grayscale(.3);}
+.empty-state-title{
+  font-size:.9rem;font-weight:700;color:var(--label2);letter-spacing:-.2px;}
+.empty-state-sub{
+  font-size:.76rem;color:var(--label3);max-width:240px;line-height:1.5;}
+
+/* 5. Sidebar active state — left accent bar */
+.sb-nav-btn.on::after{
+  content:'';position:absolute;left:0;top:20%;bottom:20%;
+  width:3px;border-radius:0 3px 3px 0;
+  background:var(--accent);
+  box-shadow:0 0 10px rgba(0,113,227,.55);}
+body.dark .sb-nav-btn.on::after{
+  background:#adc6ff;
+  box-shadow:0 0 10px rgba(173,198,255,.45);}
+.sb-nav-btn.on{
+  padding-left:17px;}
+
+/* 6. Mobile touch targets — min 44px */
+.ig-row{min-height:44px;}
+.sb-nav-btn{min-height:44px;}
+.sb-sub-btn{min-height:40px;}
+.btn-primary,.btn-secondary,.btn-danger{min-height:44px;}
+
+/* 7. Hover/interactive transitions — smoother */
+.gc,.ig,.ibox,.chip,.btn-primary,.btn-secondary,.btn-danger,.sb-nav-btn,.sb-sub-btn{
+  transition:transform .24s var(--spring),box-shadow .22s var(--ease-out),background .18s var(--ease-out),color .18s var(--ease-out);}
+.ig-row{transition:background .14s var(--ease-out);}
+.ig-row:active{background:var(--sys-fill);}
+.ibox:hover{border-color:rgba(255,255,255,.80)!important;}
+
+/* 8. Health/risk color tokens — used by inline risk indicators */
+.risk-ok{color:var(--green);}
+.risk-warn{color:var(--orange);}
+.risk-crit{color:var(--red);}
+.risk-badge-ok{background:rgba(52,199,89,.12);color:#16a34a;border:1px solid rgba(52,199,89,.30);box-shadow:0 0 8px rgba(52,199,89,.18);}
+.risk-badge-warn{background:rgba(255,149,0,.12);color:#b45309;border:1px solid rgba(255,149,0,.30);box-shadow:0 0 8px rgba(255,149,0,.18);}
+.risk-badge-crit{background:rgba(255,59,48,.12);color:var(--red);border:1px solid rgba(255,59,48,.30);box-shadow:0 0 10px rgba(255,59,48,.22);}
+body.dark .risk-badge-ok{color:#4ade80;}
+body.dark .risk-badge-warn{color:#fb923c;}
+body.dark .risk-badge-crit{color:#f87171;}
+
+/* ── dark overrides for v6.7.0 polish ── */
+body.dark .pill[style*="#34c759"],body.dark .pill[style*="--green"]{box-shadow:0 0 10px rgba(52,199,89,.35);}
+body.dark .pill[style*="#ff3b30"],body.dark .pill[style*="--red"]{box-shadow:0 0 10px rgba(255,59,48,.35);}
+body.dark .pill[style*="#ff9500"],body.dark .pill[style*="--orange"]{box-shadow:0 0 10px rgba(255,149,0,.35);}
 </style>
 <!-- AOS animate-on-scroll -->
 <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
@@ -11555,8 +11660,8 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="6.6.0";
-var APP_BUILD="17/06/26 04:00";
+var APP_DISPLAY_VERSION="6.7.0";
+var APP_BUILD="17/06/26 09:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
