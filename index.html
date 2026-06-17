@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.16.199 -->
+<!-- v2026.06.16.200 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.16.199">
+<meta name="app-version" content="v2026.06.16.200">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -4388,17 +4388,68 @@ function deletePMProgramado(pmId){
   auditEntry('eliminar','pm',pmId,pmEqNom,'PM del '+pmFecha+' eliminado');
 }
 function togglePMRealizado(pmId){
+  var pm=pmProgramados.find(function(p){return p.id===pmId;});
+  if(!pm)return;
+  if(pm.realizado){
+    pmProgramados=pmProgramados.map(function(p){
+      if(p.id!==pmId)return p;
+      return Object.assign({},p,{realizado:false,fechaRealizado:null});
+    });
+    try{localStorage.setItem('mt_pm_prog',JSON.stringify(pmProgramados));}catch(e){}
+    firestoreSave();render();
+    var eqN=(eqs.find(function(e){return e.id===pm.eqId;})||{}).nombre||pm.eqId||pmId;
+    auditEntry('modificar','pm',pmId,eqN,'PM desmarcado como pendiente');
+    showToast('PM desmarcado como pendiente');
+    return;
+  }
+  var eq=eqs.find(function(e){return e.id===pm.eqId;})||{};
+  openModal(
+    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">'+
+      '<span style="font-size:1.3rem;">✅</span>'+
+      '<div><div style="font-size:.85rem;font-weight:700;color:var(--text);">Confirmar PM realizado</div>'+
+      '<div style="font-size:.72rem;color:var(--accent);">'+esc(eq.nombre||pm.eqId)+'</div></div>'+
+    '</div>'+
+    '<div style="background:rgba(52,199,89,.07);border:1px solid rgba(52,199,89,.2);border-radius:10px;padding:9px 12px;margin-bottom:14px;font-size:.78rem;color:var(--text2);">'+
+      '<span style="font-weight:700;color:var(--green);">'+esc(pm.descripcion||pm.tipo||'Mantenimiento preventivo')+'</span>'+
+      '<span style="color:var(--text3);margin-left:6px;">'+fD(pm.fecha)+'</span>'+
+    '</div>'+
+    '<div class="ff"><div class="ff-label">T\xe9cnico que lo realiz\xf3</div><input class="inp" id="pm-tec" placeholder="Nombre o empresa"></div>'+
+    '<div class="ff"><div class="ff-label">Notas / Trabajo realizado (opcional)</div><textarea class="inp" id="pm-notas" rows="2" placeholder="Ej: Se realizaron filtros y limpieza general..."></textarea></div>'+
+    '<div style="font-size:.68rem;color:var(--text3);margin-bottom:12px;padding:6px 10px;background:rgba(0,113,227,.06);border-radius:8px;">Se crear\xe1 una OT preventiva cerrada autom\xe1ticamente con estos datos.</div>'+
+    '<button class="btn-primary" style="width:100%;padding:12px;" onclick="submitPMRealizado(\''+pmId+'\')">✅ Confirmar y generar OT</button>'
+  );
+}
+function submitPMRealizado(pmId){
+  var tec=((document.getElementById('pm-tec')||{}).value||'').trim();
+  var notas=((document.getElementById('pm-notas')||{}).value||'').trim();
+  var ahora=new Date().toISOString();
+  var pm=pmProgramados.find(function(p){return p.id===pmId;});if(!pm)return;
+  var eq=eqs.find(function(e){return e.id===pm.eqId;})||{};
   pmProgramados=pmProgramados.map(function(p){
     if(p.id!==pmId)return p;
-    var ahora=new Date().toISOString();
-    return Object.assign({},p,{realizado:!p.realizado,fechaRealizado:!p.realizado?ahora:null});
+    return Object.assign({},p,{realizado:true,fechaRealizado:ahora,tecnicoRealizo:tec,notasRealizado:notas});
+  });
+  var newOTId='OT-'+Date.now();
+  ordenesTrabajo.push({
+    id:newOTId,
+    eqId:pm.eqId,
+    titulo:'[PM] '+(pm.descripcion||pm.tipo||'Mantenimiento preventivo'),
+    descripcion:'PM programado del '+fD(pm.fecha)+(tec?' — '+tec:'')+(notas?'\n'+notas:''),
+    tipo:'preventivo',
+    prioridad:'normal',
+    estado:'cerrada',
+    tecnicoAsignado:tec,
+    fechaProgramada:pm.fecha,
+    slaHoras:0,
+    fechaCreacion:today(),
+    fechaCierre:today(),
+    resolucion:notas||'PM realizado seg\xfan programa de mantenimiento',
+    generadoDesdePM:pmId
   });
   try{localStorage.setItem('mt_pm_prog',JSON.stringify(pmProgramados));}catch(e){}
-  firestoreSave();render();
-  var pm=pmProgramados.find(function(p){return p.id===pmId;})||{};
-  var eqPM=eqs.find(function(e){return e.id===pm.eqId;})||{};
-  auditEntry('modificar','pm',pmId,eqPM.nombre||pm.eqId||pmId,pm.realizado?'PM marcado como realizado':'PM desmarcado como pendiente');
-  showToast(pm.realizado?'PM marcado como realizado ✅':'PM desmarcado');
+  firestoreSave();closeModal();render();
+  showToast('✅ PM realizado — OT '+newOTId+' generada');
+  auditEntry('modificar','pm',pmId,eq.nombre||pm.eqId,'PM marcado como realizado — OT '+newOTId+' generada autom\xe1ticamente');
 }
 // ── ÓRDENES DE TRABAJO ──
 var OT_ESTADOS={pendiente:'Pendiente',asignada:'Asignada',en_progreso:'En progreso',cerrada:'Cerrada',cancelada:'Cancelada'};
@@ -4495,7 +4546,7 @@ function rOrdenes(){
     h+='<span style="font-size:.6rem;font-weight:700;padding:1px 7px;border-radius:20px;background:'+pc+'22;color:'+pc+';border:1px solid '+pc+'44;">'+OT_PRIORIDADES[ot.prioridad]+'</span>';
     h+=slaBadge;
     h+='</div>';
-    h+='<div style="font-weight:700;font-size:.88rem;margin-bottom:2px;">'+esc(ot.titulo)+'</div>';
+    h+='<div style="font-weight:700;font-size:.88rem;margin-bottom:2px;">'+esc(ot.titulo)+(ot.generadoDesdePM?'<span style="margin-left:6px;font-size:.58rem;font-weight:700;background:rgba(52,199,89,.12);color:var(--green);border-radius:20px;padding:1px 6px;vertical-align:middle;">📅 Desde PM</span>':'')+'</div>';
     h+='<div style="font-size:.72rem;color:var(--text3);">'+esc(eqNom)+(ot.tecnicoAsignado?' \xb7 '+esc(ot.tecnicoAsignado):'')+'</div>';
     if(ot.descripcion)h+='<div style="font-size:.72rem;color:var(--text2);margin-top:3px;">'+esc(ot.descripcion)+'</div>';
     h+='<div style="font-size:.65rem;color:var(--text3);margin-top:4px;">Creada: '+fD(ot.fechaCreacion)+(ot.fechaCierre?' \xb7 Cerrada: '+fD(ot.fechaCierre):'')+'</div>';
@@ -11165,8 +11216,8 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="6.5.4";
-var APP_BUILD="16/06/26 22:45";
+var APP_DISPLAY_VERSION="6.5.5";
+var APP_BUILD="16/06/26 23:15";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
