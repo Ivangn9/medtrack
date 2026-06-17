@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.16.200 -->
+<!-- v2026.06.17.210 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.16.200">
+<meta name="app-version" content="v2026.06.17.210">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1114,6 +1114,7 @@ body.dark .sb-card{background:rgba(255,255,255,.06);border-color:rgba(255,255,25
     <button class="sb-nav-btn" data-sb="calendario" onclick="setView('calendario')"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>Calendario PM</button>
     <button class="sb-nav-btn" data-sb="ordenes" onclick="setView('ordenes')"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg></span>Órdenes de Trabajo</button>
     <button class="sb-nav-btn" data-sb="repuestos" onclick="setView('repuestos')"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg></span>Repuestos</button>
+    <button class="sb-nav-btn" data-sb="mejoras" onclick="setView('mejoras')"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></span>Mejoras</button>
     <button class="sb-nav-btn" data-sb="auditoria" onclick="setView('auditoria')"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></span>Auditoría</button>
     <button class="sb-nav-btn" id="sb-ajustes-btn" onclick="toggleSbAjustesMenu(event)"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span>Ajustes<span style="margin-left:auto;font-size:.65rem;opacity:.5;transition:transform .2s;" id="sb-aj-chevron">▸</span></button>
   </div>
@@ -1537,6 +1538,38 @@ function migrateEcoData(){
   localStorage.setItem('mt_eco_v1','1');
 }
 
+function _migrarMejorasDeEqs(){
+  var count=0;
+  eqs.forEach(function(eq){
+    if(!Array.isArray(eq.partes))return;
+    var toMigrate=eq.partes.filter(function(p){return p.estado==='mejora';});
+    if(!toMigrate.length)return;
+    toMigrate.forEach(function(p){
+      var yaExiste=mejoras.some(function(m){return m.migrado&&m.eqId===eq.id&&m._parteId===p.id;});
+      if(yaExiste)return;
+      mejoras.push({
+        id:'MEJ-'+Date.now()+'-'+Math.floor(Math.random()*9999),
+        descripcion:p.nombre||(p.descripcion||'Mejora sin descripcion'),
+        sala:(eq.ubicacion||''),
+        tipo:'otro',
+        prioridad:'normal',
+        estado:'pendiente',
+        responsable:p.asignadoA||'',
+        fechaEstimada:p.fechaMejora||'',
+        fechaCreacion:p.fechaRotura||today(),
+        fechaCompletado:'',
+        notas:p.notas||'',
+        migrado:true,
+        eqId:eq.id,
+        _parteId:p.id
+      });
+      count++;
+    });
+    eq.partes=eq.partes.filter(function(p){return p.estado!=='mejora';});
+  });
+  return count;
+}
+
 // ═══════════════════════════════════════════
 //  STATE
 // ═══════════════════════════════════════════
@@ -1559,6 +1592,8 @@ var repuestos=[];
 var pmProgramados=[];
 var auditLog=[];
 var reclamos=[];
+var mejoras=[];
+var _mejFiltro='todos';
 var _otViewMode='lista';
 var _auditFiltEnt='todos';
 var _pmPasosTemp=[];
@@ -1572,7 +1607,7 @@ function auditEntry(action,entity,entityId,entityName,details){
 
 function saveData(){
   var now=new Date().toISOString();
-  try{localStorage.setItem("mt_v4",JSON.stringify(eqs));localStorage.setItem("mt_antenas",JSON.stringify(antenas));localStorage.setItem("mt_aires",JSON.stringify(aires));localStorage.setItem("mt_transductores",JSON.stringify(transductores));localStorage.setItem("mt_ordenes",JSON.stringify(ordenesTrabajo));localStorage.setItem("mt_repuestos",JSON.stringify(repuestos));localStorage.setItem("mt_pm_prog",JSON.stringify(pmProgramados));localStorage.setItem("mt_updatedAt",now);}catch(e){}
+  try{localStorage.setItem("mt_v4",JSON.stringify(eqs));localStorage.setItem("mt_antenas",JSON.stringify(antenas));localStorage.setItem("mt_aires",JSON.stringify(aires));localStorage.setItem("mt_transductores",JSON.stringify(transductores));localStorage.setItem("mt_ordenes",JSON.stringify(ordenesTrabajo));localStorage.setItem("mt_repuestos",JSON.stringify(repuestos));localStorage.setItem("mt_pm_prog",JSON.stringify(pmProgramados));localStorage.setItem("mt_mejoras",JSON.stringify(mejoras));localStorage.setItem("mt_updatedAt",now);}catch(e){}
   firestoreSave();
 }
 var _kpiUsdRate=null;
@@ -1761,7 +1796,7 @@ function _fsWrite(tryN){
   if(!window._fbUser||!window._fbdb){_fsWriting=false;return;}
   _fsWriting=true;
   orgDataRef()
-    .set({eqs:eqs,antenas:antenas,aires:aires,transductores:transductores,ordenesTrabajo:ordenesTrabajo,repuestos:repuestos,pmProgramados:pmProgramados,auditLog:auditLog,reclamos:reclamos,updatedAt:new Date().toISOString()},{merge:true})
+    .set({eqs:eqs,antenas:antenas,aires:aires,transductores:transductores,ordenesTrabajo:ordenesTrabajo,repuestos:repuestos,pmProgramados:pmProgramados,auditLog:auditLog,reclamos:reclamos,mejoras:mejoras,updatedAt:new Date().toISOString()},{merge:true})
     .then(function(){_fsWriting=false;_fsDirty=false;_fsFailed=false;})
     .catch(function(e){
       _fsWriting=false;
@@ -3456,6 +3491,7 @@ function render(){
     else if(view==="ordenes")d.innerHTML=rOrdenes();
     else if(view==="repuestos")d.innerHTML=rRepuestos();
     else if(view==="reclamos")d.innerHTML=rReclamos();
+    else if(view==="mejoras")d.innerHTML=rMejoras();
     else if(view==="auditoria")d.innerHTML=rAuditoria();
     m.appendChild(d);
     var spacer=document.createElement("div");spacer.style.height="80px";spacer.style.flexShrink="0";m.appendChild(spacer);
@@ -5328,6 +5364,181 @@ function _updateReclamosBadge(){
   else{badge.style.display='none';}
 }
 
+// ── MEJORAS DE INSTALACIONES ──
+var _MEJ_TIPOS=[['pintura','Pintura'],['carpinteria','Carpintería'],['electricidad','Electricidad'],['plomeria','Plomería'],['mobiliario','Mobiliario'],['obra','Obra civil'],['limpieza','Limpieza'],['otro','Otro']];
+var _MEJ_PRIO=[['urgente','Urgente','#ff3b30'],['alta','Alta','#ff9500'],['normal','Normal','#adc6ff'],['baja','Baja','#8e8e93']];
+var _MEJ_EST=[['pendiente','Pendiente','#ff9500'],['en_curso','En curso','#007aff'],['completado','Completado','#30d158']];
+
+function _saveMejoras(){
+  try{localStorage.setItem('mt_mejoras',JSON.stringify(mejoras));}catch(e){}
+  firestoreSave();
+}
+
+function rMejoras(){
+  var filtEst=_mejFiltro||'todos';
+  var filtered=mejoras.filter(function(m){
+    if(filtEst==='pendiente')return m.estado==='pendiente';
+    if(filtEst==='en_curso')return m.estado==='en_curso';
+    if(filtEst==='completado')return m.estado==='completado';
+    return true;
+  });
+  filtered.sort(function(a,b){
+    var po={urgente:0,alta:1,normal:2,baja:3};
+    var pd=(po[a.prioridad]||2)-(po[b.prioridad]||2);
+    if(pd!==0)return pd;
+    return a.fechaCreacion<b.fechaCreacion?1:-1;
+  });
+  var totPend=mejoras.filter(function(m){return m.estado==='pendiente';}).length;
+  var totCurso=mejoras.filter(function(m){return m.estado==='en_curso';}).length;
+  var totComp=mejoras.filter(function(m){return m.estado==='completado';}).length;
+  var h='<div style="max-width:860px;margin:0 auto;padding:16px 16px 60px;">';
+  h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;">';
+  h+='<div>';
+  h+='<h2 style="margin:0;font-size:1.25rem;font-weight:800;color:var(--text);">Mejoras de Instalaciones</h2>';
+  h+='<p style="margin:2px 0 0;font-size:.77rem;color:var(--text3);">Pinturas, obras, mobiliario y mejoras de salas</p>';
+  h+='</div>';
+  h+='<button onclick="openModalMejora()" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;border:none;border-radius:var(--r-pill);padding:9px 18px;font-weight:700;font-size:.82rem;cursor:pointer;box-shadow:0 2px 10px rgba(139,92,246,.35);">+ Nueva mejora</button>';
+  h+='</div>';
+  h+='<div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;">';
+  h+='<div style="flex:1;min-width:90px;background:rgba(255,149,0,.09);border:1px solid rgba(255,149,0,.22);border-radius:14px;padding:12px;text-align:center;">';
+  h+='<div style="font-size:1.4rem;font-weight:800;color:#ff9500;">'+totPend+'</div><div style="font-size:.68rem;color:#ff9500;font-weight:600;">Pendientes</div></div>';
+  h+='<div style="flex:1;min-width:90px;background:rgba(0,122,255,.09);border:1px solid rgba(0,122,255,.22);border-radius:14px;padding:12px;text-align:center;">';
+  h+='<div style="font-size:1.4rem;font-weight:800;color:#007aff;">'+totCurso+'</div><div style="font-size:.68rem;color:#007aff;font-weight:600;">En curso</div></div>';
+  h+='<div style="flex:1;min-width:90px;background:rgba(48,209,88,.09);border:1px solid rgba(48,209,88,.22);border-radius:14px;padding:12px;text-align:center;">';
+  h+='<div style="font-size:1.4rem;font-weight:800;color:#30d158;">'+totComp+'</div><div style="font-size:.68rem;color:#30d158;font-weight:600;">Completadas</div></div>';
+  h+='</div>';
+  var fBtns='';
+  var filtArr=[['todos','Todos'],['pendiente','Pendientes'],['en_curso','En curso'],['completado','Completadas']];
+  for(var fi=0;fi<filtArr.length;fi++){
+    var fk=filtArr[fi][0];var fl=filtArr[fi][1];
+    var fon=filtEst===fk;
+    fBtns+='<button onclick="_mejFiltro=\''+fk+'\';render();" style="padding:5px 14px;border-radius:20px;border:none;cursor:pointer;font-size:.75rem;font-weight:600;background:'+(fon?'rgba(139,92,246,.85)':'rgba(120,120,128,.13)')+';color:'+(fon?'#fff':'var(--text2)')+';">'+fl+'</button>';
+  }
+  h+='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">'+fBtns+'</div>';
+  if(!filtered.length){
+    h+='<div style="text-align:center;color:var(--text3);padding:50px;font-size:.85rem;">';
+    h+=(mejoras.length?'Sin mejoras en este filtro':'Sin mejoras registradas. Crea la primera con "+ Nueva mejora".');
+    h+='</div>';
+  }
+  for(var i=0;i<filtered.length;i++){
+    var m=filtered[i];
+    var prioC=({urgente:'#ff3b30',alta:'#ff9500',normal:'#adc6ff',baja:'#8e8e93'})[m.prioridad]||'#8e8e93';
+    var estC=({pendiente:'#ff9500',en_curso:'#007aff',completado:'#30d158'})[m.estado]||'#8e8e93';
+    var estL=({pendiente:'Pendiente',en_curso:'En curso',completado:'Completado'})[m.estado]||m.estado;
+    var tipoL='';
+    for(var ti=0;ti<_MEJ_TIPOS.length;ti++){if(_MEJ_TIPOS[ti][0]===m.tipo){tipoL=_MEJ_TIPOS[ti][1];break;}}
+    h+='<div class="gc" style="padding:14px 16px;margin-bottom:10px;border-left:4px solid rgba(139,92,246,.45);">';
+    h+='<div style="display:flex;align-items:flex-start;gap:10px;">';
+    h+='<div style="flex:1;">';
+    h+='<div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:6px;">';
+    h+='<span style="font-weight:800;font-size:.92rem;color:var(--text);">'+esc(m.descripcion)+'</span>';
+    h+='<span style="background:'+estC+'22;color:'+estC+';border-radius:20px;padding:2px 9px;font-size:.67rem;font-weight:700;">'+estL+'</span>';
+    h+='<span style="background:'+prioC+'18;color:'+prioC+';border-radius:20px;padding:2px 9px;font-size:.67rem;font-weight:700;">'+esc(m.prioridad.charAt(0).toUpperCase()+m.prioridad.slice(1))+'</span>';
+    h+='</div>';
+    h+='<div style="display:flex;gap:12px;flex-wrap:wrap;font-size:.71rem;color:var(--text3);margin-bottom:6px;">';
+    if(m.sala)h+='<span>📍 '+esc(m.sala)+'</span>';
+    if(tipoL)h+='<span>🔧 '+esc(tipoL)+'</span>';
+    if(m.responsable)h+='<span>👷 '+esc(m.responsable)+'</span>';
+    if(m.fechaEstimada)h+='<span>📅 Est: '+fD(m.fechaEstimada)+'</span>';
+    if(m.fechaCompletado)h+='<span>✅ '+fD(m.fechaCompletado)+'</span>';
+    if(m.migrado)h+='<span style="background:rgba(139,92,246,.12);color:#8b5cf6;border-radius:20px;padding:1px 7px;font-weight:600;">migrada</span>';
+    h+='</div>';
+    if(m.notas)h+='<div style="font-size:.73rem;color:var(--text2);background:rgba(139,92,246,.06);padding:5px 8px;border-radius:8px;margin-top:4px;">'+esc(m.notas)+'</div>';
+    h+='</div>';
+    h+='<div style="display:flex;flex-direction:column;gap:6px;min-width:88px;">';
+    if(m.estado!=='completado'){
+      h+='<button onclick="completarMejoraGlobal(\''+m.id+'\')" style="padding:6px 10px;border:none;border-radius:10px;background:linear-gradient(135deg,#30d158,#25a244);color:#fff;font-size:.72rem;font-weight:700;cursor:pointer;">✅ Completar</button>';
+    }
+    h+='<button onclick="openModalMejora(\''+m.id+'\')" style="padding:6px 10px;border:1.5px solid rgba(120,120,128,.25);border-radius:10px;background:transparent;color:var(--text2);font-size:.72rem;cursor:pointer;">✏️ Editar</button>';
+    h+='<button onclick="delMejora(\''+m.id+'\')" style="padding:6px 10px;border:1.5px solid rgba(255,59,48,.3);border-radius:10px;background:transparent;color:#ff3b30;font-size:.72rem;cursor:pointer;">🗑 Borrar</button>';
+    h+='</div>';
+    h+='</div></div>';
+  }
+  h+='</div>';
+  return h;
+}
+
+function openModalMejora(mejId){
+  var m=mejId?mejoras.find(function(x){return x.id===mejId;}):null;
+  var isNew=!m;
+  if(isNew)m={id:'',descripcion:'',sala:'',tipo:'otro',prioridad:'normal',estado:'pendiente',responsable:'',fechaEstimada:'',fechaCreacion:today(),fechaCompletado:'',notas:'',migrado:false,eqId:''};
+  var tipoOpts='';
+  for(var ti=0;ti<_MEJ_TIPOS.length;ti++){tipoOpts+='<option value="'+_MEJ_TIPOS[ti][0]+'"'+(m.tipo===_MEJ_TIPOS[ti][0]?' selected':'')+'>'+_MEJ_TIPOS[ti][1]+'</option>';}
+  var prioOpts='';
+  for(var pi=0;pi<_MEJ_PRIO.length;pi++){prioOpts+='<option value="'+_MEJ_PRIO[pi][0]+'"'+(m.prioridad===_MEJ_PRIO[pi][0]?' selected':'')+'>'+_MEJ_PRIO[pi][1]+'</option>';}
+  var estOpts='';
+  for(var ei=0;ei<_MEJ_EST.length;ei++){estOpts+='<option value="'+_MEJ_EST[ei][0]+'"'+(m.estado===_MEJ_EST[ei][0]?' selected':'')+'>'+_MEJ_EST[ei][2]+'</option>';}
+  var html='<div style="max-height:85vh;overflow-y:auto;padding:4px;">';
+  html+='<h3 style="margin:0 0 16px;font-size:1rem;font-weight:700;">'+( isNew?'Nueva mejora':'Editar mejora')+'</h3>';
+  html+='<div style="margin-bottom:10px;"><label style="font-size:.72rem;color:var(--text2);font-weight:600;display:block;margin-bottom:4px;">Descripción *</label>';
+  html+='<input class="inp" id="mej-desc" placeholder="Ej: Pintar sala de espera, instalar mueble..." value="'+esc(m.descripcion)+'" style="width:100%;"></div>';
+  html+='<div style="display:flex;gap:10px;margin-bottom:10px;">';
+  html+='<div style="flex:1;"><label style="font-size:.72rem;color:var(--text2);font-weight:600;display:block;margin-bottom:4px;">Sala / Zona</label>';
+  html+='<input class="inp" id="mej-sala" placeholder="Sala RM, Recepción, Pasillo..." value="'+esc(m.sala)+'" style="width:100%;"></div>';
+  html+='<div style="flex:1;"><label style="font-size:.72rem;color:var(--text2);font-weight:600;display:block;margin-bottom:4px;">Tipo</label>';
+  html+='<select class="inp" id="mej-tipo" style="width:100%;">'+tipoOpts+'</select></div>';
+  html+='</div>';
+  html+='<div style="display:flex;gap:10px;margin-bottom:10px;">';
+  html+='<div style="flex:1;"><label style="font-size:.72rem;color:var(--text2);font-weight:600;display:block;margin-bottom:4px;">Prioridad</label>';
+  html+='<select class="inp" id="mej-prio" style="width:100%;">'+prioOpts+'</select></div>';
+  html+='<div style="flex:1;"><label style="font-size:.72rem;color:var(--text2);font-weight:600;display:block;margin-bottom:4px;">Estado</label>';
+  html+='<select class="inp" id="mej-est" style="width:100%;">'+estOpts+'</select></div>';
+  html+='</div>';
+  html+='<div style="display:flex;gap:10px;margin-bottom:10px;">';
+  html+='<div style="flex:1;"><label style="font-size:.72rem;color:var(--text2);font-weight:600;display:block;margin-bottom:4px;">Responsable</label>';
+  html+='<input class="inp" id="mej-resp" placeholder="Nombre o empresa" value="'+esc(m.responsable)+'" style="width:100%;"></div>';
+  html+='<div style="flex:1;"><label style="font-size:.72rem;color:var(--text2);font-weight:600;display:block;margin-bottom:4px;">Fecha estimada</label>';
+  html+='<input class="inp" id="mej-fecha" type="date" value="'+esc(m.fechaEstimada)+'" style="width:100%;"></div>';
+  html+='</div>';
+  html+='<div style="margin-bottom:16px;"><label style="font-size:.72rem;color:var(--text2);font-weight:600;display:block;margin-bottom:4px;">Notas</label>';
+  html+='<textarea class="inp" id="mej-notas" rows="3" placeholder="Detalles adicionales..." style="width:100%;resize:vertical;">'+esc(m.notas)+'</textarea></div>';
+  html+='<div style="display:flex;gap:10px;">';
+  html+='<button onclick="submitMejora(\''+mejId+'\')" style="flex:1;background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;border:none;border-radius:var(--r-md);padding:12px;font-weight:700;font-size:.88rem;cursor:pointer;">'+( isNew?'Crear mejora':'Guardar cambios')+'</button>';
+  html+='<button onclick="closeModal()" style="background:rgba(120,120,128,.13);color:var(--text2);border:none;border-radius:var(--r-md);padding:12px 18px;font-weight:600;font-size:.88rem;cursor:pointer;">Cancelar</button>';
+  html+='</div></div>';
+  openModal(html);
+}
+
+function submitMejora(mejId){
+  var desc=(document.getElementById('mej-desc')||{}).value||'';
+  if(!desc.trim()){showToast('La descripcion es obligatoria','warn');return;}
+  var sala=(document.getElementById('mej-sala')||{}).value||'';
+  var tipo=(document.getElementById('mej-tipo')||{}).value||'otro';
+  var prio=(document.getElementById('mej-prio')||{}).value||'normal';
+  var est=(document.getElementById('mej-est')||{}).value||'pendiente';
+  var resp=(document.getElementById('mej-resp')||{}).value||'';
+  var fecha=(document.getElementById('mej-fecha')||{}).value||'';
+  var notas=(document.getElementById('mej-notas')||{}).value||'';
+  var isNew=!mejId;
+  if(isNew){
+    mejoras.push({id:'MEJ-'+Date.now(),descripcion:desc.trim(),sala:sala,tipo:tipo,prioridad:prio,estado:est,responsable:resp,fechaEstimada:fecha,fechaCreacion:today(),fechaCompletado:est==='completado'?today():'',notas:notas,migrado:false,eqId:''});
+    showToast('Mejora creada');
+  }else{
+    mejoras=mejoras.map(function(m){
+      if(m.id!==mejId)return m;
+      return Object.assign({},m,{descripcion:desc.trim(),sala:sala,tipo:tipo,prioridad:prio,estado:est,responsable:resp,fechaEstimada:fecha,notas:notas,fechaCompletado:(est==='completado'&&!m.fechaCompletado)?today():m.fechaCompletado});
+    });
+    showToast('Mejora actualizada');
+  }
+  _saveMejoras();closeModal();render();
+}
+
+function completarMejoraGlobal(mejId){
+  mejoras=mejoras.map(function(m){
+    if(m.id!==mejId)return m;
+    return Object.assign({},m,{estado:'completado',fechaCompletado:today()});
+  });
+  _saveMejoras();render();
+  showToast('Mejora completada');
+}
+
+function delMejora(mejId){
+  if(!confirm('Eliminar esta mejora?'))return;
+  mejoras=mejoras.filter(function(m){return m.id!==mejId;});
+  _saveMejoras();render();
+  showToast('Mejora eliminada','warn');
+}
+
 // ── AUDITORÍA ──
 function rAuditoria(){
   var filtEnt=_auditFiltEnt||'todos';
@@ -6597,40 +6808,6 @@ function _rDetalleFallas(eq){
       h+='</div>';
     });
   }
-  h+='</div></div>';
-  var mejoras=eq.partes.filter(function(p){
-    if(p.estado!=='mejora')return false;
-    if(!dq)return true;
-    return (p.nombre||'').toLowerCase().indexOf(dq)!==-1||(p.descripcion||'').toLowerCase().indexOf(dq)!==-1||(p.notas||'').toLowerCase().indexOf(dq)!==-1||(p.asignadoA||'').toLowerCase().indexOf(dq)!==-1;
-  });
-  var mejorasTotal=eq.partes.filter(function(p){return p.estado==='mejora';});
-  h+='<div class="gc" style="padding:0;margin-bottom:12px;overflow:hidden;border-left:4px solid rgba(139,92,246,.45);background:linear-gradient(135deg,rgba(139,92,246,.08) 0%,rgba(99,102,241,.04) 100%);">';
-  h+='<div style="background:linear-gradient(90deg,rgba(139,92,246,.12),rgba(99,102,241,.07));padding:9px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(139,92,246,.10);">';
-  h+='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(139,92,246,.9)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>';
-  h+='<span style="font-size:.72rem;font-weight:700;color:rgba(139,92,246,.9);text-transform:uppercase;letter-spacing:.06em;flex:1;">Mejoras</span>';
-  h+='<span style="background:rgba(139,92,246,.12);color:#8b5cf6;border-radius:20px;padding:1px 8px;font-size:.68rem;font-weight:700;margin-right:6px;">'+mejorasTotal.length+'</span>';
-  h+='<button onclick="openModalParte(\''+eq.id+'\',{estado:\'mejora\'})" style="padding:5px 12px;border-radius:var(--r-pill);background:rgba(139,92,246,.10);border:1.5px solid rgba(139,92,246,.28);color:#8b5cf6;font-weight:700;font-size:.72rem;cursor:pointer;">+ Agregar</button>';
-  h+='</div>';
-  h+='<div style="padding:14px 16px;">';
-  if(!mejorasTotal.length){h+='<div style="text-align:center;color:rgba(139,92,246,.5);padding:14px;font-size:.82rem;">Sin mejoras registradas</div>';}
-  else if(dq&&!mejoras.length){h+='<div style="color:var(--text3);font-size:.78rem;padding:6px 0;text-align:center;">Sin mejoras que coincidan</div>';}
-  mejoras.forEach(function(p){
-    h+='<div style="background:rgba(255,255,255,.95);border:1px solid rgba(139,92,246,.18);border-radius:14px;padding:13px;margin-bottom:8px;box-shadow:0 1px 6px rgba(139,92,246,.06);">'+
-      '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">'+
-      '<div style="flex:1;"><div style="font-weight:700;font-size:.86rem;margin-bottom:4px;">'+esc(p.nombre)+'</div>'+
-      (p.descripcion?'<div style="font-size:.72rem;color:var(--text3);margin-bottom:4px;">'+esc(p.descripcion)+'</div>':'')+
-      '<div style="display:flex;gap:6px;flex-wrap:wrap;">'+
-      (p.asignadoA?'<span style="font-size:.68rem;background:rgba(139,92,246,.12);color:#8b5cf6;padding:2px 8px;border-radius:20px;font-weight:600;">👷 '+esc(p.asignadoA)+'</span>':'')+
-      (p.fechaMejora?'<span style="font-size:.68rem;background:rgba(139,92,246,.08);color:#8b5cf6;padding:2px 8px;border-radius:20px;">📅 '+fD(p.fechaMejora)+'</span>':'')+
-      '</div>'+
-      (p.notas?'<div style="font-size:.73rem;color:var(--text2);margin-top:6px;background:rgba(139,92,246,.06);padding:5px 8px;border-radius:8px;">'+esc(p.notas)+'</div>':'')+
-      '</div></div>'+
-      '<div style="display:flex;gap:6px;margin-bottom:8px;">'+
-      '<button style="flex:1;padding:10px;border:none;border-radius:12px;background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;font-size:.84rem;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(139,92,246,.35);" onclick="completarMejora(\''+eq.id+'\',\''+p.id+'\')">✅ Marcar como Completado</button>'+
-      '</div>'+
-      '<div style="display:flex;gap:6px;"><button class="btn-secondary btn-sm" style="flex:1;color:#8b5cf6;" onclick=\'openModalParte("'+eq.id+'",'+JSON.stringify(p).replace(/'/g,"&#39;")+')\'>✏️ Editar</button><button class="btn-danger btn-sm" onclick="delParte(\''+eq.id+'\',\''+p.id+'\')">🗑</button></div>'+
-      '</div>';
-  });
   h+='</div></div>';
   var histAll=(eq.historialMant||[]).slice().reverse();
   var hist=dq?histAll.filter(function(hh){return (hh.nombre||'').toLowerCase().indexOf(dq)!==-1||(hh.notas||'').toLowerCase().indexOf(dq)!==-1||(hh.tecnico||'').toLowerCase().indexOf(dq)!==-1||(hh.tipo||'').toLowerCase().indexOf(dq)!==-1;}) : histAll;
@@ -11216,8 +11393,8 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="6.5.5";
-var APP_BUILD="16/06/26 23:15";
+var APP_DISPLAY_VERSION="6.5.6";
+var APP_BUILD="17/06/26 02:10";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
@@ -11412,6 +11589,7 @@ function init(){
   try{var _cpm=localStorage.getItem("mt_pm_prog");if(_cpm){var _cppm=JSON.parse(_cpm);if(Array.isArray(_cppm))pmProgramados=_cppm;}}catch(e){}
   try{var _cau=localStorage.getItem('mt_audit');if(_cau){var _cpau=JSON.parse(_cau);if(Array.isArray(_cpau))auditLog=_cpau;}}catch(e){}
   try{var _cre=localStorage.getItem('mt_reclamos');if(_cre){var _cpre=JSON.parse(_cre);if(Array.isArray(_cpre))reclamos=_cpre;}}catch(e){}
+  try{var _cmj=localStorage.getItem('mt_mejoras');if(_cmj){var _cpmj=JSON.parse(_cmj);if(Array.isArray(_cpmj))mejoras=_cpmj;}}catch(e){}
   render();
   // Deep-link: #EQ-xxx opens equipment directly
   try{
@@ -11477,6 +11655,7 @@ function init(){
             if(Array.isArray(d.pmProgramados))pmProgramados=d.pmProgramados;
             if(Array.isArray(d.auditLog))auditLog=d.auditLog;
             if(Array.isArray(d.reclamos))reclamos=d.reclamos;
+            if(Array.isArray(d.mejoras))mejoras=d.mejoras;
           }
         }
         function _lsLoad(){
@@ -11489,13 +11668,15 @@ function init(){
           try{var spm=localStorage.getItem("mt_pm_prog");if(spm){var ppm=JSON.parse(spm);if(Array.isArray(ppm))pmProgramados=ppm;}}catch(e){}
           try{var sau=localStorage.getItem('mt_audit');if(sau){var pau=JSON.parse(sau);if(Array.isArray(pau))auditLog=pau;}}catch(e){}
           try{var sre=localStorage.getItem('mt_reclamos');if(sre){var pre=JSON.parse(sre);if(Array.isArray(pre))reclamos=pre;}}catch(e){}
+          try{var smj=localStorage.getItem('mt_mejoras');if(smj){var pmj=JSON.parse(smj);if(Array.isArray(pmj))mejoras=pmj;}}catch(e){}
         }
         function _finishLoad(){
           migrateEqs();
           var _ecoChanged=localStorage.getItem('mt_eco_v1')!=='1';
           migrateEcoData();
           migrateTransductores();
-          if(_ecoChanged){saveData();}
+          var _mejCount=_migrarMejorasDeEqs();
+          if(_ecoChanged||_mejCount>0){saveData();}
           render();
           if(window._pendingGEParams)setTimeout(_processGEUrlUpdate,600);
           setTimeout(checkForUpdates,3000);
