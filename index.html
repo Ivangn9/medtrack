@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.17.310 -->
+<!-- v2026.06.17.320 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.17.310">
+<meta name="app-version" content="v2026.06.17.320">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -322,6 +322,11 @@ textarea.inp{resize:vertical;}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .g3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
 .g2cat{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.cring-wrap{position:relative;border-radius:var(--r-lg);}
+.cring-el{position:absolute;inset:0;border-radius:inherit;overflow:hidden;pointer-events:none;z-index:0;}
+.cring-el::before{content:'';position:absolute;inset:-110%;width:320%;height:320%;background:conic-gradient(from 0deg,transparent 0deg,var(--cc,#818cf8) 42deg,transparent 84deg);animation:cring-spin var(--cs,5s) linear infinite;transform-origin:center;}
+@keyframes cring-spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+.cring-wrap>.gc{position:relative;z-index:1;margin:1.5px;}
 @media(max-width:480px){.g3{grid-template-columns:repeat(2,1fr);}.g2{grid-template-columns:1fr 1fr;}.g2cat{grid-template-columns:1fr 1fr;}}
 
 /* ── PILL ── */
@@ -3723,7 +3728,9 @@ function rDash(){
     var statusColor=fuera?"#ff3b30":urg?"#ff9500":"#34c759";
     var statusLabel=fuera?'🚫 '+fuera+' fuera de servicio':urg?'⚠️ '+urg+' urgente'+(urg!==1?'s':''):'✅ Operativos';
     var iconSvg=catSvgIcon(cat.id,192)||'';
-    hL+='<div class="gc tap" data-aos="zoom-in" data-aos-delay="'+Math.min(_catIdx++*60,360)+'" onclick="filtCat=\''+cat.id+'\';setView(\'lista\');" style="padding:0;overflow:hidden;cursor:pointer;border:1.5px solid '+cat.color+'40;min-height:130px;">'+
+    var ringSpeed=fuera>0?'1.8s':urg>0?'2.5s':'5s';
+    hL+='<div class="cring-wrap" style="--cc:'+cat.color+';--cs:'+ringSpeed+';"><div class="cring-el"></div>'+
+    '<div class="gc tap" data-aos="zoom-in" data-aos-delay="'+Math.min(_catIdx++*60,360)+'" onclick="filtCat=\''+cat.id+'\';setView(\'lista\');" style="padding:0;overflow:hidden;cursor:pointer;min-height:130px;">'+
       '<div style="height:3px;background:linear-gradient(90deg,'+cat.color+','+cat.color+'55);border-radius:0;"></div>'+
       '<div style="padding:16px 14px 14px;display:flex;flex-direction:column;justify-content:space-between;height:calc(100% - 3px);position:relative;overflow:hidden;">'+
         '<div style="position:absolute;right:-18px;top:50%;transform:translateY(-50%);width:210px;height:210px;display:flex;align-items:center;justify-content:center;opacity:.82;pointer-events:none;">'+iconSvg+'</div>'+
@@ -3738,7 +3745,7 @@ function rDash(){
           '</div>'+
         '</div>'+
       '</div>'+
-    '</div>';
+    '</div></div>';
   });
   if(aires.length>0||true){
     var aireFallas=aires.filter(function(a){return a.estado==='falla'||a.estado==='fuera_servicio';}).length;
@@ -3746,7 +3753,9 @@ function rDash(){
     var aireStatus=aireFallas>0?'⚠️ '+aireFallas+' con falla':'✅ Operativos';
     var aireStatusColor=aireFallas>0?'#f59e0b':'#34c759';
     var aireSvg='<svg viewBox="'+_AIRE_VB+'" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" width="200" height="200">'+_AIRE_ILLUS+'</svg>';
-    hL+='<div class="gc tap" onclick="setView(\'aires\');" style="padding:0;overflow:hidden;cursor:pointer;border:1.5px solid '+aireColor+'40;min-height:130px;">'+
+    var aireRingSpeed=aireFallas>0?'2.5s':'5s';
+    hL+='<div class="cring-wrap" style="--cc:'+aireColor+';--cs:'+aireRingSpeed+';"><div class="cring-el"></div>'+
+    '<div class="gc tap" onclick="setView(\'aires\');" style="padding:0;overflow:hidden;cursor:pointer;min-height:130px;">'+
       '<div style="height:3px;background:linear-gradient(90deg,'+aireColor+','+aireColor+'55);border-radius:0;"></div>'+
       '<div style="padding:16px 14px 14px;display:flex;flex-direction:column;justify-content:space-between;height:calc(100% - 3px);position:relative;overflow:hidden;">'+
         '<div style="position:absolute;right:-18px;top:50%;transform:translateY(-50%);width:210px;height:210px;display:flex;align-items:center;justify-content:center;opacity:.82;pointer-events:none;">'+aireSvg+'</div>'+
@@ -3761,7 +3770,7 @@ function rDash(){
           '</div>'+
         '</div>'+
       '</div>'+
-    '</div>';
+    '</div></div>';
   }
   hL+='</div>';
 
@@ -11858,8 +11867,8 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="6.9.5";
-var APP_BUILD="17/06/26 19:00";
+var APP_DISPLAY_VERSION="7.0.0";
+var APP_BUILD="17/06/26 20:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
