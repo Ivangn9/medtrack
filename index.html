@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.17.340 -->
+<!-- v2026.06.17.341 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.17.340">
+<meta name="app-version" content="v2026.06.17.341">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -322,9 +322,11 @@ textarea.inp{resize:vertical;}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .g3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
 .g2cat{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-@property --cring-a{syntax:'<angle>';initial-value:0deg;inherits:false;}
-.gc.cring::after{content:'';position:absolute;inset:0;border-radius:inherit;padding:2px;background:conic-gradient(from var(--cring-a),transparent 0deg,var(--cc,#818cf8) 50deg,transparent 100deg);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:destination-out;mask-composite:exclude;pointer-events:none;z-index:10;animation:cring-spin 5s linear infinite;}
-@keyframes cring-spin{to{--cring-a:360deg;}}
+.cring-wrap{position:relative;border-radius:var(--r-lg);}
+.cring-el{position:absolute;inset:0;border-radius:inherit;overflow:hidden;padding:2px;-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:destination-out;mask-composite:exclude;pointer-events:none;z-index:2;}
+.cring-el::before{content:'';position:absolute;inset:-110%;width:320%;height:320%;background:conic-gradient(from 0deg,transparent 0deg,var(--cc,#818cf8) 48deg,transparent 96deg);animation:cring-spin 5s linear infinite;transform-origin:center;}
+@keyframes cring-spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+.cring-wrap>.gc{position:relative;z-index:1;}
 @media(max-width:480px){.g3{grid-template-columns:repeat(2,1fr);}.g2{grid-template-columns:1fr 1fr;}.g2cat{grid-template-columns:1fr 1fr;}}
 
 /* ── PILL ── */
@@ -3726,7 +3728,8 @@ function rDash(){
     var statusColor=fuera?"#ff3b30":urg?"#ff9500":"#34c759";
     var statusLabel=fuera?'🚫 '+fuera+' fuera de servicio':urg?'⚠️ '+urg+' urgente'+(urg!==1?'s':''):'✅ Operativos';
     var iconSvg=catSvgIcon(cat.id,192)||'';
-    hL+='<div class="gc tap cring" data-aos="zoom-in" data-aos-delay="'+Math.min(_catIdx++*60,360)+'" onclick="filtCat=\''+cat.id+'\';setView(\'lista\');" style="--cc:'+cat.color+';padding:0;overflow:hidden;cursor:pointer;min-height:130px;">'+
+    hL+='<div class="cring-wrap" style="--cc:'+cat.color+';"><div class="cring-el"></div>'+
+    '<div class="gc tap" data-aos="zoom-in" data-aos-delay="'+Math.min(_catIdx++*60,360)+'" onclick="filtCat=\''+cat.id+'\';setView(\'lista\');" style="padding:0;overflow:hidden;cursor:pointer;min-height:130px;">'+
       '<div style="padding:16px 14px 14px;display:flex;flex-direction:column;justify-content:space-between;height:100%;position:relative;overflow:hidden;">'+
         '<div style="position:absolute;right:-18px;top:50%;transform:translateY(-50%);width:210px;height:210px;display:flex;align-items:center;justify-content:center;opacity:.82;pointer-events:none;">'+iconSvg+'</div>'+
         '<div style="display:flex;flex-direction:column;gap:0;z-index:1;">'+
@@ -3740,7 +3743,7 @@ function rDash(){
           '</div>'+
         '</div>'+
       '</div>'+
-    '</div>';
+    '</div></div>';
   });
   if(aires.length>0||true){
     var aireFallas=aires.filter(function(a){return a.estado==='falla'||a.estado==='fuera_servicio';}).length;
@@ -3748,7 +3751,8 @@ function rDash(){
     var aireStatus=aireFallas>0?'⚠️ '+aireFallas+' con falla':'✅ Operativos';
     var aireStatusColor=aireFallas>0?'#f59e0b':'#34c759';
     var aireSvg='<svg viewBox="'+_AIRE_VB+'" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" width="200" height="200">'+_AIRE_ILLUS+'</svg>';
-    hL+='<div class="gc tap cring" onclick="setView(\'aires\');" style="--cc:'+aireColor+';padding:0;overflow:hidden;cursor:pointer;min-height:130px;">'+
+    hL+='<div class="cring-wrap" style="--cc:'+aireColor+';"><div class="cring-el"></div>'+
+    '<div class="gc tap" onclick="setView(\'aires\');" style="padding:0;overflow:hidden;cursor:pointer;min-height:130px;">'+
       '<div style="padding:16px 14px 14px;display:flex;flex-direction:column;justify-content:space-between;height:100%;position:relative;overflow:hidden;">'+
         '<div style="position:absolute;right:-18px;top:50%;transform:translateY(-50%);width:210px;height:210px;display:flex;align-items:center;justify-content:center;opacity:.82;pointer-events:none;">'+aireSvg+'</div>'+
         '<div style="display:flex;flex-direction:column;gap:0;z-index:1;">'+
@@ -3762,7 +3766,7 @@ function rDash(){
           '</div>'+
         '</div>'+
       '</div>'+
-    '</div>';
+    '</div></div>';
   }
   hL+='</div>';
 
@@ -4000,7 +4004,7 @@ function rLista(){
       if(r.matchParts.length){
         r.matchParts.forEach(function(p){
           var c=CP[p.estado]||"var(--green)";
-          h+='<div class="gc tap cring" onclick="goDetalle(\''+e.id+'\')" style="--cc:'+c+';padding:10px 14px;margin-bottom:6px;margin-left:16px;cursor:pointer;">'+
+          h+='<div class="gc tap" onclick="goDetalle(\''+e.id+'\')" style="border-left:3px solid '+c+';padding:10px 14px;margin-bottom:6px;margin-left:16px;cursor:pointer;">'+
             '<div style="display:flex;align-items:center;gap:8px;">'+
             '<span style="font-size:1rem;">'+(p.estado==="roto"?"🔴":p.estado==="pendiente"?"⚠️":"✅")+'</span>'+
             '<div style="flex:1;min-width:0;">'+
@@ -4078,7 +4082,7 @@ function rUpsSchema(){
     h+='<div style="margin-bottom:28px;">';
 
     // ── UPS card ──
-    h+='<div onclick="goDetalle(\''+ups.id+'\')" class="gc cring" style="--cc:rgba(245,158,11,.85);padding:0;cursor:pointer;overflow:hidden;'+(isActive?'animation:upsGlow 2.5s ease-in-out infinite;':'')+'">'+
+    h+='<div onclick="goDetalle(\''+ups.id+'\')" class="gc" style="border:1.5px solid rgba(245,158,11,.35);padding:0;cursor:pointer;overflow:hidden;'+(isActive?'animation:upsGlow 2.5s ease-in-out infinite;':'')+'">'+
       '<div style="height:4px;background:linear-gradient(90deg,#f59e0b,#fbbf24,#f59e0b);background-size:200% 100%;'+(isActive?'animation:flowH .8s linear infinite;':'')+'"></div>'+
       '<div style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(245,158,11,.04));">'+
         '<div style="width:60px;height:60px;flex-shrink:0;filter:drop-shadow(0 2px 8px rgba(245,158,11,.35));">'+catSvgIcon('UPS',60)+'</div>'+
@@ -4486,7 +4490,7 @@ function rCalendarioPM(){
       var urgC=d5<0?'var(--red)':d5<=7?'var(--orange)':'var(--green)';
       var isManual=(sitem.tipo==='manual');
       var cardColor=isManual?'#8b5cf6':ci5.color;
-      h+='<div class="gc cring" style="--cc:'+cardColor+';padding:0;margin-bottom:8px;overflow:hidden;">';
+      h+='<div class="gc" style="border-left:4px solid '+cardColor+';padding:0;margin-bottom:8px;overflow:hidden;">';
       h+='<div style="padding:10px 14px;display:flex;align-items:center;gap:10px;">';
       h+='<div style="flex:1;min-width:0;">';
       h+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">';
@@ -4750,7 +4754,7 @@ function rOrdenes(){
     }
     var isMejOT=ot.tipo==='mejora';
     var borderColor=isMejOT?'rgba(139,92,246,.7)':pc;
-    h+='<div class="gc cring" style="--cc:'+borderColor+';padding:0;margin-bottom:10px;overflow:hidden;">';
+    h+='<div class="gc" style="border-left:4px solid '+borderColor+';padding:0;margin-bottom:10px;overflow:hidden;">';
     h+='<div style="padding:10px 14px;display:flex;align-items:flex-start;gap:10px;">';
     h+='<div style="flex:1;min-width:0;">';
     h+='<div style="display:flex;align-items:center;gap:7px;margin-bottom:3px;flex-wrap:wrap;">';
@@ -5130,7 +5134,7 @@ function rRepuestos(){
   repuestos.forEach(function(r3){
     var cant3=parseFloat(r3.cantidad)||0;var min3=parseFloat(r3.stockMinimo)||0;
     var stockColor=cant3<=0?'var(--red)':min3>0&&cant3<=min3?'var(--orange)':'var(--green)';
-    h+='<div class="gc cring" style="--cc:'+stockColor+';padding:0;margin-bottom:10px;overflow:hidden;">';
+    h+='<div class="gc" style="border-left:4px solid '+stockColor+';padding:0;margin-bottom:10px;overflow:hidden;">';
     h+='<div style="padding:10px 14px;display:flex;align-items:flex-start;gap:10px;">';
     h+='<div style="flex:1;min-width:0;">';
     h+='<div style="font-weight:700;font-size:.88rem;margin-bottom:2px;">'+esc(r3.nombre)+'</div>';
@@ -5619,7 +5623,7 @@ function rMejoras(){
     var estL=({pendiente:'Pendiente',en_curso:'En curso',completado:'Completado'})[m.estado]||m.estado;
     var tipoL='';
     for(var ti=0;ti<_MEJ_TIPOS.length;ti++){if(_MEJ_TIPOS[ti][0]===m.tipo){tipoL=_MEJ_TIPOS[ti][1];break;}}
-    h+='<div class="gc cring" style="--cc:rgba(139,92,246,.8);padding:14px 16px;margin-bottom:10px;">';
+    h+='<div class="gc" style="border-left:4px solid rgba(139,92,246,.45);padding:14px 16px;margin-bottom:10px;">';
     h+='<div style="display:flex;align-items:flex-start;gap:10px;">';
     h+='<div style="flex:1;">';
     h+='<div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:6px;">';
@@ -6337,7 +6341,7 @@ function rAlertas(){
       var eq=eqs.find(function(e){return e.id===a.eid;})||{};
       var cat=catById(eq.cat);var catColor=cat.color||"#64748b";var nivColor=g[2];
       var ageBadge=_alertAgeBadge(a.k,a.niv);
-      out+='<div class="gc cring" style="--cc:'+nivColor+';padding:13px 14px;margin-bottom:8px;">'+
+      out+='<div class="gc" style="border-left:4px solid '+nivColor+';padding:13px 14px;margin-bottom:8px;">'+
         '<div style="display:flex;align-items:center;gap:12px;">'+
         '<div onclick="goDetalle(\''+a.eid+'\')" style="width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:'+catColor+'18;border:1px solid '+catColor+'30;box-shadow:0 2px 8px rgba(0,0,0,.06),inset 0 1px 0 rgba(255,255,255,.8);cursor:pointer;">'+
         (catSvgIcon(eq.cat,30)||'<span style="font-size:1.2rem;">'+cat.icon+'</span>')+
@@ -6415,7 +6419,7 @@ function _rDetalleAdmin(eq){
     '<span style="font-size:.7rem;color:var(--text3);margin-left:auto;">Equipo</span>'+
   '</div>';
   // Header
-  h+='<div class="gc cring" style="--cc:rgba(94,92,230,.8);padding:0;margin-bottom:10px;overflow:hidden;">'+
+  h+='<div class="gc" style="border-left:4px solid rgba(94,92,230,.5);padding:0;margin-bottom:10px;overflow:hidden;">'+
     '<div style="background:linear-gradient(90deg,rgba(94,92,230,.12),rgba(94,92,230,.05));padding:9px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(94,92,230,.10);">'+
       adminSvgIcon(15)+
       '<span style="font-size:.72rem;font-weight:700;color:#5e5ce6;text-transform:uppercase;letter-spacing:.06em;flex:1;">Administrativo</span>'+
@@ -6756,7 +6760,7 @@ function _rDetalleComponentes(eq){
     '<span style="font-size:.8rem;font-weight:600;color:var(--text2);">'+esc(eq.nombre)+'</span>'+
     '<span style="font-size:.7rem;color:var(--text3);margin-left:auto;">Componentes</span>'+
   '</div>';
-  h+='<div class="gc cring" style="--cc:rgba(173,198,255,.9);padding:0;margin-bottom:12px;overflow:hidden;background:linear-gradient(135deg,rgba(173,198,255,.06) 0%,rgba(173,198,255,.02) 100%);">';
+  h+='<div class="gc" style="border-left:4px solid rgba(173,198,255,.5);padding:0;margin-bottom:12px;overflow:hidden;background:linear-gradient(135deg,rgba(173,198,255,.06) 0%,rgba(173,198,255,.02) 100%);">';
   h+='<div style="background:linear-gradient(90deg,rgba(173,198,255,.1),rgba(173,198,255,.04));padding:9px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(173,198,255,.08);">';
   h+='<span style="font-size:.72rem;font-weight:700;color:#adc6ff;text-transform:uppercase;letter-spacing:.06em;flex:1;">🔧 Componentes del Equipo</span>';
   if(todasPartes.length)h+='<span style="font-size:.68rem;font-weight:700;color:'+(fallasCount>0?'#ff3b30':'#30d158')+';">'+okCount+'/'+todasPartes.length+' OK</span>';
@@ -6892,7 +6896,7 @@ function _rDetalleFallas(eq){
     '<span style="font-size:.8rem;font-weight:600;color:var(--text2);">'+esc(eq.nombre)+'</span>'+
     '<span style="font-size:.7rem;color:var(--text3);margin-left:auto;">Equipo</span>'+
   '</div>';
-  h+='<div class="gc cring" style="--cc:rgba(255,59,48,.9);padding:0;margin-bottom:12px;overflow:hidden;background:linear-gradient(135deg,rgba(255,59,48,.08) 0%,rgba(255,69,58,.04) 100%);">';
+  h+='<div class="gc" style="border-left:4px solid rgba(255,59,48,.45);padding:0;margin-bottom:12px;overflow:hidden;background:linear-gradient(135deg,rgba(255,59,48,.08) 0%,rgba(255,69,58,.04) 100%);">';
   h+='<div style="background:linear-gradient(90deg,rgba(255,59,48,.12),rgba(255,69,58,.07));padding:9px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(255,59,48,.10);">';
   h+='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(220,38,38,.9)" stroke-width="2.2" stroke-linecap="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>';
   h+='<span style="font-size:.72rem;font-weight:700;color:rgba(220,38,38,.9);text-transform:uppercase;letter-spacing:.06em;flex:1;">Roturas y Fallas</span>';
@@ -7231,16 +7235,18 @@ function rDetalle(){
   var _mtbf=calcMTBF(eq);var _mttr=calcMTTR(eq);var _avail=calcAvailability(eq);
   var _rs2=calcRiskScore(eq);var _lc=calcLifecycle(eq);
   if(_mtbf!==null||_mttr!==null||_avail!==null){
-    hR+='<div class="gc" style="padding:0;margin-bottom:8px;overflow:hidden;border-left:4px solid rgba(139,92,246,.45);background:linear-gradient(135deg,rgba(139,92,246,.07) 0%,rgba(167,139,250,.04) 100%);">';
+    hR+='<div class="cring-wrap" style="--cc:rgba(139,92,246,.9);margin-bottom:8px;"><div class="cring-el"></div>'+
+    '<div class="gc" style="padding:0;overflow:hidden;background:linear-gradient(135deg,rgba(139,92,246,.07) 0%,rgba(167,139,250,.04) 100%);">';
     hR+='<div style="background:linear-gradient(90deg,rgba(139,92,246,.12),rgba(167,139,250,.07));padding:8px 14px;display:flex;align-items:center;gap:6px;border-bottom:1px solid rgba(139,92,246,.10);">';
     hR+='<span style="font-size:.72rem;font-weight:700;color:rgba(139,92,246,.9);text-transform:uppercase;letter-spacing:.06em;">📊 MTBF / MTTR</span></div>';
     hR+='<div class="det-grid" style="padding:10px 14px;">';
     if(_mtbf!==null)hR+='<div class="ibox"><div class="ibox-l">MTBF</div><div class="ibox-v" style="font-family:monospace;font-weight:700;">'+_mtbf+' días</div><div style="font-size:.6rem;color:var(--text3);margin-top:1px;">Tiempo medio entre fallas</div></div>';
     if(_mttr!==null)hR+='<div class="ibox"><div class="ibox-l">MTTR</div><div class="ibox-v" style="font-family:monospace;font-weight:700;">'+_mttr+' días</div><div style="font-size:.6rem;color:var(--text3);margin-top:1px;">Tiempo medio de reparación</div></div>';
     if(_avail!==null){var _ac=_avail>=95?'var(--green)':_avail>=80?'var(--orange)':'var(--red)';hR+='<div class="ibox"><div class="ibox-l">Disponibilidad</div><div class="ibox-v" style="color:'+_ac+';font-weight:800;">'+_avail+'%</div><div style="font-size:.6rem;color:var(--text3);margin-top:1px;">Uptime desde instalación</div></div>';}
-    hR+='</div></div>';
+    hR+='</div></div></div>';
   }
-  hR+='<div class="gc" style="padding:0;margin-bottom:8px;overflow:hidden;border-left:4px solid '+riskLevelColor(_rs2.level)+'88;background:linear-gradient(135deg,'+riskLevelColor(_rs2.level)+'11 0%,'+riskLevelColor(_rs2.level)+'07 100%);">';
+  hR+='<div class="cring-wrap" style="--cc:'+riskLevelColor(_rs2.level)+';margin-bottom:8px;"><div class="cring-el"></div>'+
+  '<div class="gc" style="padding:0;overflow:hidden;background:linear-gradient(135deg,'+riskLevelColor(_rs2.level)+'11 0%,'+riskLevelColor(_rs2.level)+'07 100%);">';
   hR+='<div style="background:linear-gradient(90deg,'+riskLevelColor(_rs2.level)+'18,'+riskLevelColor(_rs2.level)+'09);padding:8px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid '+riskLevelColor(_rs2.level)+'22;">';
   hR+='<span style="font-size:.72rem;font-weight:700;color:'+riskLevelColor(_rs2.level)+';text-transform:uppercase;letter-spacing:.06em;">⚠️ Riesgo Institucional</span>';
   hR+='<span style="font-size:.78rem;font-weight:800;color:'+riskLevelColor(_rs2.level)+';">'+riskLevelLabel(_rs2.level)+' ('+_rs2.score+'/20)</span></div>';
@@ -7249,11 +7255,12 @@ function rDetalle(){
   hR+='<div class="ibox"><div class="ibox-l">Complejidad mant.</div><div class="ibox-v">'+_rs2.maint+'/5</div></div>';
   hR+='<div class="ibox"><div class="ibox-l">Historial fallas</div><div class="ibox-v">'+_rs2.incident+'/5</div></div>';
   hR+='<div class="ibox"><div class="ibox-l">Antigüedad</div><div class="ibox-v">'+_rs2.age+'/5</div></div>';
-  hR+='</div></div>';
+  hR+='</div></div></div>';
   if(_lc){
     var _zc=_lc.zone==='reemplazo'?'var(--red)':_lc.zone==='atencion'?'var(--orange)':'var(--green)';
     var _zl=_lc.zone==='reemplazo'?'♻️ Reemplazo sugerido':_lc.zone==='atencion'?'⚠️ Atención':' ✅ OK';
-    hR+='<div class="gc" style="padding:0;margin-bottom:8px;overflow:hidden;border-left:4px solid '+_zc+'88;background:linear-gradient(135deg,'+_zc+'10 0%,'+_zc+'06 100%);">';
+    hR+='<div class="cring-wrap" style="--cc:'+_zc+';margin-bottom:8px;"><div class="cring-el"></div>'+
+    '<div class="gc" style="padding:0;overflow:hidden;background:linear-gradient(135deg,'+_zc+'10 0%,'+_zc+'06 100%);">';
     hR+='<div style="background:linear-gradient(90deg,'+_zc+'16,'+_zc+'09);padding:8px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid '+_zc+'22;">';
     hR+='<span style="font-size:.72rem;font-weight:700;color:'+_zc+';text-transform:uppercase;letter-spacing:.06em;">📈 Ciclo de Vida</span>';
     hR+='<span style="font-size:.75rem;font-weight:700;color:'+_zc+';">'+_zl+'</span></div>';
@@ -7262,7 +7269,7 @@ function rDetalle(){
     hR+='<div class="ibox"><div class="ibox-l">Vida útil</div><div class="ibox-v" style="font-family:monospace;color:'+_zc+';">'+_lc.agePct+'%</div><div style="font-size:.6rem;color:var(--text3);margin-top:1px;">de '+_lc.lifespan+' años est.</div></div>';
     if(_lc.valorRepos>0)hR+='<div class="ibox"><div class="ibox-l">Valor reposición</div><div class="ibox-v" style="font-family:monospace;">USD '+_lc.valorRepos.toLocaleString()+'</div></div>';
     if(_lc.costPct!==null)hR+='<div class="ibox"><div class="ibox-l">Costo acum. / reposi.</div><div class="ibox-v" style="font-family:monospace;color:'+_zc+';">'+_lc.costPct+'%</div></div>';
-    hR+='</div></div>';
+    hR+='</div></div></div>';
   }
 
   /* RIGHT: COMPONENTES NAV */
@@ -7271,7 +7278,8 @@ function rDetalle(){
   var _fallaParts=(eq.partes||[]).filter(function(p){return p.estado==='roto'||p.estado==='pendiente';}).length;
   var _compColor=_fallaParts>0?'rgba(255,59,48,.5)':_totalParts>0?'rgba(48,209,88,.5)':'rgba(173,198,255,.4)';
   var _compBg=_fallaParts>0?'rgba(255,59,48,.07)':_totalParts>0?'rgba(48,209,88,.06)':'rgba(173,198,255,.06)';
-  hR+='<div class="gc tap" onclick="setDetalleTab(\'componentes\')" style="cursor:pointer;padding:11px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px;border-left:4px solid '+_compColor+';background:linear-gradient(135deg,'+_compBg+' 0%,rgba(0,0,0,0) 100%);" ontouchstart="this.style.transform=\'scale(.98)\'" ontouchend="this.style.transform=\'\'">';
+  hR+='<div class="cring-wrap" style="--cc:'+_compColor+';margin-bottom:8px;"><div class="cring-el"></div>'+
+  '<div class="gc tap" onclick="setDetalleTab(\'componentes\')" style="cursor:pointer;padding:11px 14px;display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,'+_compBg+' 0%,rgba(0,0,0,0) 100%);" ontouchstart="this.style.transform=\'scale(.98)\'" ontouchend="this.style.transform=\'\'">';
   hR+='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(173,198,255,.7)" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="4" rx="1"/><rect x="2" y="10" width="20" height="4" rx="1"/><rect x="2" y="17" width="20" height="4" rx="1"/></svg>';
   hR+='<div style="flex:1;min-width:0;">';
   hR+='<div style="font-size:.82rem;font-weight:700;color:var(--text1);">Componentes del Equipo</div>';
@@ -7279,21 +7287,23 @@ function rDetalle(){
   hR+='</div>';
   if(_fallaParts>0)hR+='<span style="font-size:.68rem;font-weight:700;min-width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+_fallaParts+'</span>';
   hR+='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(173,198,255,.4)" stroke-width="2.2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>';
-  hR+='</div>';
+  hR+='</div></div>';
 
   /* RIGHT: TIMELINE NAV */
-  hR+='<div class="gc tap" onclick="setDetalleTab(\'timeline\')" style="cursor:pointer;padding:11px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px;border-left:4px solid rgba(173,198,255,.4);background:linear-gradient(135deg,rgba(173,198,255,.06) 0%,rgba(173,198,255,.02) 100%);" ontouchstart="this.style.transform=\'scale(.98)\'" ontouchend="this.style.transform=\'\'">';
+  hR+='<div class="cring-wrap" style="--cc:rgba(173,198,255,.9);margin-bottom:8px;"><div class="cring-el"></div>'+
+  '<div class="gc tap" onclick="setDetalleTab(\'timeline\')" style="cursor:pointer;padding:11px 14px;display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,rgba(173,198,255,.06) 0%,rgba(173,198,255,.02) 100%);" ontouchstart="this.style.transform=\'scale(.98)\'" ontouchend="this.style.transform=\'\'">';
   hR+='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(173,198,255,.7)" stroke-width="2" stroke-linecap="round"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><circle cx="12" cy="12" r="4"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/></svg>';
   hR+='<div style="flex:1;min-width:0;"><div style="font-size:.82rem;font-weight:700;color:var(--text1);">Línea de Tiempo</div><div style="font-size:.67rem;color:var(--text3);margin-top:1px;">Instalación · Mantenimientos · Fallas · PMs</div></div>';
   hR+='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(173,198,255,.4)" stroke-width="2.2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>';
-  hR+='</div>';
+  hR+='</div></div>';
 
   /* RIGHT: ROTURAS Y FALLAS */
   var _rotActivas=eq.partes.filter(function(p){return p.estado!=='ok'&&p.estado!=='mejora';});
   var _rotTotal=_rotActivas.length;
   var _mejTotal=eq.partes.filter(function(p){return p.estado==='mejora';}).length;
   var _histTotal=(eq.historialMant||[]).length;
-  hR+='<div class="gc tap" onclick="setDetalleTab(\'fallas\')" style="cursor:pointer;padding:0;margin-bottom:8px;overflow:hidden;border-left:4px solid rgba(255,59,48,.45);background:linear-gradient(135deg,rgba(255,59,48,.08) 0%,rgba(255,69,58,.04) 100%);" ontouchstart="this.style.transform=\'scale(.98)\'" ontouchend="this.style.transform=\'\'">';
+  hR+='<div class="cring-wrap" style="--cc:rgba(255,59,48,.9);margin-bottom:8px;"><div class="cring-el"></div>'+
+  '<div class="gc tap" onclick="setDetalleTab(\'fallas\')" style="cursor:pointer;padding:0;overflow:hidden;background:linear-gradient(135deg,rgba(255,59,48,.08) 0%,rgba(255,69,58,.04) 100%);" ontouchstart="this.style.transform=\'scale(.98)\'" ontouchend="this.style.transform=\'\'">';
   hR+='<div style="background:linear-gradient(90deg,rgba(255,59,48,.12),rgba(255,69,58,.07));padding:8px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(255,59,48,.10);">';
   hR+='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(220,38,38,.9)" stroke-width="2.2" stroke-linecap="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>';
   hR+='<span style="font-size:.72rem;font-weight:700;color:rgba(220,38,38,.9);text-transform:uppercase;letter-spacing:.06em;flex:1;">Roturas y Fallas</span>';
@@ -7316,7 +7326,7 @@ function rDetalle(){
     if(_rotTotal>3){hR+='<div style="font-size:.7rem;color:var(--text3);padding:5px 0 0;">+'+(_rotTotal-3)+' más...</div>';}
   }
   hR+=navRowFn('Roturas · Mejoras · Historial',(_mejTotal?_mejTotal+' mejora'+(_mejTotal!==1?'s':'')+' · ':'')+_histTotal+' en historial','setDetalleTab(\'fallas\')');
-  hR+='</div></div>';
+  hR+='</div></div></div>';
 
   /* RIGHT: ADMINISTRATIVO NAV */
   var _admVencs=[];
@@ -7324,7 +7334,8 @@ function rDetalle(){
   if(eq.rugepresaAlta&&eq.rugepresaVenc){var _dRug=diasH(eq.rugepresaVenc);if(_dRug<0)_admVencs.push('habilitación vencida');else if(_dRug<=30)_admVencs.push('habilitación vence en '+_dRug+'d');}
   var _admAltas=(eq.seguroAlta?1:0)+(eq.epecAlta?1:0)+(eq.rugepresaAlta?1:0);
   var _admSub=_admVencs.length?_admVencs.join(' · '):(_admAltas?_admAltas+' de 3 altas registradas':'Seguro · EPEC · R.U.GE.PRE.SA');
-  hR+='<div class="gc tap" onclick="setDetalleTab(\'admin\')" style="padding:0;margin-bottom:8px;overflow:hidden;cursor:pointer;border-left:4px solid rgba(94,92,230,.5);" ontouchstart="this.style.transform=\'scale(.98)\'" ontouchend="this.style.transform=\'\'"><div style="padding:12px 14px;display:flex;align-items:center;gap:11px;">'+adminSvgIcon(20)+'<div style="flex:1;min-width:0;"><div style="font-size:.84rem;font-weight:700;color:var(--text1);">Administrativo</div><div style="font-size:.67rem;color:'+(_admVencs.length?'var(--red)':'var(--text3)')+';margin-top:1px;">'+_admSub+'</div></div>'+(_admVencs.length?'<span style="font-size:.68rem;font-weight:700;min-width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+_admVencs.length+'</span>':'')+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(94,92,230,.45)" stroke-width="2.2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></div></div>';
+  hR+='<div class="cring-wrap" style="--cc:rgba(94,92,230,.9);margin-bottom:8px;"><div class="cring-el"></div>'+
+  '<div class="gc tap" onclick="setDetalleTab(\'admin\')" style="padding:0;overflow:hidden;cursor:pointer;" ontouchstart="this.style.transform=\'scale(.98)\'" ontouchend="this.style.transform=\'\'"><div style="padding:12px 14px;display:flex;align-items:center;gap:11px;">'+adminSvgIcon(20)+'<div style="flex:1;min-width:0;"><div style="font-size:.84rem;font-weight:700;color:var(--text1);">Administrativo</div><div style="font-size:.67rem;color:'+(_admVencs.length?'var(--red)':'var(--text3)')+';margin-top:1px;">'+_admSub+'</div></div>'+(_admVencs.length?'<span style="font-size:.68rem;font-weight:700;min-width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+_admVencs.length+'</span>':'')+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(94,92,230,.45)" stroke-width="2.2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></div></div></div>';
 
   /* RIGHT: ANTENAS RF (RM) */
   if(eq.cat==='RM'){
@@ -11859,8 +11870,8 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="7.1.0";
-var APP_BUILD="17/06/26 22:00";
+var APP_DISPLAY_VERSION="7.2.0";
+var APP_BUILD="17/06/26 23:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
