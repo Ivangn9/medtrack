@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MedTrack — Preview todas las cards</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@700;800;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0;}
+
+/* ══════════════════════════════════════
+   FONDO EXACTO DE LA APP (dark mode)
+══════════════════════════════════════ */
+body{
+  font-family:'Inter',sans-serif;
+  color:#f2f2f7;
+  background:#06091a;
+  min-height:100vh;
+  padding:20px 14px 60px;
+  position:relative;
+}
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 130% 70% at 50% -5%, rgba(30,60,180,.30) 0%, transparent 55%),
+    radial-gradient(ellipse 90% 60% at -5% 100%, rgba(20,50,140,.20) 0%, transparent 50%),
+    radial-gradient(ellipse 70% 50% at 105% 55%, rgba(40,30,120,.15) 0%, transparent 50%),
+    radial-gradient(ellipse 50% 40% at 50% 100%, rgba(10,60,80,.15) 0%, transparent 50%),
+    linear-gradient(175deg,#06091a 0%,#07091e 35%,#060820 65%,#050718 100%);
+}
+body::after{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 60% 45% at 85% 15%, rgba(80,50,200,.12) 0%, transparent 50%),
+    radial-gradient(ellipse 50% 55% at 15% 75%, rgba(20,80,100,.10) 0%, transparent 50%),
+    radial-gradient(ellipse 40% 35% at 55% 50%, rgba(60,30,80,.08) 0%, transparent 50%);
+}
+
+/* todo el contenido encima del fondo */
+.page{position:relative;z-index:1;}
+
+/* ══════════════════════════════════════
+   GLASS CARD — igual a la app real
+══════════════════════════════════════ */
+.gc{
+  background:rgba(32,31,33,.85);
+  backdrop-filter:blur(18px) saturate(150%);
+  -webkit-backdrop-filter:blur(18px) saturate(150%);
+  border:1px solid rgba(255,255,255,.09);
+  box-shadow:
+    inset 0 1.5px 0 rgba(255,255,255,.14),
+    inset 0 -1px 0 rgba(0,0,0,.15),
+    0 2px 4px rgba(0,0,0,.3),
+    0 8px 28px rgba(0,0,0,.35);
+  border-radius:14px;
+  position:relative;
+  overflow:hidden;
+}
+.gc::before{
+  content:'';position:absolute;inset:0;border-radius:inherit;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity:.030;mix-blend-mode:luminosity;pointer-events:none;z-index:0;
+}
+
+/* ══════════════════════════════════════
+   CRING WRAP — igual a la app real
+══════════════════════════════════════ */
+.cring-wrap{position:relative;border-radius:14px;}
+.cring-el{
+  position:absolute;inset:0;border-radius:inherit;overflow:hidden;
+  padding:2px;
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:destination-out;mask-composite:exclude;
+  pointer-events:none;z-index:2;
+}
+.cring-el::before{
+  content:'';position:absolute;inset:-110%;width:320%;height:320%;
+  background:conic-gradient(from 0deg,transparent 0deg,var(--cc,#818cf8) 48deg,transparent 96deg);
+  animation:cring-spin 5s linear infinite;transform-origin:center;
+}
+@keyframes cring-spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+.cring-wrap>.gc{position:relative;z-index:1;}
+
+/* ══════════════════════════════════════
+   LAYOUTS
+══════════════════════════════════════ */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+.col{display:flex;flex-direction:column;gap:8px;}
+.two-col{display:grid;grid-template-columns:3fr 2fr;gap:12px;align-items:start;}
+
+/* ══════════════════════════════════════
+   SECTION LABEL
+══════════════════════════════════════ */
+.sec{
+  font-size:.58rem;text-transform:uppercase;letter-spacing:.10em;font-weight:700;
+  color:rgba(173,198,255,.5);margin-bottom:8px;margin-top:24px;
+  display:flex;align-items:center;gap:8px;
+}
+.sec::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.06);}
+
+/* ══════════════════════════════════════
+   PILL / CHIP
+══════════════════════════════════════ */
+.pill{
+  display:inline-flex;align-items:center;gap:3px;
+  border-radius:20px;padding:3px 9px;font-size:.62rem;font-weight:700;
+}
+
+/* ibox */
+.ibox{padding:4px 0;}
+.ibox-l{font-size:.58rem;color:rgba(235,235,245,.4);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px;}
+.ibox-v{font-size:.86rem;font-weight:700;color:#f2f2f7;}
+.det-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;}
+
+/* Page title */
+.page-title{font-family:'Hanken Grotesk',sans-serif;font-weight:900;font-size:1.3rem;color:#f2f2f7;letter-spacing:-.02em;margin-bottom:3px;}
+.page-sub{font-size:.72rem;color:rgba(173,198,255,.5);margin-bottom:4px;}
+</style>
+</head>
+<body>
+<div class="page">
+
+<div class="page-title">MedTrack — Todas las cards con fondo real</div>
+<div class="page-sub">Fondo idéntico al de la app · Borde dinámico respeta el color de cada sección</div>
+
+<!-- ══════════════════════════════════════
+     1 · CATEGORÍAS
+══════════════════════════════════════ -->
+<div class="sec">1 · Categorías (pantalla principal)</div>
+<div class="g2">
+
+  <div class="cring-wrap" style="--cc:#818cf8;">
+    <div class="cring-el"></div>
+    <div class="gc" style="padding:0;overflow:hidden;min-height:118px;">
+      <div style="padding:16px 14px;display:flex;flex-direction:column;justify-content:space-between;height:100%;position:relative;overflow:hidden;">
+        <div style="font-weight:900;font-size:2.4rem;color:#818cf8;line-height:1;letter-spacing:-2px;z-index:1;">12</div>
+        <div style="z-index:1;">
+          <div style="font-weight:800;font-size:1rem;color:#f2f2f7;margin-bottom:6px;">Resonadores RM</div>
+          <span class="pill" style="background:rgba(52,199,89,.12);border:1px solid rgba(52,199,89,.28);color:#34c759;">✅ Operativos</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cring-wrap" style="--cc:#f59e0b;">
+    <div class="cring-el"></div>
+    <div class="gc" style="padding:0;overflow:hidden;min-height:118px;">
+      <div style="padding:16px 14px;display:flex;flex-direction:column;justify-content:space-between;height:100%;position:relative;overflow:hidden;">
+        <div style="font-weight:900;font-size:2.4rem;color:#f59e0b;line-height:1;letter-spacing:-2px;z-index:1;">8</div>
+        <div style="z-index:1;">
+          <div style="font-weight:800;font-size:1rem;color:#f2f2f7;margin-bottom:6px;">Tomógrafos TC</div>
+          <span class="pill" style="background:rgba(255,149,0,.12);border:1px solid rgba(255,149,0,.28);color:#ff9500;">⚠️ 2 urgentes</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cring-wrap" style="--cc:#34d399;">
+    <div class="cring-el"></div>
+    <div class="gc" style="padding:0;overflow:hidden;min-height:118px;">
+      <div style="padding:16px 14px;display:flex;flex-direction:column;justify-content:space-between;height:100%;position:relative;overflow:hidden;">
+        <div style="font-weight:900;font-size:2.4rem;color:#34d399;line-height:1;letter-spacing:-2px;z-index:1;">5</div>
+        <div style="z-index:1;">
+          <div style="font-weight:800;font-size:1rem;color:#f2f2f7;margin-bottom:6px;">Mamógrafos MG</div>
+          <span class="pill" style="background:rgba(52,199,89,.12);border:1px solid rgba(52,199,89,.28);color:#34c759;">✅ Operativos</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cring-wrap" style="--cc:#06b6d4;">
+    <div class="cring-el"></div>
+    <div class="gc" style="padding:0;overflow:hidden;min-height:118px;">
+      <div style="padding:16px 14px;display:flex;flex-direction:column;justify-content:space-between;height:100%;position:relative;overflow:hidden;">
+        <div style="font-weight:900;font-size:2.4rem;color:#06b6d4;line-height:1;letter-spacing:-2px;z-index:1;">14</div>
+        <div style="z-index:1;">
+          <div style="font-weight:800;font-size:1rem;color:#f2f2f7;margin-bottom:6px;">Aires Acondicionados</div>
+          <span class="pill" style="background:rgba(52,199,89,.12);border:1px solid rgba(52,199,89,.28);color:#34c759;">✅ Operativos</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cring-wrap" style="--cc:#f472b6;">
+    <div class="cring-el"></div>
+    <div class="gc" style="padding:0;overflow:hidden;min-height:118px;">
+      <div style="padding:16px 14px;display:flex;flex-direction:column;justify-content:space-between;height:100%;position:relative;overflow:hidden;">
+        <div style="font-weight:900;font-size:2.4rem;color:#f472b6;line-height:1;letter-spacing:-2px;z-index:1;">3</div>
+        <div style="z-index:1;">
+          <div style="font-weight:800;font-size:1rem;color:#f2f2f7;margin-bottom:6px;">Rx / Radiología</div>
+          <span class="pill" style="background:rgba(255,59,48,.12);border:1px solid rgba(255,59,48,.28);color:#ff3b30;">🚫 1 fuera serv.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cring-wrap" style="--cc:#a78bfa;">
+    <div class="cring-el"></div>
+    <div class="gc" style="padding:0;overflow:hidden;min-height:118px;">
+      <div style="padding:16px 14px;display:flex;flex-direction:column;justify-content:space-between;height:100%;position:relative;overflow:hidden;">
+        <div style="font-weight:900;font-size:2.4rem;color:#a78bfa;line-height:1;letter-spacing:-2px;z-index:1;">6</div>
+        <div style="z-index:1;">
+          <div style="font-weight:800;font-size:1rem;color:#f2f2f7;margin-bottom:6px;">Workstations</div>
+          <span class="pill" style="background:rgba(52,199,89,.12);border:1px solid rgba(52,199,89,.28);color:#34c759;">✅ Operativos</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cring-wrap" style="--cc:#fb923c;">
+    <div class="cring-el"></div>
+    <div class="gc" style="padding:0;overflow:hidden;min-height:118px;">
+      <div style="padding:16px 14px;display:flex;flex-direction:column;justify-content:space-between;height:100%;position:relative;overflow:hidden;">
+        <div style="font-weight:900;font-size:2.4rem;color:#fb923c;line-height:1;letter-spacing:-2px;z-index:1;">4</div>
+        <div style="z-index:1;">
+          <div style="font-weight:800;font-size:1rem;color:#f2f2f7;margin-bottom:6px;">Bombas / Infusión</div>
+          <span class="pill" style="background:rgba(52,199,89,.12);border:1px solid rgba(52,199,89,.28);color:#34c759;">✅ Operativos</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cring-wrap" style="--cc:#e879f9;">
+    <div class="cring-el"></div>
+    <div class="gc" style="padding:0;overflow:hidden;min-height:118px;">
+      <div style="padding:16px 14px;display:flex;flex-direction:column;justify-content:space-between;height:100%;position:relative;overflow:hidden;">
+        <div style="font-weight:900;font-size:2.4rem;color:#e879f9;line-height:1;letter-spacing:-2px;z-index:1;">2</div>
+        <div style="z-index:1;">
+          <div style="font-weight:800;font-size:1rem;color:#f2f2f7;margin-bottom:6px;">Odontología</div>
+          <span class="pill" style="background:rgba(52,199,89,.12);border:1px solid rgba(52,199,89,.28);color:#34c759;">✅ Operativos</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════
+     2 · LISTA DE EQUIPOS
+══════════════════════════════════════ -->
+<div class="sec">2 · Lista de equipos</div>
+<div class="col">
+
+  <div class="gc" style="padding:13px 14px;border-left:4px solid #818cf8;cursor:pointer;">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div style="width:40px;height:40px;border-radius:12px;background:rgba(129,140,248,.12);border:1px solid rgba(129,140,248,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.1rem;">🧲</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:700;font-size:.9rem;">Resonador Magnético 1.5T</div>
+        <div style="font-size:.7rem;color:rgba(235,235,245,.45);margin-top:1px;">Sala 1 · GE Healthcare · RM</div>
+        <div style="display:flex;gap:5px;margin-top:5px;flex-wrap:wrap;">
+          <span class="pill" style="background:rgba(52,199,89,.12);border:1px solid rgba(52,199,89,.25);color:#34c759;font-size:.6rem;">✅ OK</span>
+          <span class="pill" style="background:rgba(8,145,178,.10);border:1px solid rgba(8,145,178,.22);color:#22d3ee;font-size:.6rem;">❄️ Líq 78%</span>
+          <span class="pill" style="background:rgba(129,140,248,.10);border:1px solid rgba(129,140,248,.22);color:#818cf8;font-size:.6rem;">🔧 42d prox</span>
+        </div>
+      </div>
+      <div style="color:rgba(235,235,245,.3);font-size:1.1rem;">›</div>
+    </div>
+  </div>
+
+  <div class="gc" style="padding:13px 14px;border-left:4px solid #f59e0b;cursor:pointer;">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div style="width:40px;height:40px;border-radius:12px;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.1rem;">🩻</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:700;font-size:.9rem;">Tomógrafo 128 Cortes</div>
+        <div style="font-size:.7rem;color:rgba(235,235,245,.45);margin-top:1px;">Sala TC · Siemens · TC</div>
+        <div style="display:flex;gap:5px;margin-top:5px;flex-wrap:wrap;">
+          <span class="pill" style="background:rgba(255,149,0,.12);border:1px solid rgba(255,149,0,.25);color:#ff9500;font-size:.6rem;">⚠️ 8d URG</span>
+          <span class="pill" style="background:rgba(255,59,48,.10);border:1px solid rgba(255,59,48,.22);color:#ff3b30;font-size:.6rem;">🔴 1 roto</span>
+        </div>
+      </div>
+      <div style="color:rgba(235,235,245,.3);font-size:1.1rem;">›</div>
+    </div>
+  </div>
+
+  <div class="gc" style="padding:13px 14px;border-left:4px solid #34d399;cursor:pointer;">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div style="width:40px;height:40px;border-radius:12px;background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.1rem;">🩺</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:700;font-size:.9rem;">Mamógrafo Digital 3D</div>
+        <div style="font-size:.7rem;color:rgba(235,235,245,.45);margin-top:1px;">Sala MG · Hologic · MG</div>
+        <div style="display:flex;gap:5px;margin-top:5px;flex-wrap:wrap;">
+          <span class="pill" style="background:rgba(52,199,89,.12);border:1px solid rgba(52,199,89,.25);color:#34c759;font-size:.6rem;">✅ OK</span>
+          <span class="pill" style="background:rgba(129,140,248,.10);border:1px solid rgba(129,140,248,.22);color:#818cf8;font-size:.6rem;">🔧 28d prox</span>
+        </div>
+      </div>
+      <div style="color:rgba(235,235,245,.3);font-size:1.1rem;">›</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════
+     3 · DETALLE — SIDEBAR NAVEGACIÓN
+══════════════════════════════════════ -->
+<div class="sec">3 · Sidebar del equipo — navegación</div>
+<div class="two-col">
+  <div class="col">
+
+    <div class="cring-wrap" style="--cc:rgba(48,209,88,.5);">
+      <div class="cring-el"></div>
+      <div class="gc" style="padding:11px 14px;display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,rgba(48,209,88,.05) 0%,transparent 100%);">
+        <div style="flex:1;">
+          <div style="font-size:.82rem;font-weight:700;">Componentes del Equipo</div>
+          <div style="font-size:.67rem;color:rgba(235,235,245,.4);margin-top:1px;">12/12 OK</div>
+        </div>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(173,198,255,.4)" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </div>
+
+    <div class="cring-wrap" style="--cc:rgba(173,198,255,.9);">
+      <div class="cring-el"></div>
+      <div class="gc" style="padding:11px 14px;display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,rgba(173,198,255,.04) 0%,transparent 100%);">
+        <div style="flex:1;">
+          <div style="font-size:.82rem;font-weight:700;">Línea de Tiempo</div>
+          <div style="font-size:.67rem;color:rgba(235,235,245,.4);margin-top:1px;">Instalación · Mantenimientos · Fallas</div>
+        </div>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(173,198,255,.4)" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </div>
+
+    <div class="cring-wrap" style="--cc:rgba(255,59,48,.9);">
+      <div class="cring-el"></div>
+      <div class="gc" style="padding:0;overflow:hidden;">
+        <div style="background:linear-gradient(90deg,rgba(255,59,48,.12),rgba(255,69,58,.05));padding:8px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(255,59,48,.08);">
+          <span style="font-size:.7rem;font-weight:700;color:rgba(220,38,38,.9);text-transform:uppercase;letter-spacing:.06em;flex:1;">Roturas y Fallas</span>
+          <span style="font-size:.6rem;font-weight:700;padding:1px 7px;border-radius:20px;background:rgba(220,38,38,.15);color:#dc2626;border:1px solid rgba(220,38,38,.22);">2 activas</span>
+        </div>
+        <div style="padding:8px 14px;font-size:.74rem;color:rgba(235,235,245,.45);">Ver historial completo de roturas</div>
+      </div>
+    </div>
+
+    <div class="cring-wrap" style="--cc:rgba(94,92,230,.9);">
+      <div class="cring-el"></div>
+      <div class="gc" style="padding:12px 14px;display:flex;align-items:center;gap:10px;">
+        <div style="flex:1;">
+          <div style="font-size:.84rem;font-weight:700;">Administrativo</div>
+          <div style="font-size:.67rem;color:rgba(235,235,245,.4);margin-top:1px;">Seguro · EPEC · R.U.GE.PRE.SA</div>
+        </div>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(94,92,230,.4)" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="col">
+
+    <div class="cring-wrap" style="--cc:rgba(139,92,246,.9);">
+      <div class="cring-el"></div>
+      <div class="gc" style="padding:0;overflow:hidden;">
+        <div style="background:linear-gradient(90deg,rgba(139,92,246,.12),rgba(167,139,250,.05));padding:8px 14px;border-bottom:1px solid rgba(139,92,246,.08);">
+          <span style="font-size:.66rem;font-weight:700;color:rgba(139,92,246,.9);text-transform:uppercase;letter-spacing:.06em;">📊 MTBF / MTTR</span>
+        </div>
+        <div class="det-grid" style="padding:10px 14px;">
+          <div class="ibox"><div class="ibox-l">MTBF</div><div class="ibox-v" style="font-family:'JetBrains Mono',monospace;font-size:.82rem;">342d</div></div>
+          <div class="ibox"><div class="ibox-l">Disponib.</div><div class="ibox-v" style="color:#34d399;font-family:'JetBrains Mono',monospace;font-size:.82rem;">97.2%</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cring-wrap" style="--cc:#f59e0b;">
+      <div class="cring-el"></div>
+      <div class="gc" style="padding:0;overflow:hidden;">
+        <div style="background:linear-gradient(90deg,rgba(245,158,11,.12),rgba(245,158,11,.04));padding:8px 14px;border-bottom:1px solid rgba(245,158,11,.09);display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:.66rem;font-weight:700;color:#f59e0b;text-transform:uppercase;letter-spacing:.06em;">⚠️ Riesgo</span>
+          <span style="font-size:.7rem;font-weight:800;color:#f59e0b;">MEDIO</span>
+        </div>
+        <div class="det-grid" style="padding:10px 14px;">
+          <div class="ibox"><div class="ibox-l">Criticidad</div><div class="ibox-v" style="font-size:.82rem;">4/5</div></div>
+          <div class="ibox"><div class="ibox-l">Antigüedad</div><div class="ibox-v" style="font-size:.82rem;">3/5</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cring-wrap" style="--cc:#34d399;">
+      <div class="cring-el"></div>
+      <div class="gc" style="padding:0;overflow:hidden;">
+        <div style="background:linear-gradient(90deg,rgba(52,211,153,.10),rgba(52,211,153,.04));padding:8px 14px;border-bottom:1px solid rgba(52,211,153,.08);display:flex;justify-content:space-between;">
+          <span style="font-size:.66rem;font-weight:700;color:#34d399;text-transform:uppercase;letter-spacing:.06em;">📈 Ciclo de Vida</span>
+          <span style="font-size:.68rem;font-weight:700;color:#34d399;">✅ OK</span>
+        </div>
+        <div class="det-grid" style="padding:10px 14px;">
+          <div class="ibox"><div class="ibox-l">Antigüedad</div><div class="ibox-v" style="font-family:'JetBrains Mono',monospace;font-size:.82rem;">6.2 años</div></div>
+          <div class="ibox"><div class="ibox-l">Vida útil</div><div class="ibox-v" style="color:#34d399;font-family:'JetBrains Mono',monospace;font-size:.82rem;">62%</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     4 · REFRIGERACIÓN (RM)
+══════════════════════════════════════ -->
+<div class="sec">4 · Refrigeración — Estado GE Healthcare</div>
+<div class="col">
+
+  <div class="gc" style="padding:0;overflow:hidden;border-left:4px solid rgba(99,102,241,.5);">
+    <div style="background:linear-gradient(90deg,rgba(99,102,241,.12),rgba(139,92,246,.05));padding:8px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(99,102,241,.08);">
+      <span style="font-size:.7rem;font-weight:700;color:#818cf8;text-transform:uppercase;letter-spacing:.06em;flex:1;">📱 Estado GE Healthcare</span>
+      <button style="padding:3px 10px;border-radius:20px;font-size:.62rem;font-weight:700;cursor:pointer;border:1.5px solid rgba(99,102,241,.28);background:rgba(99,102,241,.10);color:#818cf8;">Actualizar</button>
+    </div>
+    <div style="padding:12px 14px;display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;">
+      <div>
+        <div style="font-size:.56rem;color:rgba(235,235,245,.4);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Compresor Helio</div>
+        <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:.68rem;font-weight:700;background:rgba(52,199,89,.12);color:#34c759;">✅ Conectado</span>
+      </div>
+      <div>
+        <div style="font-size:.56rem;color:rgba(235,235,245,.4);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Efic. Criostato</div>
+        <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:.68rem;font-weight:700;background:rgba(245,158,11,.12);color:#f59e0b;">⚠️ Baja</span>
+      </div>
+      <div>
+        <div style="font-size:.56rem;color:rgba(235,235,245,.4);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;">Flujo Chiller</div>
+        <div style="font-size:1rem;font-weight:900;font-family:'JetBrains Mono',monospace;color:#38bdf8;">9.46 <span style="font-size:.58rem;font-weight:400;color:rgba(235,235,245,.4);">L/min</span></div>
+      </div>
+      <div>
+        <div style="font-size:.56rem;color:rgba(235,235,245,.4);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;">Temperatura Chiller</div>
+        <div style="font-size:1rem;font-weight:900;font-family:'JetBrains Mono',monospace;color:#f59e0b;">8.3 <span style="font-size:.58rem;font-weight:400;color:rgba(235,235,245,.4);">°C</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="gc" style="padding:0;overflow:hidden;border-left:4px solid rgba(99,179,237,.5);">
+    <div style="background:linear-gradient(90deg,rgba(8,145,178,.12),rgba(99,179,237,.05));padding:8px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(99,179,237,.07);">
+      <span style="font-size:.7rem;font-weight:700;color:#0891b2;text-transform:uppercase;letter-spacing:.06em;">❄️ Refrigeración — Chiller</span>
+    </div>
+    <div style="padding:12px 14px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+        <span style="font-size:.82rem;font-weight:700;padding:4px 12px;border-radius:20px;background:rgba(22,163,74,.14);color:#16a34a;">✅ Operativo</span>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <button style="flex:1;padding:6px;border-radius:10px;font-size:.68rem;font-weight:600;cursor:pointer;border:1.5px solid rgba(22,163,74,.28);background:rgba(22,163,74,.15);color:#16a34a;">✅ Operativo</button>
+        <button style="flex:1;padding:6px;border-radius:10px;font-size:.68rem;font-weight:600;cursor:pointer;border:1.5px solid rgba(217,119,6,.25);background:rgba(217,119,6,.06);color:#d97706;">🔧 Service</button>
+        <button style="flex:1;padding:6px;border-radius:10px;font-size:.68rem;font-weight:600;cursor:pointer;border:1.5px solid rgba(220,38,38,.25);background:rgba(220,38,38,.06);color:#dc2626;">🔴 Rotura</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="gc" style="padding:0;overflow:hidden;border-left:4px solid rgba(99,179,237,.4);">
+    <div style="background:linear-gradient(90deg,rgba(99,179,237,.10),rgba(8,145,178,.04));padding:8px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(99,179,237,.06);">
+      <span style="font-size:.7rem;font-weight:700;color:#63b3ed;text-transform:uppercase;letter-spacing:.06em;flex:1;">⚗️ Helio Gaseoso</span>
+    </div>
+    <div style="padding:12px 14px;display:flex;align-items:baseline;gap:6px;">
+      <span style="font-size:1.5rem;font-weight:900;font-family:'JetBrains Mono',monospace;color:#63b3ed;">2.1</span>
+      <span style="font-size:.72rem;color:rgba(235,235,245,.4);">MPa</span>
+      <span style="font-size:.65rem;color:rgba(235,235,245,.45);margin-left:4px;">Óptimo: 2.0–2.3 MPa</span>
+    </div>
+  </div>
+
+  <div class="gc" style="padding:0;overflow:hidden;border-left:4px solid rgba(8,145,178,.5);">
+    <div style="background:linear-gradient(90deg,rgba(8,145,178,.12),rgba(8,145,178,.04));padding:8px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(8,145,178,.08);">
+      <span style="font-size:.7rem;font-weight:700;color:#0891b2;text-transform:uppercase;letter-spacing:.06em;flex:1;">🧊 Helio Líquido</span>
+    </div>
+    <div style="padding:12px 14px;">
+      <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px;">
+        <span style="font-size:1.8rem;font-weight:900;font-family:'JetBrains Mono',monospace;color:#38bdf8;">78</span>
+        <span style="font-size:.82rem;color:rgba(235,235,245,.4);">%</span>
+        <span style="font-size:.68rem;color:rgba(235,235,245,.45);">· 3.2 PSI</span>
+      </div>
+      <div style="background:rgba(255,255,255,.06);border-radius:6px;height:6px;overflow:hidden;">
+        <div style="width:78%;height:100%;background:linear-gradient(90deg,#0891b2,#38bdf8);border-radius:6px;"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════
+     5 · UPS
+══════════════════════════════════════ -->
+<div class="sec">5 · UPS</div>
+<div class="col">
+
+  <div class="gc" style="border:1.5px solid rgba(245,158,11,.35);padding:0;overflow:hidden;">
+    <div style="height:3px;background:linear-gradient(90deg,#f59e0b,#fbbf24,#f59e0b);background-size:200%;animation:flowH .8s linear infinite;"></div>
+    <div style="display:flex;align-items:center;gap:14px;padding:13px 16px;background:linear-gradient(135deg,rgba(245,158,11,.10),rgba(245,158,11,.03));">
+      <div style="width:46px;height:46px;border-radius:12px;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.28);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.3rem;">🔋</div>
+      <div style="flex:1;">
+        <div style="font-weight:900;font-size:.92rem;">UPS Sala Resonador 1</div>
+        <div style="font-size:.7rem;color:rgba(235,235,245,.45);margin-top:2px;">APC Smart-UPS 3000 · Sala 1</div>
+        <div style="display:flex;align-items:center;gap:5px;margin-top:6px;">
+          <div style="width:7px;height:7px;border-radius:50%;background:#34c759;box-shadow:0 0 6px #34c759;"></div>
+          <span style="font-size:.68rem;color:#34c759;font-weight:600;">En línea</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="gc" style="border:1.5px solid rgba(245,158,11,.35);padding:0;overflow:hidden;">
+    <div style="height:3px;background:linear-gradient(90deg,#f59e0b,#fbbf24,#f59e0b);background-size:200%;animation:flowH .8s linear infinite;"></div>
+    <div style="display:flex;align-items:center;gap:14px;padding:13px 16px;background:linear-gradient(135deg,rgba(245,158,11,.10),rgba(245,158,11,.03));">
+      <div style="width:46px;height:46px;border-radius:12px;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.28);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.3rem;">🔋</div>
+      <div style="flex:1;">
+        <div style="font-weight:900;font-size:.92rem;">UPS Sala TC</div>
+        <div style="font-size:.7rem;color:rgba(235,235,245,.45);margin-top:2px;">APC Smart-UPS 5000 · Sala TC</div>
+        <div style="display:flex;align-items:center;gap:5px;margin-top:6px;">
+          <div style="width:7px;height:7px;border-radius:50%;background:#ff9500;box-shadow:0 0 6px #ff9500;"></div>
+          <span style="font-size:.68rem;color:#ff9500;font-weight:600;">En batería</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+@keyframes flowH{from{background-position:200% 0;}to{background-position:-200% 0;}}
+
+<!-- ══════════════════════════════════════
+     6 · PM / AGENDA
+══════════════════════════════════════ -->
+<div class="sec">6 · PM — Agenda de mantenimientos</div>
+<div class="col">
+
+  <div class="gc" style="border-left:4px solid #818cf8;padding:0;overflow:hidden;">
+    <div style="padding:10px 14px;display:flex;align-items:center;gap:10px;">
+      <div style="flex:1;">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
+          <span style="font-size:.56rem;font-weight:700;padding:1px 6px;border-radius:10px;background:rgba(129,140,248,.15);color:#818cf8;border:1px solid rgba(129,140,248,.28);">Programado</span>
+          <div style="font-weight:700;font-size:.84rem;">Resonador 1.5T</div>
+        </div>
+        <div style="font-size:.68rem;color:rgba(235,235,245,.4);">RM · Sala 1 · 🕐 09:00–12:00 · 👤 Técnico GE</div>
+      </div>
+      <span style="font-size:.7rem;font-weight:700;padding:3px 9px;border-radius:20px;background:rgba(52,199,89,.12);color:#34c759;border:1px solid rgba(52,199,89,.22);flex-shrink:0;">42d</span>
+    </div>
+  </div>
+
+  <div class="gc" style="border-left:4px solid #f59e0b;padding:0;overflow:hidden;">
+    <div style="padding:10px 14px;display:flex;align-items:center;gap:10px;">
+      <div style="flex:1;">
+        <div style="font-weight:700;font-size:.84rem;margin-bottom:2px;">Tomógrafo 128 Cortes</div>
+        <div style="font-size:.68rem;color:rgba(235,235,245,.4);">TC · Sala TC · 🕐 14:00–17:00</div>
+      </div>
+      <span style="font-size:.7rem;font-weight:700;padding:3px 9px;border-radius:20px;background:rgba(255,149,0,.12);color:#ff9500;border:1px solid rgba(255,149,0,.22);flex-shrink:0;">8d URG</span>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════
+     7 · ÓRDENES DE TRABAJO
+══════════════════════════════════════ -->
+<div class="sec">7 · Órdenes de Trabajo (OT)</div>
+<div class="col">
+
+  <div class="gc" style="border-left:4px solid #f59e0b;padding:0;overflow:hidden;">
+    <div style="padding:10px 14px;display:flex;align-items:flex-start;gap:10px;">
+      <div style="flex:1;">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;flex-wrap:wrap;">
+          <span style="font-size:.56rem;font-weight:700;font-family:'JetBrains Mono',monospace;color:rgba(235,235,245,.4);">OT-2024-0012</span>
+          <span style="font-size:.58rem;font-weight:700;padding:1px 6px;border-radius:20px;background:rgba(255,149,0,.16);color:#f59e0b;border:1px solid rgba(255,149,0,.28);">En curso</span>
+          <span style="font-size:.58rem;font-weight:700;padding:1px 6px;border-radius:20px;background:rgba(255,59,48,.12);color:#ff3b30;border:1px solid rgba(255,59,48,.25);">Alta</span>
+        </div>
+        <div style="font-weight:700;font-size:.86rem;margin-bottom:2px;">Reemplazo de gradientes — RM</div>
+        <div style="font-size:.68rem;color:rgba(235,235,245,.4);">👤 Técnico GE · Sala 1</div>
+      </div>
+      <span style="font-size:.6rem;font-weight:700;color:#34c759;background:rgba(52,199,89,.12);padding:2px 7px;border-radius:10px;flex-shrink:0;">SLA 14h</span>
+    </div>
+  </div>
+
+  <div class="gc" style="border-left:4px solid rgba(139,92,246,.7);padding:0;overflow:hidden;">
+    <div style="padding:10px 14px;display:flex;align-items:flex-start;gap:10px;">
+      <div style="flex:1;">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;flex-wrap:wrap;">
+          <span style="font-size:.56rem;font-weight:700;font-family:'JetBrains Mono',monospace;color:rgba(235,235,245,.4);">OT-2024-0011</span>
+          <span style="font-size:.58rem;font-weight:700;padding:1px 6px;border-radius:20px;background:rgba(52,199,89,.12);color:#34c759;border:1px solid rgba(52,199,89,.25);">Completado</span>
+          <span style="font-size:.58rem;font-weight:700;padding:1px 6px;border-radius:20px;background:rgba(139,92,246,.14);color:#8b5cf6;border:1px solid rgba(139,92,246,.28);">Mejora</span>
+        </div>
+        <div style="font-weight:700;font-size:.86rem;margin-bottom:2px;">Actualización software consola v29.1</div>
+        <div style="font-size:.68rem;color:rgba(235,235,245,.4);">👤 Técnico Interno · Sala 1</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════
+     8 · STOCK / REPUESTOS
+══════════════════════════════════════ -->
+<div class="sec">8 · Stock de repuestos</div>
+<div class="col">
+
+  <div class="gc" style="border-left:4px solid #34c759;padding:0;overflow:hidden;">
+    <div style="padding:10px 14px;display:flex;align-items:center;gap:10px;">
+      <div style="flex:1;">
+        <div style="font-weight:700;font-size:.86rem;margin-bottom:2px;">Filtros de helio — GE 1.5T</div>
+        <div style="font-size:.68rem;color:rgba(235,235,245,.4);">Cód: FLT-GE-15 · GE Healthcare</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0;">
+        <div style="font-family:'JetBrains Mono',monospace;font-weight:700;color:#34c759;font-size:.88rem;">4 u</div>
+        <div style="font-size:.58rem;color:rgba(235,235,245,.4);">Mín: 2</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="gc" style="border-left:4px solid #ff9500;padding:0;overflow:hidden;">
+    <div style="padding:10px 14px;display:flex;align-items:center;gap:10px;">
+      <div style="flex:1;">
+        <div style="font-weight:700;font-size:.86rem;margin-bottom:2px;">Bobina superficie 8 canales</div>
+        <div style="font-size:.68rem;color:rgba(235,235,245,.4);">Cód: BOB-8CH · Siemens</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0;">
+        <div style="font-family:'JetBrains Mono',monospace;font-weight:700;color:#ff9500;font-size:.88rem;">1 u</div>
+        <div style="font-size:.58rem;color:#ff9500;">⚠️ Bajo mínimo</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="gc" style="border-left:4px solid #ff3b30;padding:0;overflow:hidden;">
+    <div style="padding:10px 14px;display:flex;align-items:center;gap:10px;">
+      <div style="flex:1;">
+        <div style="font-weight:700;font-size:.86rem;margin-bottom:2px;">Kit repuesto compresor</div>
+        <div style="font-size:.68rem;color:rgba(235,235,245,.4);">Cód: KIT-COMP · GE</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0;">
+        <div style="font-family:'JetBrains Mono',monospace;font-weight:700;color:#ff3b30;font-size:.88rem;">0 u</div>
+        <div style="font-size:.58rem;color:#ff3b30;">🔴 AGOTADO</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════
+     9 · MEJORAS
+══════════════════════════════════════ -->
+<div class="sec">9 · Mejoras</div>
+<div class="col">
+
+  <div class="gc" style="border-left:4px solid rgba(139,92,246,.45);padding:14px 16px;">
+    <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:6px;">
+      <span style="font-weight:800;font-size:.88rem;">Actualizar software consola v29.1</span>
+      <span style="background:rgba(255,149,0,.15);color:#ff9500;border-radius:20px;padding:2px 8px;font-size:.64rem;font-weight:700;">Pendiente</span>
+      <span style="background:rgba(139,92,246,.14);color:#8b5cf6;border-radius:20px;padding:2px 8px;font-size:.64rem;font-weight:700;">Alta</span>
+    </div>
+    <div style="font-size:.7rem;color:rgba(235,235,245,.4);">📅 12/05/2025 · RM — Resonador 1.5T</div>
+  </div>
+
+  <div class="gc" style="border-left:4px solid rgba(139,92,246,.45);padding:14px 16px;">
+    <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:6px;">
+      <span style="font-weight:800;font-size:.88rem;">Reemplazar bobina de hombro desgastada</span>
+      <span style="background:rgba(0,122,255,.14);color:#007aff;border-radius:20px;padding:2px 8px;font-size:.64rem;font-weight:700;">En curso</span>
+      <span style="background:rgba(139,92,246,.14);color:#8b5cf6;border-radius:20px;padding:2px 8px;font-size:.64rem;font-weight:700;">Normal</span>
+    </div>
+    <div style="font-size:.7rem;color:rgba(235,235,245,.4);">📅 03/06/2025 · RM — Resonador 1.5T</div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════
+     10 · ALERTAS
+══════════════════════════════════════ -->
+<div class="sec">10 · Alertas</div>
+<div class="col">
+
+  <div class="gc" style="border-left:4px solid #ff3b30;padding:13px 14px;">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div style="width:42px;height:42px;border-radius:12px;background:rgba(255,59,48,.12);border:1px solid rgba(255,59,48,.22);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;">🧲</div>
+      <div style="flex:1;">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">
+          <span style="font-size:.58rem;font-weight:700;padding:2px 7px;border-radius:20px;background:rgba(255,59,48,.14);color:#ff3b30;border:1px solid rgba(255,59,48,.25);">🔴 Crítico</span>
+        </div>
+        <div style="font-size:.82rem;font-weight:700;">Resonador 1.5T</div>
+        <div style="font-size:.68rem;color:rgba(235,235,245,.4);">Mantenimiento VENCIDO · Sala 1</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="gc" style="border-left:4px solid #f59e0b;padding:13px 14px;">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div style="width:42px;height:42px;border-radius:12px;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.22);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;">🩻</div>
+      <div style="flex:1;">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">
+          <span style="font-size:.58rem;font-weight:700;padding:2px 7px;border-radius:20px;background:rgba(245,158,11,.14);color:#f59e0b;border:1px solid rgba(245,158,11,.25);">⚠️ Advertencia</span>
+        </div>
+        <div style="font-size:.82rem;font-weight:700;">Tomógrafo 128 Cortes</div>
+        <div style="font-size:.68rem;color:rgba(235,235,245,.4);">Mantenimiento urgente en 8 días</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════
+     11 · HEADERS SUB-TABS (Admin / Compon. / Fallas)
+══════════════════════════════════════ -->
+<div class="sec">11 · Headers de sub-tabs</div>
+<div class="col">
+
+  <div class="gc" style="border-left:4px solid rgba(94,92,230,.5);padding:0;overflow:hidden;">
+    <div style="background:linear-gradient(90deg,rgba(94,92,230,.12),rgba(94,92,230,.04));padding:9px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(94,92,230,.08);">
+      <span style="font-size:.7rem;font-weight:700;color:#5e5ce6;text-transform:uppercase;letter-spacing:.06em;flex:1;">🗂 Administrativo</span>
+      <button style="padding:4px 10px;border-radius:20px;background:rgba(94,92,230,.10);border:1.5px solid rgba(94,92,230,.25);color:#5e5ce6;font-weight:700;font-size:.68rem;cursor:pointer;">✏️ Editar</button>
+    </div>
+    <div style="padding:10px 14px;font-size:.76rem;color:rgba(235,235,245,.45);">Seguro · EPEC · Habilitación RUGEPRESA</div>
+  </div>
+
+  <div class="gc" style="border-left:4px solid rgba(173,198,255,.5);padding:0;overflow:hidden;">
+    <div style="background:linear-gradient(90deg,rgba(173,198,255,.10),rgba(173,198,255,.03));padding:9px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(173,198,255,.06);">
+      <span style="font-size:.7rem;font-weight:700;color:#adc6ff;text-transform:uppercase;letter-spacing:.06em;flex:1;">🔧 Componentes del Equipo</span>
+      <span style="font-size:.66rem;font-weight:700;color:#34d399;">12/12 OK</span>
+    </div>
+    <div style="padding:10px 14px;font-size:.76rem;color:rgba(235,235,245,.45);">Todos los componentes en estado óptimo</div>
+  </div>
+
+  <div class="gc" style="border-left:4px solid rgba(255,59,48,.45);padding:0;overflow:hidden;">
+    <div style="background:linear-gradient(90deg,rgba(255,59,48,.12),rgba(255,69,58,.05));padding:9px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(255,59,48,.08);">
+      <span style="font-size:.7rem;font-weight:700;color:rgba(220,38,38,.9);text-transform:uppercase;letter-spacing:.06em;flex:1;">🔴 Roturas y Fallas</span>
+      <span style="font-size:.6rem;font-weight:700;padding:1px 7px;border-radius:20px;background:rgba(220,38,38,.14);color:#dc2626;border:1px solid rgba(220,38,38,.22);">2 activas</span>
+    </div>
+    <div style="padding:10px 14px;font-size:.76rem;color:rgba(235,235,245,.45);">Historial completo de roturas y reparaciones</div>
+  </div>
+
+</div>
+
+<div style="height:40px;"></div>
+</div><!-- .page -->
+</body>
+</html>
