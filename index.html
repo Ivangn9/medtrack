@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.18.360 -->
+<!-- v2026.06.18.375 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.18.360">
+<meta name="app-version" content="v2026.06.18.375">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3532,6 +3532,104 @@ function printQRCard(){
   var card=document.getElementById('qr-card');if(!card)return;
   var w=window.open('','_blank','width=400,height=500');
   w.document.write('<html><head><title>QR Equipo</title><style>body{margin:0;display:flex;justify-content:center;align-items:center;min-height:100vh;background:#fff;font-family:-apple-system,sans-serif;}@media print{body{margin:0;}}</style></head><body>'+card.outerHTML+'<script>window.onload=function(){window.print();window.close();}<\/script></body></html>');
+  w.document.close();
+}
+function openPrintQRModal(){
+  closeSbAjustesMenu();
+  var activeEqs=eqs.filter(function(e){return !e.baja;}).slice().sort(function(a,b){return a.nombre>b.nombre?1:-1;});
+  if(!activeEqs.length){showToast('Sin equipos activos','warn');return;}
+  var rows='';
+  activeEqs.forEach(function(eq){
+    var ci=catById(eq.cat);
+    rows+='<label style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;cursor:pointer;transition:background .12s;" onmouseover="this.style.background=\'rgba(0,113,227,.06)\'" onmouseout="this.style.background=\'\'">'+
+      '<input type="checkbox" class="qr-print-chk" value="'+eq.id+'" checked style="width:16px;height:16px;cursor:pointer;accent-color:var(--accent);">'+
+      '<span style="flex:1;min-width:0;">'+
+        '<span style="font-size:.84rem;font-weight:700;color:var(--text1);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+esc(eq.nombre)+'</span>'+
+        '<span style="font-size:.66rem;color:var(--text3);">'+esc(ci.label||eq.cat)+(eq.ubicacion?' · '+esc(eq.ubicacion):'')+'</span>'+
+      '</span>'+
+    '</label>';
+  });
+  openModal(
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">'+
+    '<div class="modal-title">🖨 Imprimir QR Equipos</div>'+
+    '<button class="modal-close" onclick="closeModal()">✕</button></div>'+
+    '<div style="font-size:.75rem;color:var(--text3);margin-bottom:10px;">Seleccioná los equipos a imprimir. Se imprimen 6 tarjetas por página.</div>'+
+    '<div style="display:flex;gap:8px;margin-bottom:10px;">'+
+      '<button onclick="document.querySelectorAll(\'.qr-print-chk\').forEach(function(c){c.checked=true;})" style="flex:1;padding:6px;border-radius:var(--r-pill);background:rgba(0,113,227,.1);border:1px solid rgba(0,113,227,.2);color:var(--accent);font-size:.72rem;font-weight:700;cursor:pointer;">✅ Todos</button>'+
+      '<button onclick="document.querySelectorAll(\'.qr-print-chk\').forEach(function(c){c.checked=false;})" style="flex:1;padding:6px;border-radius:var(--r-pill);background:rgba(120,120,128,.08);border:1px solid rgba(120,120,128,.15);color:var(--text3);font-size:.72rem;font-weight:700;cursor:pointer;">◻ Ninguno</button>'+
+    '</div>'+
+    '<div style="max-height:340px;overflow-y:auto;border:1px solid rgba(120,120,128,.15);border-radius:14px;padding:6px;">'+rows+'</div>'+
+    '<div style="margin-top:14px;display:flex;gap:8px;">'+
+      '<button onclick="closeModal()" style="flex:1;padding:12px;border-radius:var(--r-md);background:rgba(120,120,128,.1);border:1px solid rgba(120,120,128,.2);color:var(--text2);font-weight:700;font-size:.82rem;cursor:pointer;">Cancelar</button>'+
+      '<button onclick="_doPrintQR()" style="flex:2;padding:12px;border-radius:var(--r-md);background:rgba(0,113,227,.12);border:1.5px solid rgba(0,113,227,.25);color:var(--accent);font-weight:700;font-size:.82rem;cursor:pointer;">🖨 Imprimir seleccionados</button>'+
+    '</div>'
+  );
+}
+function _doPrintQR(){
+  var chks=document.querySelectorAll('.qr-print-chk:checked');
+  var ids=[];
+  for(var i=0;i<chks.length;i++){ids.push(chks[i].value);}
+  if(!ids.length){showToast('Seleccioná al menos un equipo','warn');return;}
+  closeModal();
+  var selectedEqs=ids.map(function(id){return eqs.find(function(e){return e.id===id;});}).filter(Boolean);
+  var baseUrl='https://ivangn9.github.io/medtrack/eq-public.html?id=';
+  var logoUrl=window.location.origin+window.location.pathname.replace('index.html','')+'logo.png';
+  // Build cards HTML
+  var cardsHtml='';
+  selectedEqs.forEach(function(eq,idx){
+    var ci=catById(eq.cat);
+    var url=baseUrl+eq.id;
+    cardsHtml+='<div class="qr-card" id="qrc-'+idx+'">'+
+      '<div class="qr-logo-row"><img src="'+logoUrl+'" alt="CIMA" class="qr-logo" onerror="this.style.display=\'none\'"></div>'+
+      '<div class="qr-box" id="qrbox-'+idx+'" data-url="'+url+'"></div>'+
+      '<div class="qr-name">'+eq.nombre.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div>'+
+      '<div class="qr-sub">'+ci.label+(eq.ubicacion?' · '+eq.ubicacion:'')+'</div>'+
+      (eq.serie?'<div class="qr-serie">SID: '+eq.serie+'</div>':'')+
+      '<div class="qr-footer">Escanear para estado en tiempo real</div>'+
+    '</div>';
+  });
+  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>QR Equipos CIMA</title>'+
+    '<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/script>'+
+    '<style>'+
+      '*{box-sizing:border-box;margin:0;padding:0;}'+
+      'body{background:#fff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;}'+
+      '@media screen{body{padding:20px;background:#f0f2f5;}}'+
+      '.qr-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10mm;padding:10mm;}'+
+      '.qr-card{background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:10px 10px 8px;display:flex;flex-direction:column;align-items:center;break-inside:avoid;box-shadow:0 2px 8px rgba(0,0,0,.07);}'+
+      '.qr-logo-row{width:100%;display:flex;justify-content:center;margin-bottom:6px;}'+
+      '.qr-logo{height:26px;width:auto;object-fit:contain;}'+
+      '.qr-box{margin:6px 0;}'+
+      '.qr-box canvas,.qr-box img{display:block;}'+
+      '.qr-name{font-size:8pt;font-weight:800;color:#1a3a6b;text-align:center;margin-top:4px;line-height:1.3;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}'+
+      '.qr-sub{font-size:6.5pt;color:#64748b;text-align:center;margin-top:2px;font-weight:600;}'+
+      '.qr-serie{font-size:5.5pt;color:#94a3b8;text-align:center;margin-top:2px;font-family:monospace;}'+
+      '.qr-footer{font-size:5.5pt;color:#94a3b8;text-align:center;margin-top:4px;border-top:1px dashed #cbd5e1;padding-top:5px;width:100%;}'+
+      '@media print{'+
+        '@page{size:A4 portrait;margin:8mm;}'+
+        'body{background:#fff;padding:0;}'+
+        '.qr-grid{gap:6mm;padding:0;}'+
+        '.qr-card{box-shadow:none;border:1.5px solid #d1d9e0;}'+
+      '}'+
+    '</style>'+
+    '</head><body>'+
+    '<div class="qr-grid">'+cardsHtml+'</div>'+
+    '<script>'+
+    'window.onload=function(){'+
+      'var boxes=document.querySelectorAll(".qr-box");'+
+      'var pending=boxes.length;'+
+      'function tryPrint(){pending--;if(pending<=0){setTimeout(function(){window.print();},400);}}'+
+      'for(var i=0;i<boxes.length;i++){'+
+        '(function(box){'+
+          'try{new QRCode(box,{text:box.getAttribute("data-url"),width:130,height:130,colorDark:"#1a3a6b",colorLight:"#ffffff",correctLevel:QRCode.CorrectLevel.M});tryPrint();}'+
+          'catch(e){box.textContent="Error QR";tryPrint();}'+
+        '})(boxes[i]);'+
+      '}'+
+    '};'+
+    '<\/script>'+
+    '</body></html>';
+  var w=window.open('','_blank','width=900,height=700');
+  if(!w){showToast('Permitir ventanas emergentes para imprimir','warn');return;}
+  w.document.write(html);
   w.document.close();
 }
 function openModalMant(eqId){
@@ -11870,8 +11968,8 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="7.3.0";
-var APP_BUILD="18/06/26 02:00";
+var APP_DISPLAY_VERSION="7.3.1";
+var APP_BUILD="18/06/26 03:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
@@ -12526,6 +12624,9 @@ function rReporte(){
       <span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><polyline points="3 3 3 8 8 8"/></svg></span>Restaurar Copia
     </button>
   </div>
+  <button class="sb-sub-btn" onclick="openPrintQRModal()">
+    <span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></span>Imprimir QR Equipos
+  </button>
   <button class="sb-sub-btn" onclick="closeSbAjustesMenu();doUpdate()">
     <span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg></span>Actualizar App
   </button>
