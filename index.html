@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.18.390 -->
+<!-- v2026.06.18.391 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.18.390">
+<meta name="app-version" content="v2026.06.18.391">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3075,6 +3075,70 @@ function _renderRotImages(){
       '<button onclick="removeRotImage('+i+')" style="background:none;border:none;color:var(--red);font-size:.8rem;cursor:pointer;padding:0 2px;">✕</button></div>';
   }).join('');
 }
+var _pendingOTImages=[];
+function attachOTImage(){
+  var inp=document.createElement('input');inp.type='file';inp.accept='image/*';inp.multiple=true;
+  inp.onchange=function(){
+    var files=Array.prototype.slice.call(inp.files);
+    files.forEach(function(file){
+      var reader=new FileReader();
+      reader.onload=function(e){
+        var obj={id:'IMG-'+Date.now()+'-'+Math.random().toString(36).slice(2,6),nombre:file.name,size:file.size,data:e.target.result};
+        _pendingOTImages.push(obj);_renderOTImages();
+      };reader.readAsDataURL(file);
+    });
+  };inp.click();
+}
+function removeOTImagePending(i){_pendingOTImages.splice(i,1);_renderOTImages();}
+function _renderOTImages(){
+  var el=document.getElementById('ot-img-list');if(!el)return;
+  el.innerHTML=_pendingOTImages.map(function(f,i){
+    return '<div style="display:inline-flex;align-items:center;gap:4px;background:rgba(0,0,0,.04);border-radius:8px;padding:4px 6px;margin:3px;">'+
+      '<img src="'+f.data+'" style="width:48px;height:48px;object-fit:cover;border-radius:6px;">'+
+      '<button onclick="removeOTImagePending('+i+')" style="background:none;border:none;color:var(--red);font-size:.8rem;cursor:pointer;padding:0 2px;">✕</button></div>';
+  }).join('');
+}
+var _pendingOTCloseImages=[];
+function attachOTCloseImage(){
+  var inp=document.createElement('input');inp.type='file';inp.accept='image/*';inp.multiple=true;
+  inp.onchange=function(){
+    var files=Array.prototype.slice.call(inp.files);
+    files.forEach(function(file){
+      var reader=new FileReader();
+      reader.onload=function(e){
+        var obj={id:'IMG-'+Date.now()+'-'+Math.random().toString(36).slice(2,6),nombre:file.name,size:file.size,data:e.target.result};
+        _pendingOTCloseImages.push(obj);_renderOTCloseImages();
+      };reader.readAsDataURL(file);
+    });
+  };inp.click();
+}
+function removeOTCloseImagePending(i){_pendingOTCloseImages.splice(i,1);_renderOTCloseImages();}
+function _renderOTCloseImages(){
+  var el=document.getElementById('ot-close-img-list');if(!el)return;
+  el.innerHTML=_pendingOTCloseImages.map(function(f,i){
+    return '<div style="display:inline-flex;align-items:center;gap:4px;background:rgba(0,0,0,.04);border-radius:8px;padding:4px 6px;margin:3px;">'+
+      '<img src="'+f.data+'" style="width:48px;height:48px;object-fit:cover;border-radius:6px;">'+
+      '<button onclick="removeOTCloseImagePending('+i+')" style="background:none;border:none;color:var(--red);font-size:.8rem;cursor:pointer;padding:0 2px;">✕</button></div>';
+  }).join('');
+}
+function openOTImagesModal(imagenes, titulo){
+  if(!imagenes||!imagenes.length)return;
+  openModal('<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;"><div class="modal-title">📷 '+esc(titulo)+'</div><button class="modal-close" onclick="closeModal()">✕</button></div><div id="ot-img-viewer" style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding:8px 0;"></div>');
+  var el=document.getElementById('ot-img-viewer');
+  if(!el)return;
+  el.innerHTML='<div style="color:var(--text3);font-size:.8rem;padding:20px;">Cargando imágenes...</div>';
+  var loaded=[];var total=imagenes.length;
+  imagenes.forEach(function(ref){
+    dbGet(ref.id,function(rec){
+      if(rec&&rec.data)loaded.push(rec.data);
+      total--;
+      if(total<=0){
+        if(!loaded.length){el.innerHTML='<div style="color:var(--text3);padding:20px;">No se pudieron cargar las imágenes</div>';return;}
+        el.innerHTML=loaded.map(function(src){return'<img src="'+src+'" style="max-width:100%;max-height:260px;object-fit:contain;border-radius:10px;border:1px solid rgba(255,255,255,.12);box-shadow:0 2px 8px rgba(0,0,0,.3);">';}).join('');
+      }
+    });
+  });
+}
 function delHistFileDirect(eqId,hid,fileId){
   if(!confirm('¿Eliminar este PDF? Esta acción no se puede deshacer.'))return;
   dbDel(fileId);
@@ -4868,6 +4932,12 @@ function rOrdenes(){
     h+='<div style="font-size:.65rem;color:var(--text3);margin-top:4px;">Creada: '+fD(ot.fechaCreacion)+(ot.fechaCierre?' \xb7 Cerrada: '+fD(ot.fechaCierre):'')+'</div>';
     if(ot.resolucion)h+='<div style="font-size:.68rem;color:var(--text2);margin-top:3px;padding:5px 8px;background:rgba(52,199,89,.07);border-radius:6px;border-left:3px solid rgba(52,199,89,.4);">'+esc(ot.resolucion.slice(0,80))+(ot.resolucion.length>80?'…':'')+'</div>';
     if(ot.firma)h+='<div style="font-size:.6rem;color:rgba(52,199,89,.8);margin-top:2px;">✍️ Firmada digitalmente</div>';
+    if((ot.imagenes&&ot.imagenes.length)||(ot.imagenesClose&&ot.imagenesClose.length)){
+      h+='<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:5px;">';
+      if(ot.imagenes&&ot.imagenes.length)h+='<button onclick="openOTImagesModal('+JSON.stringify(ot.imagenes)+',\'Imágenes - \'+\''+esc(ot.titulo)+'\')" style="padding:2px 9px;border-radius:var(--r-pill);background:rgba(0,113,227,.10);border:1px solid rgba(0,113,227,.22);color:var(--accent);font-size:.62rem;font-weight:700;cursor:pointer;">📷 '+ot.imagenes.length+' imagen'+(ot.imagenes.length!==1?'es':'')+'</button>';
+      if(ot.imagenesClose&&ot.imagenesClose.length)h+='<button onclick="openOTImagesModal('+JSON.stringify(ot.imagenesClose)+',\'Cierre - \'+\''+esc(ot.titulo)+'\')" style="padding:2px 9px;border-radius:var(--r-pill);background:rgba(52,199,89,.10);border:1px solid rgba(52,199,89,.22);color:var(--green);font-size:.62rem;font-weight:700;cursor:pointer;">📷 '+ot.imagenesClose.length+' cierre</button>';
+      h+='</div>';
+    }
     h+='</div>';
     h+='<div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end;flex-shrink:0;">';
     if(ot.estado!=='cerrada'&&ot.estado!=='cancelada'){
@@ -4880,6 +4950,7 @@ function rOrdenes(){
   return h;
 }
 function openModalOT(eqId,otId){
+  _pendingOTImages=[];
   var ot=otId?ordenesTrabajo.find(function(o){return o.id===otId;}):null;
   var eq4=eqId?eqs.find(function(e){return e.id===eqId;}):{};
   var eqOpts='<option value="">— Seleccionar equipo —</option>';
@@ -4912,6 +4983,11 @@ function openModalOT(eqId,otId){
     '<div class="ff"><div class="ff-label">Técnico / Responsable</div><input class="inp" id="ot-tec" value="'+(ot?esc(ot.tecnicoAsignado||''):'')+'"></div>'+
     '<div class="ff"><div class="ff-label">Fecha programada</div><input class="inp" type="date" id="ot-fecha" value="'+(ot&&ot.fechaProgramada?ot.fechaProgramada:today())+'"></div>'+
     '<div style="display:flex;gap:10px;"><div style="flex:1;"><label style="font-size:.72rem;color:var(--text2);font-weight:600;">SLA (horas)</label><input class="inp" type="number" id="ot-sla" min="0" placeholder="ej: 24" value="'+(ot&&ot.slaHoras?ot.slaHoras:'')+'" style="margin-top:4px;"></div></div>'+
+    '<div class="ff"><div class="ff-label">📷 Imágenes (opcional)</div>'+
+    '<button type="button" onclick="attachOTImage()" style="padding:7px 14px;border-radius:var(--r-pill);background:rgba(0,113,227,.08);border:1.5px dashed rgba(0,113,227,.3);color:var(--accent);font-size:.76rem;font-weight:600;cursor:pointer;margin-bottom:6px;">+ Adjuntar imagen</button>'+
+    '<div id="ot-img-list" style="display:flex;flex-wrap:wrap;gap:4px;"></div>'+
+    ((ot&&ot.imagenes&&ot.imagenes.length)?'<button onclick="openOTImagesModal('+(JSON.stringify(ot.imagenes)).replace(/'/g,"&#39;")+',\'Imágenes guardadas\')" style="margin-top:4px;padding:4px 12px;border-radius:var(--r-pill);background:rgba(0,113,227,.08);border:1px solid rgba(0,113,227,.2);color:var(--accent);font-size:.7rem;cursor:pointer;">👁 Ver '+ot.imagenes.length+' imagen'+(ot.imagenes.length!==1?'es':'')+' guardada'+(ot.imagenes.length!==1?'s':'')+'</button>':'')+
+    '</div>'+
     '<button class="btn-primary" style="width:100%;padding:13px;margin-top:8px;" onclick="submitOT(\''+((ot&&ot.id)||'')+'\')">'+(ot?'Guardar cambios':'Crear OT')+'</button>'
   );
 }
@@ -4932,23 +5008,28 @@ function submitOT(otId){
   var slaH=parseInt(((document.getElementById('ot-sla')||{}).value||'0'), 10)||0;
   var sala=((document.getElementById('ot-sala')||{}).value||'').trim();
   var tipoObra=((document.getElementById('ot-tipo-obra')||{}).value||'');
+  _pendingOTImages.forEach(function(f){dbSave(f.id,f.nombre,f.data);});
+  var newImgRefs=_pendingOTImages.map(function(f){return{id:f.id,nombre:f.nombre};});
+  _pendingOTImages=[];
   if(otId){
     ordenesTrabajo=ordenesTrabajo.map(function(o){
       if(o.id!==otId)return o;
-      return Object.assign({},o,{eqId:eqId2,titulo:titulo,descripcion:desc,tipo:tipo2,prioridad:prio,estado:estado2,tecnicoAsignado:tec,fechaProgramada:fecha2,slaHoras:slaH,sala:sala,tipoObra:tipoObra,fechaCierre:estado2==='cerrada'&&!o.fechaCierre?today():o.fechaCierre});
+      var existImgs=o.imagenes||[];
+      return Object.assign({},o,{eqId:eqId2,titulo:titulo,descripcion:desc,tipo:tipo2,prioridad:prio,estado:estado2,tecnicoAsignado:tec,fechaProgramada:fecha2,slaHoras:slaH,sala:sala,tipoObra:tipoObra,fechaCierre:estado2==='cerrada'&&!o.fechaCierre?today():o.fechaCierre,imagenes:existImgs.concat(newImgRefs)});
     });
     showToast('OT actualizada');
     saveData();closeModal();render();
     auditEntry('modificar','ot',otId,titulo,'OT actualizada');
   } else {
     var newOTId='OT-'+Date.now();
-    ordenesTrabajo.push({id:newOTId,eqId:eqId2,titulo:titulo,descripcion:desc,tipo:tipo2,prioridad:prio,estado:estado2,tecnicoAsignado:tec,fechaProgramada:fecha2,slaHoras:slaH,sala:sala,tipoObra:tipoObra,fechaCreacion:today(),fechaCierre:''});
+    ordenesTrabajo.push({id:newOTId,eqId:eqId2,titulo:titulo,descripcion:desc,tipo:tipo2,prioridad:prio,estado:estado2,tecnicoAsignado:tec,fechaProgramada:fecha2,slaHoras:slaH,sala:sala,tipoObra:tipoObra,fechaCreacion:today(),fechaCierre:'',imagenes:newImgRefs});
     showToast('OT creada');
     saveData();closeModal();render();
     auditEntry('crear','ot',newOTId,titulo,'OT '+( OT_TIPOS[tipo2]||tipo2)+' creada — prioridad: '+(OT_PRIORIDADES[prio]||prio));
   }
 }
 function cerrarOT(otId){
+  _pendingOTCloseImages=[];
   var ot=ordenesTrabajo.find(function(o){return o.id===otId;})||{};
   var html='<div style="padding:4px 0 8px;">';
   html+='<h3 style="margin:0 0 4px;font-size:1rem;font-weight:700;color:var(--text);">Cerrar Orden de Trabajo</h3>';
@@ -4960,6 +5041,11 @@ function cerrarOT(otId){
   html+='<canvas id="firma-canvas" width="460" height="110" style="width:100%;height:110px;display:block;touch-action:none;cursor:crosshair;"></canvas>';
   html+='<button onclick="_clearFirma();" style="position:absolute;top:6px;right:8px;background:rgba(120,120,128,.18);border:none;border-radius:8px;padding:3px 10px;font-size:.65rem;color:rgba(80,80,80,.9);cursor:pointer;">Borrar</button>';
   html+='</div></div>';
+  html+='<div style="margin-bottom:14px;"><label style="font-size:.72rem;color:var(--text2);font-weight:600;display:block;margin-bottom:6px;">📷 Fotos del trabajo (opcional)</label>';
+  html+='<button type="button" onclick="attachOTCloseImage()" style="padding:7px 14px;border-radius:var(--r-pill);background:rgba(52,199,89,.08);border:1.5px dashed rgba(52,199,89,.35);color:var(--green);font-size:.76rem;font-weight:600;cursor:pointer;margin-bottom:6px;">+ Adjuntar foto de cierre</button>';
+  html+='<div id="ot-close-img-list" style="display:flex;flex-wrap:wrap;gap:4px;"></div>';
+  if(ot.imagenesClose&&ot.imagenesClose.length)html+='<button onclick="openOTImagesModal('+JSON.stringify(ot.imagenesClose)+',\'Fotos de cierre\')" style="margin-top:4px;padding:4px 12px;border-radius:var(--r-pill);background:rgba(52,199,89,.08);border:1px solid rgba(52,199,89,.25);color:var(--green);font-size:.7rem;cursor:pointer;">👁 Ver '+ot.imagenesClose.length+' foto'+(ot.imagenesClose.length!==1?'s':'')+' de cierre</button>';
+  html+='</div>';
   html+='<div style="display:flex;gap:10px;margin-top:16px;">';
   html+='<button onclick="submitCerrarOT(\''+otId+'\');" style="flex:1;background:#30d158;color:#fff;border:none;border-radius:var(--r-md);padding:12px;font-weight:700;font-size:.88rem;cursor:pointer;">✅ Cerrar OT</button>';
   html+='<button onclick="closeModal();" style="background:rgba(120,120,128,.13);color:var(--text2);border:none;border-radius:var(--r-md);padding:12px 18px;font-weight:600;font-size:.88rem;cursor:pointer;">Cancelar</button>';
@@ -4997,10 +5083,13 @@ function submitCerrarOT(otId){
   if(!resolucion)return showToast('Describ\xed la resoluci\xf3n','warn');
   var firmaData='';
   if(!_firmaIsEmpty()&&_firmaCanvas)firmaData=_firmaCanvas.toDataURL('image/png');
+  _pendingOTCloseImages.forEach(function(f){dbSave(f.id,f.nombre,f.data);});
+  var newCloseRefs=_pendingOTCloseImages.map(function(f){return{id:f.id,nombre:f.nombre};});
+  _pendingOTCloseImages=[];
   var now=new Date().toISOString();
   ordenesTrabajo=ordenesTrabajo.map(function(o){
     if(o.id!==otId)return o;
-    return Object.assign({},o,{estado:'cerrada',resolucion:resolucion,firma:firmaData,fechaCierre:today(),fechaCierreISO:now});
+    return Object.assign({},o,{estado:'cerrada',resolucion:resolucion,firma:firmaData,fechaCierre:today(),fechaCierreISO:now,imagenesClose:(o.imagenesClose||[]).concat(newCloseRefs)});
   });
   var ot=ordenesTrabajo.find(function(o){return o.id===otId;})||{};
   auditEntry('cerrar','ot',otId,ot.titulo||otId,'OT cerrada — '+resolucion.slice(0,60));
@@ -12001,8 +12090,8 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="7.3.2";
-var APP_BUILD="18/06/26 04:00";
+var APP_DISPLAY_VERSION="7.3.3";
+var APP_BUILD="18/06/26 05:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
