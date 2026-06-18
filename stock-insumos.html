@@ -2150,7 +2150,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "4.30";
+const APP_VERSION = "4.31";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -3041,7 +3041,6 @@ function _impGenCode(used){
 }
 
 function openImportModal(){
-  if(!isAdmin){ toast('⚠️ Solo administradores'); return; }
   const byNorm=new Map();
   supplies.forEach(s=>{ if(s) byNorm.set(_impNorm(s.name), s); });
   const normKeys=[...byNorm.keys()];
@@ -3133,7 +3132,6 @@ function _impAcceptAllSuggestions(){
 }
 
 async function applyImport(){
-  if(!isAdmin){ toast('⚠️ Solo administradores'); return; }
   if(!_dataReady){ toast('⚠️ Esperá a que terminen de cargar los datos'); return; }
   const todo=_impRows.filter(r=>r.status!=='skip'&&r.targetId);
   if(!todo.length){ toast('No hay cambios para aplicar'); return; }
@@ -3789,10 +3787,11 @@ function showApp(){
   const _standalone=window.navigator.standalone===true||window.matchMedia('(display-mode: standalone)').matches;
   console.log('[PWA] Modo standalone:',_standalone,'| SW soporte:',('serviceWorker' in navigator),'| Notif soporte:',('Notification' in window));
   if(!_standalone) console.warn('[PWA] La app NO está en modo standalone. Abrila desde el ícono de pantalla de inicio, no desde Safari.');
+  // Herramienta de corrección: disponible para todos los usuarios autorizados
+  const _impSec=document.getElementById("importToolSection"); if(_impSec) _impSec.style.display="block";
   if(isAdmin){
     document.getElementById("adminSection").style.display="block";
     document.getElementById("backupAdminSection").style.display="block";
-    const _impSec=document.getElementById("importToolSection"); if(_impSec) _impSec.style.display="block";
     document.getElementById("sbBackupStatus").style.display="flex";
     const ab=document.getElementById("sbAdminBtn"); if(ab) ab.style.display="flex";
     const as=document.getElementById("sbAdminSep"); if(as) as.style.display="block";
