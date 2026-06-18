@@ -2150,7 +2150,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "4.31";
+const APP_VERSION = "4.32";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -3057,8 +3057,10 @@ function openImportModal(){
   _impTab='matched'; _impRefresh();
   document.getElementById('importModal').classList.add('open');
 }
+let _impReadyTimer=null;
 function closeImportModal(ev){
   if(ev&&ev.target!==ev.currentTarget) return;
+  if(_impReadyTimer){ clearInterval(_impReadyTimer); _impReadyTimer=null; }
   document.getElementById('importModal').classList.remove('open');
 }
 function _impSwitchTab(t){ _impTab=t; _impRefresh(); }
@@ -3074,7 +3076,20 @@ function _impRenderTabs(){
   document.getElementById('importSummary').innerHTML=
     `Se aplicarán <b>${willApply}</b> de <b>${_impRows.length}</b> correcciones. `+
     `Solo cambian <b>nombre</b> y <b>código</b> — stock, precios, movimientos y formatos no se tocan, nada se borra.`;
-  document.getElementById('importApplyMsg').textContent=`${willApply} insumo(s) se actualizarán al guardar.`;
+  // El botón Aplicar se habilita SOLO cuando terminó de cargar todo (insumos +
+  // las dos sucursales). Mientras tanto queda deshabilitado con estado visible,
+  // y un poll lo reactiva apenas el servidor confirma los datos — sin cartel sorpresa.
+  const btn=document.getElementById('importApplyBtn');
+  const msg=document.getElementById('importApplyMsg');
+  if(_dataReady){
+    if(btn){ btn.disabled=false; btn.innerHTML='<span class="btn-icon">💾</span> Aplicar cambios'; }
+    if(msg) msg.textContent=`${willApply} insumo(s) se actualizarán al guardar.`;
+    if(_impReadyTimer){ clearInterval(_impReadyTimer); _impReadyTimer=null; }
+  }else{
+    if(btn){ btn.disabled=true; btn.innerHTML='⏳ Cargando datos…'; }
+    if(msg) msg.textContent='Esperando a que termine de cargar todo (insumos y sucursales)…';
+    if(!_impReadyTimer) _impReadyTimer=setInterval(_impRenderTabs,600);
+  }
 }
 
 function _impOptions(selId){
