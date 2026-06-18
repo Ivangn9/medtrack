@@ -4934,8 +4934,8 @@ function rOrdenes(){
     if(ot.firma)h+='<div style="font-size:.6rem;color:rgba(52,199,89,.8);margin-top:2px;">✍️ Firmada digitalmente</div>';
     if((ot.imagenes&&ot.imagenes.length)||(ot.imagenesClose&&ot.imagenesClose.length)){
       h+='<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:5px;">';
-      if(ot.imagenes&&ot.imagenes.length)h+='<button onclick="openOTImagesModal('+JSON.stringify(ot.imagenes)+',\'Imágenes - \'+\''+esc(ot.titulo)+'\')" style="padding:2px 9px;border-radius:var(--r-pill);background:rgba(0,113,227,.10);border:1px solid rgba(0,113,227,.22);color:var(--accent);font-size:.62rem;font-weight:700;cursor:pointer;">📷 '+ot.imagenes.length+' imagen'+(ot.imagenes.length!==1?'es':'')+'</button>';
-      if(ot.imagenesClose&&ot.imagenesClose.length)h+='<button onclick="openOTImagesModal('+JSON.stringify(ot.imagenesClose)+',\'Cierre - \'+\''+esc(ot.titulo)+'\')" style="padding:2px 9px;border-radius:var(--r-pill);background:rgba(52,199,89,.10);border:1px solid rgba(52,199,89,.22);color:var(--green);font-size:.62rem;font-weight:700;cursor:pointer;">📷 '+ot.imagenesClose.length+' cierre</button>';
+      if(ot.imagenes&&ot.imagenes.length)h+='<button onclick="openOTImagesModal('+JSON.stringify(ot.imagenes).replace(/'/g,"&#39;")+',\'Imágenes - \'+\''+esc(ot.titulo)+'\')" style="padding:2px 9px;border-radius:var(--r-pill);background:rgba(0,113,227,.10);border:1px solid rgba(0,113,227,.22);color:var(--accent);font-size:.62rem;font-weight:700;cursor:pointer;">📷 '+ot.imagenes.length+' imagen'+(ot.imagenes.length!==1?'es':'')+'</button>';
+      if(ot.imagenesClose&&ot.imagenesClose.length)h+='<button onclick="openOTImagesModal('+JSON.stringify(ot.imagenesClose).replace(/'/g,"&#39;")+',\'Cierre - \'+\''+esc(ot.titulo)+'\')" style="padding:2px 9px;border-radius:var(--r-pill);background:rgba(52,199,89,.10);border:1px solid rgba(52,199,89,.22);color:var(--green);font-size:.62rem;font-weight:700;cursor:pointer;">📷 '+ot.imagenesClose.length+' cierre</button>';
       h+='</div>';
     }
     h+='</div>';
@@ -5044,7 +5044,7 @@ function cerrarOT(otId){
   html+='<div style="margin-bottom:14px;"><label style="font-size:.72rem;color:var(--text2);font-weight:600;display:block;margin-bottom:6px;">📷 Fotos del trabajo (opcional)</label>';
   html+='<button type="button" onclick="attachOTCloseImage()" style="padding:7px 14px;border-radius:var(--r-pill);background:rgba(52,199,89,.08);border:1.5px dashed rgba(52,199,89,.35);color:var(--green);font-size:.76rem;font-weight:600;cursor:pointer;margin-bottom:6px;">+ Adjuntar foto de cierre</button>';
   html+='<div id="ot-close-img-list" style="display:flex;flex-wrap:wrap;gap:4px;"></div>';
-  if(ot.imagenesClose&&ot.imagenesClose.length)html+='<button onclick="openOTImagesModal('+JSON.stringify(ot.imagenesClose)+',\'Fotos de cierre\')" style="margin-top:4px;padding:4px 12px;border-radius:var(--r-pill);background:rgba(52,199,89,.08);border:1px solid rgba(52,199,89,.25);color:var(--green);font-size:.7rem;cursor:pointer;">👁 Ver '+ot.imagenesClose.length+' foto'+(ot.imagenesClose.length!==1?'s':'')+' de cierre</button>';
+  if(ot.imagenesClose&&ot.imagenesClose.length)html+='<button onclick="openOTImagesModal('+JSON.stringify(ot.imagenesClose).replace(/'/g,"&#39;")+',\'Fotos de cierre\')" style="margin-top:4px;padding:4px 12px;border-radius:var(--r-pill);background:rgba(52,199,89,.08);border:1px solid rgba(52,199,89,.25);color:var(--green);font-size:.7rem;cursor:pointer;">👁 Ver '+ot.imagenesClose.length+' foto'+(ot.imagenesClose.length!==1?'s':'')+' de cierre</button>';
   html+='</div>';
   html+='<div style="display:flex;gap:10px;margin-top:16px;">';
   html+='<button onclick="submitCerrarOT(\''+otId+'\');" style="flex:1;background:#30d158;color:#fff;border:none;border-radius:var(--r-md);padding:12px;font-weight:700;font-size:.88rem;cursor:pointer;">✅ Cerrar OT</button>';
