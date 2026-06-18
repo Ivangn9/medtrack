@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.17.343 -->
+<!-- v2026.06.18.360 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.17.343">
+<meta name="app-version" content="v2026.06.18.360">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -121,8 +121,8 @@ body::after{
 /* ── LIQUID GLASS CARD ── */
 .gc{
   background:var(--gc-bg);
-  -webkit-backdrop-filter:blur(14px);
-  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(22px);
+  backdrop-filter:blur(22px);
   border:1px solid var(--gc-border);
   border-top-color:var(--gc-border-top);
   border-radius:var(--r-lg);
@@ -654,7 +654,7 @@ body.dark{--bg:#06091a;--text:#f2f2f7;--text2:#aeaeb2;--text3:#636366;--sep:rgba
   --glass:rgba(30,32,56,.72);--glass2:rgba(20,22,44,.88);--glass-border:rgba(255,255,255,.10);
   --lg-shadow:0 2px 4px rgba(0,0,0,.3),0 8px 28px rgba(0,0,0,.35),inset 0 1.5px 0 rgba(255,255,255,.07),inset 0 -1px 0 rgba(0,0,0,.15);
   --lg-shimmer:linear-gradient(135deg,rgba(60,80,180,.10) 0%,rgba(40,60,140,.07) 50%,rgba(20,80,100,.05) 100%);
-  --gc-bg:rgba(32,31,33,.85);--gc-border:rgba(255,255,255,.09);--gc-border-top:rgba(255,255,255,.14);
+  --gc-bg:rgba(22,21,34,.58);--gc-border:rgba(255,255,255,.09);--gc-border-top:rgba(255,255,255,.14);
   --gc-spec:rgba(255,255,255,.04);--panel-bg:rgba(6,9,26,.70);--item-bg:rgba(28,28,46,.80);
   --item-border:rgba(255,255,255,.09);--item-border-top:rgba(255,255,255,.15);}
 /* Dark background — reemplaza el gradiente claro de body::before/after */
@@ -4490,7 +4490,7 @@ function rCalendarioPM(){
       var urgC=d5<0?'var(--red)':d5<=7?'var(--orange)':'var(--green)';
       var isManual=(sitem.tipo==='manual');
       var cardColor=isManual?'#8b5cf6':ci5.color;
-      h+='<div class="gc" style="border-left:4px solid '+cardColor+';padding:0;margin-bottom:8px;overflow:hidden;">';
+      h+='<div class="cring-wrap" style="--cc:'+cardColor+';margin-bottom:8px;"><div class="cring-el"></div><div class="gc" style="padding:0;overflow:hidden;">';
       h+='<div style="padding:10px 14px;display:flex;align-items:center;gap:10px;">';
       h+='<div style="flex:1;min-width:0;">';
       h+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">';
@@ -4514,7 +4514,7 @@ function rCalendarioPM(){
       } else {
         h+='<button onclick="goDetalle(\''+eq3.id+'\')" style="margin-top:4px;padding:3px 8px;border-radius:var(--r-pill);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--text2);font-size:.6rem;font-weight:600;cursor:pointer;">Ver equipo</button>';
       }
-      h+='</div></div></div>';
+      h+='</div></div></div></div>';
     }
   }
   return h;
@@ -4754,7 +4754,7 @@ function rOrdenes(){
     }
     var isMejOT=ot.tipo==='mejora';
     var borderColor=isMejOT?'rgba(139,92,246,.7)':pc;
-    h+='<div class="gc" style="border-left:4px solid '+borderColor+';padding:0;margin-bottom:10px;overflow:hidden;">';
+    h+='<div class="cring-wrap" style="--cc:'+borderColor+';margin-bottom:10px;"><div class="cring-el"></div><div class="gc" style="padding:0;overflow:hidden;">';
     h+='<div style="padding:10px 14px;display:flex;align-items:flex-start;gap:10px;">';
     h+='<div style="flex:1;min-width:0;">';
     h+='<div style="display:flex;align-items:center;gap:7px;margin-bottom:3px;flex-wrap:wrap;">';
@@ -4777,7 +4777,7 @@ function rOrdenes(){
       h+='<button onclick="openModalOT(\''+ot.eqId+'\',\''+ot.id+'\')" style="padding:4px 10px;border-radius:var(--r-pill);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:var(--text2);font-size:.65rem;font-weight:700;cursor:pointer;">✏️ Editar</button>';
     }
     h+='<button onclick="deleteOT(\''+ot.id+'\')" style="padding:4px 10px;border-radius:var(--r-pill);background:rgba(255,59,48,.10);border:1px solid rgba(255,59,48,.25);color:var(--red);font-size:.65rem;font-weight:700;cursor:pointer;">🗑</button>';
-    h+='</div></div></div>';
+    h+='</div></div></div></div>';
   });
   return h;
 }
@@ -6616,7 +6616,7 @@ function _rDetalleRefrig(eq,rf){
   var _flujoV=rf.chillerFlujoLMin?parseFloat(rf.chillerFlujoLMin).toFixed(2):'—';
   var _tempV=rf.chillerTempC?parseFloat(rf.chillerTempC).toFixed(1):'—';
   var _hasGEData=rf.chillerFlujoLMin||rf.chillerTempC||rf.eficienciaCriostat;
-  h+='<div class="gc" style="padding:0;margin-bottom:10px;overflow:hidden;border-left:4px solid rgba(99,102,241,.5);">'+
+  h+='<div class="cring-wrap" style="--cc:rgba(99,102,241,.9);margin-bottom:10px;"><div class="cring-el"></div><div class="gc" style="padding:0;overflow:hidden;">'+
     '<div style="background:linear-gradient(90deg,rgba(99,102,241,.12),rgba(139,92,246,.06));padding:8px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(99,102,241,.08);">'+
       '<span style="font-size:.72rem;font-weight:700;color:#818cf8;text-transform:uppercase;letter-spacing:.06em;flex:1;">📱 Estado GE Healthcare</span>'+
       '<button onclick="openGEShortcutGuide(\''+eq.id+'\')" style="padding:3px 10px;border-radius:var(--r-pill);font-size:.64rem;font-weight:700;cursor:pointer;border:1.5px solid rgba(99,102,241,.28);background:rgba(99,102,241,.08);color:#818cf8;margin-right:4px;">⚙️ Shortcut</button>'+
@@ -6643,9 +6643,10 @@ function _rDetalleRefrig(eq,rf){
       '</div>'+
     '</div>'+
   '</div>';
+  h+='</div>';
   var chCol=rf.chiller==='operativo'?'#16a34a':rf.chiller==='service'?'#d97706':'#dc2626';
   var chLbl=rf.chiller==='operativo'?'✅ Operativo':rf.chiller==='service'?'🔧 En Service':'🔴 Rotura';
-  h+='<div class="gc" style="padding:0;margin-bottom:10px;overflow:hidden;border-left:4px solid rgba(99,179,237,.5);">'+
+  h+='<div class="cring-wrap" style="--cc:rgba(8,145,178,.9);margin-bottom:10px;"><div class="cring-el"></div><div class="gc" style="padding:0;overflow:hidden;">'+
     '<div style="background:linear-gradient(90deg,rgba(8,145,178,.12),rgba(99,179,237,.06));padding:8px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(99,179,237,.08);">'+
       '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(8,145,178,.9)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/></svg>'+
       '<span style="font-size:.72rem;font-weight:700;color:#0891b2;text-transform:uppercase;letter-spacing:.06em;">❄️ Refrigeración — Chiller</span>'+
@@ -6662,9 +6663,10 @@ function _rDetalleRefrig(eq,rf){
     '</div>'+
   '</div>';
   var gasP=parseFloat(rf.helioGasPresionActual);
+  h+='</div>';
   var gasAlm=!isNaN(gasP)&&(gasP<2.0||gasP>2.3);
   var gasCol=gasAlm?'#f87171':!isNaN(gasP)?'#63b3ed':'#94a3b8';
-  h+='<div class="gc" style="padding:0;margin-bottom:10px;overflow:hidden;border-left:4px solid rgba(99,179,237,.4);">'+
+  h+='<div class="cring-wrap" style="--cc:#63b3ed;margin-bottom:10px;"><div class="cring-el"></div><div class="gc" style="padding:0;overflow:hidden;">'+
     '<div style="background:linear-gradient(90deg,rgba(99,179,237,.10),rgba(8,145,178,.05));padding:8px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(99,179,237,.07);">'+
       '<span style="font-size:.72rem;font-weight:700;color:#63b3ed;text-transform:uppercase;letter-spacing:.06em;flex:1;">⚗️ Helio Gaseoso</span>'+
       (gasAlm?'<span style="font-size:.6rem;padding:1px 6px;border-radius:20px;background:rgba(248,113,113,.15);color:#f87171;font-weight:700;">⚠ Alarma</span>':'')+
@@ -6681,12 +6683,13 @@ function _rDetalleRefrig(eq,rf){
       '</div>'+
     '</div>'+
   '</div>';
+  h+='</div>';
   var liqPorc=parseFloat(rf.helioLiqPorcentaje);
   var liqPres=parseFloat(rf.helioLiqPresion);
   var liqAlm=(!isNaN(liqPorc)&&liqPorc<70)||(!isNaN(liqPres)&&(liqPres<0.9||liqPres>2.0));
   var liqPorcCol=(!isNaN(liqPorc)&&liqPorc<70)?'#f87171':'#0ea5e9';
   var liqPresCol=(!isNaN(liqPres)&&(liqPres<0.9||liqPres>2.0))?'#f87171':'#34d399';
-  h+='<div class="gc" style="padding:0;margin-bottom:10px;overflow:hidden;border-left:4px solid rgba(14,165,233,.4);">'+
+  h+='<div class="cring-wrap" style="--cc:rgba(14,165,233,.9);margin-bottom:10px;"><div class="cring-el"></div><div class="gc" style="padding:0;overflow:hidden;">'+
     '<div style="background:linear-gradient(90deg,rgba(14,165,233,.10),rgba(8,145,178,.05));padding:8px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(14,165,233,.07);">'+
       '<span style="font-size:.72rem;font-weight:700;color:#0ea5e9;text-transform:uppercase;letter-spacing:.06em;flex:1;">💧 Helio Líquido</span>'+
       (liqAlm?'<span style="font-size:.6rem;padding:1px 6px;border-radius:20px;background:rgba(248,113,113,.15);color:#f87171;font-weight:700;">⚠ Alarma</span>':'')+
@@ -6710,8 +6713,9 @@ function _rDetalleRefrig(eq,rf){
       '</div>'+
     '</div>'+
   '</div>';
+  h+='</div>';
   var histCargas=(rf.historial||[]).filter(function(ev){return ev.tipo==='carga_gaseoso'||ev.tipo==='carga_liquido'||ev.tipo==='chiller';}).slice().reverse();
-  h+='<div class="gc" style="padding:0;margin-bottom:10px;overflow:hidden;border-left:4px solid rgba(8,145,178,.35);">'+
+  h+='<div class="cring-wrap" style="--cc:rgba(8,145,178,.9);margin-bottom:10px;"><div class="cring-el"></div><div class="gc" style="padding:0;overflow:hidden;">'+
     '<div style="background:linear-gradient(90deg,rgba(8,145,178,.10),rgba(6,182,212,.05));padding:8px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(8,145,178,.07);">'+
       '<span style="font-size:.72rem;font-weight:700;color:#0891b2;text-transform:uppercase;letter-spacing:.06em;flex:1;">📋 Historial de Cargas</span>'+
       '<span style="font-size:.64rem;font-weight:700;padding:1px 7px;border-radius:20px;background:rgba(8,145,178,.12);color:#0891b2;">'+histCargas.length+'</span>'+
@@ -6735,15 +6739,15 @@ function _rDetalleRefrig(eq,rf){
     });
     if(histCargas.length>8){h+='<div style="font-size:.7rem;color:var(--text3);padding:5px 0 0;text-align:center;">+'+( histCargas.length-8)+' más</div>';}
   }
-  h+='</div></div>';
-  h+='<div class="gc" style="padding:0;margin-bottom:10px;overflow:hidden;border-left:4px solid rgba(8,145,178,.35);">'+
+  h+='</div></div></div>';
+  h+='<div class="cring-wrap" style="--cc:rgba(8,145,178,.9);margin-bottom:10px;"><div class="cring-el"></div><div class="gc" style="padding:0;overflow:hidden;">'+
     '<div style="background:linear-gradient(90deg,rgba(8,145,178,.10),rgba(6,182,212,.05));padding:8px 14px;border-bottom:1px solid rgba(8,145,178,.07);">'+
       '<span style="font-size:.72rem;font-weight:700;color:#0891b2;text-transform:uppercase;letter-spacing:.06em;">📈 Gráficos Helio</span>'+
     '</div>'+
     '<div style="padding:10px 14px;overflow-x:auto;">'+
       _refrigHelioChart(rf,eq.id)+
     '</div>'+
-  '</div>';
+  '</div></div>';
   return h;
 }
 
@@ -6896,7 +6900,7 @@ function _rDetalleFallas(eq){
     '<span style="font-size:.8rem;font-weight:600;color:var(--text2);">'+esc(eq.nombre)+'</span>'+
     '<span style="font-size:.7rem;color:var(--text3);margin-left:auto;">Equipo</span>'+
   '</div>';
-  h+='<div class="gc" style="border-left:4px solid rgba(255,59,48,.45);padding:0;margin-bottom:12px;overflow:hidden;background:linear-gradient(135deg,rgba(255,59,48,.08) 0%,rgba(255,69,58,.04) 100%);">';
+  h+='<div class="cring-wrap" style="--cc:rgba(255,59,48,.9);margin-bottom:12px;"><div class="cring-el"></div><div class="gc" style="padding:0;overflow:hidden;background:linear-gradient(135deg,rgba(255,59,48,.08) 0%,rgba(255,69,58,.04) 100%);">';
   h+='<div style="background:linear-gradient(90deg,rgba(255,59,48,.12),rgba(255,69,58,.07));padding:9px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(255,59,48,.10);">';
   h+='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(220,38,38,.9)" stroke-width="2.2" stroke-linecap="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>';
   h+='<span style="font-size:.72rem;font-weight:700;color:rgba(220,38,38,.9);text-transform:uppercase;letter-spacing:.06em;flex:1;">Roturas y Fallas</span>';
@@ -7051,7 +7055,7 @@ function _rDetalleFallas(eq){
     });
     h+='</div>';
   }
-  h+='</div></div>';
+  h+='</div></div></div>';
   return h;
 }
 
@@ -7171,7 +7175,7 @@ function rDetalle(){
   if(eq.cat==='ECO'){
     var _tCnt=(eq.transductorIds||[]).length;
     var _tRot=transductores.filter(function(t){return(eq.transductorIds||[]).indexOf(t.id)!==-1;}).reduce(function(s,t){return s+(t.roturas||[]).filter(function(r){return r.estado!=='reparado';}).length;},0);
-    h+='<div class="gc tap" onclick="goTransductores(\''+eq.id+'\')" style="padding:0;margin-bottom:8px;overflow:hidden;cursor:pointer;border-left:4px solid rgba(14,165,233,.5);" ontouchstart="this.style.transform=\'scale(.98)\'" ontouchend="this.style.transform=\'\'"><div style="padding:12px 14px;display:flex;align-items:center;gap:11px;">'+transductorSvgIcon(18)+'<div style="flex:1;min-width:0;"><div style="font-size:.84rem;font-weight:700;color:var(--text1);">Transductores</div><div style="font-size:.67rem;color:var(--text3);margin-top:1px;">'+_tCnt+' transductor'+(_tCnt!==1?'es':'')+(_tRot===0?' · todos OK':' · '+_tRot+' rotura'+(_tRot!==1?'s':'')+' activa'+(_tRot!==1?'s':''))+'</div></div>'+(_tRot>0?'<span style="font-size:.68rem;font-weight:700;min-width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+_tRot+'</span>':'')+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(14,165,233,.45)" stroke-width="2.2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></div></div>';
+    h+='<div class="cring-wrap" style="--cc:rgba(14,165,233,.9);margin-bottom:8px;"><div class="cring-el"></div><div class="gc tap" onclick="goTransductores(\''+eq.id+'\')" style="padding:0;overflow:hidden;cursor:pointer;" ontouchstart="this.style.transform=\'scale(.98)\'" ontouchend="this.style.transform=\'\'"><div style="padding:12px 14px;display:flex;align-items:center;gap:11px;">'+transductorSvgIcon(18)+'<div style="flex:1;min-width:0;"><div style="font-size:.84rem;font-weight:700;color:var(--text1);">Transductores</div><div style="font-size:.67rem;color:var(--text3);margin-top:1px;">'+_tCnt+' transductor'+(_tCnt!==1?'es':'')+(_tRot===0?' · todos OK':' · '+_tRot+' rotura'+(_tRot!==1?'s':'')+' activa'+(_tRot!==1?'s':''))+'</div></div>'+(_tRot>0?'<span style="font-size:.68rem;font-weight:700;min-width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+_tRot+'</span>':'')+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(14,165,233,.45)" stroke-width="2.2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></div></div></div>';
   }
 
   /* LEFT: NETWORK (collapsible) */
@@ -7341,7 +7345,7 @@ function rDetalle(){
   if(eq.cat==='RM'){
     var _antCnt=(eq.antenaIds||[]).length;
     var _antRot=antenas.filter(function(a){return(eq.antenaIds||[]).indexOf(a.id)!==-1;}).reduce(function(s,a){return s+(a.roturas||[]).filter(function(r){return r.estado!=='reparado';}).length;},0);
-    hR+='<div class="gc tap" onclick="goAntenas(\''+eq.id+'\')" style="padding:0;margin-bottom:8px;overflow:hidden;cursor:pointer;border-left:4px solid rgba(79,120,224,.5);" ontouchstart="this.style.transform=\'scale(.98)\'" ontouchend="this.style.transform=\'\'"><div style="padding:12px 14px;display:flex;align-items:center;gap:11px;">'+antenaSvgIcon(18)+'<div style="flex:1;min-width:0;"><div style="font-size:.84rem;font-weight:700;color:var(--text1);">Antenas RF</div><div style="font-size:.67rem;color:var(--text3);margin-top:1px;">'+_antCnt+' antena'+(_antCnt!==1?'s':'')+(_antRot===0?' · todas OK':' · '+_antRot+' rotura'+(_antRot!==1?'s':'')+' activa'+(_antRot!==1?'s':''))+'</div></div>'+(_antRot>0?'<span style="font-size:.68rem;font-weight:700;min-width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+_antRot+'</span>':'')+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(79,120,224,.45)" stroke-width="2.2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></div></div>';
+    hR+='<div class="cring-wrap" style="--cc:rgba(79,120,224,.9);margin-bottom:8px;"><div class="cring-el"></div><div class="gc tap" onclick="goAntenas(\''+eq.id+'\')" style="padding:0;overflow:hidden;cursor:pointer;" ontouchstart="this.style.transform=\'scale(.98)\'" ontouchend="this.style.transform=\'\'"><div style="padding:12px 14px;display:flex;align-items:center;gap:11px;">'+antenaSvgIcon(18)+'<div style="flex:1;min-width:0;"><div style="font-size:.84rem;font-weight:700;color:var(--text1);">Antenas RF</div><div style="font-size:.67rem;color:var(--text3);margin-top:1px;">'+_antCnt+' antena'+(_antCnt!==1?'s':'')+(_antRot===0?' · todas OK':' · '+_antRot+' rotura'+(_antRot!==1?'s':'')+' activa'+(_antRot!==1?'s':''))+'</div></div>'+(_antRot>0?'<span style="font-size:.68rem;font-weight:700;min-width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+_antRot+'</span>':'')+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(79,120,224,.45)" stroke-width="2.2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></div></div></div>';
   }
 
   return '<div class="det-2col"><div style="flex:6;min-width:0;">'+h+'</div><div style="flex:4;min-width:0;">'+hR+'</div></div>';
@@ -11866,8 +11870,8 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="7.2.2";
-var APP_BUILD="18/06/26 01:00";
+var APP_DISPLAY_VERSION="7.3.0";
+var APP_BUILD="18/06/26 02:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
