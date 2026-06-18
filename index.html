@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.18.375 -->
+<!-- v2026.06.18.390 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.18.375">
+<meta name="app-version" content="v2026.06.18.390">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -4097,7 +4097,7 @@ function rLista(){
           pillH(CE[e.estado]||"var(--green)",e.estado==="operativo"?"✅ OK":e.estado==="fuera-de-servicio"?"🚫 Fuera de servicio":"🔧 Roto/Con Fallas")+
           (sinMant(e)?pillH("#8e8e93","⚫ Sin mant."):pillH(CM[ms],"🔧 "+(ms==="vencido"?"VENC":ms==="urgente"?d+"d URG":ms==="proximo"?d+"d prox":d+"d")))+
           (rot>0?pillH("var(--red)","🔴 "+rot+" roto"+(rot>1?"s":"")):"")+(e.tieneServicio?pillH("var(--green)","✔ Servicio"):"")+
-        (function(){var _rse=calcRiskScore(e);return _rse.level==='critico'||_rse.level==='alto'?'<span style="font-size:.6rem;font-weight:700;padding:2px 7px;border-radius:10px;background:'+riskLevelColor(_rse.level)+'22;color:'+riskLevelColor(_rse.level)+';border:1px solid '+riskLevelColor(_rse.level)+'44;">'+riskLevelLabel(_rse.level)+'</span>':'';})()+'</div></div>'+
+        (function(){var _rse=calcRiskScore(e);return _rse.level==='critico'||_rse.level==='alto'?'<span style="font-size:.6rem;font-weight:700;padding:2px 7px;border-radius:10px;background:'+riskLevelColor(_rse.level)+'22;color:'+riskLevelColor(_rse.level)+';border:1px solid '+riskLevelColor(_rse.level)+'44;">'+riskLevelLabel(_rse.level)+'</span>':'';})()+(function(){var _ots=ordenesTrabajo.filter(function(o){return o.eqId===e.id&&o.estado!=='cerrada'&&o.estado!=='cancelada';});return _ots.length?pillH('#f59e0b','📋 '+_ots.length+' OT'+(_ots.length!==1?'s':'')+' activa'+(_ots.length!==1?'s':'')):'';})()+'</div></div>'+
         '<div style="color:var(--text3);font-size:1.2rem;flex-shrink:0;">›</div></div></div>';
       if(r.matchParts.length){
         r.matchParts.forEach(function(p){
@@ -7428,6 +7428,39 @@ function rDetalle(){
     if(_rotTotal>3){hR+='<div style="font-size:.7rem;color:var(--text3);padding:5px 0 0;">+'+(_rotTotal-3)+' más...</div>';}
   }
   hR+=navRowFn('Roturas · Mejoras · Historial',(_mejTotal?_mejTotal+' mejora'+(_mejTotal!==1?'s':'')+' · ':'')+_histTotal+' en historial','setDetalleTab(\'fallas\')');
+  hR+='</div></div></div>';
+
+  /* RIGHT: ÓRDENES DE TRABAJO */
+  var _eqOTs=ordenesTrabajo.filter(function(o){return o.eqId===eq.id;});
+  var _eqOTsActivas=_eqOTs.filter(function(o){return o.estado!=='cerrada'&&o.estado!=='cancelada';});
+  var _otColor='rgba(245,158,11,.9)';
+  hR+='<div class="cring-wrap" style="--cc:'+_otColor+';margin-bottom:8px;"><div class="cring-el"></div>'+
+  '<div class="gc" style="padding:0;overflow:hidden;background:linear-gradient(135deg,rgba(245,158,11,.06) 0%,rgba(217,119,6,.03) 100%);">';
+  hR+='<div style="background:linear-gradient(90deg,rgba(245,158,11,.12),rgba(217,119,6,.06));padding:8px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(245,158,11,.10);">';
+  hR+='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(217,119,6,.9)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>';
+  hR+='<span style="font-size:.72rem;font-weight:700;color:rgba(217,119,6,.9);text-transform:uppercase;letter-spacing:.06em;flex:1;">Órdenes de Trabajo</span>';
+  hR+=(_eqOTsActivas.length?'<span style="font-size:.62rem;font-weight:700;padding:1px 7px;border-radius:20px;background:rgba(245,158,11,.15);color:#d97706;border:1px solid rgba(245,158,11,.25);">'+_eqOTsActivas.length+' activa'+(_eqOTsActivas.length!==1?'s':'')+'</span>':'');
+  hR+='<button onclick="event.stopPropagation();openModalOT(\''+eq.id+'\',null)" style="margin-left:4px;padding:4px 10px;border-radius:var(--r-pill);background:rgba(245,158,11,.10);border:1.5px solid rgba(245,158,11,.28);color:#d97706;font-weight:700;font-size:.68rem;cursor:pointer;">+ Nueva</button>';
+  hR+='</div>';
+  hR+='<div style="padding:10px 14px 12px;">';
+  if(!_eqOTsActivas.length){
+    hR+='<div style="font-size:.78rem;color:var(--text3);text-align:center;padding:8px 0;">Sin OTs activas ✅</div>';
+  } else {
+    var _prioC={critica:'var(--red)',alta:'#f87171',normal:'#f59e0b',baja:'var(--text3)'};
+    _eqOTsActivas.slice(0,3).forEach(function(ot){
+      var pc=_prioC[ot.prioridad]||'var(--text3)';
+      var ec=OT_ESTADOS[ot.estado]||ot.estado;
+      hR+='<div style="display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid rgba(245,158,11,.07);">';
+      hR+='<div style="width:6px;height:6px;border-radius:50%;background:'+pc+';flex-shrink:0;margin-top:5px;"></div>';
+      hR+='<div style="flex:1;min-width:0;">';
+      hR+='<div style="font-size:.78rem;font-weight:600;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(ot.titulo)+'</div>';
+      hR+='<div style="font-size:.63rem;color:var(--text3);margin-top:1px;">'+ec+(ot.tecnicoAsignado?' · 👷 '+esc(ot.tecnicoAsignado):'')+'</div>';
+      hR+='</div>';
+      hR+='</div>';
+    });
+    if(_eqOTsActivas.length>3){hR+='<div style="font-size:.7rem;color:var(--text3);padding:4px 0;">+'+(_eqOTsActivas.length-3)+' más...</div>';}
+  }
+  hR+=navRowFn('Ver todas las OTs','('+_eqOTs.length+' total)','closeSbAjustesMenu();setView(\'ordenes\')');
   hR+='</div></div></div>';
 
   /* RIGHT: ADMINISTRATIVO NAV */
@@ -11968,8 +12001,8 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="7.3.1";
-var APP_BUILD="18/06/26 03:00";
+var APP_DISPLAY_VERSION="7.3.2";
+var APP_BUILD="18/06/26 04:00";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
