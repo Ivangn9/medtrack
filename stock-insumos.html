@@ -2150,7 +2150,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "4.32";
+const APP_VERSION = "4.33";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -3076,18 +3076,17 @@ function _impRenderTabs(){
   document.getElementById('importSummary').innerHTML=
     `Se aplicarán <b>${willApply}</b> de <b>${_impRows.length}</b> correcciones. `+
     `Solo cambian <b>nombre</b> y <b>código</b> — stock, precios, movimientos y formatos no se tocan, nada se borra.`;
-  // El botón Aplicar se habilita SOLO cuando terminó de cargar todo (insumos +
-  // las dos sucursales). Mientras tanto queda deshabilitado con estado visible,
-  // y un poll lo reactiva apenas el servidor confirma los datos — sin cartel sorpresa.
+  // El botón Aplicar se habilita cuando los INSUMOS terminaron de cargar desde el
+  // servidor (no necesita las sucursales: persistSupplies solo escribe el doc supplies).
   const btn=document.getElementById('importApplyBtn');
   const msg=document.getElementById('importApplyMsg');
-  if(_dataReady){
+  if(_loadedFlags.supplies){
     if(btn){ btn.disabled=false; btn.innerHTML='<span class="btn-icon">💾</span> Aplicar cambios'; }
     if(msg) msg.textContent=`${willApply} insumo(s) se actualizarán al guardar.`;
     if(_impReadyTimer){ clearInterval(_impReadyTimer); _impReadyTimer=null; }
   }else{
     if(btn){ btn.disabled=true; btn.innerHTML='⏳ Cargando datos…'; }
-    if(msg) msg.textContent='Esperando a que termine de cargar todo (insumos y sucursales)…';
+    if(msg) msg.textContent='Esperando a que carguen los insumos desde el servidor…';
     if(!_impReadyTimer) _impReadyTimer=setInterval(_impRenderTabs,600);
   }
 }
@@ -3147,7 +3146,7 @@ function _impAcceptAllSuggestions(){
 }
 
 async function applyImport(){
-  if(!_dataReady){ toast('⚠️ Esperá a que terminen de cargar los datos'); return; }
+  if(!_loadedFlags.supplies){ toast('⚠️ Esperá a que carguen los insumos'); return; }
   const todo=_impRows.filter(r=>r.status!=='skip'&&r.targetId);
   if(!todo.length){ toast('No hay cambios para aplicar'); return; }
   const seen=new Set(),conf=[];
@@ -3165,7 +3164,7 @@ async function applyImport(){
     n++;
   });
   try{
-    await persistSupplies();
+    await _enqueue(()=>_db.collection(DB_COL).doc("supplies").set({data:supplies,suppliers}).catch(e=>{throw e;}));
     _auditLog('supply_bulk_correction',`Corrección masiva: ${n} insumo(s) (nombre/código)`,null,{count:n});
     toast(`✓ ${n} insumo(s) actualizados y sincronizados`);
     closeImportModal();
@@ -4925,6 +4924,13 @@ function openSolicitudDetalle(id){
       }
       <button onclick="exportarSolicitudPDF('${escAttr(id)}')" style="padding:13px 16px;border-radius:12px;background:#0071e3;color:#fff;border:none;font-size:.95rem;font-weight:700;cursor:pointer">PDF</button>
     </div>
+    ${s.entregado&&(s.recibidoPor||s.firma)?`
+    <div style="background:#fff;border-radius:14px;padding:14px 16px;margin-bottom:8px">
+      <div style="font-size:.72rem;font-weight:700;color:#8e8e93;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Constancia de entrega</div>
+      ${s.recibidoPor?`<div style="font-size:.88rem;font-weight:600;color:#1c1c1e;margin-bottom:${s.firma?'10':'0'}px">👤 Recibido por: ${escHtml(s.recibidoPor)}</div>`:''}
+      ${s.firma?`<img src="${escAttr(s.firma)}" alt="Firma" style="max-width:100%;border-radius:8px;border:1px solid #e5e5ea;display:block" />`:''}
+    </div>`:''}
+
   </div>`;
   const frame=document.getElementById("pdf-viewer-frame");
   if(frame){frame.style.display="none";}
@@ -5024,7 +5030,7 @@ function marcarTodasLeidas(){
   });
   batch.commit().catch(e=>console.warn(e));
 }
-function markSolicitudEntregado(id, qtyMap){
+function markSolicitudEntregado(id, qtyMap, recibidoPor, firma){
   const s=solicitudes.find(x=>x.id===id); if(!s) return;
   const center=s.sector;
   const centerData=cs[center];
@@ -5056,7 +5062,7 @@ function markSolicitudEntregado(id, qtyMap){
   const auditItems=(s.items||[]).filter(i=>i.id).map(i=>({id:i.id,name:i.name,qty:qtyMap?(qtyMap[i.id]??i.cantidad):i.cantidad}));
   _auditLog('solicitud_entregado',`Pedido entregado: ${s.solicitante||'?'} · ${s.sector||''} · ${s.fecha||''}`,null,{id,items:auditItems,center});
   _db.collection("insumos_cima").doc("solicitudes_log").collection("items")
-    .doc(id).update({entregado:true,leido:true,fechaEntrega:firebase.firestore.FieldValue.serverTimestamp()})
+    .doc(id).update({entregado:true,leido:true,fechaEntrega:firebase.firestore.FieldValue.serverTimestamp(),...(recibidoPor&&{recibidoPor}),...(firma&&{firma})})
     .then(()=>{
       toast(centerData?"✓ Pedido entregado · Stock actualizado":"✓ Pedido marcado como entregado");
       closePdfViewer();
@@ -5130,15 +5136,88 @@ function closeEqModal(){
   const id=_eqSolId; _eqSolId=null;
   if(id) openSolicitudDetalle(id);
 }
+let _eqQtyMap=null;
 function confirmarEqModal(){
   if(!_eqSolId) return;
   const id=_eqSolId;
-  _eqSolId=null;
   const qtyMap={};
   document.querySelectorAll('#eq-form-wrap span[data-id]').forEach(span=>{
     qtyMap[span.dataset.id]=parseInt(span.dataset.qty)||0;
   });
-  markSolicitudEntregado(id,qtyMap);
+  _eqQtyMap=qtyMap;
+  openFirmaStep(id);
+}
+function openFirmaStep(id){
+  const body=document.getElementById('pdf-viewer-body'); if(!body)return;
+  document.getElementById('pdf-viewer-title').textContent='Confirmar entrega';
+  body.innerHTML=`<div style="padding:16px;overflow-y:auto;flex:1;background:#f2f2f7">
+    <div style="background:#fff;border-radius:14px;padding:14px 16px;margin-bottom:12px">
+      <div style="font-size:.75rem;font-weight:700;color:#8e8e93;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Recibido por</div>
+      <input id="firmaRecibidoPor" type="text" placeholder="Nombre y apellido de quien retira los insumos…"
+        style="width:100%;border:none;outline:none;font-size:.97rem;font-weight:600;color:#1c1c1e;padding:0;box-sizing:border-box;background:transparent" autocomplete="off" />
+    </div>
+    <div style="background:#fff;border-radius:14px;padding:12px 14px;margin-bottom:12px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div style="font-size:.75rem;font-weight:700;color:#8e8e93;text-transform:uppercase;letter-spacing:.06em">Firma</div>
+        <button onclick="_firmaClear()" style="border:none;background:none;font-size:.82rem;font-weight:600;color:#0071e3;cursor:pointer;padding:0;-webkit-tap-highlight-color:transparent">Borrar</button>
+      </div>
+      <canvas id="firmaCanvas"
+        style="display:block;width:100%;height:200px;border:1.5px dashed #c7c7cc;border-radius:10px;touch-action:none;background:#fff;cursor:crosshair"></canvas>
+      <div id="firmaHint" style="font-size:.72rem;color:#c7c7cc;text-align:center;margin-top:6px">Firma acá con el dedo</div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button onclick="openEqModal('${escAttr(id)}')"
+        style="flex:1;padding:14px;border-radius:13px;background:#e5e5ea;color:#1c1c1e;border:none;font-size:.95rem;font-weight:600;cursor:pointer;touch-action:manipulation">← Volver</button>
+      <button onclick="confirmarFirmaStep('${escAttr(id)}')"
+        style="flex:2;padding:14px;border-radius:13px;background:#34c759;color:#fff;border:none;font-size:.95rem;font-weight:700;cursor:pointer;touch-action:manipulation">✓ Confirmar entrega</button>
+    </div>
+  </div>`;
+  setTimeout(_firmaSetupCanvas,0);
+}
+function _firmaSetupCanvas(){
+  const c=document.getElementById('firmaCanvas'); if(!c)return;
+  const ctx=c.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  const rect=c.getBoundingClientRect();
+  c.width=Math.round(rect.width*dpr);
+  c.height=Math.round(rect.height*dpr);
+  ctx.scale(dpr,dpr);
+  ctx.strokeStyle='#1c1c1e'; ctx.lineWidth=2.5; ctx.lineCap='round'; ctx.lineJoin='round';
+  let drawing=false;
+  function pos(e){ const r=c.getBoundingClientRect(); const t=e.touches?e.touches[0]:e; return{x:t.clientX-r.left,y:t.clientY-r.top}; }
+  function start(e){ e.preventDefault(); drawing=true; const p=pos(e); ctx.beginPath(); ctx.moveTo(p.x,p.y);
+    const h=document.getElementById('firmaHint'); if(h)h.style.display='none'; }
+  function move(e){ if(!drawing)return; e.preventDefault(); const p=pos(e); ctx.lineTo(p.x,p.y); ctx.stroke(); }
+  function end(){ drawing=false; }
+  c.addEventListener('mousedown',start); c.addEventListener('mousemove',move); c.addEventListener('mouseup',end); c.addEventListener('mouseleave',end);
+  c.addEventListener('touchstart',start,{passive:false}); c.addEventListener('touchmove',move,{passive:false}); c.addEventListener('touchend',end);
+}
+function _firmaClear(){
+  const c=document.getElementById('firmaCanvas'); if(!c)return;
+  c.getContext('2d').clearRect(0,0,c.width,c.height);
+  const h=document.getElementById('firmaHint'); if(h)h.style.display='';
+}
+function _firmaIsEmpty(c){
+  const d=c.getContext('2d').getImageData(0,0,c.width,c.height).data;
+  for(let i=3;i<d.length;i+=4) if(d[i]>30) return false;
+  return true;
+}
+function _firmaExport(c){
+  const maxW=500; const dpr=window.devicePixelRatio||1;
+  const scale=Math.min(1,maxW/(c.width));
+  if(scale>=1) return c.toDataURL('image/png');
+  const tmp=document.createElement('canvas');
+  tmp.width=Math.round(c.width*scale); tmp.height=Math.round(c.height*scale);
+  tmp.getContext('2d').drawImage(c,0,0,tmp.width,tmp.height);
+  return tmp.toDataURL('image/png');
+}
+function confirmarFirmaStep(id){
+  const nombre=(document.getElementById('firmaRecibidoPor')?.value||'').trim();
+  const c=document.getElementById('firmaCanvas');
+  if(!nombre){ toast('⚠️ Ingresá el nombre de quien recibe'); return; }
+  if(!c||_firmaIsEmpty(c)){ toast('⚠️ Falta la firma'); return; }
+  const firma=_firmaExport(c);
+  markSolicitudEntregado(id,_eqQtyMap||{},nombre,firma);
 }
 function deleteSolicitud(id){
   if(!isAdmin){toast("⚠️ Sin permisos");return;}
