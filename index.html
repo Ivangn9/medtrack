@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.19.396 -->
+<!-- v2026.06.19.397 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.19.396">
+<meta name="app-version" content="v2026.06.19.397">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -2978,8 +2978,21 @@ function openHTMLViewer(htmlContent,title){
     bodyContent=bodyContent.replace(/<div class="nav-bar"[\s\S]*?<\/div>/,'');
     // Scope CSS: remove global reset (would override class spacing via ID specificity), scope body→div
     var sc=_reportCSS.replace(/^\*\{[^}]+\}/,'').replace(/\bbody\b/g,'#pdf-report-div');
-    var _bgCss=typeof _cimaB64!=='undefined'&&_cimaB64?'.page{background-image:url('+_cimaB64+')!important;background-size:cover!important;background-position:center top!important;background-repeat:no-repeat!important;padding-top:2.8cm!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}.logo-area{display:none!important;}':'';
-    reportDiv.innerHTML='<style>#pdf-report-div *{box-sizing:border-box;}'+sc+'</style>'+(_bgCss?'<style>'+_bgCss+'</style>':'')+bodyContent;
+    reportDiv.innerHTML='<style>#pdf-report-div *{box-sizing:border-box;}'+sc+'</style>'+bodyContent;
+    // Apply CIMA background via inline styles (overrides any CSS rule reliably)
+    if(typeof _cimaB64!=='undefined'&&_cimaB64){
+      var _pages=reportDiv.querySelectorAll('.page');
+      for(var _pi=0;_pi<_pages.length;_pi++){
+        _pages[_pi].style.backgroundImage='url('+_cimaB64+')';
+        _pages[_pi].style.backgroundSize='cover';
+        _pages[_pi].style.backgroundPosition='center top';
+        _pages[_pi].style.backgroundRepeat='no-repeat';
+        _pages[_pi].style.paddingTop='2.8cm';
+        _pages[_pi].style.webkitPrintColorAdjust='exact';
+        var _la=_pages[_pi].querySelector('.logo-area');
+        if(_la)_la.style.display='none';
+      }
+    }
     // Force overlay visible with inline styles (bypasses any CSS class issues)
     overlay.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;display:flex;flex-direction:column;';
     overlay.classList.remove('hidden');
@@ -2993,7 +3006,20 @@ function printReport(){
   try{
     var rDoc=(new DOMParser()).parseFromString(_reportHTML,'text/html');
     [].forEach.call(rDoc.querySelectorAll('.fault-imgs,.nav-bar,.btn-print'),function(el){if(el.parentNode)el.parentNode.removeChild(el);});
-    if(typeof _cimaB64!=='undefined'&&_cimaB64){var _bgSt=rDoc.createElement('style');_bgSt.textContent='.page{background-image:url('+_cimaB64+')!important;background-size:cover!important;background-position:center top!important;background-repeat:no-repeat!important;padding-top:2.8cm!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}.logo-area{display:none!important;}@media print{@page{margin:0;size:A4;}.page{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}}';rDoc.head.appendChild(_bgSt);}
+    if(typeof _cimaB64!=='undefined'&&_cimaB64){
+      var _bgSt=rDoc.createElement('style');
+      _bgSt.textContent='@media print{@page{margin:0;size:A4;}}';
+      rDoc.head.appendChild(_bgSt);
+      [].forEach.call(rDoc.querySelectorAll('.page'),function(pg){
+        pg.style.backgroundImage='url('+_cimaB64+')';
+        pg.style.backgroundSize='cover';
+        pg.style.backgroundPosition='center top';
+        pg.style.backgroundRepeat='no-repeat';
+        pg.style.paddingTop='2.8cm';
+        pg.style.webkitPrintColorAdjust='exact';
+        var la=pg.querySelector('.logo-area');if(la)la.style.display='none';
+      });
+    }
     var titleEl=document.getElementById('pdf-viewer-title');
     var rTitle=titleEl?titleEl.textContent.trim():'Informe CIMA';
     var safeName=rTitle.replace(/[—–]/g,'-').replace(/[\/\\:*?"<>|]/g,' ').replace(/\s+/g,' ').trim();
@@ -12338,8 +12364,8 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="7.3.8";
-var APP_BUILD="19/06/26 e";
+var APP_DISPLAY_VERSION="7.3.9";
+var APP_BUILD="19/06/26 f";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
