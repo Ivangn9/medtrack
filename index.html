@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.19.392 -->
+<!-- v2026.06.19.393 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.19.392">
+<meta name="app-version" content="v2026.06.19.393">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -5939,6 +5939,42 @@ function delMejora(mejId){
 }
 
 // ── INFORME MENSUAL IA ──
+function _iaGetEqEvents(mesStr){
+  var ev={};
+  // OTs
+  ordenesTrabajo.forEach(function(o){
+    if(!o.eqId)return;
+    var fc=o.fechaCierre||'';var fci=(o.fechaCierreISO||'').slice(0,7);var fcc=o.fechaCreacion||'';
+    if(fc.indexOf(mesStr)!==0&&fci!==mesStr&&fcc.indexOf(mesStr)!==0)return;
+    if(!ev[o.eqId])ev[o.eqId]={ots:[],partes:[],mant:[],helio:[]};
+    ev[o.eqId].ots.push(o);
+  });
+  // Partes fallas y historialMant
+  eqs.forEach(function(eq){
+    (eq.partes||[]).forEach(function(p){
+      var inP=(p.fechaRotura&&p.fechaRotura.indexOf(mesStr)===0)||(p.fechaArreglo&&p.fechaArreglo.indexOf(mesStr)===0);
+      if(!inP)return;
+      if(!ev[eq.id])ev[eq.id]={ots:[],partes:[],mant:[],helio:[]};
+      ev[eq.id].partes.push(p);
+    });
+    (eq.historialMant||[]).forEach(function(h){
+      if(!h.fecha||h.fecha.indexOf(mesStr)!==0)return;
+      if(!ev[eq.id])ev[eq.id]={ots:[],partes:[],mant:[],helio:[]};
+      ev[eq.id].mant.push(h);
+    });
+    // Helio (solo RM)
+    if(eq.cat==='RM'){
+      var rf=_refrigData(eq);
+      (rf.historial||[]).forEach(function(h){
+        if(!h.fecha||h.fecha.indexOf(mesStr)!==0)return;
+        if(h.tipo!=='carga_liquido'&&h.tipo!=='carga_gaseoso')return;
+        if(!ev[eq.id])ev[eq.id]={ots:[],partes:[],mant:[],helio:[]};
+        ev[eq.id].helio.push(h);
+      });
+    }
+  });
+  return ev;
+}
 function rInformeIA(){
   if(!window._iaState){
     var _now=new Date();
@@ -5947,19 +5983,8 @@ function rInformeIA(){
   var S=window._iaState;
   var meses=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
   var mesStr=String(S.anio)+'-'+(S.mes<10?'0':'')+S.mes;
-  var otsPeriodo=ordenesTrabajo.filter(function(o){
-    var fc=o.fechaCierre||'';
-    var fci=(o.fechaCierreISO||'').slice(0,7);
-    var fcc=o.fechaCreacion||'';
-    return fc.indexOf(mesStr)===0||fci===mesStr||fcc.indexOf(mesStr)===0;
-  });
-  var eqMap={};
-  otsPeriodo.forEach(function(o){
-    if(!o.eqId)return;
-    if(!eqMap[o.eqId])eqMap[o.eqId]=[];
-    eqMap[o.eqId].push(o);
-  });
-  var eqIds=Object.keys(eqMap);
+  var ev=_iaGetEqEvents(mesStr);
+  var eqIds=Object.keys(ev);
   var h='<div style="padding:16px;">';
   h+='<div style="font-size:1.08rem;font-weight:800;color:var(--text);margin-bottom:16px;">✨ Informe Mensual IA</div>';
   h+='<div class="gc" style="padding:14px;margin-bottom:14px;">';
@@ -5976,14 +6001,14 @@ function rInformeIA(){
   }else{
     h+='<div class="gc" style="padding:14px;margin-bottom:14px;">';
     h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">';
-    h+='<div style="font-size:.7rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;">Equipos con eventualidades ('+eqIds.length+')</div>';
+    h+='<div style="font-size:.7rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;">Equipos con eventos ('+eqIds.length+')</div>';
     var _selAll='';
     eqIds.forEach(function(id){_selAll+='window._iaState.eqsSelected[\''+id+'\']=true;';});
     h+='<button onclick="'+_selAll+'render();" style="font-size:.72rem;color:var(--accent);background:none;border:none;cursor:pointer;font-weight:600;">Todos</button>';
     h+='</div>';
     eqIds.forEach(function(eqId){
       var eq=eqs.find(function(e){return e.id===eqId;})||{};
-      var ots=eqMap[eqId];
+      var ev2=ev[eqId];
       var chk=S.eqsSelected[eqId]?'checked':'';
       h+='<label style="display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid rgba(120,120,128,.1);cursor:pointer;">';
       h+='<input type="checkbox" '+chk+' onchange="window._iaState.eqsSelected[\''+eqId+'\']=this.checked;window._iaState.result=\'\';" style="width:18px;height:18px;margin-top:2px;flex-shrink:0;accent-color:var(--accent);">';
@@ -5991,9 +6016,13 @@ function rInformeIA(){
       h+='<div style="font-size:.84rem;font-weight:700;color:var(--text);">'+esc(eq.nombre||eqId)+'</div>';
       var _sub=[(eq.marca||''),(eq.modelo||''),(eq.sala?'\xb7 '+eq.sala:'')].filter(Boolean).join(' ');
       if(_sub)h+='<div style="font-size:.72rem;color:var(--text2);">'+esc(_sub)+'</div>';
-      h+='<div style="font-size:.7rem;color:var(--accent);margin-top:2px;">'+ots.length+' eventualidad'+(ots.length!==1?'es':'')+': ';
-      h+=ots.map(function(o){return esc(o.titulo||'Sin t\xedtulo');}).join(', ');
-      h+='</div></div></label>';
+      var _tags=[];
+      if(ev2.ots.length)_tags.push('<span style="font-size:.66rem;font-weight:700;padding:2px 7px;border-radius:10px;background:rgba(0,113,227,.12);color:var(--accent);">'+ev2.ots.length+' OT'+(ev2.ots.length!==1?'s':'')+'</span>');
+      if(ev2.partes.length)_tags.push('<span style="font-size:.66rem;font-weight:700;padding:2px 7px;border-radius:10px;background:rgba(255,59,48,.10);color:var(--red);">'+ev2.partes.length+' falla'+(ev2.partes.length!==1?'s':'')+'</span>');
+      if(ev2.mant.length)_tags.push('<span style="font-size:.66rem;font-weight:700;padding:2px 7px;border-radius:10px;background:rgba(52,199,89,.10);color:var(--green);">'+ev2.mant.length+' mant.</span>');
+      if(ev2.helio.length)_tags.push('<span style="font-size:.66rem;font-weight:700;padding:2px 7px;border-radius:10px;background:rgba(8,145,178,.12);color:#0ea5e9;">'+ev2.helio.length+' carga'+(ev2.helio.length!==1?'s':'')+' helio</span>');
+      if(_tags.length)h+='<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;">'+_tags.join('')+'</div>';
+      h+='</div></label>';
     });
     h+='</div>';
     h+='<button onclick="generarInformeIA();" style="width:100%;padding:14px;background:linear-gradient(135deg,#0071e3,#5a9eff);color:#fff;border:none;border-radius:var(--r-pill);font-weight:700;font-size:.95rem;cursor:pointer;margin-bottom:16px;box-shadow:0 4px 16px rgba(0,113,227,.3);">✨ Generar Informe con IA</button>';
@@ -6023,36 +6052,75 @@ function generarInformeIA(){
   var anio=S.anio||new Date().getFullYear();
   var meses=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
   var mesStr=String(anio)+'-'+(mes<10?'0':'')+mes;
+  var ev=_iaGetEqEvents(mesStr);
   var ctx='INFORME MENSUAL: '+meses[mes-1].toUpperCase()+' '+anio+'\n\n';
   eqIds.forEach(function(eqId){
     var eq=eqs.find(function(e){return e.id===eqId;})||{};
-    var ots=ordenesTrabajo.filter(function(o){
-      if(o.eqId!==eqId)return false;
-      var fc=o.fechaCierre||'';var fci=(o.fechaCierreISO||'').slice(0,7);var fcc=o.fechaCreacion||'';
-      return fc.indexOf(mesStr)===0||fci===mesStr||fcc.indexOf(mesStr)===0;
-    });
+    var ev2=ev[eqId]||{ots:[],partes:[],mant:[],helio:[]};
     ctx+='=== EQUIPO: '+(eq.nombre||eqId)+' ===\n';
     if(eq.marca||eq.modelo)ctx+='Marca/Modelo: '+[(eq.marca||''),(eq.modelo||'')].filter(Boolean).join(' ')+'\n';
     if(eq.sala)ctx+='Sala: '+eq.sala+'\n';
     if(eq.tecnico)ctx+='T\xe9cnico responsable: '+eq.tecnico+'\n';
-    ctx+='\nEVENTUALIDADES ('+ots.length+'):\n';
-    ots.forEach(function(o,_i){
-      ctx+='\n[OT '+(_i+1)+'] '+(o.titulo||'Sin t\xedtulo')+'\n';
-      if(o.tipo)ctx+='  Tipo: '+o.tipo+'\n';
-      if(o.prioridad)ctx+='  Prioridad: '+o.prioridad+'\n';
-      if(o.estado)ctx+='  Estado: '+o.estado+'\n';
-      if(o.descripcion)ctx+='  Descripci\xf3n: '+o.descripcion+'\n';
-      if(o.resolucion)ctx+='  Resoluci\xf3n: '+o.resolucion+'\n';
-      if(o.tecnicoAsignado)ctx+='  T\xe9cnico asignado: '+o.tecnicoAsignado+'\n';
-      if(o.fechaCreacion)ctx+='  Apertura: '+o.fechaCreacion+'\n';
-      if(o.fechaCierre)ctx+='  Cierre: '+o.fechaCierre+'\n';
-      if(o.gastosCierre)ctx+='  Gastos: '+(o.monedaGastos||'ARS')+' '+parseFloat(o.gastosCierre).toLocaleString('es-AR')+'\n';
-      if(o.reclamoCierre)ctx+='  Reclamo/Gesti\xf3n: '+o.reclamoCierre+'\n';
-    });
+    // OTs
+    if(ev2.ots.length){
+      ctx+='\nORDENES DE TRABAJO ('+ev2.ots.length+'):\n';
+      ev2.ots.forEach(function(o,_i){
+        ctx+='\n[OT '+(_i+1)+'] '+(o.titulo||'Sin t\xedtulo')+'\n';
+        if(o.tipo)ctx+='  Tipo: '+o.tipo+'\n';
+        if(o.prioridad)ctx+='  Prioridad: '+o.prioridad+'\n';
+        if(o.estado)ctx+='  Estado: '+o.estado+'\n';
+        if(o.descripcion)ctx+='  Descripci\xf3n: '+o.descripcion+'\n';
+        if(o.resolucion)ctx+='  Resoluci\xf3n: '+o.resolucion+'\n';
+        if(o.tecnicoAsignado)ctx+='  T\xe9cnico asignado: '+o.tecnicoAsignado+'\n';
+        if(o.fechaCreacion)ctx+='  Apertura: '+o.fechaCreacion+'\n';
+        if(o.fechaCierre)ctx+='  Cierre: '+o.fechaCierre+'\n';
+        if(o.gastosCierre)ctx+='  Gastos: '+(o.monedaGastos||'ARS')+' '+parseFloat(o.gastosCierre).toLocaleString('es-AR')+'\n';
+        if(o.reclamoCierre)ctx+='  Reclamo/Gesti\xf3n: '+o.reclamoCierre+'\n';
+      });
+    }
+    // Fallas / partes
+    if(ev2.partes.length){
+      ctx+='\nFALLAS Y REPARACIONES DE COMPONENTES ('+ev2.partes.length+'):\n';
+      ev2.partes.forEach(function(p,_i){
+        ctx+='\n[Componente '+(_i+1)+'] '+(p.nombre||'Sin nombre')+'\n';
+        if(p.estado)ctx+='  Estado: '+p.estado+'\n';
+        if(p.fechaRotura)ctx+='  Fecha falla: '+p.fechaRotura+'\n';
+        if(p.fechaArreglo)ctx+='  Fecha reparaci\xf3n: '+p.fechaArreglo+'\n';
+        if(p.descripcion)ctx+='  Descripci\xf3n: '+p.descripcion+'\n';
+        if(p.notas)ctx+='  Notas: '+p.notas+'\n';
+        if(p.tecnico)ctx+='  T\xe9cnico: '+p.tecnico+'\n';
+        if(p.precio)ctx+='  Costo: '+(p.precioMoneda||'ARS')+' '+p.precio+'\n';
+      });
+    }
+    // historialMant
+    if(ev2.mant.length){
+      ctx+='\nMANTENIMIENTO REGISTRADO ('+ev2.mant.length+'):\n';
+      ev2.mant.forEach(function(h,_i){
+        ctx+='\n[Mant. '+(_i+1)+'] '+(h.nombre||h.tipo||'Mantenimiento')+'\n';
+        if(h.fecha)ctx+='  Fecha: '+h.fecha+'\n';
+        if(h.descripcion)ctx+='  Descripci\xf3n: '+h.descripcion+'\n';
+        if(h.notas)ctx+='  Notas: '+h.notas+'\n';
+        if(h.tecnico)ctx+='  T\xe9cnico: '+h.tecnico+'\n';
+        if(h.precio)ctx+='  Costo: '+(h.precioMoneda||'ARS')+' '+h.precio+'\n';
+      });
+    }
+    // Helio
+    if(ev2.helio.length){
+      ctx+='\nCARGAS DE HELIO ('+ev2.helio.length+'):\n';
+      ev2.helio.forEach(function(h,_i){
+        var tipo=h.tipo==='carga_liquido'?'Helio L\xedquido':'Helio Gaseoso';
+        ctx+='\n[Carga '+(_i+1)+'] '+tipo+'\n';
+        if(h.fecha)ctx+='  Fecha: '+h.fecha+'\n';
+        if(h.litros)ctx+='  Litros cargados: '+h.litros+' L\n';
+        if(h.empresa)ctx+='  Empresa/Proveedor: '+h.empresa+'\n';
+        if(h.tecnico)ctx+='  Ingeniero: '+h.tecnico+'\n';
+        if(h.notas)ctx+='  Notas: '+h.notas+'\n';
+      });
+    }
     ctx+='\n';
   });
   var sys='Sos un redactor t\xe9cnico especializado en informes de gesti\xf3n de equipos m\xe9dicos para CIMA (Centro de Im\xe1genes M\xe9dicas Avanzadas). Redat\xe1s informes gerenciales en espa\xf1ol formal argentino, profesional y orientado a la toma de decisiones. NO uses markdown, asteriscos ni s\xedmbolos de formato — solo texto plano con t\xedtulos de secci\xf3n en MAY\xdaSCULAS.';
-  var usr='Redat\xe1 un informe gerencial mensual de mantenimiento y gesti\xf3n de equipos m\xe9dicos basado en los siguientes datos reales:\n\n'+ctx+'\nEl informe debe incluir:\n1. Encabezado institucional (CIMA, per\xedodo, fecha de generaci\xf3n)\n2. Resumen ejecutivo (2-3 p\xe1rrafos)\n3. Detalle por equipo: describ\xed cada eventualidad, qu\xe9 ocurri\xf3, c\xf3mo se resolvi\xf3, gastos y reclamos a proveedores si los hay\n4. Conclusiones y recomendaciones\n\nSolo texto plano, t\xedtulos de secci\xf3n en MAY\xdaSCULAS.';
+  var usr='Redat\xe1 un informe gerencial mensual de mantenimiento y gesti\xf3n de equipos m\xe9dicos basado en los siguientes datos reales del sistema CIMA MedTrack:\n\n'+ctx+'\nEl informe debe incluir:\n1. Encabezado institucional (CIMA, per\xedodo, fecha de generaci\xf3n)\n2. Resumen ejecutivo (2-3 p\xe1rrafos)\n3. Detalle por equipo: describ\xed cada eventualidad, falla de componente, mantenimiento realizado, cargas de helio y reclamos/gastos\n4. Conclusiones y recomendaciones\n\nSolo texto plano, t\xedtulos de secci\xf3n en MAY\xdaSCULAS.';
   showToast('Generando informe... ⏳');
   var _btn=document.querySelector('[onclick*="generarInformeIA"]');
   if(_btn){_btn.disabled=true;_btn.textContent='⏳ Generando...';}
@@ -12268,8 +12336,8 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="7.3.4";
-var APP_BUILD="19/06/26";
+var APP_DISPLAY_VERSION="7.3.5";
+var APP_BUILD="19/06/26 b";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
