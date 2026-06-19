@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.18.391 -->
+<!-- v2026.06.19.392 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.18.391">
+<meta name="app-version" content="v2026.06.19.392">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1220,6 +1220,7 @@ body.dark .pill[style*="#ff9500"],body.dark .pill[style*="--orange"]{box-shadow:
     <button class="sb-nav-btn" data-sb="ups" onclick="setView('ups')"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg></span>Esquema UPS</button>
     <button class="sb-nav-btn" data-sb="kpi" onclick="setView('kpi')"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg></span>KPI & Gastos</button>
     <button class="sb-nav-btn" data-sb="ejecutivo" onclick="setView('ejecutivo')"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M7 8h10M7 12h6"/></svg></span>Ejecutivo</button>
+    <button class="sb-nav-btn" data-sb="informeIA" onclick="setView('informeIA')"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M12 13l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z"/></svg></span>Informe IA</button>
     <button class="sb-nav-btn" data-sb="bajas" onclick="setView('bajas')"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></span>Bajas</button>
     <button class="sb-nav-btn" data-sb="calendario" onclick="setView('calendario')"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>Calendario PM</button>
     <button class="sb-nav-btn" data-sb="ordenes" onclick="setView('ordenes')"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg></span>Órdenes de Trabajo</button>
@@ -3828,6 +3829,7 @@ function render(){
     else if(view==="repuestos")d.innerHTML=rRepuestos();
     else if(view==="reclamos")d.innerHTML=rReclamos();
     else if(view==="auditoria")d.innerHTML=rAuditoria();
+    else if(view==="informeIA")d.innerHTML=rInformeIA();
     m.appendChild(d);
     var spacer=document.createElement("div");spacer.style.height="80px";spacer.style.flexShrink="0";m.appendChild(spacer);
     if(typeof AOS!=="undefined")requestAnimationFrame(function(){requestAnimationFrame(function(){AOS.refresh();});});
@@ -5046,6 +5048,16 @@ function cerrarOT(otId){
   html+='<div id="ot-close-img-list" style="display:flex;flex-wrap:wrap;gap:4px;"></div>';
   if(ot.imagenesClose&&ot.imagenesClose.length)html+='<button onclick="openOTImagesModal('+JSON.stringify(ot.imagenesClose).replace(/'/g,"&#39;")+',\'Fotos de cierre\')" style="margin-top:4px;padding:4px 12px;border-radius:var(--r-pill);background:rgba(52,199,89,.08);border:1px solid rgba(52,199,89,.25);color:var(--green);font-size:.7rem;cursor:pointer;">👁 Ver '+ot.imagenesClose.length+' foto'+(ot.imagenesClose.length!==1?'s':'')+' de cierre</button>';
   html+='</div>';
+  html+='<div style="margin-bottom:12px;"><label style="font-size:.72rem;color:var(--text2);font-weight:600;display:block;margin-bottom:6px;">💰 Gastos del trabajo (opcional)</label>';
+  html+='<div style="display:flex;gap:8px;">';
+  html+='<select class="inp" id="ot-moneda" style="width:76px;padding:8px;flex-shrink:0;">';
+  html+='<option value="ARS"'+((!ot.monedaGastos||ot.monedaGastos==='ARS')?' selected':'')+'>ARS</option>';
+  html+='<option value="USD"'+(ot.monedaGastos==='USD'?' selected':'')+'>USD</option>';
+  html+='</select>';
+  html+='<input class="inp" id="ot-gastos" type="number" min="0" step="0.01" placeholder="0.00" style="flex:1;" value="'+(ot.gastosCierre||'')+'">';
+  html+='</div></div>';
+  html+='<div style="margin-bottom:14px;"><label style="font-size:.72rem;color:var(--text2);font-weight:600;display:block;margin-bottom:6px;">📋 Reclamo / gestión con proveedor (opcional)</label>';
+  html+='<textarea class="inp" id="ot-reclamo" rows="2" placeholder="Ej: Reclamo a Siemens por garant\xeda, ticket #12345, en seguimiento..." style="width:100%;resize:vertical;">'+esc(ot.reclamoCierre||'')+'</textarea></div>';
   html+='<div style="display:flex;gap:10px;margin-top:16px;">';
   html+='<button onclick="submitCerrarOT(\''+otId+'\');" style="flex:1;background:#30d158;color:#fff;border:none;border-radius:var(--r-md);padding:12px;font-weight:700;font-size:.88rem;cursor:pointer;">✅ Cerrar OT</button>';
   html+='<button onclick="closeModal();" style="background:rgba(120,120,128,.13);color:var(--text2);border:none;border-radius:var(--r-md);padding:12px 18px;font-weight:600;font-size:.88rem;cursor:pointer;">Cancelar</button>';
@@ -5086,10 +5098,14 @@ function submitCerrarOT(otId){
   _pendingOTCloseImages.forEach(function(f){dbSave(f.id,f.nombre,f.data);});
   var newCloseRefs=_pendingOTCloseImages.map(function(f){return{id:f.id,nombre:f.nombre};});
   _pendingOTCloseImages=[];
+  var gastosRaw=((document.getElementById('ot-gastos')||{}).value||'').trim();
+  var gastosCierre=gastosRaw?parseFloat(gastosRaw)||0:null;
+  var monedaGastos=(document.getElementById('ot-moneda')||{}).value||'ARS';
+  var reclamoCierre=((document.getElementById('ot-reclamo')||{}).value||'').trim();
   var now=new Date().toISOString();
   ordenesTrabajo=ordenesTrabajo.map(function(o){
     if(o.id!==otId)return o;
-    return Object.assign({},o,{estado:'cerrada',resolucion:resolucion,firma:firmaData,fechaCierre:today(),fechaCierreISO:now,imagenesClose:(o.imagenesClose||[]).concat(newCloseRefs)});
+    return Object.assign({},o,{estado:'cerrada',resolucion:resolucion,firma:firmaData,fechaCierre:today(),fechaCierreISO:now,imagenesClose:(o.imagenesClose||[]).concat(newCloseRefs),gastosCierre:gastosCierre,monedaGastos:monedaGastos,reclamoCierre:reclamoCierre});
   });
   var ot=ordenesTrabajo.find(function(o){return o.id===otId;})||{};
   auditEntry('cerrar','ot',otId,ot.titulo||otId,'OT cerrada — '+resolucion.slice(0,60));
@@ -5920,6 +5936,168 @@ function delMejora(mejId){
   mejoras=mejoras.filter(function(m){return m.id!==mejId;});
   _saveMejoras();render();
   showToast('Mejora eliminada','warn');
+}
+
+// ── INFORME MENSUAL IA ──
+function rInformeIA(){
+  if(!window._iaState){
+    var _now=new Date();
+    window._iaState={mes:_now.getMonth()+1,anio:_now.getFullYear(),eqsSelected:{},result:''};
+  }
+  var S=window._iaState;
+  var meses=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  var mesStr=String(S.anio)+'-'+(S.mes<10?'0':'')+S.mes;
+  var otsPeriodo=ordenesTrabajo.filter(function(o){
+    var fc=o.fechaCierre||'';
+    var fci=(o.fechaCierreISO||'').slice(0,7);
+    var fcc=o.fechaCreacion||'';
+    return fc.indexOf(mesStr)===0||fci===mesStr||fcc.indexOf(mesStr)===0;
+  });
+  var eqMap={};
+  otsPeriodo.forEach(function(o){
+    if(!o.eqId)return;
+    if(!eqMap[o.eqId])eqMap[o.eqId]=[];
+    eqMap[o.eqId].push(o);
+  });
+  var eqIds=Object.keys(eqMap);
+  var h='<div style="padding:16px;">';
+  h+='<div style="font-size:1.08rem;font-weight:800;color:var(--text);margin-bottom:16px;">✨ Informe Mensual IA</div>';
+  h+='<div class="gc" style="padding:14px;margin-bottom:14px;">';
+  h+='<div style="font-size:.7rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;">Per\xedodo</div>';
+  h+='<div style="display:flex;gap:8px;">';
+  h+='<select class="inp" style="flex:1;padding:9px;" onchange="window._iaState.mes=parseInt(this.value);window._iaState.eqsSelected={};window._iaState.result=\'\';render();">';
+  for(var _m=1;_m<=12;_m++){h+='<option value="'+_m+'"'+(_m===S.mes?' selected':'')+'>'+meses[_m-1]+'</option>';}
+  h+='</select>';
+  h+='<select class="inp" style="width:90px;padding:9px;" onchange="window._iaState.anio=parseInt(this.value);window._iaState.eqsSelected={};window._iaState.result=\'\';render();">';
+  for(var _y=S.anio-2;_y<=S.anio+1;_y++){h+='<option value="'+_y+'"'+(_y===S.anio?' selected':'')+'>'+_y+'</option>';}
+  h+='</select></div></div>';
+  if(!eqIds.length){
+    h+='<div class="gc" style="padding:28px;text-align:center;color:var(--text2);font-size:.85rem;">Sin equipos con eventualidades en '+meses[S.mes-1]+' '+S.anio+'</div>';
+  }else{
+    h+='<div class="gc" style="padding:14px;margin-bottom:14px;">';
+    h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">';
+    h+='<div style="font-size:.7rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;">Equipos con eventualidades ('+eqIds.length+')</div>';
+    var _selAll='';
+    eqIds.forEach(function(id){_selAll+='window._iaState.eqsSelected[\''+id+'\']=true;';});
+    h+='<button onclick="'+_selAll+'render();" style="font-size:.72rem;color:var(--accent);background:none;border:none;cursor:pointer;font-weight:600;">Todos</button>';
+    h+='</div>';
+    eqIds.forEach(function(eqId){
+      var eq=eqs.find(function(e){return e.id===eqId;})||{};
+      var ots=eqMap[eqId];
+      var chk=S.eqsSelected[eqId]?'checked':'';
+      h+='<label style="display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid rgba(120,120,128,.1);cursor:pointer;">';
+      h+='<input type="checkbox" '+chk+' onchange="window._iaState.eqsSelected[\''+eqId+'\']=this.checked;window._iaState.result=\'\';" style="width:18px;height:18px;margin-top:2px;flex-shrink:0;accent-color:var(--accent);">';
+      h+='<div style="flex:1;min-width:0;">';
+      h+='<div style="font-size:.84rem;font-weight:700;color:var(--text);">'+esc(eq.nombre||eqId)+'</div>';
+      var _sub=[(eq.marca||''),(eq.modelo||''),(eq.sala?'\xb7 '+eq.sala:'')].filter(Boolean).join(' ');
+      if(_sub)h+='<div style="font-size:.72rem;color:var(--text2);">'+esc(_sub)+'</div>';
+      h+='<div style="font-size:.7rem;color:var(--accent);margin-top:2px;">'+ots.length+' eventualidad'+(ots.length!==1?'es':'')+': ';
+      h+=ots.map(function(o){return esc(o.titulo||'Sin t\xedtulo');}).join(', ');
+      h+='</div></div></label>';
+    });
+    h+='</div>';
+    h+='<button onclick="generarInformeIA();" style="width:100%;padding:14px;background:linear-gradient(135deg,#0071e3,#5a9eff);color:#fff;border:none;border-radius:var(--r-pill);font-weight:700;font-size:.95rem;cursor:pointer;margin-bottom:16px;box-shadow:0 4px 16px rgba(0,113,227,.3);">✨ Generar Informe con IA</button>';
+  }
+  if(S.result){
+    h+='<div class="gc" style="padding:14px;margin-bottom:14px;">';
+    h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">';
+    h+='<div style="font-size:.7rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;">Borrador generado</div>';
+    h+='<button onclick="imprimirInformeIA();" style="padding:6px 14px;background:var(--accent);color:#fff;border:none;border-radius:var(--r-pill);font-size:.75rem;font-weight:700;cursor:pointer;">🖨 Imprimir</button>';
+    h+='</div>';
+    h+='<textarea id="ia-resultado" class="inp" rows="22" style="width:100%;font-size:.8rem;line-height:1.65;font-family:Inter,sans-serif;resize:vertical;" onchange="window._iaState.result=this.value;">'+esc(S.result)+'</textarea>';
+    h+='</div>';
+  }
+  h+='</div>';
+  return h;
+}
+function generarInformeIA(){
+  var proxyUrl=_getAIProxy();
+  if(!proxyUrl){
+    if(confirm('Esta funci\xf3n requiere el proxy de IA configurado.\n\xbfConfigurarlo ahora?'))openAIKeyModal();
+    return;
+  }
+  var S=window._iaState||{};
+  var eqIds=Object.keys(S.eqsSelected||{}).filter(function(k){return S.eqsSelected[k];});
+  if(!eqIds.length)return showToast('Seleccion\xe1 al menos un equipo','warn');
+  var mes=S.mes||new Date().getMonth()+1;
+  var anio=S.anio||new Date().getFullYear();
+  var meses=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  var mesStr=String(anio)+'-'+(mes<10?'0':'')+mes;
+  var ctx='INFORME MENSUAL: '+meses[mes-1].toUpperCase()+' '+anio+'\n\n';
+  eqIds.forEach(function(eqId){
+    var eq=eqs.find(function(e){return e.id===eqId;})||{};
+    var ots=ordenesTrabajo.filter(function(o){
+      if(o.eqId!==eqId)return false;
+      var fc=o.fechaCierre||'';var fci=(o.fechaCierreISO||'').slice(0,7);var fcc=o.fechaCreacion||'';
+      return fc.indexOf(mesStr)===0||fci===mesStr||fcc.indexOf(mesStr)===0;
+    });
+    ctx+='=== EQUIPO: '+(eq.nombre||eqId)+' ===\n';
+    if(eq.marca||eq.modelo)ctx+='Marca/Modelo: '+[(eq.marca||''),(eq.modelo||'')].filter(Boolean).join(' ')+'\n';
+    if(eq.sala)ctx+='Sala: '+eq.sala+'\n';
+    if(eq.tecnico)ctx+='T\xe9cnico responsable: '+eq.tecnico+'\n';
+    ctx+='\nEVENTUALIDADES ('+ots.length+'):\n';
+    ots.forEach(function(o,_i){
+      ctx+='\n[OT '+(_i+1)+'] '+(o.titulo||'Sin t\xedtulo')+'\n';
+      if(o.tipo)ctx+='  Tipo: '+o.tipo+'\n';
+      if(o.prioridad)ctx+='  Prioridad: '+o.prioridad+'\n';
+      if(o.estado)ctx+='  Estado: '+o.estado+'\n';
+      if(o.descripcion)ctx+='  Descripci\xf3n: '+o.descripcion+'\n';
+      if(o.resolucion)ctx+='  Resoluci\xf3n: '+o.resolucion+'\n';
+      if(o.tecnicoAsignado)ctx+='  T\xe9cnico asignado: '+o.tecnicoAsignado+'\n';
+      if(o.fechaCreacion)ctx+='  Apertura: '+o.fechaCreacion+'\n';
+      if(o.fechaCierre)ctx+='  Cierre: '+o.fechaCierre+'\n';
+      if(o.gastosCierre)ctx+='  Gastos: '+(o.monedaGastos||'ARS')+' '+parseFloat(o.gastosCierre).toLocaleString('es-AR')+'\n';
+      if(o.reclamoCierre)ctx+='  Reclamo/Gesti\xf3n: '+o.reclamoCierre+'\n';
+    });
+    ctx+='\n';
+  });
+  var sys='Sos un redactor t\xe9cnico especializado en informes de gesti\xf3n de equipos m\xe9dicos para CIMA (Centro de Im\xe1genes M\xe9dicas Avanzadas). Redat\xe1s informes gerenciales en espa\xf1ol formal argentino, profesional y orientado a la toma de decisiones. NO uses markdown, asteriscos ni s\xedmbolos de formato — solo texto plano con t\xedtulos de secci\xf3n en MAY\xdaSCULAS.';
+  var usr='Redat\xe1 un informe gerencial mensual de mantenimiento y gesti\xf3n de equipos m\xe9dicos basado en los siguientes datos reales:\n\n'+ctx+'\nEl informe debe incluir:\n1. Encabezado institucional (CIMA, per\xedodo, fecha de generaci\xf3n)\n2. Resumen ejecutivo (2-3 p\xe1rrafos)\n3. Detalle por equipo: describ\xed cada eventualidad, qu\xe9 ocurri\xf3, c\xf3mo se resolvi\xf3, gastos y reclamos a proveedores si los hay\n4. Conclusiones y recomendaciones\n\nSolo texto plano, t\xedtulos de secci\xf3n en MAY\xdaSCULAS.';
+  showToast('Generando informe... ⏳');
+  var _btn=document.querySelector('[onclick*="generarInformeIA"]');
+  if(_btn){_btn.disabled=true;_btn.textContent='⏳ Generando...';}
+  fetch(proxyUrl,{method:'POST',mode:'cors',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({model:'claude-opus-4-8',max_tokens:4000,system:sys,messages:[{role:'user',content:usr}]})
+  })
+  .then(function(r){return r.json().then(function(d){return{ok:r.ok,status:r.status,data:d};});})
+  .then(function(res){
+    if(!res.ok){var em=((res.data||{}).error||{}).message||'Error';throw new Error(em);}
+    var text=(((res.data.content||[])[0])||{}).text||'';
+    if(!text)throw new Error('Respuesta vac\xeda del servidor');
+    if(!window._iaState)window._iaState={};
+    window._iaState.result=text;
+    render();
+    showToast('Informe generado ✅');
+    setTimeout(function(){var el=document.getElementById('ia-resultado');if(el)el.scrollIntoView({behavior:'smooth'});},200);
+  })
+  .catch(function(e){
+    showToast('Error: '+e.message,'warn');
+    var _b2=document.querySelector('[onclick*="generarInformeIA"]');
+    if(_b2){_b2.disabled=false;_b2.textContent='✨ Generar Informe con IA';}
+  });
+}
+function imprimirInformeIA(){
+  var ta=document.getElementById('ia-resultado');
+  var texto=ta?ta.value:(window._iaState&&window._iaState.result||'');
+  if(!texto)return showToast('No hay borrador para imprimir','warn');
+  var S=window._iaState||{};
+  var mes=S.mes||new Date().getMonth()+1;
+  var anio=S.anio||new Date().getFullYear();
+  var meses=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  var tit='INFORME GERENCIAL — '+meses[mes-1].toUpperCase()+' '+anio;
+  var w=window.open('','_blank');
+  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+tit+'</title>'+
+    '<style>body{font-family:Arial,sans-serif;max-width:800px;margin:40px auto;padding:20px;color:#1a1a2e;line-height:1.75;font-size:13px;}'+
+    'h1{font-size:15px;text-align:center;margin-bottom:4px;font-weight:900;}'+
+    '.sub{text-align:center;color:#666;font-size:11px;margin-bottom:28px;border-bottom:2px solid #1a1a2e;padding-bottom:12px;}'+
+    'pre{white-space:pre-wrap;font-family:Arial,sans-serif;font-size:13px;line-height:1.75;margin:0;}'+
+    '@media print{body{margin:20px;}@page{margin:20mm;}}</style></head><body>'+
+    '<h1>CIMA — '+tit+'</h1>'+
+    '<div class="sub">CIMA Investigaciones Avanzadas \xb7 MedTrack '+APP_DISPLAY_VERSION+'</div>'+
+    '<pre>'+texto.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</pre>'+
+    '</body></html>');
+  w.document.close();
+  setTimeout(function(){w.print();},400);
 }
 
 // ── AUDITORÍA ──
@@ -12090,8 +12268,8 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="7.3.3";
-var APP_BUILD="18/06/26 05:00";
+var APP_DISPLAY_VERSION="7.3.4";
+var APP_BUILD="19/06/26";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
