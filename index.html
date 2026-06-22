@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.22.402 -->
+<!-- v2026.06.22.403 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.22.402">
+<meta name="app-version" content="v2026.06.22.403">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -2883,28 +2883,35 @@ var _reconcileRunning=false,_cloudConfirmed={};
 function reconcileFiles(){
   if(_reconcileRunning||!window._fbStorage||!window._fbUser)return;
   _reconcileRunning=true;
+  var _pending=0;
+  // Safety fallback: release lock after 60s regardless (each upload retries up to ~32s)
+  var _safeguard=setTimeout(function(){_reconcileRunning=false;},60000);
+  function _done(){if(--_pending<=0){clearTimeout(_safeguard);_reconcileRunning=false;}}
   var seen={};
   // 1) Everything explicitly queued as "needs upload"
   var q=_upqGet();
   Object.keys(q).forEach(function(id){
-    seen[id]=1;
+    seen[id]=1;_pending++;
     dbGet(id,function(rec){
-      if(rec&&rec.data)_storageSaveB64(id,(q[id]&&q[id].n)||id,rec.data,function(ok){if(ok)_cloudConfirmed[id]=1;});
-      else _upqDel(id); // not in IndexedDB anymore and untracked — can't recover
+      if(rec&&rec.data)_storageSaveB64(id,(q[id]&&q[id].n)||id,rec.data,function(ok){if(ok)_cloudConfirmed[id]=1;_done();});
+      else{_upqDel(id);_done();} // not in IndexedDB anymore — remove from queue
     });
   });
   // 2) Every referenced file: if missing from cloud but present locally, upload it
   var refs=_collectFileRefs();
   Object.keys(refs).forEach(function(id){
-    if(seen[id]||_cloudConfirmed[id])return; // skip already-confirmed cloud files
+    if(seen[id]||_cloudConfirmed[id])return; // skip already-queued or confirmed files
+    _pending++;
     _storageGetUrl(id,function(url){
-      if(url){_cloudConfirmed[id]=1;return;} // already safe in the cloud
+      if(url){_cloudConfirmed[id]=1;_done();return;} // already safe in the cloud
       dbGet(id,function(rec){
-        if(rec&&rec.data)_storageSaveB64(id,refs[id],rec.data,function(ok){if(ok)_cloudConfirmed[id]=1;});
+        if(rec&&rec.data)_storageSaveB64(id,refs[id],rec.data,function(ok){if(ok)_cloudConfirmed[id]=1;_done();});
+        else _done();
       });
     });
   });
-  setTimeout(function(){_reconcileRunning=false;},8000);
+  // If queue and refs were both empty, release immediately
+  if(_pending===0){clearTimeout(_safeguard);_reconcileRunning=false;}
 }
 
 // Lifecycle: flush pending Firestore save when the app is hidden/closed (iOS kills PWAs),
@@ -12397,7 +12404,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="7.4.4";
+var APP_DISPLAY_VERSION="7.4.5";
 var APP_BUILD="22/06/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
