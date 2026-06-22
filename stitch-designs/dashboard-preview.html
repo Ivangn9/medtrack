@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MedTrack — Dashboard Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #06091a;
+  --text: #f2f2f7;
+  --text2: #aeaeb2;
+  --text3: #636366;
+  --sep: rgba(84,84,88,.5);
+  --accent: #adc6ff;
+  --accent2: #7ba7f0;
+  --red: #ff453a;
+  --orange: #ff9f0a;
+  --green: #30d158;
+  --purple: #bf5af2;
+  --gc-bg: rgba(22,21,34,.58);
+  --gc-border: rgba(255,255,255,.09);
+  --gc-border-top: rgba(255,255,255,.14);
+  --r-sm: 14px; --r-md: 18px; --r-lg: 22px; --r-xl: 28px; --r-pill: 50px;
+  --spring: cubic-bezier(0.34,1.56,0.64,1);
+  --ease-out: cubic-bezier(0.16,1,0.3,1);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  background: #06091a;
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Animated background */
+.bg-layer {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 130% 70% at 50% -5%, rgba(30,60,180,.28) 0%, transparent 55%),
+    radial-gradient(ellipse 90% 60% at -5% 100%, rgba(20,50,140,.18) 0%, transparent 50%),
+    radial-gradient(ellipse 70% 50% at 105% 55%, rgba(40,30,120,.13) 0%, transparent 50%),
+    linear-gradient(175deg, #06091a 0%, #07091e 35%, #060820 65%, #050718 100%);
+  animation: bgShift 32s ease-in-out infinite;
+}
+@keyframes bgShift {
+  0%,100% { filter: hue-rotate(-6deg) brightness(1.0) saturate(1.08); }
+  50%      { filter: hue-rotate(10deg) brightness(1.02) saturate(1.15); }
+}
+
+/* Layout */
+.app { position: relative; z-index: 1; max-width: 430px; margin: 0 auto; padding: 0 0 100px; }
+
+/* Header */
+.header {
+  position: sticky; top: 0; z-index: 100;
+  padding: env(safe-area-inset-top, 0) 20px 0;
+  background: rgba(6,9,26,.72);
+  backdrop-filter: saturate(320%) contrast(108%) brightness(110%) blur(30px);
+  -webkit-backdrop-filter: saturate(320%) contrast(108%) brightness(110%) blur(30px);
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+.header-inner {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 0 12px;
+}
+.header-left { display: flex; flex-direction: column; gap: 1px; }
+.header-title {
+  font-family: 'Hanken Grotesk', sans-serif;
+  font-size: 1.05rem; font-weight: 700; color: var(--text);
+  letter-spacing: -.2px;
+}
+.header-sub { font-size: .68rem; color: var(--text3); font-weight: 500; }
+.header-avatar {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+  display: flex; align-items: center; justify-content: center;
+  font-size: .78rem; font-weight: 700; color: #fff;
+  border: 1.5px solid rgba(255,255,255,.15);
+}
+
+/* Sections */
+.section { padding: 20px 16px 0; }
+.section-label {
+  font-size: .62rem; font-weight: 700; letter-spacing: 1.2px;
+  text-transform: uppercase; color: var(--text3);
+  margin-bottom: 10px; padding: 0 4px;
+}
+
+/* Status grid */
+.status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.status-card {
+  background: var(--gc-bg);
+  backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px);
+  border: 1px solid var(--gc-border);
+  border-top-color: var(--gc-border-top);
+  border-radius: var(--r-lg);
+  padding: 16px 16px 14px;
+  position: relative; overflow: hidden;
+  animation: cardIn .46s var(--spring) both;
+}
+.status-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 40%;
+  background: linear-gradient(180deg, rgba(255,255,255,.04) 0%, transparent 100%);
+  pointer-events: none; border-radius: inherit;
+}
+.status-card:nth-child(1) { animation-delay: .04s; }
+.status-card:nth-child(2) { animation-delay: .10s; }
+.status-card:nth-child(3) { animation-delay: .16s; }
+.status-card:nth-child(4) { animation-delay: .22s; }
+
+.sc-icon {
+  width: 32px; height: 32px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; margin-bottom: 10px;
+}
+.sc-icon.green { background: rgba(48,209,88,.15); }
+.sc-icon.orange { background: rgba(255,159,10,.15); }
+.sc-icon.red { background: rgba(255,69,58,.15); }
+.sc-icon.blue { background: rgba(173,198,255,.12); }
+
+.sc-value {
+  font-family: 'Hanken Grotesk', sans-serif;
+  font-size: 2rem; font-weight: 800; line-height: 1;
+  margin-bottom: 3px;
+}
+.sc-value.green { color: var(--green); }
+.sc-value.orange { color: var(--orange); }
+.sc-value.red { color: var(--red); }
+.sc-value.blue { color: var(--accent); }
+
+.sc-label { font-size: .7rem; font-weight: 600; color: var(--text3); letter-spacing: .2px; }
+
+/* Availability bar */
+.avail-card {
+  background: var(--gc-bg);
+  backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px);
+  border: 1px solid var(--gc-border);
+  border-top-color: var(--gc-border-top);
+  border-radius: var(--r-lg);
+  padding: 16px 18px;
+  animation: cardIn .46s var(--spring) .28s both;
+  position: relative; overflow: hidden;
+}
+.avail-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 40%;
+  background: linear-gradient(180deg, rgba(255,255,255,.04) 0%, transparent 100%);
+  pointer-events: none;
+}
+.avail-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.avail-title { font-size: .8rem; font-weight: 700; color: var(--text2); }
+.avail-pct {
+  font-family: 'Hanken Grotesk', sans-serif;
+  font-size: 1.5rem; font-weight: 800; color: var(--green);
+}
+.avail-bar-bg {
+  height: 8px; background: rgba(255,255,255,.07); border-radius: 99px; overflow: hidden;
+}
+.avail-bar-fill {
+  height: 100%; background: linear-gradient(90deg, var(--green), #34d399);
+  border-radius: 99px;
+  animation: barGrow .8s var(--ease-out) .5s both;
+  transform-origin: left;
+}
+@keyframes barGrow { from { width: 0 !important; } }
+.avail-segments {
+  display: flex; gap: 6px; margin-top: 10px;
+}
+.avail-seg {
+  display: flex; align-items: center; gap: 4px;
+  font-size: .62rem; font-weight: 600; color: var(--text3);
+}
+.avail-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+/* Alert list */
+.alert-list { display: flex; flex-direction: column; gap: 8px; }
+.alert-item {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--gc-bg);
+  backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px);
+  border: 1px solid var(--gc-border);
+  border-top-color: var(--gc-border-top);
+  border-radius: var(--r-md);
+  padding: 12px 14px;
+  animation: listItemIn .36s var(--spring) both;
+}
+.alert-item:nth-child(1) { animation-delay: .06s; border-left: 2.5px solid var(--red); }
+.alert-item:nth-child(2) { animation-delay: .12s; border-left: 2.5px solid var(--red); }
+.alert-item:nth-child(3) { animation-delay: .18s; border-left: 2.5px solid var(--orange); }
+.alert-item:nth-child(4) { animation-delay: .24s; border-left: 2.5px solid var(--orange); }
+
+@keyframes listItemIn {
+  from { opacity: 0; transform: translateY(12px) scale(.97); }
+  to   { opacity: 1; transform: none; }
+}
+
+.alert-icon { font-size: 1.2rem; flex-shrink: 0; }
+.alert-body { flex: 1; min-width: 0; }
+.alert-name {
+  font-size: .82rem; font-weight: 700; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.alert-desc { font-size: .7rem; color: var(--text3); margin-top: 1px; font-weight: 500; }
+.alert-badge {
+  font-size: .6rem; font-weight: 700; letter-spacing: .5px; text-transform: uppercase;
+  padding: 3px 8px; border-radius: var(--r-pill); flex-shrink: 0;
+}
+.alert-badge.critico {
+  background: rgba(255,69,58,.15); color: var(--red);
+  border: 1px solid rgba(255,69,58,.25);
+}
+.alert-badge.warn {
+  background: rgba(255,159,10,.12); color: var(--orange);
+  border: 1px solid rgba(255,159,10,.22);
+}
+
+/* Activity feed */
+.activity-list { display: flex; flex-direction: column; gap: 0; }
+.activity-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 11px 0;
+  border-bottom: 1px solid rgba(255,255,255,.05);
+  animation: listItemIn .36s var(--spring) both;
+}
+.activity-item:last-child { border-bottom: none; }
+.activity-item:nth-child(1) { animation-delay: .08s; }
+.activity-item:nth-child(2) { animation-delay: .14s; }
+.activity-item:nth-child(3) { animation-delay: .20s; }
+.activity-item:nth-child(4) { animation-delay: .26s; }
+
+.act-dot-wrap { padding-top: 2px; }
+.act-dot {
+  width: 28px; height: 28px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .85rem; flex-shrink: 0;
+}
+.act-dot.mant { background: rgba(173,198,255,.12); }
+.act-dot.rep  { background: rgba(255,69,58,.12); }
+.act-dot.ok   { background: rgba(48,209,88,.12); }
+.act-dot.doc  { background: rgba(191,90,242,.12); }
+
+.act-body { flex: 1; min-width: 0; }
+.act-what { font-size: .78rem; font-weight: 600; color: var(--text); }
+.act-who  { font-size: .68rem; color: var(--text3); margin-top: 1px; }
+.act-time {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .6rem; color: var(--text3); flex-shrink: 0;
+  padding-top: 4px;
+}
+
+.activity-wrap {
+  background: var(--gc-bg);
+  backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px);
+  border: 1px solid var(--gc-border);
+  border-top-color: var(--gc-border-top);
+  border-radius: var(--r-lg);
+  padding: 4px 16px 6px;
+  animation: cardIn .46s var(--spring) .32s both;
+}
+
+/* Quick actions */
+.qa-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.qa-btn {
+  background: var(--gc-bg);
+  backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px);
+  border: 1px solid var(--gc-border);
+  border-top-color: var(--gc-border-top);
+  border-radius: var(--r-md);
+  padding: 14px 10px 12px;
+  display: flex; flex-direction: column; align-items: center; gap: 7px;
+  cursor: pointer;
+  transition: transform .2s var(--spring);
+  animation: cardIn .46s var(--spring) both;
+  position: relative; overflow: hidden;
+}
+.qa-btn::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 40%;
+  background: linear-gradient(180deg, rgba(255,255,255,.04) 0%, transparent 100%);
+  pointer-events: none;
+}
+.qa-btn:nth-child(1) { animation-delay: .06s; }
+.qa-btn:nth-child(2) { animation-delay: .12s; }
+.qa-btn:nth-child(3) { animation-delay: .18s; }
+.qa-btn:active { transform: scale(.94); }
+
+.qa-icon {
+  width: 36px; height: 36px; border-radius: 11px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem;
+}
+.qa-icon.blue   { background: rgba(173,198,255,.14); }
+.qa-icon.green  { background: rgba(48,209,88,.14); }
+.qa-icon.purple { background: rgba(191,90,242,.14); }
+
+.qa-label { font-size: .65rem; font-weight: 700; color: var(--text2); text-align: center; letter-spacing: .2px; }
+
+/* Bottom nav (decorative) */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
+  background: rgba(6,9,26,.82);
+  backdrop-filter: blur(32px); -webkit-backdrop-filter: blur(32px);
+  border-top: 1px solid rgba(255,255,255,.07);
+  padding: 8px 0 env(safe-area-inset-bottom, 12px);
+  display: flex; justify-content: space-around; max-width: 430px; margin: 0 auto;
+}
+.nav-item {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 4px 16px; border-radius: var(--r-md); cursor: pointer;
+  transition: all .2s;
+}
+.nav-item.active .nav-icon { color: var(--accent); }
+.nav-item.active .nav-label { color: var(--accent); }
+.nav-icon { font-size: 1.3rem; color: var(--text3); }
+.nav-label { font-size: .6rem; font-weight: 600; color: var(--text3); letter-spacing: .3px; }
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(20px) scale(.97); }
+  to   { opacity: 1; transform: none; }
+}
+</style>
+</head>
+<body>
+<div class="bg-layer"></div>
+
+<div class="app">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-inner">
+      <div class="header-left">
+        <div class="header-title">Buenos días, Iván</div>
+        <div class="header-sub">Lunes 22 jun · CIMA Investigaciones Avanzadas</div>
+      </div>
+      <div class="header-avatar">IG</div>
+    </div>
+  </div>
+
+  <!-- Estado del parque -->
+  <div class="section">
+    <div class="section-label">Estado del parque</div>
+    <div class="status-grid">
+      <div class="status-card">
+        <div class="sc-icon green">✅</div>
+        <div class="sc-value green">8</div>
+        <div class="sc-label">Operativos</div>
+      </div>
+      <div class="status-card">
+        <div class="sc-icon orange">⚠️</div>
+        <div class="sc-value orange">2</div>
+        <div class="sc-label">En advertencia</div>
+      </div>
+      <div class="status-card">
+        <div class="sc-icon red">🔴</div>
+        <div class="sc-value red">1</div>
+        <div class="sc-label">Fuera de servicio</div>
+      </div>
+      <div class="status-card">
+        <div class="sc-icon blue">🔧</div>
+        <div class="sc-value blue">3</div>
+        <div class="sc-label">Fallas activas</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Disponibilidad -->
+  <div class="section" style="margin-top:14px;">
+    <div class="avail-card">
+      <div class="avail-header">
+        <div class="avail-title">Disponibilidad del parque</div>
+        <div class="avail-pct">91%</div>
+      </div>
+      <div class="avail-bar-bg">
+        <div class="avail-bar-fill" style="width:91%;"></div>
+      </div>
+      <div class="avail-segments">
+        <div class="avail-seg"><div class="avail-dot" style="background:var(--green);"></div>8 operativos</div>
+        <div class="avail-seg"><div class="avail-dot" style="background:var(--orange);"></div>2 advertencia</div>
+        <div class="avail-seg"><div class="avail-dot" style="background:var(--red);"></div>1 fuera de servicio</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alertas prioritarias -->
+  <div class="section" style="margin-top:20px;">
+    <div class="section-label">Alertas prioritarias</div>
+    <div class="alert-list">
+      <div class="alert-item">
+        <div class="alert-icon">🔴</div>
+        <div class="alert-body">
+          <div class="alert-name">RM Siemens Magnetom Aera</div>
+          <div class="alert-desc">Fuera de servicio · Chiller en rotura</div>
+        </div>
+        <div class="alert-badge critico">Crítico</div>
+      </div>
+      <div class="alert-item">
+        <div class="alert-icon">📋</div>
+        <div class="alert-body">
+          <div class="alert-name">TC GE Revolution EVO</div>
+          <div class="alert-desc">Póliza de seguro VENCIDA · 15/06/26</div>
+        </div>
+        <div class="alert-badge critico">Crítico</div>
+      </div>
+      <div class="alert-item">
+        <div class="alert-icon">⚙️</div>
+        <div class="alert-body">
+          <div class="alert-name">Ecógrafo GE Voluson E10</div>
+          <div class="alert-desc">Mant. preventivo en 8 días · 30/06/26</div>
+        </div>
+        <div class="alert-badge warn">Próximo</div>
+      </div>
+      <div class="alert-item">
+        <div class="alert-icon">🤝</div>
+        <div class="alert-body">
+          <div class="alert-name">RX Philips DigitalDiagnost</div>
+          <div class="alert-desc">Contrato de servicio vence en 12 días</div>
+        </div>
+        <div class="alert-badge warn">Próximo</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actividad reciente -->
+  <div class="section" style="margin-top:20px;">
+    <div class="section-label">Actividad reciente</div>
+    <div class="activity-wrap">
+      <div class="activity-list">
+        <div class="activity-item">
+          <div class="act-dot-wrap"><div class="act-dot mant">🔧</div></div>
+          <div class="act-body">
+            <div class="act-what">Mantenimiento preventivo — RM Siemens</div>
+            <div class="act-who">Lic. García Núñez Iván</div>
+          </div>
+          <div class="act-time">Hoy 09:14</div>
+        </div>
+        <div class="activity-item">
+          <div class="act-dot-wrap"><div class="act-dot ok">✅</div></div>
+          <div class="act-body">
+            <div class="act-what">Reparación completada — TC GE</div>
+            <div class="act-who">Técnico externo ABX Service</div>
+          </div>
+          <div class="act-time">Ayer 16:30</div>
+        </div>
+        <div class="activity-item">
+          <div class="act-dot-wrap"><div class="act-dot rep">⚠️</div></div>
+          <div class="act-body">
+            <div class="act-what">Falla registrada — Transductor C1-6</div>
+            <div class="act-who">Lic. García Núñez Iván</div>
+          </div>
+          <div class="act-time">Ayer 11:05</div>
+        </div>
+        <div class="activity-item">
+          <div class="act-dot-wrap"><div class="act-dot doc">📄</div></div>
+          <div class="act-body">
+            <div class="act-what">Informe gerencial generado — Jun 2026</div>
+            <div class="act-who">MedTrack automático</div>
+          </div>
+          <div class="act-time">20/06 08:00</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Acciones rápidas -->
+  <div class="section" style="margin-top:20px;">
+    <div class="section-label">Acciones rápidas</div>
+    <div class="qa-grid">
+      <div class="qa-btn">
+        <div class="qa-icon blue">📝</div>
+        <div class="qa-label">Registrar mantenimiento</div>
+      </div>
+      <div class="qa-btn">
+        <div class="qa-icon green">📄</div>
+        <div class="qa-label">Generar informe</div>
+      </div>
+      <div class="qa-btn">
+        <div class="qa-icon purple">📊</div>
+        <div class="qa-label">Ver KPI</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Bottom nav -->
+<div class="bottom-nav">
+  <div class="nav-item active">
+    <div class="nav-icon">🏠</div>
+    <div class="nav-label">Inicio</div>
+  </div>
+  <div class="nav-item">
+    <div class="nav-icon">🔧</div>
+    <div class="nav-label">Equipos</div>
+  </div>
+  <div class="nav-item">
+    <div class="nav-icon">📋</div>
+    <div class="nav-label">Órdenes</div>
+  </div>
+  <div class="nav-item">
+    <div class="nav-icon">📊</div>
+    <div class="nav-label">KPI</div>
+  </div>
+  <div class="nav-item">
+    <div class="nav-icon">⚙️</div>
+    <div class="nav-label">Ajustes</div>
+  </div>
+</div>
+
+</body>
+</html>
