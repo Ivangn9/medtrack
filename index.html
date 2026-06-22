@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.22.403 -->
+<!-- v2026.06.22.404 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.22.403">
+<meta name="app-version" content="v2026.06.22.404">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1213,7 +1213,8 @@ body.dark .pill[style*="#ff9500"],body.dark .pill[style*="--orange"]{box-shadow:
   </div>
   <!-- Navigation -->
   <div style="padding:0 10px;margin-bottom:10px;">
-    <button class="sb-nav-btn on" data-sb="dash" onclick="setView('dash')"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="8" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="15" width="7" height="6" rx="1.5"/></svg></span>Panel</button>
+    <button class="sb-nav-btn on" data-sb="inicio" onclick="setView('inicio')"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H5a1 1 0 01-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg></span>Inicio</button>
+    <button class="sb-nav-btn" data-sb="dash" onclick="setView('dash')"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="8" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="15" width="7" height="6" rx="1.5"/></svg></span>Panel</button>
     <button class="sb-nav-btn" id="sb-equipos-btn" data-sb="lista" onclick="toggleSbEquiposMenu(event)"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg></span>Equipos<span style="margin-left:auto;font-size:.65rem;opacity:.5;transition:transform .2s;" id="sb-eq-chevron">▸</span></button>
     <button class="sb-nav-btn" data-sb="alertas" onclick="setView('alertas')"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></span>Alertas<span id="sb-alert-badge" style="display:none;background:var(--red);color:#fff;border-radius:10px;padding:1px 6px;font-size:.6rem;font-weight:700;margin-left:auto;"></span></button>
     <button class="sb-nav-btn" data-sb="estadorm" onclick="setView('estadorm')"><span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="12" rx="9" ry="7"/><ellipse cx="12" cy="12" rx="4" ry="3.2"/><path d="M3 12h2M19 12h2"/></svg></span>Estado de RM</button>
@@ -1288,7 +1289,8 @@ body.dark .pill[style*="#ff9500"],body.dark .pill[style*="--orange"]{box-shadow:
     <div id="bb-inner">
     <div id="bb-indicator"></div>
     <button class="bar-btn bb-search-btn" onclick="openListaSearch()" title="Buscar"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/></svg></button>
-    <button class="tab on" data-tab="dash" onclick="setView('dash')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px;vertical-align:middle;"><rect x="3" y="3" width="7" height="8" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="15" width="7" height="6" rx="1.5"/></svg>Panel</button>
+    <button class="tab on" data-tab="inicio" onclick="setView('inicio')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px;vertical-align:middle;"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H5a1 1 0 01-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg>Inicio</button>
+    <button class="tab" data-tab="dash" onclick="setView('dash')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px;vertical-align:middle;"><rect x="3" y="3" width="7" height="8" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="15" width="7" height="6" rx="1.5"/></svg>Panel</button>
     <button class="tab" data-tab="lista" onclick="setView('lista')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px;vertical-align:middle;"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg>Equipos</button>
     <button class="tab" data-tab="alertas" onclick="setView('alertas')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px;vertical-align:middle;"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>Alertas<span id="tab-alert-badge" class="tab-badge hidden"></span></button>
     <button class="tab" data-tab="ejecutivo" onclick="setView('ejecutivo')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px;vertical-align:middle;"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M7 8h10M7 12h6"/></svg>Ejecutivo</button>
@@ -1728,7 +1730,7 @@ var _pendingGEParams=null;
     window._pendingGEParams=o;
   }
 })();
-var eqs=[],view="dash",selId=null,selAntenaEqId=null,selAntenaId=null,selTransdEqId=null,selTransdId=null,filtCat="TODOS",toastTimer=null,darkMode=false,fontScale=100,glassMode=3;
+var eqs=[],view="inicio",selId=null,selAntenaEqId=null,selAntenaId=null,selTransdEqId=null,selTransdId=null,filtCat="TODOS",toastTimer=null,darkMode=false,fontScale=100,glassMode=3;
 var ordenesTrabajo=[];
 var repuestos=[];
 var pmProgramados=[];
@@ -3873,7 +3875,8 @@ function render(){
   try{
     renderHeader();rSidebar();var m=document.getElementById("main");if(!m)return;m.innerHTML="";
     var d=document.createElement("div");d.className="slide";
-    if(view==="dash")d.innerHTML=rDash();
+    if(view==="inicio")d.innerHTML=rInicio();
+    else if(view==="dash")d.innerHTML=rDash();
     else if(view==="lista")d.innerHTML=rLista();
     else if(view==="alertas")d.innerHTML=rAlertas();
     else if(view==="detalle")d.innerHTML=rDetalle();
@@ -4044,6 +4047,183 @@ function rDash(){
   h+='<div class="det-2col"><div style="flex:6;min-width:0;">'+hL+'</div><div style="flex:4;min-width:0;">'+hR+'</div></div>';
   return h;
 }
+
+// ── INICIO (Home Dashboard) ──
+function rInicio(){
+  var activeEqs=eqs.filter(function(e){return !e.baja&&_sedeMatch(e);});
+  var opOK=activeEqs.filter(function(e){return e.estado==='operativo';}).length;
+  var opAdv=activeEqs.filter(function(e){return e.estado==='advertencia'||e.estado==='con-rotura';}).length;
+  var opFuera=activeEqs.filter(function(e){return e.estado==='fuera-de-servicio';}).length;
+  var falActivas=0;
+  activeEqs.forEach(function(e){(e.partes||[]).forEach(function(p){if(p.estado==='roto')falActivas++;});});
+  var avail=activeEqs.length?Math.round(100*opOK/activeEqs.length):0;
+  var _dias=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+  var _meses=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  var _hoy=new Date();
+  var _fechaStr=_dias[_hoy.getDay()]+' '+_hoy.getDate()+' de '+_meses[_hoy.getMonth()];
+  var _greeting=_hoy.getHours()<13?'Buenos días':_hoy.getHours()<19?'Buenas tardes':'Buenas noches';
+  var _ico=function(path){return '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+path+'</svg>';};
+
+  var h=sedeBarHTML();
+
+  // Greeting
+  h+='<div class="lt-wrap">'+
+    '<div class="lt-title">'+_greeting+'</div>'+
+    '<div class="lt-sub" style="text-transform:capitalize;">'+_fechaStr+' · CIMA Investigaciones Avanzadas</div>'+
+  '</div>';
+
+  // Status grid 2x2
+  var _stats=[
+    {l:'Operativos',v:opOK,col:'var(--green)',bg:'rgba(52,199,89,.13)',path:'<path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>',fn:'applyDashFilter(\'operativo\')'},
+    {l:'Advertencia',v:opAdv,col:opAdv>0?'var(--orange)':'var(--label3)',bg:'rgba(255,149,0,.13)',path:'<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',fn:'setView(\'alertas\')'},
+    {l:'Fuera de servicio',v:opFuera,col:opFuera>0?'var(--red)':'var(--label3)',bg:'rgba(255,59,48,.13)',path:'<circle cx="12" cy="12" r="10"/><line x1="4.9" y1="4.9" x2="19.1" y2="19.1"/>',fn:'applyDashFilter(\'fuera\')'},
+    {l:'Fallas activas',v:falActivas,col:falActivas>0?'var(--red)':'var(--label3)',bg:'rgba(255,59,48,.10)',path:'<path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',fn:'setView(\'alertas\')'}
+  ];
+  h+='<div class="g2" style="margin-bottom:12px;">';
+  _stats.forEach(function(s,i){
+    h+='<div class="gc tap" data-aos="zoom-in" data-aos-delay="'+(i*60)+'" onclick="'+s.fn+'" style="cursor:pointer;padding:16px 14px 14px;">'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">'+
+        '<div style="width:32px;height:32px;border-radius:10px;background:'+s.bg+';display:flex;align-items:center;justify-content:center;color:'+s.col+';">'+_ico(s.path)+'</div>'+
+      '</div>'+
+      '<div style="font-family:var(--ff-data,\'Hanken Grotesk\',system-ui);font-size:2rem;font-weight:800;color:'+s.col+';line-height:1;margin-bottom:4px;">'+s.v+'</div>'+
+      '<div style="font-size:.65rem;font-weight:600;color:var(--text3);letter-spacing:.2px;">'+s.l+'</div>'+
+    '</div>';
+  });
+  h+='</div>';
+
+  // Availability bar
+  var _availCol=avail>=90?'var(--green)':avail>=70?'var(--orange)':'var(--red)';
+  h+='<div class="gc" data-aos="fade-up" data-aos-delay="80" style="padding:16px 18px 14px;margin-bottom:12px;">'+
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">'+
+      '<div style="font-size:.72rem;font-weight:700;color:var(--text2);">Disponibilidad del parque</div>'+
+      '<div style="font-family:var(--ff-data,\'Hanken Grotesk\',system-ui);font-size:1.5rem;font-weight:800;color:'+_availCol+';">'+avail+'%</div>'+
+    '</div>'+
+    '<div style="height:7px;background:rgba(120,120,128,.18);border-radius:99px;overflow:hidden;">'+
+      '<div style="height:100%;width:'+avail+'%;background:linear-gradient(90deg,'+_availCol+','+_availCol+'cc);border-radius:99px;transition:width .8s var(--ease-out,ease);"></div>'+
+    '</div>'+
+    '<div style="display:flex;gap:14px;margin-top:10px;">'+
+      '<div style="display:flex;align-items:center;gap:5px;font-size:.62rem;font-weight:600;color:var(--text3);">'+
+        '<span style="width:7px;height:7px;border-radius:50%;background:var(--green);flex-shrink:0;"></span>'+opOK+' operativos</div>'+
+      '<div style="display:flex;align-items:center;gap:5px;font-size:.62rem;font-weight:600;color:var(--text3);">'+
+        '<span style="width:7px;height:7px;border-radius:50%;background:var(--orange);flex-shrink:0;"></span>'+opAdv+' advertencia</div>'+
+      '<div style="display:flex;align-items:center;gap:5px;font-size:.62rem;font-weight:600;color:var(--text3);">'+
+        '<span style="width:7px;height:7px;border-radius:50%;background:var(--red);flex-shrink:0;"></span>'+opFuera+' fuera</div>'+
+    '</div>'+
+  '</div>';
+
+  // Top alerts
+  var _alts=getAlertas().slice(0,5);
+  h+='<div class="sec">Alertas prioritarias</div>';
+  if(!_alts.length){
+    h+='<div class="gc" style="padding:16px 18px;text-align:center;color:var(--green);font-size:.82rem;font-weight:600;margin-bottom:12px;">'+
+      _ico('<path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>'+'')+
+      ' Sin alertas activas — parque en orden</div>';
+  } else {
+    h+='<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;">';
+    _alts.forEach(function(al,i){
+      var isCrit=al.niv==='critico';
+      var aCol=isCrit?'var(--red)':'var(--orange)';
+      var aBg=isCrit?'rgba(255,59,48,.12)':'rgba(255,149,0,.10)';
+      var aPath=isCrit?'<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>':'<path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>';
+      var _onclick=al.eid?'goDetalle(\''+al.eid+'\')':'setView(\'alertas\')';
+      h+='<div class="gc tap" data-aos="fade-up" data-aos-delay="'+(i*50)+'" onclick="'+_onclick+'" style="cursor:pointer;padding:12px 14px;border-left:2.5px solid '+aCol+';">'+
+        '<div style="display:flex;align-items:center;gap:12px;">'+
+          '<div style="width:28px;height:28px;border-radius:9px;background:'+aBg+';display:flex;align-items:center;justify-content:center;flex-shrink:0;color:'+aCol+';">'+_ico(aPath)+'</div>'+
+          '<div style="flex:1;min-width:0;">'+
+            '<div style="font-size:.8rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+esc(al.tit)+'</div>'+
+            '<div style="font-size:.68rem;color:var(--text3);margin-top:1px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+esc(al.desc)+'</div>'+
+          '</div>'+
+          '<div style="font-size:.58rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:3px 8px;border-radius:99px;background:'+aBg+';color:'+aCol+';border:1px solid '+aCol+'33;flex-shrink:0;">'+
+            (isCrit?'Crítico':'Atención')+
+          '</div>'+
+        '</div>'+
+      '</div>';
+    });
+    if(getAlertas().length>5){
+      h+='<div class="tap" onclick="setView(\'alertas\')" style="text-align:center;font-size:.72rem;font-weight:600;color:var(--accent);padding:8px;cursor:pointer;">Ver todas las alertas ('+getAlertas().length+') →</div>';
+    }
+    h+='</div>';
+  }
+
+  // Categorias overview (equipment SVGs + rings)
+  h+='<div class="sec">Por equipamiento</div>';
+  h+='<div class="g2cat" style="margin-bottom:12px;">';
+  var _ci=0;
+  CATS.forEach(function(cat){
+    var ces=eqs.filter(function(e){return e.cat===cat.id&&!e.baja&&_sedeMatch(e);});
+    if(!ces.length)return;
+    var fuera=ces.filter(function(e){return e.estado==='fuera-de-servicio';}).length;
+    var urg=ces.filter(function(e){return !sinMant(e)&&(semafo(e)==='vencido'||semafo(e)==='urgente');}).length;
+    var statusColor=fuera?'#ff3b30':urg?'#ff9500':'#34c759';
+    var statusLabel=fuera?'🚫 '+fuera+' fuera de servicio':urg?'⚠️ '+urg+' urgente'+(urg!==1?'s':''):'✅ Operativos';
+    var iconSvg=catSvgIcon(cat.id,192)||'';
+    h+='<div class="cring-wrap" style="--cc:'+cat.color+';">'+
+      '<div class="cring-el"></div>'+
+      '<div class="gc tap" data-aos="zoom-in" data-aos-delay="'+Math.min(_ci++*60,360)+'" onclick="filtCat=\''+cat.id+'\';setView(\'lista\');" style="padding:0;overflow:hidden;cursor:pointer;min-height:130px;">'+
+        '<div style="padding:16px 14px 14px;display:flex;flex-direction:column;justify-content:space-between;height:100%;position:relative;overflow:hidden;">'+
+          '<div style="position:absolute;right:-18px;top:50%;transform:translateY(-50%);width:210px;height:210px;display:flex;align-items:center;justify-content:center;opacity:.82;pointer-events:none;">'+iconSvg+'</div>'+
+          '<div style="display:flex;flex-direction:column;gap:0;z-index:1;">'+
+            '<div style="font-weight:900;font-size:2.4rem;color:'+cat.color+';line-height:1;letter-spacing:-2px;">'+ces.length+'</div>'+
+            '<div style="font-size:.54rem;color:'+cat.color+'aa;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-top:1px;">equipo'+(ces.length!==1?'s':'')+'</div>'+
+          '</div>'+
+          '<div style="z-index:1;">'+
+            '<div style="font-weight:800;font-size:1.0rem;letter-spacing:-.3px;color:var(--text);margin-bottom:6px;">'+cat.label+'</div>'+
+            '<div style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;background:'+statusColor+'16;border:1px solid '+statusColor+'30;">'+
+              '<span style="font-size:.68rem;font-weight:600;color:'+statusColor+';">'+statusLabel+'</span>'+
+            '</div>'+
+          '</div>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  });
+  h+='</div>';
+
+  // Recent activity
+  var _acts=auditLog.slice(0,5);
+  if(_acts.length){
+    h+='<div class="sec">Actividad reciente</div>';
+    h+='<div class="gc" style="padding:4px 16px 6px;margin-bottom:12px;">';
+    var _actIcos={mantenimiento:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>',reparacion:'<path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/>',eliminar:'<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/>',falla:'<path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',programar:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>'};
+    var _actCols={mantenimiento:'rgba(173,198,255,.12)',reparacion:'rgba(52,199,89,.12)',eliminar:'rgba(255,59,48,.10)',falla:'rgba(255,59,48,.12)',programar:'rgba(191,90,242,.12)'};
+    _acts.forEach(function(a,i){
+      var icoPath=_actIcos[a.action]||_actIcos['programar'];
+      var icoBg=_actCols[a.action]||'rgba(173,198,255,.12)';
+      var tsStr='';
+      try{var d=new Date(a.ts);var diff=Math.floor((new Date()-d)/6e4);tsStr=diff<60?(diff+'m'):diff<1440?(Math.floor(diff/60)+'h'):(Math.floor(diff/1440)+'d');}catch(e){tsStr='';}
+      var isLast=i===_acts.length-1;
+      h+='<div style="display:flex;align-items:flex-start;gap:12px;padding:11px 0;'+(isLast?'':'border-bottom:1px solid rgba(255,255,255,.05);')+'">'+
+        '<div style="width:28px;height:28px;border-radius:9px;background:'+icoBg+';display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--text2);padding-top:2px;">'+_ico(icoPath)+'</div>'+
+        '<div style="flex:1;min-width:0;">'+
+          '<div style="font-size:.78rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+(a.entityName?esc(a.entityName):esc(a.details||a.action))+'</div>'+
+          '<div style="font-size:.66rem;color:var(--text3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+esc(a.details||'')+'</div>'+
+        '</div>'+
+        '<div style="font-family:\'JetBrains Mono\',ui-monospace,monospace;font-size:.6rem;color:var(--text3);flex-shrink:0;padding-top:3px;">'+tsStr+'</div>'+
+      '</div>';
+    });
+    h+='</div>';
+  }
+
+  // Quick actions
+  h+='<div class="sec">Acciones rápidas</div>';
+  h+='<div class="g3" style="margin-bottom:8px;">';
+  var _qas=[
+    {l:'Registrar mantenimiento',ico:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="12" y1="14" x2="12" y2="18"/><line x1="10" y1="16" x2="14" y2="16"/>',col:'rgba(173,198,255,.14)',fn:'setView(\'lista\')'},
+    {l:'Generar informe',ico:'<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>',col:'rgba(52,199,89,.14)',fn:'generateReport()'},
+    {l:'Ver KPI',ico:'<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/>',col:'rgba(191,90,242,.14)',fn:'setView(\'kpi\')'}
+  ];
+  _qas.forEach(function(qa,i){
+    h+='<div class="gc tap" data-aos="zoom-in" data-aos-delay="'+(i*60)+'" onclick="'+qa.fn+'" style="cursor:pointer;padding:16px 10px 14px;display:flex;flex-direction:column;align-items:center;gap:8px;">'+
+      '<div style="width:38px;height:38px;border-radius:12px;background:'+qa.col+';display:flex;align-items:center;justify-content:center;color:var(--text2);">'+
+        '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+qa.ico+'</svg>'+
+      '</div>'+
+      '<div style="font-size:.65rem;font-weight:700;color:var(--text2);text-align:center;letter-spacing:.2px;line-height:1.3;">'+qa.l+'</div>'+
+    '</div>';
+  });
+  h+='</div>';
+
+  return h;
+}
+
 // ── LISTA ──
 var _busqueda="";
 var _filtMarca="";
@@ -12404,7 +12584,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="7.4.5";
+var APP_DISPLAY_VERSION="7.4.6";
 var APP_BUILD="22/06/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
