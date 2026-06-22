@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.22.401 -->
+<!-- v2026.06.22.402 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.22.401">
+<meta name="app-version" content="v2026.06.22.402">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1331,7 +1331,7 @@ function addM(s,n){if(!s)return"";var d=new Date(s);d.setMonth(d.getMonth()+n);r
 function fm(f){return{semestral:6,anual:12,trimestral:3,mensual:1}[f]||12;}
 function calcP(d,f){return addM(d,fm(f));}
 function diasH(s){if(!s)return 9999;return Math.ceil((new Date(s)-new Date())/864e5);}
-function fD(s){if(!s)return"—";var p=s.split("-");return p[2]+"/"+p[1]+"/"+p[0];}
+function fD(s){if(!s)return"—";var p=s.split("-");if(p.length<3)return s;return p[2]+"/"+p[1]+"/"+p[0];}
 var fmtD=fD;
 function semafo(eq){if(sinMant(eq))return"sinmant";var d=diasH(eq.proximoMant);if(d<0)return"vencido";if(d<=20)return"urgente";if(d<=90)return"proximo";return"ok";}
 function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
@@ -2817,11 +2817,16 @@ function _upqDel(id){var q=_upqGet();if(q[id]){delete q[id];_upqSet(q);}}
 function dbSave(id,nombre,data,cb){
   _upqAdd(id,nombre); // mark as needing cloud upload BEFORE anything can fail
   _openIDB(function(d){
-    if(!d){cb&&cb(false);return;}
+    if(!d){
+      // IndexedDB unavailable — remove from queue so it doesn't loop forever
+      _upqDel(id);
+      showToast('No se pudo guardar el archivo localmente (almacenamiento no disponible)','err');
+      cb&&cb(false);return;
+    }
     var tx=d.transaction('files','readwrite');
     tx.objectStore('files').put({id:id,nombre:nombre,data:data});
     tx.oncomplete=function(){cb&&cb(true);_storageSaveB64(id,nombre,data,null);};
-    tx.onerror=function(){cb&&cb(false);};
+    tx.onerror=function(){_upqDel(id);cb&&cb(false);};
   });
 }
 function dbGet(id,cb){_openIDB(function(d){if(!d){cb(null);return;}var r=d.transaction('files','readonly').objectStore('files').get(id);r.onsuccess=function(){cb(r.result||null);};r.onerror=function(){cb(null);};});}
@@ -4410,8 +4415,11 @@ function _kpiFmtCost(n){
 }
 function _kpiMonthLabel(key){
   var M=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  if(!key)return'—';
   var p=key.split('-');
-  return M[parseInt(p[1],10)-1]+' '+p[0].slice(2);
+  if(p.length<2)return key;
+  var m=M[parseInt(p[1],10)-1];
+  return (m||p[1])+' '+p[0].slice(2);
 }
 function _kpiLast12Months(){
   var months=[];var now=new Date();
@@ -12389,7 +12397,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="7.4.3";
+var APP_DISPLAY_VERSION="7.4.4";
 var APP_BUILD="22/06/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
