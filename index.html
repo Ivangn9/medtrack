@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.23.424 -->
+<!-- v2026.06.23.425 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.23.424">
+<meta name="app-version" content="v2026.06.23.425">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -8765,11 +8765,11 @@ function rAntenas(){
     '<div style="background:linear-gradient(90deg,rgba(79,120,224,.13),rgba(99,102,241,.07));padding:9px 16px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(79,120,224,.12);">'+
       antenaSvgIcon(14)+'<span style="font-size:.72rem;font-weight:700;color:rgba(79,120,224,.9);text-transform:uppercase;letter-spacing:.06em;">Antenas RF</span>'+
     '</div>'+
-    '<div style="padding:16px;position:relative;overflow:hidden;">'+
-      '<div style="position:absolute;right:-12px;top:-8px;width:130px;height:130px;display:flex;align-items:center;justify-content:center;opacity:.35;pointer-events:none;z-index:0;">'+antenaSvgIcon(130)+'</div>'+
+    '<div style="padding:16px;position:relative;overflow:hidden;min-height:110px;">'+
+      '<div style="position:absolute;right:-14px;top:50%;transform:translateY(-50%);width:190px;height:190px;display:flex;align-items:center;justify-content:center;opacity:.78;pointer-events:none;z-index:0;">'+antenaSvgIcon(190)+'</div>'+
       '<div style="position:relative;z-index:1;">'+
         '<div style="font-weight:800;font-size:1.1rem;letter-spacing:-.3px;">'+esc(eq.nombre)+'</div>'+
-        '<div style="font-size:.72rem;color:var(--text3);margin-top:2px;">Gestión de antenas de radiofrecuencia</div>'+
+        '<div style="font-size:.72rem;color:var(--text3);margin-top:2px;">Antenas de radiofrecuencia</div>'+
         '<div style="display:flex;gap:10px;margin-top:12px;">'+
           '<div style="background:rgba(79,120,224,.10);border:1px solid rgba(79,120,224,.18);border-radius:var(--r-md);padding:8px 14px;text-align:center;"><div style="font-size:1.4rem;font-weight:900;color:'+c1+';line-height:1;">'+assigned.length+'</div><div style="font-size:.6rem;color:var(--text3);margin-top:2px;">Antena(s)</div></div>'+
           '<div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.15);border-radius:var(--r-md);padding:8px 14px;text-align:center;"><div style="font-size:1.4rem;font-weight:900;color:'+(totalRot>0?'var(--red)':'var(--green)')+';line-height:1;">'+totalRot+'</div><div style="font-size:.6rem;color:var(--text3);margin-top:2px;">Rotura(s)</div></div>'+
@@ -8801,23 +8801,24 @@ function rAntenas(){
         {k:'fuera_servicio',label:'Fuera de servicio',c:'var(--red)',bg:'rgba(239,68,68,'}
       ];
       h+='<div class="gc" style="padding:0;overflow:hidden;margin-bottom:10px;">'+
-        '<div class="tap" onclick="goAntenaDetalle(\''+a.id+'\',\''+eq.id+'\')" style="padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;">'+
-          '<div style="flex-shrink:0;">'+antenaSvgIcon(44)+'</div>'+
-          '<div style="flex:1;min-width:0;">'+
-            '<div style="font-weight:700;font-size:.9rem;">'+esc(a.nombre)+'</div>'+
-            (a.nroSerie?'<div style="font-size:.68rem;color:var(--text3);font-family:monospace;margin-top:1px;">'+esc(a.nroSerie)+'</div>':'')+
-            '<div style="font-size:.7rem;color:var(--text3);margin-top:3px;">'+
-              (a.tipo?'<span style="background:rgba(79,120,224,.10);color:'+c1+';padding:1px 7px;border-radius:10px;font-weight:600;margin-right:5px;">'+esc(a.tipo)+'</span>':'')+
-              (a.cantidadCanales?'<span style="background:rgba(79,120,224,.10);color:'+c1+';padding:1px 7px;border-radius:10px;font-weight:600;margin-right:5px;">'+a.cantidadCanales+' ch</span>':'')+
-              'Origen: '+esc(a.nombreOrigen||'—')+
-              (a.fechaCompra?'<br><span style="font-size:.64rem;">Compra: '+fD(a.fechaCompra)+'</span>':'')+
+        '<div class="tap" onclick="goAntenaDetalle(\''+a.id+'\',\''+eq.id+'\')" style="padding:0;cursor:pointer;min-height:110px;position:relative;overflow:hidden;">'+
+          /* imagen de fondo prominente como en panel */
+          '<div style="position:absolute;right:-14px;top:50%;transform:translateY(-50%);width:160px;height:160px;display:flex;align-items:center;justify-content:center;opacity:.75;pointer-events:none;">'+antenaSvgIcon(160)+'</div>'+
+          '<div style="padding:14px 16px;display:flex;flex-direction:column;justify-content:space-between;height:100%;position:relative;z-index:1;">'+
+            /* tipo como título grande */
+            '<div>'+
+              (a.tipo?'<div style="font-weight:900;font-size:1.3rem;color:#4f78e0;line-height:1;letter-spacing:-1px;">'+esc(a.tipo)+'</div>':'<div style="font-weight:900;font-size:1.3rem;color:#4f78e0;line-height:1;letter-spacing:-1px;">Antena RF</div>')+
+              '<div style="font-size:.62rem;color:#4f78e0aa;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-top:2px;">'+
+                (a.cantidadCanales?a.cantidadCanales+' canales · ':'')+esc(a.nombreOrigen||'RF')+'</div>'+
             '</div>'+
-          '</div>'+
-          '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0;">'+
-            '<span style="font-size:.65rem;padding:2px 9px;border-radius:20px;font-weight:700;background:'+estBg+';color:'+estColor+';">'+estLabel+'</span>'+
-            '<span style="font-size:.65rem;padding:2px 9px;border-radius:20px;font-weight:700;background:'+(rotCount>0?'rgba(239,68,68,.12)':'rgba(52,199,89,.12)')+';color:'+(rotCount>0?'var(--red)':'var(--green)')+';">'+(rotCount>0?rotCount+' rotura(s) activa(s)':'Sin roturas')+'</span>'+
-            (lastRot?'<span style="font-size:.62rem;color:var(--text3);">Última: '+fD(lastRot.fecha)+'</span>':'')+
-            '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>'+
+            '<div>'+
+              '<div style="font-weight:700;font-size:.85rem;letter-spacing:-.2px;color:var(--text);margin-bottom:5px;">'+esc(a.nombre)+'</div>'+
+              (a.nroSerie?'<div style="font-size:.64rem;color:var(--text3);font-family:monospace;margin-bottom:5px;">SN: '+esc(a.nroSerie)+'</div>':'')+
+              '<div style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;background:'+estBg+';border:1px solid '+estColor+'22;">'+
+                '<span style="font-size:.68rem;font-weight:700;color:'+estColor+';">'+estLabel+'</span>'+
+                (rotCount>0?'<span style="font-size:.65rem;font-weight:700;color:var(--red);">· '+rotCount+' rotura(s)</span>':'')+
+              '</div>'+
+            '</div>'+
           '</div>'+
         '</div>'+
         '<div style="border-top:1px solid rgba(120,120,128,.08);padding:8px 10px;display:flex;gap:6px;">'+
@@ -8850,18 +8851,18 @@ function rAntenaDetalle(){
       antenaSvgIcon(14)+'<span style="font-size:.72rem;font-weight:700;color:rgba(79,120,224,.9);text-transform:uppercase;letter-spacing:.06em;">Antena RF</span>'+
       '<button onclick="openEditAntennaModal(\''+ant.id+'\')" style="margin-left:auto;font-size:.7rem;padding:4px 10px;border-radius:12px;background:rgba(79,120,224,.12);border:1px solid rgba(79,120,224,.22);color:#4f78e0;cursor:pointer;font-weight:600;">✎ Editar</button>'+
     '</div>'+
-    '<div style="padding:16px;position:relative;overflow:hidden;">'+
-      '<div style="position:absolute;right:-12px;top:-8px;width:130px;height:130px;display:flex;align-items:center;justify-content:center;opacity:.35;pointer-events:none;z-index:0;">'+antenaSvgIcon(130)+'</div>'+
+    '<div style="padding:16px;position:relative;overflow:hidden;min-height:120px;">'+
+      '<div style="position:absolute;right:-14px;top:50%;transform:translateY(-50%);width:190px;height:190px;display:flex;align-items:center;justify-content:center;opacity:.80;pointer-events:none;z-index:0;">'+antenaSvgIcon(190)+'</div>'+
       '<div style="position:relative;z-index:1;">'+
-        '<div style="font-weight:800;font-size:1.15rem;letter-spacing:-.3px;">'+esc(ant.nombre)+'</div>'+
-        (eq?'<div style="font-size:.7rem;color:var(--text3);margin-top:2px;">Asignada a: '+esc(eq.nombre)+'</div>':'')+
-        (ant.nroSerie?'<div style="font-size:.72rem;color:var(--text2);margin-top:4px;font-weight:600;">SN: <span style="font-family:monospace;font-weight:500;">'+esc(ant.nroSerie)+'</span></div>':'')+
-        '<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">'+
-          '<span style="background:'+antEstBg+';color:'+antEstColor+';padding:3px 10px;border-radius:20px;font-weight:700;font-size:.72rem;">'+antEstLabel+'</span>'+
-          (ant.tipo?'<span style="background:rgba(79,120,224,.10);color:'+c1+';padding:3px 9px;border-radius:20px;font-weight:700;font-size:.72rem;">'+esc(ant.tipo)+'</span>':'')+
-          (ant.cantidadCanales?'<span style="background:rgba(79,120,224,.10);color:'+c1+';padding:3px 9px;border-radius:20px;font-weight:700;font-size:.72rem;">'+ant.cantidadCanales+' canales</span>':'')+
-          '<span style="background:rgba(120,120,128,.08);color:var(--text2);padding:3px 9px;border-radius:20px;font-weight:600;font-size:.72rem;">Origen: '+esc(ant.nombreOrigen||'—')+'</span>'+
-          (ant.fechaCompra?'<span style="background:rgba(120,120,128,.08);color:var(--text2);padding:3px 9px;border-radius:20px;font-weight:600;font-size:.72rem;">Compra: '+fD(ant.fechaCompra)+'</span>':'')+
+        (ant.tipo?'<div style="font-weight:900;font-size:1.5rem;color:'+c1+';line-height:1;letter-spacing:-1.5px;margin-bottom:2px;">'+esc(ant.tipo)+'</div>':'')+
+        '<div style="font-weight:700;font-size:.9rem;color:var(--text);'+(ant.tipo?'':'font-size:1.15rem;font-weight:800;')+'letter-spacing:-.3px;">'+esc(ant.nombre)+'</div>'+
+        (eq?'<div style="font-size:.68rem;color:var(--text3);margin-top:2px;">'+esc(eq.nombre)+'</div>':'')+
+        (ant.nroSerie?'<div style="font-size:.7rem;color:var(--text2);margin-top:3px;font-weight:600;font-family:monospace;">SN: '+esc(ant.nroSerie)+'</div>':'')+
+        '<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;">'+
+          '<span style="background:'+antEstBg+';color:'+antEstColor+';padding:4px 11px;border-radius:20px;font-weight:700;font-size:.72rem;border:1px solid '+antEstColor+'22;">'+antEstLabel+'</span>'+
+          (ant.cantidadCanales?'<span style="background:rgba(79,120,224,.10);color:'+c1+';padding:4px 10px;border-radius:20px;font-weight:700;font-size:.72rem;">'+ant.cantidadCanales+' canales</span>':'')+
+          '<span style="background:rgba(120,120,128,.08);color:var(--text2);padding:4px 10px;border-radius:20px;font-weight:600;font-size:.72rem;">'+esc(ant.nombreOrigen||'—')+'</span>'+
+          (ant.fechaCompra?'<span style="background:rgba(120,120,128,.08);color:var(--text2);padding:4px 10px;border-radius:20px;font-weight:600;font-size:.72rem;">Compra: '+fD(ant.fechaCompra)+'</span>':'')+
         '</div>'+
       '</div>'+
     '</div>'+
@@ -12647,7 +12648,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="7.6.6";
+var APP_DISPLAY_VERSION="7.7.0";
 var APP_BUILD="23/06/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
