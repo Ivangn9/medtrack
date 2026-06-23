@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.23.418 -->
+<!-- v2026.06.23.419 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.23.418">
+<meta name="app-version" content="v2026.06.23.419">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -9915,7 +9915,7 @@ function toggleRepLoc(loc){
   var pill=document.querySelector('[data-rep-loc-pill="'+loc+'"]');
   if(pill){pill.style.background=nv?'rgba(0,113,227,.22)':'rgba(0,113,227,.06)';pill.style.borderColor=nv?'rgba(0,113,227,.6)':'rgba(0,113,227,.2)';}
 }
-function _narrativeEq(eq,mantHist,repHist,mejHist,actToShow,mejPendToShow,trasladosHist){
+function _narrativeEq(eq,mantHist,repHist,mejHist,actToShow,mejPendToShow,trasladosHist,cancelPMHist){
   var html='';
   var estLbls={operativo:'en plenas condiciones operativas','con-rotura':'operativo con fallas activas pendientes de resolución','advertencia':'bajo indicación de revisión preventiva','fuera-de-servicio':'fuera de servicio — sin operar'};
   var intro='El equipo <strong>'+esc(eq.nombre)+'</strong>';
@@ -10005,6 +10005,18 @@ function _narrativeEq(eq,mantHist,repHist,mejHist,actToShow,mejPendToShow,trasla
       if(p.asignadoA)html+=', asignada a <strong>'+esc(p.asignadoA)+'</strong>';
       if(p.fechaMejora)html+=', programada para el '+fD(p.fechaMejora);
       if(p.notas)html+='<br><span class="list-note">'+esc(p.notas)+'</span>';
+      html+='</li>';
+    });
+    html+='</ul>';
+  }
+  var _cancelPMs=cancelPMHist||[];
+  if(_cancelPMs.length){
+    html+='<div class="sub-label" style="margin:10px 0 4px;color:#dc2626;">PMs cancelados en el período</div><ul class="rep-list">';
+    _cancelPMs.forEach(function(h){
+      html+='<li><strong>PM del '+fD(h.pmFechaOriginal||h.fecha)+'</strong>';
+      if(h.tecnico)html+=' — cancelado por <strong>'+esc(h.tecnico)+'</strong>';
+      if(h.medio)html+=' vía <strong>'+esc(h.medio)+'</strong>';
+      if(h.motivoCancelacion)html+='<br><span class="list-note sbad">Motivo: '+esc(h.motivoCancelacion)+'</span>';
       html+='</li>';
     });
     html+='</ul>';
@@ -10099,6 +10111,7 @@ function generateReportDirect(){
     var mantH=hist.filter(function(h){return h.tipo==='mantenimiento';});
     var repH=hist.filter(function(h){return h.tipo==='reparacion';});
     var mejH=hist.filter(function(h){return h.tipo==='mejora';});
+    var cancelPMH=inclMant?hist.filter(function(h){return h.tipo==='cancelacion_pm';}):[];
     var actH=(eq.partes||[]).filter(function(p){return p.estado==='roto'||p.estado==='pendiente';});
     var mejP=(eq.partes||[]).filter(function(p){return p.estado==='mejora';});
     var trasladosH=[];
@@ -10115,10 +10128,10 @@ function generateReportDirect(){
     }
     var estClass=eq.estado==='fuera-de-servicio'?'sbad':eq.estado==='operativo'?'sok':'swarn';
     sumRows+='<tr><td><strong>'+esc(eq.nombre)+'</strong></td><td>'+ci.label+'</td><td>'+(eq.ubicacion?esc(eq.ubicacion):'—')+'</td><td><span class="'+estClass+'">'+estLabel(eq.estado)+'</span></td><td>'+mantH.length+'</td><td>'+repH.length+'</td><td>'+actH.length+'</td></tr>';
-    var hasEq=mantH.length||repH.length||mejH.length||actH.length||mejP.length||trasladosH.length;
+    var hasEq=mantH.length||repH.length||mejH.length||actH.length||mejP.length||trasladosH.length||cancelPMH.length;
     if(!hasEq)return;
     tm+=mantH.length;tr+=repH.length;tmej+=mejH.length;tact+=actH.length;
-    eqData.push({eq:eq,ci:ci,mantH:mantH,repH:repH,mejH:mejH,actH:actH,mejP:mejP,trasladosH:trasladosH});
+    eqData.push({eq:eq,ci:ci,mantH:mantH,repH:repH,mejH:mejH,actH:actH,mejP:mejP,trasladosH:trasladosH,cancelPMH:cancelPMH});
   });
   localStorage.setItem('cima_nro_informe',String(nroInforme+1));
   var _logoSync=null;
@@ -10133,7 +10146,7 @@ function generateReportDirect(){
     var resumenText='En el período cubierto por el presente informe se registraron: <strong>'+tm+' mantenimiento'+(tm!==1?'s preventivos':' preventivo')+'</strong>'+(tr?', <strong>'+tr+' reparación'+(tr!==1?'es completadas':' completada')+'</strong>':'')+(tmej?', <strong>'+tmej+' mejora'+(tmej!==1?'s completadas':' completada')+'</strong>':'')+(tact?'. Al cierre del informe se reportan <strong class="sbad">'+tact+' falla'+(tact!==1?'s activas':' activa')+' pendiente'+(tact!==1?'s':'')+'</strong> de resolución.':'.');
     var conclusionText='Se recomienda dar seguimiento oportuno a las fallas activas registradas a fin de garantizar la continuidad operativa del servicio y la seguridad de los pacientes. El responsable técnico queda a disposición del Comité Ejecutivo ante cualquier consulta o requerimiento adicional.';
     var eqSections='';
-    eqData.forEach(function(d){var eq=d.eq;var ci=d.ci;var narrativeHtml=_narrativeEq(eq,d.mantH,d.repH,d.mejH,d.actH,d.mejP,d.trasladosH||[]);var _sv=catSvgIcon(eq.cat,42)||'';eqSections+='<div class="eq-block"><div class="eq-title" style="display:flex;align-items:center;gap:10px;padding:10px 12px;">'+(_sv?'<div style="width:42px;height:42px;flex-shrink:0;">'+_sv+'</div>':'')+esc(eq.nombre)+'<span style="font-size:9pt;font-weight:500;color:#64748b;margin-left:6px;flex:1;">'+ci.label+(eq.ubicacion?' — '+esc(eq.ubicacion):'')+'</span></div><div class="narrative">'+narrativeHtml+'</div></div>';});
+    eqData.forEach(function(d){var eq=d.eq;var ci=d.ci;var narrativeHtml=_narrativeEq(eq,d.mantH,d.repH,d.mejH,d.actH,d.mejP,d.trasladosH||[],d.cancelPMH||[]);var _sv=catSvgIcon(eq.cat,42)||'';eqSections+='<div class="eq-block"><div class="eq-title" style="display:flex;align-items:center;gap:10px;padding:10px 12px;">'+(_sv?'<div style="width:42px;height:42px;flex-shrink:0;">'+_sv+'</div>':'')+esc(eq.nombre)+'<span style="font-size:9pt;font-weight:500;color:#64748b;margin-left:6px;flex:1;">'+ci.label+(eq.ubicacion?' — '+esc(eq.ubicacion):'')+'</span></div><div class="narrative">'+narrativeHtml+'</div></div>';});
     var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width"><title>Informe Equipos CIMA — '+mesAnio+'</title><style>'+_reportCSS+'</style></head><body>';
     html+='<div class="page">';
     html+='<div class="informe-box"><div class="informe-title">INFORME&nbsp; EQUIPOS&nbsp; CIMA&nbsp; Nº&nbsp;'+nroInforme+'&nbsp; &mdash;&nbsp;'+mesAnio.toUpperCase()+'</div>';
@@ -10252,7 +10265,7 @@ function generateReport(){
     var eqSections='';
     eqData.forEach(function(d){
       var eq=d.eq;var ci=d.ci;
-      var narrativeHtml=_narrativeEq(eq,d.mantH,d.repH,d.mejH,d.actH,d.mejP,d.trasladosH||[]);
+      var narrativeHtml=_narrativeEq(eq,d.mantH,d.repH,d.mejH,d.actH,d.mejP,d.trasladosH||[],d.cancelPMH||[]);
       // Gather images for this equipment's faults
       var faultImgs=[];
       d.actH.forEach(function(p){(p.imagenes||[]).forEach(function(im){if(im&&im.id&&imgsMap[im.id])faultImgs.push({src:imgsMap[im.id],nombre:im.nombre,falla:p.nombre});});});
@@ -12626,7 +12639,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="7.6.0";
+var APP_DISPLAY_VERSION="7.6.1";
 var APP_BUILD="23/06/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
