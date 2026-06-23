@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.23.420 -->
+<!-- v2026.06.23.421 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -35,7 +35,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.23.420">
+<meta name="app-version" content="v2026.06.23.421">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -315,6 +315,8 @@ body::after{
   border-color:rgba(0,113,227,.40);
   box-shadow:0 0 0 3.5px rgba(0,113,227,.18),0 1px 6px rgba(0,0,0,.04),inset 0 2px 6px rgba(0,0,0,.03),inset 0 2px 0 rgba(255,255,255,.85);}
 textarea.inp{resize:vertical;}
+/* Inside modal: drop redundant GPU layers — modal-box already has backdrop-filter */
+.modal-box .inp{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(255,255,255,.80);}
 
 /* ── FORM ── */
 .ff{margin-bottom:14px;}
@@ -2150,7 +2152,9 @@ function goAntenaDetalle(antenaId,rmEquipId){
 //  MODAL
 // ═══════════════════════════════════════════
 function openModal(h){var o=document.getElementById("modal-overlay"),b=document.getElementById("modal-box");
-  b.innerHTML='<div class="modal-handle"></div>'+h;o.classList.remove("hidden");o.classList.add("fade");}
+  b.innerHTML='<div class="modal-handle"></div>'+h;o.classList.remove("hidden");o.classList.add("fade");
+  var _mi=b.querySelectorAll('input,textarea');
+  for(var _ii=0;_ii<_mi.length;_ii++){var _t=_mi[_ii].type;if(_t!=='date'&&_t!=='number'&&_t!=='range'&&_t!=='checkbox'&&_t!=='radio'&&_t!=='color'){_mi[_ii].setAttribute('autocapitalize','off');_mi[_ii].setAttribute('autocorrect','off');_mi[_ii].setAttribute('spellcheck','false');}}}
 function closeModal(){document.getElementById("modal-overlay").classList.add("hidden");}
 
 // ═══════════════════════════════════════════
@@ -12647,7 +12651,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="7.6.2";
+var APP_DISPLAY_VERSION="7.6.3";
 var APP_BUILD="23/06/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
