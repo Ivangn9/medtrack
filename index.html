@@ -4924,7 +4924,7 @@ function rCalendarioPM(){
         h+='<div style="display:flex;gap:4px;margin-top:4px;justify-content:flex-end;flex-wrap:wrap;">';
         h+='<button onclick="togglePMRealizado(\''+sitem.pmId+'\')" style="padding:3px 9px;border-radius:var(--r-pill);font-size:.6rem;font-weight:700;cursor:pointer;border:1px solid '+(pmDone?'rgba(52,199,89,.35)':'rgba(120,120,128,.25)')+';background:'+(pmDone?'rgba(52,199,89,.15)':'rgba(120,120,128,.1)')+';color:'+(pmDone?'var(--green)':'var(--text3)')+';">'+(pmDone?'✅ Realizado':'○ Marcar realizado')+'</button>';
         h+='<button onclick="openModalProgramarPM(\''+sitem.pmId+'\',null)" style="padding:3px 8px;border-radius:var(--r-pill);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--text2);font-size:.6rem;font-weight:600;cursor:pointer;">✏️</button>';
-        h+='<button onclick="deletePMProgramado(\''+sitem.pmId+'\')" style="padding:3px 8px;border-radius:var(--r-pill);background:rgba(255,59,48,.10);border:1px solid rgba(255,59,48,.2);color:var(--red);font-size:.6rem;font-weight:600;cursor:pointer;">🗑</button>';
+        h+='<button onclick="deletePMProgramado(\''+sitem.pmId+'\')" style="padding:3px 10px;border-radius:var(--r-pill);background:rgba(255,59,48,.18);border:1.5px solid rgba(255,59,48,.35);color:var(--red);font-size:.6rem;font-weight:700;cursor:pointer;">Cancelar PM</button>';
         h+='</div>';
       } else {
         h+='<button onclick="goDetalle(\''+eq3.id+'\')" style="margin-top:4px;padding:3px 8px;border-radius:var(--r-pill);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--text2);font-size:.6rem;font-weight:600;cursor:pointer;">Ver equipo</button>';
