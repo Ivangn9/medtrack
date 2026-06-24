@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.24.438 -->
+<!-- v2026.06.24.439 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.24.438">
+<meta name="app-version" content="v2026.06.24.439">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -12785,7 +12785,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="7.8.2";
+var APP_DISPLAY_VERSION="7.8.3";
 var APP_BUILD="24/06/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
@@ -13080,51 +13080,71 @@ function init(){
           setTimeout(hourlyBackup,10000);               // hourly snapshot (protects within same day)
           setInterval(hourlyBackup,60*60*1000);         // repeat every hour
         }
-        orgDataRef().get().then(function(orgDoc){
-          eqs=JSON.parse(JSON.stringify(EQ0));
-          if(orgDoc.exists&&Array.isArray(orgDoc.data().eqs)&&orgDoc.data().eqs.length>0){
-            // Compare Firestore vs localStorage timestamps — use the most recent
-            var fsAt=orgDoc.data().updatedAt||'';
-            var lsAt=localStorage.getItem('mt_updatedAt')||'';
-            if(lsAt&&lsAt>fsAt){
-              // localStorage is newer (unsaved changes) — load it and resync to Firestore
-              _lsLoad();
-              firestoreSave();
-            } else {
-              _applyData(orgDoc.data());
-            }
-            _finishLoad();
-          } else {
-            // No org data yet — migrate from personal user doc (keeps personal data intact)
-            window._fbdb.collection("users").doc(user.uid).collection("app").doc("data").get()
-              .then(function(userDoc){
-                eqs=JSON.parse(JSON.stringify(EQ0));
-                if(userDoc.exists&&Array.isArray(userDoc.data().eqs)&&userDoc.data().eqs.length>0){
-                  _applyData(userDoc.data());
-                } else {
-                  _lsLoad();
-                }
-                migrateEqs();migrateEcoData();migrateTransductores();
-                firestoreSave(); // write personal data up to shared org doc
-                render();
-                setTimeout(checkForUpdates,3000);
-                setInterval(checkForUpdates,60*1000);
-                setTimeout(reconcileFiles,4000);
-                setInterval(reconcileFiles,5*60*1000);
-                setTimeout(dailyBackup,6000);
-                setTimeout(hourlyBackup,10000);
-                setInterval(hourlyBackup,60*60*1000);
-              })
-              .catch(function(){
-                eqs=JSON.parse(JSON.stringify(EQ0));
+        var _fsInitDone=false;
+        // onSnapshot keeps every device in real-time sync — prevents concurrent writes
+        // from stale in-memory state from overwriting another device's fresh data.
+        if(window._fsUnsub)try{window._fsUnsub();}catch(e){}
+        window._fsUnsub=orgDataRef().onSnapshot(function(orgDoc){
+          var _d=orgDoc.exists?orgDoc.data():null;
+          if(!_fsInitDone){
+            // ── FIRST SNAPSHOT: initial load (replaces the old one-time .get()) ──
+            _fsInitDone=true;
+            eqs=JSON.parse(JSON.stringify(EQ0));
+            if(_d&&Array.isArray(_d.eqs)&&_d.eqs.length>0){
+              var fsAt=_d.updatedAt||'';
+              var lsAt=localStorage.getItem('mt_updatedAt')||'';
+              if(lsAt&&lsAt>fsAt){
                 _lsLoad();
-                _finishLoad();
-              });
+                firestoreSave();
+              } else {
+                _applyData(_d);
+              }
+              _finishLoad();
+            } else {
+              // No org data yet — migrate from personal user doc
+              window._fbdb.collection("users").doc(user.uid).collection("app").doc("data").get()
+                .then(function(userDoc){
+                  eqs=JSON.parse(JSON.stringify(EQ0));
+                  if(userDoc.exists&&Array.isArray(userDoc.data().eqs)&&userDoc.data().eqs.length>0){
+                    _applyData(userDoc.data());
+                  } else {
+                    _lsLoad();
+                  }
+                  migrateEqs();migrateEcoData();migrateTransductores();
+                  firestoreSave();
+                  render();
+                  setTimeout(checkForUpdates,3000);
+                  setInterval(checkForUpdates,60*1000);
+                  setTimeout(reconcileFiles,4000);
+                  setInterval(reconcileFiles,5*60*1000);
+                  setTimeout(dailyBackup,6000);
+                  setTimeout(hourlyBackup,10000);
+                  setInterval(hourlyBackup,60*60*1000);
+                })
+                .catch(function(){
+                  eqs=JSON.parse(JSON.stringify(EQ0));
+                  _lsLoad();
+                  _finishLoad();
+                });
+            }
+            return;
           }
-        }).catch(function(){
-          eqs=JSON.parse(JSON.stringify(EQ0));
-          _lsLoad();
-          _finishLoad();
+          // ── SUBSEQUENT SNAPSHOTS: real-time update from another device ──
+          // Skip if we have a local save in flight (our own write will come back here too)
+          if(_fsDirty||_fsWriting||_fsSaveTimer)return;
+          if(!_d||!Array.isArray(_d.eqs)||!_d.eqs.length)return;
+          var _fsAt2=_d.updatedAt||'';
+          var _lsAt2=localStorage.getItem('mt_updatedAt')||'';
+          if(_fsAt2&&(!_lsAt2||_fsAt2>_lsAt2)){
+            _applyData(_d);
+            try{localStorage.setItem('mt_updatedAt',_fsAt2);}catch(e){}
+            render();
+            showToast('🔄 Datos actualizados por otro dispositivo');
+          }
+        },function(err){
+          // Listener error — fall back to localStorage
+          console.warn('Firestore listener:',err);
+          if(!_fsInitDone){_fsInitDone=true;eqs=JSON.parse(JSON.stringify(EQ0));_lsLoad();_finishLoad();}
         });
       },function(){
         // Not allowed
