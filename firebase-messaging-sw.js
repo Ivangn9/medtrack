@@ -26,7 +26,7 @@ self.addEventListener('activate', event => {
   );
 });
 
-// ── Cache del app shell: apertura instantánea ─────────────────────────────────
+// ── Cache del app shell: apertura instantánea ─────────────────────────────────────────────
 // SOLO se cachean los archivos de Stock de Insumos y sus librerías CDN.
 // Cualquier otra URL (index.html / MedTrack, Firestore, Auth, FCM) pasa
 // directo a la red sin tocarse — este SW jamás interfiere con MedTrack.
@@ -65,7 +65,7 @@ self.addEventListener('fetch', event => {
   })());
 });
 
-// ── Firebase Cloud Messaging ──────────────────────────────────────────────────
+// ── Firebase Cloud Messaging ────────────────────────────────────────────────
 firebase.initializeApp({
   apiKey: "AIzaSyDpzlN1gaJUH6XGAWv5GRW_suk7zcqKeJE",
   authDomain: "medtrack-cima-3e9c1.firebaseapp.com",
