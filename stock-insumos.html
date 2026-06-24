@@ -1780,6 +1780,35 @@
   </div>
 </div>
 
+<!-- ─── Modal Editar Lote ──────────────────────────────────────────────── -->
+<div class="modal-overlay" id="editLoteModal" onclick="closeEditLoteModal(event)">
+  <div class="modal-sheet" onclick="event.stopPropagation()" style="max-width:420px">
+    <div class="modal-handle"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+      <div class="modal-title">✏️ Editar lote</div>
+      <button class="modal-close-btn" onclick="closeEditLoteModal()">✕</button>
+    </div>
+    <div id="editLoteSupplyName" style="font-size:.82rem;font-weight:700;color:var(--text2);margin-bottom:14px"></div>
+    <div class="form-group">
+      <label>Fecha de vencimiento</label>
+      <input type="date" id="editLoteFechaVenc" class="modal-input" />
+    </div>
+    <div class="form-group">
+      <label>Cantidad (<span id="editLoteUnitLabel">UND</span>)</label>
+      <input type="number" id="editLoteQty" class="modal-input" min="1" step="1" placeholder="Cantidad" />
+    </div>
+    <div class="form-group">
+      <label>Fecha de ingreso</label>
+      <input type="date" id="editLoteFechaEntrada" class="modal-input" />
+    </div>
+    <div class="modal-footer" style="display:flex;gap:10px;margin-top:4px">
+      <button class="btn" onclick="deleteEditLote()"
+        style="background:rgba(255,59,48,0.12);color:#d92b20;border:1px solid rgba(255,59,48,0.2)">🗑 Eliminar lote</button>
+      <button class="btn btn-primary" onclick="saveEditLote()"><span class="btn-icon">✓</span> Guardar</button>
+    </div>
+  </div>
+</div>
+
 <!-- ─── Modal Corrección masiva (nombres + códigos) ─────────────────── -->
 <div class="modal-overlay" id="importModal" onclick="closeImportModal(event)">
   <div class="modal-sheet" onclick="event.stopPropagation()" style="max-width:760px">
@@ -2150,7 +2179,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "4.33";
+const APP_VERSION = "4.34";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -4618,9 +4647,11 @@ function openSupplyDetail(supplyId){
             <div style="font-size:.72rem;color:var(--text3);margin-top:2px">${icon} ${label}${l.fechaEntrada?` · Ingresado ${fmtDate(l.fechaEntrada)}`:""}</div>
             ${presLine}
           </div>
-          <div style="text-align:right;flex-shrink:0">
+          <div style="text-align:right;flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:6px">
             <div style="font-size:1rem;font-weight:800;color:var(--text)">${l.qty} ${escHtml(s.unit||"UND")}</div>
             ${presBadge}
+            <button onclick="openEditLoteModal('${escAttr(activeCenter)}','${escAttr(supplyId)}','${escAttr(l.id)}')"
+              style="padding:4px 10px;border-radius:var(--r-pill);border:1px solid rgba(0,0,0,.1);background:var(--glass2);font-size:.75rem;font-weight:600;color:var(--text2);cursor:pointer;-webkit-tap-highlight-color:transparent">✏️ Editar</button>
           </div>
         </div>
       </div>`;
@@ -4630,6 +4661,77 @@ function openSupplyDetail(supplyId){
   document.getElementById("supplyDetailOverlay").classList.add("open");
 }
 function closeSupplyDetail(){document.getElementById("supplyDetailOverlay").classList.remove("open");}
+
+// ─── Editar / Eliminar lote ───────────────────────────────────────────────────
+let _editLote={center:null,supplyId:null,loteId:null};
+function openEditLoteModal(center,supplyId,loteId){
+  const loteArr=cs[center]?.lotes?.[supplyId]; if(!loteArr) return;
+  const lote=loteArr.find(l=>l.id===loteId); if(!lote) return;
+  const supply=supplies.find(s=>s.id===supplyId);
+  _editLote={center,supplyId,loteId};
+  document.getElementById('editLoteSupplyName').textContent=supply?supply.name:'';
+  document.getElementById('editLoteUnitLabel').textContent=supply?.unit||'UND';
+  document.getElementById('editLoteFechaVenc').value=lote.fechaVenc||'';
+  document.getElementById('editLoteQty').value=lote.qty||'';
+  document.getElementById('editLoteFechaEntrada').value=lote.fechaEntrada||'';
+  document.getElementById('editLoteModal').classList.add('open');
+}
+function closeEditLoteModal(ev){
+  if(ev&&ev.target!==ev.currentTarget) return;
+  document.getElementById('editLoteModal').classList.remove('open');
+}
+function saveEditLote(){
+  const {center,supplyId,loteId}=_editLote;
+  if(!center||!supplyId||!loteId){ toast('⚠️ Error interno'); return; }
+  const fechaVenc=document.getElementById('editLoteFechaVenc').value;
+  const qty=parseInt(document.getElementById('editLoteQty').value)||0;
+  const fechaEntrada=document.getElementById('editLoteFechaEntrada').value;
+  if(!fechaVenc){ toast('⚠️ Ingresá la fecha de vencimiento'); return; }
+  if(qty<1){ toast('⚠️ La cantidad debe ser mayor a 0'); return; }
+  if(!_dataReady){ toast('⚠️ Esperá a que carguen los datos'); return; }
+  const loteArr=cs[center]?.lotes?.[supplyId]; if(!loteArr) return;
+  const lote=loteArr.find(l=>l.id===loteId); if(!lote) return;
+  const before={fechaVenc:lote.fechaVenc,qty:lote.qty,fechaEntrada:lote.fechaEntrada};
+  lote.fechaVenc=fechaVenc;
+  lote.qty=qty;
+  if(fechaEntrada) lote.fechaEntrada=fechaEntrada; else delete lote.fechaEntrada;
+  // Reordenar FEFO
+  cs[center].lotes[supplyId].sort((a,b)=>a.fechaVenc.localeCompare(b.fechaVenc));
+  persistCenter(center);
+  _auditLog('lote_edit',`Lote editado: ${supplies.find(s=>s.id===supplyId)?.name||supplyId} (${center})`,before,{fechaVenc,qty,fechaEntrada});
+  closeEditLoteModal();
+  // Refrescar vistas
+  if(currentTab==='vencimientos') renderVencimientos();
+  if(_sdSupplyId===supplyId) openSupplyDetail(supplyId);
+  renderInventario();
+  toast('✓ Lote actualizado');
+}
+function deleteEditLote(){
+  const {center,supplyId,loteId}=_editLote;
+  if(!center||!supplyId||!loteId) return;
+  const supply=supplies.find(s=>s.id===supplyId);
+  const lote=cs[center]?.lotes?.[supplyId]?.find(l=>l.id===loteId);
+  if(!lote) return;
+  openConfirm(
+    'Eliminar lote',
+    `¿Eliminar el lote (vence ${fmtDate(lote.fechaVenc)}, ${lote.qty} ${supply?.unit||'UND'})? Esta acción no se puede deshacer.`,
+    ()=>{
+      if(!_dataReady){ toast('⚠️ Esperá a que carguen los datos'); return; }
+      cs[center].lotes[supplyId]=cs[center].lotes[supplyId].filter(l=>l.id!==loteId);
+      if(!cs[center].lotes[supplyId].length) delete cs[center].lotes[supplyId];
+      // Recalcular stock: descontar qty del lote eliminado
+      if(cs[center].stock[supplyId]!=null)
+        cs[center].stock[supplyId]=Math.max(0,(cs[center].stock[supplyId]||0)-lote.qty);
+      persistCenter(center);
+      _auditLog('lote_delete',`Lote eliminado: ${supply?.name||supplyId} (${center}) · ${fmtDate(lote.fechaVenc)} · ${lote.qty}u`,{id:loteId,fechaVenc:lote.fechaVenc,qty:lote.qty},null);
+      closeEditLoteModal();
+      if(currentTab==='vencimientos') renderVencimientos();
+      if(_sdSupplyId===supplyId) openSupplyDetail(supplyId);
+      renderInventario();
+      toast('✓ Lote eliminado');
+    }
+  );
+}
 
 // ─── VENCIMIENTOS ────────────────────────────────────────────────────────────
 function getAllLotes(){
@@ -4707,10 +4809,14 @@ function renderVencimientos(){
       <div style="font-size:.82rem;font-weight:800;color:${g.color};margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em">${g.title}</div>
       ${g.items.map(lote=>{
         const daysLabel=lote.daysLeft<0?`Venció hace ${Math.abs(lote.daysLeft)}d`:lote.daysLeft===0?"Vence HOY":`Vence en ${lote.daysLeft}d`;
-        return `<div class="gc" style="padding:12px 16px;margin-bottom:8px;border-left:4px solid ${g.border};background:${g.bg}">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px">
-            <div style="font-size:.9rem;font-weight:800;color:var(--text)">${escHtml(lote.supplyName)}</div>
-            <span style="font-size:.7rem;font-weight:700;color:${g.color};background:${g.bg};border:1px solid ${g.border};padding:2px 8px;border-radius:20px;flex-shrink:0">${daysLabel}</span>
+      return `<div class="gc" style="padding:12px 16px;margin-bottom:8px;border-left:4px solid ${g.border};background:${g.bg}">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:4px">
+            <div style="min-width:0">
+              <div style="font-size:.9rem;font-weight:800;color:var(--text)">${escHtml(lote.supplyName)}</div>
+              <span style="font-size:.7rem;font-weight:700;color:${g.color};background:${g.bg};border:1px solid ${g.border};padding:2px 8px;border-radius:20px">${daysLabel}</span>
+            </div>
+            <button onclick="openEditLoteModal('${escAttr(lote.center)}','${escAttr(lote.supplyId)}','${escAttr(lote.id)}')"
+              style="flex-shrink:0;padding:5px 11px;border-radius:var(--r-pill);border:1px solid rgba(0,0,0,.1);background:var(--glass2);font-size:.78rem;font-weight:600;color:var(--text2);cursor:pointer;-webkit-tap-highlight-color:transparent">✏️ Editar</button>
           </div>
           <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
             <span style="font-size:.78rem;color:var(--text2)">📅 <strong>${fmtDate(lote.fechaVenc)}</strong></span>
