@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.24.437 -->
+<!-- v2026.06.24.438 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.24.437">
+<meta name="app-version" content="v2026.06.24.438">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1947,6 +1947,16 @@ function firestoreSave(){
   if(_fsSaveTimer)clearTimeout(_fsSaveTimer);
   _fsSaveTimer=setTimeout(function(){_fsSaveTimer=null;_fsWrite(0);},400);
 }
+// Critical save: bypasses the 400ms debounce — use for user-initiated mutations
+// (add/edit/delete antenna, etc.) where iOS may kill the PWA before the timer fires.
+function saveDataCritical(){
+  var now=new Date().toISOString();
+  try{localStorage.setItem("mt_v4",JSON.stringify(eqs));localStorage.setItem("mt_antenas",JSON.stringify(antenas));localStorage.setItem("mt_aires",JSON.stringify(aires));localStorage.setItem("mt_transductores",JSON.stringify(transductores));localStorage.setItem("mt_ordenes",JSON.stringify(ordenesTrabajo));localStorage.setItem("mt_repuestos",JSON.stringify(repuestos));localStorage.setItem("mt_pm_prog",JSON.stringify(pmProgramados));localStorage.setItem("mt_mejoras",JSON.stringify(mejoras));localStorage.setItem("mt_updatedAt",now);}catch(e){}
+  if(!window._fbUser||!window._fbdb){if(typeof _fsDirty!=='undefined')_fsDirty=true;return;}
+  if(_fsSaveTimer){clearTimeout(_fsSaveTimer);_fsSaveTimer=null;}
+  _fsDirty=true;_fsFailed=false;
+  _fsWrite(0);
+}
 // Write to Firestore with exponential-backoff retry on failure
 function _fsWrite(tryN){
   if(!window._fbUser||!window._fbdb){_fsWriting=false;return;}
@@ -2003,6 +2013,22 @@ function dailyBackup(){
       .set({eqs:eqs,antenas:antenas,aires:aires,transductores:transductores,savedAt:new Date().toISOString(),by:(window._fbUser.email||window._fbUser.uid||'')})
       .then(function(){try{localStorage.setItem('mt_lastBackup',today);}catch(e){}})
       .catch(function(e){console.warn('Daily backup:',e);});
+  }catch(e){}
+}
+// Hourly backup — runs every 60 min, stores up to 24 hourly snapshots (keyed by date+hour).
+// Guards against data loss within the same day when the daily backup already ran.
+function hourlyBackup(){
+  if(!window._fbUser||!window._fbdb)return;
+  if(!antenas||!antenas.length)return; // only if there are antennas to protect
+  var d=new Date();
+  var key=d.toISOString().slice(0,13).replace('T','-h'); // e.g. "2026-06-24-h10"
+  var lastH='';try{lastH=localStorage.getItem('mt_lastHourlyBackup')||'';}catch(e){}
+  if(lastH===key)return;
+  try{
+    window._fbdb.collection("orgs").doc("cima").collection("backups").doc(key)
+      .set({eqs:eqs,antenas:antenas,aires:aires,transductores:transductores,savedAt:d.toISOString(),by:(window._fbUser.email||window._fbUser.uid||''),tipo:'hourly'})
+      .then(function(){try{localStorage.setItem('mt_lastHourlyBackup',key);}catch(e){}})
+      .catch(function(e){console.warn('Hourly backup:',e);});
   }catch(e){}
 }
 // List available daily backups and let an owner restore one (with confirmation).
@@ -10657,18 +10683,18 @@ function submitAddAntenna(rmEquipId){
   var ant={id:'ANTEN-'+Date.now(),nombre:nombre.trim(),tipo:tipo||null,nroSerie:nroSerie||null,nombreOrigen:origen,cantidadCanales:canales||null,estado:estado,fechaCompra:fecha,notas:notas,roturas:[],creadoEn:new Date().toISOString()};
   antenas.push(ant);
   eqs=eqs.map(function(e){if(e.id===rmEquipId)return Object.assign({},e,{antenaIds:(e.antenaIds||[]).concat(ant.id)});return e;});
-  saveData();closeModal();showToast('📡 Antena agregada','');
+  saveDataCritical();closeModal();showToast('📡 Antena agregada','');
   render();
 }
 function setAntenaEstado(antenaId,estado){
   antenas=antenas.map(function(a){return a.id===antenaId?Object.assign({},a,{estado:estado}):a;});
-  saveData();
+  saveDataCritical();
   var lbl={operativa:'✅ Operativa',con_fallas:'⚠️ Con fallas',fuera_servicio:'🔴 Fuera de servicio'}[estado]||estado;
   showToast(lbl,'');render();
 }
 function removeAntennaFromEq(antenaId,rmEquipId){
   eqs=eqs.map(function(e){if(e.id===rmEquipId)return Object.assign({},e,{antenaIds:(e.antenaIds||[]).filter(function(id){return id!==antenaId;})});return e;});
-  saveData();closeModal();showToast('Antena quitada del equipo','');
+  saveDataCritical();closeModal();showToast('Antena quitada del equipo','');
   render();
 }
 function deleteAntena(antenaId){
@@ -10677,7 +10703,7 @@ function deleteAntena(antenaId){
   antenas=antenas.filter(function(x){return x.id!==antenaId;});
   eqs=eqs.map(function(e){return Object.assign({},e,{antenaIds:(e.antenaIds||[]).filter(function(id){return id!==antenaId;})});});
   auditEntry('eliminar','eq',antenaId,a.nombre||antenaId,'Antena eliminada y desvinculada de todos los equipos');
-  saveData();showToast('Antena eliminada','warn');render();
+  saveDataCritical();showToast('Antena eliminada','warn');render();
 }
 function deleteTransductor(transductorId){
   if(!confirm('¿Eliminar este transductor permanentemente? Se quitará de todos los equipos vinculados.'))return;
@@ -11564,7 +11590,7 @@ function submitEditAntenna(antenaId){
     if(a.id!==antenaId)return a;
     return Object.assign({},a,{nombre:nombre.trim(),tipo:tipo||null,nroSerie:nroSerie||null,nombreOrigen:origen,cantidadCanales:canales||null,estado:estado,fechaCompra:fecha,notas:notas.trim()});
   });
-  saveData();closeModal();showToast('✏️ Antena actualizada','');render();
+  saveDataCritical();closeModal();showToast('✏️ Antena actualizada','');render();
 }
 
 function openEditRoturaModal(antenaId,roturaId){
@@ -12759,7 +12785,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="7.8.1";
+var APP_DISPLAY_VERSION="7.8.2";
 var APP_BUILD="24/06/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
@@ -13051,6 +13077,8 @@ function init(){
           setTimeout(reconcileFiles,4000);              // upload any local-only files to the cloud
           setInterval(reconcileFiles,5*60*1000);        // keep retrying periodically
           setTimeout(dailyBackup,6000);                 // daily recoverable snapshot
+          setTimeout(hourlyBackup,10000);               // hourly snapshot (protects within same day)
+          setInterval(hourlyBackup,60*60*1000);         // repeat every hour
         }
         orgDataRef().get().then(function(orgDoc){
           eqs=JSON.parse(JSON.stringify(EQ0));
@@ -13084,6 +13112,8 @@ function init(){
                 setTimeout(reconcileFiles,4000);
                 setInterval(reconcileFiles,5*60*1000);
                 setTimeout(dailyBackup,6000);
+                setTimeout(hourlyBackup,10000);
+                setInterval(hourlyBackup,60*60*1000);
               })
               .catch(function(){
                 eqs=JSON.parse(JSON.stringify(EQ0));
