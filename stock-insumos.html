@@ -2179,7 +2179,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "4.34";
+const APP_VERSION = "4.35";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -3610,6 +3610,63 @@ function onLoteSelectChange(){
     loteInfo.style.color=daysLeft<0?"var(--red)":daysLeft<=30?"var(--orange)":"var(--text3)";
   }
 }
+// ─── Helpers de concurrencia (Firestore runTransaction) ───────────────────────
+function _txnCenter(center,fn){
+  var key=center==="GN"?"center_GN":"center_Sarmiento";
+  var ref=_db.collection(DB_COL).doc(key);
+  return _db.runTransaction(function(txn){
+    return txn.get(ref).then(function(snap){
+      var data=snap.exists?snap.data():{stock:{},movements:[],lotes:{}};
+      if(!data.stock)data.stock={};
+      if(!data.movements)data.movements=[];
+      if(!data.lotes)data.lotes={};
+      data.lotes=JSON.parse(JSON.stringify(data.lotes));
+      var updated=fn(data);
+      txn.set(ref,updated);
+      return updated;
+    });
+  });
+}
+function _lotesEntrada(lotes,supplyId,qty,fechaVenc,presentacion,date){
+  if(!lotes[supplyId])lotes[supplyId]=[];
+  var existing=lotes[supplyId].find(function(l){
+    if(l.fechaVenc!==fechaVenc)return false;
+    var lp=l.presentacion,np=presentacion;
+    if(!lp&&!np)return true; if(!lp||!np)return false;
+    return lp.tipo===np.tipo&&lp.units===np.units;
+  });
+  if(existing){
+    existing.qty+=qty;
+    if(presentacion&&existing.presentacion)existing.presentacion.count+=presentacion.count;
+  }else{
+    var lote={id:"lot_"+Date.now(),fechaVenc:fechaVenc,qty:qty,fechaEntrada:date};
+    if(presentacion)lote.presentacion=presentacion;
+    lotes[supplyId].push(lote);
+  }
+  lotes[supplyId].sort(function(a,b){return a.fechaVenc.localeCompare(b.fechaVenc);});
+  return " · Vence "+fmtDate(fechaVenc)+(presentacion?" · "+presentacion.count+" "+presentacion.tipo.toLowerCase()+(presentacion.count!==1?"s":""):"");
+}
+function _lotesSalida(lotes,supplyId,qty,loteId){
+  var arr=(lotes[supplyId]||[]).filter(function(l){return l.qty>0;});
+  var consumed=[];
+  if(arr.length){
+    if(loteId&&loteId!=="fefo"){
+      var lote=arr.find(function(l){return l.id===loteId;});
+      if(lote){lote.qty=Math.max(0,lote.qty-qty);consumed.push("Vence "+fmtDate(lote.fechaVenc));}
+    }else{
+      var toRemove=qty;
+      for(var i=0;i<arr.length;i++){
+        if(toRemove<=0)break;
+        var take=Math.min(toRemove,arr[i].qty);
+        arr[i].qty-=take;toRemove-=take;
+        consumed.push(fmtDate(arr[i].fechaVenc)+":"+take);
+      }
+    }
+    lotes[supplyId]=(lotes[supplyId]||[]).filter(function(l){return l.qty>0;});
+    if(!lotes[supplyId].length)delete lotes[supplyId];
+  }
+  return consumed.length?" · Lote "+consumed[0]:"";
+}
 function saveMovimiento(){
   const supplyId=document.getElementById("movSupplySelect").value;
   const qty=parseInt(document.getElementById("movQty").value);
@@ -3623,12 +3680,14 @@ function saveMovimiento(){
   const proveedor=suppliers.find(x=>x.id===proveedorId);
   const unitPrice=parseFloat(document.getElementById("movUnitPrice")?.value)||0;
   const fechaVenc=document.getElementById("movFechaVenc")?.value||"";
+  const loteSelectId=document.getElementById("movLoteSelect")?.value||"fefo";
 
   if(_movType==="entrada"&&unitPrice>0){
     s.price=unitPrice;
     if(!s.priceHistory)s.priceHistory=[];
     s.priceHistory.unshift({price:unitPrice,date,proveedorName:proveedor?.name||""});
     if(s.priceHistory.length>10)s.priceHistory.length=10;
+    persistSupplies();
   }
 
   // Capturar presentación si es entrada
@@ -3642,72 +3701,41 @@ function saveMovimiento(){
     }
   }
 
-  // ── Gestión de LOTES ─────────────────────────────────────
-  if(!cs[activeCenter].lotes)cs[activeCenter].lotes={};
-  let loteDetail="";
-  if(_movType==="entrada"&&fechaVenc){
-    // Agregar o actualizar lote en entrada — los lotes con diferente presentación se mantienen separados
-    if(!cs[activeCenter].lotes[supplyId])cs[activeCenter].lotes[supplyId]=[];
-    // Sólo mergear si fechaVenc Y presentación son iguales
-    const existing=cs[activeCenter].lotes[supplyId].find(l=>{
-      if(l.fechaVenc!==fechaVenc)return false;
-      const lp=l.presentacion,np=presentacion;
-      if(!lp&&!np)return true;
-      if(!lp||!np)return false;
-      return lp.tipo===np.tipo&&lp.units===np.units;
-    });
-    if(existing){
-      existing.qty+=qty;
-      if(presentacion&&existing.presentacion)existing.presentacion.count+=presentacion.count;
-    } else {
-      const lote={id:"lot_"+Date.now(),fechaVenc,qty,fechaEntrada:date};
-      if(presentacion)lote.presentacion=presentacion;
-      cs[activeCenter].lotes[supplyId].push(lote);
-    }
-    cs[activeCenter].lotes[supplyId].sort((a,b)=>a.fechaVenc.localeCompare(b.fechaVenc));
-    loteDetail=` · Vence ${fmtDate(fechaVenc)}${presentacion?` · ${presentacion.count} ${presentacion.tipo.toLowerCase()}${presentacion.count!==1?"s":""}`:""}`;
-  } else if(_movType==="salida"){
-    // Descontar de lotes (FEFO o seleccionado)
-    const lotes=cs[activeCenter].lotes[supplyId]?.filter(l=>l.qty>0)||[];
-    if(lotes.length){
-      const loteId=document.getElementById("movLoteSelect")?.value||"fefo";
-      let toRemove=qty, consumed=[];
-      if(loteId!=="fefo"){
-        // Consumir de lote específico
-        const lote=lotes.find(l=>l.id===loteId);
-        if(lote){lote.qty=Math.max(0,lote.qty-toRemove);consumed.push(`Vence ${fmtDate(lote.fechaVenc)}`);}
-      } else {
-        // FEFO: consumir de más próximo a vencer primero
-        for(const lote of lotes){
-          if(toRemove<=0)break;
-          const take=Math.min(toRemove,lote.qty);
-          lote.qty-=take;toRemove-=take;
-          consumed.push(`${fmtDate(lote.fechaVenc)}:${take}`);
-        }
-      }
-      // Limpiar lotes vacíos
-      cs[activeCenter].lotes[supplyId]=cs[activeCenter].lotes[supplyId].filter(l=>l.qty>0);
-      if(!cs[activeCenter].lotes[supplyId].length)delete cs[activeCenter].lotes[supplyId];
-      if(consumed.length)loteDetail=` · Lote ${consumed[0]}`;
-    }
-  }
-
-  const mov={id:"mov_"+Date.now(),supplyId,supplyName:s.name,type:_movType,qty,date,time:new Date().toTimeString().slice(0,5),note,
+  // ── Gestión de LOTES via transacción (evita race condition entre dispositivos) ─
+  const movId="mov_"+Date.now();
+  const toastDetail=_movType==="entrada"&&fechaVenc?" · Vence "+fmtDate(fechaVenc):"";
+  const center=activeCenter;
+  const mov={id:movId,supplyId,supplyName:s.name,type:_movType,qty,date,
+    time:new Date().toTimeString().slice(0,5),note,
     ...(proveedorId&&{proveedorId,proveedorName:proveedor?.name||""}),
     ...(fechaVenc&&_movType==="entrada"&&{fechaVenc}),
     ...(presentacion&&{presentacion})
   };
-  const stockAntes=cs[activeCenter].stock[supplyId]||0;
-  if(_movType==="salida" && qty>stockAntes) toast(`⚠️ Stock insuficiente: hay ${stockAntes} pero se registran ${qty}`);
-  cs[activeCenter].movements.push(mov);
-  cs[activeCenter].stock[supplyId]=(cs[activeCenter].stock[supplyId]||0)+(_movType==="entrada"?qty:-qty);
-  _auditLog(`mov_${_movType}`,`${_movType==="entrada"?"Entrada":"Salida"}: ${qty} ${s.unit||'ud'} de "${s.name}" en ${activeCenter}${loteDetail}${note?` · ${note}`:''}`,{stock:stockAntes},{stock:cs[activeCenter].stock[supplyId]});
-  persist();
   document.getElementById("movModal").classList.remove("open");
-  toast(`✓ ${_movType==="entrada"?"Entrada":"Salida"} registrada: ${qty} ${s.unit} de ${s.name}${loteDetail}`);
-  if(navigator.vibrate)navigator.vibrate([8,50,8]);
-  renderCurrentTab();
-  updateVencBadge();
+  _txnCenter(center,function(data){
+    if(_movType==="entrada"&&fechaVenc){
+      _lotesEntrada(data.lotes,supplyId,qty,fechaVenc,presentacion,date);
+    } else if(_movType==="salida"){
+      _lotesSalida(data.lotes,supplyId,qty,loteSelectId);
+    }
+    const stockAntes=data.stock[supplyId]||0;
+    if(_movType==="salida"&&qty>stockAntes) toast("⚠️ Stock insuficiente: hay "+stockAntes+" pero se registran "+qty);
+    data.stock[supplyId]=(data.stock[supplyId]||0)+(_movType==="entrada"?qty:-qty);
+    if(!data.movements.some(function(m){return m.id===movId;})) data.movements.push(mov);
+    return data;
+  }).then(function(data){
+    cs[center].stock=data.stock;
+    cs[center].movements=data.movements;
+    cs[center].lotes=data.lotes;
+    _auditLog("mov_"+_movType,(_movType==="entrada"?"Entrada":"Salida")+": "+qty+" "+(s.unit||"ud")+" de \""+s.name+"\" en "+center+toastDetail+(note?" · "+note:""),null,{stock:cs[center].stock[supplyId]});
+    toast("✓ "+(_movType==="entrada"?"Entrada":"Salida")+" registrada: "+qty+" "+s.unit+" de "+s.name+toastDetail);
+    if(navigator.vibrate)navigator.vibrate([8,50,8]);
+    renderCurrentTab();
+    updateVencBadge();
+  }).catch(function(e){
+    console.warn("Error al guardar movimiento:",e);
+    toast("⚠️ Error al guardar. Intentá de nuevo.");
+  });
 }
 
 // ─── Modal Agregar ────────────────────────────────────────────────────────────
@@ -4689,50 +4717,68 @@ function saveEditLote(){
   if(!fechaVenc){ toast('⚠️ Ingresá la fecha de vencimiento'); return; }
   if(qty<1){ toast('⚠️ La cantidad debe ser mayor a 0'); return; }
   if(!_dataReady){ toast('⚠️ Esperá a que carguen los datos'); return; }
-  const loteArr=cs[center]?.lotes?.[supplyId]; if(!loteArr) return;
-  const lote=loteArr.find(l=>l.id===loteId); if(!lote) return;
-  const before={fechaVenc:lote.fechaVenc,qty:lote.qty,fechaEntrada:lote.fechaEntrada};
-  lote.fechaVenc=fechaVenc;
-  lote.qty=qty;
-  if(fechaEntrada) lote.fechaEntrada=fechaEntrada; else delete lote.fechaEntrada;
-  // Reordenar FEFO
-  cs[center].lotes[supplyId].sort((a,b)=>a.fechaVenc.localeCompare(b.fechaVenc));
-  persistCenter(center);
-  _auditLog('lote_edit',`Lote editado: ${supplies.find(s=>s.id===supplyId)?.name||supplyId} (${center})`,before,{fechaVenc,qty,fechaEntrada});
+  const supplyName=supplies.find(function(s){return s.id===supplyId;})?.name||supplyId;
   closeEditLoteModal();
-  // Refrescar vistas
-  if(currentTab==='vencimientos') renderVencimientos();
-  if(_sdSupplyId===supplyId) openSupplyDetail(supplyId);
-  renderInventario();
-  toast('✓ Lote actualizado');
+  _txnCenter(center,function(data){
+    if(!data.lotes||!data.lotes[supplyId]) return data;
+    var lote=data.lotes[supplyId].find(function(l){return l.id===loteId;});
+    if(!lote) return data;
+    lote.fechaVenc=fechaVenc;
+    lote.qty=qty;
+    if(fechaEntrada) lote.fechaEntrada=fechaEntrada; else delete lote.fechaEntrada;
+    data.lotes[supplyId].sort(function(a,b){return a.fechaVenc.localeCompare(b.fechaVenc);});
+    return data;
+  }).then(function(data){
+    cs[center].lotes=data.lotes;
+    _auditLog('lote_edit','Lote editado: '+supplyName+' ('+center+')',null,{fechaVenc,qty,fechaEntrada});
+    if(currentTab==='vencimientos') renderVencimientos();
+    if(_sdSupplyId===supplyId) openSupplyDetail(supplyId);
+    renderInventario();
+    toast('✓ Lote actualizado');
+  }).catch(function(e){
+    console.warn(e);
+    toast('⚠️ Error al actualizar lote');
+  });
 }
 function deleteEditLote(){
   const {center,supplyId,loteId}=_editLote;
   if(!center||!supplyId||!loteId) return;
-  const supply=supplies.find(s=>s.id===supplyId);
-  const lote=cs[center]?.lotes?.[supplyId]?.find(l=>l.id===loteId);
+  const supply=supplies.find(function(s){return s.id===supplyId;});
+  const lote=cs[center]?.lotes?.[supplyId]?.find(function(l){return l.id===loteId;});
   if(!lote) return;
+  const snapFechaVenc=lote.fechaVenc;
+  const snapQty=lote.qty;
   openConfirm(
     'Eliminar lote',
-    `¿Eliminar el lote (vence ${fmtDate(lote.fechaVenc)}, ${lote.qty} ${supply?.unit||'UND'})? Esta acción no se puede deshacer.`,
-    ()=>{
+    '¿Eliminar el lote (vence '+fmtDate(snapFechaVenc)+', '+snapQty+' '+(supply?.unit||'UND')+')? Esta acción no se puede deshacer.',
+    function(){
       if(!_dataReady){ toast('⚠️ Esperá a que carguen los datos'); return; }
-      cs[center].lotes[supplyId]=cs[center].lotes[supplyId].filter(l=>l.id!==loteId);
-      if(!cs[center].lotes[supplyId].length) delete cs[center].lotes[supplyId];
-      // Recalcular stock: descontar qty del lote eliminado
-      if(cs[center].stock[supplyId]!=null)
-        cs[center].stock[supplyId]=Math.max(0,(cs[center].stock[supplyId]||0)-lote.qty);
-      persistCenter(center);
-      _auditLog('lote_delete',`Lote eliminado: ${supply?.name||supplyId} (${center}) · ${fmtDate(lote.fechaVenc)} · ${lote.qty}u`,{id:loteId,fechaVenc:lote.fechaVenc,qty:lote.qty},null);
       closeEditLoteModal();
-      if(currentTab==='vencimientos') renderVencimientos();
-      if(_sdSupplyId===supplyId) openSupplyDetail(supplyId);
-      renderInventario();
-      toast('✓ Lote eliminado');
+      _txnCenter(center,function(data){
+        if(!data.lotes||!data.lotes[supplyId]) return data;
+        var arr=data.lotes[supplyId];
+        var idx=arr.findIndex(function(l){return l.id===loteId;});
+        if(idx<0) return data;
+        var removedQty=arr[idx].qty;
+        arr.splice(idx,1);
+        if(!arr.length) delete data.lotes[supplyId];
+        data.stock[supplyId]=Math.max(0,(data.stock[supplyId]||0)-removedQty);
+        return data;
+      }).then(function(data){
+        cs[center].lotes=data.lotes;
+        cs[center].stock=data.stock;
+        _auditLog('lote_delete','Lote eliminado: '+(supply?.name||supplyId)+' ('+center+') · '+fmtDate(snapFechaVenc)+' · '+snapQty+'u',{id:loteId,fechaVenc:snapFechaVenc,qty:snapQty},null);
+        if(currentTab==='vencimientos') renderVencimientos();
+        if(_sdSupplyId===supplyId) openSupplyDetail(supplyId);
+        renderInventario();
+        toast('✓ Lote eliminado');
+      }).catch(function(e){
+        console.warn(e);
+        toast('⚠️ Error al eliminar lote');
+      });
     }
   );
 }
-
 // ─── VENCIMIENTOS ────────────────────────────────────────────────────────────
 function getAllLotes(){
   const today=new Date();
@@ -5139,43 +5185,64 @@ function marcarTodasLeidas(){
 function markSolicitudEntregado(id, qtyMap, recibidoPor, firma){
   const s=solicitudes.find(x=>x.id===id); if(!s) return;
   const center=s.sector;
-  const centerData=cs[center];
-  if(centerData){
-    const dateStr=new Date().toISOString().split("T")[0];
-    const timeStr=new Date().toTimeString().slice(0,5);
-    (s.items||[]).forEach(item=>{
-      if(!item.id) return;
-      const supply=supplies.find(sup=>sup.id===item.id); if(!supply) return;
-      const qty=qtyMap?((qtyMap[item.id]??item.cantidad)||0):(item.cantidad||0); if(qty<=0) return;
-      centerData.stock[item.id]=Math.max(0,(centerData.stock[item.id]||0)-qty);
-      if(centerData.lotes&&centerData.lotes[item.id]){
-        let rem=qty;
-        const lotes=centerData.lotes[item.id];
-        lotes.sort((a,b)=>a.fechaVenc.localeCompare(b.fechaVenc));
-        for(let i=0;i<lotes.length&&rem>0;i++){
+  const dateStr=new Date().toISOString().split("T")[0];
+  const timeStr=new Date().toTimeString().slice(0,5);
+  const updateSolicitud=function(){
+    return _db.collection("insumos_cima").doc("solicitudes_log").collection("items")
+      .doc(id).update({entregado:true,leido:true,fechaEntrega:firebase.firestore.FieldValue.serverTimestamp(),...(recibidoPor&&{recibidoPor}),...(firma&&{firma})})
+      .then(function(){ closePdfViewer(); })
+      .catch(function(e){ console.warn(e); toast("⚠️ Error al actualizar"); });
+  };
+  if(!cs[center]){
+    toast("✓ Pedido marcado como entregado");
+    updateSolicitud();
+    return;
+  }
+  // Pre-computar movimientos con IDs estables antes de la transacción (para dedup en retry)
+  const movItems=(s.items||[]).filter(function(item){
+    if(!item.id) return false;
+    const qty=qtyMap?((qtyMap[item.id]??item.cantidad)||0):(item.cantidad||0);
+    return qty>0 && !!supplies.find(function(sup){return sup.id===item.id;});
+  }).map(function(item){
+    const supply=supplies.find(function(sup){return sup.id===item.id;});
+    const qty=qtyMap?((qtyMap[item.id]??item.cantidad)||0):(item.cantidad||0);
+    return {id:"sol_"+Date.now()+"_"+item.id,supplyId:item.id,supplyName:supply.name,
+      type:"salida",qty,date:dateStr,time:timeStr,
+      note:"Pedido · "+(s.solicitante||"")+(s.equipo?" · "+s.equipo:"")};
+  });
+  _txnCenter(center,function(data){
+    movItems.forEach(function(mov){
+      var supplyId=mov.supplyId, qty=mov.qty;
+      data.stock[supplyId]=Math.max(0,(data.stock[supplyId]||0)-qty);
+      if(data.lotes&&data.lotes[supplyId]){
+        var rem=qty;
+        var lotes=data.lotes[supplyId];
+        lotes.sort(function(a,b){return a.fechaVenc.localeCompare(b.fechaVenc);});
+        for(var i=0;i<lotes.length&&rem>0;i++){
           if(lotes[i].qty<=0) continue;
-          const take=Math.min(lotes[i].qty,rem);
+          var take=Math.min(lotes[i].qty,rem);
           lotes[i].qty-=take; rem-=take;
         }
-        const remainingLotes=lotes.filter(l=>l.qty>0);
-        if(remainingLotes.length) centerData.lotes[item.id]=remainingLotes;
-        else delete centerData.lotes[item.id];
+        var remaining=lotes.filter(function(l){return l.qty>0;});
+        if(remaining.length) data.lotes[supplyId]=remaining;
+        else delete data.lotes[supplyId];
       }
-      centerData.movements.push({id:"sol_"+Date.now()+"_"+item.id,supplyId:item.id,supplyName:supply.name,type:"salida",qty,date:dateStr,time:timeStr,note:"Pedido · "+(s.solicitante||"")+(s.equipo?" · "+s.equipo:"")});
+      if(!data.movements.some(function(m){return m.id===mov.id;})) data.movements.push(mov);
     });
-    persistCenter(center);
-  }
-  const auditItems=(s.items||[]).filter(i=>i.id).map(i=>({id:i.id,name:i.name,qty:qtyMap?(qtyMap[i.id]??i.cantidad):i.cantidad}));
-  _auditLog('solicitud_entregado',`Pedido entregado: ${s.solicitante||'?'} · ${s.sector||''} · ${s.fecha||''}`,null,{id,items:auditItems,center});
-  _db.collection("insumos_cima").doc("solicitudes_log").collection("items")
-    .doc(id).update({entregado:true,leido:true,fechaEntrega:firebase.firestore.FieldValue.serverTimestamp(),...(recibidoPor&&{recibidoPor}),...(firma&&{firma})})
-    .then(()=>{
-      toast(centerData?"✓ Pedido entregado · Stock actualizado":"✓ Pedido marcado como entregado");
-      closePdfViewer();
-    })
-    .catch(e=>{console.warn(e);toast("⚠️ Error al actualizar");});
+    return data;
+  }).then(function(data){
+    cs[center].stock=data.stock;
+    cs[center].movements=data.movements;
+    cs[center].lotes=data.lotes;
+    const auditItems=(s.items||[]).filter(function(i){return i.id;}).map(function(i){return {id:i.id,name:i.name,qty:qtyMap?(qtyMap[i.id]??i.cantidad):i.cantidad};});
+    _auditLog('solicitud_entregado',"Pedido entregado: "+(s.solicitante||'?')+" · "+(s.sector||'')+" · "+(s.fecha||''),null,{id,items:auditItems,center});
+    toast("✓ Pedido entregado · Stock actualizado");
+    return updateSolicitud();
+  }).catch(function(e){
+    console.warn(e);
+    toast("⚠️ Error al actualizar stock");
+  });
 }
-
 // ─── Cantidades entregadas — dentro de pdf-viewer-overlay, sin getElementById ──
 let _eqSolId = null;
 
