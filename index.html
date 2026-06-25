@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.25.446 -->
+<!-- v2026.06.25.447 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.25.446">
+<meta name="app-version" content="v2026.06.25.447">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -10154,12 +10154,7 @@ function generateReport(){
     // Always add to summary table
     var estClass=eq.estado==='fuera-de-servicio'?'sbad':eq.estado==='operativo'?'sok':'swarn';
     sumRows+='<tr><td><strong>'+esc(eq.nombre)+'</strong></td><td>'+ci.label+'</td><td>'+(eq.ubicacion?esc(eq.ubicacion):'—')+'</td><td><span class="'+estClass+'">'+estLabel(eq.estado)+'</span></td><td>'+mantH.length+'</td><td>'+repH.length+'</td><td>'+actH.length+'</td></tr>';
-    // Add to detail section only if has events in the period
-    var hasEq=mantH.length||repH.length||mejH.length||actH.length||mejP.length||trasladosH.length;
-    if(!hasEq)return;
-    hasData=true;
-    tm+=mantH.length;tr+=repH.length;tmej+=mejH.length;tact+=actH.length;
-    // Collect linked antenas roturas
+    // Collect linked antenas roturas/historial, transductor roturas, fallas directas
     var antRoturas=[];var antHistorial=[];
     (eq.antenaIds||[]).forEach(function(aId){
       var a=antenas.find(function(x){return x.id===aId;});
@@ -10190,6 +10185,11 @@ function generateReport(){
       if(hasta&&f.fecha>hasta)return false;
       return true;
     });
+    // Add to detail section only if has events in the period (including antenas/transductores/fallas)
+    var hasEq=mantH.length||repH.length||mejH.length||actH.length||mejP.length||trasladosH.length||antRoturas.length||antHistorial.length||tranRoturas.length||fallasDir.length;
+    if(!hasEq)return;
+    hasData=true;
+    tm+=mantH.length;tr+=repH.length;tmej+=mejH.length;tact+=actH.length;
     eqData.push({eq:eq,ci:ci,mantH:mantH,repH:repH,mejH:mejH,actH:actH,mejP:mejP,trasladosH:trasladosH,antRoturas:antRoturas,antHistorial:antHistorial,tranRoturas:tranRoturas,fallasDir:fallasDir});
   });}catch(_fe){showToast('Error procesando equipos: '+(_fe&&_fe.message?_fe.message:String(_fe)),'err');return;}
   // Always generate if equipment selected — no-activity periods still produce a status report
@@ -13917,7 +13917,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="7.9.6";
+var APP_DISPLAY_VERSION="7.9.7";
 var APP_BUILD="25/06/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
