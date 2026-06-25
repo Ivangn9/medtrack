@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.25.442 -->
+<!-- v2026.06.25.443 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.25.442">
+<meta name="app-version" content="v2026.06.25.443">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -7703,7 +7703,17 @@ function rDetalle(){
   if(eq.cat==='ECO'){
     var _tCnt=(eq.transductorIds||[]).length;
     var _tRot=transductores.filter(function(t){return(eq.transductorIds||[]).indexOf(t.id)!==-1;}).reduce(function(s,t){return s+(t.roturas||[]).filter(function(r){return r.estado!=='reparado';}).length;},0);
-    h+='<div class="cring-wrap" style="--cc:rgba(14,165,233,.9);margin-bottom:8px;"><div class="cring-el"></div><div class="gc tap" onclick="goTransductores(\''+eq.id+'\')" style="padding:0;overflow:hidden;cursor:pointer;" ontouchstart="this.style.transform=\'scale(.98)\'" ontouchend="this.style.transform=\'\'"><div style="padding:12px 14px;display:flex;align-items:center;gap:11px;">'+transductorSvgIcon(18)+'<div style="flex:1;min-width:0;"><div style="font-size:.84rem;font-weight:700;color:var(--text1);">Transductores</div><div style="font-size:.67rem;color:var(--text3);margin-top:1px;">'+_tCnt+' transductor'+(_tCnt!==1?'es':'')+(_tRot===0?' · todos OK':' · '+_tRot+' rotura'+(_tRot!==1?'s':'')+' activa'+(_tRot!==1?'s':''))+'</div></div>'+(_tRot>0?'<span style="font-size:.68rem;font-weight:700;min-width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+_tRot+'</span>':'')+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(14,165,233,.45)" stroke-width="2.2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></div></div></div>';
+    h+='<div onclick="goTransductores(\''+eq.id+'\')" style="cursor:pointer;border-radius:16px;overflow:hidden;margin-bottom:10px;border:1.5px solid rgba(14,165,233,.28);background:linear-gradient(135deg,rgba(14,165,233,.10) 0%,rgba(6,182,212,.06) 100%);box-shadow:0 2px 12px rgba(14,165,233,.10),inset 0 1px 0 rgba(255,255,255,.08);" ontouchstart="this.style.transform=\'scale(.98)\'" ontouchend="this.style.transform=\'\'">'+
+      '<div style="padding:16px 18px;display:flex;align-items:center;gap:14px;">'+
+        '<div style="width:48px;height:48px;border-radius:14px;background:rgba(14,165,233,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid rgba(14,165,233,.22);">'+transductorSvgIcon(26)+'</div>'+
+        '<div style="flex:1;min-width:0;">'+
+          '<div style="font-size:.95rem;font-weight:800;color:var(--text1);letter-spacing:-.2px;">Transductores</div>'+
+          '<div style="font-size:.72rem;color:'+(_tRot>0?'var(--red)':'rgba(14,165,233,.85)')+';margin-top:2px;font-weight:600;">'+_tCnt+' transductor'+(_tCnt!==1?'es':'')+(_tRot===0?' · todos operativos':' · '+_tRot+' rotura'+(_tRot!==1?'s':'')+' activa'+(_tRot!==1?'s':''))+'</div>'+
+        '</div>'+
+        (_tRot>0?'<div style="min-width:26px;height:26px;border-radius:50%;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.72rem;font-weight:800;box-shadow:0 2px 6px rgba(239,68,68,.4);">'+_tRot+'</div>':'')+
+        '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(14,165,233,.5)" stroke-width="2.2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>'+
+      '</div>'+
+    '</div>';
   }
 
   /* LEFT: NETWORK (collapsible) */
@@ -8661,7 +8671,8 @@ function rAntenas(){
           '</div>'+
           '<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">'+
             '<button onclick="openSeguimientoFallaDirecta(\''+eq.id+'\',\''+f.id+'\')" style="font-size:.66rem;padding:5px 11px;border-radius:14px;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.22);color:rgba(245,158,11,1);font-weight:700;cursor:pointer;">📋 Seguimiento</button>'+
-            (_nFotos>0?'<button onclick="openFotosFallaDirecta(\''+eq.id+'\',\''+f.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(52,199,89,.10);border:1px solid rgba(52,199,89,.2);color:var(--green);cursor:pointer;font-weight:600;">📷 Ver fotos</button>':'')+
+            (_nFotos>0?'<button onclick="openFotosFallaDirecta(\''+eq.id+'\',\''+f.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(52,199,89,.10);border:1px solid rgba(52,199,89,.2);color:var(--green);cursor:pointer;font-weight:600;">\U0001f4f7 Ver fotos</button>':'')+
+            '<button onclick="openAgregarFotosFallaDirecta(\''+eq.id+'\',\''+f.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(52,199,89,.06);border:1px dashed rgba(52,199,89,.22);color:var(--green);cursor:pointer;font-weight:600;">\U0001f4f7+</button>'+
             '<button onclick="deleteFallaDirecta(\''+eq.id+'\',\''+f.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(255,59,48,.08);border:1px solid rgba(255,59,48,.15);color:var(--red);cursor:pointer;font-weight:600;">&#x2715;</button>'+
           '</div>'+
         '</div>';}).join('')
@@ -8784,7 +8795,9 @@ function rAntenaDetalle(){
               '<div style="font-size:.68rem;color:var(--text3);margin-top:4px;">\U0001f4c5 '+fD(r.fecha)+(r.tecnico?' \xb7 \U0001f477 '+esc(r.tecnico):'')+(r.empresa?' \xb7 \U0001f3ed '+esc(r.empresa):'')+'</div>'+
               (r.fechaEnvio?'<div style="font-size:.66rem;color:rgba(245,158,11,1);margin-top:2px;">\U0001f4e4 Enviado: '+fD(r.fechaEnvio)+'</div>':'')+
               (_lEq?'<div style="font-size:.65rem;color:var(--accent);margin-top:3px;font-weight:600;">\U0001f517 '+esc(_lEq.nombre)+'</div>':'')+
-              (_nFotos?'<div style="margin-top:5px;"><button onclick="openFotosRotura(\''+ant.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:3px 9px;border-radius:12px;background:rgba(52,199,89,.10);color:var(--green);border:1px solid rgba(52,199,89,.2);cursor:pointer;font-weight:600;">\U0001f4f7 '+_nFotos+' foto'+(_nFotos!==1?'s':'')+'</button></div>':'')+
+              '<div style="margin-top:5px;display:flex;gap:5px;flex-wrap:wrap;">'+(_nFotos?'<button onclick="openFotosRotura(\''+ant.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:3px 9px;border-radius:12px;background:rgba(52,199,89,.10);color:var(--green);border:1px solid rgba(52,199,89,.2);cursor:pointer;font-weight:600;">\U0001f4f7 '+_nFotos+' foto'+(_nFotos!==1?'s':'')+'</button>':'')+
+            '<button onclick="openAgregarFotosAntenaRotura(\''+ant.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:3px 9px;border-radius:12px;background:rgba(52,199,89,.06);color:var(--green);border:1px dashed rgba(52,199,89,.22);cursor:pointer;font-weight:600;">\U0001f4f7 Agregar foto</button>'+
+            '</div>'+
               (_presAll.length?'<div style="margin-top:5px;display:flex;flex-wrap:wrap;gap:4px;">'+_presAll.map(function(p,_pi){return '<button onclick="openPDFViewer(\''+p.id+'\',\'\')" style="font-size:.66rem;padding:3px 9px;border-radius:12px;background:rgba(0,113,227,.10);color:var(--accent);border:1px solid rgba(0,113,227,.18);cursor:pointer;font-weight:600;">\U0001f4c4 Presupuesto '+(_pi+1)+'</button>';}).join('')+'</div>':'')+
               (_notas.length?'<div style="margin-top:5px;border-top:1px solid rgba(239,68,68,.1);padding-top:4px;">'+_notas.slice().reverse().slice(0,2).map(function(n){return '<div style="font-size:.65rem;color:var(--text2);margin-top:2px;"><span style="color:var(--text3);">'+fD(n.fecha)+'</span> '+esc(n.nota)+'</div>';}).join('')+'</div>':'')+
             '</div>'+
@@ -8981,7 +8994,8 @@ function rTransductorDetalle(){
           '</div>'+
           '<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">'+
             '<button onclick="openSeguimientoTransductorRotura(\''+tr.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 11px;border-radius:14px;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.22);color:rgba(245,158,11,1);font-weight:700;cursor:pointer;">📋 Seguimiento</button>'+
-            (_nFotos>0?'<button onclick="openFotosTransductorRotura(\''+tr.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(52,199,89,.10);border:1px solid rgba(52,199,89,.2);color:var(--green);cursor:pointer;font-weight:600;">📷 Ver fotos</button>':'')+
+            (_nFotos>0?'<button onclick="openFotosTransductorRotura(\''+tr.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(52,199,89,.10);border:1px solid rgba(52,199,89,.2);color:var(--green);cursor:pointer;font-weight:600;">\U0001f4f7 Ver fotos</button>':'')+
+            '<button onclick="openAgregarFotosTransductorRotura(\''+tr.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(52,199,89,.06);border:1px dashed rgba(52,199,89,.22);color:var(--green);cursor:pointer;font-weight:600;">\U0001f4f7+</button>'+
             '<button onclick="deleteTransductorRotura(\''+tr.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(255,59,48,.08);border:1px solid rgba(255,59,48,.15);color:var(--red);cursor:pointer;font-weight:600;">&#x2715;</button>'+
           '</div>'+
         '</div>';}).join('')
@@ -12668,6 +12682,141 @@ function deleteFallaDirecta(eqId,fallaId){
   eqs=eqs.map(function(e){if(e.id===eqId)return Object.assign({},e,{fallasDirectas:(e.fallasDirectas||[]).filter(function(f){return f.id!==fallaId;})});return e;});
   saveData();render();showToast('Falla eliminada','warn');
 }
+// ─── AGREGAR FOTOS A ROTURAS/FALLAS EXISTENTES ───
+function _addAgrFotos(files){
+  if(!window._pendAgrFotos)window._pendAgrFotos=[];
+  var container=document.getElementById('agr-fotos-list');
+  for(var _fi=0;_fi<files.length;_fi++){
+    var _ff=files[_fi];
+    window._pendAgrFotos.push(_ff);
+    if(container){
+      var _idx=window._pendAgrFotos.length-1;
+      var _thumb=document.createElement('div');
+      _thumb.style.cssText='position:relative;width:72px;height:72px;border-radius:8px;overflow:hidden;border:1px solid rgba(52,199,89,.3);flex-shrink:0;';
+      var _img=document.createElement('img');
+      _img.style.cssText='width:100%;height:100%;object-fit:cover;';
+      var _url=URL.createObjectURL(_ff);
+      _img.src=_url;
+      _thumb.appendChild(_img);
+      var _del=document.createElement('button');
+      _del.style.cssText='position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,.65);color:#fff;border:none;cursor:pointer;font-size:.6rem;line-height:18px;text-align:center;padding:0;';
+      _del.textContent='\xd7';
+      (function(__idx,__thumb,__url){_del.onclick=function(){window._pendAgrFotos.splice(__idx,1,null);__thumb.remove();URL.revokeObjectURL(__url);};}(_idx,_thumb,_url));
+      _thumb.appendChild(_del);
+      container.appendChild(_thumb);
+    }
+  }
+}
+function _openAgregarFotosModal(title,subtitle,onSaveStr){
+  window._pendAgrFotos=[];
+  openModal(
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">'+
+      '<div style="width:36px;height:36px;border-radius:10px;background:rgba(52,199,89,.12);display:flex;align-items:center;justify-content:center;">'+
+        '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.2" stroke-linecap="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>'+
+      '</div>'+
+      '<div><div style="font-weight:800;font-size:1rem;">Agregar fotos</div>'+
+        '<div style="font-size:.65rem;color:var(--text3);">'+esc(subtitle)+'</div></div>'+
+      '<button onclick="closeModal()" style="margin-left:auto;width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.9rem;cursor:pointer;font-weight:700;">✕</button>'+
+    '</div>'+
+    '<div id="agr-fotos-list" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;min-height:0;"></div>'+
+    '<label style="display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;border-radius:var(--r-md);background:rgba(52,199,89,.08);border:2px dashed rgba(52,199,89,.3);cursor:pointer;font-size:.82rem;color:var(--green);font-weight:700;width:100%;box-sizing:border-box;">'+
+      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>'+
+      '\U0001f4f7 Tomar foto o elegir de galería'+
+      '<input type="file" accept="image/*" capture="environment" multiple style="display:none;" onchange="_addAgrFotos(this.files)">'+
+    '</label>'+
+    '<button class="btn-grad" style="width:100%;margin-top:12px;" onclick="'+onSaveStr+'">\U0001f4be Guardar fotos</button>'
+  );
+}
+function openAgregarFotosAntenaRotura(antId,rotId){
+  var ant=antenas.find(function(a){return a.id===antId;});
+  var rot=ant?(ant.roturas||[]).find(function(r){return r.id===rotId;}):null;
+  if(!rot)return;
+  _openAgregarFotosModal('',rot.queSeRompio||rot.descripcion||'',('"submitAgregarFotosAntenaRotura(\''+antId+'\',\''+rotId+'\')"').slice(1,-1));
+}
+function submitAgregarFotosAntenaRotura(antId,rotId){
+  var pendFotos=(window._pendAgrFotos||[]).filter(Boolean);window._pendAgrFotos=[];
+  if(!pendFotos.length){closeModal();return;}
+  var uploadedFotos=[];
+  function uploadNext(idx){
+    if(idx>=pendFotos.length){
+      antenas=antenas.map(function(a){
+        if(a.id!==antId)return a;
+        return Object.assign({},a,{roturas:(a.roturas||[]).map(function(r){
+          if(r.id!==rotId)return r;
+          return Object.assign({},r,{fotos:(r.fotos||[]).concat(uploadedFotos)});
+        })});
+      });
+      saveData();closeModal();render();showToast('\U0001f4f7 '+uploadedFotos.length+' foto(s) guardadas','');
+      return;
+    }
+    var f=pendFotos[idx];
+    var fid='F-'+Date.now()+idx+'-'+Math.random().toString(36).slice(2);
+    var rdr=new FileReader();
+    rdr.onload=function(e2){dbSave(fid,f.name,e2.target.result,function(ok){if(ok)uploadedFotos.push({id:fid,nombre:f.name,tipo:f.type,tam:f.size});uploadNext(idx+1);});};
+    rdr.readAsDataURL(f);
+  }
+  uploadNext(0);
+}
+function openAgregarFotosTransductorRotura(transId,rotId){
+  var tr=transductores.find(function(t){return t.id===transId;});
+  var rot=tr?(tr.roturas||[]).find(function(r){return r.id===rotId;}):null;
+  if(!rot)return;
+  _openAgregarFotosModal('',rot.queSeRompio||rot.descripcion||'',('"submitAgregarFotosTransductorRotura(\''+transId+'\',\''+rotId+'\')"').slice(1,-1));
+}
+function submitAgregarFotosTransductorRotura(transId,rotId){
+  var pendFotos=(window._pendAgrFotos||[]).filter(Boolean);window._pendAgrFotos=[];
+  if(!pendFotos.length){closeModal();return;}
+  var uploadedFotos=[];
+  function uploadNext(idx){
+    if(idx>=pendFotos.length){
+      transductores=transductores.map(function(t){
+        if(t.id!==transId)return t;
+        return Object.assign({},t,{roturas:(t.roturas||[]).map(function(r){
+          if(r.id!==rotId)return r;
+          return Object.assign({},r,{fotos:(r.fotos||[]).concat(uploadedFotos)});
+        })});
+      });
+      saveData();closeModal();render();showToast('\U0001f4f7 '+uploadedFotos.length+' foto(s) guardadas','');
+      return;
+    }
+    var f=pendFotos[idx];
+    var fid='F-'+Date.now()+idx+'-'+Math.random().toString(36).slice(2);
+    var rdr=new FileReader();
+    rdr.onload=function(e2){dbSave(fid,f.name,e2.target.result,function(ok){if(ok)uploadedFotos.push({id:fid,nombre:f.name,tipo:f.type,tam:f.size});uploadNext(idx+1);});};
+    rdr.readAsDataURL(f);
+  }
+  uploadNext(0);
+}
+function openAgregarFotosFallaDirecta(eqId,fallaId){
+  var eq=eqs.find(function(e){return e.id===eqId;});
+  var falla=eq?(eq.fallasDirectas||[]).find(function(f){return f.id===fallaId;}):null;
+  if(!falla)return;
+  _openAgregarFotosModal('',falla.queSeRompio||'',('"submitAgregarFotosFallaDirecta(\''+eqId+'\',\''+fallaId+'\')"').slice(1,-1));
+}
+function submitAgregarFotosFallaDirecta(eqId,fallaId){
+  var pendFotos=(window._pendAgrFotos||[]).filter(Boolean);window._pendAgrFotos=[];
+  if(!pendFotos.length){closeModal();return;}
+  var uploadedFotos=[];
+  function uploadNext(idx){
+    if(idx>=pendFotos.length){
+      eqs=eqs.map(function(e){
+        if(e.id!==eqId)return e;
+        return Object.assign({},e,{fallasDirectas:(e.fallasDirectas||[]).map(function(f){
+          if(f.id!==fallaId)return f;
+          return Object.assign({},f,{fotos:(f.fotos||[]).concat(uploadedFotos)});
+        })});
+      });
+      saveData();closeModal();render();showToast('\U0001f4f7 '+uploadedFotos.length+' foto(s) guardadas','');
+      return;
+    }
+    var f=pendFotos[idx];
+    var fid='F-'+Date.now()+idx+'-'+Math.random().toString(36).slice(2);
+    var rdr=new FileReader();
+    rdr.onload=function(e2){dbSave(fid,f.name,e2.target.result,function(ok){if(ok)uploadedFotos.push({id:fid,nombre:f.name,tipo:f.type,tam:f.size});uploadNext(idx+1);});};
+    rdr.readAsDataURL(f);
+  }
+  uploadNext(0);
+}
 
 function openTrasladoTransductorModal(transductorId, fromEqId){
   var otrosEcos=eqs.filter(function(e){return e.cat==='ECO'&&e.id!==fromEqId&&!e.baja;});
@@ -13580,7 +13729,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="7.9.2";
+var APP_DISPLAY_VERSION="7.9.3";
 var APP_BUILD="25/06/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
