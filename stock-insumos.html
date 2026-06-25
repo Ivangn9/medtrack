@@ -515,6 +515,8 @@
     }
     .modal-overlay.open .modal-sheet { transform: translateY(0); }
     .modal-handle { width: 36px; height: 4px; border-radius: 2px; background: rgba(0,0,0,.15); margin: 10px auto 18px; }
+    .sd-tab-btn{flex:1;padding:9px 6px;border:1px solid var(--glass-border);border-radius:var(--r-md);background:transparent;font-size:.83rem;font-weight:600;color:var(--text3);cursor:pointer;transition:background .15s,color .15s;-webkit-tap-highlight-color:transparent}
+    .sd-tab-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
     .modal-title { font-size: 18px; font-weight: 750; letter-spacing: -0.5px; padding: 0 24px; margin-bottom: 20px; }
     .modal-body { padding: 0 24px; }
     .form-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
@@ -2135,22 +2137,30 @@
 <div class="modal-overlay" id="supplyDetailOverlay" onclick="if(event.target===this)closeSupplyDetail()">
   <div class="modal-sheet" onclick="event.stopPropagation()" style="max-width:480px">
     <div class="modal-handle"></div>
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:0 0 16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:0 0 12px">
       <div>
         <div class="modal-title" id="sdTitle" style="margin-bottom:2px"></div>
         <div id="sdMeta" style="font-size:.78rem;color:var(--text3)"></div>
       </div>
       <button onclick="closeSupplyDetail()" style="background:rgba(120,120,128,.12);width:32px;height:32px;border-radius:50%;border:none;font-size:.9rem;cursor:pointer;color:var(--text3)">✕</button>
     </div>
-    <!-- Resumen de stock -->
-    <div id="sdStockBox" style="background:var(--glass2);border-radius:var(--r-md);padding:14px 16px;margin-bottom:16px;border:1px solid var(--glass-border)"></div>
-    <!-- Lotes -->
-    <div style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:8px">Lotes por vencimiento</div>
-    <div id="sdLotes" style="margin-bottom:16px"></div>
-    <!-- Acciones -->
-    <div style="display:flex;gap:10px">
-      <button class="btn btn-secondary" style="flex:1" onclick="closeSupplyDetail();openMovModal(_sdSupplyId,'salida')">📤 Registrar salida</button>
-      <button class="btn btn-primary"   style="flex:1" onclick="closeSupplyDetail();openMovModal(_sdSupplyId,'entrada')">📥 Registrar entrada</button>
+    <!-- Tabs -->
+    <div style="display:flex;gap:6px;margin-bottom:16px">
+      <button id="sdTabBtnResumen" class="sd-tab-btn active" onclick="switchSdTab('resumen')">📊 Resumen</button>
+      <button id="sdTabBtnLotes"   class="sd-tab-btn"        onclick="switchSdTab('lotes')">📦 Lotes <span id="sdLotesBadge" style="display:none;background:rgba(255,255,255,.3);border-radius:20px;padding:0 6px;font-size:.75rem;margin-left:2px"></span></button>
+    </div>
+    <!-- Panel Resumen -->
+    <div id="sdPanelResumen">
+      <div id="sdStockBox" style="background:var(--glass2);border-radius:var(--r-md);padding:14px 16px;margin-bottom:16px;border:1px solid var(--glass-border)"></div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-secondary" style="flex:1" onclick="closeSupplyDetail();openMovModal(_sdSupplyId,'salida')">📤 Registrar salida</button>
+        <button class="btn btn-primary"   style="flex:1" onclick="closeSupplyDetail();openMovModal(_sdSupplyId,'entrada')">📥 Registrar entrada</button>
+      </div>
+    </div>
+    <!-- Panel Lotes -->
+    <div id="sdPanelLotes" style="display:none">
+      <div id="sdLotes" style="margin-bottom:12px"></div>
+      <button class="btn btn-primary" style="width:100%;margin-top:4px" onclick="closeSupplyDetail();openMovModal(_sdSupplyId,'entrada')">📥 Registrar entrada con lote</button>
     </div>
   </div>
 </div>
@@ -2179,7 +2189,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "4.35";
+const APP_VERSION = "4.36";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -2702,7 +2712,7 @@ function renderInventario(){
           <span class="stock-unit-label">${s.presentacion==="caja"&&s.unidadesPorCaja>1?`<span style="font-size:.65rem;color:var(--text3)">${Math.floor(cur/s.unidadesPorCaja)}cj</span>`:escHtml(s.unit)}</span>
           <button class="qty-btn minus" onclick="event.stopPropagation();quickMov('${s.id}','salida')"  title="Salida">−</button>
           <button class="qty-btn plus"  onclick="event.stopPropagation();quickMov('${s.id}','entrada')" title="Entrada">+</button>
-          <button style="width:26px;height:26px;border-radius:8px;border:none;background:rgba(0,113,227,0.1);color:var(--accent);cursor:pointer;font-size:.8rem;display:inline-flex;align-items:center;justify-content:center" onclick="event.stopPropagation();openSupplyDetail('${s.id}')" title="Ver detalle">›</button>
+          <button style="width:26px;height:26px;border-radius:8px;border:none;background:rgba(0,113,227,0.1);color:var(--accent);cursor:pointer;font-size:.8rem;display:inline-flex;align-items:center;justify-content:center" onclick="event.stopPropagation();openSupplyDetail('${s.id}','lotes')" title="Ver lotes">📦</button>
         </div>`;
       row.style.cursor="pointer";
       row.onclick=()=>openSupplyDetail(s.id);
@@ -4616,47 +4626,71 @@ async function generateReport(){
 
 // ─── SUPPLY DETAIL ───────────────────────────────────────────────────────────
 let _sdSupplyId=null;
-function openSupplyDetail(supplyId){
+let _sdActiveTab='resumen';
+function switchSdTab(tab){
+  _sdActiveTab=tab;
+  document.getElementById('sdPanelResumen').style.display=tab==='resumen'?'':'none';
+  document.getElementById('sdPanelLotes').style.display=tab==='lotes'?'':'none';
+  document.getElementById('sdTabBtnResumen').classList.toggle('active',tab==='resumen');
+  document.getElementById('sdTabBtnLotes').classList.toggle('active',tab==='lotes');
+}
+function openSupplyDetail(supplyId,openTab){
   const s=supplies.find(x=>x.id===supplyId); if(!s)return;
   _sdSupplyId=supplyId;
-  const cur=(cs[activeCenter]?.stock||{})[supplyId]||0;
-  const lotes=(cs[activeCenter]?.lotes||{})[supplyId]?.filter(l=>l.qty>0)||[];
   const isCaja=s.presentacion==="caja"&&(s.unidadesPorCaja||1)>1;
   const upc=s.unidadesPorCaja||1;
 
   document.getElementById("sdTitle").textContent=s.name;
   document.getElementById("sdMeta").textContent=[s.code,s.category,isCaja?`Caja × ${upc} ${s.unit||"UND"}`:"Unitario"].filter(Boolean).join(" · ");
 
-  // Stock box
-  const cajas=isCaja?Math.floor(cur/upc):0;
-  const resto=isCaja?cur%upc:0;
-  let stockHtml=`<div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
-    <div>
-      <div style="font-size:1.8rem;font-weight:800;color:var(--accent);line-height:1">${cur}</div>
-      <div style="font-size:.75rem;color:var(--text3);margin-top:2px">${escHtml(s.unit||"UND")} en total</div>
-    </div>`;
-  if(isCaja&&cur>0){
-    stockHtml+=`<div style="text-align:right">
-      <div style="font-size:1.3rem;font-weight:700;color:var(--text)">${cajas} caja${cajas!==1?"s":""}</div>
-      <div style="font-size:.75rem;color:var(--text3)">${cajas} × ${upc}${resto>0?` + ${resto} sueltos`:""}</div>
+  // ── Resumen tab: stock de ambos centros ───────────────────────────────────
+  const GNcur=(cs.GN?.stock||{})[supplyId]||0;
+  const SARMcur=(cs.Sarmiento?.stock||{})[supplyId]||0;
+  const totalCur=GNcur+SARMcur;
+  const GNcajas=isCaja?Math.floor(GNcur/upc):0;
+  const SARMcajas=isCaja?Math.floor(SARMcur/upc):0;
+
+  function stockRow(label,cur){
+    if(cur<=0) return `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--glass-border)"><span style="font-size:.8rem;color:var(--text3)">${label}</span><span style="font-size:.85rem;font-weight:600;color:var(--text3)">Sin stock</span></div>`;
+    const cajas=isCaja?Math.floor(cur/upc):0;
+    const resto=isCaja?cur%upc:0;
+    const sub=isCaja&&cajas>0?`<div style="font-size:.7rem;color:var(--text3)">${cajas} caja${cajas!==1?"s":""}${resto>0?` + ${resto}`:""}</div>`:"";
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--glass-border)">
+      <span style="font-size:.8rem;font-weight:600;color:var(--text2)">${label}</span>
+      <div style="text-align:right"><div style="font-size:1rem;font-weight:800;color:var(--accent)">${cur} <span style="font-size:.7rem;font-weight:600">${escHtml(s.unit||"UND")}</span></div>${sub}</div>
     </div>`;
   }
-  stockHtml+=`</div>`;
+  let stockHtml=`<div>${stockRow("GN · Guard. Nac.",GNcur)}${stockRow("Sarmiento",SARMcur)}</div>`;
+  if(GNcur+SARMcur>0){
+    const totCajas=isCaja?Math.floor(totalCur/upc):0;
+    stockHtml+=`<div style="display:flex;justify-content:space-between;align-items:center;padding-top:8px;margin-top:2px">
+      <span style="font-size:.78rem;font-weight:700;color:var(--text3)">TOTAL</span>
+      <div style="text-align:right">
+        <div style="font-size:1.3rem;font-weight:800;color:var(--accent);line-height:1">${totalCur} <span style="font-size:.72rem">${escHtml(s.unit||"UND")}</span></div>
+        ${isCaja&&totCajas>0?`<div style="font-size:.7rem;color:var(--text3)">${totCajas} caja${totCajas!==1?"s":""}</div>`:""}
+      </div>
+    </div>`;
+  }
   document.getElementById("sdStockBox").innerHTML=stockHtml;
 
-  // Lotes
+  // ── Lotes tab: lotes de ambos centros ─────────────────────────────────────
+  const CENTS=[{key:"GN",label:"GN · Guard. Nac."},{key:"Sarmiento",label:"Sarmiento"}];
   const today=new Date();
-  if(!lotes.length){
-    document.getElementById("sdLotes").innerHTML=`<div style="text-align:center;padding:20px;color:var(--text3);font-size:.85rem">Sin lotes cargados con fecha de vencimiento.<br><span style="font-size:.75rem">Registrá una entrada con fecha de vencimiento para verlos aquí.</span></div>`;
-  } else {
-    document.getElementById("sdLotes").innerHTML=lotes.map(l=>{
+  let lotesHtml="";
+  let totalLotes=0;
+  let firstCenter=true;
+  CENTS.forEach(function(c){
+    const lotes=(cs[c.key]?.lotes||{})[supplyId]?.filter(function(l){return l.qty>0;})||[];
+    if(!lotes.length)return;
+    totalLotes+=lotes.length;
+    lotesHtml+=`<div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin:${firstCenter?0:14}px 0 8px">${c.label}</div>`;
+    firstCenter=false;
+    lotesHtml+=lotes.map(function(l){
       const daysLeft=Math.floor((new Date(l.fechaVenc)-today)/(1000*60*60*24));
       const icon=daysLeft<0?"🔴":daysLeft<=30?"🟠":daysLeft<=90?"🟡":"🟢";
-      const label=daysLeft<0?`Venció hace ${Math.abs(daysLeft)}d`:daysLeft===0?"Vence HOY":`${daysLeft}d restantes`;
+      const labelD=daysLeft<0?`Venció hace ${Math.abs(daysLeft)}d`:daysLeft===0?"Vence HOY":`${daysLeft}d restantes`;
       const borderC=daysLeft<0?"#ff3b30":daysLeft<=30?"#ff9500":daysLeft<=90?"#ffd60a":"#30d158";
-      // Presentación info: si el lote tiene presentación, mostrar esa; sino derivar de la default del supply
-      let presLine="";
-      let presBadge="";
+      let presLine="",presBadge="";
       if(l.presentacion){
         const p=l.presentacion;
         const remaining=Math.floor(l.qty/p.units);
@@ -4672,21 +4706,31 @@ function openSupplyDetail(supplyId){
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
           <div style="min-width:0">
             <div style="font-size:.85rem;font-weight:700;color:var(--text)">📅 ${fmtDate(l.fechaVenc)}</div>
-            <div style="font-size:.72rem;color:var(--text3);margin-top:2px">${icon} ${label}${l.fechaEntrada?` · Ingresado ${fmtDate(l.fechaEntrada)}`:""}</div>
+            <div style="font-size:.72rem;color:var(--text3);margin-top:2px">${icon} ${labelD}${l.fechaEntrada?` · Ingresado ${fmtDate(l.fechaEntrada)}`:""}</div>
             ${presLine}
           </div>
           <div style="text-align:right;flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:6px">
             <div style="font-size:1rem;font-weight:800;color:var(--text)">${l.qty} ${escHtml(s.unit||"UND")}</div>
             ${presBadge}
-            <button onclick="openEditLoteModal('${escAttr(activeCenter)}','${escAttr(supplyId)}','${escAttr(l.id)}')"
+            <button onclick="openEditLoteModal('${escAttr(c.key)}','${escAttr(supplyId)}','${escAttr(l.id)}')"
               style="padding:4px 10px;border-radius:var(--r-pill);border:1px solid rgba(0,0,0,.1);background:var(--glass2);font-size:.75rem;font-weight:600;color:var(--text2);cursor:pointer;-webkit-tap-highlight-color:transparent">✏️ Editar</button>
           </div>
         </div>
       </div>`;
     }).join("");
+  });
+  if(!totalLotes){
+    lotesHtml=`<div style="text-align:center;padding:28px 16px;color:var(--text3);font-size:.85rem">Sin lotes cargados.<br><span style="font-size:.75rem;opacity:.7">Registrá una entrada con fecha de vencimiento para verlos aquí.</span></div>`;
   }
+  document.getElementById("sdLotes").innerHTML=lotesHtml;
+
+  // Badge en tab Lotes
+  const badge=document.getElementById('sdLotesBadge');
+  if(totalLotes>0){badge.textContent=totalLotes;badge.style.display="";}
+  else badge.style.display="none";
 
   document.getElementById("supplyDetailOverlay").classList.add("open");
+  switchSdTab(openTab||'resumen');
 }
 function closeSupplyDetail(){document.getElementById("supplyDetailOverlay").classList.remove("open");}
 
