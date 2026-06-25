@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.25.441 -->
+<!-- v2026.06.25.442 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.25.441">
+<meta name="app-version" content="v2026.06.25.442">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -8629,6 +8629,45 @@ function rAntenas(){
       '</div>';
     });
   }
+  /* FALLAS DEL EQUIPO */
+  var _fdList=eq.fallasDirectas||[];
+  var _fdActivas=_fdList.filter(function(f){return f.estado!=='reparado';});
+  h+='<div class="gc" style="padding:0;margin-bottom:12px;overflow:hidden;">'+
+    '<div style="background:linear-gradient(90deg,rgba(217,119,6,.10),rgba(217,119,6,.05));padding:9px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(217,119,6,.10);">'+
+      '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2.2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'+
+      '<span style="font-size:.72rem;font-weight:700;color:#d97706;text-transform:uppercase;letter-spacing:.06em;flex:1;">Fallas del Equipo</span>'+
+      '<button onclick="openAddFallaDirectaModal(\''+eq.id+'\')" style="font-size:.66rem;padding:4px 10px;border-radius:14px;background:#d97706;color:#fff;border:none;cursor:pointer;font-weight:700;">+ Nueva Falla</button>'+
+    '</div>'+
+    '<div style="padding:12px 14px;">'+
+      (_fdActivas.length===0?
+        '<div style="text-align:center;padding:14px;font-size:.74rem;color:var(--text3);">Sin fallas registradas ✅</div>'
+        :
+        _fdActivas.map(function(f){
+          var _fColor=f.estado==='en_reparacion'?'rgba(245,158,11,1)':f.estado==='reparado'?'var(--green)':'#dc2626';
+          var _fBg=f.estado==='en_reparacion'?'rgba(245,158,11,.12)':f.estado==='reparado'?'rgba(52,199,89,.12)':'rgba(239,68,68,.12)';
+          var _fLabel=f.estado==='en_reparacion'?'En reparaci\xf3n':f.estado==='reparado'?'Reparado':'Roto';
+          var _nFotos=(f.fotos||[]).length;
+          return '<div style="padding:10px 12px;margin-bottom:8px;border-radius:var(--r-md);background:rgba(217,119,6,.05);border:1px solid rgba(217,119,6,.15);">'+
+          '<div style="display:flex;align-items:flex-start;gap:8px;">'+
+            '<div style="flex:1;min-width:0;">'+
+              '<div style="display:flex;align-items:center;gap:5px;margin-bottom:3px;">'+
+                '<div style="font-weight:700;font-size:.82rem;color:#d97706;">'+esc(f.queSeRompio||'—')+'</div>'+
+                '<span style="font-size:.58rem;font-weight:700;padding:1px 7px;border-radius:10px;background:'+_fBg+';color:'+_fColor+';flex-shrink:0;">'+_fLabel+'</span>'+
+              '</div>'+
+              (f.fecha?'<div style="font-size:.66rem;color:var(--text3);margin-top:2px;">📅 '+fD(f.fecha)+'</div>':'')+
+              (f.descripcion?'<div style="font-size:.7rem;color:var(--text2);margin-top:2px;">'+esc(f.descripcion)+'</div>':'')+
+              (f.empresa?'<div style="font-size:.66rem;color:rgba(245,158,11,1);margin-top:2px;">🏗️ '+esc(f.empresa)+'</div>':'')+
+            '</div>'+
+          '</div>'+
+          '<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">'+
+            '<button onclick="openSeguimientoFallaDirecta(\''+eq.id+'\',\''+f.id+'\')" style="font-size:.66rem;padding:5px 11px;border-radius:14px;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.22);color:rgba(245,158,11,1);font-weight:700;cursor:pointer;">📋 Seguimiento</button>'+
+            (_nFotos>0?'<button onclick="openFotosFallaDirecta(\''+eq.id+'\',\''+f.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(52,199,89,.10);border:1px solid rgba(52,199,89,.2);color:var(--green);cursor:pointer;font-weight:600;">📷 Ver fotos</button>':'')+
+            '<button onclick="deleteFallaDirecta(\''+eq.id+'\',\''+f.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(255,59,48,.08);border:1px solid rgba(255,59,48,.15);color:var(--red);cursor:pointer;font-weight:600;">&#x2715;</button>'+
+          '</div>'+
+        '</div>';}).join('')
+      )+
+    '</div>'+
+  '</div>';
   return h;
 }
 
@@ -8921,16 +8960,29 @@ function rTransductorDetalle(){
       (roturasActivas.length===0?
         '<div style="text-align:center;padding:14px;font-size:.74rem;color:var(--text3);">Sin roturas activas ✅</div>'
         :
-        roturasActivas.map(function(r){return '<div style="padding:10px 12px;margin-bottom:8px;border-radius:var(--r-md);background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);">'+
+        roturasActivas.map(function(r){
+          var _rColor=r.estado==='en_reparacion'?'rgba(245,158,11,1)':r.estado==='reparado'?'var(--green)':'#dc2626';
+          var _rBg=r.estado==='en_reparacion'?'rgba(245,158,11,.12)':r.estado==='reparado'?'rgba(52,199,89,.12)':'rgba(239,68,68,.12)';
+          var _rLabel=r.estado==='en_reparacion'?'En reparaci\xf3n':r.estado==='reparado'?'Reparado':'Roto';
+          var _nFotos=(r.fotos||[]).length;
+          var _nPres=(r.presupuestosArreglo||[]).length;
+          return '<div style="padding:10px 12px;margin-bottom:8px;border-radius:var(--r-md);background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);">'+
           '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">'+
-            '<div style="flex:1;"><div style="font-weight:700;font-size:.82rem;color:var(--red);">'+esc(r.descripcion||'Sin descripción')+'</div>'+
-              (r.fecha?'<div style="font-size:.66rem;color:var(--text3);margin-top:2px;">Reportada: '+fD(r.fecha)+'</div>':'')+
-              (r.notas?'<div style="font-size:.7rem;color:var(--text2);margin-top:4px;">'+esc(r.notas)+'</div>':'')+
+            '<div style="flex:1;min-width:0;">'+
+              '<div style="display:flex;align-items:center;gap:5px;margin-bottom:3px;">'+
+                '<div style="font-weight:700;font-size:.82rem;color:var(--red);">'+esc(r.queSeRompio||r.descripcion||'Sin descripci\xf3n')+'</div>'+
+                '<span style="font-size:.58rem;font-weight:700;padding:1px 7px;border-radius:10px;background:'+_rBg+';color:'+_rColor+';flex-shrink:0;">'+_rLabel+'</span>'+
+              '</div>'+
+              (r.fecha?'<div style="font-size:.66rem;color:var(--text3);margin-top:2px;">📅 '+fD(r.fecha)+'</div>':'')+
+              (r.descripcion&&r.queSeRompio?'<div style="font-size:.7rem;color:var(--text2);margin-top:2px;">'+esc(r.descripcion)+'</div>':'')+
+              ((r.empresa||r.fechaEnvio)?'<div style="font-size:.66rem;color:rgba(245,158,11,1);margin-top:2px;">'+(r.empresa?'🏭 '+esc(r.empresa):'')+(r.fechaEnvio?' \xb7 📤 '+fD(r.fechaEnvio):'')+'</div>':'')+
+              '<div style="font-size:.65rem;color:var(--text3);margin-top:4px;">fotos '+_nFotos+' \xb7 presupuestos '+_nPres+'</div>'+
             '</div>'+
           '</div>'+
-          '<div style="display:flex;gap:6px;margin-top:8px;">'+
-            '<button onclick="markTransductorRoturaReparada(\''+tr.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 11px;border-radius:14px;background:rgba(52,199,89,.12);border:1px solid rgba(52,199,89,.25);color:var(--green);font-weight:700;cursor:pointer;">✓ Marcar reparada</button>'+
-            '<button onclick="deleteTransductorRotura(\''+tr.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(255,59,48,.08);border:1px solid rgba(255,59,48,.15);color:var(--red);cursor:pointer;font-weight:600;">✕</button>'+
+          '<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">'+
+            '<button onclick="openSeguimientoTransductorRotura(\''+tr.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 11px;border-radius:14px;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.22);color:rgba(245,158,11,1);font-weight:700;cursor:pointer;">📋 Seguimiento</button>'+
+            (_nFotos>0?'<button onclick="openFotosTransductorRotura(\''+tr.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(52,199,89,.10);border:1px solid rgba(52,199,89,.2);color:var(--green);cursor:pointer;font-weight:600;">📷 Ver fotos</button>':'')+
+            '<button onclick="deleteTransductorRotura(\''+tr.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(255,59,48,.08);border:1px solid rgba(255,59,48,.15);color:var(--red);cursor:pointer;font-weight:600;">&#x2715;</button>'+
           '</div>'+
         '</div>';}).join('')
       )+
@@ -10075,7 +10127,22 @@ function generateReport(){
         antHistorial.push({ant:a,hist:h});
       });
     });
-    eqData.push({eq:eq,ci:ci,mantH:mantH,repH:repH,mejH:mejH,actH:actH,mejP:mejP,trasladosH:trasladosH,antRoturas:antRoturas,antHistorial:antHistorial});
+    var tranRoturas=[];
+    (eq.transductorIds||[]).forEach(function(tId){
+      var t=transductores.find(function(x){return x.id===tId;});
+      if(!t)return;
+      (t.roturas||[]).forEach(function(r){
+        if(desde&&r.fecha<desde)return;
+        if(hasta&&r.fecha>hasta)return;
+        tranRoturas.push({tr:t,rot:r});
+      });
+    });
+    var fallasDir=(eq.fallasDirectas||[]).filter(function(f){
+      if(desde&&f.fecha<desde)return false;
+      if(hasta&&f.fecha>hasta)return false;
+      return true;
+    });
+    eqData.push({eq:eq,ci:ci,mantH:mantH,repH:repH,mejH:mejH,actH:actH,mejP:mejP,trasladosH:trasladosH,antRoturas:antRoturas,antHistorial:antHistorial,tranRoturas:tranRoturas,fallasDir:fallasDir});
   });}catch(_fe){showToast('Error procesando equipos: '+(_fe&&_fe.message?_fe.message:String(_fe)),'err');return;}
   // Always generate if equipment selected — no-activity periods still produce a status report
   try{localStorage.setItem('cima_nro_informe',String(nroInforme+1));localStorage.setItem('cima_rep_para',paraInforme);}catch(e){}
@@ -10186,7 +10253,97 @@ function generateReport(){
         }
         antenaHtml+='</div>';
       }
-      eqSections+='<div class="narrative">'+narrativeHtml+'</div>'+imgsHtml+antenaHtml+'</div>';
+      var tranRoturasHtml='';
+      if(d.tranRoturas&&d.tranRoturas.length){
+        tranRoturasHtml+='<div style="margin:10px 12px 0;border-top:1px solid #e2e8f0;padding-top:10px;">';
+        tranRoturasHtml+='<div style="font-size:9pt;font-weight:700;color:#0369a1;letter-spacing:.04em;margin-bottom:8px;">TRANSDUCTORES — ROTURAS</div>';
+        tranRoturasHtml+='<div style="font-size:8.5pt;font-weight:600;color:#0ea5e9;margin-bottom:6px;">Fallas activas ('+d.tranRoturas.length+')</div>';
+        d.tranRoturas.forEach(function(tr){
+          var trObj=tr.tr;var rot=tr.rot;
+          var estadoColor={'roto':'#dc2626','en_reparacion':'#d97706','reparado':'#16a34a'}[rot.estado]||'#64748b';
+          var estadoLabel={'roto':'Roto','en_reparacion':'En reparaci\xf3n','reparado':'Reparado'}[rot.estado]||rot.estado||'—';
+          tranRoturasHtml+='<div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:6px;padding:8px 10px;margin-bottom:8px;">';
+          tranRoturasHtml+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">';
+          tranRoturasHtml+='<span style="font-size:9pt;font-weight:700;color:#1e293b;">'+esc(trObj.nombre||trObj.id)+'</span>';
+          tranRoturasHtml+='<span style="font-size:8pt;font-weight:700;color:'+estadoColor+';background:'+estadoColor+'18;padding:2px 8px;border-radius:20px;">'+estadoLabel+'</span>';
+          tranRoturasHtml+='</div>';
+          var rows3=[
+            ['Qu\xe9 se rompi\xf3',rot.queSeRompio||rot.descripcion||'—'],
+            ['Fecha',rot.fecha?fD(rot.fecha):'—'],
+            ['Empresa',rot.empresa||'—'],
+            ['Fecha env\xedo',rot.fechaEnvio?fD(rot.fechaEnvio):'—']
+          ];
+          if(rot.presupuestosArreglo&&rot.presupuestosArreglo.length)rows3.push(['Presupuestos',rot.presupuestosArreglo.length+' archivo(s)']);
+          if(rot.fotos&&rot.fotos.length)rows3.push(['Fotos',rot.fotos.length+' foto(s)']);
+          tranRoturasHtml+='<table style="width:100%;border-collapse:collapse;font-size:8pt;">';
+          rows3.forEach(function(r,i){
+            tranRoturasHtml+='<tr style="background:'+(i%2===0?'rgba(0,0,0,.025)':'transparent')+'">';
+            tranRoturasHtml+='<td style="padding:3px 6px;color:#64748b;white-space:nowrap;width:130px;">'+esc(r[0])+'</td>';
+            tranRoturasHtml+='<td style="padding:3px 6px;color:#1e293b;">'+esc(r[1])+'</td>';
+            tranRoturasHtml+='</tr>';
+          });
+          tranRoturasHtml+='</table>';
+          if(rot.notasSeguimiento&&rot.notasSeguimiento.length){
+            tranRoturasHtml+='<div style="margin-top:6px;padding-top:5px;border-top:1px dashed #bae6fd;">';
+            tranRoturasHtml+='<div style="font-size:7.5pt;font-weight:600;color:#0369a1;margin-bottom:4px;">Seguimiento ('+rot.notasSeguimiento.length+')</div>';
+            rot.notasSeguimiento.forEach(function(ns){
+              tranRoturasHtml+='<div style="font-size:7.5pt;color:#475569;padding:2px 0;border-bottom:1px dotted #bae6fd;">';
+              tranRoturasHtml+='<span style="font-weight:600;color:#0369a1;">'+esc(ns.fecha?fD(ns.fecha):'')+'</span>';
+              if(ns.autor)tranRoturasHtml+=' \xb7 <span style="color:#64748b;">'+esc(ns.autor)+'</span>';
+              tranRoturasHtml+=' — '+esc(ns.nota||'');
+              tranRoturasHtml+='</div>';
+            });
+            tranRoturasHtml+='</div>';
+          }
+          tranRoturasHtml+='</div>';
+        });
+        tranRoturasHtml+='</div>';
+      }
+      var fallasDirHtml='';
+      if(d.fallasDir&&d.fallasDir.length){
+        fallasDirHtml+='<div style="margin:10px 12px 0;border-top:1px solid #e2e8f0;padding-top:10px;">';
+        fallasDirHtml+='<div style="font-size:9pt;font-weight:700;color:#c2410c;letter-spacing:.04em;margin-bottom:8px;">FALLAS DEL EQUIPO</div>';
+        d.fallasDir.forEach(function(falla){
+          var estadoColor={'roto':'#dc2626','en_reparacion':'#d97706','reparado':'#16a34a'}[falla.estado]||'#64748b';
+          var estadoLabel={'roto':'Roto','en_reparacion':'En reparaci\xf3n','reparado':'Reparado'}[falla.estado]||falla.estado||'—';
+          fallasDirHtml+='<div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:6px;padding:8px 10px;margin-bottom:8px;">';
+          fallasDirHtml+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">';
+          fallasDirHtml+='<span style="font-size:9pt;font-weight:700;color:#1e293b;">'+esc(falla.queSeRompio||'—')+'</span>';
+          fallasDirHtml+='<span style="font-size:8pt;font-weight:700;color:'+estadoColor+';background:'+estadoColor+'18;padding:2px 8px;border-radius:20px;">'+estadoLabel+'</span>';
+          fallasDirHtml+='</div>';
+          var rows4=[
+            ['Fecha',falla.fecha?fD(falla.fecha):'—'],
+            ['Empresa',falla.empresa||'—'],
+            ['Fecha env\xedo',falla.fechaEnvio?fD(falla.fechaEnvio):'—']
+          ];
+          if(falla.descripcion)rows4.push(['Descripci\xf3n',falla.descripcion]);
+          if(falla.presupuestosArreglo&&falla.presupuestosArreglo.length)rows4.push(['Presupuestos',falla.presupuestosArreglo.length+' archivo(s)']);
+          if(falla.fotos&&falla.fotos.length)rows4.push(['Fotos',falla.fotos.length+' foto(s)']);
+          fallasDirHtml+='<table style="width:100%;border-collapse:collapse;font-size:8pt;">';
+          rows4.forEach(function(r,i){
+            fallasDirHtml+='<tr style="background:'+(i%2===0?'rgba(0,0,0,.025)':'transparent')+'">';
+            fallasDirHtml+='<td style="padding:3px 6px;color:#64748b;white-space:nowrap;width:130px;">'+esc(r[0])+'</td>';
+            fallasDirHtml+='<td style="padding:3px 6px;color:#1e293b;">'+esc(r[1])+'</td>';
+            fallasDirHtml+='</tr>';
+          });
+          fallasDirHtml+='</table>';
+          if(falla.notasSeguimiento&&falla.notasSeguimiento.length){
+            fallasDirHtml+='<div style="margin-top:6px;padding-top:5px;border-top:1px dashed #fed7aa;">';
+            fallasDirHtml+='<div style="font-size:7.5pt;font-weight:600;color:#c2410c;margin-bottom:4px;">Seguimiento ('+falla.notasSeguimiento.length+')</div>';
+            falla.notasSeguimiento.forEach(function(ns){
+              fallasDirHtml+='<div style="font-size:7.5pt;color:#475569;padding:2px 0;border-bottom:1px dotted #fed7aa;">';
+              fallasDirHtml+='<span style="font-weight:600;color:#c2410c;">'+esc(ns.fecha?fD(ns.fecha):'')+'</span>';
+              if(ns.autor)fallasDirHtml+=' \xb7 <span style="color:#64748b;">'+esc(ns.autor)+'</span>';
+              fallasDirHtml+=' — '+esc(ns.nota||'');
+              fallasDirHtml+='</div>';
+            });
+            fallasDirHtml+='</div>';
+          }
+          fallasDirHtml+='</div>';
+        });
+        fallasDirHtml+='</div>';
+      }
+      eqSections+='<div class="narrative">'+narrativeHtml+'</div>'+imgsHtml+antenaHtml+tranRoturasHtml+fallasDirHtml+'</div>';
     });
     var periodoLabel=(desde||hasta)?((desde?fD(desde):'inicio')+' al '+(hasta?fD(hasta):'presente')):'Período general';
     var nowDate=new Date();
@@ -12033,40 +12190,483 @@ function submitEditTransductor(transductorId){
   saveData();closeModal();render();showToast('✅ Transductor actualizado','');
 }
 function openAddTransductorRoturaModal(transductorId){
+  window._pendTrRotFotos=[];window._pendTrRotPresArr=null;
   openModal(
-    '<div style="font-weight:800;font-size:1.05rem;margin-bottom:16px;">🔴 Registrar Rotura</div>'+
-    '<div class="ff"><div class="ff-label">Descripción *</div>'+
-      '<input class="inp" id="tr-rot-desc" placeholder="Ej: Cable dañado, imagen no muestra..." autocomplete="off">'+
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">'+
+      '<div><div style="font-weight:800;font-size:1rem;">🔴 Registrar Rotura de Transductor</div></div>'+
+      '<button onclick="closeModal()" style="margin-left:auto;width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.9rem;cursor:pointer;font-weight:700;">&#x2715;</button>'+
     '</div>'+
-    '<div class="ff"><div class="ff-label">Fecha</div>'+
-      '<input class="inp" id="tr-rot-fecha" type="date" value="'+new Date().toISOString().split("T")[0]+'">'+
+    '<div class="g2">'+
+      '<div class="ff"><div class="ff-label">Fecha *</div>'+
+        '<input class="inp" id="trrot-fecha" type="date" value="'+new Date().toISOString().split('T')[0]+'">'+
+      '</div>'+
+      '<div class="ff"><div class="ff-label">Qu\xe9 se rompi\xf3 *</div>'+
+        '<input class="inp" id="trrot-que" placeholder="Ej: cable, cristales..." autocomplete="off">'+
+      '</div>'+
     '</div>'+
-    '<div class="ff"><div class="ff-label">Notas</div>'+
-      '<textarea class="inp" id="tr-rot-notas" rows="2" placeholder="Detalles adicionales..."></textarea>'+
+    '<div class="ff"><div class="ff-label">Descripci\xf3n</div>'+
+      '<textarea class="inp" id="trrot-desc" rows="2" placeholder="Detalles adicionales..."></textarea>'+
+    '</div>'+
+    '<div class="g2">'+
+      '<div class="ff"><div class="ff-label">Fecha de env\xedo</div>'+
+        '<input class="inp" id="trrot-envio" type="date">'+
+      '</div>'+
+      '<div class="ff"><div class="ff-label">Empresa / Taller</div>'+
+        '<input class="inp" id="trrot-empresa" placeholder="Nombre del taller">'+
+      '</div>'+
+    '</div>'+
+    '<div class="ff"><div class="ff-label">Fotos</div>'+
+      '<div id="trrot-fotos-list" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px;"></div>'+
+      '<label style="display:flex;align-items:center;gap:6px;padding:9px 12px;border-radius:var(--r-md);background:rgba(52,199,89,.06);border:1.5px dashed rgba(52,199,89,.25);cursor:pointer;font-size:.75rem;color:var(--green);font-weight:600;">'+
+        '📷 Agregar fotos'+
+        '<input type="file" accept="image/*" multiple style="display:none;" onchange="_addTrRotFotos(this.files)">'+
+      '</label>'+
+    '</div>'+
+    '<div class="ff"><div class="ff-label">Presupuesto PDF</div>'+
+      '<div id="trrot-pres-name" style="font-size:.7rem;color:var(--green);margin-bottom:4px;min-height:16px;"></div>'+
+      '<label style="display:flex;align-items:center;gap:6px;padding:9px 12px;border-radius:var(--r-md);background:rgba(0,113,227,.06);border:1.5px dashed rgba(0,113,227,.25);cursor:pointer;font-size:.75rem;color:var(--accent);font-weight:600;">'+
+        '📄 Subir presupuesto PDF'+
+        '<input type="file" accept=".pdf,application/pdf" style="display:none;" onchange="var f=this.files[0];if(f){window._pendTrRotPresArr=f;document.getElementById(\'trrot-pres-name\').textContent=\'✅ \'+f.name;}">'+
+      '</label>'+
     '</div>'+
     '<button class="btn-grad" style="background:linear-gradient(135deg,#dc2626,#b91c1c);width:100%;margin-top:4px;" onclick="submitTransductorRotura(\''+transductorId+'\')">Registrar Rotura</button>'
   );
 }
+function _addTrRotFotos(files){
+  if(!window._pendTrRotFotos)window._pendTrRotFotos=[];
+  var container=document.getElementById('trrot-fotos-list');
+  for(var _fi=0;_fi<files.length;_fi++){
+    var _ff=files[_fi];
+    window._pendTrRotFotos.push(_ff);
+    if(container){
+      var _idx=window._pendTrRotFotos.length-1;
+      var _thumb=document.createElement('div');
+      _thumb.style.cssText='position:relative;width:64px;height:64px;border-radius:8px;overflow:hidden;border:1px solid rgba(52,199,89,.3);flex-shrink:0;';
+      var _img=document.createElement('img');
+      _img.style.cssText='width:100%;height:100%;object-fit:cover;';
+      var _url=URL.createObjectURL(_ff);
+      _img.src=_url;
+      _thumb.appendChild(_img);
+      var _del=document.createElement('button');
+      _del.style.cssText='position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,.65);color:#fff;border:none;cursor:pointer;font-size:.6rem;line-height:18px;text-align:center;padding:0;';
+      _del.textContent='\xd7';
+      (function(__idx,__thumb,__url){_del.onclick=function(){window._pendTrRotFotos.splice(__idx,1,null);__thumb.remove();URL.revokeObjectURL(__url);};}(_idx,_thumb,_url));
+      _thumb.appendChild(_del);
+      container.appendChild(_thumb);
+    }
+  }
+}
 function submitTransductorRotura(transductorId){
-  var desc=((document.getElementById('tr-rot-desc')||{}).value||'').trim();
-  if(!desc){alert('Descripción obligatoria');return;}
-  var fecha=((document.getElementById('tr-rot-fecha')||{}).value)||new Date().toISOString().split('T')[0];
-  var notas=((document.getElementById('tr-rot-notas')||{}).value||'').trim();
-  var rot={id:'ROT-'+Date.now(),descripcion:desc,fecha:fecha,notas:notas,estado:'activa',creadoEn:new Date().toISOString()};
-  transductores=transductores.map(function(t){if(t.id===transductorId)return Object.assign({},t,{roturas:(t.roturas||[]).concat(rot)});return t;});
-  saveData();closeModal();render();showToast('🔴 Rotura registrada','warn');
+  var fecha=((document.getElementById('trrot-fecha')||{}).value||'');
+  var que=((document.getElementById('trrot-que')||{}).value||'').trim();
+  var desc=((document.getElementById('trrot-desc')||{}).value||'').trim();
+  var fechaEnvio=((document.getElementById('trrot-envio')||{}).value||'');
+  var empresa=((document.getElementById('trrot-empresa')||{}).value||'').trim();
+  if(!fecha){alert('Ingres\xe1 la fecha');return;}
+  if(!que){alert('Ingres\xe1 qu\xe9 se rompi\xf3');return;}
+  var rotId='ROT-'+Date.now();
+  var saveAndFinish=function(presRef,fotosArr){
+    var estadoInit=fechaEnvio?'en_reparacion':'roto';
+    var rot={id:rotId,fecha:fecha,queSeRompio:que,descripcion:desc,estado:estadoInit,fotos:fotosArr||[],presupuestosArreglo:presRef?[presRef]:[],fechaEnvio:fechaEnvio,empresa:empresa,notasSeguimiento:[],creadoEn:new Date().toISOString()};
+    transductores=transductores.map(function(t){if(t.id===transductorId)return Object.assign({},t,{roturas:(t.roturas||[]).concat(rot)});return t;});
+    saveDataCritical();closeModal();render();showToast('🔴 Rotura registrada','warn');
+  };
+  var pendFotos=(window._pendTrRotFotos||[]).filter(Boolean);window._pendTrRotFotos=[];
+  var presPend=window._pendTrRotPresArr;window._pendTrRotPresArr=null;
+  var uploadedFotos=[];
+  function uploadNextFoto(idx){
+    if(idx>=pendFotos.length){
+      if(!presPend){saveAndFinish(null,uploadedFotos);return;}
+      var fid='F-'+Date.now()+'-'+Math.random().toString(36).slice(2);
+      var rdr=new FileReader();
+      rdr.onload=function(e2){dbSave(fid,presPend.name,e2.target.result,function(ok){saveAndFinish(ok?{id:fid,nombre:presPend.name,tipo:presPend.type,tam:presPend.size}:null,uploadedFotos);});};
+      rdr.readAsDataURL(presPend);
+      return;
+    }
+    var f=pendFotos[idx];
+    var fid2='F-'+Date.now()+idx+'-'+Math.random().toString(36).slice(2);
+    var rdr2=new FileReader();
+    rdr2.onload=function(e2){dbSave(fid2,f.name,e2.target.result,function(ok){if(ok)uploadedFotos.push({id:fid2,nombre:f.name,tipo:f.type,tam:f.size});uploadNextFoto(idx+1);});};
+    rdr2.readAsDataURL(f);
+  }
+  uploadNextFoto(0);
 }
 function deleteTransductorRotura(transductorId,roturaId){
-  if(!confirm('¿Eliminar esta rotura?'))return;
+  if(!confirm('\xbfEliminar esta rotura?'))return;
   transductores=transductores.map(function(t){if(t.id===transductorId)return Object.assign({},t,{roturas:(t.roturas||[]).filter(function(r){return r.id!==roturaId;})});return t;});
   saveData();render();showToast('Rotura eliminada','warn');
 }
-function markTransductorRoturaReparada(transductorId,roturaId){
+function setEstadoTransductorRotura(transductorId,roturaId,nuevoEstado){
   transductores=transductores.map(function(t){
     if(t.id!==transductorId)return t;
-    return Object.assign({},t,{roturas:(t.roturas||[]).map(function(r){return r.id===roturaId?Object.assign({},r,{estado:'reparado',reparadoEn:new Date().toISOString()}):r;})});
+    return Object.assign({},t,{roturas:(t.roturas||[]).map(function(r){return r.id===roturaId?Object.assign({},r,{estado:nuevoEstado}):r;})});
   });
-  saveData();render();showToast('✅ Marcada como reparada','');
+  saveData();render();openSeguimientoTransductorRotura(transductorId,roturaId);
+}
+function openSeguimientoTransductorRotura(transId,rotId){
+  var t=transductores.find(function(x){return x.id===transId;});if(!t)return;
+  var rot=(t.roturas||[]).find(function(r){return r.id===rotId;});if(!rot)return;
+  window._pendTrSegPres=null;
+  var notas=(rot.notasSeguimiento||[]).slice().reverse();
+  var _eColor=rot.estado==='en_reparacion'?'rgba(245,158,11,1)':rot.estado==='reparado'?'var(--green)':'#dc2626';
+  var _eBg=rot.estado==='en_reparacion'?'rgba(245,158,11,.12)':rot.estado==='reparado'?'rgba(52,199,89,.12)':'rgba(239,68,68,.12)';
+  var _eLabel=rot.estado==='en_reparacion'?'En reparaci\xf3n':rot.estado==='reparado'?'Reparado':'Roto';
+  var _presAll=rot.presupuestosArreglo||[];
+  openModal(
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">'+
+      '<div>'+
+        '<div style="font-weight:800;font-size:1rem;">Seguimiento de Rotura</div>'+
+        '<div style="font-size:.65rem;color:var(--text3);">'+esc(rot.queSeRompio||'Rotura')+' \xb7 '+esc(t.nombre)+'</div>'+
+      '</div>'+
+      '<button onclick="closeModal()" style="margin-left:auto;width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.9rem;cursor:pointer;font-weight:700;">&#x2715;</button>'+
+    '</div>'+
+    '<div class="gc" style="padding:10px 12px;margin-bottom:12px;">'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">'+
+        '<div>'+
+          '<div style="font-size:.64rem;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Estado actual</div>'+
+          '<span style="font-size:.75rem;font-weight:700;padding:3px 10px;border-radius:12px;background:'+_eBg+';color:'+_eColor+';">'+_eLabel+'</span>'+
+        '</div>'+
+        '<select class="inp" id="trseg-estado" style="max-width:160px;">'+
+          '<option value="roto"'+(rot.estado==='roto'?' selected':'')+'>Roto</option>'+
+          '<option value="en_reparacion"'+(rot.estado==='en_reparacion'?' selected':'')+'>En reparaci\xf3n</option>'+
+          '<option value="reparado"'+(rot.estado==='reparado'?' selected':'')+'>Reparado</option>'+
+        '</select>'+
+      '</div>'+
+    '</div>'+
+    '<div class="g2">'+
+      '<div class="ff"><div class="ff-label">Fecha de env\xedo</div>'+
+        '<input class="inp" id="trseg-fechaEnvio" type="date" value="'+(rot.fechaEnvio||'')+'">'+
+      '</div>'+
+      '<div class="ff"><div class="ff-label">Empresa / Taller</div>'+
+        '<input class="inp" id="trseg-empresa" value="'+esc(rot.empresa||'')+'" placeholder="Nombre del taller">'+
+      '</div>'+
+    '</div>'+
+    '<div class="ff"><div class="ff-label">Presupuestos ('+_presAll.length+')</div>'+
+      (_presAll.length?'<div style="display:flex;flex-direction:column;gap:4px;margin-bottom:6px;">'+
+        _presAll.map(function(p,_pi){return '<button onclick="openPDFViewer(\''+p.id+'\',\'\')" style="font-size:.68rem;padding:4px 10px;border-radius:12px;background:rgba(0,113,227,.10);color:var(--accent);border:1px solid rgba(0,113,227,.18);cursor:pointer;font-weight:600;text-align:left;">📄 Presupuesto '+(_pi+1)+(p.nombre?' \xb7 '+esc(p.nombre.slice(0,22)):'')+'</button>';}).join('')+
+      '</div>':'')+
+      '<div id="trseg-pres-name" style="font-size:.7rem;color:var(--green);margin-bottom:4px;min-height:16px;"></div>'+
+      '<label style="display:flex;align-items:center;gap:6px;padding:9px 12px;border-radius:var(--r-md);background:rgba(0,113,227,.08);border:1.5px dashed rgba(0,113,227,.25);cursor:pointer;font-size:.75rem;color:var(--accent);font-weight:600;">'+
+        '📄 Agregar presupuesto PDF'+
+        '<input type="file" accept=".pdf,application/pdf" style="display:none;" onchange="var f=this.files[0];if(f){window._pendTrSegPres=f;document.getElementById(\'trseg-pres-name\').textContent=\'✅ \'+f.name;}">'+
+      '</label>'+
+    '</div>'+
+    '<div class="ff"><div class="ff-label">Notas de seguimiento</div>'+
+      (notas.length?'<div style="display:flex;flex-direction:column;gap:5px;margin-bottom:8px;">'+
+        notas.map(function(n){return '<div style="padding:6px 10px;border-radius:var(--r-md);background:rgba(120,120,128,.06);border:1px solid rgba(120,120,128,.12);">'+
+          '<div style="font-size:.72rem;color:var(--text2);">'+esc(n.nota)+'</div>'+
+          '<div style="font-size:.62rem;color:var(--text3);margin-top:3px;">'+fD(n.fecha)+(n.autor?' \xb7 '+esc(n.autor):'')+'</div>'+
+        '</div>';}).join('')+
+      '</div>':'<div style="font-size:.72rem;color:var(--text3);margin-bottom:8px;">Sin notas a\xfan</div>')+
+      '<textarea class="inp" id="trseg-nota" rows="2" placeholder="Agregar nota..."></textarea>'+
+    '</div>'+
+    '<button class="btn-grad" onclick="submitSeguimientoTransductorRotura(\''+transId+'\',\''+rotId+'\')" style="background:linear-gradient(135deg,rgba(245,158,11,1),rgba(234,88,12,1));width:100%;">💾 Guardar seguimiento</button>'
+  );
+}
+function submitSeguimientoTransductorRotura(transId,rotId){
+  var fechaEnvio=((document.getElementById('trseg-fechaEnvio')||{}).value||'');
+  var empresa=((document.getElementById('trseg-empresa')||{}).value||'').trim();
+  var nota=((document.getElementById('trseg-nota')||{}).value||'').trim();
+  var nuevoEstado=((document.getElementById('trseg-estado')||{}).value||'');
+  var t=transductores.find(function(x){return x.id===transId;});if(!t)return;
+  var rot=(t.roturas||[]).find(function(r){return r.id===rotId;});if(!rot)return;
+  var saveAndFinish=function(presRef){
+    var nuevasNotas=(rot.notasSeguimiento||[]).slice();
+    if(nota){
+      var _autor=(window._fbUser&&(window._fbUser.displayName||window._fbUser.email))||'';
+      nuevasNotas=nuevasNotas.concat({fecha:new Date().toISOString().split('T')[0],nota:nota,autor:_autor});
+    }
+    var nuevosPres=(rot.presupuestosArreglo||[]).slice();
+    if(presRef)nuevosPres=nuevosPres.concat(presRef);
+    transductores=transductores.map(function(tx){
+      if(tx.id!==transId)return tx;
+      return Object.assign({},tx,{roturas:(tx.roturas||[]).map(function(r){
+        if(r.id!==rotId)return r;
+        return Object.assign({},r,{fechaEnvio:fechaEnvio,empresa:empresa,estado:nuevoEstado||r.estado,notasSeguimiento:nuevasNotas,presupuestosArreglo:nuevosPres});
+      })});
+    });
+    saveDataCritical();closeModal();showToast('📋 Seguimiento actualizado','');render();
+  };
+  var presPend=window._pendTrSegPres;window._pendTrSegPres=null;
+  if(!presPend){saveAndFinish(null);return;}
+  var fid='F-'+Date.now()+'-'+Math.random().toString(36).slice(2);
+  var rdr=new FileReader();
+  rdr.onload=function(e){dbSave(fid,presPend.name,e.target.result,function(ok){saveAndFinish(ok?{id:fid,nombre:presPend.name,tipo:presPend.type,tam:presPend.size}:null);});};
+  rdr.readAsDataURL(presPend);
+}
+function openFotosTransductorRotura(transId,rotId){
+  var t=transductores.find(function(x){return x.id===transId;});if(!t)return;
+  var rot=(t.roturas||[]).find(function(r){return r.id===rotId;});if(!rot)return;
+  var fotos=(rot.fotos||[]);
+  if(!fotos.length){showToast('Sin fotos registradas','warn');return;}
+  openModal(
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">'+
+      '<div style="font-weight:800;font-size:1rem;">📷 Fotos de rotura</div>'+
+      '<div style="font-size:.65rem;color:var(--text3);margin-left:4px;flex:1;">'+esc(rot.queSeRompio||'')+'</div>'+
+      '<button onclick="closeModal()" style="width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.9rem;cursor:pointer;font-weight:700;">&#x2715;</button>'+
+    '</div>'+
+    '<div id="trfotos-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;"></div>'+
+    '<div id="trfotos-loading" style="text-align:center;font-size:.78rem;color:var(--text2);padding:16px;">Cargando fotos...</div>'
+  );
+  var container=document.getElementById('trfotos-grid');
+  var loading=document.getElementById('trfotos-loading');
+  var loaded=0;
+  fotos.forEach(function(f){
+    dbGet(f.id,function(rec){
+      loaded++;
+      if(rec&&rec.data&&container){
+        var div=document.createElement('div');
+        div.style.cssText='border-radius:10px;overflow:hidden;aspect-ratio:1/1;background:#111;cursor:pointer;';
+        var img=document.createElement('img');
+        img.src=rec.data;
+        img.style.cssText='width:100%;height:100%;object-fit:cover;display:block;';
+        img.onclick=function(){window.open(rec.data,'_blank');};
+        div.appendChild(img);
+        container.appendChild(div);
+      }
+      if(loaded===fotos.length&&loading)loading.style.display='none';
+    });
+  });
+}
+
+function openAddFallaDirectaModal(eqId){
+  window._pendFdFotos=[];window._pendFdPresArr=null;
+  openModal(
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">'+
+      '<div><div style="font-weight:800;font-size:1rem;">⚠️ Nueva Falla del Equipo</div></div>'+
+      '<button onclick="closeModal()" style="margin-left:auto;width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.9rem;cursor:pointer;font-weight:700;">&#x2715;</button>'+
+    '</div>'+
+    '<div class="g2">'+
+      '<div class="ff"><div class="ff-label">Fecha *</div>'+
+        '<input class="inp" id="fd-fecha" type="date" value="'+new Date().toISOString().split('T')[0]+'">'+
+      '</div>'+
+      '<div class="ff"><div class="ff-label">Qu\xe9 fall\xf3 *</div>'+
+        '<input class="inp" id="fd-que" placeholder="Ej: bomba de grad., consola..." autocomplete="off">'+
+      '</div>'+
+    '</div>'+
+    '<div class="ff"><div class="ff-label">Descripci\xf3n</div>'+
+      '<textarea class="inp" id="fd-desc" rows="2" placeholder="Detalles adicionales..."></textarea>'+
+    '</div>'+
+    '<div class="g2">'+
+      '<div class="ff"><div class="ff-label">Fecha de env\xedo</div>'+
+        '<input class="inp" id="fd-envio" type="date">'+
+      '</div>'+
+      '<div class="ff"><div class="ff-label">Empresa / Taller</div>'+
+        '<input class="inp" id="fd-empresa" placeholder="Nombre del taller">'+
+      '</div>'+
+    '</div>'+
+    '<div class="ff"><div class="ff-label">Fotos</div>'+
+      '<div id="fd-fotos-list" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px;"></div>'+
+      '<label style="display:flex;align-items:center;gap:6px;padding:9px 12px;border-radius:var(--r-md);background:rgba(52,199,89,.06);border:1.5px dashed rgba(52,199,89,.25);cursor:pointer;font-size:.75rem;color:var(--green);font-weight:600;">'+
+        '📷 Agregar fotos'+
+        '<input type="file" accept="image/*" multiple style="display:none;" onchange="_addFdFotos(this.files)">'+
+      '</label>'+
+    '</div>'+
+    '<div class="ff"><div class="ff-label">Presupuesto PDF</div>'+
+      '<div id="fd-pres-name" style="font-size:.7rem;color:var(--green);margin-bottom:4px;min-height:16px;"></div>'+
+      '<label style="display:flex;align-items:center;gap:6px;padding:9px 12px;border-radius:var(--r-md);background:rgba(0,113,227,.06);border:1.5px dashed rgba(0,113,227,.25);cursor:pointer;font-size:.75rem;color:var(--accent);font-weight:600;">'+
+        '📄 Subir presupuesto PDF'+
+        '<input type="file" accept=".pdf,application/pdf" style="display:none;" onchange="var f=this.files[0];if(f){window._pendFdPresArr=f;document.getElementById(\'fd-pres-name\').textContent=\'✅ \'+f.name;}">'+
+      '</label>'+
+    '</div>'+
+    '<button class="btn-grad" style="background:linear-gradient(135deg,#d97706,#b45309);width:100%;margin-top:4px;" onclick="submitFallaDirecta(\''+eqId+'\')">Registrar Falla</button>'
+  );
+}
+function _addFdFotos(files){
+  if(!window._pendFdFotos)window._pendFdFotos=[];
+  var container=document.getElementById('fd-fotos-list');
+  for(var _fi=0;_fi<files.length;_fi++){
+    var _ff=files[_fi];
+    window._pendFdFotos.push(_ff);
+    if(container){
+      var _idx=window._pendFdFotos.length-1;
+      var _thumb=document.createElement('div');
+      _thumb.style.cssText='position:relative;width:64px;height:64px;border-radius:8px;overflow:hidden;border:1px solid rgba(52,199,89,.3);flex-shrink:0;';
+      var _img=document.createElement('img');
+      _img.style.cssText='width:100%;height:100%;object-fit:cover;';
+      var _url=URL.createObjectURL(_ff);
+      _img.src=_url;
+      _thumb.appendChild(_img);
+      var _del=document.createElement('button');
+      _del.style.cssText='position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,.65);color:#fff;border:none;cursor:pointer;font-size:.6rem;line-height:18px;text-align:center;padding:0;';
+      _del.textContent='\xd7';
+      (function(__idx,__thumb,__url){_del.onclick=function(){window._pendFdFotos.splice(__idx,1,null);__thumb.remove();URL.revokeObjectURL(__url);};}(_idx,_thumb,_url));
+      _thumb.appendChild(_del);
+      container.appendChild(_thumb);
+    }
+  }
+}
+function submitFallaDirecta(eqId){
+  var fecha=((document.getElementById('fd-fecha')||{}).value||'');
+  var que=((document.getElementById('fd-que')||{}).value||'').trim();
+  var desc=((document.getElementById('fd-desc')||{}).value||'').trim();
+  var fechaEnvio=((document.getElementById('fd-envio')||{}).value||'');
+  var empresa=((document.getElementById('fd-empresa')||{}).value||'').trim();
+  if(!fecha){alert('Ingres\xe1 la fecha');return;}
+  if(!que){alert('Ingres\xe1 qu\xe9 fall\xf3');return;}
+  var fallaId='FD-'+Date.now();
+  var saveAndFinish=function(presRef,fotosArr){
+    var estadoInit=fechaEnvio?'en_reparacion':'roto';
+    var falla={id:fallaId,fecha:fecha,queSeRompio:que,descripcion:desc,estado:estadoInit,fotos:fotosArr||[],presupuestosArreglo:presRef?[presRef]:[],fechaEnvio:fechaEnvio,empresa:empresa,notasSeguimiento:[],creadoEn:new Date().toISOString()};
+    eqs=eqs.map(function(e){if(e.id===eqId)return Object.assign({},e,{fallasDirectas:(e.fallasDirectas||[]).concat(falla)});return e;});
+    saveDataCritical();closeModal();render();showToast('⚠️ Falla registrada','warn');
+  };
+  var pendFotos=(window._pendFdFotos||[]).filter(Boolean);window._pendFdFotos=[];
+  var presPend=window._pendFdPresArr;window._pendFdPresArr=null;
+  var uploadedFotos=[];
+  function uploadNextFoto(idx){
+    if(idx>=pendFotos.length){
+      if(!presPend){saveAndFinish(null,uploadedFotos);return;}
+      var fid='F-'+Date.now()+'-'+Math.random().toString(36).slice(2);
+      var rdr=new FileReader();
+      rdr.onload=function(e2){dbSave(fid,presPend.name,e2.target.result,function(ok){saveAndFinish(ok?{id:fid,nombre:presPend.name,tipo:presPend.type,tam:presPend.size}:null,uploadedFotos);});};
+      rdr.readAsDataURL(presPend);
+      return;
+    }
+    var f=pendFotos[idx];
+    var fid2='F-'+Date.now()+idx+'-'+Math.random().toString(36).slice(2);
+    var rdr2=new FileReader();
+    rdr2.onload=function(e2){dbSave(fid2,f.name,e2.target.result,function(ok){if(ok)uploadedFotos.push({id:fid2,nombre:f.name,tipo:f.type,tam:f.size});uploadNextFoto(idx+1);});};
+    rdr2.readAsDataURL(f);
+  }
+  uploadNextFoto(0);
+}
+function openSeguimientoFallaDirecta(eqId,fallaId){
+  var eq=eqs.find(function(e){return e.id===eqId;});if(!eq)return;
+  var falla=(eq.fallasDirectas||[]).find(function(f){return f.id===fallaId;});if(!falla)return;
+  window._pendFdSegPres=null;
+  var notas=(falla.notasSeguimiento||[]).slice().reverse();
+  var _eColor=falla.estado==='en_reparacion'?'rgba(245,158,11,1)':falla.estado==='reparado'?'var(--green)':'#dc2626';
+  var _eBg=falla.estado==='en_reparacion'?'rgba(245,158,11,.12)':falla.estado==='reparado'?'rgba(52,199,89,.12)':'rgba(239,68,68,.12)';
+  var _eLabel=falla.estado==='en_reparacion'?'En reparaci\xf3n':falla.estado==='reparado'?'Reparado':'Roto';
+  var _presAll=falla.presupuestosArreglo||[];
+  openModal(
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">'+
+      '<div>'+
+        '<div style="font-weight:800;font-size:1rem;">Seguimiento de Falla</div>'+
+        '<div style="font-size:.65rem;color:var(--text3);">'+esc(falla.queSeRompio||'Falla')+' \xb7 '+esc(eq.nombre)+'</div>'+
+      '</div>'+
+      '<button onclick="closeModal()" style="margin-left:auto;width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.9rem;cursor:pointer;font-weight:700;">&#x2715;</button>'+
+    '</div>'+
+    '<div class="gc" style="padding:10px 12px;margin-bottom:12px;">'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">'+
+        '<div>'+
+          '<div style="font-size:.64rem;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Estado actual</div>'+
+          '<span style="font-size:.75rem;font-weight:700;padding:3px 10px;border-radius:12px;background:'+_eBg+';color:'+_eColor+';">'+_eLabel+'</span>'+
+        '</div>'+
+        '<select class="inp" id="fdseg-estado" style="max-width:160px;">'+
+          '<option value="roto"'+(falla.estado==='roto'?' selected':'')+'>Roto</option>'+
+          '<option value="en_reparacion"'+(falla.estado==='en_reparacion'?' selected':'')+'>En reparaci\xf3n</option>'+
+          '<option value="reparado"'+(falla.estado==='reparado'?' selected':'')+'>Reparado</option>'+
+        '</select>'+
+      '</div>'+
+    '</div>'+
+    '<div class="g2">'+
+      '<div class="ff"><div class="ff-label">Fecha de env\xedo</div>'+
+        '<input class="inp" id="fdseg-fechaEnvio" type="date" value="'+(falla.fechaEnvio||'')+'">'+
+      '</div>'+
+      '<div class="ff"><div class="ff-label">Empresa / Taller</div>'+
+        '<input class="inp" id="fdseg-empresa" value="'+esc(falla.empresa||'')+'" placeholder="Nombre del taller">'+
+      '</div>'+
+    '</div>'+
+    '<div class="ff"><div class="ff-label">Presupuestos ('+_presAll.length+')</div>'+
+      (_presAll.length?'<div style="display:flex;flex-direction:column;gap:4px;margin-bottom:6px;">'+
+        _presAll.map(function(p,_pi){return '<button onclick="openPDFViewer(\''+p.id+'\',\'\')" style="font-size:.68rem;padding:4px 10px;border-radius:12px;background:rgba(0,113,227,.10);color:var(--accent);border:1px solid rgba(0,113,227,.18);cursor:pointer;font-weight:600;text-align:left;">📄 Presupuesto '+(_pi+1)+(p.nombre?' \xb7 '+esc(p.nombre.slice(0,22)):'')+'</button>';}).join('')+
+      '</div>':'')+
+      '<div id="fdseg-pres-name" style="font-size:.7rem;color:var(--green);margin-bottom:4px;min-height:16px;"></div>'+
+      '<label style="display:flex;align-items:center;gap:6px;padding:9px 12px;border-radius:var(--r-md);background:rgba(0,113,227,.08);border:1.5px dashed rgba(0,113,227,.25);cursor:pointer;font-size:.75rem;color:var(--accent);font-weight:600;">'+
+        '📄 Agregar presupuesto PDF'+
+        '<input type="file" accept=".pdf,application/pdf" style="display:none;" onchange="var f=this.files[0];if(f){window._pendFdSegPres=f;document.getElementById(\'fdseg-pres-name\').textContent=\'✅ \'+f.name;}">'+
+      '</label>'+
+    '</div>'+
+    '<div class="ff"><div class="ff-label">Notas de seguimiento</div>'+
+      (notas.length?'<div style="display:flex;flex-direction:column;gap:5px;margin-bottom:8px;">'+
+        notas.map(function(n){return '<div style="padding:6px 10px;border-radius:var(--r-md);background:rgba(120,120,128,.06);border:1px solid rgba(120,120,128,.12);">'+
+          '<div style="font-size:.72rem;color:var(--text2);">'+esc(n.nota)+'</div>'+
+          '<div style="font-size:.62rem;color:var(--text3);margin-top:3px;">'+fD(n.fecha)+(n.autor?' \xb7 '+esc(n.autor):'')+'</div>'+
+        '</div>';}).join('')+
+      '</div>':'<div style="font-size:.72rem;color:var(--text3);margin-bottom:8px;">Sin notas a\xfan</div>')+
+      '<textarea class="inp" id="fdseg-nota" rows="2" placeholder="Agregar nota..."></textarea>'+
+    '</div>'+
+    '<button class="btn-grad" onclick="submitSeguimientoFallaDirecta(\''+eqId+'\',\''+fallaId+'\')" style="background:linear-gradient(135deg,rgba(245,158,11,1),rgba(234,88,12,1));width:100%;">💾 Guardar seguimiento</button>'
+  );
+}
+function submitSeguimientoFallaDirecta(eqId,fallaId){
+  var fechaEnvio=((document.getElementById('fdseg-fechaEnvio')||{}).value||'');
+  var empresa=((document.getElementById('fdseg-empresa')||{}).value||'').trim();
+  var nota=((document.getElementById('fdseg-nota')||{}).value||'').trim();
+  var nuevoEstado=((document.getElementById('fdseg-estado')||{}).value||'');
+  var eq=eqs.find(function(e){return e.id===eqId;});if(!eq)return;
+  var falla=(eq.fallasDirectas||[]).find(function(f){return f.id===fallaId;});if(!falla)return;
+  var saveAndFinish=function(presRef){
+    var nuevasNotas=(falla.notasSeguimiento||[]).slice();
+    if(nota){
+      var _autor=(window._fbUser&&(window._fbUser.displayName||window._fbUser.email))||'';
+      nuevasNotas=nuevasNotas.concat({fecha:new Date().toISOString().split('T')[0],nota:nota,autor:_autor});
+    }
+    var nuevosPres=(falla.presupuestosArreglo||[]).slice();
+    if(presRef)nuevosPres=nuevosPres.concat(presRef);
+    eqs=eqs.map(function(ex){
+      if(ex.id!==eqId)return ex;
+      return Object.assign({},ex,{fallasDirectas:(ex.fallasDirectas||[]).map(function(f){
+        if(f.id!==fallaId)return f;
+        return Object.assign({},f,{fechaEnvio:fechaEnvio,empresa:empresa,estado:nuevoEstado||f.estado,notasSeguimiento:nuevasNotas,presupuestosArreglo:nuevosPres});
+      })});
+    });
+    saveDataCritical();closeModal();showToast('📋 Seguimiento actualizado','');render();
+  };
+  var presPend=window._pendFdSegPres;window._pendFdSegPres=null;
+  if(!presPend){saveAndFinish(null);return;}
+  var fid='F-'+Date.now()+'-'+Math.random().toString(36).slice(2);
+  var rdr=new FileReader();
+  rdr.onload=function(e){dbSave(fid,presPend.name,e.target.result,function(ok){saveAndFinish(ok?{id:fid,nombre:presPend.name,tipo:presPend.type,tam:presPend.size}:null);});};
+  rdr.readAsDataURL(presPend);
+}
+function setEstadoFallaDirecta(eqId,fallaId,estado){
+  eqs=eqs.map(function(e){
+    if(e.id!==eqId)return e;
+    return Object.assign({},e,{fallasDirectas:(e.fallasDirectas||[]).map(function(f){return f.id===fallaId?Object.assign({},f,{estado:estado}):f;})});
+  });
+  saveData();render();
+}
+function openFotosFallaDirecta(eqId,fallaId){
+  var eq=eqs.find(function(e){return e.id===eqId;});if(!eq)return;
+  var falla=(eq.fallasDirectas||[]).find(function(f){return f.id===fallaId;});if(!falla)return;
+  var fotos=(falla.fotos||[]);
+  if(!fotos.length){showToast('Sin fotos registradas','warn');return;}
+  openModal(
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">'+
+      '<div style="font-weight:800;font-size:1rem;">📷 Fotos de falla</div>'+
+      '<div style="font-size:.65rem;color:var(--text3);margin-left:4px;flex:1;">'+esc(falla.queSeRompio||'')+'</div>'+
+      '<button onclick="closeModal()" style="width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.9rem;cursor:pointer;font-weight:700;">&#x2715;</button>'+
+    '</div>'+
+    '<div id="fdfotos-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;"></div>'+
+    '<div id="fdfotos-loading" style="text-align:center;font-size:.78rem;color:var(--text2);padding:16px;">Cargando fotos...</div>'
+  );
+  var container=document.getElementById('fdfotos-grid');
+  var loading=document.getElementById('fdfotos-loading');
+  var loaded=0;
+  fotos.forEach(function(f){
+    dbGet(f.id,function(rec){
+      loaded++;
+      if(rec&&rec.data&&container){
+        var div=document.createElement('div');
+        div.style.cssText='border-radius:10px;overflow:hidden;aspect-ratio:1/1;background:#111;cursor:pointer;';
+        var img=document.createElement('img');
+        img.src=rec.data;
+        img.style.cssText='width:100%;height:100%;object-fit:cover;display:block;';
+        img.onclick=function(){window.open(rec.data,'_blank');};
+        div.appendChild(img);
+        container.appendChild(div);
+      }
+      if(loaded===fotos.length&&loading)loading.style.display='none';
+    });
+  });
+}
+function deleteFallaDirecta(eqId,fallaId){
+  if(!confirm('\xbfEliminar esta falla?'))return;
+  eqs=eqs.map(function(e){if(e.id===eqId)return Object.assign({},e,{fallasDirectas:(e.fallasDirectas||[]).filter(function(f){return f.id!==fallaId;})});return e;});
+  saveData();render();showToast('Falla eliminada','warn');
 }
 
 function openTrasladoTransductorModal(transductorId, fromEqId){
@@ -12980,7 +13580,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="7.9.1";
+var APP_DISPLAY_VERSION="7.9.2";
 var APP_BUILD="25/06/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
