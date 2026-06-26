@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.26.454 -->
+<!-- v2026.06.26.455 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.26.454">
+<meta name="app-version" content="v2026.06.26.455">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -10002,8 +10002,8 @@ function _loadForReport(imageIds, cb){
   function finish(){if(_finished)return;_finished=true;clearTimeout(_safetyTimer);cb(logoB64,imgsMap);}
   var pending=1+imageIds.length;
   function done(){pending--;if(pending<=0)finish();}
-  // Safety net: always generate report within 5s even if logo/images fail to load
-  var _safetyTimer=setTimeout(function(){finish();},5000);
+  // Safety net: always generate report within 10s even if logo/images fail to load
+  var _safetyTimer=setTimeout(function(){finish();},10000);
   // Try to get logo from already-loaded <img> in the DOM first (avoids XHR issues on iOS PWA)
   function _tryLogoFromDOM(){
     try{
@@ -10036,12 +10036,19 @@ function _loadForReport(imageIds, cb){
     xhr.ontimeout=function(){done();};
     xhr.send();
   }
-  // Load images from IndexedDB
+  // Load images: IndexedDB first, Firebase Storage as fallback
   if(!imageIds.length)return;
   imageIds.forEach(function(id){
     dbGet(id,function(rec){
-      if(rec)imgsMap[id]=rec.data;
-      done();
+      if(rec&&rec.data){
+        imgsMap[id]=rec.data;
+        done();
+      } else {
+        _storageGetUrl(id,function(url){
+          if(url)imgsMap[id]=url;
+          done();
+        });
+      }
     });
   });
 }
@@ -14058,7 +14065,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.0.4";
+var APP_DISPLAY_VERSION="8.0.5";
 var APP_BUILD="26/06/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
