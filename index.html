@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.26.450 -->
+<!-- v2026.06.26.451 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.26.450">
+<meta name="app-version" content="v2026.06.26.451">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -10226,9 +10226,9 @@ function generateReport(){
   eqData.forEach(function(d){
     d.actH.forEach(function(p){(p.imagenes||[]).forEach(function(im){if(im&&im.id&&allImgIds.indexOf(im.id)===-1)allImgIds.push(im.id);});});
     d.repH.forEach(function(h){(h.imagenes||[]).forEach(function(im){if(im&&im.id&&allImgIds.indexOf(im.id)===-1)allImgIds.push(im.id);});});
-    d.antRoturas.forEach(function(ar){(ar.rot.fotos||[]).forEach(function(fId){if(fId&&allImgIds.indexOf(fId)===-1)allImgIds.push(fId);});});
-    d.tranRoturas.forEach(function(tr){(tr.rot.fotos||[]).forEach(function(fId){if(fId&&allImgIds.indexOf(fId)===-1)allImgIds.push(fId);});});
-    d.fallasDir.forEach(function(f){(f.fotos||[]).forEach(function(fId){if(fId&&allImgIds.indexOf(fId)===-1)allImgIds.push(fId);});});
+    d.antRoturas.forEach(function(ar){(ar.rot.fotos||[]).forEach(function(fo){var fId=fo&&fo.id?fo.id:fo;if(fId&&typeof fId==='string'&&allImgIds.indexOf(fId)===-1)allImgIds.push(fId);});});
+    d.tranRoturas.forEach(function(tr){(tr.rot.fotos||[]).forEach(function(fo){var fId=fo&&fo.id?fo.id:fo;if(fId&&typeof fId==='string'&&allImgIds.indexOf(fId)===-1)allImgIds.push(fId);});});
+    d.fallasDir.forEach(function(f){(f.fotos||[]).forEach(function(fo){var fId=fo&&fo.id?fo.id:fo;if(fId&&typeof fId==='string'&&allImgIds.indexOf(fId)===-1)allImgIds.push(fId);});});
   });
   // Get logo synchronously from already-loaded DOM image
   var _logoSync=null;
@@ -10292,7 +10292,6 @@ function generateReport(){
             if(rot.empresa)rows2.push(['Taller/Empresa',rot.empresa]);
             if(rot.fechaEnvio)rows2.push(['Fecha de envío',fD(rot.fechaEnvio)]);
             if(rot.presupuestosArreglo&&rot.presupuestosArreglo.length)rows2.push(['Presupuestos cargados',rot.presupuestosArreglo.length+' archivo(s)']);
-            if(rot.fotos&&rot.fotos.length)rows2.push(['Fotos de falla',rot.fotos.length+' foto(s)']);
             antenaHtml+='<table style="width:100%;border-collapse:collapse;font-size:8pt;">';
             rows2.forEach(function(r,i){
               antenaHtml+='<tr style="background:'+(i%2===0?'rgba(0,0,0,.025)':'transparent')+'">';
@@ -10313,7 +10312,7 @@ function generateReport(){
               });
               antenaHtml+='</div>';
             }
-            if(rot.fotos&&rot.fotos.length){var _antFS=(rot.fotos||[]).filter(function(fId){return imgsMap[fId];});if(_antFS.length){antenaHtml+='<div style="margin-top:6px;padding-top:5px;border-top:1px dashed #fca5a5;"><div style="font-size:7.5pt;font-weight:600;color:#b91c1c;margin-bottom:4px;">Fotos ('+_antFS.length+')</div><div style="display:flex;flex-wrap:wrap;gap:6px;">';_antFS.forEach(function(fId){antenaHtml+='<img src="'+imgsMap[fId]+'" style="width:100px;height:75px;object-fit:cover;border-radius:4px;border:1px solid #fca5a5;">';});antenaHtml+='</div></div>';}}
+            if(rot.fotos&&rot.fotos.length){var _antFS=(rot.fotos||[]).map(function(fo){return fo&&fo.id?fo.id:fo;}).filter(function(fId){return fId&&imgsMap[fId];});if(_antFS.length){antenaHtml+='<div style="margin-top:8px;padding-top:6px;border-top:1px dashed #fca5a5;"><div style="font-size:7.5pt;font-weight:700;color:#b91c1c;margin-bottom:6px;">📷 Fotos de la falla ('+_antFS.length+')</div><div style="display:flex;flex-wrap:wrap;gap:8px;">';_antFS.forEach(function(fId){antenaHtml+='<img src="'+imgsMap[fId]+'" style="width:160px;height:120px;object-fit:cover;border-radius:6px;border:1.5px solid #fca5a5;box-shadow:0 2px 6px rgba(0,0,0,.15);">';});antenaHtml+='</div></div>';}}
             antenaHtml+='</div>';
           });
         }
@@ -10353,7 +10352,6 @@ function generateReport(){
             ['Fecha env\xedo',rot.fechaEnvio?fD(rot.fechaEnvio):'—']
           ];
           if(rot.presupuestosArreglo&&rot.presupuestosArreglo.length)rows3.push(['Presupuestos',rot.presupuestosArreglo.length+' archivo(s)']);
-          if(rot.fotos&&rot.fotos.length)rows3.push(['Fotos',rot.fotos.length+' foto(s)']);
           tranRoturasHtml+='<table style="width:100%;border-collapse:collapse;font-size:8pt;">';
           rows3.forEach(function(r,i){
             tranRoturasHtml+='<tr style="background:'+(i%2===0?'rgba(0,0,0,.025)':'transparent')+'">';
@@ -10374,7 +10372,7 @@ function generateReport(){
             });
             tranRoturasHtml+='</div>';
           }
-          if(rot.fotos&&rot.fotos.length){var _trFS=(rot.fotos||[]).filter(function(fId){return imgsMap[fId];});if(_trFS.length){tranRoturasHtml+='<div style="margin-top:6px;padding-top:5px;border-top:1px dashed #bae6fd;"><div style="font-size:7.5pt;font-weight:600;color:#0369a1;margin-bottom:4px;">Fotos ('+_trFS.length+')</div><div style="display:flex;flex-wrap:wrap;gap:6px;">';_trFS.forEach(function(fId){tranRoturasHtml+='<img src="'+imgsMap[fId]+'" style="width:100px;height:75px;object-fit:cover;border-radius:4px;border:1px solid #bae6fd;">';});tranRoturasHtml+='</div></div>';}}
+          if(rot.fotos&&rot.fotos.length){var _trFS=(rot.fotos||[]).map(function(fo){return fo&&fo.id?fo.id:fo;}).filter(function(fId){return fId&&imgsMap[fId];});if(_trFS.length){tranRoturasHtml+='<div style="margin-top:8px;padding-top:6px;border-top:1px dashed #bae6fd;"><div style="font-size:7.5pt;font-weight:700;color:#0369a1;margin-bottom:6px;">📷 Fotos de la falla ('+_trFS.length+')</div><div style="display:flex;flex-wrap:wrap;gap:8px;">';_trFS.forEach(function(fId){tranRoturasHtml+='<img src="'+imgsMap[fId]+'" style="width:160px;height:120px;object-fit:cover;border-radius:6px;border:1.5px solid #bae6fd;box-shadow:0 2px 6px rgba(0,0,0,.15);">';});tranRoturasHtml+='</div></div>';}}
           tranRoturasHtml+='</div>';
         });
         tranRoturasHtml+='</div>';
@@ -10398,7 +10396,6 @@ function generateReport(){
           ];
           if(falla.descripcion)rows4.push(['Descripci\xf3n',falla.descripcion]);
           if(falla.presupuestosArreglo&&falla.presupuestosArreglo.length)rows4.push(['Presupuestos',falla.presupuestosArreglo.length+' archivo(s)']);
-          if(falla.fotos&&falla.fotos.length)rows4.push(['Fotos',falla.fotos.length+' foto(s)']);
           fallasDirHtml+='<table style="width:100%;border-collapse:collapse;font-size:8pt;">';
           rows4.forEach(function(r,i){
             fallasDirHtml+='<tr style="background:'+(i%2===0?'rgba(0,0,0,.025)':'transparent')+'">';
@@ -10419,7 +10416,7 @@ function generateReport(){
             });
             fallasDirHtml+='</div>';
           }
-          if(falla.fotos&&falla.fotos.length){var _fdFS=(falla.fotos||[]).filter(function(fId){return imgsMap[fId];});if(_fdFS.length){fallasDirHtml+='<div style="margin-top:6px;padding-top:5px;border-top:1px dashed #fed7aa;"><div style="font-size:7.5pt;font-weight:600;color:#c2410c;margin-bottom:4px;">Fotos ('+_fdFS.length+')</div><div style="display:flex;flex-wrap:wrap;gap:6px;">';_fdFS.forEach(function(fId){fallasDirHtml+='<img src="'+imgsMap[fId]+'" style="width:100px;height:75px;object-fit:cover;border-radius:4px;border:1px solid #fed7aa;">';});fallasDirHtml+='</div></div>';}}
+          if(falla.fotos&&falla.fotos.length){var _fdFS=(falla.fotos||[]).map(function(fo){return fo&&fo.id?fo.id:fo;}).filter(function(fId){return fId&&imgsMap[fId];});if(_fdFS.length){fallasDirHtml+='<div style="margin-top:8px;padding-top:6px;border-top:1px dashed #fed7aa;"><div style="font-size:7.5pt;font-weight:700;color:#c2410c;margin-bottom:6px;">📷 Fotos de la falla ('+_fdFS.length+')</div><div style="display:flex;flex-wrap:wrap;gap:8px;">';_fdFS.forEach(function(fId){fallasDirHtml+='<img src="'+imgsMap[fId]+'" style="width:160px;height:120px;object-fit:cover;border-radius:6px;border:1.5px solid #fed7aa;box-shadow:0 2px 6px rgba(0,0,0,.15);">';});fallasDirHtml+='</div></div>';}}
           fallasDirHtml+='</div>';
         });
         fallasDirHtml+='</div>';
@@ -13994,7 +13991,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.0.0";
+var APP_DISPLAY_VERSION="8.0.1";
 var APP_BUILD="26/06/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
