@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.26.461 -->
+<!-- v2026.06.26.462 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.26.461">
+<meta name="app-version" content="v2026.06.26.462">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3092,31 +3092,56 @@ function openHTMLViewer(htmlContent,title){
 function printReport(){
   if(!_reportHTML){showToast('Sin contenido','warn');return;}
   var btn=document.getElementById('pdf-export-btn');
-  if(btn){btn.disabled=true;btn.textContent='⏳ Preparando...';}
+  if(btn){btn.disabled=true;btn.textContent='⏳ Generando PDF...';}
   function _restore(){if(btn){btn.disabled=false;btn.textContent='📄 Exportar PDF';}}
-  try{
-    // Inject print-only CSS: show only the report content, hide app chrome
-    var pst=document.getElementById('_rptPrintCss')||document.createElement('style');
-    pst.id='_rptPrintCss';
-    pst.textContent='@media print{'+
-      'body>*:not(#pdf-viewer-overlay){display:none!important;}'+
-      '#pdf-viewer-overlay{display:block!important;position:static!important;overflow:visible!important;background:white!important;padding:0!important;margin:0!important;width:100%!important;height:auto!important;}'+
-      '#pdf-viewer-hdr{display:none!important;}'+
-      '#pdf-viewer-body{display:block!important;overflow:visible!important;height:auto!important;max-height:none!important;padding:0!important;background:white!important;}'+
-      '#pdf-report-div{display:block!important;overflow:visible!important;width:100%!important;background:white!important;}'+
-      '#pdf-report-div .page{box-shadow:none!important;overflow:visible!important;}'+
-      '@page{margin:18mm 18mm 15mm 18mm;size:A4;}'+
-    '}';
-    if(!document.getElementById('_rptPrintCss'))document.head.appendChild(pst);
-    setTimeout(function(){
-      window.print();
-      setTimeout(function(){
-        var s=document.getElementById('_rptPrintCss');
-        if(s&&s.parentNode)s.parentNode.removeChild(s);
+  function _withH2C(cb){
+    if(window.html2canvas){cb();return;}
+    var s=document.createElement('script');
+    s.src='https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+    s.onload=cb;
+    s.onerror=function(){_restore();showToast('Sin conexión para cargar el generador de PDF','err');};
+    document.head.appendChild(s);
+  }
+  _withH2C(function(){
+    var rd=document.getElementById('pdf-report-div');
+    if(!rd){_restore();return;}
+    // Expand div so html2canvas captures full content (not just visible scroll area)
+    var _ov=rd.style.overflow,_mh=rd.style.maxHeight;
+    rd.style.overflow='visible';rd.style.maxHeight='none';
+    var A4W=190,A4H=277,MARGIN=10,SCALE=2;
+    html2canvas(rd,{scale:SCALE,useCORS:true,allowTaint:true,scrollX:0,scrollY:0,
+      width:rd.scrollWidth,height:rd.scrollHeight,windowWidth:rd.scrollWidth+40,logging:false
+    }).then(function(canvas){
+      rd.style.overflow=_ov;rd.style.maxHeight=_mh;
+      var pdf=new window.jspdf.jsPDF('p','mm','a4');
+      var pxPerMm=canvas.width/A4W;
+      var pageH=A4H*pxPerMm;
+      var totalPages=Math.ceil(canvas.height/pageH);
+      for(var i=0;i<totalPages;i++){
+        if(i>0)pdf.addPage();
+        var srcY=Math.round(i*pageH);
+        var srcH=Math.min(Math.round(pageH),canvas.height-srcY);
+        var pc=document.createElement('canvas');
+        pc.width=canvas.width;pc.height=srcH;
+        pc.getContext('2d').drawImage(canvas,0,srcY,canvas.width,srcH,0,0,canvas.width,srcH);
+        var imgH=(srcH/pxPerMm);
+        pdf.addImage(pc.toDataURL('image/jpeg',0.88),'JPEG',MARGIN,MARGIN,A4W,imgH);
+      }
+      var titleEl=document.getElementById('pdf-viewer-title');
+      var safeName=(titleEl?titleEl.textContent.trim():'Informe CIMA').replace(/[—–]/g,'-').replace(/[\/\\:*?"<>|]/g,' ').replace(/\s+/g,' ').trim();
+      var pdfBlob=pdf.output('blob');
+      var pdfFile=new File([pdfBlob],safeName+'.pdf',{type:'application/pdf'});
+      if(navigator.canShare&&navigator.canShare({files:[pdfFile]})){
+        navigator.share({title:safeName,files:[pdfFile]}).then(_restore).catch(function(e){_restore();if(e.name!=='AbortError')showToast('Error al compartir','err');});
+      }else{
+        var url=URL.createObjectURL(pdfBlob);
+        var a=document.createElement('a');
+        a.href=url;a.download=safeName+'.pdf';document.body.appendChild(a);a.click();
+        setTimeout(function(){if(a.parentNode)a.parentNode.removeChild(a);URL.revokeObjectURL(url);},1000);
         _restore();
-      },800);
-    },80);
-  }catch(e){_restore();showToast('Error: '+(e.message||e),'err');}
+      }
+    }).catch(function(e){rd.style.overflow=_ov;rd.style.maxHeight=_mh;_restore();showToast('Error al generar PDF: '+(e.message||e),'err');});
+  });
 }
 function closePDFViewer(){
   var overlay=document.getElementById('pdf-viewer-overlay');
@@ -14075,7 +14100,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.1.1";
+var APP_DISPLAY_VERSION="8.1.2";
 var APP_BUILD="26/06/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
