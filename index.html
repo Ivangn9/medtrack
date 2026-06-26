@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.26.459 -->
+<!-- v2026.06.26.460 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.26.459">
+<meta name="app-version" content="v2026.06.26.460">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -10033,7 +10033,7 @@ function _loadForReport(imageIds, cb){
           canvas.width=imgs[i].naturalWidth;canvas.height=imgs[i].naturalHeight;
           canvas.getContext('2d').drawImage(imgs[i],0,0);
           logoB64=canvas.toDataURL('image/png');
-          done();return;
+          done();return true;
         }
       }
     }catch(e){}
@@ -10504,20 +10504,8 @@ function generateReport(){
   if(!allImgIds.length){
     _buildReport(_logoSync,{});
   } else {
-    // Has fault images: load them from IndexedDB then build
-    var _imgsMap={};
-    var _pending=allImgIds.length;
-    var _built=false;
-    function _onceBuild(){if(_built)return;_built=true;_buildReport(_logoSync,_imgsMap);}
-    allImgIds.forEach(function(id){
-      dbGet(id,function(rec){
-        if(rec)_imgsMap[id]=rec.data;
-        _pending--;
-        if(_pending<=0)_onceBuild();
-      });
-    });
-    // Safety: build after 2s even if IndexedDB stalls
-    setTimeout(_onceBuild,2000);
+    // Has fault images: IndexedDB first, Firebase Storage as fallback
+    _loadForReport(allImgIds,function(unused,imgsMap){_buildReport(_logoSync,imgsMap);});
   }
 }
 
@@ -14099,7 +14087,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.0.9";
+var APP_DISPLAY_VERSION="8.1.0";
 var APP_BUILD="26/06/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
