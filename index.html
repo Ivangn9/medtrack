@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.26.449 -->
+<!-- v2026.06.26.450 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.26.449">
+<meta name="app-version" content="v2026.06.26.450">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -2243,6 +2243,32 @@ function getAlertas(){
   aires.filter(function(ai){return !ai.baja;}).forEach(function(ai){
     if(ai.estado==='falla')a.push({k:'aire'+ai.id+'falla',niv:'advertencia',tit:ai.nombre||ai.ubicacion||'Aire acondicionado',desc:'❄️ Aire con falla'+((ai.equiposServidos||[]).length?' — afecta '+ai.equiposServidos.length+' equipo(s)':''),eid:''});
     else if(ai.estado==='fuera_servicio'||ai.estado==='fuera-de-servicio')a.push({k:'aire'+ai.id+'fs',niv:'critico',tit:ai.nombre||ai.ubicacion||'Aire acondicionado',desc:'❄️ Aire FUERA DE SERVICIO'+((ai.equiposServidos||[]).length?' — afecta '+ai.equiposServidos.length+' equipo(s)':''),eid:''});
+  });
+  antenas.forEach(function(ant){
+    (ant.roturas||[]).forEach(function(r){
+      if(r.estado==='reparado')return;
+      var linkedEq=eqs.find(function(e){return!e.baja&&_sedeMatch(e)&&(e.antenaIds||[]).indexOf(ant.id)!==-1;});
+      var eqId=linkedEq?linkedEq.id:'';
+      var eqNombre=linkedEq?linkedEq.nombre:ant.nombreOrigen||'Antena';
+      var niv=ant.estado==='fuera_servicio'?'critico':'advertencia';
+      a.push({k:'ant'+ant.id+r.id+'rot',niv:niv,tit:eqNombre,desc:'📡 Antena: '+ant.nombre+' — '+(r.queSeRompio||r.descripcion||'Falla activa'),eid:eqId});
+    });
+  });
+  transductores.forEach(function(tr){
+    (tr.roturas||[]).forEach(function(r){
+      if(r.estado==='reparado')return;
+      var linkedEq=eqs.find(function(e){return!e.baja&&_sedeMatch(e)&&(e.transductorIds||[]).indexOf(tr.id)!==-1;});
+      var eqId=linkedEq?linkedEq.id:'';
+      var eqNombre=linkedEq?linkedEq.nombre:tr.nombre||'Transductor';
+      var niv=tr.estado==='fuera_servicio'?'critico':'advertencia';
+      a.push({k:'tr'+tr.id+r.id+'rot',niv:niv,tit:eqNombre,desc:'🔌 Transductor: '+tr.nombre+' — '+(r.queSeRompio||r.descripcion||'Falla activa'),eid:eqId});
+    });
+  });
+  activeEqs.forEach(function(e){
+    (e.fallasDirectas||[]).forEach(function(f){
+      if(f.estado==='reparada'||f.estado==='reparado')return;
+      a.push({k:'fd'+e.id+f.id+'act',niv:'advertencia',tit:e.nombre,desc:'⚠️ Falla: '+(f.queSeRompio||f.descripcion||'Falla directa'),eid:e.id});
+    });
   });
   return a;
 }
@@ -10654,6 +10680,34 @@ function scanLabelTransductor(){
   );
 }
 
+function scanLabelAntenaEdit(){
+  _doScanLabel(
+    'Look carefully at this MRI RF antenna/coil label photo and read the text visible in the image. Return ONLY a valid JSON object with NO explanation and NO markdown. Do NOT use example values — only use text you can actually read in the image. JSON keys: {"nombre":"the full model name exactly as printed on the label","nroSerie":"the serial number — read the exact alphanumeric string after SN, S/N, or a box symbol, empty string if not visible","canales":integer_number_of_channels_or_null,"fecha":"manufacture or expiry date as YYYY-MM, look for 4-digit year, empty string if not visible","tipo":"one of: Cabeza, Cabeza/Cuello, Neurovascular, Columna, Cuerpo entero, Rodilla, Hombro, Mama, Cardiaca, Vascular, Endocavitaria, Flex/Superficie — infer from model name, empty string if unknown"}.',
+    function(data){
+      function fill(id,val){var el=document.getElementById(id);if(el&&val)el.value=val;}
+      fill('edit-ant-nombre',data.nombre);
+      fill('edit-ant-nro-serie',data.nroSerie);
+      if(data.canales)fill('edit-ant-canales',String(data.canales));
+      if(data.tipo){var el=document.getElementById('edit-ant-tipo');if(el)el.value=data.tipo;}
+      if(data.fecha){var f=String(data.fecha);if(/^\d{4}-\d{2}$/.test(f))f=f+'-01';fill('edit-ant-fecha',f);}
+      showToast('✅ Datos cargados desde la etiqueta','');
+    }
+  );
+}
+function scanLabelTransductorEdit(){
+  _doScanLabel(
+    'This is an ultrasound transducer label (may be GE Healthcare, Philips, Siemens, Samsung/Sonosite, Mindray, Toshiba/Canon, Hitachi, or other brand). Read ONLY the human-readable printed text on the label sticker — DO NOT read or decode the UDI barcode string (the long encoded number in parentheses like "(01)008406..."). Extract:\n1. MODEL NAME / BRAND: The model code and manufacturer name (e.g. "GE RAB6-RS", "Philips C5-2", "Siemens 18L6 HD", "Mindray L14-6NE")\n2. REF or CAT#: a reference/catalog code\n3. SN or S/N: the serial number\nFor the "tipo" field, use your training knowledge of the ultrasound transducer catalog of all brands to identify the exact type in Spanish. Categories: Lineal, Convex abdominal, Sectorial cardíaco, Endocavitario, Convex volumétrico 4D, Endocavitario volumétrico 4D, Lineal intraoperatorio, TEE.\nReturn ONLY a valid JSON object, no explanation, no markdown:\n{"nombre":"model code exactly as printed (without brand prefix)","modelo":"same as nombre","marca":"manufacturer brand name (GE, Philips, Siemens, Samsung, Mindray, Toshiba, Hitachi, or other)","nroSerie":"SN value exactly as printed","ref":"REF or CAT# value exactly as printed","tipo":"transducer type in Spanish based on your catalog knowledge","frecuencia":null}',
+    function(data){
+      function fill(id,val){var el=document.getElementById(id);if(el&&val)el.value=val;}
+      fill('tr-e-nombre',data.nombre);
+      fill('tr-e-modelo',data.modelo||data.nombre);
+      fill('tr-e-nro-serie',data.nroSerie);
+      if(data.tipo){var el=document.getElementById('tr-e-tipo');if(el)el.value=data.tipo;}
+      if(data.frecuencia)fill('tr-e-frec',String(data.frecuencia));
+      showToast('✅ Datos cargados desde la etiqueta','');
+    }
+  );
+}
 function scanLabelEquipo(){
   _doScanLabel(
     'This is a medical equipment label or nameplate. Extract the fields and return ONLY a valid JSON object, no explanation, no markdown fences. Keys: {"nombre":"full product/model name (brand + model, e.g. GE Optima MR450w)","marca":"manufacturer brand name only (GE, Siemens, Philips, Nihon Kohden, Planmeca, Carestream, AGFA, Bayer, Eaton, Samsung, or empty string)","serie":"serial number value after S/N: or SN: field, empty string if not found","modelo":"model number/code, empty string if same as nombre or not found","instalacion":"manufacture or installation date as YYYY-MM-DD, or YYYY-MM, empty string if not found","contrato":"service company name if visible, empty string if not found"}. If multiple serial numbers appear, use the main equipment serial number.',
@@ -10768,6 +10822,9 @@ function setAntenaEstado(antenaId,estado){
   saveDataCritical();
   var lbl={operativa:'✅ Operativa',con_fallas:'⚠️ Con fallas',fuera_servicio:'🔴 Fuera de servicio'}[estado]||estado;
   showToast(lbl,'');render();
+  if(estado==='con_fallas'||estado==='fuera_servicio'){
+    setTimeout(function(){openAddRoturaModalV2(antenaId);},350);
+  }
 }
 function removeAntennaFromEq(antenaId,rmEquipId){
   eqs=eqs.map(function(e){if(e.id===rmEquipId)return Object.assign({},e,{antenaIds:(e.antenaIds||[]).filter(function(id){return id!==antenaId;})});return e;});
@@ -11820,6 +11877,7 @@ function openEditAntennaModal(antenaId){
       '</div>'+
       '<button onclick="closeModal()" style="margin-left:auto;width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">✕</button>'+
     '</div>'+
+    '<button id="scan-label-btn" type="button" onclick="scanLabelAntenaEdit()" style="width:100%;padding:10px 14px;border-radius:14px;background:linear-gradient(135deg,rgba(0,113,227,.10),rgba(0,113,227,.05));border:1.5px solid rgba(0,113,227,.30);color:var(--accent);font-weight:700;font-size:.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:14px;">📷 Completar datos escaneando etiqueta con IA</button>'+
     '<div class="ff"><div class="ff-label">Nombre de la antena *</div>'+
       '<input class="inp" id="edit-ant-nombre" value="'+esc(ant.nombre)+'" placeholder="Ej: Antena de cabeza 1.5T" autocomplete="off">'+
     '</div>'+
@@ -11868,11 +11926,16 @@ function submitEditAntenna(antenaId){
   var fecha=(document.getElementById('edit-ant-fecha')||{}).value||'';
   var notas=(document.getElementById('edit-ant-notas')||{}).value||'';
   if(!nombre.trim()){alert('Ingresá el nombre de la antena');return;}
+  var antPrev=antenas.find(function(a){return a.id===antenaId;})||{};
+  var estadoPrev=antPrev.estado||'operativa';
   antenas=antenas.map(function(a){
     if(a.id!==antenaId)return a;
     return Object.assign({},a,{nombre:nombre.trim(),tipo:tipo||null,nroSerie:nroSerie||null,nombreOrigen:origen,cantidadCanales:canales||null,estado:estado,fechaCompra:fecha,notas:notas.trim()});
   });
   saveDataCritical();closeModal();showToast('✏️ Antena actualizada','');render();
+  if(estadoPrev!==estado&&(estado==='con_fallas'||estado==='fuera_servicio')){
+    setTimeout(function(){openAddRoturaModalV2(antenaId);},350);
+  }
 }
 
 function openEditRoturaModal(antenaId,roturaId){
@@ -12107,7 +12170,12 @@ function generateAntennasReport(){
 // ═══════════════════════════════════════════
 function setTransductorEstado(transductorId,estado){
   transductores=transductores.map(function(t){if(t.id===transductorId)return Object.assign({},t,{estado:estado});return t;});
-  saveData();render();
+  saveDataCritical();
+  var lbl={operativo:'✅ Operativo',con_fallas:'⚠️ Con fallas',fuera_servicio:'🔴 Fuera de servicio'}[estado]||estado;
+  showToast(lbl,'');render();
+  if(estado==='con_fallas'||estado==='fuera_servicio'){
+    setTimeout(function(){openAddTransductorRoturaModal(transductorId);},350);
+  }
 }
 function removeTransductorFromEq(transductorId,ecoEquipId){
   eqs=eqs.map(function(e){if(e.id===ecoEquipId)return Object.assign({},e,{transductorIds:(e.transductorIds||[]).filter(function(id){return id!==transductorId;})});return e;});
@@ -12192,6 +12260,7 @@ function openEditTransductorModal(transductorId){
       '<div><div style="font-weight:800;font-size:1.05rem;">Editar Transductor</div></div>'+
       '<button onclick="closeModal();" style="margin-left:auto;width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.85rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">‹</button>'+
     '</div>'+
+    '<button id="scan-label-btn" type="button" onclick="scanLabelTransductorEdit()" style="width:100%;padding:10px 14px;border-radius:14px;background:linear-gradient(135deg,rgba(14,165,233,.10),rgba(14,165,233,.05));border:1.5px solid rgba(14,165,233,.30);color:rgba(14,165,233,1);font-weight:700;font-size:.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:14px;">📷 Completar datos escaneando etiqueta con IA</button>'+
     '<div class="ff"><div class="ff-label">Nombre *</div>'+
       '<input class="inp" id="tr-e-nombre" value="'+esc(tr.nombre||'')+'" autocomplete="off">'+
     '</div>'+
@@ -12240,11 +12309,16 @@ function submitEditTransductor(transductorId){
   var estado=((document.getElementById('tr-e-estado')||{}).value)||'operativo';
   var fecha=((document.getElementById('tr-e-fecha')||{}).value)||'';
   var notas=((document.getElementById('tr-e-notas')||{}).value||'').trim();
+  var trPrev=transductores.find(function(t){return t.id===transductorId;})||{};
+  var estadoPrev=trPrev.estado||'operativo';
   transductores=transductores.map(function(t){
     if(t.id!==transductorId)return t;
     return Object.assign({},t,{nombre:nombre,modelo:modelo||null,nroSerie:nroSerie||null,tipo:tipo||null,frecuencia:frec||null,estado:estado,fechaCompra:fecha,notas:notas});
   });
-  saveData();closeModal();render();showToast('✅ Transductor actualizado','');
+  saveDataCritical();closeModal();render();showToast('✅ Transductor actualizado','');
+  if(estadoPrev!==estado&&(estado==='con_fallas'||estado==='fuera_servicio')){
+    setTimeout(function(){openAddTransductorRoturaModal(transductorId);},350);
+  }
 }
 function openAddTransductorRoturaModal(transductorId){
   window._pendTrRotFotos=[];window._pendTrRotPresArr=null;
@@ -13920,7 +13994,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="7.9.9";
+var APP_DISPLAY_VERSION="8.0.0";
 var APP_BUILD="26/06/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
