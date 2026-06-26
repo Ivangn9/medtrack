@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.26.452 -->
+<!-- v2026.06.26.453 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.26.452">
+<meta name="app-version" content="v2026.06.26.453">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -11589,7 +11589,7 @@ function submitAddRoturaV2(antenaId){
       var nuevaParte={id:parteId,nombre:(ant?'[Antena] '+ant.nombre+' — ':'')+que.trim(),descripcion:desc.trim(),estado:estadoInit,fechaRotura:fecha,tecnicoReparacion:tec.trim(),marca:'',nroSerie:'',notas:'',archivos:[],_antenaRoturaId:rotId,_antenaId:antenaId,creadoEn:new Date().toISOString()};
       eqs=eqs.map(function(e){if(e.id!==linkedEq.id)return e;return Object.assign({},e,{partes:(e.partes||[]).concat(nuevaParte)});});
     }
-    saveData();closeModal();
+    saveDataCritical();closeModal();
     showToast(linkedEq?'⚠️ Rotura en antena \xb7 parte creada en '+linkedEq.nombre:'⚠️ Rotura registrada (antena sin equipo vinculado)','warn');
     render();
   };
@@ -14009,7 +14009,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.0.2";
+var APP_DISPLAY_VERSION="8.0.3";
 var APP_BUILD="26/06/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
