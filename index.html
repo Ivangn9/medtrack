@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.26.457 -->
+<!-- v2026.06.26.458 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.26.457">
+<meta name="app-version" content="v2026.06.26.458">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -452,7 +452,7 @@ body.dark .ig{box-shadow:0 2px 8px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255
 /* ── ANIMATIONS ── */
 .slide{animation:viewEnter .38s var(--spring);padding-top:14px;}
 @keyframes viewEnter{
-  from{opacity:0;transform:translateY(18px) scale(.98);}
+  from{opacity:.01;transform:translateY(18px) scale(.98);}
   to{opacity:1;transform:translateY(0) scale(1);}
 }
 .fade{animation:fadeIn .2s var(--ease-out);}
@@ -463,7 +463,7 @@ body.dark .ig{box-shadow:0 2px 8px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255
 /* Staggered list entrance */
 .li-eq{animation:listItemIn .36s var(--spring) both;}
 @keyframes listItemIn{
-  from{opacity:0;transform:translateY(12px) scale(.97);}
+  from{opacity:.01;transform:translateY(12px) scale(.97);}
   to{opacity:1;transform:translateY(0) scale(1);}
 }
 .li-eq:nth-child(1){animation-delay:.04s}
@@ -485,7 +485,7 @@ body.dark .ig{box-shadow:0 2px 8px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255
   to{opacity:0;transform:translateX(-50%) translateY(-10px) scale(.94);}
 }
 /* Modal animations (separate from view slide) */
-@keyframes modalSlideUp{from{transform:translateY(56px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes modalSlideUp{from{transform:translateY(56px);opacity:.01}to{transform:translateY(0);opacity:1}}
 @keyframes modalFadeIn{from{opacity:0}to{opacity:1}}
 .pulse{animation:pulse 2s infinite;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
@@ -502,7 +502,7 @@ body.dark .ig{box-shadow:0 2px 8px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255
 .settings-item:nth-child(4){animation-delay:.15s}
 .settings-item:nth-child(5){animation-delay:.19s}
 .settings-item:nth-child(n+6){animation-delay:.23s}
-@keyframes settingsItemIn{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:translateX(0)}}
+@keyframes settingsItemIn{from{opacity:.01;transform:translateX(16px)}to{opacity:1;transform:translateX(0)}}
 /* Dashboard cards — stagger entrance */
 .gc.tap{animation:cardIn .46s var(--spring) both;}
 .gc.tap:nth-child(1){animation-delay:.04s}
@@ -512,26 +512,27 @@ body.dark .ig{box-shadow:0 2px 8px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255
 .gc.tap:nth-child(5){animation-delay:.22s}
 .gc.tap:nth-child(6){animation-delay:.26s}
 .gc.tap:nth-child(n+7){animation-delay:.30s}
-@keyframes cardIn{from{opacity:0;transform:translateY(20px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes cardIn{from{opacity:.01;transform:translateY(20px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
 /* Floating sidebar submenus — pop in */
 #sb-equipos-menu,#sb-ajustes-menu{animation:floatMenuIn .26s var(--spring);}
-@keyframes floatMenuIn{from{opacity:0;transform:scale(.88) translateX(-8px)}to{opacity:1;transform:scale(1) translateX(0)}}
+@keyframes floatMenuIn{from{opacity:.01;transform:scale(.88) translateX(-8px)}to{opacity:1;transform:scale(1) translateX(0)}}
 /* Sidebar sub-items stagger */
 #sb-equipos-menu .sb-sub-btn,#sb-ajustes-menu .sb-sub-btn{animation:sbSubIn .28s var(--spring) both;}
 #sb-equipos-menu .sb-sub-btn:nth-child(1),#sb-ajustes-menu .sb-sub-btn:nth-child(1){animation-delay:.04s}
 #sb-equipos-menu .sb-sub-btn:nth-child(2),#sb-ajustes-menu .sb-sub-btn:nth-child(2){animation-delay:.09s}
 #sb-equipos-menu .sb-sub-btn:nth-child(3),#sb-ajustes-menu .sb-sub-btn:nth-child(3){animation-delay:.13s}
 #sb-equipos-menu .sb-sub-btn:nth-child(n+4),#sb-ajustes-menu .sb-sub-btn:nth-child(n+4){animation-delay:.17s}
-@keyframes sbSubIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}
+@keyframes sbSubIn{from{opacity:.01;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}
 /* Sidebar nav button — active feedback */
 .sb-nav-btn:active{transform:scale(.96);}
 /* Input focus glow */
 .ibox:focus-within{box-shadow:0 0 0 3px rgba(0,113,227,.15),0 2px 8px rgba(0,0,0,.06);border-color:rgba(0,113,227,.35)!important;}
 /* Pill entrance micro-animation */
 .pill{animation:pillPop .22s var(--spring) both;}
-@keyframes pillPop{from{opacity:0;transform:scale(.75)}to{opacity:1;transform:scale(1)}}
+@keyframes pillPop{from{opacity:.01;transform:scale(.75)}to{opacity:1;transform:scale(1)}}
 /* Hover effects — pointer device (iPad trackpad / desktop mouse) */
 @media(hover:hover){
+  .gc.tap{will-change:transform;}
   .gc.tap:hover{transform:translateY(-3px) scale(1.014);box-shadow:0 0 0 1px rgba(160,195,255,.45),0 8px 24px rgba(120,155,225,.26),0 24px 56px rgba(120,155,225,.18),0 38px 72px rgba(0,0,0,.09),inset 0 2.5px 0 rgba(255,255,255,1.0),inset 0 0 0 1px rgba(255,255,255,.65);}
   .li-eq:hover{background:rgba(255,255,255,.80)!important;transform:translateX(2px) scale(1.005);}
   .chip:hover{transform:scale(1.07) translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.15),inset 0 1.5px 0 rgba(255,255,255,1.0);}
@@ -14092,7 +14093,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.0.7";
+var APP_DISPLAY_VERSION="8.0.8";
 var APP_BUILD="26/06/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
