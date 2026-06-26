@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.26.448 -->
+<!-- v2026.06.26.449 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.26.448">
+<meta name="app-version" content="v2026.06.26.449">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -2295,7 +2295,7 @@ function delEq(id){
   transductores.forEach(function(t){if((t.eqIds||[]).indexOf(id)!==-1)t.eqIds=t.eqIds.filter(function(x){return x!==id;});});
   aires.forEach(function(a){a.equiposServidos=(a.equiposServidos||[]).filter(function(x){return x!==id;});});
   auditEntry('eliminar','eq',id,nombre,'Equipo eliminado — PMs y vínculos limpiados');
-  saveData();showToast("Equipo eliminado","warn");goBack();
+  saveDataCritical();showToast("Equipo eliminado","warn");goBack();
 }
 function saveParte(eqId,pt){
   eqs=eqs.map(function(e){
@@ -2647,7 +2647,7 @@ function regMant(eqId,fecha,notas,tecnico,pdfRef,nroOrden,empresa,firma){
     var hist=(e.historialMant||[]).concat(entrada);
     return Object.assign({},e,{ultimoMant:fecha,proximoMant:calcP(fecha,e.frecuencia),historialMant:hist,notas:notas!==undefined?notas:e.notas});
   });
-  saveData();showToast("✅ Mantenimiento registrado");closeModal();render();
+  saveDataCritical();showToast("✅ Mantenimiento registrado");closeModal();render();
 }
 function setEst(eqId,est){eqs=eqs.map(function(e){return e.id!==eqId?e:Object.assign({},e,{estado:est});});saveData();showToast("Estado actualizado");render();}
 function estLabel(s){return{operativo:"Operativo","con-rotura":"Roto/Con Fallas",advertencia:"Roto/Con Fallas","fuera-de-servicio":"Fuera de servicio"}[s]||s||"—";}
@@ -8002,7 +8002,7 @@ function submitDarDeBaja(eqId){
     if(e.id!==eqId)return e;
     return Object.assign({},e,{baja:{fecha:fecha,motivo:motivo,observacion:obs,creadoEn:new Date().toISOString()}});
   });
-  saveData();closeModal();setView('bajas');showToast('Equipo dado de baja','warn');
+  saveDataCritical();closeModal();setView('bajas');showToast('Equipo dado de baja','warn');
 }
 function reactivarEquipo(eqId){
   if(!confirm('¿Reactivar este equipo? Volverá a aparecer en el panel y la lista.'))return;
@@ -10152,8 +10152,6 @@ function generateReport(){
       trasladosH.sort(function(a,b){return a.fecha>b.fecha?1:-1;});
     }
     // Always add to summary table
-    var estClass=eq.estado==='fuera-de-servicio'?'sbad':eq.estado==='operativo'?'sok':'swarn';
-    sumRows+='<tr><td><strong>'+esc(eq.nombre)+'</strong></td><td>'+ci.label+'</td><td>'+(eq.ubicacion?esc(eq.ubicacion):'—')+'</td><td><span class="'+estClass+'">'+estLabel(eq.estado)+'</span></td><td>'+mantH.length+'</td><td>'+repH.length+'</td><td>'+actH.length+'</td></tr>';
     // Collect linked antenas roturas/historial, transductor roturas, fallas directas
     var antRoturas=[];var antHistorial=[];
     (eq.antenaIds||[]).forEach(function(aId){
@@ -10185,6 +10183,9 @@ function generateReport(){
       if(hasta&&f.fecha>hasta)return false;
       return true;
     });
+    var estClass=eq.estado==='fuera-de-servicio'?'sbad':eq.estado==='operativo'?'sok':'swarn';
+    var totalFallasResumen=actH.length+antRoturas.length+tranRoturas.length+fallasDir.length;
+    sumRows+='<tr><td><strong>'+esc(eq.nombre)+'</strong></td><td>'+ci.label+'</td><td>'+(eq.ubicacion?esc(eq.ubicacion):'—')+'</td><td><span class="'+estClass+'">'+estLabel(eq.estado)+'</span></td><td>'+mantH.length+'</td><td>'+repH.length+'</td><td>'+totalFallasResumen+'</td></tr>';
     // Add to detail section only if has events in the period (including antenas/transductores/fallas)
     var hasEq=mantH.length||repH.length||mejH.length||actH.length||mejP.length||trasladosH.length||antRoturas.length||antHistorial.length||tranRoturas.length||fallasDir.length;
     if(!hasEq)return;
@@ -10854,6 +10855,7 @@ function setHelioGaseoso(eqId,estado){
 }
 function openActualizarHelioGaseoso(eqId){
   var eq=eqs.find(function(e){return e.id===eqId;});
+  if(!eq)return;
   var rf=_refrigData(eq);
   openModal(
     '<div style="background:linear-gradient(90deg,rgba(99,179,237,.12),rgba(8,145,178,.06));margin:-16px -16px 14px -16px;padding:12px 16px;border-bottom:1px solid rgba(99,179,237,.15);border-radius:var(--r-md) var(--r-md) 0 0;display:flex;align-items:center;gap:8px;">'+
@@ -10918,6 +10920,7 @@ function submitCargaRealHelioGaseoso(eqId){
 }
 function openActualizarHelioLiquido(eqId){
   var eq=eqs.find(function(e){return e.id===eqId;});
+  if(!eq)return;
   var rf=_refrigData(eq);
   openModal(
     '<div style="background:linear-gradient(90deg,rgba(99,179,237,.12),rgba(8,145,178,.06));margin:-16px -16px 14px -16px;padding:12px 16px;border-bottom:1px solid rgba(99,179,237,.15);border-radius:var(--r-md) var(--r-md) 0 0;display:flex;align-items:center;gap:8px;">'+
@@ -13917,7 +13920,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="7.9.8";
+var APP_DISPLAY_VERSION="7.9.9";
 var APP_BUILD="26/06/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
