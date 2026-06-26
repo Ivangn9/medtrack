@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.26.456 -->
+<!-- v2026.06.26.457 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.26.456">
+<meta name="app-version" content="v2026.06.26.457">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -10060,8 +10060,20 @@ function _loadForReport(imageIds, cb){
         done();
       } else {
         _storageGetUrl(id,function(url){
-          if(url)imgsMap[id]=url;
-          done();
+          if(!url){done();return;}
+          var xhrImg=new XMLHttpRequest();
+          xhrImg.open('GET',url,true);xhrImg.responseType='blob';xhrImg.timeout=8000;
+          xhrImg.onload=function(){
+            if((xhrImg.status===200||xhrImg.status===0)&&xhrImg.response){
+              var rdr=new FileReader();
+              rdr.onload=function(e){imgsMap[id]=e.target.result;done();};
+              rdr.onerror=function(){imgsMap[id]=url;done();};
+              rdr.readAsDataURL(xhrImg.response);
+            }else{imgsMap[id]=url;done();}
+          };
+          xhrImg.onerror=function(){imgsMap[id]=url;done();};
+          xhrImg.ontimeout=function(){imgsMap[id]=url;done();};
+          xhrImg.send();
         });
       }
     });
@@ -14080,7 +14092,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.0.6";
+var APP_DISPLAY_VERSION="8.0.7";
 var APP_BUILD="26/06/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
