@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.26.458 -->
+<!-- v2026.06.26.459 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.26.458">
+<meta name="app-version" content="v2026.06.26.459">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -2182,6 +2182,9 @@ function openModal(h){var o=document.getElementById("modal-overlay"),b=document.
   var _mi=b.querySelectorAll('input,textarea');
   for(var _ii=0;_ii<_mi.length;_ii++){var _t=_mi[_ii].type;if(_t!=='date'&&_t!=='number'&&_t!=='range'&&_t!=='checkbox'&&_t!=='radio'&&_t!=='color'){_mi[_ii].setAttribute('autocapitalize','off');_mi[_ii].setAttribute('autocorrect','off');_mi[_ii].setAttribute('spellcheck','false');}}}
 function closeModal(){document.getElementById("modal-overlay").classList.add("hidden");}
+var _confirmCb=null;
+function _confirmModal(msg,cb){_confirmCb=cb;openModal('<div class="modal-hdr"><div class="modal-title">Confirmar</div><button class="modal-x" onclick="closeModal()">✕</button></div><div style="padding:4px 0 16px;font-size:.9rem;color:var(--text);">'+msg+'</div><div style="display:flex;gap:8px;"><button class="btn-secondary" style="flex:1;" onclick="closeModal()">Cancelar</button><button class="btn-danger" style="flex:1;" onclick="closeModal();if(window._confirmCb){var f=window._confirmCb;window._confirmCb=null;f();}">Eliminar</button></div>');}
+
 
 // ═══════════════════════════════════════════
 //  ALERTS
@@ -2488,7 +2491,7 @@ function confirmarMejora(eqId,pid){
   });
   saveData();closeModal();showToast("✅ Mejora completada y registrada en historial");render();
 }
-function delParte(eqId,pid){if(!confirm("¿Eliminar?"))return;eqs=eqs.map(function(e){return e.id!==eqId?e:Object.assign({},e,{partes:e.partes.filter(function(x){return x.id!==pid;})});});saveData();showToast("Eliminada","warn");render();}
+function delParte(eqId,pid){_confirmModal('¿Eliminar esta falla/rotura?',function(){eqs=eqs.map(function(e){return e.id!==eqId?e:Object.assign({},e,{partes:e.partes.filter(function(x){return x.id!==pid;})});});saveData();showToast('Eliminada','warn');render();});}
 function delHist(eqId,hid){
   var eq=eqs.find(function(e){return e.id===eqId;});if(!eq)return;
   var hh=(eq.historialMant||[]).find(function(h){return h.id===hid;});if(!hh)return;
@@ -7546,7 +7549,7 @@ function _rDetalleFallas(eq){
         return sgHtml;
       })()+
       (p.estado!=='ok'?'<button onclick="repararParte(\''+eq.id+'\',\''+p.id+'\')" style="width:100%;padding:11px;margin-bottom:8px;border:none;border-radius:12px;background:var(--green);color:#fff;font-size:.86rem;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(52,199,89,.3);">✅ Marcar como Reparado</button>':'')+
-      '<div style="display:flex;gap:6px;"><button class="btn-secondary btn-sm" style="flex:1;" onclick=\'openModalParte("'+eq.id+'",'+JSON.stringify(p).replace(/'/g,"&#39;")+')\'>✏️ Editar</button><button class="btn-danger btn-sm" onclick="delParte(\''+eq.id+'\',\''+p.id+'\')">🗑</button></div></div>';
+      '<div style="display:flex;gap:6px;"><button class="btn-secondary btn-sm" style="flex:1;" onclick="openModalParteById(\''+eq.id+'\',\''+p.id+'\')">✏️ Editar</button><button class="btn-danger btn-sm" onclick="delParte(\''+eq.id+'\',\''+p.id+'\')">🗑</button></div></div>';
   });
   // Fallas de componentes vinculados dentro de la misma sección
   if(_linkedFaults.length){
@@ -11451,14 +11454,15 @@ function _refrigHelioChart(rf,eqId){
   return h2;
 }
 function deleteRefrigEntry(eqId,entryId){
-  if(!confirm('¿Eliminar este registro?'))return;
-  eqs=eqs.map(function(e){
-    if(e.id!==eqId)return e;
-    var rf=_refrigData(e);
-    var newRf=Object.assign({},rf,{historial:(rf.historial||[]).filter(function(h){return h.id!==entryId;})});
-    return Object.assign({},e,{refrig:newRf});
+  _confirmModal('¿Eliminar este registro?',function(){
+    eqs=eqs.map(function(e){
+      if(e.id!==eqId)return e;
+      var rf=_refrigData(e);
+      var newRf=Object.assign({},rf,{historial:(rf.historial||[]).filter(function(h){return h.id!==entryId;})});
+      return Object.assign({},e,{refrig:newRf});
+    });
+    saveData();showToast('Registro eliminado','warn');render();
   });
-  saveData();showToast('Registro eliminado','warn');render();
 }
 
 // ─── PDF UPLOAD HELPERS FOR ANTENA ───
@@ -11650,10 +11654,11 @@ function submitAddRoturaV2(antenaId){
 }
 
 function deleteRoturaV2(antenaId,roturaId){
-  if(!confirm('\xbfEliminar esta rotura?'))return;
-  antenas=antenas.map(function(a){if(a.id===antenaId)return Object.assign({},a,{roturas:(a.roturas||[]).filter(function(r){return r.id!==roturaId;})});return a;});
-  eqs=eqs.map(function(e){return Object.assign({},e,{partes:(e.partes||[]).filter(function(p){return p._antenaRoturaId!==roturaId;})});});
-  saveData();showToast('Rotura eliminada','warn');render();
+  _confirmModal('\xbfEliminar esta rotura?',function(){
+    antenas=antenas.map(function(a){if(a.id===antenaId)return Object.assign({},a,{roturas:(a.roturas||[]).filter(function(r){return r.id!==roturaId;})});return a;});
+    eqs=eqs.map(function(e){return Object.assign({},e,{partes:(e.partes||[]).filter(function(p){return p._antenaRoturaId!==roturaId;})});});
+    saveData();showToast('Rotura eliminada','warn');render();
+  });
 }
 
 function openSeguimientoRotura(antenaId,roturaId){
@@ -12461,9 +12466,10 @@ function submitTransductorRotura(transductorId){
   uploadNextFoto(0);
 }
 function deleteTransductorRotura(transductorId,roturaId){
-  if(!confirm('\xbfEliminar esta rotura?'))return;
-  transductores=transductores.map(function(t){if(t.id===transductorId)return Object.assign({},t,{roturas:(t.roturas||[]).filter(function(r){return r.id!==roturaId;})});return t;});
-  saveData();render();showToast('Rotura eliminada','warn');
+  _confirmModal('\xbfEliminar esta rotura?',function(){
+    transductores=transductores.map(function(t){if(t.id===transductorId)return Object.assign({},t,{roturas:(t.roturas||[]).filter(function(r){return r.id!==roturaId;})});return t;});
+    saveData();render();showToast('Rotura eliminada','warn');
+  });
 }
 function setEstadoTransductorRotura(transductorId,roturaId,nuevoEstado){
   transductores=transductores.map(function(t){
@@ -14093,7 +14099,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.0.8";
+var APP_DISPLAY_VERSION="8.0.9";
 var APP_BUILD="26/06/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
