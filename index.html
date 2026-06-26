@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.26.460 -->
+<!-- v2026.06.26.461 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.26.460">
+<meta name="app-version" content="v2026.06.26.461">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3095,54 +3095,27 @@ function printReport(){
   if(btn){btn.disabled=true;btn.textContent='⏳ Preparando...';}
   function _restore(){if(btn){btn.disabled=false;btn.textContent='📄 Exportar PDF';}}
   try{
-    var rDoc=(new DOMParser()).parseFromString(_reportHTML,'text/html');
-    [].forEach.call(rDoc.querySelectorAll('.fault-imgs,.nav-bar,.btn-print'),function(el){if(el.parentNode)el.parentNode.removeChild(el);});
-    if(typeof _cimaB64!=='undefined'&&_cimaB64){
-      var _bgSt=rDoc.createElement('style');
-      var _prLogo='';
-      try{var _prImgs=document.querySelectorAll('img');for(var _pii=0;_pii<_prImgs.length;_pii++){if(_prImgs[_pii].src&&_prImgs[_pii].src.indexOf('logo.png')!==-1&&_prImgs[_pii].complete&&_prImgs[_pii].naturalWidth>0){var _pcv=document.createElement('canvas');_pcv.width=_prImgs[_pii].naturalWidth;_pcv.height=_prImgs[_pii].naturalHeight;_pcv.getContext('2d').drawImage(_prImgs[_pii],0,0);_prLogo=_pcv.toDataURL('image/png');break;}}}catch(e){}
-      _bgSt.textContent='@page{margin:25mm 25mm 20mm 25mm;size:A4;}'+
-        '.page{padding:0!important;width:100%!important;min-height:0!important;box-shadow:none!important;background:none!important;overflow:visible!important;}'+
-        '.page::before{display:none!important;}'+
-        '.logo-area{display:none!important;}'+
-        '.cima-rpt-hdr{display:flex!important;align-items:center!important;gap:16px!important;padding-bottom:14px!important;margin-bottom:18px!important;border-bottom:1.5px solid #e2e8f0!important;}'+
-        '.cima-lh{position:fixed;top:0;left:0;width:210mm;height:297mm;z-index:-1;background-image:url('+_cimaB64+');background-repeat:no-repeat;background-position:top left;background-size:210mm 297mm;-webkit-print-color-adjust:exact;print-color-adjust:exact;}'+
-        '@media print{.cima-lh{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}';
-      rDoc.head.appendChild(_bgSt);
-      var _lh=rDoc.createElement('div');_lh.className='cima-lh';
-      rDoc.body.insertBefore(_lh,rDoc.body.firstChild);
-      var _prPages=rDoc.querySelectorAll('.page');
-      for(var _ppi=0;_ppi<_prPages.length;_ppi++){
-        var _prHdr=rDoc.createElement('div');_prHdr.className='cima-rpt-hdr';
-        _prHdr.setAttribute('style','display:flex;align-items:center;gap:16px;padding-bottom:14px;margin-bottom:18px;border-bottom:1.5px solid #e2e8f0;');
-        if(_prLogo){_prHdr.innerHTML='<img src="'+_prLogo+'" style="height:52px;width:auto;display:block;flex-shrink:0;">'+'<div style="flex:1;border-left:1px solid #e2e8f0;padding-left:14px;"><div style="font-size:7.5pt;color:#64748b;letter-spacing:3px;font-weight:600;text-transform:uppercase;font-family:Arial,sans-serif;">Investigaciones Avanzadas</div><div style="font-size:6.5pt;color:#94a3b8;letter-spacing:1px;font-family:Arial,sans-serif;margin-top:3px;">DIAGNÓSTICO POR IMAGEN</div></div>';}
-        else{_prHdr.innerHTML='<div style="font-size:14pt;font-weight:900;color:#1a3a6b;font-family:Arial,sans-serif;">CIMA</div>';}
-        var _prOldHdr=_prPages[_ppi].querySelector('.cima-rpt-hdr');
-        if(!_prOldHdr)_prPages[_ppi].insertBefore(_prHdr,_prPages[_ppi].firstChild);
-      }
-    }
-    var titleEl=document.getElementById('pdf-viewer-title');
-    var rTitle=titleEl?titleEl.textContent.trim():'Informe CIMA';
-    var safeName=rTitle.replace(/[—–]/g,'-').replace(/[\/\\:*?"<>|]/g,' ').replace(/\s+/g,' ').trim();
-    var pbDiv=rDoc.createElement('div');
-    pbDiv.className='no-print';
-    pbDiv.style.cssText='position:sticky;top:0;z-index:9999;background:#1a3a6b;color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:center;gap:10px;font-family:Arial,sans-serif;font-size:15px;font-weight:600;';
-    pbDiv.innerHTML='<span style="font-size:22px;">⬆️</span><span>Para guardar como PDF: tocá <strong>Compartir</strong> (arriba a la derecha) → <strong>Imprimir</strong></span>';
-    rDoc.body.insertBefore(pbDiv,rDoc.body.firstChild);
-    var htmlStr='<!DOCTYPE html>'+rDoc.documentElement.outerHTML;
-    var blob=new Blob([htmlStr],{type:'text/html'});
-    var file=new File([blob],safeName+'.html',{type:'text/html'});
-    if(navigator.canShare&&navigator.canShare({files:[file]})){
-      navigator.share({title:rTitle,files:[file]}).then(function(){_restore();}).catch(function(e){_restore();if(e.name!=='AbortError')showToast('Error al compartir','err');});
-      showToast('Abrí en Safari → Compartir ⬆ → Imprimir','');
-    }else{
-      var url=URL.createObjectURL(blob);
-      var a=document.createElement('a');
-      a.href=url;a.download=safeName+'.html';document.body.appendChild(a);a.click();
-      setTimeout(function(){if(a.parentNode)a.parentNode.removeChild(a);URL.revokeObjectURL(url);},1000);
-      _restore();
-      showToast('Abrí el archivo en Safari → tocá 🖨 Guardar como PDF','');
-    }
+    // Inject print-only CSS: show only the report content, hide app chrome
+    var pst=document.getElementById('_rptPrintCss')||document.createElement('style');
+    pst.id='_rptPrintCss';
+    pst.textContent='@media print{'+
+      'body>*:not(#pdf-viewer-overlay){display:none!important;}'+
+      '#pdf-viewer-overlay{display:block!important;position:static!important;overflow:visible!important;background:white!important;padding:0!important;margin:0!important;width:100%!important;height:auto!important;}'+
+      '#pdf-viewer-hdr{display:none!important;}'+
+      '#pdf-viewer-body{display:block!important;overflow:visible!important;height:auto!important;max-height:none!important;padding:0!important;background:white!important;}'+
+      '#pdf-report-div{display:block!important;overflow:visible!important;width:100%!important;background:white!important;}'+
+      '#pdf-report-div .page{box-shadow:none!important;overflow:visible!important;}'+
+      '@page{margin:18mm 18mm 15mm 18mm;size:A4;}'+
+    '}';
+    if(!document.getElementById('_rptPrintCss'))document.head.appendChild(pst);
+    setTimeout(function(){
+      window.print();
+      setTimeout(function(){
+        var s=document.getElementById('_rptPrintCss');
+        if(s&&s.parentNode)s.parentNode.removeChild(s);
+        _restore();
+      },800);
+    },80);
   }catch(e){_restore();showToast('Error: '+(e.message||e),'err');}
 }
 function closePDFViewer(){
@@ -10015,14 +9988,30 @@ function _narrativeEq(eq,mantHist,repHist,mejHist,actToShow,mejPendToShow,trasla
   return html;
 }
 
+function _resizeReportImg(dataUrl, cb){
+  try{
+    var img=document.createElement('img');
+    img.onload=function(){
+      var w=img.naturalWidth,h=img.naturalHeight,MAX=1100;
+      if(w<=MAX&&h<=MAX){cb(dataUrl);return;}
+      var s=Math.min(MAX/w,MAX/h);
+      var cv=document.createElement('canvas');
+      cv.width=Math.round(w*s);cv.height=Math.round(h*s);
+      cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
+      try{cb(cv.toDataURL('image/jpeg',0.82));}catch(e){cb(dataUrl);}
+    };
+    img.onerror=function(){cb(dataUrl);};
+    img.src=dataUrl;
+  }catch(e){cb(dataUrl);}
+}
 function _loadForReport(imageIds, cb){
   var logoB64=null;var imgsMap={};
   var _finished=false;
   function finish(){if(_finished)return;_finished=true;clearTimeout(_safetyTimer);cb(logoB64,imgsMap);}
   var pending=1+imageIds.length;
   function done(){pending--;if(pending<=0)finish();}
-  // Safety net: always generate report within 10s even if logo/images fail to load
-  var _safetyTimer=setTimeout(function(){finish();},10000);
+  // Safety net: always generate report within 12s even if logo/images fail to load
+  var _safetyTimer=setTimeout(function(){finish();},12000);
   // Try to get logo from already-loaded <img> in the DOM first (avoids XHR issues on iOS PWA)
   function _tryLogoFromDOM(){
     try{
@@ -10060,8 +10049,7 @@ function _loadForReport(imageIds, cb){
   imageIds.forEach(function(id){
     dbGet(id,function(rec){
       if(rec&&rec.data){
-        imgsMap[id]=rec.data;
-        done();
+        _resizeReportImg(rec.data,function(resized){imgsMap[id]=resized;done();});
       } else {
         _storageGetUrl(id,function(url){
           if(!url){done();return;}
@@ -10070,7 +10058,7 @@ function _loadForReport(imageIds, cb){
           xhrImg.onload=function(){
             if((xhrImg.status===200||xhrImg.status===0)&&xhrImg.response){
               var rdr=new FileReader();
-              rdr.onload=function(e){imgsMap[id]=e.target.result;done();};
+              rdr.onload=function(e){_resizeReportImg(e.target.result,function(resized){imgsMap[id]=resized;done();});};
               rdr.onerror=function(){imgsMap[id]=url;done();};
               rdr.readAsDataURL(xhrImg.response);
             }else{imgsMap[id]=url;done();}
@@ -14087,7 +14075,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.1.0";
+var APP_DISPLAY_VERSION="8.1.1";
 var APP_BUILD="26/06/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
