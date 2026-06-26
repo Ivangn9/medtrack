@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.26.453 -->
+<!-- v2026.06.26.454 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.26.453">
+<meta name="app-version" content="v2026.06.26.454">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -12569,13 +12569,45 @@ function openFotosTransductorRotura(transId,rotId){
   });
 }
 
+function _fdOnComponenteChange(val){
+  window._fdComponenteId=null;window._fdComponenteTipo=null;
+  if(!val)return;
+  var sep=val.indexOf(':');
+  var tipo=val.slice(0,sep);
+  var id=val.slice(sep+1);
+  window._fdComponenteId=id;
+  window._fdComponenteTipo=tipo==='ant'?'antena':'transductor';
+  var campo=document.getElementById('fd-que');
+  if(campo&&!campo.value.trim()){
+    var nombre='';
+    if(tipo==='ant'){var a=antenas.find(function(x){return x.id===id;});if(a)nombre=a.nombre;}
+    else{var t=transductores.find(function(x){return x.id===id;});if(t)nombre=t.nombre;}
+    if(nombre)campo.value=nombre;
+  }
+}
 function openAddFallaDirectaModal(eqId){
   window._pendFdFotos=[];window._pendFdPresArr=null;
+  window._fdComponenteId=null;window._fdComponenteTipo=null;
+  var eq=eqs.find(function(e){return e.id===eqId;})||{};
+  var linkedAnts=(eq.antenaIds||[]).map(function(aid){return antenas.find(function(a){return a.id===aid;});}).filter(Boolean);
+  var linkedTrs=(eq.transductorIds||[]).map(function(tid){return transductores.find(function(t){return t.id===tid;});}).filter(Boolean);
+  var componenteHtml='';
+  if(linkedAnts.length||linkedTrs.length){
+    componenteHtml='<div class="ff" style="margin-bottom:10px;"><div class="ff-label">Componente afectado</div>'+
+      '<select class="inp" id="fd-componente" onchange="_fdOnComponenteChange(this.value)">'+
+        '<option value="">— Falla general del equipo —</option>'+
+        linkedAnts.map(function(a){return '<option value="ant:'+a.id+'">📡 '+esc(a.nombre)+'</option>';}).join('')+
+        linkedTrs.map(function(t){return '<option value="tr:'+t.id+'">🔌 '+esc(t.nombre)+'</option>';}).join('')+
+      '</select>'+
+      '<div style="font-size:.62rem;color:var(--text3);margin-top:3px;">Al seleccionar una antena o transductor, se crear\xe1 tambi\xe9n una rotura en ese componente.</div>'+
+    '</div>';
+  }
   openModal(
     '<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">'+
       '<div><div style="font-weight:800;font-size:1rem;">⚠️ Nueva Falla del Equipo</div></div>'+
       '<button onclick="closeModal()" style="margin-left:auto;width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.9rem;cursor:pointer;font-weight:700;">&#x2715;</button>'+
     '</div>'+
+    componenteHtml+
     '<div class="g2">'+
       '<div class="ff"><div class="ff-label">Fecha *</div>'+
         '<input class="inp" id="fd-fecha" type="date" value="'+new Date().toISOString().split('T')[0]+'">'+
@@ -12647,9 +12679,26 @@ function submitFallaDirecta(eqId){
   var fallaId='FD-'+Date.now();
   var saveAndFinish=function(presRef,fotosArr){
     var estadoInit=fechaEnvio?'en_reparacion':'roto';
-    var falla={id:fallaId,fecha:fecha,queSeRompio:que,descripcion:desc,estado:estadoInit,fotos:fotosArr||[],presupuestosArreglo:presRef?[presRef]:[],fechaEnvio:fechaEnvio,empresa:empresa,notasSeguimiento:[],creadoEn:new Date().toISOString()};
+    var compId=window._fdComponenteId||null;
+    var compTipo=window._fdComponenteTipo||null;
+    var falla={id:fallaId,fecha:fecha,queSeRompio:que,descripcion:desc,estado:estadoInit,fotos:fotosArr||[],
+      presupuestosArreglo:presRef?[presRef]:[],fechaEnvio:fechaEnvio,empresa:empresa,
+      notasSeguimiento:[],creadoEn:new Date().toISOString()};
+    if(compId)falla._componenteId=compId,falla._componenteTipo=compTipo;
     eqs=eqs.map(function(e){if(e.id===eqId)return Object.assign({},e,{fallasDirectas:(e.fallasDirectas||[]).concat(falla)});return e;});
-    saveDataCritical();closeModal();render();showToast('⚠️ Falla registrada','warn');
+    if(compId&&compTipo){
+      var rot={id:'ROT-'+Date.now()+'-fd',fecha:fecha,queSeRompio:que,descripcion:desc,tecnico:'',
+        estado:estadoInit,fotos:fotosArr||[],presupuestosArreglo:presRef?[presRef]:[],
+        fechaEnvio:fechaEnvio,empresa:empresa,notasSeguimiento:[],
+        _fallaDirectaId:fallaId,_eqId:eqId,creadoEn:new Date().toISOString()};
+      if(compTipo==='antena'){
+        antenas=antenas.map(function(a){if(a.id===compId)return Object.assign({},a,{roturas:(a.roturas||[]).concat(rot)});return a;});
+      } else {
+        transductores=transductores.map(function(t){if(t.id===compId)return Object.assign({},t,{roturas:(t.roturas||[]).concat(rot)});return t;});
+      }
+    }
+    saveDataCritical();closeModal();render();
+    showToast(compId?'⚠️ Falla registrada y rotura creada en '+(compTipo==='antena'?'antena':'transductor'):'⚠️ Falla registrada','warn');
   };
   var pendFotos=(window._pendFdFotos||[]).filter(Boolean);window._pendFdFotos=[];
   var presPend=window._pendFdPresArr;window._pendFdPresArr=null;
@@ -14009,7 +14058,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.0.3";
+var APP_DISPLAY_VERSION="8.0.4";
 var APP_BUILD="26/06/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
