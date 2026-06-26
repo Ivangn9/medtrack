@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.25.447 -->
+<!-- v2026.06.26.448 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.25.447">
+<meta name="app-version" content="v2026.06.26.448">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -7516,7 +7516,7 @@ function _rDetalleFallas(eq){
       var r=lf.rotura;var obj=lf.obj;
       var tipoLabel=lf.tipo==='transductor'?'Transductor':lf.tipo==='antena'?'Antena':lf.tipo==='aire'?'Aire AC':'UPS';
       var tipoSvg=lf.tipo==='transductor'?transductorSvgIcon(16):lf.tipo==='antena'?antenaSvgIcon(16):lf.tipo==='aire'?'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#06b6d4" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="8" rx="2"/><path d="M2 11h20M6 19v-4M12 19v-6M18 19v-4"/></svg>':catSvgIcon('UPS',16);
-      var navFn=lf.tipo==='transductor'?'goTransductorDetalle(\''+obj.id+'\',\''+eq.id+'\')':lf.tipo==='antena'?'goAntenaDetalle(\''+obj.id+'\',\''+eq.id+'\')':lf.tipo==='aire'?'selAireId=\''+obj.id+'\';view=\'aire-detalle\';render();':'setDetalleTab(null);selId=\''+obj.id+'\';view=\'detalle\';render();';
+      var navFn=lf.tipo==='transductor'?'goTransductorDetalle(\''+obj.id+'\',\''+eq.id+'\')':lf.tipo==='antena'?'goAntenaDetalle(\''+obj.id+'\',\''+eq.id+'\')':lf.tipo==='aire'?'selAireId=\''+obj.id+'\';view=\'aireDetalle\';render();':'setDetalleTab(null);selId=\''+obj.id+'\';view=\'detalle\';render();';
       var estadoColor=r.estado==='roto'?'var(--red)':'var(--orange)';
       var estadoLabel=r.estado==='roto'?'🔴 Roto':'⚠️ Pend.';
       var bgCard=r.estado==='roto'?'rgba(255,245,245,.95)':'rgba(255,250,240,.95)';
@@ -7840,7 +7840,7 @@ function rDetalle(){
   hR+='</div></div>';
 
   /* RIGHT: ROTURAS Y FALLAS */
-  var _rotActivas=eq.partes.filter(function(p){return p.estado!=='ok'&&p.estado!=='mejora';});
+  var _rotActivas=eq.partes.filter(function(p){return p.estado!=='ok'&&p.estado!=='mejora'&&p.estado!=='reparado';});
   var _rotTotal=_rotActivas.length;
   var _mejTotal=eq.partes.filter(function(p){return p.estado==='mejora';}).length;
   var _histTotal=(eq.historialMant||[]).length;
@@ -10127,11 +10127,11 @@ function generateReport(){
       if(hasta&&h.fecha>hasta)return false;
       return true;
     }).sort(function(a,b){return a.fecha>b.fecha?1:-1;});
-    var partesActivas=eq.partes.filter(function(p){
+    var partesActivas=(eq.partes||[]).filter(function(p){
       if(p.estado!=='roto'&&p.estado!=='pendiente')return false;
       return true;
     });
-    var mejorasPend=eq.partes.filter(function(p){return p.estado==='mejora';});
+    var mejorasPend=(eq.partes||[]).filter(function(p){return p.estado==='mejora';});
     var mantH=inclMant?hist.filter(function(h){return h.tipo==='mantenimiento';}):[];
     var repH=inclRep?hist.filter(function(h){return h.tipo==='reparacion';}):[];
     var mejH=inclMejHist?hist.filter(function(h){return h.tipo==='mejora';}):[];
@@ -11650,7 +11650,7 @@ function submitSeguimientoRotura(antenaId,roturaId){
     }
     var _existPres=(rot.presupuestosArreglo||[]).concat((rot.presupuestoArregloPdf&&!(rot.presupuestosArreglo||[]).length)?[rot.presupuestoArregloPdf]:[]);
     var nuevosPres=presRef?_existPres.concat(presRef):_existPres;
-    var nuevoEstado=fechaEnvio&&rot.estado==='roto'?'en_reparacion':rot.estado;
+    var nuevoEstado=fechaEnvio&&(rot.estado==='roto'||rot.estado==='activa')?'en_reparacion':rot.estado;
     antenas=antenas.map(function(a){
       if(a.id!==antenaId)return a;
       return Object.assign({},a,{roturas:(a.roturas||[]).map(function(r){
@@ -12924,7 +12924,7 @@ function submitEditTransductorRotura(){
       newRots[rotIdx]=Object.assign({},rot,{fecha:fecha,queSeRompio:que.trim(),descripcion:desc.trim(),empresa:empresa.trim(),fechaEnvio:envio,presupuestosArreglo:nuevoPres!==undefined?nuevoPres:rot.presupuestosArreglo});
       return Object.assign({},t,{roturas:newRots});
     });
-    saveDataCritical();closeModal();rTransductorDetalle(transId);showToast('Rotura actualizada','ok');
+    saveDataCritical();closeModal();render();showToast('Rotura actualizada','ok');
   };
   if(!presPend){saveAndFinish(undefined);return;}
   var fid='TR-PRES-'+Date.now()+'-'+Math.random().toString(36).slice(2);
@@ -12998,7 +12998,7 @@ function submitEditFallaDirecta(){
       newFallas[fallaIdx]=Object.assign({},falla,{fecha:fecha,queSeRompio:que.trim(),descripcion:desc.trim(),empresa:empresa.trim(),fechaEnvio:envio,presupuestosArreglo:nuevoPres!==undefined?nuevoPres:falla.presupuestosArreglo});
       return Object.assign({},e,{fallasDirectas:newFallas});
     });
-    saveDataCritical();closeModal();rDetalle(eqId);showToast('Falla actualizada','ok');
+    saveDataCritical();closeModal();render();showToast('Falla actualizada','ok');
   };
   if(!presPend){saveAndFinish(undefined);return;}
   var fid='FD-PRES-'+Date.now()+'-'+Math.random().toString(36).slice(2);
@@ -13917,8 +13917,8 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="7.9.7";
-var APP_BUILD="25/06/26 h";
+var APP_DISPLAY_VERSION="7.9.8";
+var APP_BUILD="26/06/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
@@ -14170,7 +14170,7 @@ function init(){
         // Load from shared org doc; migrate personal data on first run if org doesn't exist yet
         function _applyData(d){
           if(d&&Array.isArray(d.eqs)&&d.eqs.length>0){
-            eqs=d.eqs;
+            eqs=d.eqs.map(function(eq){if(!eq.partes)eq.partes=[];return eq;});
             if(Array.isArray(d.antenas))antenas=d.antenas;
             if(Array.isArray(d.aires))aires=d.aires;
             if(Array.isArray(d.transductores))transductores=d.transductores;
