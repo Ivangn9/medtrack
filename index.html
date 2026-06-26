@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.26.451 -->
+<!-- v2026.06.26.452 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.26.451">
+<meta name="app-version" content="v2026.06.26.452">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -8692,7 +8692,7 @@ function rAntenas(){
       (r.empresa?'<div style="font-size:.66rem;color:rgba(245,158,11,1);margin-top:2px;">🏗️ '+esc(r.empresa)+'</div>':'')+
       '<div style="display:flex;gap:5px;margin-top:7px;flex-wrap:wrap;">'+
         '<button onclick="openSeguimientoTransductorRotura(\''+t.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.22);color:rgba(245,158,11,1);cursor:pointer;font-weight:700;">📋 Seguimiento</button>'+
-        (_nFotos>0?'<button onclick="openFotosTransductorRotura(\''+t.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(52,199,89,.10);border:1px solid rgba(52,199,89,.2);color:var(--green);cursor:pointer;font-weight:600;">\U0001f4f7 '+_nFotos+' foto'+(_nFotos!==1?'s':'')+'</button>':'')+
+        (_nFotos>0?'<button onclick="openFotosTransductorRotura(\''+t.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(52,199,89,.10);border:1px solid rgba(52,199,89,.2);color:var(--green);cursor:pointer;font-weight:600;">📷 '+_nFotos+' foto'+(_nFotos!==1?'s':'')+'</button>':'')+
         '<button onclick="openEditTransductorRotura(\''+t.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(173,198,255,.06);border:1px solid rgba(173,198,255,.22);color:var(--accent);cursor:pointer;font-weight:600;">✏️ Editar</button>'+
         '<button onclick="goTransductores(\''+eq.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(14,165,233,.06);border:1px solid rgba(14,165,233,.2);color:rgba(14,165,233,.9);cursor:pointer;font-weight:600;">Ver transductor →</button>'+
       '</div>'+
@@ -8729,8 +8729,8 @@ function rAntenas(){
           '</div>'+
           '<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">'+
             '<button onclick="openSeguimientoFallaDirecta(\''+eq.id+'\',\''+f.id+'\')" style="font-size:.66rem;padding:5px 11px;border-radius:14px;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.22);color:rgba(245,158,11,1);font-weight:700;cursor:pointer;">📋 Seguimiento</button>'+
-            (_nFotos>0?'<button onclick="openFotosFallaDirecta(\''+eq.id+'\',\''+f.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(52,199,89,.10);border:1px solid rgba(52,199,89,.2);color:var(--green);cursor:pointer;font-weight:600;">\U0001f4f7 Ver fotos</button>':'')+
-            '<button onclick="openAgregarFotosFallaDirecta(\''+eq.id+'\',\''+f.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(52,199,89,.06);border:1px dashed rgba(52,199,89,.22);color:var(--green);cursor:pointer;font-weight:600;">\U0001f4f7+</button>'+
+            (_nFotos>0?'<button onclick="openFotosFallaDirecta(\''+eq.id+'\',\''+f.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(52,199,89,.10);border:1px solid rgba(52,199,89,.2);color:var(--green);cursor:pointer;font-weight:600;">📷 Ver fotos</button>':'')+
+            '<button onclick="openAgregarFotosFallaDirecta(\''+eq.id+'\',\''+f.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(52,199,89,.06);border:1px dashed rgba(52,199,89,.22);color:var(--green);cursor:pointer;font-weight:600;">📷 + Foto</button>'+
             '<button onclick="openEditFallaDirecta(\''+eq.id+'\',\''+f.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(173,198,255,.06);border:1px solid rgba(173,198,255,.22);color:var(--accent);cursor:pointer;font-weight:600;">✏️ Editar</button>'+
             '<button onclick="deleteFallaDirecta(\''+eq.id+'\',\''+f.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(255,59,48,.08);border:1px solid rgba(255,59,48,.15);color:var(--red);cursor:pointer;font-weight:600;">&#x2715;</button>'+
           '</div>'+
@@ -8851,18 +8851,18 @@ function rAntenaDetalle(){
                 '<span style="font-size:.58rem;font-weight:700;padding:1px 7px;border-radius:10px;background:'+_eBg+';color:'+_eColor+';flex-shrink:0;">'+_eLabel+'</span>'+
               '</div>'+
               (r.descripcion&&r.queSeRompio?'<div style="font-size:.72rem;color:var(--text2);margin-top:2px;">'+esc(r.descripcion)+'</div>':'')+
-              '<div style="font-size:.68rem;color:var(--text3);margin-top:4px;">\U0001f4c5 '+fD(r.fecha)+(r.tecnico?' \xb7 \U0001f477 '+esc(r.tecnico):'')+(r.empresa?' \xb7 \U0001f3ed '+esc(r.empresa):'')+'</div>'+
-              (r.fechaEnvio?'<div style="font-size:.66rem;color:rgba(245,158,11,1);margin-top:2px;">\U0001f4e4 Enviado: '+fD(r.fechaEnvio)+'</div>':'')+
-              (_lEq?'<div style="font-size:.65rem;color:var(--accent);margin-top:3px;font-weight:600;">\U0001f517 '+esc(_lEq.nombre)+'</div>':'')+
-              '<div style="margin-top:5px;display:flex;gap:5px;flex-wrap:wrap;">'+(_nFotos?'<button onclick="openFotosRotura(\''+ant.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:3px 9px;border-radius:12px;background:rgba(52,199,89,.10);color:var(--green);border:1px solid rgba(52,199,89,.2);cursor:pointer;font-weight:600;">\U0001f4f7 '+_nFotos+' foto'+(_nFotos!==1?'s':'')+'</button>':'')+
-            '<button onclick="openAgregarFotosAntenaRotura(\''+ant.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:3px 9px;border-radius:12px;background:rgba(52,199,89,.06);color:var(--green);border:1px dashed rgba(52,199,89,.22);cursor:pointer;font-weight:600;">\U0001f4f7 Agregar foto</button>'+
+              '<div style="font-size:.68rem;color:var(--text3);margin-top:4px;">📅 '+fD(r.fecha)+(r.tecnico?' \xb7 👷 '+esc(r.tecnico):'')+(r.empresa?' \xb7 🏭 '+esc(r.empresa):'')+'</div>'+
+              (r.fechaEnvio?'<div style="font-size:.66rem;color:rgba(245,158,11,1);margin-top:2px;">📤 Enviado: '+fD(r.fechaEnvio)+'</div>':'')+
+              (_lEq?'<div style="font-size:.65rem;color:var(--accent);margin-top:3px;font-weight:600;">🔗 '+esc(_lEq.nombre)+'</div>':'')+
+              '<div style="margin-top:5px;display:flex;gap:5px;flex-wrap:wrap;">'+(_nFotos?'<button onclick="openFotosRotura(\''+ant.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:3px 9px;border-radius:12px;background:rgba(52,199,89,.10);color:var(--green);border:1px solid rgba(52,199,89,.2);cursor:pointer;font-weight:600;">📷 '+_nFotos+' foto'+(_nFotos!==1?'s':'')+'</button>':'')+
+            '<button onclick="openAgregarFotosAntenaRotura(\''+ant.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:3px 9px;border-radius:12px;background:rgba(52,199,89,.06);color:var(--green);border:1px dashed rgba(52,199,89,.22);cursor:pointer;font-weight:600;">📷 + Foto</button>'+
             '</div>'+
-              (_presAll.length?'<div style="margin-top:5px;display:flex;flex-wrap:wrap;gap:4px;">'+_presAll.map(function(p,_pi){return '<button onclick="openPDFViewer(\''+p.id+'\',\'\')" style="font-size:.66rem;padding:3px 9px;border-radius:12px;background:rgba(0,113,227,.10);color:var(--accent);border:1px solid rgba(0,113,227,.18);cursor:pointer;font-weight:600;">\U0001f4c4 Presupuesto '+(_pi+1)+'</button>';}).join('')+'</div>':'')+
+              (_presAll.length?'<div style="margin-top:5px;display:flex;flex-wrap:wrap;gap:4px;">'+_presAll.map(function(p,_pi){return '<button onclick="openPDFViewer(\''+p.id+'\',\'\')" style="font-size:.66rem;padding:3px 9px;border-radius:12px;background:rgba(0,113,227,.10);color:var(--accent);border:1px solid rgba(0,113,227,.18);cursor:pointer;font-weight:600;">📄 Presupuesto '+(_pi+1)+'</button>';}).join('')+'</div>':'')+
               (_notas.length?'<div style="margin-top:5px;border-top:1px solid rgba(239,68,68,.1);padding-top:4px;">'+_notas.slice().reverse().slice(0,2).map(function(n){return '<div style="font-size:.65rem;color:var(--text2);margin-top:2px;"><span style="color:var(--text3);">'+fD(n.fecha)+'</span> '+esc(n.nota)+'</div>';}).join('')+'</div>':'')+
             '</div>'+
             '<div style="display:flex;flex-direction:column;gap:5px;flex-shrink:0;">'+
               '<button onclick="markRoturaReparada(\''+ant.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 11px;border-radius:14px;background:rgba(52,199,89,.12);border:1px solid rgba(52,199,89,.25);color:var(--green);font-weight:700;cursor:pointer;">✓ Reparada</button>'+
-              '<button onclick="openSeguimientoRotura(\''+ant.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.22);color:rgba(245,158,11,1);cursor:pointer;font-weight:700;">\U0001f4cb Seguim.</button>'+
+              '<button onclick="openSeguimientoRotura(\''+ant.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.22);color:rgba(245,158,11,1);cursor:pointer;font-weight:700;">📋 Seguim.</button>'+
               '<button onclick="openEditRoturaModal(\''+ant.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(79,120,224,.08);border:1px solid rgba(79,120,224,.18);color:#4f78e0;cursor:pointer;font-weight:600;">✎ Editar</button>'+
               '<button onclick="deleteRoturaV2(\''+ant.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(255,59,48,.08);border:1px solid rgba(255,59,48,.15);color:var(--red);cursor:pointer;font-weight:600;">✕</button>'+
             '</div>'+
@@ -9053,8 +9053,8 @@ function rTransductorDetalle(){
           '</div>'+
           '<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">'+
             '<button onclick="openSeguimientoTransductorRotura(\''+tr.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 11px;border-radius:14px;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.22);color:rgba(245,158,11,1);font-weight:700;cursor:pointer;">📋 Seguimiento</button>'+
-            (_nFotos>0?'<button onclick="openFotosTransductorRotura(\''+tr.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(52,199,89,.10);border:1px solid rgba(52,199,89,.2);color:var(--green);cursor:pointer;font-weight:600;">\U0001f4f7 Ver fotos</button>':'')+
-            '<button onclick="openAgregarFotosTransductorRotura(\''+tr.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(52,199,89,.06);border:1px dashed rgba(52,199,89,.22);color:var(--green);cursor:pointer;font-weight:600;">\U0001f4f7+</button>'+
+            (_nFotos>0?'<button onclick="openFotosTransductorRotura(\''+tr.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(52,199,89,.10);border:1px solid rgba(52,199,89,.2);color:var(--green);cursor:pointer;font-weight:600;">📷 Ver fotos</button>':'')+
+            '<button onclick="openAgregarFotosTransductorRotura(\''+tr.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(52,199,89,.06);border:1px dashed rgba(52,199,89,.22);color:var(--green);cursor:pointer;font-weight:600;">📷 + Foto</button>'+
             '<button onclick="openEditTransductorRotura(\''+tr.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(173,198,255,.06);border:1px solid rgba(173,198,255,.22);color:var(--accent);cursor:pointer;font-weight:600;">✏️ Editar</button>'+
             '<button onclick="deleteTransductorRotura(\''+tr.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(255,59,48,.08);border:1px solid rgba(255,59,48,.15);color:var(--red);cursor:pointer;font-weight:600;">&#x2715;</button>'+
           '</div>'+
@@ -11647,7 +11647,7 @@ function openSeguimientoRotura(antenaId,roturaId){
           '<div style="font-size:.64rem;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Estado actual</div>'+
           '<span style="font-size:.75rem;font-weight:700;padding:3px 10px;border-radius:12px;background:'+_eBg+';color:'+_eColor+';">'+_eLabel+'</span>'+
         '</div>'+
-        (rot.estado!=='en_reparacion'?'<button onclick="setEstadoRotura(\''+antenaId+'\',\''+roturaId+'\',\'en_reparacion\')" style="font-size:.66rem;padding:6px 11px;border-radius:14px;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.22);color:rgba(245,158,11,1);cursor:pointer;font-weight:700;">\U0001f4e4 En reparaci\xf3n</button>':'<span style="font-size:.66rem;color:var(--text3);">Cam. estado al guardar</span>')+
+        (rot.estado!=='en_reparacion'?'<button onclick="setEstadoRotura(\''+antenaId+'\',\''+roturaId+'\',\'en_reparacion\')" style="font-size:.66rem;padding:6px 11px;border-radius:14px;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.22);color:rgba(245,158,11,1);cursor:pointer;font-weight:700;">📤 En reparaci\xf3n</button>':'<span style="font-size:.66rem;color:var(--text3);">Cam. estado al guardar</span>')+
       '</div>'+
     '</div>'+
     '<div class="g2">'+
@@ -11660,7 +11660,7 @@ function openSeguimientoRotura(antenaId,roturaId){
     '</div>'+
     '<div class="ff"><div class="ff-label">Presupuestos ('+_presAll.length+')</div>'+
       (_presAll.length?'<div style="display:flex;flex-direction:column;gap:4px;margin-bottom:6px;">'+
-        _presAll.map(function(p,_pi){return '<button onclick="openPDFViewer(\''+p.id+'\',\'\')" style="font-size:.68rem;padding:4px 10px;border-radius:12px;background:rgba(0,113,227,.10);color:var(--accent);border:1px solid rgba(0,113,227,.18);cursor:pointer;font-weight:600;text-align:left;">\U0001f4c4 Presupuesto '+(_pi+1)+(p.nombre?' \xb7 '+esc(p.nombre.slice(0,22)):'')+'</button>';}).join('')+
+        _presAll.map(function(p,_pi){return '<button onclick="openPDFViewer(\''+p.id+'\',\'\')" style="font-size:.68rem;padding:4px 10px;border-radius:12px;background:rgba(0,113,227,.10);color:var(--accent);border:1px solid rgba(0,113,227,.18);cursor:pointer;font-weight:600;text-align:left;">📄 Presupuesto '+(_pi+1)+(p.nombre?' \xb7 '+esc(p.nombre.slice(0,22)):'')+'</button>';}).join('')+
       '</div>':'')+
       '<div id="seg-pres-name" style="font-size:.7rem;color:var(--green);margin-bottom:4px;min-height:16px;"></div>'+
       '<label style="display:flex;align-items:center;gap:6px;padding:9px 12px;border-radius:var(--r-md);background:rgba(0,113,227,.08);border:1.5px dashed rgba(0,113,227,.25);cursor:pointer;font-size:.75rem;color:var(--accent);font-weight:600;">'+
@@ -11677,7 +11677,7 @@ function openSeguimientoRotura(antenaId,roturaId){
       '</div>':'<div style="font-size:.72rem;color:var(--text3);margin-bottom:8px;">Sin notas a\xfan</div>')+
       '<textarea class="inp" id="seg-nota" rows="2" placeholder="Agregar nota (estado, llamadas, avances...)"></textarea>'+
     '</div>'+
-    '<button class="btn-grad" onclick="submitSeguimientoRotura(\''+antenaId+'\',\''+roturaId+'\')" style="background:linear-gradient(135deg,rgba(245,158,11,1),rgba(234,88,12,1));">\U0001f4be Guardar seguimiento</button>'
+    '<button class="btn-grad" onclick="submitSeguimientoRotura(\''+antenaId+'\',\''+roturaId+'\')" style="background:linear-gradient(135deg,rgba(245,158,11,1),rgba(234,88,12,1));">💾 Guardar seguimiento</button>'
   );
 }
 
@@ -11715,7 +11715,7 @@ function submitSeguimientoRotura(antenaId,roturaId){
         return Object.assign({},r,{fechaEnvio:fechaEnvio,empresa:empresa.trim(),estado:nuevoEstado,notasSeguimiento:nuevasNotas,presupuestosArreglo:nuevosPres});
       })});
     });
-    saveData();closeModal();showToast('\U0001f4cb Seguimiento actualizado','');render();
+    saveData();closeModal();showToast('📋 Seguimiento actualizado','');render();
   };
   var presPend=window._pendSegPres;window._pendSegPres=null;
   if(!presPend){saveAndFinish(null);return;}
@@ -11732,7 +11732,7 @@ function openFotosRotura(antenaId,roturaId){
   if(!fotos.length){showToast('Sin fotos registradas','warn');return;}
   openModal(
     '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">'+
-      '<div style="font-weight:800;font-size:1rem;">\U0001f4f7 Fotos de rotura</div>'+
+      '<div style="font-weight:800;font-size:1rem;">📷 Fotos de rotura</div>'+
       '<div style="font-size:.65rem;color:var(--text3);margin-left:4px;flex:1;">'+esc(rot.queSeRompio||'')+'</div>'+
       '<button onclick="closeModal()" style="width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">✕</button>'+
     '</div>'+
@@ -11742,20 +11742,26 @@ function openFotosRotura(antenaId,roturaId){
   var container=document.getElementById('fotos-grid');
   var loading=document.getElementById('fotos-loading');
   var loaded=0;
+  function _showFotoImg(src){
+    if(!container)return;
+    var div=document.createElement('div');
+    div.style.cssText='border-radius:10px;overflow:hidden;aspect-ratio:1/1;background:#111;cursor:pointer;';
+    var img=document.createElement('img');
+    img.src=src;img.style.cssText='width:100%;height:100%;object-fit:cover;display:block;';
+    img.onclick=function(){window.open(src,'_blank');};
+    div.appendChild(img);container.appendChild(div);
+  }
   fotos.forEach(function(f){
     dbGet(f.id,function(rec){
-      loaded++;
-      if(rec&&rec.data&&container){
-        var div=document.createElement('div');
-        div.style.cssText='border-radius:10px;overflow:hidden;aspect-ratio:1/1;background:#111;cursor:pointer;';
-        var img=document.createElement('img');
-        img.src=rec.data;
-        img.style.cssText='width:100%;height:100%;object-fit:cover;display:block;';
-        img.onclick=function(){window.open(rec.data,'_blank');};
-        div.appendChild(img);
-        container.appendChild(div);
+      if(rec&&rec.data){
+        _showFotoImg(rec.data);loaded++;
+        if(loaded===fotos.length&&loading)loading.style.display='none';
+      } else {
+        _storageGetUrl(f.id,function(url){
+          if(url)_showFotoImg(url);
+          loaded++;if(loaded===fotos.length&&loading)loading.style.display='none';
+        });
       }
-      if(loaded===fotos.length&&loading)loading.style.display='none';
     });
   });
 }
@@ -12539,20 +12545,26 @@ function openFotosTransductorRotura(transId,rotId){
   var container=document.getElementById('trfotos-grid');
   var loading=document.getElementById('trfotos-loading');
   var loaded=0;
+  function _showTrFotoImg(src){
+    if(!container)return;
+    var div=document.createElement('div');
+    div.style.cssText='border-radius:10px;overflow:hidden;aspect-ratio:1/1;background:#111;cursor:pointer;';
+    var img=document.createElement('img');
+    img.src=src;img.style.cssText='width:100%;height:100%;object-fit:cover;display:block;';
+    img.onclick=function(){window.open(src,'_blank');};
+    div.appendChild(img);container.appendChild(div);
+  }
   fotos.forEach(function(f){
     dbGet(f.id,function(rec){
-      loaded++;
-      if(rec&&rec.data&&container){
-        var div=document.createElement('div');
-        div.style.cssText='border-radius:10px;overflow:hidden;aspect-ratio:1/1;background:#111;cursor:pointer;';
-        var img=document.createElement('img');
-        img.src=rec.data;
-        img.style.cssText='width:100%;height:100%;object-fit:cover;display:block;';
-        img.onclick=function(){window.open(rec.data,'_blank');};
-        div.appendChild(img);
-        container.appendChild(div);
+      if(rec&&rec.data){
+        _showTrFotoImg(rec.data);loaded++;
+        if(loaded===fotos.length&&loading)loading.style.display='none';
+      } else {
+        _storageGetUrl(f.id,function(url){
+          if(url)_showTrFotoImg(url);
+          loaded++;if(loaded===fotos.length&&loading)loading.style.display='none';
+        });
       }
-      if(loaded===fotos.length&&loading)loading.style.display='none';
     });
   });
 }
@@ -12774,20 +12786,26 @@ function openFotosFallaDirecta(eqId,fallaId){
   var container=document.getElementById('fdfotos-grid');
   var loading=document.getElementById('fdfotos-loading');
   var loaded=0;
+  function _showFdFotoImg(src){
+    if(!container)return;
+    var div=document.createElement('div');
+    div.style.cssText='border-radius:10px;overflow:hidden;aspect-ratio:1/1;background:#111;cursor:pointer;';
+    var img=document.createElement('img');
+    img.src=src;img.style.cssText='width:100%;height:100%;object-fit:cover;display:block;';
+    img.onclick=function(){window.open(src,'_blank');};
+    div.appendChild(img);container.appendChild(div);
+  }
   fotos.forEach(function(f){
     dbGet(f.id,function(rec){
-      loaded++;
-      if(rec&&rec.data&&container){
-        var div=document.createElement('div');
-        div.style.cssText='border-radius:10px;overflow:hidden;aspect-ratio:1/1;background:#111;cursor:pointer;';
-        var img=document.createElement('img');
-        img.src=rec.data;
-        img.style.cssText='width:100%;height:100%;object-fit:cover;display:block;';
-        img.onclick=function(){window.open(rec.data,'_blank');};
-        div.appendChild(img);
-        container.appendChild(div);
+      if(rec&&rec.data){
+        _showFdFotoImg(rec.data);loaded++;
+        if(loaded===fotos.length&&loading)loading.style.display='none';
+      } else {
+        _storageGetUrl(f.id,function(url){
+          if(url)_showFdFotoImg(url);
+          loaded++;if(loaded===fotos.length&&loading)loading.style.display='none';
+        });
       }
-      if(loaded===fotos.length&&loading)loading.style.display='none';
     });
   });
 }
@@ -12835,10 +12853,10 @@ function _openAgregarFotosModal(title,subtitle,onSaveStr){
     '<div id="agr-fotos-list" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;min-height:0;"></div>'+
     '<label style="display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;border-radius:var(--r-md);background:rgba(52,199,89,.08);border:2px dashed rgba(52,199,89,.3);cursor:pointer;font-size:.82rem;color:var(--green);font-weight:700;width:100%;box-sizing:border-box;">'+
       '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>'+
-      '\U0001f4f7 Tomar foto o elegir de galería'+
+      '📷 Tomar foto o elegir de galería'+
       '<input type="file" accept="image/*" multiple style="display:none;" onchange="_addAgrFotos(this.files)">'+
     '</label>'+
-    '<button class="btn-grad" style="width:100%;margin-top:12px;" onclick="'+onSaveStr+'">\U0001f4be Guardar fotos</button>'
+    '<button class="btn-grad" style="width:100%;margin-top:12px;" onclick="'+onSaveStr+'">💾 Guardar fotos</button>'
   );
 }
 function openAgregarFotosAntenaRotura(antId,rotId){
@@ -12860,7 +12878,7 @@ function submitAgregarFotosAntenaRotura(antId,rotId){
           return Object.assign({},r,{fotos:(r.fotos||[]).concat(uploadedFotos)});
         })});
       });
-      saveData();closeModal();render();showToast('\U0001f4f7 '+uploadedFotos.length+' foto(s) guardadas','');
+      saveData();closeModal();render();showToast('📷 '+uploadedFotos.length+' foto(s) guardadas','');
       return;
     }
     var f=pendFotos[idx];
@@ -12890,7 +12908,7 @@ function submitAgregarFotosTransductorRotura(transId,rotId){
           return Object.assign({},r,{fotos:(r.fotos||[]).concat(uploadedFotos)});
         })});
       });
-      saveData();closeModal();render();showToast('\U0001f4f7 '+uploadedFotos.length+' foto(s) guardadas','');
+      saveData();closeModal();render();showToast('📷 '+uploadedFotos.length+' foto(s) guardadas','');
       return;
     }
     var f=pendFotos[idx];
@@ -12920,7 +12938,7 @@ function submitAgregarFotosFallaDirecta(eqId,fallaId){
           return Object.assign({},f,{fotos:(f.fotos||[]).concat(uploadedFotos)});
         })});
       });
-      saveData();closeModal();render();showToast('\U0001f4f7 '+uploadedFotos.length+' foto(s) guardadas','');
+      saveData();closeModal();render();showToast('📷 '+uploadedFotos.length+' foto(s) guardadas','');
       return;
     }
     var f=pendFotos[idx];
@@ -13979,7 +13997,7 @@ function generarPDFAntena(antId){
     }
     var safeName=(ant.nombre||'antena').replace(/[^a-zA-Z0-9]/g,'_');
     doc.save('Antena-'+safeName+'.pdf');
-    showToast('\U0001f4c4 PDF generado');
+    showToast('📄 PDF generado');
   }catch(e){showToast('Error al generar PDF: '+e.message,'err');}
 }
 
@@ -13991,7 +14009,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.0.1";
+var APP_DISPLAY_VERSION="8.0.2";
 var APP_BUILD="26/06/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
