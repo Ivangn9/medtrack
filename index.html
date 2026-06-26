@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.26.455 -->
+<!-- v2026.06.26.456 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.26.455">
+<meta name="app-version" content="v2026.06.26.456">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3519,20 +3519,35 @@ function openModalParte(eqId,pt){
     return '<div class="ff" style="background:rgba(0,0,0,.02);border-radius:var(--r-sm);padding:10px;margin-bottom:4px;"><div class="ff-label" style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;">'+label+'</div>'+(existHtml?'<div style="margin-bottom:6px;">'+existHtml+'</div>':'')+'<div id="pdf-list-'+tipo+'"></div><button onclick="attachPDF(\''+tipo+'\')" type="button" style="margin-top:6px;width:100%;padding:8px;border:1.5px dashed rgba(0,113,227,.4);border-radius:var(--r-md);background:rgba(0,113,227,.05);color:var(--accent);font-size:.78rem;font-weight:600;cursor:pointer;">📎 Adjuntar '+label+'</button></div>';
   }
   var isMejora=f.estado==="mejora";
-  // For new fault: show existing OK components as quick-select to avoid duplicates
+  // For new fault: show existing OK components and linked antenas/transductores as quick-select
   var _okCompBlock='';
   if(n&&_eqObj){
     var _okPartes=(_eqObj.partes||[]).filter(function(p){return p.estado==='ok';});
-    if(_okPartes.length){
+    var _linkedAnts=(_eqObj.antenaIds||[]).map(function(aid){return antenas.find(function(a){return a.id===aid;});}).filter(Boolean);
+    var _linkedTrs=(_eqObj.transductorIds||[]).map(function(tid){return transductores.find(function(t){return t.id===tid;});}).filter(Boolean);
+    if(_okPartes.length||_linkedAnts.length||_linkedTrs.length){
       _okCompBlock='<div style="margin-bottom:12px;padding:10px 12px;background:rgba(173,198,255,.07);border:1px solid rgba(173,198,255,.2);border-radius:12px;">';
-      _okCompBlock+='<div style="font-size:.68rem;font-weight:700;color:#adc6ff;margin-bottom:8px;">🔧 ¿El componente ya está en la lista del equipo? Seleccionalo para no duplicar:</div>';
-      _okCompBlock+='<div style="display:flex;gap:6px;flex-wrap:wrap;">';
-      _okPartes.slice(0,12).forEach(function(p){
-        _okCompBlock+='<button type="button" onclick="registrarFallaComponente(\''+eqId+'\',\''+p.id+'\',\'roto\');closeModal();" style="padding:5px 11px;border-radius:20px;font-size:.68rem;font-weight:600;border:1px solid rgba(255,59,48,.3);background:rgba(255,59,48,.08);color:#ff3b30;cursor:pointer;white-space:nowrap;">'+esc(p.nombre)+'</button>';
-      });
-      if(_okPartes.length>12)_okCompBlock+='<span style="font-size:.65rem;color:var(--text3);align-self:center;">+'+(_okPartes.length-12)+' más…</span>';
-      _okCompBlock+='</div>';
-      _okCompBlock+='<div style="font-size:.63rem;color:var(--text3);margin-top:8px;">O completá el formulario de abajo para agregar uno nuevo:</div>';
+      if(_linkedAnts.length||_linkedTrs.length){
+        _okCompBlock+='<div style="font-size:.68rem;font-weight:700;color:#dc2626;margin-bottom:6px;">📡 Antenas y transductores vinculados — registrá la falla directamente:</div>';
+        _okCompBlock+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">';
+        _linkedAnts.forEach(function(a){
+          _okCompBlock+='<button type="button" onclick="closeModal();setTimeout(function(){openAddRoturaModalV2(\''+a.id+'\');},120);" style="padding:5px 11px;border-radius:20px;font-size:.68rem;font-weight:700;border:1px solid rgba(239,68,68,.4);background:rgba(239,68,68,.12);color:#dc2626;cursor:pointer;white-space:nowrap;">📡 '+esc(a.nombre)+'</button>';
+        });
+        _linkedTrs.forEach(function(t){
+          _okCompBlock+='<button type="button" onclick="closeModal();setTimeout(function(){openAddTransductorRoturaModal(\''+t.id+'\');},120);" style="padding:5px 11px;border-radius:20px;font-size:.68rem;font-weight:700;border:1px solid rgba(14,165,233,.4);background:rgba(14,165,233,.12);color:#0369a1;cursor:pointer;white-space:nowrap;">🔌 '+esc(t.nombre)+'</button>';
+        });
+        _okCompBlock+='</div>';
+      }
+      if(_okPartes.length){
+        _okCompBlock+='<div style="font-size:.68rem;font-weight:700;color:#adc6ff;margin-bottom:6px;">🔧 ¿El componente ya está en la lista? Seleccionalo:</div>';
+        _okCompBlock+='<div style="display:flex;gap:6px;flex-wrap:wrap;">';
+        _okPartes.slice(0,12).forEach(function(p){
+          _okCompBlock+='<button type="button" onclick="registrarFallaComponente(\''+eqId+'\',\''+p.id+'\',\'roto\');closeModal();" style="padding:5px 11px;border-radius:20px;font-size:.68rem;font-weight:600;border:1px solid rgba(255,59,48,.3);background:rgba(255,59,48,.08);color:#ff3b30;cursor:pointer;white-space:nowrap;">'+esc(p.nombre)+'</button>';
+        });
+        if(_okPartes.length>12)_okCompBlock+='<span style="font-size:.65rem;color:var(--text3);align-self:center;">+'+(_okPartes.length-12)+' más…</span>';
+        _okCompBlock+='</div>';
+      }
+      _okCompBlock+='<div style="font-size:.63rem;color:var(--text3);margin-top:8px;">O completá el formulario de abajo para agregar otro componente nuevo:</div>';
       _okCompBlock+='</div>';
     }
   }
@@ -14065,7 +14080,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.0.5";
+var APP_DISPLAY_VERSION="8.0.6";
 var APP_BUILD="26/06/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
