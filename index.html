@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.29.475 -->
+<!-- v2026.06.29.476 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.29.475">
+<meta name="app-version" content="v2026.06.29.476">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -8058,6 +8058,18 @@ function rDetalle(){
     if(eq.servicioContratoNumero)h+='<div class="ibox"><div class="ibox-l">Nº Contrato</div><div class="ibox-v" style="font-family:monospace;font-size:.8rem;">'+esc(eq.servicioContratoNumero)+'</div></div>';
     if(eq.servicioContratoContacto)h+='<div class="ibox"><div class="ibox-l">Contacto prov.</div><div class="ibox-v" style="font-size:.78rem;">'+esc(eq.servicioContratoContacto)+'</div></div>';
   }
+  if(eq.cat!=='UPS'){
+    var _upsLink=eqs.filter(function(u){return u.cat==='UPS'&&!u.baja&&(u.equiposConectados||[]).indexOf(eq.id)!==-1;});
+    if(_upsLink.length){
+      var _upsChips=_upsLink.map(function(u){
+        var _ur=(u.partes||[]).filter(function(p){return p.estado!=='ok'&&p.estado!=='mejora';}).length;
+        var _ub=u.estado==='fuera-de-servicio'||u.estado==='advertencia'||u.estado==='con-rotura'||_ur;
+        var _uc=_ub?'#dc2626':'#16a34a',_ubg=_ub?'rgba(220,38,38,.12)':'rgba(245,158,11,.14)';
+        return '<span onclick="goDetalle(\''+u.id+'\')" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:50px;font-size:.72rem;font-weight:700;background:'+_ubg+';color:'+(_ub?_uc:'#d97706')+';">🔋 '+esc(u.nombre)+(u.kva?' · '+esc(u.kva):'')+(_ub?' ⚠️':'')+'</span>';
+      }).join(' ');
+      h+='<div class="ibox" style="grid-column:1/-1;"><div class="ibox-l">UPS / Respaldo eléctrico</div><div class="ibox-v" style="display:flex;flex-wrap:wrap;gap:5px;">'+_upsChips+'</div></div>';
+    }
+  }
   h+='</div>';
   if(eq.cat==='DES'){
     function _desVencChip(fecha,label){if(!fecha)return'<span style="font-size:.72rem;color:var(--text3);">Sin fecha</span>';var dv=diasH(fecha);var venc=dv<0;var prox=!venc&&dv<=60;var cv=venc?'var(--red)':prox?'var(--orange)':'var(--green)';var bv=venc?'rgba(255,59,48,.12)':prox?'rgba(255,149,0,.12)':'rgba(52,199,89,.12)';var lbl=venc?'❌ VENCIDO':prox?'⚠️ Vence en '+dv+'d':'✅ '+fD(fecha);return'<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:50px;font-size:.72rem;font-weight:700;background:'+bv+';color:'+cv+';">'+lbl+'</span>';}
@@ -14211,7 +14223,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.4.2";
+var APP_DISPLAY_VERSION="8.5.0";
 var APP_BUILD="29/06/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
