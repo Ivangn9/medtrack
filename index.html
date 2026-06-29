@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.29.476 -->
+<!-- v2026.06.29.477 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.29.476">
+<meta name="app-version" content="v2026.06.29.477">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1175,6 +1175,11 @@ body.dark .pill[style*="#ff9500"],body.dark .pill[style*="--orange"]{box-shadow:
         <div style="flex:1;"><div style="font-size:.58rem;color:var(--text3);margin-bottom:3px;">HASTA</div><input class="inp" type="date" id="r-hasta" style="padding:8px 10px;font-size:.78rem;"></div>
       </div>
       <button onclick="expFiltered()" style="width:100%;padding:12px;background:var(--red);color:#fff;border:none;border-radius:50px;font-weight:600;font-size:.82rem;cursor:pointer;">📄 Informe Filtrado</button>
+    </div>
+    <div class="settings-item">
+      <div class="settings-title">💼 Propuesta Comercial</div>
+      <div class="settings-desc" style="margin-bottom:10px;">PDF ejecutivo para presentar el sistema a la dirección o socios</div>
+      <button onclick="toggleSettings();generarPropuestaComercial()" class="b-accent" style="width:100%;padding:12px;border-radius:50px;margin-bottom:0;">📄 Generar Propuesta</button>
     </div>
     <div class="settings-item" style="margin-bottom:12px;">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;position:relative;z-index:1;">
@@ -14216,6 +14221,278 @@ function generarPDFAntena(antId){
 }
 
 // ═══════════════════════════════════════════
+//  PROPUESTA COMERCIAL
+// ═══════════════════════════════════════════
+function _buildPropuestaDoc(){
+  var now=new Date();
+  var fechaDoc=_pad2(now.getDate())+'/'+_pad2(now.getMonth()+1)+'/'+now.getFullYear();
+  var logo=_reportLogoB64();
+
+  // — Datos reales del sistema —
+  var activos=(eqs||[]).filter(function(e){return !e.baja;});
+  var totalEq=activos.length;
+  var operativos=activos.filter(function(e){return e.estado==='operativo';}).length;
+  var fueraServ=activos.filter(function(e){return e.estado==='fuera-de-servicio';}).length;
+  var enMant=activos.filter(function(e){return e.estado!=='operativo'&&e.estado!=='fuera-de-servicio';}).length;
+  var operPct=totalEq?Math.round((operativos/totalEq)*100):0;
+  var totalOTs=(ordenesTrabajo||[]).length;
+  var otsAbiertas=(ordenesTrabajo||[]).filter(function(o){return o.estado==='pendiente'||o.estado==='en_progreso'||o.estado==='asignada';}).length;
+  var antenasAct=(antenas||[]).filter(function(a){return !a.baja;}).length;
+  var transAct=(transductores||[]).filter(function(t){return !t.baja;});
+  var totalTrans=transAct.length;
+  var pmTotal=(pmProgramados||[]).length;
+  var alertasCrit=getAlertas?getAlertas().filter(function(a){return a.niv==='critico';}).length:0;
+
+  // MTBF promedio
+  var mtbfVals=activos.map(function(e){return calcMTBF?calcMTBF(e):null;}).filter(function(v){return v&&v>0;});
+  var mtbfProm=mtbfVals.length?Math.round(mtbfVals.reduce(function(a,b){return a+b;},0)/mtbfVals.length):null;
+  var availVals=activos.map(function(e){return calcAvailability?calcAvailability(e):null;}).filter(function(v){return v&&v>0;});
+  var availProm=availVals.length?Math.round(availVals.reduce(function(a,b){return a+b;},0)/availVals.length):null;
+
+  // —— Colores ——
+  var C_NAVY='#1a3a6b';
+  var C_BLUE='#2563eb';
+  var C_ACCENT='#3b82f6';
+  var C_GREEN='#16a34a';
+  var C_ORANGE='#ea580c';
+  var C_RED='#dc2626';
+  var C_GRAY='#64748b';
+  var C_LIGHT='#f1f5f9';
+  var C_WHITE='#ffffff';
+
+  function hdr(t,sz,col,mb){return {text:t,fontSize:sz||11,bold:true,color:col||C_NAVY,margin:[0,0,0,mb||4]};}
+  function sub(t,col){return {text:t,fontSize:8.5,color:col||C_GRAY,margin:[0,0,0,10],lineHeight:1.3};}
+  function body(t){return {text:t,fontSize:9,color:'#334155',lineHeight:1.35,margin:[0,0,0,7]};}
+  function sep(){return {canvas:[{type:'line',x1:0,y1:0,x2:515,y2:0,lineWidth:0.4,lineColor:'#cbd5e1'}],margin:[0,6,0,8]};}
+  function kpiBox(label,val,col){
+    return {table:{widths:['*'],body:[[{stack:[{text:val,fontSize:18,bold:true,color:col||C_BLUE,margin:[0,0,0,2]},{text:label,fontSize:7.5,color:C_GRAY}],alignment:'center',margin:[8,10,8,10],fillColor:C_LIGHT,border:[false,false,false,false]}]]},layout:'noBorders',margin:[0,0,0,0]};
+  }
+  function featureRow(icon,title,desc){
+    return {columns:[{text:icon,width:18,fontSize:11,color:C_ACCENT,margin:[0,0,0,0]},{stack:[{text:title,fontSize:9,bold:true,color:C_NAVY,margin:[0,0,0,1]},{text:desc,fontSize:8,color:C_GRAY,lineHeight:1.3}],width:'*'}],columnGap:8,margin:[0,0,0,8]};
+  }
+  function planCard(nombre,precio,per,features,highlight){
+    var rows=features.map(function(f){return [{text:'✔ '+f,fontSize:8,color:'#334155',border:[false,false,false,false],margin:[0,1,0,1]}];});
+    var titleRow=[{text:nombre+'\n',fontSize:10,bold:true,color:highlight?C_WHITE:C_NAVY,alignment:'center',fillColor:highlight?C_BLUE:C_LIGHT,border:[false,false,false,false],margin:[6,8,6,2]},{text:precio,fontSize:16,bold:true,color:highlight?C_WHITE:C_BLUE,alignment:'center',fillColor:highlight?C_BLUE:C_LIGHT,border:[false,false,false,false]},{text:per,fontSize:7,color:highlight?'#bfdbfe':'#94a3b8',alignment:'center',fillColor:highlight?C_BLUE:C_LIGHT,border:[false,false,false,false],margin:[0,0,0,6]}];
+    return {table:{widths:['*'],body:[titleRow,rows]},layout:{hLineWidth:function(){return 0.3;},hLineColor:function(){return '#e2e8f0';},vLineWidth:function(){return highlight?0:0.3;},vLineColor:function(){return highlight?C_BLUE:'#e2e8f0';},paddingLeft:function(){return 10;},paddingRight:function(){return 10;}}};
+  }
+
+  var c=[];
+
+  // ══ PORTADA ══
+  c.push({canvas:[{type:'rect',x:0,y:0,w:515,h:220,color:C_NAVY,r:10}],margin:[0,0,0,0]});
+  if(logo){c.push({image:logo,width:70,margin:[20,-210,0,0],alignment:'left'});}
+  else{c.push({text:'CIMA',fontSize:16,bold:true,color:C_WHITE,margin:[20,-210,0,0]});}
+  c.push({text:'Sistema MedTrack',fontSize:26,bold:true,color:C_WHITE,alignment:'center',margin:[0,-150,0,4]});
+  c.push({text:'Propuesta Comercial',fontSize:14,color:'#93c5fd',alignment:'center',margin:[0,0,0,8]});
+  c.push({canvas:[{type:'line',x1:100,y1:0,x2:415,y2:0,lineWidth:0.8,lineColor:'rgba(255,255,255,0.3)'}],margin:[0,0,0,10]});
+  c.push({text:'CIMA — Centro de Imágenes Médicas Avanzadas',fontSize:9,color:'#bfdbfe',alignment:'center',margin:[0,0,0,4]});
+  c.push({text:'Gestión inteligente de equipamiento médico de diagnóstico por imágenes',fontSize:8,color:'#93c5fd',alignment:'center',italic:true,margin:[0,0,0,30]});
+  c.push({columns:[{text:'Preparado por: Iván García · Responsable Técnico',fontSize:8,color:C_GRAY},{text:'Fecha: '+fechaDoc,fontSize:8,color:C_GRAY,alignment:'right'}],margin:[0,0,0,6]});
+  c.push({text:'Versión del sistema en producción: v'+APP_DISPLAY_VERSION,fontSize:7.5,color:C_GRAY,margin:[0,0,0,24]});
+
+  // ══ RESUMEN EJECUTIVO ══
+  c.push({text:'',pageBreak:'before'});
+  c.push(hdr('Resumen Ejecutivo',14,C_NAVY,6));
+  c.push(sep());
+  c.push(body('CIMA Investigaciones Avanzadas gestiona actualmente '+totalEq+' equipos médicos de alta complejidad (resonancia magnética, tomografía, ecografía, etc.) con sus respectivos accesorios, contratos de mantenimiento, antenas RF, transductores y sistemas UPS. MedTrack centraliza toda esa información en una plataforma web accesible desde cualquier dispositivo.'));
+  c.push(body('El sistema está en producción y contiene datos reales acumulados. Esta propuesta formaliza la relación comercial para asegurar la continuidad, el soporte técnico y el desarrollo evolutivo de la plataforma.'));
+  c.push(sep());
+  c.push(hdr('Datos reales del sistema hoy',10,C_NAVY,8));
+  c.push({columns:[
+    kpiBox('Equipos activos',String(totalEq),C_BLUE),
+    kpiBox('Operatividad',operPct+'%',operPct>=90?C_GREEN:operPct>=70?C_ORANGE:C_RED),
+    kpiBox('Órdenes de trabajo',String(totalOTs),C_ACCENT),
+    kpiBox('Alertas críticas',String(alertasCrit),alertasCrit>0?C_RED:C_GREEN)
+  ],columnGap:8,margin:[0,0,0,12]});
+  if(mtbfProm){c.push({columns:[kpiBox('MTBF promedio (h)',String(mtbfProm),C_BLUE),kpiBox('Disponibilidad prom.',availProm?availProm+'%':'—',C_GREEN),kpiBox('PMs programados',String(pmTotal),C_ACCENT),kpiBox('Antenas + Transductores',(antenasAct+totalTrans).toString(),C_NAVY)],columnGap:8,margin:[0,0,0,12]});}
+  c.push(body('Fuente: datos en tiempo real del sistema MedTrack en producción en CIMA al '+fechaDoc+'.'));
+
+  // ══ EL PROBLEMA ══
+  c.push({text:'',pageBreak:'before'});
+  c.push(hdr('El Problema Actual',14,C_NAVY,6));
+  c.push(sep());
+  c.push(body('Antes de MedTrack, la gestión del equipamiento de CIMA dependía de herramientas no diseñadas para este fin: hojas de cálculo Excel, grupos de WhatsApp y correo electrónico. Este esquema generaba riesgos operativos, regulatorios y económicos concretos.'));
+  c.push({ul:[
+    {text:[{text:'Pérdida de trazabilidad: ',bold:true,color:C_NAVY},'sin registro unificado de fallas, reparaciones y costos por equipo, es imposible demostrar el historial ante auditorías o ante el fabricante para gestionar garantías.'],margin:[0,0,0,5],color:'#334155',fontSize:9},
+    {text:[{text:'Vencimientos ignorados: ',bold:true,color:C_NAVY},'contratos de mantenimiento preventivo, seguros y certificaciones vencen sin alertas automáticas, exponiendo a CIMA a multas y suspensiones de habilitación.'],margin:[0,0,0,5],color:'#334155',fontSize:9},
+    {text:[{text:'Tiempo de respuesta lento: ',bold:true,color:C_NAVY},'sin sistema de órdenes de trabajo, el circuito de reporte-diagnóstico-reparación no tiene seguimiento; las demoras no son medibles ni mejorables.'],margin:[0,0,0,5],color:'#334155',fontSize:9},
+    {text:[{text:'Decisiones sin datos: ',bold:true,color:C_NAVY},'la dirección no tiene visibilidad de métricas como MTBF, MTTR o disponibilidad por equipo para priorizar inversiones o negociar contratos con proveedores.'],margin:[0,0,0,5],color:'#334155',fontSize:9},
+    {text:[{text:'Riesgo de pérdida de información: ',bold:true,color:C_NAVY},'datos críticos guardados en computadoras individuales o grupos de chat; si el responsable técnico no está disponible, nadie accede a la información.'],margin:[0,0,0,5],color:'#334155',fontSize:9}
+  ],margin:[0,0,0,10]});
+  c.push({table:{widths:['*'],body:[[{stack:[{text:'Costo estimado de downtime no planificado en equipos de RM/CT',bold:true,fontSize:9,color:C_ORANGE,margin:[0,0,0,4]},{text:'Un equipo de RM fuera de servicio 1 día hábil implica la pérdida de aproximadamente 15-25 estudios. A un precio promedio de $80.000-$150.000 por estudio (en contexto de medicina privada/prepagas), el impacto diario ronda los $1.200.000 - $3.750.000 ARS. Un sistema que permite reducir el MTTR en solo 2 horas por evento se paga solo en el primer mes.',fontSize:8.5,color:'#334155',lineHeight:1.35}],margin:[12,10,12,10],fillColor:'#fff7ed',border:[true,true,true,true]}]]},layout:{hLineColor:function(){return C_ORANGE;},vLineColor:function(){return C_ORANGE;},hLineWidth:function(){return 0.8;},vLineWidth:function(){return 0.8;}},margin:[0,0,0,0]});
+
+  // ══ LA SOLUCIÓN ══
+  c.push({text:'',pageBreak:'before'});
+  c.push(hdr('La Solución: Sistema MedTrack',14,C_NAVY,6));
+  c.push(sep());
+  c.push(body('MedTrack es una Progressive Web App (PWA) desarrollada específicamente para las necesidades de CIMA. Funciona en cualquier navegador moderno (PC, iPhone, iPad, Android) sin instalación adicional y sincroniza datos en tiempo real entre todos los usuarios autorizados.'));
+  c.push(hdr('Módulos del sistema',10,C_NAVY,8));
+  c.push({columns:[
+    {stack:[
+      featureRow('⚙','Gestión de Equipos','Ficha completa por equipo: modelo, serie, proveedor, garantía, contrato de servicio, estado operativo, ubicación y fotos.'),
+      featureRow('📋','Órdenes de Trabajo','Ciclo completo: reporte → asignación → diagnóstico → reparación → cierre, con tiempos y responsables.'),
+      featureRow('🗓','Mantenimientos Preventivos','Calendario de PMs con alertas de vencimiento, historial y firma digital del técnico.'),
+      featureRow('📡','Antenas RF','Gestión de antenas por equipo de RM: roturas, reparaciones, presupuestos, fotos, seguimiento por fabricante.')
+    ],width:'*'},
+    {stack:[
+      featureRow('🔬','Transductores de Ecografía','Trazabilidad completa de transductores: fallas, fotos, reparaciones externas, estado por unidad.'),
+      featureRow('⚡','UPS / Respaldo Eléctrico','Vinculación UPS → equipos conectados, con alertas de estado y potencia instalada.'),
+      featureRow('📊','Informe Gerencial PDF','Reporte ejecutivo mensual con análisis IA, métricas MTBF/MTTR/disponibilidad y gráficos estadísticos.'),
+      featureRow('🔔','Alertas y Notificaciones','Push notifications para vencimientos, equipos críticos y eventos relevantes en tiempo real.')
+    ],width:'*'}
+  ],columnGap:16,margin:[0,0,0,12]});
+  c.push({table:{widths:['*','*','*'],body:[[
+    {stack:[{text:'PWA — Sin instalación',bold:true,fontSize:8.5,color:C_BLUE,margin:[0,0,0,2]},{text:'Acceso desde cualquier dispositivo, funciona offline con datos en caché local.',fontSize:7.5,color:C_GRAY,lineHeight:1.3}],fillColor:C_LIGHT,border:[false,false,false,false],margin:[10,8,10,8]},
+    {stack:[{text:'Firebase — Tiempo real',bold:true,fontSize:8.5,color:C_BLUE,margin:[0,0,0,2]},{text:'Base de datos en la nube con sincronización instantánea entre todos los usuarios.',fontSize:7.5,color:C_GRAY,lineHeight:1.3}],fillColor:C_LIGHT,border:[false,false,false,false],margin:[10,8,10,8]},
+    {stack:[{text:'Backups automáticos',bold:true,fontSize:8.5,color:C_BLUE,margin:[0,0,0,2]},{text:'Respaldo diario y horario automático en Firebase. Datos nunca se pierden.',fontSize:7.5,color:C_GRAY,lineHeight:1.3}],fillColor:C_LIGHT,border:[false,false,false,false],margin:[10,8,10,8]}
+  ]]},layout:'noBorders',margin:[0,0,0,0]});
+
+  // ══ VALOR CON DATOS REALES ══
+  c.push({text:'',pageBreak:'before'});
+  c.push(hdr('Valor Demostrado — Datos Reales de CIMA',14,C_NAVY,6));
+  c.push(sep());
+  c.push(body('Los siguientes indicadores son generados por el sistema con los datos reales cargados en la plataforma. No son proyecciones — son la realidad operativa de CIMA medida con precisión.'));
+  var kpiRows=[];
+  kpiRows.push(['Equipos médicos activos gestionados',String(totalEq),'Resonadores, tomógrafos, ecógrafos, UPS y más']);
+  kpiRows.push(['Disponibilidad operativa actual',operPct+'%',(operPct>=90?'Excelente':'Por mejorar')+' — referencia sector: >92%']);
+  kpiRows.push(['Equipos fuera de servicio',String(fueraServ),'En seguimiento activo con OT asignada']);
+  kpiRows.push(['Órdenes de trabajo registradas',String(totalOTs),'Historial completo con tiempos y responsables']);
+  kpiRows.push(['OTs pendientes / en progreso',String(otsAbiertas),'Visibilidad en tiempo real para Dirección']);
+  kpiRows.push(['Antenas RF bajo gestión',String(antenasAct),'Con historial de roturas, reparaciones y costos']);
+  kpiRows.push(['Transductores de ecografía',String(totalTrans),'Trazabilidad individual por unidad']);
+  kpiRows.push(['PMs programados en calendario',String(pmTotal),'Con alertas automáticas y registro de cumplimiento']);
+  if(mtbfProm)kpiRows.push(['MTBF promedio del parque','~'+mtbfProm+' h','Horas entre fallas — calculado automáticamente por el sistema']);
+  if(availProm)kpiRows.push(['Disponibilidad promedio calculada',availProm+'%','Basada en historial real de fallas y reparaciones']);
+  c.push(_pdfKV(kpiRows));
+  c.push({text:'',margin:[0,12,0,0]});
+  c.push({table:{widths:['*'],body:[[{stack:[
+    {text:'Antes de MedTrack, ninguno de estos indicadores era calculable.',bold:true,fontSize:9,color:C_NAVY,margin:[0,0,0,4]},
+    {text:'La sola capacidad de responder "¿cuál es la disponibilidad de nuestros equipos de RM en los últimos 6 meses?" con un número real y verificable representa un cambio cualitativo en la gestión. Esa respuesta hoy existe, y se puede mostrar en segundos.',fontSize:8.5,color:'#334155',lineHeight:1.35}
+  ],margin:[12,10,12,10],fillColor:'#eff6ff',border:[true,true,true,true]}]]},layout:{hLineColor:function(){return C_BLUE;},vLineColor:function(){return C_BLUE;},hLineWidth:function(){return 0.8;},vLineWidth:function(){return 0.8;}},margin:[0,0,0,0]});
+
+  // ══ ROI ══
+  c.push({text:'',pageBreak:'before'});
+  c.push(hdr('Análisis de Retorno de Inversión',14,C_NAVY,6));
+  c.push(sep());
+  c.push(body('El costo del sistema es marginal comparado con el costo de los problemas que previene. A continuación, una comparación objetiva de valor generado vs. inversión requerida.'));
+  c.push(hdr('Costos evitados (estimación conservadora)',10,C_RED,6));
+  c.push({table:{widths:['*','auto','auto'],body:[
+    [{text:'Situación',bold:true,fontSize:8.5,fillColor:C_NAVY,color:C_WHITE,border:[false,false,false,false],margin:[6,6,6,6]},{text:'Sin sistema',bold:true,fontSize:8.5,fillColor:C_NAVY,color:C_WHITE,border:[false,false,false,false],alignment:'center',margin:[6,6,6,6]},{text:'Con MedTrack',bold:true,fontSize:8.5,fillColor:C_NAVY,color:C_WHITE,border:[false,false,false,false],alignment:'center',margin:[6,6,6,6]}],
+    [{text:'Vencimiento de contrato de mantenimiento no detectado → multa / pérdida de garantía',fontSize:8,border:[false,false,false,false],margin:[6,5,6,5]},{text:'Riesgo alto',fontSize:8,color:C_RED,bold:true,alignment:'center',border:[false,false,false,false],margin:[6,5,6,5]},{text:'Alerta automática',fontSize:8,color:C_GREEN,bold:true,alignment:'center',border:[false,false,false,false],margin:[6,5,6,5]}],
+    [{text:'Falla no reportada → demora en reparación → estudios perdidos',fontSize:8,border:[false,false,false,false],margin:[6,5,6,5],fillColor:'#f8fafc'},{text:'Sin seguimiento',fontSize:8,color:C_RED,bold:true,alignment:'center',border:[false,false,false,false],margin:[6,5,6,5],fillColor:'#f8fafc'},{text:'OT en minutos',fontSize:8,color:C_GREEN,bold:true,alignment:'center',border:[false,false,false,false],margin:[6,5,6,5],fillColor:'#f8fafc'}],
+    [{text:'Decisión de compra de equipo sin datos de disponibilidad histórica',fontSize:8,border:[false,false,false,false],margin:[6,5,6,5]},{text:'Estimación subjetiva',fontSize:8,color:C_ORANGE,bold:true,alignment:'center',border:[false,false,false,false],margin:[6,5,6,5]},{text:'MTBF + tendencias',fontSize:8,color:C_GREEN,bold:true,alignment:'center',border:[false,false,false,false],margin:[6,5,6,5]}],
+    [{text:'Auditoría sin trazabilidad de mantenimientos → pérdida de habilitación',fontSize:8,border:[false,false,false,false],margin:[6,5,6,5],fillColor:'#f8fafc'},{text:'Riesgo regulatorio',fontSize:8,color:C_RED,bold:true,alignment:'center',border:[false,false,false,false],margin:[6,5,6,5],fillColor:'#f8fafc'},{text:'Historial completo',fontSize:8,color:C_GREEN,bold:true,alignment:'center',border:[false,false,false,false],margin:[6,5,6,5],fillColor:'#f8fafc'}],
+    [{text:'Técnico no disponible → información de equipo inaccesible',fontSize:8,border:[false,false,false,false],margin:[6,5,6,5]},{text:'Información perdida',fontSize:8,color:C_RED,bold:true,alignment:'center',border:[false,false,false,false],margin:[6,5,6,5]},{text:'100% nube, 24/7',fontSize:8,color:C_GREEN,bold:true,alignment:'center',border:[false,false,false,false],margin:[6,5,6,5]}]
+  ]},layout:{hLineWidth:function(i){return i===1?0.8:0.3;},hLineColor:function(i){return i===1?C_NAVY:'#e2e8f0';},vLineWidth:function(){return 0;},paddingLeft:function(){return 0;},paddingRight:function(){return 0;}},margin:[0,0,0,14]});
+  c.push({table:{widths:['*','*'],body:[[
+    {stack:[{text:'Costo de 1 mes de downtime evitado',bold:true,fontSize:9,color:C_NAVY,margin:[0,0,0,3]},{text:'1 equipo de RM fuera de servicio 1 día = 15-25 estudios.\nA $80.000-$150.000 c/u ≈ $1.2M - $3.75M ARS.\n1 evento evitado por año cubre más de 3 años del sistema.',fontSize:8,color:'#334155',lineHeight:1.4}],fillColor:'#f0fdf4',border:[true,true,true,true],margin:[10,8,10,8]},
+    {stack:[{text:'El sistema ya está en producción',bold:true,fontSize:9,color:C_NAVY,margin:[0,0,0,3]},{text:'No hay costos de implementación ni curva de aprendizaje.\nEl sistema funciona, los datos están cargados.\nSolo falta formalizar la relación comercial.',fontSize:8,color:'#334155',lineHeight:1.4}],fillColor:'#eff6ff',border:[true,true,true,true],margin:[10,8,10,8]}
+  ]]},layout:{hLineColor:function(){return '#e2e8f0';},vLineColor:function(){return '#e2e8f0';},hLineWidth:function(){return 0.5;},vLineWidth:function(){return 0.5;}},margin:[0,0,0,0]});
+
+  // ══ PLANES Y PRECIOS ══
+  c.push({text:'',pageBreak:'before'});
+  c.push(hdr('Planes y Precios',14,C_NAVY,6));
+  c.push(sep());
+  c.push(body('Se proponen tres niveles de servicio. Todos incluyen la plataforma en producción actual con los datos cargados. La diferencia está en el nivel de soporte y el compromiso de desarrollo continuo.'));
+  c.push({columns:[
+    {stack:[
+      {table:{widths:['*'],body:[
+        [{text:'Plan Esencial',bold:true,fontSize:11,alignment:'center',color:C_NAVY,fillColor:C_LIGHT,border:[false,false,false,false],margin:[8,10,8,4]}],
+        [{text:'USD 150',bold:true,fontSize:22,alignment:'center',color:C_BLUE,fillColor:C_LIGHT,border:[false,false,false,false]}],
+        [{text:'por mes',fontSize:8,alignment:'center',color:C_GRAY,fillColor:C_LIGHT,border:[false,false,false,false],margin:[0,0,0,10]}],
+        [{stack:[
+          {text:'✔ Plataforma en producción',fontSize:8,margin:[0,2,0,2]},
+          {text:'✔ Firebase hosting',fontSize:8,margin:[0,2,0,2]},
+          {text:'✔ Backups automáticos',fontSize:8,margin:[0,2,0,2]},
+          {text:'✔ Soporte por email',fontSize:8,margin:[0,2,0,2]},
+          {text:'✘ Nuevas funcionalidades',fontSize:8,color:C_GRAY,margin:[0,2,0,2]},
+          {text:'✘ Soporte urgente',fontSize:8,color:C_GRAY,margin:[0,2,0,8]}
+        ],border:[false,false,false,false],margin:[14,0,14,0]}]
+      ]},layout:{hLineWidth:function(){return 0.3;},hLineColor:function(){return '#e2e8f0';},vLineWidth:function(){return 0.3;},vLineColor:function(){return '#e2e8f0';}},margin:[0,0,0,0]}
+    ],width:'*'},
+    {stack:[
+      {table:{widths:['*'],body:[
+        [{text:'Plan Profesional',bold:true,fontSize:11,alignment:'center',color:C_WHITE,fillColor:C_BLUE,border:[false,false,false,false],margin:[8,10,8,4]}],
+        [{text:'USD 300',bold:true,fontSize:22,alignment:'center',color:C_WHITE,fillColor:C_BLUE,border:[false,false,false,false]}],
+        [{text:'por mes · RECOMENDADO',fontSize:8,alignment:'center',color:'#bfdbfe',fillColor:C_BLUE,border:[false,false,false,false],margin:[0,0,0,10]}],
+        [{stack:[
+          {text:'✔ Todo el Plan Esencial',fontSize:8,bold:true,margin:[0,2,0,2]},
+          {text:'✔ 2-4 updates/mes con mejoras',fontSize:8,margin:[0,2,0,2]},
+          {text:'✔ Soporte WhatsApp urgente',fontSize:8,margin:[0,2,0,2]},
+          {text:'✔ Nuevas funcionalidades',fontSize:8,margin:[0,2,0,2]},
+          {text:'✔ Capacitación de usuarios',fontSize:8,margin:[0,2,0,2]},
+          {text:'✔ SLA 24h para bugs críticos',fontSize:8,margin:[0,2,0,8]}
+        ],border:[false,false,false,false],margin:[14,0,14,0],color:C_WHITE}]
+      ]},layout:{hLineWidth:function(){return 0;},hLineColor:function(){return C_BLUE;},vLineWidth:function(){return 0;},vLineColor:function(){return C_BLUE;}},margin:[0,0,0,0]}
+    ],width:'*'},
+    {stack:[
+      {table:{widths:['*'],body:[
+        [{text:'Plan Institucional',bold:true,fontSize:11,alignment:'center',color:C_NAVY,fillColor:C_LIGHT,border:[false,false,false,false],margin:[8,10,8,4]}],
+        [{text:'USD 600',bold:true,fontSize:22,alignment:'center',color:C_BLUE,fillColor:C_LIGHT,border:[false,false,false,false]}],
+        [{text:'por mes',fontSize:8,alignment:'center',color:C_GRAY,fillColor:C_LIGHT,border:[false,false,false,false],margin:[0,0,0,10]}],
+        [{stack:[
+          {text:'✔ Todo el Plan Profesional',fontSize:8,bold:true,margin:[0,2,0,2]},
+          {text:'✔ Desarrollo a medida',fontSize:8,margin:[0,2,0,2]},
+          {text:'✔ Integraciones externas',fontSize:8,margin:[0,2,0,2]},
+          {text:'✔ App adicionales en el repo',fontSize:8,margin:[0,2,0,2]},
+          {text:'✔ Presencia on-site mensual',fontSize:8,margin:[0,2,0,2]},
+          {text:'✔ SLA 4h cualquier día',fontSize:8,margin:[0,2,0,8]}
+        ],border:[false,false,false,false],margin:[14,0,14,0]}]
+      ]},layout:{hLineWidth:function(){return 0.3;},hLineColor:function(){return '#e2e8f0';},vLineWidth:function(){return 0.3;},vLineColor:function(){return '#e2e8f0';}},margin:[0,0,0,0]}
+    ],width:'*'}
+  ],columnGap:10,margin:[0,0,0,14]});
+  c.push({table:{widths:['*'],body:[[{stack:[
+    {text:'Opción de pago único (sin soporte continuo)',bold:true,fontSize:9,color:C_NAVY,margin:[0,0,0,4]},
+    {text:'Licencia perpetua del código fuente: USD 15.000 pago único + 20% anual por mantenimiento y actualizaciones. Recomendamos el modelo de suscripción mensual porque asegura que el sistema evoluciona con las necesidades de CIMA y con la tecnología disponible.',fontSize:8.5,color:'#334155',lineHeight:1.35}
+  ],margin:[12,8,12,8],fillColor:'#f8fafc',border:[true,true,true,true]}]]},layout:{hLineColor:function(){return '#cbd5e1';},vLineColor:function(){return '#cbd5e1';},hLineWidth:function(){return 0.5;},vLineWidth:function(){return 0.5;}},margin:[0,0,0,0]});
+
+  // ══ PRÓXIMOS PASOS ══
+  c.push({text:'',pageBreak:'before'});
+  c.push(hdr('Próximos Pasos',14,C_NAVY,6));
+  c.push(sep());
+  c.push(body('El sistema está operativo y los datos están en producción. No hay implementación pendiente — solo formalizar el acuerdo para continuar y hacer crecer la plataforma.'));
+  c.push({table:{widths:[30,'*'],body:[
+    [{text:'1',bold:true,fontSize:13,color:C_WHITE,fillColor:C_BLUE,border:[false,false,false,false],alignment:'center',margin:[0,6,0,6]},{stack:[{text:'Revisión de esta propuesta',bold:true,fontSize:9,color:C_NAVY,margin:[0,0,0,2]},{text:'Iván presenta la propuesta a la Dirección de CIMA. Se resuelven consultas.',fontSize:8.5,color:C_GRAY}],border:[false,false,false,false],margin:[10,6,6,6]}],
+    [{text:'2',bold:true,fontSize:13,color:C_WHITE,fillColor:C_ACCENT,border:[false,false,false,false],alignment:'center',margin:[0,6,0,6],fillColor:C_NAVY},{stack:[{text:'Elección de plan',bold:true,fontSize:9,color:C_NAVY,margin:[0,0,0,2]},{text:'Se selecciona el plan de servicio (recomendado: Plan Profesional USD 300/mes).',fontSize:8.5,color:C_GRAY}],border:[false,false,false,false],margin:[10,6,6,6]}],
+    [{text:'3',bold:true,fontSize:13,color:C_WHITE,fillColor:C_GREEN,border:[false,false,false,false],alignment:'center',margin:[0,6,0,6]},{stack:[{text:'Formalización',bold:true,fontSize:9,color:C_NAVY,margin:[0,0,0,2]},{text:'Acuerdo de servicio simple (1 página) con términos, forma de pago y alcance.',fontSize:8.5,color:C_GRAY}],border:[false,false,false,false],margin:[10,6,6,6]}],
+    [{text:'4',bold:true,fontSize:13,color:C_WHITE,fillColor:C_ORANGE,border:[false,false,false,false],alignment:'center',margin:[0,6,0,6]},{stack:[{text:'Continuidad y desarrollo',bold:true,fontSize:9,color:C_NAVY,margin:[0,0,0,2]},{text:'El sistema continúa en producción con actualizaciones y soporte garantizado.',fontSize:8.5,color:C_GRAY}],border:[false,false,false,false],margin:[10,6,6,6]}]
+  ]},layout:{hLineWidth:function(){return 0.3;},hLineColor:function(){return '#e2e8f0';},vLineWidth:function(){return 0;},paddingLeft:function(){return 0;},paddingRight:function(){return 0;}},margin:[0,0,0,16]});
+  c.push(sep());
+  c.push(hdr('Contacto',10,C_NAVY,6));
+  c.push({columns:[
+    {stack:[{text:'Iván García',bold:true,fontSize:10,color:C_NAVY,margin:[0,0,0,3]},{text:'Responsable Técnico — CIMA',fontSize:8.5,color:C_GRAY,margin:[0,0,0,2]},{text:'ivangarcian@gmail.com',fontSize:8.5,color:C_BLUE,margin:[0,0,0,2]},{text:'Sistema: https://ivangn9.github.io/medtrack/',fontSize:8,color:C_GRAY}],width:'*'},
+    {stack:[{text:'CIMA',bold:true,fontSize:10,color:C_NAVY,margin:[0,0,0,3]},{text:'Centro de Imágenes Médicas Avanzadas',fontSize:8.5,color:C_GRAY,margin:[0,0,0,2]},{text:'Sistema en producción: v'+APP_DISPLAY_VERSION,fontSize:8,color:C_GRAY}],width:'*'}
+  ],columnGap:16,margin:[0,0,0,0]});
+
+  return {
+    pageSize:'A4',
+    pageMargins:[40,logo?80:48,40,40],
+    defaultStyle:{fontSize:9,color:'#1e293b',font:'Roboto',lineHeight:1.18},
+    info:{title:'MedTrack — Propuesta Comercial CIMA',author:'Ivan Garcia / CIMA'},
+    header:function(cp){
+      if(cp===1)return null;
+      return {columns:[
+        logo?{image:logo,width:38,margin:[40,10,0,0]}:{text:'CIMA',bold:true,fontSize:9,color:C_NAVY,margin:[40,14,0,0]},
+        {text:'MedTrack — Propuesta Comercial',fontSize:7.5,color:C_GRAY,margin:[8,16,0,0]},
+        {text:'Confidencial · '+fechaDoc,fontSize:7.5,color:C_GRAY,alignment:'right',margin:[0,16,40,0]}
+      ]};
+    },
+    footer:function(cp,pc){return {columns:[{text:'CIMA Investigaciones Avanzadas · Sistema MedTrack v'+APP_DISPLAY_VERSION,fontSize:7,color:'#94a3b8'},{text:'Página '+cp+' de '+pc,alignment:'right',fontSize:7,color:'#94a3b8'}],margin:[40,10,40,0]};},
+    content:c
+  };
+}
+function generarPropuestaComercial(){
+  _pdfEnsurePdfMake(function(){
+    var dd=_buildPropuestaDoc();
+    var now=new Date();
+    var fn='MedTrack-Propuesta-Comercial-CIMA-'+now.getFullYear()+_pad2(now.getMonth()+1)+_pad2(now.getDate())+'.pdf';
+    try{
+      window.pdfMake.createPdf(dd).getBlob(function(blob){_pdfDeliverModal(blob,fn);});
+    }catch(e){showToast('Error generando propuesta: '+(e.message||e),'err');}
+  });
+}
+
+// ═══════════════════════════════════════════
 //  HARD REFRESH
 // ═══════════════════════════════════════════
 var APP_VERSION=(document.querySelector('meta[name="app-version"]')||{}).content||"";
@@ -14223,7 +14500,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.5.0";
+var APP_DISPLAY_VERSION="8.5.1";
 var APP_BUILD="29/06/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
