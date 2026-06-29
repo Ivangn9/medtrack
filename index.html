@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.29.466 -->
+<!-- v2026.06.29.467 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.29.466">
+<meta name="app-version" content="v2026.06.29.467">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3054,6 +3054,7 @@ function openHTMLViewer(htmlContent,title){
     if(!overlay||!reportDiv){showToast('Error: elementos del visor no encontrados','err');return;}
     if(titleEl)titleEl.textContent=title||'Reporte';
     _reportHTML=htmlContent;
+    _pendingPdfBlob=null; // reset para que el próximo export genere el nuevo informe
     // Extract body content
     var bodyMatch=htmlContent.match(/<body[^>]*>([\s\S]*)<\/body>/i);
     var bodyContent=bodyMatch?bodyMatch[1]:htmlContent;
@@ -3107,6 +3108,7 @@ function printReport(){
   if(!window.html2canvas||!(window.jspdf&&window.jspdf.jsPDF)){showToast('Cargando generador, intentá en unos segundos','');return;}
   var btn=document.getElementById('pdf-export-btn');
   var BLANK_GIF='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+  var CONT_ID='_pdf_cap_div';
 
   // SEGUNDO TAP: PDF ya listo — compartir con gesto limpio del usuario
   if(_pendingPdfBlob){
@@ -3131,45 +3133,81 @@ function printReport(){
   var restore=function(){if(btn){btn.disabled=false;btn.textContent='📄 Exportar PDF';}};
 
   try{
-    var rDoc=(new DOMParser()).parseFromString(_reportHTML,'text/html');
-    [].forEach.call(rDoc.querySelectorAll('.nav-bar,.btn-print'),function(el){if(el.parentNode)el.parentNode.removeChild(el);});
-    var cssText='';
-    [].forEach.call(rDoc.querySelectorAll('style'),function(s){cssText+=s.textContent;});
-    var bodyHtml=rDoc.body.innerHTML;
+    // Limpiar container anterior si quedó colgado
+    var stale=document.getElementById(CONT_ID);
+    if(stale&&stale.parentNode)stale.parentNode.removeChild(stale);
 
-    // A4: 794px ancho, 1123px alto por página. Scale 1.5 = balance calidad/memoria iOS
+    // Extraer body del _reportHTML
+    var bodyMatch=_reportHTML.match(/<body[^>]*>([\s\S]*)<\/body>/i);
+    var bodyHtml=bodyMatch?bodyMatch[1]:_reportHTML;
+    bodyHtml=bodyHtml.replace(/<div class="nav-bar"[\s\S]*?<\/div>/,'');
+
     var A4PX=794,PPXH=1123,SCALE=1.5,MARGIN=10,CWmm=190;
 
-    // Contenedor off-screen position:absolute — a diferencia de fixed, scrollHeight refleja altura real del contenido
+    // CSS idéntico al visor: misma variable _reportCSS, mismos replaces
+    var scopedCSS=_reportCSS.replace(/^\*\{[^}]+\}/,'').replace(/\bbody\b/g,'#'+CONT_ID);
+
     var cont=document.createElement('div');
-    cont.style.cssText='position:absolute;left:-10000px;top:0;width:'+A4PX+'px;background:#ffffff;pointer-events:none;z-index:-1;';
-    cont.innerHTML='<style>'+cssText+'</style>'+bodyHtml;
+    cont.id=CONT_ID;
+    cont.style.cssText='position:absolute;left:-10000px;top:0;width:'+A4PX+'px;background:#ffffff;overflow:visible;pointer-events:none;z-index:-1;';
+    cont.innerHTML='<style>#'+CONT_ID+' *{box-sizing:border-box;}'+scopedCSS+'</style>'+bodyHtml;
     document.body.appendChild(cont);
 
-    var cleanup=function(){if(cont&&cont.parentNode)cont.parentNode.removeChild(cont);};
+    // Sanitizar imágenes externas (Firebase Storage URLs → evita canvas taint)
+    [].forEach.call(cont.querySelectorAll('img'),function(img){
+      var s=img.getAttribute('src');
+      if(s&&s.indexOf('data:')!==0)img.setAttribute('src',BLANK_GIF);
+    });
+
+    // Replicar EXACTAMENTE las modificaciones del visor: fondo CIMA + logo header + paddings
+    var vwrLogo='';
+    try{
+      var _doms=document.querySelectorAll('img');
+      for(var _li=0;_li<_doms.length;_li++){
+        var _im=_doms[_li];
+        if(_im.src&&_im.src.indexOf('logo.png')!==-1&&_im.complete&&_im.naturalWidth>0){
+          var _lc=document.createElement('canvas');
+          _lc.width=_im.naturalWidth;_lc.height=_im.naturalHeight;
+          _lc.getContext('2d').drawImage(_im,0,0);
+          vwrLogo=_lc.toDataURL('image/png');break;
+        }
+      }
+    }catch(e){}
+    if(typeof _cimaB64!=='undefined'&&_cimaB64){
+      var pages=cont.querySelectorAll('.page');
+      [].forEach.call(pages,function(pg){
+        pg.style.backgroundImage='url('+_cimaB64+')';
+        pg.style.backgroundRepeat='repeat-y';
+        pg.style.backgroundSize='100% 29.7cm';
+        pg.style.backgroundPosition='top center';
+        pg.style.paddingTop='1.5cm';
+        pg.style.paddingLeft='2.5cm';
+        pg.style.paddingRight='2.5cm';
+        pg.style.webkitPrintColorAdjust='exact';
+        var la=pg.querySelector('.logo-area');
+        if(la)la.style.display='none';
+        var hdr=document.createElement('div');
+        hdr.style.cssText='display:flex;align-items:center;gap:16px;padding-bottom:14px;margin-bottom:18px;border-bottom:1.5px solid #e2e8f0;';
+        if(vwrLogo){
+          hdr.innerHTML='<img src="'+vwrLogo+'" style="height:52px;width:auto;display:block;flex-shrink:0;"><div style="flex:1;border-left:1px solid #e2e8f0;padding-left:14px;"><div style="font-size:7.5pt;color:#64748b;letter-spacing:3px;font-weight:600;text-transform:uppercase;font-family:Arial,sans-serif;">Investigaciones Avanzadas</div><div style="font-size:6.5pt;color:#94a3b8;letter-spacing:1px;font-family:Arial,sans-serif;margin-top:3px;">DIAGNÓSTICO POR IMAGEN</div></div>';
+        }else{
+          hdr.innerHTML='<div style="font-size:14pt;font-weight:900;color:#1a3a6b;font-family:Arial,sans-serif;">CIMA<span style="font-size:7pt;display:block;font-weight:500;letter-spacing:3px;color:#64748b;margin-top:2px;">INVESTIGACIONES AVANZADAS</span></div>';
+        }
+        pg.insertBefore(hdr,pg.firstChild);
+      });
+    }
+
+    var cleanup=function(){var el=document.getElementById(CONT_ID);if(el&&el.parentNode)el.parentNode.removeChild(el);};
 
     var genStarted=false;
     var doGenerate=function(){
       if(genStarted)return;genStarted=true;
-
-      // Reemplazar URLs externas (Firebase Storage) con gif vacío para evitar taint del canvas
-      [].forEach.call(cont.querySelectorAll('img'),function(img){
-        if(img.getAttribute('src')&&img.getAttribute('src').indexOf('data:')!==0){
-          img.setAttribute('src',BLANK_GIF);
-        }
-      });
-
-      // Una sola captura del contenido completo — luego se slicea en JS por página
+      // Una sola captura del contenido completo — luego sliceado en JS por página (evita offsets incorrectos)
       html2canvas(cont,{
-        scale:SCALE,
-        useCORS:false,
-        allowTaint:false,
-        logging:false,
-        backgroundColor:'#ffffff'
+        scale:SCALE,useCORS:false,allowTaint:false,logging:false,backgroundColor:'#ffffff'
       }).then(function(fullCanvas){
         cleanup();
         var cW=fullCanvas.width,cH=fullCanvas.height;
-        // Altura en px de una página A4 a la escala del canvas
         var pageHpx=Math.round(cW*(PPXH/A4PX));
         var totalPages=Math.max(1,Math.ceil(cH/pageHpx));
         var pdf=new window.jspdf.jsPDF('p','mm','a4');
@@ -3177,7 +3215,6 @@ function printReport(){
           if(pi>0)pdf.addPage();
           var sy=pi*pageHpx;
           var sh=Math.min(pageHpx,cH-sy);
-          // Crear canvas con solo la franja de esta página
           var pc=document.createElement('canvas');
           pc.width=cW;pc.height=sh;
           pc.getContext('2d').drawImage(fullCanvas,0,sy,cW,sh,0,0,cW,sh);
@@ -3193,15 +3230,14 @@ function printReport(){
       });
     };
 
-    // Esperar que carguen las imágenes (data URIs cargan síncronamente, pero igual esperamos el tick)
     var imgs=cont.querySelectorAll('img');
     var imgN=imgs.length,imgD=0;
-    var imgTick=function(){imgD++;if(imgD>=imgN)setTimeout(doGenerate,150);};
-    if(!imgN){setTimeout(doGenerate,150);return;}
+    var imgTick=function(){imgD++;if(imgD>=imgN)setTimeout(doGenerate,200);};
+    if(!imgN){setTimeout(doGenerate,200);return;}
     [].forEach.call(imgs,function(img){
       if(img.complete){imgTick();}else{img.onload=imgTick;img.onerror=imgTick;}
     });
-    setTimeout(doGenerate,5000); // safety timeout
+    setTimeout(doGenerate,5000);
   }catch(e){restore();showToast('Error: '+(e.message||e),'err');}
 }
 function closePDFViewer(){
@@ -14161,7 +14197,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.1.6";
+var APP_DISPLAY_VERSION="8.1.7";
 var APP_BUILD="29/06/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
