@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.29.472 -->
+<!-- v2026.06.29.473 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.29.472">
+<meta name="app-version" content="v2026.06.29.473">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3368,6 +3368,111 @@ function _pdfHeader(R){
     return {columns:[left,right]};
   };
 }
+// ───────── Gráficos SVG vectoriales para el reporte (pdfmake {svg}) ─────────
+function _svgN(v){return Math.round(v*100)/100;}
+function _svgEsc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function _svgArcPath(cx,cy,r,a0,a1){
+  var x0=cx+r*Math.cos(a0),y0=cy+r*Math.sin(a0),x1=cx+r*Math.cos(a1),y1=cy+r*Math.sin(a1);
+  var large=(a1-a0)>Math.PI?1:0;
+  return 'M'+_svgN(x0)+' '+_svgN(y0)+' A'+_svgN(r)+' '+_svgN(r)+' 0 '+large+' 1 '+_svgN(x1)+' '+_svgN(y1);
+}
+function _chartDonut(W,H,segs,big,small){
+  var total=0,i;for(i=0;i<segs.length;i++)total+=segs[i].value;
+  var cx=H/2,cy=H/2,r=H/2-16,thick=18;
+  var svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'">';
+  svg+='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="#e5e9f2" stroke-width="'+thick+'"/>';
+  if(total>0){
+    var a0=-Math.PI/2;
+    for(i=0;i<segs.length;i++){
+      if(segs[i].value<=0)continue;
+      var frac=segs[i].value/total,a1=a0+frac*Math.PI*2,aa1=(frac>=0.9999)?(a0+Math.PI*1.9999):a1;
+      svg+='<path d="'+_svgArcPath(cx,cy,r,a0,aa1)+'" fill="none" stroke="'+segs[i].color+'" stroke-width="'+thick+'"/>';
+      a0=a1;
+    }
+  }
+  svg+='<text x="'+cx+'" y="'+_svgN(cy-1)+'" text-anchor="middle" font-family="Helvetica" font-size="21" font-weight="bold" fill="#1a3a6b">'+_svgEsc(big)+'</text>';
+  svg+='<text x="'+cx+'" y="'+_svgN(cy+13)+'" text-anchor="middle" font-family="Helvetica" font-size="8" fill="#64748b">'+_svgEsc(small)+'</text>';
+  var lx=H+8,ly=20;
+  for(i=0;i<segs.length;i++){
+    svg+='<rect x="'+lx+'" y="'+(ly-8)+'" width="9" height="9" rx="2" fill="'+segs[i].color+'"/>';
+    svg+='<text x="'+(lx+14)+'" y="'+ly+'" font-family="Helvetica" font-size="8.5" fill="#1e293b">'+_svgEsc(segs[i].label)+' ('+segs[i].value+')</text>';
+    ly+=17;
+  }
+  svg+='</svg>';return svg;
+}
+function _chartVBars(W,H,items){
+  var pad=10,bottom=H-24,top=16,i,n=items.length,max=1;
+  for(i=0;i<n;i++)if(items[i].value>max)max=items[i].value;
+  var gap=10,bw=(W-pad-6-(n-1)*gap)/Math.max(n,1);
+  var svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'">';
+  svg+='<line x1="'+pad+'" y1="'+bottom+'" x2="'+(W-4)+'" y2="'+bottom+'" stroke="#cbd5e1" stroke-width="1"/>';
+  for(i=0;i<n;i++){
+    var x=pad+i*(bw+gap),h=(items[i].value/max)*(bottom-top),y=bottom-h;
+    svg+='<rect x="'+_svgN(x)+'" y="'+_svgN(y)+'" width="'+_svgN(bw)+'" height="'+_svgN(h)+'" rx="3" fill="'+items[i].color+'"/>';
+    svg+='<text x="'+_svgN(x+bw/2)+'" y="'+_svgN(y-3)+'" text-anchor="middle" font-family="Helvetica" font-size="9" font-weight="bold" fill="#1e293b">'+items[i].value+'</text>';
+    svg+='<text x="'+_svgN(x+bw/2)+'" y="'+(bottom+12)+'" text-anchor="middle" font-family="Helvetica" font-size="7.5" fill="#64748b">'+_svgEsc(items[i].label)+'</text>';
+  }
+  svg+='</svg>';return svg;
+}
+function _chartHBars(W,H,items){
+  var i,n=items.length,rowH=n?Math.min(24,(H-8)/n):20,labelW=118,barX=labelW+6,maxBarW=W-barX-28,max=1;
+  for(i=0;i<n;i++)if(items[i].value>max)max=items[i].value;
+  var svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'">';
+  for(i=0;i<n;i++){
+    var y=6+i*rowH,bw=(items[i].value/max)*maxBarW;
+    svg+='<text x="0" y="'+_svgN(y+rowH/2+1)+'" font-family="Helvetica" font-size="8" fill="#1e293b">'+_svgEsc((items[i].label||'').slice(0,28))+'</text>';
+    svg+='<rect x="'+barX+'" y="'+_svgN(y+2)+'" width="'+_svgN(Math.max(bw,1))+'" height="'+_svgN(rowH-7)+'" rx="3" fill="'+(items[i].color||'#dc2626')+'"/>';
+    svg+='<text x="'+_svgN(barX+Math.max(bw,1)+4)+'" y="'+_svgN(y+rowH/2+1)+'" font-family="Helvetica" font-size="8" font-weight="bold" fill="#1e293b">'+items[i].value+'</text>';
+  }
+  svg+='</svg>';return svg;
+}
+function _chartTrend(W,H,labels,values){
+  var pad=14,bottom=H-22,top=14,i,n=values.length,max=1;
+  for(i=0;i<n;i++)if(values[i]>max)max=values[i];
+  var gap=4,bw=(W-pad-6-(n-1)*gap)/Math.max(n,1);
+  var svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'">';
+  svg+='<line x1="'+pad+'" y1="'+bottom+'" x2="'+(W-4)+'" y2="'+bottom+'" stroke="#cbd5e1" stroke-width="1"/>';
+  for(i=0;i<n;i++){
+    var x=pad+i*(bw+gap),h=(values[i]/max)*(bottom-top),y=bottom-h;
+    svg+='<rect x="'+_svgN(x)+'" y="'+_svgN(y)+'" width="'+_svgN(bw)+'" height="'+_svgN(h)+'" rx="2" fill="#0369a1"/>';
+    if(values[i]>0)svg+='<text x="'+_svgN(x+bw/2)+'" y="'+_svgN(y-2)+'" text-anchor="middle" font-family="Helvetica" font-size="6.5" font-weight="bold" fill="#1e293b">'+values[i]+'</text>';
+    svg+='<text x="'+_svgN(x+bw/2)+'" y="'+(bottom+11)+'" text-anchor="middle" font-family="Helvetica" font-size="6" fill="#64748b">'+_svgEsc(labels[i])+'</text>';
+  }
+  svg+='</svg>';return svg;
+}
+function _pdfStatsSection(){
+  var R=_reportData;if(!R)return [];
+  var out=[],i;
+  var sd=R.sumData||[];
+  var op=0,fuera=0,fallasN=0;
+  for(i=0;i<sd.length;i++){var e=sd[i].estadoRaw;if(e==='operativo')op++;else if(e==='fuera-de-servicio')fuera++;else fallasN++;}
+  var totalEq=sd.length||1;
+  var operPct=Math.round(op/totalEq*100);
+  out.push(_pdfH('Resumen visual'));
+  var donut=_chartDonut(320,150,[{label:'Operativos',value:op,color:'#16a34a'},{label:'Con fallas',value:fallasN,color:'#d97706'},{label:'Fuera de servicio',value:fuera,color:'#dc2626'}],operPct+'%','operatividad');
+  var actBars=_chartVBars(195,150,[{label:'Mant.',value:R.tm||0,color:'#16a34a'},{label:'Reparac.',value:R.tr||0,color:'#0369a1'},{label:'Mejoras',value:R.tmej||0,color:'#7c3aed'},{label:'Fallas',value:R.tact||0,color:'#dc2626'}]);
+  out.push({columns:[
+    {width:'*',stack:[{text:'Estado del parque',bold:true,fontSize:9,color:'#1a3a6b',margin:[0,0,0,4]},{svg:donut,width:300}]},
+    {width:'auto',stack:[{text:'Actividad del período',bold:true,fontSize:9,color:'#1a3a6b',margin:[0,0,0,4]},{svg:actBars,width:185}]}
+  ],columnGap:14,margin:[0,4,0,12]});
+  var top=sd.filter(function(s){return s.fallas>0;}).sort(function(a,b){return b.fallas-a.fallas;}).slice(0,8).map(function(s){return {label:s.nombre,value:s.fallas,color:'#dc2626'};});
+  if(top.length){
+    out.push({text:'Top equipos por fallas activas',bold:true,fontSize:9,color:'#1a3a6b',margin:[0,4,0,4]});
+    out.push({svg:_chartHBars(515,top.length*24+8,top),width:515,margin:[0,0,0,12]});
+  }
+  try{
+    var last12=_kpiLast12Months(),rot=_kpiAllRoturas(),counts={};
+    for(i=0;i<last12.length;i++)counts[last12[i]]=0;
+    for(i=0;i<rot.length;i++){var k=_kpiMonthKey(rot[i].fechaRotura);if(counts.hasOwnProperty(k))counts[k]++;}
+    var vals=[],labs=[],any=false;
+    for(i=0;i<last12.length;i++){vals.push(counts[last12[i]]);labs.push(_kpiMonthLabel(last12[i]));if(counts[last12[i]]>0)any=true;}
+    if(any){
+      out.push({text:'Tendencia mensual de fallas (últimos 12 meses)',bold:true,fontSize:9,color:'#1a3a6b',margin:[0,4,0,4]});
+      out.push({svg:_chartTrend(515,140,labs,vals),width:515,margin:[0,0,0,8]});
+    }
+  }catch(e){}
+  return out;
+}
 function _buildPdfDoc(){
   var R=_reportData;if(!R||!R.eqData)return null;
   var content=[],i;
@@ -3379,6 +3484,7 @@ function _buildPdfDoc(){
   content.push({text:_pdfPlain(R.introText),margin:[0,0,0,6],lineHeight:1.2,alignment:'justify'});
   content.push(_pdfH('2. Resumen ejecutivo'));
   content.push({text:_pdfPlain(R.resumenText),margin:[0,0,0,6],lineHeight:1.2,alignment:'justify'});
+  content=content.concat(_pdfStatsSection());
   content.push(_pdfH('3. Detalle por equipo'));
   for(i=0;i<R.eqData.length;i++){content=content.concat(_pdfEqSection(R.eqData[i],R.imgsMap||{}));}
   content.push(_pdfH('4. Cuadro resumen'));
@@ -14429,7 +14535,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.3.1";
+var APP_DISPLAY_VERSION="8.4.0";
 var APP_BUILD="29/06/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
