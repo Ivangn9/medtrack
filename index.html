@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.29.473 -->
+<!-- v2026.06.29.474 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.29.473">
+<meta name="app-version" content="v2026.06.29.474">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -5981,149 +5981,87 @@ function _pdfTableReport(title,subtitle,headers,rows,footNote,opts){
     ]
   };
 }
+function _pdfStdDoc(title,content){
+  var logo=_reportLogoB64();
+  return {
+    pageSize:'A4',pageMargins:[40,logo?86:48,40,42],
+    defaultStyle:{fontSize:9,color:'#1e293b',lineHeight:1.18},
+    info:{title:title},
+    header:_pdfHeader({logo:logo}),
+    footer:function(cp,pc){return {columns:[{text:'CIMA Investigaciones Avanzadas · CIMA Hub '+APP_DISPLAY_VERSION,fontSize:7,color:'#94a3b8'},{text:'Página '+cp+' de '+pc,alignment:'right',fontSize:7,color:'#94a3b8'}],margin:[40,14,40,0]};},
+    content:content
+  };
+}
 function generarPDFSemanal(){
-  var jsPDF=window.jspdf&&window.jspdf.jsPDF;
-  if(!jsPDF){
-    var s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-    s.onload=function(){generarPDFSemanal();};document.head.appendChild(s);return;
-  }
-  var doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
-  var margin=15;var W=210;var y=margin;
-  doc.setFillColor(6,9,26);doc.rect(0,0,W,40,'F');
-  doc.setFontSize(18);doc.setTextColor(173,198,255);doc.setFont('helvetica','bold');
-  doc.text('Reporte Semanal',margin,22);
-  doc.setFontSize(9);doc.setTextColor(160,160,180);doc.setFont('helvetica','normal');
   var todaySem=new Date();var mon=new Date(todaySem);mon.setDate(todaySem.getDate()-((todaySem.getDay()+6)%7));
   var sun=new Date(mon);sun.setDate(mon.getDate()+6);
   var fmt=function(d){return _pad2(d.getDate())+'/'+_pad2(d.getMonth()+1)+'/'+d.getFullYear();};
-  doc.text('Semana del '+fmt(mon)+' al '+fmt(sun),margin,30);
-  doc.text('Generado: '+fmt(todaySem),W-margin-40,30);
-  y=48;
-  doc.setFontSize(11);doc.setTextColor(173,198,255);doc.setFont('helvetica','bold');
-  doc.text('Estado de Equipos',margin,y);y+=6;
-  doc.setDrawColor(173,198,255);doc.setLineWidth(0.3);doc.line(margin,y,W-margin,y);y+=5;
+  var monStr=mon.toISOString().slice(0,10),sunStr=sun.toISOString().slice(0,10);
   var activeEqsSem=eqs.filter(function(e){return !e.baja;});
   var fueraEqsSem=activeEqsSem.filter(function(e){return e.estado==='fuera-de-servicio';});
-  doc.setFontSize(9);doc.setTextColor(60,60,80);doc.setFont('helvetica','normal');
-  doc.text('Total activos: '+activeEqsSem.length,margin,y);y+=5;
-  doc.text('Fuera de servicio: '+fueraEqsSem.length,margin,y);y+=5;
-  doc.text('Operatividad: '+Math.round(((activeEqsSem.length-fueraEqsSem.length)/Math.max(activeEqsSem.length,1))*100)+'%',margin,y);y+=8;
-  if(fueraEqsSem.length){
-    doc.setFontSize(9);doc.setTextColor(200,60,60);
-    for(var fi=0;fi<fueraEqsSem.length&&fi<5;fi++){
-      doc.text('  '+fueraEqsSem[fi].nombre+' ('+(fueraEqsSem[fi].sede||fueraEqsSem[fi].ubicacion||'')+')',margin+4,y);y+=5;
-    }
-    y+=3;
-  }
-  doc.setFontSize(11);doc.setTextColor(173,198,255);doc.setFont('helvetica','bold');
-  doc.text('Ordenes de Trabajo',margin,y);y+=6;
-  doc.setDrawColor(173,198,255);doc.line(margin,y,W-margin,y);y+=5;
-  var monMs=mon.getTime();var sunMs=sun.getTime()+86400000;
+  var operPct=Math.round(((activeEqsSem.length-fueraEqsSem.length)/Math.max(activeEqsSem.length,1))*100);
+  var monMs=mon.getTime(),sunMs=sun.getTime()+86400000;
   var otsSemana=ordenesTrabajo.filter(function(o){var t=new Date(o.creadaEn||o.fechaCreacion||0).getTime();return t>=monMs&&t<=sunMs;});
   var otsCerradas=ordenesTrabajo.filter(function(o){var t=new Date(o.fechaCierre||o.creadaEn||0).getTime();return t>=monMs&&t<=sunMs&&o.estado==='cerrada';});
   var otsAbiertas=ordenesTrabajo.filter(function(o){return o.estado==='pendiente'||o.estado==='en_progreso'||o.estado==='asignada';});
-  doc.setFontSize(9);doc.setTextColor(60,60,80);doc.setFont('helvetica','normal');
-  doc.text('Creadas esta semana: '+otsSemana.length,margin,y);y+=5;
-  doc.text('Cerradas esta semana: '+otsCerradas.length,margin,y);y+=5;
-  doc.text('Pendientes/En progreso: '+otsAbiertas.length,margin,y);y+=5;
-  if(otsAbiertas.length){
-    doc.setFontSize(8);doc.setTextColor(180,100,0);
-    for(var oi=0;oi<otsAbiertas.length&&oi<8;oi++){
-      var oo=otsAbiertas[oi];var oeq=eqs.find(function(e){return e.id===oo.eqId;})||{};
-      doc.text('  '+((oo.titulo||'OT').slice(0,40))+' - '+((oeq.nombre||oo.eqId||'').slice(0,25)),margin+4,y);y+=4;
-    }
-    y+=3;
-  }
-  doc.setFontSize(11);doc.setTextColor(173,198,255);doc.setFont('helvetica','bold');
-  doc.text('PMs Programados',margin,y);y+=6;
-  doc.setDrawColor(173,198,255);doc.line(margin,y,W-margin,y);y+=5;
-  var monStr=mon.toISOString().slice(0,10);var sunStr=sun.toISOString().slice(0,10);
   var pmsSemana=pmProgramados.filter(function(p){return p.fecha>=monStr&&p.fecha<=sunStr;});
-  doc.setFontSize(9);doc.setTextColor(60,60,80);doc.setFont('helvetica','normal');
-  if(!pmsSemana.length){doc.text('Sin PMs programados esta semana.',margin,y);y+=5;}
-  else{
-    for(var pi=0;pi<pmsSemana.length&&pi<8;pi++){
-      var pp=pmsSemana[pi];var peq=eqs.find(function(e){return e.id===pp.eqId;})||{};
-      doc.text('  '+pp.fecha+' '+pp.horaInicio+'-'+pp.horaFin+' - '+(peq.nombre||pp.eqId||'—'),margin+4,y);y+=4;
-    }
-    y+=3;
-  }
   var alertsSem=getAlertas().filter(function(a){return a.niv==='critico';});
-  if(alertsSem.length){
-    doc.setFontSize(11);doc.setTextColor(173,198,255);doc.setFont('helvetica','bold');
-    doc.text('Alertas Criticas',margin,y);y+=6;
-    doc.setDrawColor(173,198,255);doc.line(margin,y,W-margin,y);y+=5;
-    doc.setFontSize(9);doc.setFont('helvetica','normal');
-    for(var ai=0;ai<alertsSem.length&&ai<6;ai++){
-      doc.setTextColor(200,60,60);doc.text('  '+alertsSem[ai].tit,margin+4,y);y+=4;
-      doc.setTextColor(100,80,80);doc.text('  '+alertsSem[ai].desc,margin+8,y);y+=5;
-    }
+  var c=[];
+  c.push({text:'Reporte Semanal',fontSize:16,bold:true,color:'#1a3a6b',margin:[0,0,0,2]});
+  c.push({text:'Semana del '+fmt(mon)+' al '+fmt(sun)+' · Generado: '+fmt(todaySem),fontSize:9,color:'#64748b',margin:[0,0,0,10]});
+  c.push(_pdfH('Estado de equipos'));
+  c.push(_pdfKV([['Total activos',String(activeEqsSem.length)],['Fuera de servicio',String(fueraEqsSem.length)],['Operatividad',operPct+'%']]));
+  if(fueraEqsSem.length){
+    c.push({text:'Equipos fuera de servicio',bold:true,fontSize:9,color:'#dc2626',margin:[0,6,0,3]});
+    c.push({ul:fueraEqsSem.slice(0,8).map(function(e){return {text:_pdfDecode(e.nombre)+((e.sede||e.ubicacion)?' ('+_pdfDecode(e.sede||e.ubicacion)+')':''),color:'#dc2626'};}),margin:[0,0,0,6]});
   }
-  doc.setFillColor(6,9,26);doc.rect(0,285,W,12,'F');
-  doc.setFontSize(7);doc.setTextColor(120,130,160);doc.setFont('helvetica','normal');
-  doc.text('CIMA Investigaciones Avanzadas · MedTrack '+APP_DISPLAY_VERSION+' · Reporte Semanal '+fmt(todaySem),margin,291);
-  doc.save('reporte-semanal-'+monStr+'.pdf');
+  c.push(_pdfH('Órdenes de trabajo'));
+  c.push(_pdfKV([['Creadas esta semana',String(otsSemana.length)],['Cerradas esta semana',String(otsCerradas.length)],['Pendientes / En progreso',String(otsAbiertas.length)]]));
+  if(otsAbiertas.length){
+    c.push({text:'Pendientes',bold:true,fontSize:9,color:'#d97706',margin:[0,6,0,3]});
+    c.push({ul:otsAbiertas.slice(0,12).map(function(o){var oeq=eqs.find(function(e){return e.id===o.eqId;})||{};return _pdfDecode(o.titulo||'OT')+' — '+_pdfDecode(oeq.nombre||o.eqId||'');}),margin:[0,0,0,6]});
+  }
+  c.push(_pdfH('PMs programados'));
+  if(!pmsSemana.length)c.push({text:'Sin PMs programados esta semana.',italics:true,color:'#64748b',margin:[0,0,0,6]});
+  else c.push({ul:pmsSemana.slice(0,12).map(function(p){var peq=eqs.find(function(e){return e.id===p.eqId;})||{};return (p.fecha||'')+' '+(p.horaInicio||'')+'-'+(p.horaFin||'')+' — '+_pdfDecode(peq.nombre||p.eqId||'—');}),margin:[0,0,0,6]});
+  if(alertsSem.length){
+    c.push(_pdfH('Alertas críticas'));
+    c.push({ul:alertsSem.slice(0,8).map(function(a){return {text:[{text:_pdfDecode(a.tit),bold:true,color:'#dc2626'},{text:' — '+_pdfDecode(a.desc),color:'#475569'}]};}),margin:[0,0,0,6]});
+  }
+  _pdfDeliver(_pdfStdDoc('Reporte Semanal',c),'reporte-semanal-'+monStr+'.pdf');
   auditEntry('generar','reporte','semanal','Reporte Semanal','PDF generado para semana '+monStr);
 }
 function generarPDFEquipo(eqId){
   var eq=eqs.find(function(e){return e.id===eqId;});
   if(!eq)return;
-  var jsPDF=window.jspdf&&window.jspdf.jsPDF;
-  if(!jsPDF){
-    var s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-    s.onload=function(){generarPDFEquipo(eqId);};document.head.appendChild(s);return;
-  }
-  var doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
-  var margin=15;var W=210;var y=margin;
-  doc.setFillColor(6,9,26);doc.rect(0,0,W,45,'F');
-  doc.setFontSize(8);doc.setTextColor(173,198,255);doc.setFont('helvetica','bold');
-  doc.text('CIMA · MEDTRACK',margin,13);
-  doc.setFontSize(16);doc.setTextColor(255,255,255);
-  doc.text((eq.nombre||'Equipo').slice(0,40),margin,24);
-  doc.setFontSize(8);doc.setTextColor(160,160,180);doc.setFont('helvetica','normal');
-  doc.text((eq.marca||'')+(eq.modelo?' · '+eq.modelo:'')+(eq.serie?' · S/N '+eq.serie:''),margin,32);
-  var estadoColorArr=eq.estado==='operativo'?[48,209,88]:eq.estado==='fuera-de-servicio'?[255,59,48]:[255,149,0];
-  doc.setFillColor(estadoColorArr[0],estadoColorArr[1],estadoColorArr[2]);doc.roundedRect(W-margin-40,14,40,10,3,3,'F');
-  doc.setTextColor(255,255,255);doc.setFontSize(8);doc.setFont('helvetica','bold');
-  var estadoLabelEq=eq.estado==='operativo'?'Operativo':eq.estado==='fuera-de-servicio'?'Fuera de Srv':'Mantenimiento';
-  doc.text(estadoLabelEq,W-margin-20,20.5,{align:'center'});
-  y=52;
-  var addRowPDF=function(label,val){
-    doc.setFontSize(8);doc.setFont('helvetica','bold');doc.setTextColor(100,110,140);doc.text(label,margin,y);
-    doc.setFont('helvetica','normal');doc.setTextColor(30,30,50);doc.text(String(val||'—').slice(0,60),margin+40,y);y+=6;
-  };
-  doc.setFontSize(10);doc.setTextColor(173,198,255);doc.setFont('helvetica','bold');doc.text('Informacion General',margin,y);y+=6;
-  doc.setDrawColor(173,198,255);doc.setLineWidth(0.3);doc.line(margin,y,W-margin,y);y+=4;
-  addRowPDF('Sede:',eq.sede||eq.ubicacion||'—');addRowPDF('Ubicacion:',eq.ubicacion||'—');addRowPDF('Categoria:',eq.categoria||eq.cat||'—');
-  addRowPDF('F. Instalacion:',eq.fechaInstalacion||eq.instalacion||'—');addRowPDF('Proveedor:',eq.proveedor||'—');
-  y+=4;
-  doc.setFontSize(10);doc.setTextColor(173,198,255);doc.setFont('helvetica','bold');doc.text('Metricas de Confiabilidad',margin,y);y+=6;
-  doc.setDrawColor(173,198,255);doc.line(margin,y,W-margin,y);y+=4;
-  var mtbfV=calcMTBF?calcMTBF(eq):null;var mttrV=calcMTTR?calcMTTR(eq):null;var availV=calcAvailability?calcAvailability(eq):null;var riskV=calcRiskScore?calcRiskScore(eq):null;var lcV=calcLifecycle?calcLifecycle(eq):null;
-  addRowPDF('MTBF:',mtbfV!==null&&mtbfV!==undefined?(Math.round(mtbfV)+' dias entre fallas'):'Sin datos');
-  addRowPDF('MTTR:',mttrV!==null&&mttrV!==undefined?(Math.round(mttrV)+' dias prom. reparacion'):'Sin datos');
-  addRowPDF('Disponibilidad:',availV!==null&&availV!==undefined?(Math.round(availV)+'%'):'Sin datos');
-  addRowPDF('Risk Score:',riskV?(riskLevelLabel(riskV.level)+' ('+riskV.score+'/20)'):'—');
-  if(lcV){addRowPDF('Vida util:',Math.round(lcV.agePct)+'% transcurrida ('+lcV.ageYrs.toFixed(1)+' anios)');addRowPDF('Zona lifecycle:',lcV.zone==='ok'?'OK':lcV.zone==='atencion'?'Atencion':'Reemplazo sugerido');}
-  y+=4;
-  var eqOTs=ordenesTrabajo.filter(function(o){return o.eqId===eqId;}).slice(0,5);
+  var estLbl=eq.estado==='operativo'?'Operativo':eq.estado==='fuera-de-servicio'?'Fuera de servicio':'Mantenimiento';
+  var estCol=eq.estado==='operativo'?'#16a34a':eq.estado==='fuera-de-servicio'?'#dc2626':'#d97706';
+  var mtbfV=calcMTBF?calcMTBF(eq):null,mttrV=calcMTTR?calcMTTR(eq):null,availV=calcAvailability?calcAvailability(eq):null,riskV=calcRiskScore?calcRiskScore(eq):null,lcV=calcLifecycle?calcLifecycle(eq):null;
+  var c=[];
+  c.push({columns:[
+    {width:'*',stack:[
+      {text:_pdfDecode(eq.nombre||'Equipo'),fontSize:16,bold:true,color:'#1a3a6b'},
+      {text:_pdfDecode((eq.marca||'')+(eq.modelo?' · '+eq.modelo:'')+(eq.serie?' · S/N '+eq.serie:'')),fontSize:9,color:'#64748b',margin:[0,2,0,0]}
+    ]},
+    {width:'auto',text:' '+estLbl+' ',bold:true,color:'#ffffff',fontSize:9,background:estCol,margin:[0,3,0,0]}
+  ],margin:[0,0,0,12]});
+  c.push(_pdfH('Información general'));
+  c.push(_pdfKV([['Sede',eq.sede||eq.ubicacion||'—'],['Ubicación',eq.ubicacion||'—'],['Categoría',eq.categoria||eq.cat||'—'],['F. instalación',eq.fechaInstalacion||eq.instalacion||'—'],['Proveedor',eq.proveedor||'—']]));
+  c.push(_pdfH('Métricas de confiabilidad'));
+  var mrows=[
+    ['MTBF',(mtbfV!==null&&mtbfV!==undefined)?(Math.round(mtbfV)+' días entre fallas'):'Sin datos'],
+    ['MTTR',(mttrV!==null&&mttrV!==undefined)?(Math.round(mttrV)+' días prom. reparación'):'Sin datos'],
+    ['Disponibilidad',(availV!==null&&availV!==undefined)?(Math.round(availV)+'%'):'Sin datos'],
+    ['Risk Score',riskV?(riskLevelLabel(riskV.level)+' ('+riskV.score+'/20)'):'—']
+  ];
+  if(lcV){mrows.push(['Vida útil',Math.round(lcV.agePct)+'% transcurrida ('+lcV.ageYrs.toFixed(1)+' años)']);mrows.push(['Zona lifecycle',lcV.zone==='ok'?'OK':lcV.zone==='atencion'?'Atención':'Reemplazo sugerido']);}
+  c.push(_pdfKV(mrows));
+  var eqOTs=ordenesTrabajo.filter(function(o){return o.eqId===eqId;}).slice(0,8);
   if(eqOTs.length){
-    doc.setFontSize(10);doc.setTextColor(173,198,255);doc.setFont('helvetica','bold');doc.text('Ultimas Ordenes de Trabajo',margin,y);y+=6;
-    doc.setDrawColor(173,198,255);doc.line(margin,y,W-margin,y);y+=4;
-    for(var oi=0;oi<eqOTs.length;oi++){
-      var oo=eqOTs[oi];
-      doc.setFontSize(8);doc.setFont('helvetica','bold');doc.setTextColor(30,30,50);
-      doc.text((oo.titulo||'OT').slice(0,45),margin,y);
-      doc.setFont('helvetica','normal');doc.setTextColor(100,100,120);
-      doc.text((oo.fechaCreacion||oo.fecha||'')+'  '+(OT_ESTADOS[oo.estado]||oo.estado||''),W-margin-60,y);y+=5;
-    }
-    y+=3;
+    c.push(_pdfH('Últimas órdenes de trabajo'));
+    c.push({ul:eqOTs.map(function(o){return {text:[{text:_pdfDecode(o.titulo||'OT'),bold:true},{text:'  '+(o.fechaCreacion||o.fecha||'')+' · '+(OT_ESTADOS[o.estado]||o.estado||''),color:'#64748b'}]};}),margin:[0,0,0,6]});
   }
-  doc.setFillColor(6,9,26);doc.rect(0,285,W,12,'F');
-  doc.setFontSize(7);doc.setTextColor(120,130,160);doc.setFont('helvetica','normal');
-  var nowPDF=new Date();var fechaStrPDF=_pad2(nowPDF.getDate())+'/'+_pad2(nowPDF.getMonth()+1)+'/'+nowPDF.getFullYear();
-  doc.text('CIMA Investigaciones Avanzadas · MedTrack '+APP_DISPLAY_VERSION+' · Ficha de Equipo · '+fechaStrPDF,margin,291);
-  doc.save('ficha-equipo-'+(eq.nombre||eqId).replace(/\s+/g,'-')+'.pdf');
+  _pdfDeliver(_pdfStdDoc('Ficha de Equipo — '+_pdfDecode(eq.nombre||eqId),c),'ficha-equipo-'+(eq.nombre||eqId).replace(/\s+/g,'-')+'.pdf');
   auditEntry('generar','eq',eq.id,eq.nombre||eq.id,'PDF ficha de equipo generado');
 }
 function generarPDFOrdenes(){
@@ -14535,7 +14473,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.4.0";
+var APP_DISPLAY_VERSION="8.4.1";
 var APP_BUILD="29/06/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
