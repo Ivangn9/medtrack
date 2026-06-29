@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.29.478 -->
+<!-- v2026.06.29.479 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.29.478">
+<meta name="app-version" content="v2026.06.29.479">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -8201,46 +8201,26 @@ function rDetalle(){
   hR+=(eq.notas?'<div class="ibox"><div class="ibox-l">📝 Nota</div><div style="font-size:.8rem;color:var(--text2);margin-top:2px;">'+esc(eq.notas)+'</div></div>':'');
   hR+='</div></div>';
 
-  /* RIGHT: MTBF/MTTR & RISK & LIFECYCLE */
+  /* RIGHT: ANÁLISIS TÉCNICO (MTBF + Riesgo + Ciclo de vida + Asistente IA) */
   var _mtbf=calcMTBF(eq);var _mttr=calcMTTR(eq);var _avail=calcAvailability(eq);
   var _rs2=calcRiskScore(eq);var _lc=calcLifecycle(eq);
-  if(_mtbf!==null||_mttr!==null||_avail!==null){
-    hR+='<div class="cring-wrap" style="--cc:rgba(139,92,246,.9);margin-bottom:8px;"><div class="cring-el"></div>'+
-    '<div class="gc" style="padding:0;overflow:hidden;background:linear-gradient(135deg,rgba(139,92,246,.07) 0%,rgba(167,139,250,.04) 100%);">';
-    hR+='<div style="background:linear-gradient(90deg,rgba(139,92,246,.12),rgba(167,139,250,.07));padding:8px 14px;display:flex;align-items:center;gap:6px;border-bottom:1px solid rgba(139,92,246,.10);">';
-    hR+='<span style="font-size:.72rem;font-weight:700;color:rgba(139,92,246,.9);text-transform:uppercase;letter-spacing:.06em;">📊 MTBF / MTTR</span></div>';
-    hR+='<div class="det-grid" style="padding:10px 14px;">';
-    if(_mtbf!==null)hR+='<div class="ibox"><div class="ibox-l">MTBF</div><div class="ibox-v" style="font-family:monospace;font-weight:700;">'+_mtbf+' días</div><div style="font-size:.6rem;color:var(--text3);margin-top:1px;">Tiempo medio entre fallas</div></div>';
-    if(_mttr!==null)hR+='<div class="ibox"><div class="ibox-l">MTTR</div><div class="ibox-v" style="font-family:monospace;font-weight:700;">'+_mttr+' días</div><div style="font-size:.6rem;color:var(--text3);margin-top:1px;">Tiempo medio de reparación</div></div>';
-    if(_avail!==null){var _ac=_avail>=95?'var(--green)':_avail>=80?'var(--orange)':'var(--red)';hR+='<div class="ibox"><div class="ibox-l">Disponibilidad</div><div class="ibox-v" style="color:'+_ac+';font-weight:800;">'+_avail+'%</div><div style="font-size:.6rem;color:var(--text3);margin-top:1px;">Uptime desde instalación</div></div>';}
-    hR+='</div></div></div>';
-  }
-  hR+='<div class="cring-wrap" style="--cc:'+riskLevelColor(_rs2.level)+';margin-bottom:8px;"><div class="cring-el"></div>'+
-  '<div class="gc" style="padding:0;overflow:hidden;background:linear-gradient(135deg,'+riskLevelColor(_rs2.level)+'11 0%,'+riskLevelColor(_rs2.level)+'07 100%);">';
-  hR+='<div style="background:linear-gradient(90deg,'+riskLevelColor(_rs2.level)+'18,'+riskLevelColor(_rs2.level)+'09);padding:8px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid '+riskLevelColor(_rs2.level)+'22;">';
-  hR+='<span style="font-size:.72rem;font-weight:700;color:'+riskLevelColor(_rs2.level)+';text-transform:uppercase;letter-spacing:.06em;">⚠️ Riesgo Institucional</span>';
-  hR+='<span style="font-size:.78rem;font-weight:800;color:'+riskLevelColor(_rs2.level)+';">'+riskLevelLabel(_rs2.level)+' ('+_rs2.score+'/20)</span></div>';
-  hR+='<div class="det-grid" style="padding:10px 14px;">';
-  hR+='<div class="ibox"><div class="ibox-l">Criticidad clínica</div><div class="ibox-v">'+_rs2.clinical+'/5</div></div>';
-  hR+='<div class="ibox"><div class="ibox-l">Complejidad mant.</div><div class="ibox-v">'+_rs2.maint+'/5</div></div>';
-  hR+='<div class="ibox"><div class="ibox-l">Historial fallas</div><div class="ibox-v">'+_rs2.incident+'/5</div></div>';
-  hR+='<div class="ibox"><div class="ibox-l">Antigüedad</div><div class="ibox-v">'+_rs2.age+'/5</div></div>';
+  var _rsColor2=riskLevelColor(_rs2.level);
+  var _avColor2=(_avail!==null)?(_avail>=95?'var(--green)':_avail>=80?'var(--orange)':'var(--red)'):'var(--text3)';
+  var _lcZc2=_lc?(_lc.zone==='reemplazo'?'var(--red)':_lc.zone==='atencion'?'var(--orange)':'var(--green)'):'var(--text3)';
+  hR+='<div class="cring-wrap" style="--cc:rgba(139,92,246,.9);margin-bottom:8px;"><div class="cring-el"></div>'+
+  '<div class="gc" style="padding:0;overflow:hidden;background:linear-gradient(135deg,rgba(139,92,246,.07) 0%,rgba(167,139,250,.04) 100%);">';
+  hR+='<div style="background:linear-gradient(90deg,rgba(139,92,246,.12),rgba(167,139,250,.07));padding:8px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(139,92,246,.10);">';
+  hR+='<span style="font-size:.72rem;font-weight:700;color:rgba(139,92,246,.9);text-transform:uppercase;letter-spacing:.06em;">📊 Análisis Técnico</span>';
+  hR+='<button onclick="openAIAssistant(\''+eq.id+'\')" style="display:flex;align-items:center;gap:5px;font-size:.68rem;font-weight:700;padding:4px 10px;border-radius:20px;background:rgba(173,198,255,.12);border:1.5px solid rgba(173,198,255,.3);color:#adc6ff;cursor:pointer;">🤖 Consultar IA</button>';
+  hR+='</div>';
+  hR+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px 14px;">';
+  if(_mtbf!==null)hR+='<div class="ibox"><div class="ibox-l">MTBF</div><div class="ibox-v" style="font-family:monospace;font-weight:700;">'+_mtbf+'d</div><div style="font-size:.6rem;color:var(--text3);margin-top:1px;">entre fallas</div></div>';
+  if(_avail!==null)hR+='<div class="ibox"><div class="ibox-l">Disponibilidad</div><div class="ibox-v" style="color:'+_avColor2+';font-weight:800;">'+_avail+'%</div><div style="font-size:.6rem;color:var(--text3);margin-top:1px;">uptime hist\xf3rico</div></div>';
+  hR+='<div class="ibox"><div class="ibox-l">Riesgo</div><div class="ibox-v" style="color:'+_rsColor2+';font-weight:800;">'+riskLevelLabel(_rs2.level)+'</div><div style="font-size:.6rem;color:var(--text3);margin-top:1px;">'+_rs2.score+'/20 institucional</div></div>';
+  if(_lc)hR+='<div class="ibox"><div class="ibox-l">Vida \xfatil</div><div class="ibox-v" style="color:'+_lcZc2+';font-weight:800;">'+_lc.agePct+'%</div><div style="font-size:.6rem;color:var(--text3);margin-top:1px;">'+_lc.ageYrs+' a\xf1os'+(_lc.zone!=='ok'?' \xb7 '+(_lc.zone==='reemplazo'?'Reemplazo':'Atenci\xf3n'):'')+'</div></div>';
+  if(_mttr!==null)hR+='<div class="ibox"><div class="ibox-l">MTTR</div><div class="ibox-v" style="font-family:monospace;">'+_mttr+'d</div><div style="font-size:.6rem;color:var(--text3);margin-top:1px;">prom. reparaci\xf3n</div></div>';
+  if(_lc&&_lc.valorRepos>0)hR+='<div class="ibox"><div class="ibox-l">Valor repos.</div><div class="ibox-v" style="font-family:monospace;color:var(--text2);">USD '+_lc.valorRepos.toLocaleString()+'</div></div>';
   hR+='</div></div></div>';
-  if(_lc){
-    var _zc=_lc.zone==='reemplazo'?'var(--red)':_lc.zone==='atencion'?'var(--orange)':'var(--green)';
-    var _zl=_lc.zone==='reemplazo'?'♻️ Reemplazo sugerido':_lc.zone==='atencion'?'⚠️ Atención':' ✅ OK';
-    hR+='<div class="cring-wrap" style="--cc:'+_zc+';margin-bottom:8px;"><div class="cring-el"></div>'+
-    '<div class="gc" style="padding:0;overflow:hidden;background:linear-gradient(135deg,'+_zc+'10 0%,'+_zc+'06 100%);">';
-    hR+='<div style="background:linear-gradient(90deg,'+_zc+'16,'+_zc+'09);padding:8px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid '+_zc+'22;">';
-    hR+='<span style="font-size:.72rem;font-weight:700;color:'+_zc+';text-transform:uppercase;letter-spacing:.06em;">📈 Ciclo de Vida</span>';
-    hR+='<span style="font-size:.75rem;font-weight:700;color:'+_zc+';">'+_zl+'</span></div>';
-    hR+='<div class="det-grid" style="padding:10px 14px;">';
-    hR+='<div class="ibox"><div class="ibox-l">Antigüedad</div><div class="ibox-v" style="font-family:monospace;">'+_lc.ageYrs+' años</div></div>';
-    hR+='<div class="ibox"><div class="ibox-l">Vida útil</div><div class="ibox-v" style="font-family:monospace;color:'+_zc+';">'+_lc.agePct+'%</div><div style="font-size:.6rem;color:var(--text3);margin-top:1px;">de '+_lc.lifespan+' años est.</div></div>';
-    if(_lc.valorRepos>0)hR+='<div class="ibox"><div class="ibox-l">Valor reposición</div><div class="ibox-v" style="font-family:monospace;">USD '+_lc.valorRepos.toLocaleString()+'</div></div>';
-    if(_lc.costPct!==null)hR+='<div class="ibox"><div class="ibox-l">Costo acum. / reposi.</div><div class="ibox-v" style="font-family:monospace;color:'+_zc+';">'+_lc.costPct+'%</div></div>';
-    hR+='</div></div></div>';
-  }
 
   /* RIGHT: COMPONENTES NAV */
   var _totalParts=(eq.partes||[]).length;
@@ -11156,6 +11136,124 @@ function scanLabelEquipo(){
       showToast('✅ Datos cargados desde la etiqueta','');
     }
   );
+}
+
+// ── AI ASSISTANT ──
+var _aiChatHistory=[];
+var _aiChatEqId=null;
+
+function openAIAssistant(eqId){
+  _aiChatEqId=eqId;
+  _aiChatHistory=[];
+  var modal=document.getElementById('ai-assist-modal');
+  if(!modal)return;
+  document.getElementById('ai-chat-msgs').innerHTML='';
+  var inp=document.getElementById('ai-chat-inp');
+  if(inp)inp.value='';
+  modal.style.display='flex';
+  var eq=eqs.filter(function(e){return e.id===eqId;})[0];
+  _appendAIMsg('bot','Hola. Podés preguntarme cualquier cosa sobre '+(eq?eq.nombre:'este equipo')+': estado, historial de fallas, recomendaciones de mantenimiento, prioridades o cualquier consulta técnica.',null);
+  if(inp)setTimeout(function(){inp.focus();},100);
+}
+
+function closeAIAssistant(){
+  var modal=document.getElementById('ai-assist-modal');
+  if(modal)modal.style.display='none';
+  _aiChatHistory=[];
+  _aiChatEqId=null;
+}
+
+function _buildAIContext(eq){
+  var mtbfV=calcMTBF(eq);var mttrV=calcMTTR(eq);var availV=calcAvailability(eq);
+  var riskV=calcRiskScore(eq);var hsV=calcHealthScore(eq);var lcV=calcLifecycle(eq);
+  var partesFallas=(eq.partes||[]).filter(function(p){return p.estado==='roto'||p.estado==='pendiente';});
+  var histMant=(eq.historialMant||[]).slice(0,6);
+  var otActivas=ordenesTrabajo.filter(function(o){return o.eqId===eq.id&&o.estado!=='cerrada'&&o.estado!=='cancelada';});
+  var ctx='EQUIPO: '+eq.nombre+'\n';
+  ctx+='Categoria: '+(eq.cat||'—')+'\n';
+  ctx+='Ubicacion: '+(eq.ubicacion||'—')+'\n';
+  ctx+='Estado: '+(eq.estado||'—')+'\n';
+  ctx+='Marca: '+(eq.marca||'—')+'\n';
+  ctx+='Instalacion: '+(eq.instalacion||'—')+'\n';
+  ctx+='Tecnico: '+(eq.tecnico||'—')+'\n';
+  ctx+='\nMETRICAS:\n';
+  ctx+='Salud: '+(hsV?hsV.score+'/100':'sin datos')+'\n';
+  ctx+='MTBF: '+(mtbfV!==null?mtbfV+' dias':'sin datos')+'\n';
+  ctx+='MTTR: '+(mttrV!==null?mttrV+' dias':'sin datos')+'\n';
+  ctx+='Disponibilidad: '+(availV!==null?availV+'%':'sin datos')+'\n';
+  ctx+='Riesgo: '+(riskV?riskLevelLabel(riskV.level)+' ('+riskV.score+'/20)':'—')+'\n';
+  if(lcV){ctx+='Antiguedad: '+lcV.ageYrs+' anos ('+lcV.agePct+'% vida util)\nZona: '+lcV.zone+'\n';}
+  ctx+='\nMANTENIMIENTO:\n';
+  ctx+='Ultimo: '+(eq.ultimoMant||'sin registro')+'\n';
+  ctx+='Proximo: '+(eq.proximoMant||'sin programar')+'\n';
+  ctx+='Frecuencia: '+(eq.frecuencia||'—')+'\n';
+  if(partesFallas.length){
+    ctx+='\nFALLAS ACTIVAS ('+partesFallas.length+'):\n';
+    partesFallas.forEach(function(p){ctx+='- '+p.nombre+': '+p.estado+(p.notas?' — '+p.notas:'')+'\n';});
+  }
+  if(otActivas.length){
+    ctx+='\nOT ACTIVAS ('+otActivas.length+'):\n';
+    otActivas.forEach(function(ot){ctx+='- '+(ot.titulo||ot.descripcion||'')+' ['+ot.prioridad+', '+ot.estado+']\n';});
+  }
+  if(histMant.length){
+    ctx+='\nULTIMOS EVENTOS:\n';
+    histMant.forEach(function(ev){ctx+='- '+(ev.fecha||'')+': '+(ev.tipo||'')+(ev.descripcion||ev.notas?' — '+(ev.descripcion||ev.notas):'')+'\n';});
+  }
+  return ctx;
+}
+
+function sendAIAssistantMsg(){
+  var inp=document.getElementById('ai-chat-inp');
+  if(!inp)return;
+  var msg=(inp.value||'').trim();
+  if(!msg||!_aiChatEqId)return;
+  var proxyUrl=_getAIProxy();
+  if(!proxyUrl){if(confirm('Para usar el asistente IA necesitás configurar el proxy de Cloudflare.\n¿Abrir configuración?')){openAIKeyModal();}return;}
+  var eq=eqs.filter(function(e){return e.id===_aiChatEqId;})[0];
+  if(!eq)return;
+  inp.value='';
+  _appendAIMsg('user',msg,null);
+  _aiChatHistory.push({role:'user',content:msg});
+  var loadId='ai-load-'+Date.now();
+  _appendAIMsg('loading','',loadId);
+  var sysPrompt='Sos un asistente técnico especializado en mantenimiento de equipos médicos de diagnóstico por imágenes (RM, CT, ecógrafos) para el Centro de Imágenes Médicas Avanzadas CIMA. Respondés en español argentino, de forma concisa y práctica. No uses markdown con asteriscos. Contexto completo del equipo:\n\n'+_buildAIContext(eq);
+  fetch(proxyUrl,{method:'POST',mode:'cors',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:800,system:sysPrompt,messages:_aiChatHistory.slice()})
+  })
+  .then(function(r){return r.json().then(function(d){return{ok:r.ok,status:r.status,data:d};});})
+  .then(function(res){
+    var el=document.getElementById(loadId);if(el)el.parentNode.removeChild(el);
+    if(!res.ok){var em=((res.data||{}).error||{}).message||'Error desconocido';_appendAIMsg('err','Error '+res.status+': '+em,null);return;}
+    var text=(((res.data.content||[])[0])||{}).text||'';
+    _aiChatHistory.push({role:'assistant',content:text});
+    _appendAIMsg('bot',text,null);
+  })
+  .catch(function(){
+    var el=document.getElementById(loadId);if(el)el.parentNode.removeChild(el);
+    _appendAIMsg('err','Sin conexión con la API. Verificá internet y configuración del proxy.',null);
+  });
+}
+
+function _appendAIMsg(role,text,id){
+  var box=document.getElementById('ai-chat-msgs');
+  if(!box)return;
+  var div=document.createElement('div');
+  if(id)div.id=id;
+  var isUser=role==='user';
+  var isErr=role==='err';
+  var isLoad=role==='loading';
+  div.style.cssText='margin-bottom:10px;padding:10px 13px;border-radius:14px;font-size:.82rem;line-height:1.5;word-break:break-word;max-width:88%;'+
+    (isUser?'margin-left:auto;background:rgba(173,198,255,.18);border:1px solid rgba(173,198,255,.25);color:var(--text1);':
+     isErr?'background:rgba(255,59,48,.1);border:1px solid rgba(255,59,48,.25);color:#ff453a;':
+     'background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);color:var(--text1);');
+  if(isLoad){div.innerHTML='<span style="opacity:.45;font-style:italic;">Pensando…</span>';}
+  else{div.innerHTML=esc(text).replace(/\n/g,'<br>');}
+  box.appendChild(div);
+  box.scrollTop=box.scrollHeight;
+}
+
+function _onAIChatKey(ev){
+  if(ev.key==='Enter'&&!ev.shiftKey){ev.preventDefault();sendAIAssistantMsg();}
 }
 
 function openAddAntennaModal(rmEquipId){
@@ -14502,7 +14600,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.5.2";
+var APP_DISPLAY_VERSION="8.6.0";
 var APP_BUILD="29/06/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
@@ -15197,6 +15295,25 @@ function rReporte(){
   <button class="sb-sub-btn" style="color:var(--text3);font-size:.76rem;" onclick="closeSbAjustesMenu();toggleSettings()">
     <span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span>Más Ajustes…
   </button>
+</div>
+
+<!-- AI Assistant Modal -->
+<div id="ai-assist-modal" onclick="if(event.target===this)closeAIAssistant()" style="display:none;position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.55);align-items:flex-end;justify-content:center;">
+  <div style="width:100%;max-width:560px;max-height:82vh;background:#16172a;border-radius:20px 20px 0 0;display:flex;flex-direction:column;border:1px solid rgba(173,198,255,.12);border-bottom:none;box-shadow:0 -8px 40px rgba(0,0,0,.5);">
+    <div style="padding:16px 18px 12px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:10px;flex-shrink:0;">
+      <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,rgba(173,198,255,.2),rgba(173,198,255,.08));display:flex;align-items:center;justify-content:center;font-size:1.1rem;">🤖</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:700;font-size:.92rem;color:var(--text1);">Asistente IA</div>
+        <div style="font-size:.68rem;color:var(--text3);">Contexto completo del equipo cargado</div>
+      </div>
+      <button onclick="closeAIAssistant()" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:50%;width:30px;height:30px;cursor:pointer;color:var(--text2);font-size:1rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;">✕</button>
+    </div>
+    <div id="ai-chat-msgs" style="flex:1;overflow-y:auto;padding:14px 16px;min-height:160px;"></div>
+    <div style="padding:12px 16px 28px;border-top:1px solid rgba(255,255,255,.06);display:flex;gap:8px;align-items:flex-end;flex-shrink:0;">
+      <textarea id="ai-chat-inp" placeholder="Preguntá cualquier cosa sobre este equipo…" onkeydown="_onAIChatKey(event)" rows="2" style="flex:1;background:rgba(255,255,255,.05);border:1.5px solid rgba(173,198,255,.2);border-radius:12px;padding:10px 12px;color:var(--text1);font-size:.84rem;resize:none;outline:none;font-family:inherit;line-height:1.4;-webkit-appearance:none;"></textarea>
+      <button onclick="sendAIAssistantMsg()" style="background:linear-gradient(135deg,rgba(173,198,255,.22),rgba(173,198,255,.1));border:1.5px solid rgba(173,198,255,.35);border-radius:12px;padding:10px 16px;cursor:pointer;color:#adc6ff;font-weight:700;font-size:.84rem;white-space:nowrap;flex-shrink:0;align-self:flex-end;">Enviar</button>
+    </div>
+  </div>
 </div>
 
 <!-- Equipos floating submenu — outside sidebar to avoid overflow-x:hidden clipping -->
