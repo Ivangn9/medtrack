@@ -11216,21 +11216,34 @@ function sendAIAssistantMsg(){
   _aiChatHistory.push({role:'user',content:msg});
   var loadId='ai-load-'+Date.now();
   _appendAIMsg('loading','',loadId);
-  var sysPrompt='Sos un asistente técnico especializado en mantenimiento de equipos médicos de diagnóstico por imágenes (RM, CT, ecógrafos) para el Centro de Imágenes Médicas Avanzadas CIMA. Respondés en español argentino, de forma concisa y práctica. No uses markdown con asteriscos. Contexto completo del equipo:\n\n'+_buildAIContext(eq);
+  var sysPrompt='Sos un asistente técnico especializado en mantenimiento de equipos médicos de diagnóstico por imágenes (RM, CT, ecógrafos) para el Centro de Imágenes Médicas Avanzadas CIMA. Respondés en español argentino, de forma concisa y práctica. No uses asteriscos ni markdown. Contexto del equipo:\n\n'+_buildAIContext(eq);
+  var msgs=_aiChatHistory.slice();
+  // Prepend context to first message for proxies that strip system field
+  if(msgs.length===1){msgs=[{role:'user',content:sysPrompt+'\n\n---\n'+msgs[0].content}];}
   fetch(proxyUrl,{method:'POST',mode:'cors',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:800,system:sysPrompt,messages:_aiChatHistory.slice()})
+    body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:800,messages:msgs})
   })
-  .then(function(r){return r.json().then(function(d){return{ok:r.ok,status:r.status,data:d};});})
+  .then(function(r){
+    var status=r.status;var ok=r.ok;
+    return r.text().then(function(txt){
+      var data;try{data=JSON.parse(txt);}catch(e){data={error:{message:'Respuesta no válida del proxy: '+txt.slice(0,120)}};}
+      return{ok:ok,status:status,data:data};
+    });
+  })
   .then(function(res){
     var el=document.getElementById(loadId);if(el)el.parentNode.removeChild(el);
     if(!res.ok){var em=((res.data||{}).error||{}).message||'Error desconocido';_appendAIMsg('err','Error '+res.status+': '+em,null);return;}
     var text=(((res.data.content||[])[0])||{}).text||'';
+    if(!text){_appendAIMsg('err','La IA no devolvió respuesta. Intentá de nuevo.',null);return;}
     _aiChatHistory.push({role:'assistant',content:text});
     _appendAIMsg('bot',text,null);
   })
-  .catch(function(){
+  .catch(function(err){
     var el=document.getElementById(loadId);if(el)el.parentNode.removeChild(el);
-    _appendAIMsg('err','Sin conexión con la API. Verificá internet y configuración del proxy.',null);
+    var msg=err&&err.message?err.message:'Sin conexión';
+    if(msg.indexOf('fetch')!==-1||msg.indexOf('Load')!==-1||msg.indexOf('network')!==-1||msg.indexOf('Failed')!==-1){
+      msg='Sin conexión con la API. Verificá internet y la URL del proxy en Ajustes.';}
+    _appendAIMsg('err',msg,null);
   });
 }
 
