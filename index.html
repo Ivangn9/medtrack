@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.29.468 -->
+<!-- v2026.06.29.469 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.29.468">
+<meta name="app-version" content="v2026.06.29.469">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3046,6 +3046,7 @@ function openPDFViewer(fileId,nombre){
 var _reportHTML='';
 var _pendingPdfBlob=null;
 var _pendingPdfName='';
+var _reportData=null;
 function openHTMLViewer(htmlContent,title){
   try{
     var overlay=document.getElementById('pdf-viewer-overlay');
@@ -3090,25 +3091,281 @@ function openHTMLViewer(htmlContent,title){
     // Force overlay visible with inline styles (bypasses any CSS class issues)
     overlay.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;display:flex;flex-direction:column;';
     overlay.classList.remove('hidden');
-    // Pre-load html2canvas + jsPDF in background so export keeps user-gesture context
-    if(!window.html2canvas){
-      var _h2cs=document.createElement('script');
-      _h2cs.src='https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
-      document.head.appendChild(_h2cs);
-    }
-    if(!(window.jspdf&&window.jspdf.jsPDF)){
-      var _jps=document.createElement('script');
-      _jps.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-      document.head.appendChild(_jps);
+    // Pre-load pdfmake (PDF nativo: texto vectorial, paginación nativa, sin html2canvas)
+    if(!window.pdfMake){
+      var _pm=document.createElement('script');
+      _pm.src='https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.10/pdfmake.min.js';
+      _pm.onload=function(){
+        var _vf=document.createElement('script');
+        _vf.src='https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.10/vfs_fonts.js';
+        document.head.appendChild(_vf);
+      };
+      document.head.appendChild(_pm);
     }
   }catch(e){showToast('Error abriendo visor: '+(e.message||String(e)),'err');}
 }
+// ───────── PDF nativo con pdfmake — texto vectorial, paginación nativa ─────────
+function _pdfDecode(s){
+  s=String(s||'').replace(/&nbsp;/g,' ').replace(/&mdash;/g,'—').replace(/&ndash;/g,'–').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&#39;/g,"'");
+  // quitar emojis (Roboto no los tiene → evitan tofu)
+  s=s.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g,'').replace(/[←-⇿⌀-➿⬀-⯿️⃣™ℹ]/g,'');
+  return s;
+}
+function _pdfPlain(html){return _pdfDecode(String(html||'').replace(/<[^>]+>/g,'')).replace(/\s+/g,' ').trim();}
+function _pdfIsImg(s){return typeof s==='string'&&s.indexOf('data:image/')===0;}
+function _pdfClone(s){var o={},k;for(k in s){if(s.hasOwnProperty(k))o[k]=s[k];}return o;}
+function _pdfBox(fill,border){
+  return {hLineWidth:function(){return 0.6;},vLineWidth:function(){return 0.6;},hLineColor:function(){return border;},vLineColor:function(){return border;},paddingLeft:function(){return 0;},paddingRight:function(){return 0;},paddingTop:function(){return 0;},paddingBottom:function(){return 0;},fillColor:function(){return fill;}};
+}
+function _pdfInline(node,inherit){
+  var out=[],kids=node.childNodes,i;inherit=inherit||{};
+  for(i=0;i<kids.length;i++){
+    var n=kids[i];
+    if(n.nodeType===3){
+      var t=_pdfDecode(n.nodeValue).replace(/\s+/g,' ');
+      if(t){var o=_pdfClone(inherit);o.text=t;out.push(o);}
+    }else if(n.nodeType===1){
+      var tag=n.tagName.toLowerCase();
+      if(tag==='br'){out.push({text:'\n'});continue;}
+      var st=_pdfClone(inherit);
+      if(tag==='strong'||tag==='b')st.bold=true;
+      if(tag==='em'||tag==='i')st.italics=true;
+      var cls=n.getAttribute('class')||'';
+      if(/\bsok\b/.test(cls))st.color='#16a34a';
+      else if(/\bswarn\b/.test(cls))st.color='#d97706';
+      else if(/\bsbad\b/.test(cls))st.color='#dc2626';
+      else if(/list-note/.test(cls))st.color='#475569';
+      out=out.concat(_pdfInline(n,st));
+    }
+  }
+  return out;
+}
+function _pdfHasBlock(node){
+  for(var i=0;i<node.childNodes.length;i++){
+    var n=node.childNodes[i];
+    if(n.nodeType===1){var t=n.tagName.toLowerCase();if(t==='div'||t==='ul'||t==='ol'||t==='p')return true;}
+  }
+  return false;
+}
+function _pdfBlocks(parent){
+  var blocks=[],run=[],i;
+  function flush(){if(run.length){blocks.push({text:run,margin:[0,1,0,3],lineHeight:1.18});run=[];}}
+  for(i=0;i<parent.childNodes.length;i++){
+    var n=parent.childNodes[i];
+    if(n.nodeType===3){var tx=_pdfDecode(n.nodeValue).replace(/\s+/g,' ');if(tx.replace(/\s/g,''))run.push({text:tx});continue;}
+    if(n.nodeType!==1)continue;
+    var tag=n.tagName.toLowerCase();
+    var cls=n.getAttribute('class')||'';
+    if(tag==='br'){run.push({text:'\n'});continue;}
+    if(tag==='p'){
+      flush();blocks.push({text:_pdfInline(n,{}),margin:[0,1,0,4],lineHeight:1.18,alignment:'justify'});
+    }else if(tag==='ul'||tag==='ol'){
+      flush();
+      var items=[],j;
+      for(j=0;j<n.childNodes.length;j++){
+        var li=n.childNodes[j];
+        if(li.nodeType===1&&li.tagName.toLowerCase()==='li'){
+          if(_pdfHasBlock(li))items.push({stack:_pdfBlocks(li)});
+          else items.push({text:_pdfInline(li,{})});
+        }
+      }
+      blocks.push({ul:items,margin:[0,2,0,6],lineHeight:1.14});
+    }else if(tag==='div'){
+      if(/sub-label/.test(cls)){
+        flush();
+        var col='#1e40af',stl=n.getAttribute('style')||'',cm=stl.match(/color:\s*(#[0-9a-fA-F]{3,6})/);if(cm)col=cm[1];
+        blocks.push({text:_pdfPlain(n.innerHTML),bold:true,fontSize:9,color:col,margin:[0,8,0,3]});
+      }else if(_pdfHasBlock(n)){
+        // caja (seguimiento de gestión)
+        flush();
+        blocks.push({table:{widths:['*'],body:[[{stack:_pdfBlocks(n),margin:[7,5,7,5]}]]},layout:_pdfBox('#fff7ed','#fed7aa'),margin:[0,4,0,6]});
+      }else{
+        flush();
+        blocks.push({text:_pdfInline(n,{}),margin:[0,1,0,2]});
+      }
+    }else{
+      // elemento inline (strong/em/span/b/i) — acumular en el run actual
+      run=run.concat(_pdfInline(n,{}));
+    }
+  }
+  flush();
+  return blocks;
+}
+function _narrToPdf(html){
+  try{
+    var doc=(new DOMParser()).parseFromString('<div id="_nr">'+String(html||'')+'</div>','text/html');
+    return _pdfBlocks(doc.getElementById('_nr'));
+  }catch(e){return [{text:_pdfPlain(html)}];}
+}
+function _pdfGallery(imgArr,perRow,imgW){
+  perRow=perRow||3;imgW=imgW||150;
+  var rows=[],cur=[],i;
+  for(i=0;i<imgArr.length;i++){
+    if(!_pdfIsImg(imgArr[i].src))continue;
+    cur.push({width:imgW+8,stack:[{image:imgArr[i].src,width:imgW},{text:imgArr[i].cap||'',fontSize:7,color:'#64748b',margin:[0,2,0,0]}]});
+    if(cur.length===perRow){rows.push({columns:cur,columnGap:8,margin:[0,4,0,4]});cur=[];}
+  }
+  if(cur.length)rows.push({columns:cur,columnGap:8,margin:[0,4,0,4]});
+  return rows;
+}
+function _pdfFotosArr(fotos,imgsMap){
+  var arr=[];(fotos||[]).forEach(function(fo){var id=fo&&fo.id?fo.id:fo;if(id&&typeof id==='string'&&imgsMap[id]&&_pdfIsImg(imgsMap[id]))arr.push({src:imgsMap[id],cap:''});});return arr;
+}
+function _pdfEstado(estado){
+  var c={roto:'#dc2626',en_reparacion:'#d97706',reparado:'#16a34a'}[estado]||'#64748b';
+  var l={roto:'Roto',en_reparacion:'En reparación',reparado:'Reparado'}[estado]||estado||'—';
+  return {color:c,label:l};
+}
+function _pdfKV(rows){
+  var body=[],i;
+  for(i=0;i<rows.length;i++){
+    var f=(i%2===0?'#f8fafc':null);
+    body.push([
+      {text:rows[i][0],fontSize:8,color:'#64748b',fillColor:f,margin:[5,2,5,2]},
+      {text:rows[i][1],fontSize:8,color:'#1e293b',fillColor:f,margin:[5,2,5,2]}
+    ]);
+  }
+  return {table:{widths:[112,'*'],body:body},layout:'noBorders',margin:[0,2,0,2]};
+}
+function _pdfSegui(notas,accent){
+  var body=[[{text:'Seguimiento ('+notas.length+')',bold:true,fontSize:7.5,color:accent,margin:[5,3,5,2]}]];
+  notas.forEach(function(ns){
+    var line=[{text:(ns.fecha?fD(ns.fecha):''),bold:true,color:accent}];
+    if(ns.autor)line.push({text:' · '+ns.autor,color:'#64748b'});
+    line.push({text:' — '+(ns.nota||''),color:'#475569'});
+    body.push([{text:line,fontSize:7.5,margin:[5,1,5,1]}]);
+  });
+  return {table:{widths:['*'],body:body},layout:_pdfBox('#fffbeb','#fde68a'),margin:[0,3,0,3]};
+}
+function _pdfCard(titleText,estadoObj,inner,fill,border){
+  var head={columns:[{text:_pdfDecode(titleText),bold:true,fontSize:9,color:'#1e293b'},{text:estadoObj?estadoObj.label:'',bold:true,fontSize:8,color:estadoObj?estadoObj.color:'#64748b',alignment:'right'}],margin:[0,0,0,4]};
+  return {table:{widths:['*'],body:[[{stack:[head].concat(inner),margin:[9,7,9,7]}]]},layout:_pdfBox(fill,border),margin:[0,3,0,6]};
+}
+function _pdfH(t){return {text:t,fontSize:12,bold:true,color:'#1a3a6b',margin:[0,12,0,6]};}
+function _pdfEqSection(d,imgsMap){
+  var out=[],eq=d.eq,ci=d.ci;
+  out.push({table:{widths:['*'],body:[[{text:[{text:_pdfDecode(eq.nombre),bold:true,fontSize:11,color:'#0f2a52'},{text:'   '+ci.label+(eq.ubicacion?' — '+_pdfDecode(eq.ubicacion):''),fontSize:9,color:'#64748b'}],margin:[9,6,9,6]}]]},layout:_pdfBox('#eef4ff','#c7d7f5'),margin:[0,12,0,5],unbreakable:true});
+  out=out.concat(_narrToPdf(_narrativeEq(eq,d.mantH,d.repH,d.mejH,d.actH,d.mejP,d.trasladosH||[],d.cancelPMH||[])));
+  // galería de imágenes de fallas (actH + repH)
+  var gal=[];
+  d.actH.forEach(function(p){(p.imagenes||[]).forEach(function(im){if(im&&im.id&&_pdfIsImg(imgsMap[im.id]))gal.push({src:imgsMap[im.id],cap:p.nombre});});});
+  d.repH.forEach(function(h){(h.imagenes||[]).forEach(function(im){if(im&&im.id&&_pdfIsImg(imgsMap[im.id]))gal.push({src:imgsMap[im.id],cap:h.nombre});});});
+  if(gal.length){out.push({text:'Imágenes registradas',bold:true,fontSize:9,color:'#1e40af',margin:[0,6,0,2]});out=out.concat(_pdfGallery(gal,3,150));}
+  // antenas RF — roturas activas
+  if(d.antRoturas&&d.antRoturas.length){
+    out.push({text:'ANTENAS RF — Fallas / Roturas activas ('+d.antRoturas.length+')',bold:true,fontSize:9,color:'#1e40af',margin:[0,8,0,3]});
+    d.antRoturas.forEach(function(ar){
+      var ant=ar.ant,rot=ar.rot,es=_pdfEstado(rot.estado);
+      var rows=[['Tipo / Banda',ant.tipo||'—'],['Fecha rotura',rot.fecha?fD(rot.fecha):'—'],['Componente afectado',rot.queSeRompio||'—'],['Descripción',rot.descripcion||'—'],['Técnico',rot.tecnico||'—']];
+      if(rot.empresa)rows.push(['Taller/Empresa',rot.empresa]);
+      if(rot.fechaEnvio)rows.push(['Fecha de envío',fD(rot.fechaEnvio)]);
+      if(rot.presupuestosArreglo&&rot.presupuestosArreglo.length)rows.push(['Presupuestos cargados',rot.presupuestosArreglo.length+' archivo(s)']);
+      var inner=[_pdfKV(rows)];
+      if(rot.notasSeguimiento&&rot.notasSeguimiento.length)inner.push(_pdfSegui(rot.notasSeguimiento,'#b91c1c'));
+      var fa=_pdfFotosArr(rot.fotos,imgsMap);
+      if(fa.length){inner.push({text:'Fotos de la falla ('+fa.length+')',bold:true,fontSize:7.5,color:'#b91c1c',margin:[0,4,0,2]});inner=inner.concat(_pdfGallery(fa,3,135));}
+      out.push(_pdfCard(ant.nombre||ant.id,es,inner,'#fef2f2','#fecaca'));
+    });
+  }
+  // antenas RF — historial
+  if(d.antHistorial&&d.antHistorial.length){
+    out.push({text:'ANTENAS RF — Historial de reparaciones ('+d.antHistorial.length+')',bold:true,fontSize:9,color:'#16a34a',margin:[0,6,0,3]});
+    d.antHistorial.forEach(function(ah){var ant=ah.ant,h=ah.hist;
+      var ln=[{text:_pdfDecode(ant.nombre||ant.id),bold:true},{text:' · '+_pdfDecode(h.queSeRompio||h.descripcion||'Reparación'),color:'#64748b'},{text:' · '+(h.fecha?fD(h.fecha):''),color:'#16a34a',bold:true}];
+      if(h.tecnico)ln.push({text:' · Téc: '+_pdfDecode(h.tecnico),color:'#475569'});
+      out.push({table:{widths:['*'],body:[[{text:ln,fontSize:8,margin:[9,4,9,4]}]]},layout:_pdfBox('#f0fdf4','#bbf7d0'),margin:[0,2,0,3]});
+    });
+  }
+  // transductores — roturas
+  if(d.tranRoturas&&d.tranRoturas.length){
+    out.push({text:'TRANSDUCTORES — Fallas activas ('+d.tranRoturas.length+')',bold:true,fontSize:9,color:'#0369a1',margin:[0,8,0,3]});
+    d.tranRoturas.forEach(function(tr){
+      var trObj=tr.tr,rot=tr.rot,es=_pdfEstado(rot.estado);
+      var rows=[['Qué se rompió',rot.queSeRompio||rot.descripcion||'—'],['Fecha',rot.fecha?fD(rot.fecha):'—'],['Empresa',rot.empresa||'—'],['Fecha envío',rot.fechaEnvio?fD(rot.fechaEnvio):'—']];
+      if(rot.presupuestosArreglo&&rot.presupuestosArreglo.length)rows.push(['Presupuestos',rot.presupuestosArreglo.length+' archivo(s)']);
+      var inner=[_pdfKV(rows)];
+      if(rot.notasSeguimiento&&rot.notasSeguimiento.length)inner.push(_pdfSegui(rot.notasSeguimiento,'#0369a1'));
+      var fa=_pdfFotosArr(rot.fotos,imgsMap);
+      if(fa.length){inner.push({text:'Fotos de la falla ('+fa.length+')',bold:true,fontSize:7.5,color:'#0369a1',margin:[0,4,0,2]});inner=inner.concat(_pdfGallery(fa,3,135));}
+      out.push(_pdfCard(trObj.nombre||trObj.id,es,inner,'#f0f9ff','#bae6fd'));
+    });
+  }
+  // fallas directas
+  if(d.fallasDir&&d.fallasDir.length){
+    out.push({text:'FALLAS DEL EQUIPO ('+d.fallasDir.length+')',bold:true,fontSize:9,color:'#c2410c',margin:[0,8,0,3]});
+    d.fallasDir.forEach(function(falla){
+      var es=_pdfEstado(falla.estado);
+      var rows=[['Fecha',falla.fecha?fD(falla.fecha):'—'],['Empresa',falla.empresa||'—'],['Fecha envío',falla.fechaEnvio?fD(falla.fechaEnvio):'—']];
+      if(falla.descripcion)rows.push(['Descripción',falla.descripcion]);
+      if(falla.presupuestosArreglo&&falla.presupuestosArreglo.length)rows.push(['Presupuestos',falla.presupuestosArreglo.length+' archivo(s)']);
+      var inner=[_pdfKV(rows)];
+      if(falla.notasSeguimiento&&falla.notasSeguimiento.length)inner.push(_pdfSegui(falla.notasSeguimiento,'#c2410c'));
+      var fa=_pdfFotosArr(falla.fotos,imgsMap);
+      if(fa.length){inner.push({text:'Fotos de la falla ('+fa.length+')',bold:true,fontSize:7.5,color:'#c2410c',margin:[0,4,0,2]});inner=inner.concat(_pdfGallery(fa,3,135));}
+      out.push(_pdfCard(falla.queSeRompio||'Falla',es,inner,'#fff7ed','#fed7aa'));
+    });
+  }
+  return out;
+}
+function _pdfSumTable(sumData){
+  function hdr(t){return {text:t,bold:true,fontSize:8,color:'#ffffff',fillColor:'#1a3a6b',margin:[4,4,4,4]};}
+  var body=[[hdr('Equipo'),hdr('Categoría'),hdr('Centro'),hdr('Estado'),hdr('Mant.'),hdr('Rep.'),hdr('Fallas')]],i;
+  for(i=0;i<sumData.length;i++){
+    var s=sumData[i],f=(i%2===0?'#f1f5f9':null);
+    var ec=(s.estadoRaw==='operativo'?'#16a34a':(s.estadoRaw==='fuera-de-servicio'?'#dc2626':'#d97706'));
+    body.push([
+      {text:_pdfDecode(s.nombre),fontSize:8,bold:true,fillColor:f,margin:[4,2,4,2]},
+      {text:s.cat,fontSize:8,fillColor:f,margin:[4,2,4,2]},
+      {text:_pdfDecode(s.centro),fontSize:8,fillColor:f,margin:[4,2,4,2]},
+      {text:s.estado,fontSize:8,color:ec,bold:true,fillColor:f,margin:[4,2,4,2]},
+      {text:String(s.mant),fontSize:8,alignment:'center',fillColor:f,margin:[4,2,4,2]},
+      {text:String(s.rep),fontSize:8,alignment:'center',fillColor:f,margin:[4,2,4,2]},
+      {text:String(s.fallas),fontSize:8,alignment:'center',fillColor:f,margin:[4,2,4,2]}
+    ]);
+  }
+  return {table:{headerRows:1,widths:['*','auto','auto','auto',24,24,28],body:body},layout:{hLineWidth:function(){return 0.4;},vLineWidth:function(){return 0;},hLineColor:function(){return '#e2e8f0';}},margin:[0,4,0,10]};
+}
+function _pdfHeader(R){
+  return function(){
+    var left=R.logo?{image:R.logo,width:78,margin:[40,16,0,0]}:{text:'CIMA',bold:true,fontSize:16,color:'#1a3a6b',margin:[40,22,0,0]};
+    var right={stack:[{text:'INVESTIGACIONES AVANZADAS',fontSize:8,bold:true,color:'#64748b',characterSpacing:2},{text:'DIAGNÓSTICO POR IMAGEN',fontSize:7,color:'#94a3b8',margin:[0,2,0,0]}],alignment:'right',margin:[0,26,40,0]};
+    return {columns:[left,right]};
+  };
+}
+function _buildPdfDoc(){
+  var R=_reportData;if(!R||!R.eqData)return null;
+  var content=[],i;
+  content.push({text:'Reporte Mensual de Mantenimiento y Fallas',fontSize:17,bold:true,color:'#1a3a6b',margin:[0,0,0,2]});
+  content.push({text:'Informe Equipos CIMA Nº '+R.nro+' — '+(R.mesAnio||'').toUpperCase(),fontSize:10,color:'#64748b',margin:[0,0,0,10]});
+  content.push(_pdfKV([['FECHA',R.fechaCreacion],['DE','Lic. García Núñez Iván'],['PARA',R.para],['PERÍODO',R.periodoLabel]]));
+  content.push({canvas:[{type:'line',x1:0,y1:0,x2:515,y2:0,lineWidth:0.8,lineColor:'#1a3a6b'}],margin:[0,8,0,4]});
+  content.push(_pdfH('1. Objeto'));
+  content.push({text:_pdfPlain(R.introText),margin:[0,0,0,6],lineHeight:1.2,alignment:'justify'});
+  content.push(_pdfH('2. Resumen ejecutivo'));
+  content.push({text:_pdfPlain(R.resumenText),margin:[0,0,0,6],lineHeight:1.2,alignment:'justify'});
+  content.push(_pdfH('3. Detalle por equipo'));
+  for(i=0;i<R.eqData.length;i++){content=content.concat(_pdfEqSection(R.eqData[i],R.imgsMap||{}));}
+  content.push(_pdfH('4. Cuadro resumen'));
+  content.push(_pdfSumTable(R.sumData||[]));
+  content.push(_pdfH('5. Conclusiones y recomendaciones'));
+  content.push({text:_pdfPlain(R.conclusionText),margin:[0,0,0,10],lineHeight:1.2,alignment:'justify'});
+  content.push({text:'_______________________________',margin:[0,28,0,0],color:'#64748b'});
+  content.push({text:'Lic. García Núñez Iván',bold:true,fontSize:9,margin:[0,4,0,0]});
+  content.push({text:'Responsable de Equipos Biomédicos',fontSize:8,color:'#64748b'});
+  return {
+    pageSize:'A4',
+    pageMargins:[40,R.logo?92:58,40,46],
+    defaultStyle:{fontSize:9,color:'#1e293b',lineHeight:1.15},
+    info:{title:'Informe Equipos CIMA — '+(R.mesAnio||'')},
+    header:_pdfHeader(R),
+    footer:function(cp,pc){return {columns:[{text:'CIMA Investigaciones Avanzadas · CIMA Hub',fontSize:7,color:'#94a3b8'},{text:'Página '+cp+' de '+pc,alignment:'right',fontSize:7,color:'#94a3b8'}],margin:[40,16,40,0]};},
+    content:content
+  };
+}
 function printReport(){
-  if(!_reportHTML){showToast('Sin contenido','warn');return;}
-  if(!window.html2canvas||!(window.jspdf&&window.jspdf.jsPDF)){showToast('Cargando generador, intentá en unos segundos','');return;}
+  if(!_reportData){showToast('Generá primero el informe','warn');return;}
+  if(!window.pdfMake){showToast('Cargando generador, intentá en unos segundos','');return;}
   var btn=document.getElementById('pdf-export-btn');
-  var BLANK_GIF='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
-  var CONT_ID='_pdf_cap_div';
 
   // SEGUNDO TAP: PDF ya listo — compartir con gesto limpio del usuario
   if(_pendingPdfBlob){
@@ -3128,142 +3385,19 @@ function printReport(){
     return;
   }
 
-  // PRIMER TAP: generar PDF async
+  // PRIMER TAP: generar PDF
   if(btn){btn.disabled=true;btn.textContent='⏳ Generando PDF...';}
   var restore=function(){if(btn){btn.disabled=false;btn.textContent='📄 Exportar PDF';}};
-
   try{
-    // Limpiar container anterior si quedó colgado
-    var stale=document.getElementById(CONT_ID);
-    if(stale&&stale.parentNode)stale.parentNode.removeChild(stale);
-
-    // Extraer body del _reportHTML
-    var bodyMatch=_reportHTML.match(/<body[^>]*>([\s\S]*)<\/body>/i);
-    var bodyHtml=bodyMatch?bodyMatch[1]:_reportHTML;
-    bodyHtml=bodyHtml.replace(/<div class="nav-bar"[\s\S]*?<\/div>/,'');
-
-    var A4PX=794,PPXH=1123,SCALE=2,MARGIN=10,CWmm=190;
-
-    // CSS idéntico al visor: misma variable _reportCSS, mismos replaces
-    var scopedCSS=_reportCSS.replace(/^\*\{[^}]+\}/,'').replace(/\bbody\b/g,'#'+CONT_ID);
-
-    var cont=document.createElement('div');
-    cont.id=CONT_ID;
-    cont.style.cssText='position:absolute;left:-10000px;top:0;width:'+A4PX+'px;background:#ffffff;overflow:visible;pointer-events:none;z-index:-1;';
-    cont.innerHTML='<style>#'+CONT_ID+' *{box-sizing:border-box;}'+scopedCSS+'</style>'+bodyHtml;
-    document.body.appendChild(cont);
-
-    // Sanitizar imágenes externas (Firebase Storage URLs → evita canvas taint)
-    [].forEach.call(cont.querySelectorAll('img'),function(img){
-      var s=img.getAttribute('src');
-      if(s&&s.indexOf('data:')!==0)img.setAttribute('src',BLANK_GIF);
+    var dd=_buildPdfDoc();
+    if(!dd){restore();showToast('Sin datos para el PDF','warn');return;}
+    var tel=document.getElementById('pdf-viewer-title');
+    _pendingPdfName=(tel?tel.textContent.trim():'Informe CIMA').replace(/[—–]+/g,'-').replace(/[\/\\:*?"<>|]/g,' ').replace(/\s+/g,' ').trim();
+    window.pdfMake.createPdf(dd).getBlob(function(blob){
+      _pendingPdfBlob=blob;
+      if(btn){btn.disabled=false;btn.textContent='📤 Tocar para compartir';}
     });
-
-    // Replicar EXACTAMENTE las modificaciones del visor: fondo CIMA + logo header + paddings
-    var vwrLogo='';
-    try{
-      var _doms=document.querySelectorAll('img');
-      for(var _li=0;_li<_doms.length;_li++){
-        var _im=_doms[_li];
-        if(_im.src&&_im.src.indexOf('logo.png')!==-1&&_im.complete&&_im.naturalWidth>0){
-          var _lc=document.createElement('canvas');
-          _lc.width=_im.naturalWidth;_lc.height=_im.naturalHeight;
-          _lc.getContext('2d').drawImage(_im,0,0);
-          vwrLogo=_lc.toDataURL('image/png');break;
-        }
-      }
-    }catch(e){}
-    if(typeof _cimaB64!=='undefined'&&_cimaB64){
-      var pages=cont.querySelectorAll('.page');
-      [].forEach.call(pages,function(pg){
-        pg.style.backgroundImage='url('+_cimaB64+')';
-        pg.style.backgroundRepeat='repeat-y';
-        pg.style.backgroundSize='100% 29.7cm';
-        pg.style.backgroundPosition='top center';
-        pg.style.paddingTop='1.5cm';
-        pg.style.paddingLeft='2.5cm';
-        pg.style.paddingRight='2.5cm';
-        pg.style.webkitPrintColorAdjust='exact';
-        var la=pg.querySelector('.logo-area');
-        if(la)la.style.display='none';
-        var hdr=document.createElement('div');
-        hdr.style.cssText='display:flex;align-items:center;gap:16px;padding-bottom:14px;margin-bottom:18px;border-bottom:1.5px solid #e2e8f0;';
-        if(vwrLogo){
-          hdr.innerHTML='<img src="'+vwrLogo+'" style="height:52px;width:auto;display:block;flex-shrink:0;"><div style="flex:1;border-left:1px solid #e2e8f0;padding-left:14px;"><div style="font-size:7.5pt;color:#64748b;letter-spacing:3px;font-weight:600;text-transform:uppercase;font-family:Arial,sans-serif;">Investigaciones Avanzadas</div><div style="font-size:6.5pt;color:#94a3b8;letter-spacing:1px;font-family:Arial,sans-serif;margin-top:3px;">DIAGNÓSTICO POR IMAGEN</div></div>';
-        }else{
-          hdr.innerHTML='<div style="font-size:14pt;font-weight:900;color:#1a3a6b;font-family:Arial,sans-serif;">CIMA<span style="font-size:7pt;display:block;font-weight:500;letter-spacing:3px;color:#64748b;margin-top:2px;">INVESTIGACIONES AVANZADAS</span></div>';
-        }
-        pg.insertBefore(hdr,pg.firstChild);
-      });
-    }
-
-    // Calcular cortes inteligentes: evita cortar imágenes a mitad de página
-    // Se hace ANTES de html2canvas (mientras cont está en DOM y offsetTop es válido)
-    var absTop=function(el){
-      var t=0;while(el&&el!==cont){t+=el.offsetTop;el=el.offsetParent;}return t;
-    };
-    var predPageH=Math.round(PPXH*SCALE); // altura A4 en px de canvas
-    var smartBreaks=[0];
-    var nxt=predPageH;
-    var totalContH=cont.scrollHeight*SCALE;
-    while(nxt<totalContH){
-      var adj=nxt;
-      var prevB=smartBreaks[smartBreaks.length-1];
-      [].forEach.call(cont.querySelectorAll('img'),function(img){
-        var top=absTop(img)*SCALE;
-        var bot=top+img.offsetHeight*SCALE;
-        if(top>0&&top<nxt&&bot>nxt){
-          // imagen cruza el corte — mover el corte justo antes de ella
-          adj=Math.min(adj,top-Math.round(4*SCALE));
-        }
-      });
-      adj=Math.max(adj,prevB+20); // al menos 20px de avance
-      smartBreaks.push(Math.round(adj));
-      nxt=Math.round(adj)+predPageH;
-    }
-
-    var cleanup=function(){var el=document.getElementById(CONT_ID);if(el&&el.parentNode)el.parentNode.removeChild(el);};
-
-    var genStarted=false;
-    var doGenerate=function(){
-      if(genStarted)return;genStarted=true;
-      // Captura única de todo el contenido; slicing en JS usa cortes inteligentes
-      html2canvas(cont,{
-        scale:SCALE,useCORS:false,allowTaint:false,logging:false,backgroundColor:'#ffffff'
-      }).then(function(fullCanvas){
-        cleanup();
-        var cW=fullCanvas.width,cH=fullCanvas.height;
-        smartBreaks.push(cH); // cierre final
-        var pdf=new window.jspdf.jsPDF('p','mm','a4');
-        for(var pi=0;pi<smartBreaks.length-1;pi++){
-          if(pi>0)pdf.addPage();
-          var sy=smartBreaks[pi];
-          var sh=smartBreaks[pi+1]-sy;
-          if(sh<=0)continue;
-          var pc=document.createElement('canvas');
-          pc.width=cW;pc.height=sh;
-          pc.getContext('2d').drawImage(fullCanvas,0,sy,cW,sh,0,0,cW,sh);
-          pdf.addImage(pc.toDataURL('image/jpeg',0.95),'JPEG',MARGIN,MARGIN,CWmm,(sh/cW)*CWmm);
-        }
-        var tel=document.getElementById('pdf-viewer-title');
-        _pendingPdfName=(tel?tel.textContent.trim():'Informe CIMA').replace(/[—–]+/g,'-').replace(/[\/\\:*?"<>|]/g,' ').replace(/\s+/g,' ').trim();
-        _pendingPdfBlob=pdf.output('blob');
-        if(btn){btn.disabled=false;btn.textContent='📤 Tocar para compartir';}
-      }).catch(function(e){
-        cleanup();restore();
-        showToast('Error al generar: '+(e.message||e),'err');
-      });
-    };
-
-    var imgs=cont.querySelectorAll('img');
-    var imgN=imgs.length,imgD=0;
-    var imgTick=function(){imgD++;if(imgD>=imgN)setTimeout(doGenerate,200);};
-    if(!imgN){setTimeout(doGenerate,200);return;}
-    [].forEach.call(imgs,function(img){
-      if(img.complete){imgTick();}else{img.onload=imgTick;img.onerror=imgTick;}
-    });
-    setTimeout(doGenerate,5000);
-  }catch(e){restore();showToast('Error: '+(e.message||e),'err');}
+  }catch(e){restore();showToast('Error al generar: '+(e.message||e),'err');}
 }
 function closePDFViewer(){
   var overlay=document.getElementById('pdf-viewer-overlay');
@@ -10318,7 +10452,7 @@ function generateReport(){
   var inclActivas=tipo==='todo'||tipo==='activas'||tipo==='rep';
   var inclMejPend=tipo==='todo'||tipo==='mejora';
   // Collect data per equipment — sumRows for ALL selected, eqData only for those with events
-  var eqData=[],sumRows='';
+  var eqData=[],sumRows='',sumData=[];
   try{filtEqs.forEach(function(eq){
     var ci=catById(eq.cat);
     var hist=(eq.historialMant||[]).filter(function(h){
@@ -10385,6 +10519,7 @@ function generateReport(){
     var estClass=eq.estado==='fuera-de-servicio'?'sbad':eq.estado==='operativo'?'sok':'swarn';
     var totalFallasResumen=actH.length+antRoturas.length+tranRoturas.length+fallasDir.length;
     sumRows+='<tr><td><strong>'+esc(eq.nombre)+'</strong></td><td>'+ci.label+'</td><td>'+(eq.ubicacion?esc(eq.ubicacion):'—')+'</td><td><span class="'+estClass+'">'+estLabel(eq.estado)+'</span></td><td>'+mantH.length+'</td><td>'+repH.length+'</td><td>'+totalFallasResumen+'</td></tr>';
+    sumData.push({nombre:eq.nombre,cat:ci.label,centro:eq.ubicacion||'—',estado:estLabel(eq.estado),estadoRaw:eq.estado,mant:mantH.length,rep:repH.length,fallas:totalFallasResumen});
     // Add to detail section only if has events in the period (including antenas/transductores/fallas)
     var hasEq=mantH.length||repH.length||mejH.length||actH.length||mejP.length||trasladosH.length||antRoturas.length||antHistorial.length||tranRoturas.length||fallasDir.length;
     if(!hasEq)return;
@@ -10632,6 +10767,8 @@ function generateReport(){
     html+='</div>';
     html+='</div>';
     html+='</body></html>';
+    // Stash datos estructurados para el PDF nativo (pdfmake)
+    _reportData={eqData:eqData,imgsMap:imgsMap||{},logo:logoB64||_logoSync,nro:nroInforme,para:paraInforme,periodoLabel:periodoLabel,mesAnio:mesAnio,fechaCreacion:fechaCreacion,tm:tm,tr:tr,tmej:tmej,tact:tact,hasData:hasData,sumData:sumData,introText:introText,resumenText:resumenText,conclusionText:conclusionText};
     openHTMLViewer(html,'Informe Equipos CIMA — '+mesAnio);
     }catch(err){showToast('Error al generar: '+(err&&err.message?err.message:String(err)),'warn');console.error('generateReport error:',err);}
   }
@@ -14222,7 +14359,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.1.8";
+var APP_DISPLAY_VERSION="8.2.0";
 var APP_BUILD="29/06/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
