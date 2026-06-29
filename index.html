@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.29.474 -->
+<!-- v2026.06.29.475 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.29.474">
+<meta name="app-version" content="v2026.06.29.475">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -14008,79 +14008,67 @@ function deleteAireHistEntry(aireId,entryId){
   saveData();showToast('Registro eliminado','warn');render();
 }
 
+function _pdfTableNode(headers,rows,opts){
+  opts=opts||{};
+  var body=[],h,r,c;
+  var hrow=[];for(h=0;h<headers.length;h++)hrow.push({text:headers[h],bold:true,color:'#ffffff',fillColor:'#1a3a6b',fontSize:8,margin:[4,3,4,3]});
+  body.push(hrow);
+  for(r=0;r<rows.length;r++){
+    var f=(r%2===0?'#f1f5f9':null),rr=[];
+    for(c=0;c<rows[r].length;c++){
+      var cell=rows[r][c];
+      if(cell&&typeof cell==='object')rr.push({text:String(cell.text==null?'—':cell.text),color:cell.color||'#1e293b',bold:!!cell.bold,fontSize:8,fillColor:f,margin:[4,2.5,4,2.5]});
+      else rr.push({text:String(cell==null?'—':cell),fontSize:8,fillColor:f,margin:[4,2.5,4,2.5]});
+    }
+    body.push(rr);
+  }
+  var widths=opts.widths;if(!widths){widths=[];for(c=0;c<headers.length;c++)widths.push(c===0?'*':'auto');}
+  return {table:{headerRows:1,widths:widths,body:body},layout:{hLineWidth:function(){return 0.4;},vLineWidth:function(){return 0;},hLineColor:function(){return '#e2e8f0';}},margin:[0,2,0,10]};
+}
 function generarPDFEjecutivo(){
-  if(typeof window.jspdf==='undefined'&&typeof jsPDF==='undefined'){showToast('Cargando jsPDF...','');var s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';s.onload=generarPDFEjecutivo;document.head.appendChild(s);return;}
   try{
-    var JsPDF=window.jspdf?window.jspdf.jsPDF:jsPDF;
-    var doc=new JsPDF({orientation:'portrait',unit:'mm',format:'a4'});
-    var W=210;var y=20;var margin=18;
     var todayStr=today();
-    // Header
-    doc.setFillColor(26,58,107);doc.rect(0,0,W,30,'F');
-    doc.setTextColor(255,255,255);doc.setFontSize(20);doc.setFont('helvetica','bold');
-    doc.text('CIMA — Vista Ejecutiva',margin,17);
-    doc.setFontSize(9);doc.setFont('helvetica','normal');
     var fd=new Date();var fds=fd.getDate()+'/'+(fd.getMonth()+1)+'/'+fd.getFullYear()+' '+fd.getHours()+':'+String(fd.getMinutes()).padStart(2,'0');
-    doc.text('Generado: '+fds+(_sedeActiva?' · Centro: '+_sedeActiva:' · Todos los centros'),margin,24);
-    y=40;
     var activeEqs2=eqs.filter(function(e){return !e.baja;});
     var total2=activeEqs2.length;
     var op2=activeEqs2.filter(function(e){return e.estado==='operativo';}).length;
     var fuera2=activeEqs2.filter(function(e){return e.estado==='fuera-de-servicio';}).length;
     var al2=getAlertas();
     var crit2=al2.filter(function(a){return a.niv==='critico'&&!_isAlertSnoozed(a.k);}).length;
-    doc.setTextColor(26,58,107);doc.setFontSize(11);doc.setFont('helvetica','bold');
-    doc.text('Resumen General',margin,y);y+=6;
-    doc.setDrawColor(26,58,107);doc.setLineWidth(0.4);doc.line(margin,y,W-margin,y);y+=5;
-    doc.setTextColor(28,28,30);doc.setFontSize(9);doc.setFont('helvetica','normal');
-    var _pmPDFNow=new Date();var _pmPDFM=_pmPDFNow.getMonth();var _pmPDFY=_pmPDFNow.getFullYear();
+    var _pmPDFNow=new Date(),_pmPDFM=_pmPDFNow.getMonth(),_pmPDFY=_pmPDFNow.getFullYear();
     var _pmPDFAll=(pmProgramados||[]).filter(function(p){var dd=new Date(p.fecha);return dd.getMonth()===_pmPDFM&&dd.getFullYear()===_pmPDFY&&p.fecha<=todayStr;});
     var _pmPDFDone=_pmPDFAll.filter(function(p){return p.realizado;}).length;
     var _pmPDFPct=_pmPDFAll.length>0?Math.round((_pmPDFDone/_pmPDFAll.length)*100):null;
+    var c=[];
+    c.push({text:'CIMA — Vista Ejecutiva',fontSize:16,bold:true,color:'#1a3a6b',margin:[0,0,0,2]});
+    c.push({text:'Generado: '+fds+(_sedeActiva?' · Centro: '+_sedeActiva:' · Todos los centros'),fontSize:9,color:'#64748b',margin:[0,0,0,10]});
+    // Resumen general
+    c.push(_pdfH('Resumen general'));
     var sumItems=[
-      ['Total de equipos activos:',String(total2)],
-      ['Operativos:',op2+' ('+Math.round(op2/Math.max(total2,1)*100)+'%)'],
-      ['Fuera de servicio:',String(fuera2)],
-      ['Alertas críticas sin resolver:',String(crit2)]
+      ['Total de equipos activos',String(total2)],
+      ['Operativos',op2+' ('+Math.round(op2/Math.max(total2,1)*100)+'%)'],
+      ['Fuera de servicio',String(fuera2)],
+      ['Alertas críticas sin resolver',String(crit2)]
     ];
-    if(_pmPDFPct!==null)sumItems.push(['Cumplimiento PM (mes actual):',_pmPDFDone+'/'+_pmPDFAll.length+' ('+_pmPDFPct+'%)']);
-    sumItems.forEach(function(si){
-      doc.setFont('helvetica','bold');doc.text(si[0],margin,y);
-      doc.setFont('helvetica','normal');doc.text(si[1],80,y);
-      y+=5;
-    });
-    y+=4;
-    doc.setTextColor(26,58,107);doc.setFontSize(11);doc.setFont('helvetica','bold');
-    doc.text('Estado por Centro',margin,y);y+=6;
-    doc.setDrawColor(26,58,107);doc.line(margin,y,W-margin,y);y+=4;
-    var cols2=[margin,60,100,130,160];
-    var hdr2=['Centro','Equipos','Operativos','Fuera de Serv.','Alertas Crít.'];
-    doc.setFillColor(26,58,107);doc.rect(margin,y,W-2*margin,7,'F');
-    doc.setTextColor(255,255,255);doc.setFontSize(8);doc.setFont('helvetica','bold');
-    hdr2.forEach(function(hv,i){doc.text(hv,cols2[i]+1,y+5);});y+=7;
-    var SEDES3=['GN','CRS','Pedernera'];
-    doc.setFont('helvetica','normal');
-    SEDES3.forEach(function(s2,si2){
+    if(_pmPDFPct!==null)sumItems.push(['Cumplimiento PM (mes actual)',_pmPDFDone+'/'+_pmPDFAll.length+' ('+_pmPDFPct+'%)']);
+    c.push(_pdfKV(sumItems));
+    // Estado por centro
+    var SEDES3=['GN','CRS','Pedernera'],centroRows=[];
+    SEDES3.forEach(function(s2){
       var ses2=activeEqs2.filter(function(e){return (e.ubicacion||'').toUpperCase()===s2.toUpperCase();});
       if(!ses2.length)return;
       var sop2=ses2.filter(function(e){return e.estado==='operativo';}).length;
       var sfu2=ses2.filter(function(e){return e.estado==='fuera-de-servicio';}).length;
       var sal2=al2.filter(function(a){var eq2=eqs.find(function(e){return e.id===a.eid;});return eq2&&(eq2.ubicacion||'').toUpperCase()===s2.toUpperCase()&&a.niv==='critico'&&!_isAlertSnoozed(a.k);}).length;
-      if(si2%2===0){doc.setFillColor(248,250,253);doc.rect(margin,y,W-2*margin,6,'F');}
-      doc.setTextColor(28,28,30);doc.setFontSize(8);
-      var rowD=[s2,String(ses2.length),sop2+' ('+Math.round(sop2/ses2.length*100)+'%)',String(sfu2),String(sal2)];
-      rowD.forEach(function(v,i){doc.text(v,cols2[i]+1,y+4);});y+=6;
+      centroRows.push([s2,String(ses2.length),sop2+' ('+Math.round(sop2/ses2.length*100)+'%)',String(sfu2),String(sal2)]);
     });
-    y+=6;
-    // ── COMPARATIVA MENSUAL ──
-    if(y>220){doc.addPage();y=20;}
-    doc.setTextColor(26,58,107);doc.setFontSize(11);doc.setFont('helvetica','bold');
-    doc.text('Comparativa Mensual',margin,y);y+=6;
-    doc.setDrawColor(26,58,107);doc.setLineWidth(0.4);doc.line(margin,y,W-margin,y);y+=4;
-    var _nowComp=new Date();
-    var _thisM=_nowComp.getMonth();var _thisY=_nowComp.getFullYear();
-    var _lastMD=new Date(_thisY,_thisM-1,1);
-    var _lastM=_lastMD.getMonth();var _lastY=_lastMD.getFullYear();
+    if(centroRows.length){
+      c.push(_pdfH('Estado por centro'));
+      c.push(_pdfTableNode(['Centro','Equipos','Operativos','Fuera de serv.','Alertas crít.'],centroRows,{widths:['*','auto','auto','auto','auto']}));
+    }
+    // Comparativa mensual
+    var _nowComp=new Date(),_thisM=_nowComp.getMonth(),_thisY=_nowComp.getFullYear();
+    var _lastMD=new Date(_thisY,_thisM-1,1),_lastM=_lastMD.getMonth(),_lastY=_lastMD.getFullYear();
     var _inMonth=function(dateStr,mo,yr){if(!dateStr)return false;var dd=new Date(dateStr);return dd.getMonth()===mo&&dd.getFullYear()===yr;};
     var _otThisM=ordenesTrabajo.filter(function(o){return _inMonth(o.creadaEn||o.fechaCreacion,_thisM,_thisY);}).length;
     var _otLastM=ordenesTrabajo.filter(function(o){return _inMonth(o.creadaEn||o.fechaCreacion,_lastM,_lastY);}).length;
@@ -14090,37 +14078,16 @@ function generarPDFEjecutivo(){
     var _pmLastM=(pmProgramados||[]).filter(function(p){return _inMonth(p.fecha,_lastM,_lastY);}).length;
     var _pmDoneThisM=(pmProgramados||[]).filter(function(p){return p.realizado&&_inMonth(p.fecha,_thisM,_thisY);}).length;
     var _pmDoneLastM=(pmProgramados||[]).filter(function(p){return p.realizado&&_inMonth(p.fecha,_lastM,_lastY);}).length;
-    var _pmCompliancePDF=_pmThisM>0?Math.round((_pmDoneThisM/_pmThisM)*100):null;
     var _meses=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-    var _compArrow=function(cur,prev){if(cur>prev)return'▲ +'+(cur-prev);if(cur<prev)return'▼ -'+(prev-cur);return'→ =';};
-    var _compCols=[margin,70,120,165];
-    doc.setFillColor(26,58,107);doc.rect(margin,y,W-2*margin,7,'F');
-    doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(8);
-    doc.text('Indicador',_compCols[0]+1,y+5);doc.text(_meses[_lastM],_compCols[1]+1,y+5);doc.text(_meses[_thisM],_compCols[2]+1,y+5);doc.text('Variaci\xf3n',_compCols[3]+1,y+5);
-    y+=7;
-    var _compRows=[
-      ['OTs abiertas',String(_otLastM),String(_otThisM),_compArrow(_otThisM,_otLastM)],
-      ['OTs cerradas',String(_otClLastM),String(_otClThisM),_compArrow(_otClThisM,_otClLastM)],
-      ['PMs programados',String(_pmLastM),String(_pmThisM),_compArrow(_pmThisM,_pmLastM)],
-      ['PMs realizados',String(_pmDoneLastM),String(_pmDoneThisM),_compArrow(_pmDoneThisM,_pmDoneLastM)]
-    ];
-    doc.setFont('helvetica','normal');
-    _compRows.forEach(function(row,ri){
-      if(ri%2===0){doc.setFillColor(248,250,253);doc.rect(margin,y,W-2*margin,6,'F');}
-      var varClr=row[3].indexOf('▲')>=0?[0,130,0]:row[3].indexOf('▼')>=0?[200,0,0]:[80,80,80];
-      _compCols.forEach(function(cx,ci){
-        if(ci===3){doc.setTextColor(varClr[0],varClr[1],varClr[2]);}else{doc.setTextColor(28,28,30);}
-        doc.text(row[ci],cx+1,y+4);
-      });
-      y+=6;
-    });
-    if(_pmCompliancePDF!==null){
-      doc.setTextColor(26,58,107);doc.setFontSize(8);doc.setFont('helvetica','bold');
-      doc.text('Cumplimiento PM (mes actual): '+_pmDoneThisM+'/'+_pmThisM+' ('+_pmCompliancePDF+'%)',margin,y+6);
-    }
-    doc.setTextColor(28,28,30);
-    y+=10;
-
+    var _compVar=function(cur,prev){if(cur>prev)return {text:'+'+(cur-prev),color:'#16a34a',bold:true};if(cur<prev)return {text:'-'+(prev-cur),color:'#dc2626',bold:true};return {text:'=',color:'#64748b'};};
+    c.push(_pdfH('Comparativa mensual'));
+    c.push(_pdfTableNode(['Indicador',_meses[_lastM],_meses[_thisM],'Variación'],[
+      ['OTs abiertas',String(_otLastM),String(_otThisM),_compVar(_otThisM,_otLastM)],
+      ['OTs cerradas',String(_otClLastM),String(_otClThisM),_compVar(_otClThisM,_otClLastM)],
+      ['PMs programados',String(_pmLastM),String(_pmThisM),_compVar(_pmThisM,_pmLastM)],
+      ['PMs realizados',String(_pmDoneLastM),String(_pmDoneThisM),_compVar(_pmDoneThisM,_pmDoneLastM)]
+    ],{widths:['*','auto','auto','auto']}));
+    // Vencimientos próximos 30 días
     var upcoming2=[];
     activeEqs2.forEach(function(e){
       var d=diasH(e.proximoMant);
@@ -14130,339 +14097,110 @@ function generarPDFEjecutivo(){
     });
     upcoming2.sort(function(a,b){return a.fecha>b.fecha?1:-1;});
     if(upcoming2.length){
-      if(y>240){doc.addPage();y=20;}
-      doc.setTextColor(26,58,107);doc.setFontSize(11);doc.setFont('helvetica','bold');
-      doc.text('Vencimientos en los próximos 30 días',margin,y);y+=6;
-      doc.setDrawColor(26,58,107);doc.line(margin,y,W-margin,y);y+=4;
-      var cols3=[margin,60,110,155,178];
-      var hdr3=['Equipo','Tipo','Centro','Fecha','Días'];
-      doc.setFillColor(26,58,107);doc.rect(margin,y,W-2*margin,7,'F');
-      doc.setTextColor(255,255,255);doc.setFontSize(8);doc.setFont('helvetica','bold');
-      hdr3.forEach(function(hv2,i){doc.text(hv2,cols3[i]+1,y+5);});y+=7;
-      doc.setFont('helvetica','normal');
-      upcoming2.slice(0,15).forEach(function(u,ui){
-        if(y>270){doc.addPage();y=20;}
-        if(ui%2===0){doc.setFillColor(248,250,253);doc.rect(margin,y,W-2*margin,6,'F');}
-        doc.setTextColor(28,28,30);doc.setFontSize(7.5);
-        var nom=(u.nombre||'').length>28?u.nombre.slice(0,26)+'…':u.nombre;
-        var rowU=[nom,u.tipo,u.centro,fD(u.fecha),String(u.dias)];
-        rowU.forEach(function(v,i){doc.text(v,cols3[i]+1,y+4);});y+=6;
-      });
-      y+=4;
+      c.push(_pdfH('Vencimientos en los próximos 30 días'));
+      c.push(_pdfTableNode(['Equipo','Tipo','Centro','Fecha','Días'],upcoming2.slice(0,20).map(function(u){return [_pdfDecode(u.nombre||''),u.tipo,_pdfDecode(u.centro),fD(u.fecha),String(u.dias)];}),{widths:['*','auto','auto','auto','auto']}));
     }
+    // Alertas críticas
     var critList=al2.filter(function(a){return a.niv==='critico'&&!_isAlertSnoozed(a.k);});
     if(critList.length){
-      if(y>220){doc.addPage();y=20;}
-      doc.setTextColor(220,38,38);doc.setFontSize(11);doc.setFont('helvetica','bold');
-      doc.text('Alertas Críticas Activas',margin,y);y+=6;
-      doc.setDrawColor(220,38,38);doc.line(margin,y,W-margin,y);y+=4;
-      doc.setFontSize(8);doc.setFont('helvetica','normal');
-      critList.forEach(function(a,ai){
-        if(y>270){doc.addPage();y=20;}
-        if(ai%2===0){doc.setFillColor(255,250,250);doc.rect(margin,y,W-2*margin,6,'F');}
-        doc.setTextColor(220,38,38);doc.text('● ',margin+1,y+4);
-        doc.setTextColor(28,28,30);doc.text((a.tit||'').slice(0,32)+': '+(a.desc||'').slice(0,45),margin+5,y+4);
-        y+=6;
-      });
-      y+=4;
+      c.push(_pdfH('Alertas críticas activas'));
+      c.push({ul:critList.map(function(a){return {text:[{text:_pdfDecode(a.tit||''),bold:true,color:'#dc2626'},{text:' — '+_pdfDecode(a.desc||''),color:'#475569'}]};}),margin:[0,0,0,8]});
     }
-    // ── SEGUIMIENTO DE FALLAS ACTIVAS ──
+    // Seguimiento de fallas activas
     var eqsConSeguimiento=[];
     eqs.filter(function(e){return !e.baja;}).forEach(function(e){
-      var fallasConSeg=(e.partes||[]).filter(function(p){
-        return (p.estado==='roto'||p.estado==='pendiente')&&(p.seguimientos||[]).length>0;
-      });
+      var fallasConSeg=(e.partes||[]).filter(function(p){return (p.estado==='roto'||p.estado==='pendiente')&&(p.seguimientos||[]).length>0;});
       if(fallasConSeg.length)eqsConSeguimiento.push({eq:e,fallas:fallasConSeg});
     });
     if(eqsConSeguimiento.length){
-      if(y>200){doc.addPage();y=20;}
-      doc.setTextColor(180,70,0);doc.setFontSize(11);doc.setFont('helvetica','bold');
-      doc.text('Seguimiento de Fallas Activas',margin,y);y+=6;
-      doc.setDrawColor(180,70,0);doc.setLineWidth(0.4);doc.line(margin,y,W-margin,y);y+=5;
-      for(var efi=0;efi<eqsConSeguimiento.length;efi++){
-        var efd=eqsConSeguimiento[efi];
-        var eqF=efd.eq;
-        for(var ffi=0;ffi<efd.fallas.length;ffi++){
-          if(y>250){doc.addPage();y=20;}
-          var pF=efd.fallas[ffi];
-          // Encabezado falla
-          doc.setFillColor(255,248,240);doc.rect(margin,y,W-2*margin,8,'F');
-          doc.setTextColor(180,70,0);doc.setFontSize(9);doc.setFont('helvetica','bold');
-          var eqNomF=(eqF.nombre||'').slice(0,30);
-          var partNomF=(pF.nombre||'Falla').slice(0,40);
-          doc.text(eqNomF+' — '+partNomF,margin+2,y+5.5);
-          if(pF.fechaRotura){
-            doc.setTextColor(130,80,40);doc.setFont('helvetica','normal');doc.setFontSize(7.5);
-            doc.text('Detectada: '+_fmtFechaCort(pF.fechaRotura),W-margin-45,y+5.5);
-          }
-          y+=10;
-          // Descripción de la falla
-          if(pF.descripcion){
-            doc.setTextColor(28,28,30);doc.setFontSize(8);doc.setFont('helvetica','normal');
-            var fdLines=doc.splitTextToSize(pF.descripcion,W-2*margin-4);
-            for(var fdl=0;fdl<fdLines.length;fdl++){
-              if(y>270){doc.addPage();y=20;}
-              doc.text(fdLines[fdl],margin+3,y);y+=4.5;
-            }
-            y+=2;
-          }
-          // Seguimientos cronológicos
+      c.push(_pdfH('Seguimiento de fallas activas'));
+      eqsConSeguimiento.forEach(function(efd){
+        efd.fallas.forEach(function(pF){
+          var inner=[];
+          if(pF.descripcion)inner.push({text:_pdfDecode(pF.descripcion),fontSize:8,color:'#1e293b',margin:[0,0,0,3]});
           var segsF=(pF.seguimientos||[]).slice().sort(function(a,b){return a.fecha>b.fecha?1:-1;});
-          doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.setTextColor(130,80,40);
-          doc.text('Historial de gestión:',margin+3,y);y+=5;
-          for(var sfi=0;sfi<segsF.length;sfi++){
-            if(y>270){doc.addPage();y=20;}
-            var sgF=segsF[sfi];
-            doc.setFontSize(8);doc.setFont('helvetica','bold');doc.setTextColor(180,70,0);
-            doc.text('#'+(sfi+1)+'  '+_fmtFechaCort(sgF.fecha),margin+3,y);
-            doc.setFont('helvetica','normal');doc.setTextColor(28,28,30);
-            var sgFLines=doc.splitTextToSize((sgF.nota||''),W-2*margin-26);
-            doc.text(sgFLines[0]||'',margin+26,y);y+=4.5;
-            for(var sfll=1;sfll<sgFLines.length;sfll++){
-              if(y>270){doc.addPage();y=20;}
-              doc.text(sgFLines[sfll],margin+22,y);y+=4.5;
-            }
-          }
-          y+=6;
-        }
-      }
+          inner.push({text:'Historial de gestión',bold:true,fontSize:7.5,color:'#b45309',margin:[0,2,0,2]});
+          inner.push({ul:segsF.map(function(sg,idx){return {text:[{text:'#'+(idx+1)+' '+_fmtFechaCort(sg.fecha)+'  ',bold:true,color:'#c2410c'},{text:_pdfDecode(sg.nota||''),color:'#1e293b'}],fontSize:7.5};}),margin:[0,0,0,0]});
+          var titulo=_pdfDecode((efd.eq.nombre||'')+' — '+(pF.nombre||'Falla'))+(pF.fechaRotura?'  ·  Detectada: '+_fmtFechaCort(pF.fechaRotura):'');
+          c.push(_pdfCard(titulo,null,inner,'#fff7ed','#fed7aa'));
+        });
+      });
     }
-    var totalPages=doc.internal.getNumberOfPages();
-    for(var pi=1;pi<=totalPages;pi++){
-      doc.setPage(pi);
-      doc.setFillColor(240,245,252);doc.rect(0,285,W,12,'F');
-      doc.setTextColor(100,116,139);doc.setFontSize(7.5);doc.setFont('helvetica','normal');
-      doc.text('CIMA Investigaciones Avanzadas · CIMA Hub '+APP_DISPLAY_VERSION,margin,291);
-      doc.text('Pág '+pi+'/'+totalPages,W-margin,291,'right');
-    }
-    doc.save('CIMA-Vista-Ejecutiva-'+todayStr+'.pdf');
-    showToast('📄 PDF generado');
-  }catch(e){showToast('Error al generar PDF: '+e.message,'err');}
+    _pdfDeliver(_pdfStdDoc('CIMA — Vista Ejecutiva',c),'CIMA-Vista-Ejecutiva-'+todayStr+'.pdf');
+  }catch(e){showToast('Error al generar PDF: '+(e.message||e),'err');}
 }
 
 // ═══════════════════════════════════════════
 //  PDF ANTENA
 // ═══════════════════════════════════════════
 function generarPDFAntena(antId){
-  var jsPDF=window.jspdf&&window.jspdf.jsPDF;
-  if(!jsPDF){showToast('jsPDF no disponible','err');return;}
   var ant=antenas.find(function(a){return a.id===antId;});
   if(!ant){showToast('Antena no encontrada','err');return;}
-  try{
-    var doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
-    var W=210;var margin=14;var y=0;
-    var col1=margin;var col2=margin+60;var rowH=7;
-    var nowD=new Date();
-    var nowStr=('0'+nowD.getDate()).slice(-2)+'/'+('0'+(nowD.getMonth()+1)).slice(-2)+'/'+nowD.getFullYear()+' '+('0'+nowD.getHours()).slice(-2)+':'+('0'+nowD.getMinutes()).slice(-2);
-    var linkedEq=eqs.find(function(e){return(e.antenaIds||[]).indexOf(antId)!==-1;});
-
-    function checkPage(needed){if(y+needed>272){doc.addPage();y=16;}return y;}
-    function sectionTitle(txt,r,g,b){
-      checkPage(14);
-      doc.setFillColor(r,g,b);doc.rect(margin,y,W-2*margin,8,'F');
-      doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(255,255,255);
-      doc.text(txt,margin+3,y+5.5);y+=10;
-    }
-    function rowData(label,value,shade){
-      checkPage(rowH);
-      if(shade){doc.setFillColor(246,248,252);}else{doc.setFillColor(255,255,255);}
-      doc.rect(col1,y,W-2*margin,rowH,'F');
-      doc.setDrawColor(220,224,235);doc.setLineWidth(0.15);
-      doc.rect(col1,y,W-2*margin,rowH,'S');
-      doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(80,80,110);
-      doc.text(label,col1+2,y+5);
-      doc.setFont('helvetica','normal');doc.setTextColor(28,28,30);
-      var maxW=W-col2-margin-2;
-      var lines=doc.splitTextToSize(value,maxW);
-      if(lines.length>1){
-        doc.setFillColor(shade?246:255,shade?248:255,shade?252:255);
-        doc.rect(col1,y,W-2*margin,rowH*lines.length,'F');
-        doc.setDrawColor(220,224,235);doc.rect(col1,y,W-2*margin,rowH*lines.length,'S');
-        doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(80,80,110);
-        doc.text(label,col1+2,y+5);
-        doc.setFont('helvetica','normal');doc.setTextColor(28,28,30);
-      }
-      doc.text(lines,col2,y+5);
-      y+=rowH*lines.length;
-    }
-
-    /* ── HEADER ── */
-    doc.setFillColor(6,9,26);doc.rect(0,0,W,36,'F');
-    doc.setFillColor(173,198,255);doc.rect(0,0,4,36,'F');
-    doc.setFont('helvetica','bold');doc.setFontSize(7);doc.setTextColor(130,150,200);
-    doc.text('CIMA INVESTIGACIONES AVANZADAS',margin+2,10);
-    doc.setFont('helvetica','bold');doc.setFontSize(16);doc.setTextColor(173,198,255);
-    doc.text('Ficha de Antena RF',margin+2,21);
-    doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(150,165,205);
-    doc.text('MedTrack '+APP_DISPLAY_VERSION+'   \xb7   Generado: '+nowStr,margin+2,29);
-    /* Estado badge en header */
-    var antEst=ant.estado||'operativa';
-    var antEstLabel=antEst==='fuera_servicio'?'FUERA DE SERVICIO':antEst==='con_fallas'?'CON FALLAS':antEst==='rota'?'ROTA':'OPERATIVA';
-    var _ec=antEst==='operativa'?[52,199,89]:antEst==='con_fallas'||antEst==='rota'?[220,38,38]:[245,158,11];
-    doc.setFillColor(_ec[0],_ec[1],_ec[2]);doc.roundedRect(W-margin-28,11,26,9,2,2,'F');
-    doc.setFont('helvetica','bold');doc.setFontSize(6.5);doc.setTextColor(255,255,255);
-    doc.text(antEstLabel,W-margin-15,17,'center');
-    y=44;
-
-    /* ── NOMBRE ── */
-    doc.setFont('helvetica','bold');doc.setFontSize(14);doc.setTextColor(18,18,28);
-    doc.text(ant.nombre||'Antena sin nombre',margin,y);y+=6;
-    doc.setFont('helvetica','normal');doc.setFontSize(10);doc.setTextColor(79,120,224);
-    if(ant.tipo)doc.text(ant.tipo,margin,y);
-    if(ant.nroSerie){doc.setFontSize(8.5);doc.setTextColor(120,120,140);doc.text('N\xb0 Serie: '+ant.nroSerie,W-margin,y,'right');}
-    y+=5;
-    doc.setDrawColor(200,208,230);doc.setLineWidth(0.4);doc.line(margin,y,W-margin,y);y+=6;
-
-    /* ── SECCIÓN 1: INFORMACIÓN GENERAL ── */
-    sectionTitle('1. INFORMACI\xd3N GENERAL',30,60,130);
-    var infoRows=[
-      ['Tipo de antena',ant.tipo||'—'],
-      ['Cantidad de canales',ant.cantidadCanales?String(ant.cantidadCanales):'—'],
-      ['Resonador vinculado',linkedEq?linkedEq.nombre:(ant.nombreOrigen||'—')],
-      ['Fabricante / Modelo',(ant.marca||'')+(ant.modelo?' '+ant.modelo:'')  ||(ant.origen||'—')],
-      ['N\xb0 Serie',ant.nroSerie||'—'],
-      ['Fecha de compra',ant.fechaCompra?fD(ant.fechaCompra):'—'],
-      ['Estado actual',antEstLabel]
+  var linkedEq=eqs.find(function(e){return(e.antenaIds||[]).indexOf(antId)!==-1;});
+  var antEst=ant.estado||'operativa';
+  var antEstLabel=antEst==='fuera_servicio'?'FUERA DE SERVICIO':antEst==='con_fallas'?'CON FALLAS':antEst==='rota'?'ROTA':'OPERATIVA';
+  var estCol=antEst==='operativa'?'#16a34a':(antEst==='con_fallas'||antEst==='rota')?'#dc2626':'#d97706';
+  var c=[];
+  c.push({columns:[
+    {width:'*',stack:[
+      {text:_pdfDecode(ant.nombre||'Antena sin nombre'),fontSize:16,bold:true,color:'#1a3a6b'},
+      {text:_pdfDecode((ant.tipo||'')+(ant.nroSerie?'  ·  N° Serie: '+ant.nroSerie:'')),fontSize:9,color:'#64748b',margin:[0,2,0,0]}
+    ]},
+    {width:'auto',text:' '+antEstLabel+' ',bold:true,color:'#ffffff',fontSize:8,background:estCol,margin:[0,3,0,0]}
+  ],margin:[0,0,0,10]});
+  c.push(_pdfH('1. Información general'));
+  c.push(_pdfKV([
+    ['Tipo de antena',ant.tipo||'—'],
+    ['Cantidad de canales',ant.cantidadCanales?String(ant.cantidadCanales):'—'],
+    ['Resonador vinculado',linkedEq?linkedEq.nombre:(ant.nombreOrigen||'—')],
+    ['Fabricante / Modelo',((ant.marca||'')+(ant.modelo?' '+ant.modelo:''))||(ant.origen||'—')],
+    ['N° Serie',ant.nroSerie||'—'],
+    ['Fecha de compra',ant.fechaCompra?fD(ant.fechaCompra):'—'],
+    ['Estado actual',antEstLabel]
+  ]));
+  if(ant.notas||ant.descripcion)c.push({text:[{text:'Observaciones: ',bold:true,color:'#64748b'},{text:_pdfDecode(ant.notas||ant.descripcion)}],fontSize:8,margin:[0,2,0,8]});
+  var roturas=ant.roturas||[];
+  c.push(_pdfH('2. Roturas activas ('+roturas.length+')'));
+  if(!roturas.length)c.push({text:'Sin roturas activas registradas.',italics:true,color:'#16a34a',margin:[0,0,0,8]});
+  else roturas.forEach(function(r,idx){
+    var es=_pdfEstado(r.estado);
+    var rows=[
+      ['Fecha de rotura',r.fecha?fD(r.fecha):'—'],
+      ['Qué se rompió',r.queSeRompio||'—'],
+      ['Descripción',r.descripcion||'—'],
+      ['Técnico / Resp.',r.tecnico||'—'],
+      ['Empresa / Taller',r.empresa||'—'],
+      ['Fecha de envío',r.fechaEnvio?fD(r.fechaEnvio):'No enviada aún'],
+      ['Presupuestos adjuntos',(((r.presupuestosArreglo||[]).length||(r.presupuestoArregloPdf?1:0))?String((r.presupuestosArreglo||[]).length||1)+' archivo(s)':'Sin presupuesto')],
+      ['Fotos de daño',(r.fotos||[]).length?String((r.fotos||[]).length)+' foto(s)':'Sin fotos']
     ];
-    for(var ri=0;ri<infoRows.length;ri++){rowData(infoRows[ri][0],infoRows[ri][1]||'—',ri%2===0);}
-    if(ant.notas||ant.descripcion){
-      checkPage(rowH);
-      doc.setFillColor(248,250,255);doc.rect(col1,y,W-2*margin,rowH,'F');
-      doc.setDrawColor(220,224,235);doc.rect(col1,y,W-2*margin,rowH,'S');
-      doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(80,80,110);
-      doc.text('Observaciones',col1+2,y+5);
-      doc.setFont('helvetica','normal');doc.setTextColor(28,28,30);
-      var obsLines=doc.splitTextToSize(ant.notas||ant.descripcion||'',W-col2-margin-2);
-      doc.text(obsLines,col2,y+5);
-      y+=rowH*Math.max(1,obsLines.length);
-    }
-    y+=5;
-
-    /* ── SECCIÓN 2: ROTURAS ACTIVAS ── */
-    var roturas=ant.roturas||[];
-    sectionTitle('2. ROTURAS ACTIVAS ('+roturas.length+')',(roturas.length?180:80),(roturas.length?30:120),(roturas.length?30:60));
-    if(!roturas.length){
-      checkPage(10);
-      doc.setFont('helvetica','italic');doc.setFontSize(8.5);doc.setTextColor(100,160,100);
-      doc.text('Sin roturas activas registradas.',margin+3,y+6);y+=12;
-    }else{
-      for(var roti=0;roti<roturas.length;roti++){
-        var r=roturas[roti];
-        checkPage(38);
-        /* Rotura header */
-        var rEstLabel=r.estado==='en_reparacion'?'EN REPARACI\xd3N':'ROTO';
-        var rEc=r.estado==='en_reparacion'?[245,158,11]:[220,38,38];
-        doc.setFillColor(250,245,245);doc.rect(margin,y,W-2*margin,8,'F');
-        doc.setDrawColor(220,38,38);doc.setLineWidth(0.3);doc.rect(margin,y,W-2*margin,8,'S');
-        doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(28,28,30);
-        doc.text('Rotura '+(roti+1)+': '+(r.queSeRompio||r.descripcion||'Sin descripci\xf3n'),margin+3,y+5.5);
-        doc.setFillColor(rEc[0],rEc[1],rEc[2]);doc.roundedRect(W-margin-22,y+1.5,20,5.5,1.5,1.5,'F');
-        doc.setFont('helvetica','bold');doc.setFontSize(6);doc.setTextColor(255,255,255);
-        doc.text(rEstLabel,W-margin-12,y+5.5,'center');
-        y+=10;
-        var rRows=[
-          ['Fecha de rotura',r.fecha?fD(r.fecha):'—'],
-          ['Qu\xe9 se rompi\xf3',r.queSeRompio||'—'],
-          ['Descripci\xf3n',r.descripcion||'—'],
-          ['T\xe9cnico / Resp.',r.tecnico||'—'],
-          ['Empresa / Taller',r.empresa||'—'],
-          ['Fecha de env\xedo',r.fechaEnvio?fD(r.fechaEnvio):'No enviada a\xfan'],
-          ['Presupuestos adjuntos',((r.presupuestosArreglo||[]).length||(r.presupuestoArregloPdf?1:0))?String((r.presupuestosArreglo||[]).length||(r.presupuestoArregloPdf?1:0))+' archivo(s)':'Sin presupuesto'],
-          ['Fotos de da\xf1o',(r.fotos||[]).length?String((r.fotos||[]).length)+' foto(s) registrada(s)':'Sin fotos']
-        ];
-        for(var rri2=0;rri2<rRows.length;rri2++){rowData(rRows[rri2][0],rRows[rri2][1],rri2%2===0);}
-        /* Notas de seguimiento */
-        var notas=r.notasSeguimiento||[];
-        if(notas.length){
-          checkPage(10);
-          doc.setFillColor(255,251,235);doc.rect(margin,y,W-2*margin,7,'F');
-          doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(120,80,0);
-          doc.text('Notas de seguimiento:',margin+2,y+5);y+=7;
-          for(var ni=0;ni<notas.length;ni++){
-            checkPage(7);
-            var nLines=doc.splitTextToSize('['+fD(notas[ni].fecha)+'] '+notas[ni].nota,W-2*margin-6);
-            doc.setFillColor(255,254,245);doc.rect(margin,y,W-2*margin,7*nLines.length,'F');
-            doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(60,60,80);
-            doc.text(nLines,margin+3,y+5);y+=7*nLines.length;
-          }
-        }
-        y+=4;
-      }
-    }
-
-    /* ── SECCIÓN 3: HISTORIAL DE REPARACIONES ── */
-    var histAnt=ant.historialAntena||[];
-    sectionTitle('3. HISTORIAL DE REPARACIONES ('+histAnt.length+')',40,100,60);
-    if(!histAnt.length){
-      checkPage(10);
-      doc.setFont('helvetica','italic');doc.setFontSize(8.5);doc.setTextColor(120,120,120);
-      doc.text('Sin reparaciones completadas.',margin+3,y+6);y+=12;
-    }else{
-      for(var hi=0;hi<histAnt.length;hi++){
-        var h2=histAnt[hi];
-        checkPage(24);
-        doc.setFillColor(245,252,246);doc.rect(margin,y,W-2*margin,7,'F');
-        doc.setDrawColor(52,199,89);doc.setLineWidth(0.3);doc.rect(margin,y,W-2*margin,7,'S');
-        doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor(28,28,30);
-        doc.text((hi+1)+'. '+(h2.queSeRompio||'Reparaci\xf3n'),margin+3,y+4.8);
-        doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(80,120,80);
-        doc.text('Reparada el '+fD(h2.fecha),W-margin,y+4.8,'right');
-        y+=9;
-        var hRows=[
-          ['Rotura detectada',h2.fechaRotura?fD(h2.fechaRotura):'—'],
-          ['Descripci\xf3n',h2.descripcion||'—'],
-          ['T\xe9cnico',h2.tecnico||'—'],
-          ['Empresa / Taller',h2.empresa||'—']
-        ];
-        for(var hri=0;hri<hRows.length;hri++){rowData(hRows[hri][0],hRows[hri][1],hri%2===0);}
-        y+=4;
-      }
-    }
-
-    /* ── SECCIÓN 4: DOCUMENTOS ADJUNTOS ── */
-    sectionTitle('4. DOCUMENTOS ADJUNTOS',50,80,160);
-    /* Presupuesto de compra */
-    checkPage(12);
-    doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(60,60,90);
-    doc.text('Presupuesto de compra:',margin+2,y+5);y+=6;
-    doc.setFont('helvetica','normal');doc.setFontSize(8);
-    if(ant.presupuestoCompraPdf&&ant.presupuestoCompraPdf.nombre){
-      doc.setTextColor(0,100,180);doc.text('  • '+ant.presupuestoCompraPdf.nombre,margin,y);y+=5;
-    }else{
-      doc.setTextColor(160,160,170);doc.text('  Sin presupuesto de compra adjunto',margin,y);y+=5;
-    }
-    /* Reportes adicionales */
-    checkPage(12);
-    doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(60,60,90);
-    doc.text('Reportes t\xe9cnicos subidos:',margin+2,y+5);y+=6;
-    var reps=ant.reportesPdfs||[];
-    if(!reps.length){
-      doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(160,160,170);
-      doc.text('  Sin reportes adjuntos',margin,y);y+=5;
-    }else{
-      for(var rpi=0;rpi<reps.length;rpi++){
-        checkPage(7);
-        doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(0,100,180);
-        var rpLine='  • '+(reps[rpi].nombre||'Reporte');
-        if(reps[rpi].fecha)rpLine+='  ['+fD(reps[rpi].fecha)+']';
-        doc.text(rpLine,margin,y);y+=5;
-      }
-    }
-    y+=6;
-
-    /* ── PIE DE PÁGINA ── */
-    var pageCount=doc.internal.getNumberOfPages();
-    for(var pi=1;pi<=pageCount;pi++){
-      doc.setPage(pi);
-      doc.setFillColor(6,9,26);doc.rect(0,282,W,15,'F');
-      doc.setFont('helvetica','normal');doc.setFontSize(6.5);doc.setTextColor(130,145,185);
-      doc.text('CIMA Investigaciones Avanzadas \xb7 MedTrack '+APP_DISPLAY_VERSION+' \xb7 Generado: '+nowStr,margin,288.5);
-      doc.text('P\xe1g. '+pi+' / '+pageCount,W-margin,288.5,'right');
-    }
-    var safeName=(ant.nombre||'antena').replace(/[^a-zA-Z0-9]/g,'_');
-    doc.save('Antena-'+safeName+'.pdf');
-    showToast('📄 PDF generado');
-  }catch(e){showToast('Error al generar PDF: '+e.message,'err');}
+    var inner=[_pdfKV(rows)];
+    if((r.notasSeguimiento||[]).length)inner.push(_pdfSegui(r.notasSeguimiento,'#b91c1c'));
+    c.push(_pdfCard('Rotura '+(idx+1)+': '+_pdfDecode(r.queSeRompio||r.descripcion||'Sin descripción'),es,inner,'#fef2f2','#fecaca'));
+  });
+  var histAnt=ant.historialAntena||[];
+  c.push(_pdfH('3. Historial de reparaciones ('+histAnt.length+')'));
+  if(!histAnt.length)c.push({text:'Sin reparaciones completadas.',italics:true,color:'#64748b',margin:[0,0,0,8]});
+  else histAnt.forEach(function(h2,idx){
+    var inner=[_pdfKV([
+      ['Rotura detectada',h2.fechaRotura?fD(h2.fechaRotura):'—'],
+      ['Reparada el',h2.fecha?fD(h2.fecha):'—'],
+      ['Descripción',h2.descripcion||'—'],
+      ['Técnico',h2.tecnico||'—'],
+      ['Empresa / Taller',h2.empresa||'—']
+    ])];
+    c.push(_pdfCard((idx+1)+'. '+_pdfDecode(h2.queSeRompio||'Reparación'),{label:'Reparado',color:'#16a34a'},inner,'#f0fdf4','#bbf7d0'));
+  });
+  c.push(_pdfH('4. Documentos adjuntos'));
+  c.push({text:[{text:'Presupuesto de compra: ',bold:true},{text:(ant.presupuestoCompraPdf&&ant.presupuestoCompraPdf.nombre)?_pdfDecode(ant.presupuestoCompraPdf.nombre):'Sin presupuesto de compra adjunto',color:(ant.presupuestoCompraPdf&&ant.presupuestoCompraPdf.nombre)?'#0369a1':'#94a3b8'}],fontSize:8,margin:[0,0,0,3]});
+  var reps=ant.reportesPdfs||[];
+  if(!reps.length)c.push({text:[{text:'Reportes técnicos: ',bold:true},{text:'Sin reportes adjuntos',color:'#94a3b8'}],fontSize:8});
+  else{
+    c.push({text:'Reportes técnicos subidos:',bold:true,fontSize:8,margin:[0,0,0,2]});
+    c.push({ul:reps.map(function(rp){return _pdfDecode(rp.nombre||'Reporte')+(rp.fecha?'  ['+fD(rp.fecha)+']':'');}),fontSize:8});
+  }
+  var safeName=(ant.nombre||'antena').replace(/[^a-zA-Z0-9]/g,'_');
+  _pdfDeliver(_pdfStdDoc('Ficha de Antena RF — '+_pdfDecode(ant.nombre||''),c),'Antena-'+safeName+'.pdf');
 }
 
 // ═══════════════════════════════════════════
@@ -14473,7 +14211,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.4.1";
+var APP_DISPLAY_VERSION="8.4.2";
 var APP_BUILD="29/06/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
