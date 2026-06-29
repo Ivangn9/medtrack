@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.29.477 -->
+<!-- v2026.06.29.478 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.29.477">
+<meta name="app-version" content="v2026.06.29.478">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -639,7 +639,6 @@ body.dark .ig{box-shadow:0 2px 8px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255
   box-shadow:-4px 0 40px rgba(0,0,0,.10),inset 1px 0 0 rgba(255,255,255,.60);}
 .settings-item{
   background:var(--item-bg);
-  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
   border:1px solid var(--item-border);border-top-color:var(--item-border-top);
   border-radius:var(--r-md);padding:14px;margin-bottom:10px;
   box-shadow:0 1px 4px rgba(0,0,0,.05),0 4px 16px rgba(0,0,0,.04),inset 0 1px 0 rgba(255,255,255,.95);
@@ -735,6 +734,13 @@ body.glass-4.dark{
   #pdf-viewer-body{overflow:visible!important;display:block!important;max-height:none!important;background:transparent!important;}
   #pdf-report-div{overflow:visible!important;max-height:none!important;}
 }
+/* Botones de acción en bottom bar: icon-only en todos los dispositivos que muestran bottom bar */
+@media(max-width:899px){
+  #bottom-bar .bar-btn-red,#bottom-bar .bar-btn-blue{
+    font-size:0;width:42px;min-width:42px;padding:0;min-height:42px;
+    border-radius:50%;align-self:center;flex-shrink:0;}
+  #bottom-bar .bar-btn-red svg,#bottom-bar .bar-btn-blue svg{margin:0!important;}
+}
 /* ── RESPONSIVE MOBILE ── */
 @media(max-width:480px){
   #header{padding:calc(env(safe-area-inset-top,0px)+8px) 10px 14px;}
@@ -748,25 +754,17 @@ body.glass-4.dark{
 
   /* iPhone tab bar: icon stacked above label (iOS native style) */
   #bb-inner{
-    padding:4px;gap:2px;}
+    padding:4px;gap:1px;}
   #bottom-bar .tab{
     flex:1;max-width:none;
     display:flex;flex-direction:column;align-items:center;justify-content:center;
-    gap:3px;padding:6px 4px 4px;min-height:50px;
+    gap:3px;padding:6px 3px 4px;min-height:50px;
     font-size:.6rem;font-weight:600;letter-spacing:.01em;border-radius:14px;}
   #bottom-bar .tab svg{margin:0!important;flex-shrink:0;}
   #bottom-bar .tab.on svg{stroke:currentColor;}
-  #bottom-bar .bar-sep{height:28px;margin:auto 2px;}
+  #bottom-bar .bar-sep{height:28px;margin:auto 1px;}
   #bottom-bar .bar-btn{
-    width:44px;height:44px;font-size:1.1rem;flex-shrink:0;align-self:center;}
-  #bottom-bar .bar-btn-red{
-    display:flex;flex-direction:column;align-items:center;justify-content:center;
-    gap:2px;padding:6px 10px 4px;min-height:50px;font-size:.6rem;border-radius:14px;align-self:stretch;}
-  #bottom-bar .bar-btn-red svg{margin:0!important;}
-  #bottom-bar .bar-btn-blue{
-    display:flex;flex-direction:column;align-items:center;justify-content:center;
-    gap:2px;padding:6px 10px 4px;min-height:50px;font-size:.6rem;border-radius:14px;align-self:stretch;}
-  #bottom-bar .bar-btn-blue svg{margin:0!important;}
+    width:42px;height:42px;font-size:1.1rem;flex-shrink:0;align-self:center;}
   #bottom-bar .tab-badge{margin-left:0;font-size:.55rem;padding:1px 5px;}
 
   #main{padding:12px 10px calc(env(safe-area-inset-bottom,0px)+90px);}
@@ -1095,7 +1093,7 @@ body.dark .pill[style*="#ff9500"],body.dark .pill[style*="--orange"]{box-shadow:
 
 <!-- SETTINGS OVERLAY -->
 <div id="update-banner" style="display:none;position:fixed;top:calc(env(safe-area-inset-top,0px)+56px);left:50%;transform:translateX(-50%);z-index:700;background:linear-gradient(135deg,#0071e3,#34c759);color:#fff;border-radius:50px;padding:10px 20px;font-size:.82rem;font-weight:700;box-shadow:0 4px 20px rgba(0,113,227,.4);cursor:pointer;white-space:nowrap;animation:slideUp .4s var(--spring);" onclick="doUpdate()">🔄 Nueva versión disponible — Toca para actualizar</div>
-<div id="settings-overlay" class="hidden" onclick="if(event.target===this)toggleSettings();" style="position:fixed;inset:0;background:rgba(0,0,0,.4);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);z-index:600;display:flex;align-items:stretch;justify-content:flex-end;">
+<div id="settings-overlay" class="hidden" onclick="if(event.target===this)toggleSettings();" style="position:fixed;inset:0;background:rgba(0,0,0,.28);z-index:600;display:flex;align-items:stretch;justify-content:flex-end;">
   <div class="settings-panel" id="settings-panel">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
       <div style="font-weight:700;font-size:1.05rem;">⚙️ Ajustes</div>
@@ -9569,13 +9567,17 @@ function checkWeeklyReport(){
   setTimeout(function(){
     var el=document.getElementById('weekly-report-banner');
     if(el){el.style.display='flex';return;}
+    var isMob=window.innerWidth<900;
     var banner=document.createElement('div');
     banner.id='weekly-report-banner';
-    banner.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#1a2a4a,#0d1a35);border:1.5px solid rgba(173,198,255,.3);border-radius:16px;padding:14px 20px;display:flex;align-items:center;gap:14px;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,.4);max-width:90vw;';
-    banner.innerHTML='<div style="flex:1;"><div style="font-size:.8rem;font-weight:700;color:#adc6ff;">Reporte Semanal</div><div style="font-size:.7rem;color:rgba(255,255,255,.6);margin-top:2px;">Nuevo reporte disponible para la semana</div></div>'+
-      '<button onclick="generarPDFSemanal();document.getElementById(\'weekly-report-banner\').style.display=\'none\';" style="background:#adc6ff;color:#06091a;border:none;border-radius:10px;padding:8px 16px;font-weight:700;font-size:.75rem;cursor:pointer;white-space:nowrap;">Generar PDF</button>'+
-      '<button onclick="this.parentElement.style.display=\'none\';" style="background:none;border:none;color:rgba(255,255,255,.4);font-size:1rem;cursor:pointer;padding:0 4px;">x</button>';
+    banner.style.cssText='position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + '+(isMob?'82':'20')+'px);'+(isMob?'left:12px;right:12px;':'right:20px;left:auto;min-width:340px;max-width:420px;')+
+      'background:linear-gradient(135deg,#1a2a4a,#0d1a35);border:1.5px solid rgba(173,198,255,.3);border-radius:16px;padding:12px 16px;display:flex;align-items:center;gap:12px;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,.4);';
+    banner.innerHTML=
+      '<div style="flex:1;min-width:0;"><div style="font-size:.8rem;font-weight:700;color:#adc6ff;white-space:nowrap;">Reporte Semanal</div>'+(isMob?'':'<div style="font-size:.68rem;color:rgba(255,255,255,.6);margin-top:1px;white-space:nowrap;">Nuevo reporte disponible</div>')+'</div>'+
+      '<button onclick="generarPDFSemanal();document.getElementById(\'weekly-report-banner\').style.display=\'none\';" style="background:#adc6ff;color:#06091a;border:none;border-radius:10px;padding:7px 14px;font-weight:700;font-size:.72rem;cursor:pointer;white-space:nowrap;flex-shrink:0;">Generar PDF</button>'+
+      '<button onclick="this.parentElement.style.display=\'none\';" style="background:none;border:none;color:rgba(255,255,255,.4);font-size:1.1rem;cursor:pointer;padding:0 2px;flex-shrink:0;line-height:1;">×</button>';
     document.body.appendChild(banner);
+    setTimeout(function(){if(banner.parentNode)banner.style.display='none';},12000);
   },3500);
 }
 function checkMonthlyReminder(){
@@ -14500,7 +14502,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.5.1";
+var APP_DISPLAY_VERSION="8.5.2";
 var APP_BUILD="29/06/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
