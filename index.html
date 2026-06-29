@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.29.470 -->
+<!-- v2026.06.29.471 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.29.470">
+<meta name="app-version" content="v2026.06.29.471">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3056,6 +3056,7 @@ function openHTMLViewer(htmlContent,title){
     if(titleEl)titleEl.textContent=title||'Reporte';
     _reportHTML=htmlContent;
     _pendingPdfBlob=null; // reset para que el próximo export genere el nuevo informe
+    _reportData=null; // por defecto, export genérico; generateReport lo setea luego para el doc estructurado
     // Extract body content
     var bodyMatch=htmlContent.match(/<body[^>]*>([\s\S]*)<\/body>/i);
     var bodyContent=bodyMatch?bodyMatch[1]:htmlContent;
@@ -3143,11 +3144,28 @@ function _pdfInline(node,inherit){
 function _pdfHasBlock(node){
   for(var i=0;i<node.childNodes.length;i++){
     var n=node.childNodes[i];
-    if(n.nodeType===1){var t=n.tagName.toLowerCase();if(t==='div'||t==='ul'||t==='ol'||t==='p')return true;}
+    if(n.nodeType===1){var t=n.tagName.toLowerCase();if(t==='div'||t==='ul'||t==='ol'||t==='p'||t==='table')return true;}
   }
   return false;
 }
-function _pdfBlocks(parent){
+function _pdfTableEl(node){
+  var trs=node.getElementsByTagName('tr'),body=[],maxCols=0,firstHead=false,r,c;
+  for(r=0;r<trs.length;r++){
+    var cells=trs[r].children,row=[],rowHasHead=false;
+    for(c=0;c<cells.length;c++){
+      var cell=cells[c],ct=cell.tagName.toLowerCase();
+      if(ct!=='td'&&ct!=='th')continue;
+      var head=(ct==='th');if(head)rowHasHead=true;
+      row.push({text:_pdfInline(cell,head?{bold:true,color:'#ffffff'}:{}),fontSize:8,fillColor:head?'#1a3a6b':(r%2===0?'#f8fafc':null),margin:[4,3,4,3]});
+    }
+    if(row.length){if(!body.length)firstHead=rowHasHead;body.push(row);if(row.length>maxCols)maxCols=row.length;}
+  }
+  if(!body.length)return {text:''};
+  for(r=0;r<body.length;r++){while(body[r].length<maxCols)body[r].push({text:'',margin:[4,3,4,3]});}
+  var widths=[];for(c=0;c<maxCols;c++)widths.push(c===0?'*':'auto');
+  return {table:{headerRows:firstHead?1:0,widths:widths,body:body},layout:{hLineWidth:function(){return 0.4;},vLineWidth:function(){return 0;},hLineColor:function(){return '#e2e8f0';}},margin:[0,4,0,8]};
+}
+function _pdfBlocks(parent,gen){
   var blocks=[],run=[],i;
   function flush(){if(run.length){blocks.push({text:run,margin:[0,1,0,3],lineHeight:1.18});run=[];}}
   for(i=0;i<parent.childNodes.length;i++){
@@ -3157,6 +3175,14 @@ function _pdfBlocks(parent){
     var tag=n.tagName.toLowerCase();
     var cls=n.getAttribute('class')||'';
     if(tag==='br'){run.push({text:'\n'});continue;}
+    if(tag==='style'||tag==='script'){continue;}
+    if(tag==='img'){
+      flush();var isrc=n.getAttribute('src')||'';
+      if(_pdfIsImg(isrc))blocks.push({image:isrc,fit:[470,360],margin:[0,4,0,6]});
+      continue;
+    }
+    if(tag==='table'){flush();blocks.push(_pdfTableEl(n));continue;}
+    if(tag==='h1'||tag==='h2'||tag==='h3'||tag==='h4'){flush();blocks.push({text:_pdfPlain(n.innerHTML),bold:true,fontSize:(tag==='h1'?15:tag==='h2'?13:12),color:'#1a3a6b',margin:[0,10,0,5]});continue;}
     if(tag==='p'){
       flush();blocks.push({text:_pdfInline(n,{}),margin:[0,1,0,4],lineHeight:1.18,alignment:'justify'});
     }else if(tag==='ul'||tag==='ol'){
@@ -3165,20 +3191,29 @@ function _pdfBlocks(parent){
       for(j=0;j<n.childNodes.length;j++){
         var li=n.childNodes[j];
         if(li.nodeType===1&&li.tagName.toLowerCase()==='li'){
-          if(_pdfHasBlock(li))items.push({stack:_pdfBlocks(li)});
+          if(_pdfHasBlock(li))items.push({stack:_pdfBlocks(li,gen)});
           else items.push({text:_pdfInline(li,{})});
         }
       }
       blocks.push({ul:items,margin:[0,2,0,6],lineHeight:1.14});
-    }else if(tag==='div'){
-      if(/sub-label/.test(cls)){
+    }else if(tag==='div'||tag==='section'||tag==='header'||tag==='footer'){
+      if(/informe-title/.test(cls)){
+        flush();blocks.push({text:_pdfPlain(n.innerHTML),bold:true,fontSize:14,color:'#1a3a6b',margin:[0,4,0,6]});
+      }else if(/section-title|eq-title/.test(cls)){
+        flush();blocks.push({text:_pdfPlain(n.innerHTML),bold:true,fontSize:12,color:'#1a3a6b',margin:[0,10,0,5]});
+      }else if(/sub-label/.test(cls)){
         flush();
         var col='#1e40af',stl=n.getAttribute('style')||'',cm=stl.match(/color:\s*(#[0-9a-fA-F]{3,6})/);if(cm)col=cm[1];
         blocks.push({text:_pdfPlain(n.innerHTML),bold:true,fontSize:9,color:col,margin:[0,8,0,3]});
       }else if(_pdfHasBlock(n)){
-        // caja (seguimiento de gestión)
         flush();
-        blocks.push({table:{widths:['*'],body:[[{stack:_pdfBlocks(n),margin:[7,5,7,5]}]]},layout:_pdfBox('#fff7ed','#fed7aa'),margin:[0,4,0,6]});
+        if(gen){
+          // modo genérico: recursar sin caja
+          blocks=blocks.concat(_pdfBlocks(n,gen));
+        }else{
+          // narrativa: caja de seguimiento de gestión
+          blocks.push({table:{widths:['*'],body:[[{stack:_pdfBlocks(n,gen),margin:[7,5,7,5]}]]},layout:_pdfBox('#fff7ed','#fed7aa'),margin:[0,4,0,6]});
+        }
       }else{
         flush();
         blocks.push({text:_pdfInline(n,{}),margin:[0,1,0,2]});
@@ -3363,8 +3398,28 @@ function _buildPdfDoc(){
     content:content
   };
 }
+function _reportLogoB64(){
+  try{var imgs=document.querySelectorAll('img'),i;for(i=0;i<imgs.length;i++){var m=imgs[i];if(m.src&&m.src.indexOf('logo.png')!==-1&&m.complete&&m.naturalWidth>0){var c=document.createElement('canvas');c.width=m.naturalWidth;c.height=m.naturalHeight;c.getContext('2d').drawImage(m,0,0);return c.toDataURL('image/png');}}}catch(e){}return null;
+}
+// Conversor genérico HTML→pdfmake para cualquier reporte del visor (KPI, inventario, etc.)
+function _genericHtmlPdfDoc(html,title){
+  var parsed=(new DOMParser()).parseFromString(String(html||''),'text/html');
+  var nav=parsed.querySelector('.nav-bar');if(nav&&nav.parentNode)nav.parentNode.removeChild(nav);
+  var content=_pdfBlocks(parsed.body,true);
+  if(!content.length)content=[{text:_pdfPlain(html)}];
+  var logo=_reportLogoB64();
+  return {
+    pageSize:'A4',
+    pageMargins:[40,logo?92:54,40,46],
+    defaultStyle:{fontSize:9,color:'#1e293b',lineHeight:1.15},
+    info:{title:title||'Informe CIMA'},
+    header:_pdfHeader({logo:logo}),
+    footer:function(cp,pc){return {columns:[{text:'CIMA Investigaciones Avanzadas · CIMA Hub',fontSize:7,color:'#94a3b8'},{text:'Página '+cp+' de '+pc,alignment:'right',fontSize:7,color:'#94a3b8'}],margin:[40,16,40,0]};},
+    content:content
+  };
+}
 function printReport(){
-  if(!_reportData){showToast('Generá primero el informe','warn');return;}
+  if(!_reportData&&!_reportHTML){showToast('Generá primero el informe','warn');return;}
   if(!window.pdfMake){showToast('Cargando generador, intentá en unos segundos','');return;}
   var btn=document.getElementById('pdf-export-btn');
 
@@ -3390,9 +3445,9 @@ function printReport(){
   if(btn){btn.disabled=true;btn.textContent='⏳ Generando PDF...';}
   var restore=function(){if(btn){btn.disabled=false;btn.textContent='📄 Exportar PDF';}};
   try{
-    var dd=_buildPdfDoc();
-    if(!dd){restore();showToast('Sin datos para el PDF','warn');return;}
     var tel=document.getElementById('pdf-viewer-title');
+    var dd=_reportData?_buildPdfDoc():_genericHtmlPdfDoc(_reportHTML,(tel?tel.textContent.trim():'Informe CIMA'));
+    if(!dd){restore();showToast('Sin datos para el PDF','warn');return;}
     _pendingPdfName=(tel?tel.textContent.trim():'Informe CIMA').replace(/[—–]+/g,'-').replace(/[\/\\:*?"<>|]/g,' ').replace(/\s+/g,' ').trim();
     window.pdfMake.createPdf(dd).getBlob(function(blob){
       _pendingPdfBlob=blob;
@@ -10768,9 +10823,9 @@ function generateReport(){
     html+='</div>';
     html+='</div>';
     html+='</body></html>';
-    // Stash datos estructurados para el PDF nativo (pdfmake)
-    _reportData={eqData:eqData,imgsMap:imgsMap||{},logo:logoB64||_logoSync,nro:nroInforme,para:paraInforme,periodoLabel:periodoLabel,mesAnio:mesAnio,fechaCreacion:fechaCreacion,tm:tm,tr:tr,tmej:tmej,tact:tact,hasData:hasData,sumData:sumData,introText:introText,resumenText:resumenText,conclusionText:conclusionText};
     openHTMLViewer(html,'Informe Equipos CIMA — '+mesAnio);
+    // Stash datos estructurados DESPUÉS de openHTMLViewer (que resetea _reportData a null)
+    _reportData={eqData:eqData,imgsMap:imgsMap||{},logo:logoB64||_logoSync,nro:nroInforme,para:paraInforme,periodoLabel:periodoLabel,mesAnio:mesAnio,fechaCreacion:fechaCreacion,tm:tm,tr:tr,tmej:tmej,tact:tact,hasData:hasData,sumData:sumData,introText:introText,resumenText:resumenText,conclusionText:conclusionText};
     }catch(err){showToast('Error al generar: '+(err&&err.message?err.message:String(err)),'warn');console.error('generateReport error:',err);}
   }
   // If no images: build synchronously (avoids async/XHR issues on iOS PWA)
@@ -14360,7 +14415,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.2.1";
+var APP_DISPLAY_VERSION="8.3.0";
 var APP_BUILD="29/06/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
