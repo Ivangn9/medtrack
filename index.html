@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.26.465 -->
+<!-- v2026.06.29.466 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.26.465">
+<meta name="app-version" content="v2026.06.29.466">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3106,78 +3106,103 @@ function printReport(){
   if(!_reportHTML){showToast('Sin contenido','warn');return;}
   if(!window.html2canvas||!(window.jspdf&&window.jspdf.jsPDF)){showToast('Cargando generador, intentá en unos segundos','');return;}
   var btn=document.getElementById('pdf-export-btn');
-  // SEGUNDO TAP: PDF ya generado, compartir ahora con gesto limpio
+  var BLANK_GIF='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+
+  // SEGUNDO TAP: PDF ya listo — compartir con gesto limpio del usuario
   if(_pendingPdfBlob){
-    var _pf=new File([_pendingPdfBlob],_pendingPdfName+'.pdf',{type:'application/pdf'});
+    var pf=new File([_pendingPdfBlob],_pendingPdfName+'.pdf',{type:'application/pdf'});
     _pendingPdfBlob=null;
     if(btn){btn.disabled=true;btn.textContent='⏳ Compartiendo...';}
-    function _r2(){if(btn){btn.disabled=false;btn.textContent='📄 Exportar PDF';}}
-    if(navigator.canShare&&navigator.canShare({files:[_pf]})){
-      navigator.share({title:_pendingPdfName,files:[_pf]}).then(_r2).catch(function(e){_r2();if(e.name!=='AbortError')showToast('Error al compartir','err');});
+    var onDone=function(){if(btn){btn.disabled=false;btn.textContent='📄 Exportar PDF';}};
+    if(navigator.canShare&&navigator.canShare({files:[pf]})){
+      navigator.share({title:_pendingPdfName,files:[pf]}).then(onDone).catch(function(e){onDone();if(e.name!=='AbortError')showToast('Error al compartir','err');});
     }else{
-      var _pu=URL.createObjectURL(_pf);
-      var _pa=document.createElement('a');_pa.href=_pu;_pa.download=_pendingPdfName+'.pdf';
-      document.body.appendChild(_pa);_pa.click();
-      setTimeout(function(){_pa.parentNode.removeChild(_pa);URL.revokeObjectURL(_pu);},1000);
-      _r2();
+      var pu=URL.createObjectURL(pf);
+      var pa=document.createElement('a');pa.href=pu;pa.download=_pendingPdfName+'.pdf';
+      document.body.appendChild(pa);pa.click();
+      setTimeout(function(){pa.parentNode.removeChild(pa);URL.revokeObjectURL(pu);},1000);
+      onDone();
     }
     return;
   }
-  // PRIMER TAP: generar PDF en off-screen A4 container
+
+  // PRIMER TAP: generar PDF async
   if(btn){btn.disabled=true;btn.textContent='⏳ Generando PDF...';}
-  function _restore(){if(btn){btn.disabled=false;btn.textContent='📄 Exportar PDF';}}
+  var restore=function(){if(btn){btn.disabled=false;btn.textContent='📄 Exportar PDF';}};
+
   try{
     var rDoc=(new DOMParser()).parseFromString(_reportHTML,'text/html');
     [].forEach.call(rDoc.querySelectorAll('.nav-bar,.btn-print'),function(el){if(el.parentNode)el.parentNode.removeChild(el);});
-    var cssText='';[].forEach.call(rDoc.querySelectorAll('style'),function(s){cssText+=s.textContent;});
+    var cssText='';
+    [].forEach.call(rDoc.querySelectorAll('style'),function(s){cssText+=s.textContent;});
     var bodyHtml=rDoc.body.innerHTML;
-    // Off-screen container at A4 width — evita fondo oscuro del visor y ancho incorrecto
-    var A4PX=794,PPXH=1123,SCALE=2,MARGIN=10,CWmm=190;
+
+    // A4: 794px ancho, 1123px alto por página. Scale 1.5 = balance calidad/memoria iOS
+    var A4PX=794,PPXH=1123,SCALE=1.5,MARGIN=10,CWmm=190;
+
+    // Contenedor off-screen position:absolute — a diferencia de fixed, scrollHeight refleja altura real del contenido
     var cont=document.createElement('div');
-    cont.style.cssText='position:fixed;left:-9999px;top:0;width:'+A4PX+'px;background:white;overflow:visible;z-index:-1;';
-    cont.innerHTML='<style>'+cssText.replace(/\bbody\b/g,'._rpt')+'</style><div class="_rpt" style="background:white;width:100%;">'+bodyHtml+'</div>';
+    cont.style.cssText='position:absolute;left:-10000px;top:0;width:'+A4PX+'px;background:#ffffff;pointer-events:none;z-index:-1;';
+    cont.innerHTML='<style>'+cssText+'</style>'+bodyHtml;
     document.body.appendChild(cont);
-    var _done=false;
-    function _afterImgs(){
-      if(_done)return;_done=true;
-      var totalH=cont.scrollHeight;
-      var totalPages=Math.ceil(totalH/PPXH);
-      var pdf=new window.jspdf.jsPDF('p','mm','a4');
-      var pi=0;
-      function _cap(){
-        if(pi>=totalPages){
-          document.body.removeChild(cont);
-          var tel=document.getElementById('pdf-viewer-title');
-          _pendingPdfName=(tel?tel.textContent.trim():'Informe CIMA').replace(/[—–]/g,'-').replace(/[\/\\:*?"<>|]/g,' ').replace(/\s+/g,' ').trim();
-          _pendingPdfBlob=pdf.output('blob');
-          if(btn){btn.disabled=false;btn.textContent='📤 Tocar para compartir';}
-          return;
+
+    var cleanup=function(){if(cont&&cont.parentNode)cont.parentNode.removeChild(cont);};
+
+    var genStarted=false;
+    var doGenerate=function(){
+      if(genStarted)return;genStarted=true;
+
+      // Reemplazar URLs externas (Firebase Storage) con gif vacío para evitar taint del canvas
+      [].forEach.call(cont.querySelectorAll('img'),function(img){
+        if(img.getAttribute('src')&&img.getAttribute('src').indexOf('data:')!==0){
+          img.setAttribute('src',BLANK_GIF);
         }
-        if(pi>0)pdf.addPage();
-        var srcH=Math.min(PPXH,totalH-pi*PPXH);
-        html2canvas(cont,{scale:SCALE,useCORS:false,allowTaint:true,
-          x:0,y:pi*PPXH,width:A4PX,height:srcH,
-          windowWidth:A4PX,scrollX:0,scrollY:0,logging:false
-        }).then(function(canvas){
-          var imgHmm=(canvas.height/canvas.width)*CWmm;
-          pdf.addImage(canvas.toDataURL('image/png'),'PNG',MARGIN,MARGIN,CWmm,imgHmm);
-          pi++;_cap();
-        }).catch(function(e){
-          if(cont.parentNode)cont.parentNode.removeChild(cont);
-          _restore();showToast('Error página '+(pi+1)+': '+(e.message||e),'err');
-        });
-      }
-      _cap();
-    }
+      });
+
+      // Una sola captura del contenido completo — luego se slicea en JS por página
+      html2canvas(cont,{
+        scale:SCALE,
+        useCORS:false,
+        allowTaint:false,
+        logging:false,
+        backgroundColor:'#ffffff'
+      }).then(function(fullCanvas){
+        cleanup();
+        var cW=fullCanvas.width,cH=fullCanvas.height;
+        // Altura en px de una página A4 a la escala del canvas
+        var pageHpx=Math.round(cW*(PPXH/A4PX));
+        var totalPages=Math.max(1,Math.ceil(cH/pageHpx));
+        var pdf=new window.jspdf.jsPDF('p','mm','a4');
+        for(var pi=0;pi<totalPages;pi++){
+          if(pi>0)pdf.addPage();
+          var sy=pi*pageHpx;
+          var sh=Math.min(pageHpx,cH-sy);
+          // Crear canvas con solo la franja de esta página
+          var pc=document.createElement('canvas');
+          pc.width=cW;pc.height=sh;
+          pc.getContext('2d').drawImage(fullCanvas,0,sy,cW,sh,0,0,cW,sh);
+          pdf.addImage(pc.toDataURL('image/jpeg',0.92),'JPEG',MARGIN,MARGIN,CWmm,(sh/cW)*CWmm);
+        }
+        var tel=document.getElementById('pdf-viewer-title');
+        _pendingPdfName=(tel?tel.textContent.trim():'Informe CIMA').replace(/[—–]+/g,'-').replace(/[\/\\:*?"<>|]/g,' ').replace(/\s+/g,' ').trim();
+        _pendingPdfBlob=pdf.output('blob');
+        if(btn){btn.disabled=false;btn.textContent='📤 Tocar para compartir';}
+      }).catch(function(e){
+        cleanup();restore();
+        showToast('Error al generar: '+(e.message||e),'err');
+      });
+    };
+
+    // Esperar que carguen las imágenes (data URIs cargan síncronamente, pero igual esperamos el tick)
     var imgs=cont.querySelectorAll('img');
     var imgN=imgs.length,imgD=0;
-    if(!imgN){setTimeout(_afterImgs,80);return;}
+    var imgTick=function(){imgD++;if(imgD>=imgN)setTimeout(doGenerate,150);};
+    if(!imgN){setTimeout(doGenerate,150);return;}
     [].forEach.call(imgs,function(img){
-      function _tick(){imgD++;if(imgD>=imgN)_afterImgs();}
-      if(img.complete){_tick();}else{img.onload=_tick;img.onerror=_tick;}
+      if(img.complete){imgTick();}else{img.onload=imgTick;img.onerror=imgTick;}
     });
-    setTimeout(_afterImgs,3000);
-  }catch(e){_restore();showToast('Error: '+(e.message||e),'err');}
+    setTimeout(doGenerate,5000); // safety timeout
+  }catch(e){restore();showToast('Error: '+(e.message||e),'err');}
 }
 function closePDFViewer(){
   var overlay=document.getElementById('pdf-viewer-overlay');
@@ -14136,8 +14161,8 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.1.5";
-var APP_BUILD="26/06/26 h";
+var APP_DISPLAY_VERSION="8.1.6";
+var APP_BUILD="29/06/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
