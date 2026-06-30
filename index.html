@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.30.490 -->
+<!-- v2026.06.30.491 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.30.490">
+<meta name="app-version" content="v2026.06.30.491">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -2644,7 +2644,7 @@ function openEditHist(eqId,hid){
         '<option value="USD"'+((!hh.precioMoneda||hh.precioMoneda==="USD")?" selected":"")+'>USD</option>'+
         '<option value="ARS"'+(hh.precioMoneda==="ARS"?" selected":"")+'>ARS $</option>'+
       '</select>'+
-      '<input class="inp" type="number" id="eh-precio" value="'+esc(hh.precio||'')+'" placeholder="0.00" min="0" step="0.01" style="flex:1;">'+
+      '<input class="inp" type="text" inputmode="decimal" id="eh-precio" value="'+esc(hh.precio||'')+'" placeholder="0.00" oninput="this.value=this.value.replace(/[^0-9.]/g,\'\')" style="flex:1;">'+
     '</div>'+
     '<div id="eh-precio-hint" style="font-size:.63rem;color:var(--text3);margin-top:3px;min-height:14px;"></div>'+
     '</div>'+
@@ -4034,7 +4034,7 @@ function openModalParte(eqId,pt){
           '<option value="USD"'+((!f.precioMoneda||f.precioMoneda==="USD")?" selected":"")+'>USD</option>'+
           '<option value="ARS"'+(f.precioMoneda==="ARS"?" selected":"")+'>ARS $</option>'+
         '</select>'+
-        '<input class="inp" type="number" id="pt-pc" value="'+esc(f.precio||'')+'" placeholder="0.00" min="0" step="0.01" style="flex:1;">'+
+        '<input class="inp" type="text" inputmode="decimal" id="pt-pc" value="'+esc(f.precio||'')+'" placeholder="0.00" oninput="this.value=this.value.replace(/[^0-9.]/g,\'\')" style="flex:1;">'+
       '</div>'+
       '<div id="pt-pc-hint" style="font-size:.63rem;color:var(--text3);margin-top:3px;min-height:14px;"></div>'+
       '</div>'+
@@ -14717,7 +14717,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.7.1";
+var APP_DISPLAY_VERSION="8.7.2";
 var APP_BUILD="30/06/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
