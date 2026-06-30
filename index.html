@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.30.482 -->
+<!-- v2026.06.30.483 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.30.482">
+<meta name="app-version" content="v2026.06.30.483">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -439,6 +439,16 @@ body.dark .ig{box-shadow:0 2px 8px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255
 .ibox-v{font-size:.82rem;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 
 /* ── TOAST ── */
+/* ── AI FAB ── */
+#ai-fab{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px)+82px);right:16px;
+  width:54px;height:54px;border-radius:50%;border:none;cursor:pointer;padding:0;
+  background:linear-gradient(135deg,rgba(20,22,50,.92),rgba(30,32,64,.96));
+  box-shadow:0 4px 20px rgba(0,0,0,.35),0 0 0 1.5px rgba(173,198,255,.25),inset 0 1px 0 rgba(255,255,255,.12);
+  z-index:150;transition:transform .2s var(--spring),box-shadow .2s var(--ease-out);
+  display:flex;align-items:center;justify-content:center;overflow:hidden;}
+#ai-fab:active{transform:scale(.88);}
+#ai-fab img{width:38px;height:38px;object-fit:contain;}
+@media(min-width:900px){#ai-fab{right:24px;bottom:calc(env(safe-area-inset-bottom,0px)+24px);}}
 #toast{position:fixed;top:calc(env(safe-area-inset-top,0px)+14px);left:50%;
   transform:translateX(-50%);z-index:9999;
   padding:11px 26px;border-radius:var(--r-pill);font-size:.84rem;font-weight:650;
@@ -11178,7 +11188,7 @@ var _aiChatHistory=[];
 var _aiChatEqId=null;
 
 function openAIAssistant(eqId){
-  _aiChatEqId=eqId;
+  _aiChatEqId=eqId||null;
   _aiChatHistory=[];
   var modal=document.getElementById('ai-assist-modal');
   if(!modal)return;
@@ -11186,8 +11196,10 @@ function openAIAssistant(eqId){
   var inp=document.getElementById('ai-chat-inp');
   if(inp)inp.value='';
   modal.style.display='flex';
-  var eq=eqs.filter(function(e){return e.id===eqId;})[0];
-  _appendAIMsg('bot','Hola. Podés preguntarme cualquier cosa sobre '+(eq?eq.nombre:'este equipo')+': estado, historial de fallas, recomendaciones de mantenimiento, prioridades o cualquier consulta técnica.',null);
+  var eq=eqId?eqs.filter(function(e){return e.id===eqId;})[0]:null;
+  var sub=document.getElementById('ai-modal-sub');
+  if(sub)sub.textContent=eq?eq.nombre:'Consulta general · CIMA';
+  _appendAIMsg('bot',eq?'Hola. Podés preguntarme cualquier cosa sobre '+eq.nombre+': estado, historial de fallas, recomendaciones de mantenimiento, prioridades o cualquier consulta técnica.':'Hola! Soy el asistente técnico de CIMA. Podés preguntarme sobre equipos, mantenimientos, fallas, proveedores, normativas o cualquier consulta técnica.',null);
   if(inp)setTimeout(function(){inp.focus();},100);
 }
 
@@ -11241,17 +11253,16 @@ function sendAIAssistantMsg(){
   var inp=document.getElementById('ai-chat-inp');
   if(!inp)return;
   var msg=(inp.value||'').trim();
-  if(!msg||!_aiChatEqId)return;
+  if(!msg)return;
   var proxyUrl=_getAIProxy();
   if(!proxyUrl){if(confirm('Para usar el asistente IA necesitás configurar el proxy de Cloudflare.\n¿Abrir configuración?')){openAIKeyModal();}return;}
-  var eq=eqs.filter(function(e){return e.id===_aiChatEqId;})[0];
-  if(!eq)return;
+  var eq=_aiChatEqId?eqs.filter(function(e){return e.id===_aiChatEqId;})[0]:null;
   inp.value='';
   _appendAIMsg('user',msg,null);
   _aiChatHistory.push({role:'user',content:msg});
   var loadId='ai-load-'+Date.now();
   _appendAIMsg('loading','',loadId);
-  var sysPrompt='Sos un asistente técnico especializado en mantenimiento de equipos médicos de diagnóstico por imágenes (RM, CT, ecógrafos) para el Centro de Imágenes Médicas Avanzadas CIMA. Respondés en español argentino, de forma concisa y práctica. No uses asteriscos ni markdown. Contexto del equipo:\n\n'+_buildAIContext(eq);
+  var sysPrompt=eq?'Sos un asistente técnico especializado en mantenimiento de equipos médicos de diagnóstico por imágenes (RM, CT, ecógrafos) para el Centro de Imágenes Médicas Avanzadas CIMA. Respondés en español argentino, de forma concisa y práctica. No uses asteriscos ni markdown. Contexto del equipo:\n\n'+_buildAIContext(eq):'Sos un asistente técnico especializado en mantenimiento de equipos médicos de diagnóstico por imágenes (RM, CT, ecógrafos, mamógrafos) para el Centro de Imágenes Médicas Avanzadas CIMA. Respondés en español argentino, de forma concisa y práctica. No uses asteriscos ni markdown.';
   var msgs=_aiChatHistory.slice();
   // Prepend context to first message for proxies that strip system field
   if(msgs.length===1){msgs=[{role:'user',content:sysPrompt+'\n\n---\n'+msgs[0].content}];}
@@ -14648,7 +14659,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.6.3";
+var APP_DISPLAY_VERSION="8.6.4";
 var APP_BUILD="30/06/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
@@ -15346,13 +15357,14 @@ function rReporte(){
 </div>
 
 <!-- AI Assistant Modal -->
+<button id="ai-fab" onclick="openAIAssistant(null)" title="Asistente IA"><img src="icons/IA.png" alt="IA"></button>
 <div id="ai-assist-modal" onclick="if(event.target===this)closeAIAssistant()" style="display:none;position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.55);align-items:flex-end;justify-content:center;">
   <div style="width:100%;max-width:560px;max-height:82vh;background:#16172a;border-radius:20px 20px 0 0;display:flex;flex-direction:column;border:1px solid rgba(173,198,255,.12);border-bottom:none;box-shadow:0 -8px 40px rgba(0,0,0,.5);">
     <div style="padding:16px 18px 12px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:10px;flex-shrink:0;">
       <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,rgba(173,198,255,.2),rgba(173,198,255,.08));display:flex;align-items:center;justify-content:center;font-size:1.1rem;">🤖</div>
       <div style="flex:1;min-width:0;">
         <div style="font-weight:700;font-size:.92rem;color:#e8eaf6;">Asistente IA</div>
-        <div style="font-size:.68rem;color:#8890b0;">Contexto completo del equipo cargado</div>
+        <div id="ai-modal-sub" style="font-size:.68rem;color:#8890b0;">Consulta general · CIMA</div>
       </div>
       <button onclick="closeAIAssistant()" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:50%;width:30px;height:30px;cursor:pointer;color:#b8bbd4;font-size:1rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;">✕</button>
     </div>
