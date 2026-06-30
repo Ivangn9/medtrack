@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.30.486 -->
+<!-- v2026.06.30.487 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.30.486">
+<meta name="app-version" content="v2026.06.30.487">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -440,13 +440,13 @@ body.dark .ig{box-shadow:0 2px 8px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255
 
 /* ── TOAST ── */
 /* ── AI FAB ── */
-#ai-fab{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px)+82px);right:12px;
-  width:64px;height:64px;border:none;cursor:pointer;padding:0;background:transparent;
-  filter:drop-shadow(0 4px 12px rgba(0,0,0,.45)) drop-shadow(0 1px 3px rgba(0,0,0,.3));
+#ai-fab{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px)+82px);right:10px;
+  width:80px;height:80px;border:none;cursor:pointer;padding:0;background:transparent;
+  filter:drop-shadow(0 4px 14px rgba(0,0,0,.5)) drop-shadow(0 1px 4px rgba(0,0,0,.3));
   z-index:150;transition:transform .2s var(--spring),filter .2s var(--ease-out);}
 #ai-fab:active{transform:scale(.88);}
-#ai-fab img{width:64px;height:64px;object-fit:contain;display:block;}
-@media(min-width:900px){#ai-fab{right:20px;bottom:calc(env(safe-area-inset-bottom,0px)+20px);}}
+#ai-fab img{width:80px;height:80px;object-fit:contain;display:block;}
+@media(min-width:900px){#ai-fab{right:18px;bottom:calc(env(safe-area-inset-bottom,0px)+18px);}}
 #toast{position:fixed;top:calc(env(safe-area-inset-top,0px)+14px);left:50%;
   transform:translateX(-50%);z-index:9999;
   padding:11px 26px;border-radius:var(--r-pill);font-size:.84rem;font-weight:650;
@@ -14717,7 +14717,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.6.7";
+var APP_DISPLAY_VERSION="8.6.8";
 var APP_BUILD="30/06/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
@@ -15419,7 +15419,7 @@ function rReporte(){
 <div id="ai-assist-modal" onclick="if(event.target===this)closeAIAssistant()" style="display:none;position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.55);align-items:flex-end;justify-content:center;">
   <div style="width:100%;max-width:560px;max-height:82vh;background:#16172a;border-radius:20px 20px 0 0;display:flex;flex-direction:column;border:1px solid rgba(173,198,255,.12);border-bottom:none;box-shadow:0 -8px 40px rgba(0,0,0,.5);">
     <div style="padding:16px 18px 12px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:10px;flex-shrink:0;">
-      <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,rgba(173,198,255,.2),rgba(173,198,255,.08));display:flex;align-items:center;justify-content:center;font-size:1.1rem;">🤖</div>
+      <div style="width:38px;height:38px;flex-shrink:0;"><img src="icons/IA.png" alt="IA" style="width:38px;height:38px;object-fit:contain;display:block;filter:drop-shadow(0 1px 4px rgba(0,0,0,.4));"></div>
       <div style="flex:1;min-width:0;">
         <div style="font-weight:700;font-size:.92rem;color:#e8eaf6;">Asistente IA</div>
         <div id="ai-modal-sub" style="font-size:.68rem;color:#8890b0;">Consulta general · CIMA</div>
