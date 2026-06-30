@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.30.483 -->
+<!-- v2026.06.30.484 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.30.483">
+<meta name="app-version" content="v2026.06.30.484">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -11199,7 +11199,9 @@ function openAIAssistant(eqId){
   var eq=eqId?eqs.filter(function(e){return e.id===eqId;})[0]:null;
   var sub=document.getElementById('ai-modal-sub');
   if(sub)sub.textContent=eq?eq.nombre:'Consulta general · CIMA';
-  _appendAIMsg('bot',eq?'Hola. Podés preguntarme cualquier cosa sobre '+eq.nombre+': estado, historial de fallas, recomendaciones de mantenimiento, prioridades o cualquier consulta técnica.':'Hola! Soy el asistente técnico de CIMA. Podés preguntarme sobre equipos, mantenimientos, fallas, proveedores, normativas o cualquier consulta técnica.',null);
+  var fallas2=(eqs||[]).filter(function(e){return (e.partes||[]).some(function(p){return p.estado==='roto'||p.estado==='pendiente';});}).length;
+  var otsAb2=(ordenesTrabajo||[]).filter(function(o){return o.estado!=='cerrada'&&o.estado!=='cancelada';}).length;
+  _appendAIMsg('bot',eq?'Hola. Podés preguntarme cualquier cosa sobre '+eq.nombre+': estado, historial de fallas, recomendaciones de mantenimiento, prioridades o cualquier consulta técnica.':'Hola! Tengo acceso al estado actual de CIMA: '+eqs.length+' equipos, '+fallas2+' con fallas activas, '+otsAb2+' OTs abiertas. Preguntame lo que necesites.',null);
   if(inp)setTimeout(function(){inp.focus();},100);
 }
 
@@ -11208,6 +11210,64 @@ function closeAIAssistant(){
   if(modal)modal.style.display='none';
   _aiChatHistory=[];
   _aiChatEqId=null;
+}
+
+function _buildGlobalAIContext(){
+  var today2=today();
+  var ctx='CENTRO: CIMA — Centro de Imágenes Médicas Avanzadas\n';
+  ctx+='Fecha: '+today2+'\n';
+  ctx+='Total equipos: '+eqs.length+'\n\n';
+  // Equipos con fallas activas
+  var conFallas=eqs.filter(function(e){return (e.partes||[]).some(function(p){return p.estado==='roto'||p.estado==='pendiente';});});
+  if(conFallas.length){
+    ctx+='EQUIPOS CON FALLAS ACTIVAS ('+conFallas.length+'):\n';
+    conFallas.forEach(function(e){
+      var fallas=(e.partes||[]).filter(function(p){return p.estado==='roto'||p.estado==='pendiente';});
+      var hs=calcHealthScore(e);var rs=calcRiskScore(e);
+      ctx+='- '+e.nombre+(e.ubicacion?' ['+e.ubicacion+']':'')+': ';
+      ctx+=fallas.map(function(p){return p.nombre+'('+p.estado+')';}).join(', ');
+      if(hs)ctx+=' | Salud: '+hs.score+'/100';
+      if(rs)ctx+=' | Riesgo: '+riskLevelLabel(rs.level);
+      ctx+='\n';
+    });
+    ctx+='\n';
+  }
+  // OTs abiertas
+  var otsAbiertas=(ordenesTrabajo||[]).filter(function(o){return o.estado!=='cerrada'&&o.estado!=='cancelada';});
+  if(otsAbiertas.length){
+    ctx+='ORDENES DE TRABAJO ABIERTAS ('+otsAbiertas.length+'):\n';
+    var sorted=otsAbiertas.slice().sort(function(a,b){
+      var pri={'critica':0,'alta':1,'media':2,'baja':3};
+      return (pri[a.prioridad]||2)-(pri[b.prioridad]||2);
+    });
+    sorted.forEach(function(ot){
+      var eq2=eqs.filter(function(e){return e.id===ot.eqId;})[0];
+      ctx+='- ['+ot.prioridad+'] '+(ot.titulo||ot.descripcion||'OT')+(eq2?' en '+eq2.nombre:'')+' | '+ot.estado+'\n';
+    });
+    ctx+='\n';
+  }
+  // Equipos fuera de servicio
+  var fuera=eqs.filter(function(e){return e.estado==='fuera';});
+  if(fuera.length){
+    ctx+='EQUIPOS FUERA DE SERVICIO ('+fuera.length+'):\n';
+    fuera.forEach(function(e){ctx+='- '+e.nombre+(e.ubicacion?' ['+e.ubicacion+']':'')+'\n';});
+    ctx+='\n';
+  }
+  // PMs vencidos o próximos
+  var pmPend=(pmProgramados||[]).filter(function(p){return !p.realizado&&p.fecha<=today2;});
+  if(pmPend.length){
+    ctx+='PMs VENCIDOS SIN REALIZAR ('+pmPend.length+'):\n';
+    pmPend.forEach(function(p){
+      var eq3=eqs.filter(function(e){return e.id===p.eqId;})[0];
+      ctx+='- '+p.fecha+': '+(eq3?eq3.nombre:'Equipo desconocido')+(p.tecnico?' | '+p.tecnico:'')+'\n';
+    });
+    ctx+='\n';
+  }
+  // Resumen por estado
+  var estados={};
+  eqs.forEach(function(e){estados[e.estado||'desconocido']=(estados[e.estado||'desconocido']||0)+1;});
+  ctx+='RESUMEN ESTADO: '+Object.keys(estados).map(function(k){return k+': '+estados[k];}).join(', ')+'\n';
+  return ctx;
 }
 
 function _buildAIContext(eq){
@@ -11262,7 +11322,7 @@ function sendAIAssistantMsg(){
   _aiChatHistory.push({role:'user',content:msg});
   var loadId='ai-load-'+Date.now();
   _appendAIMsg('loading','',loadId);
-  var sysPrompt=eq?'Sos un asistente técnico especializado en mantenimiento de equipos médicos de diagnóstico por imágenes (RM, CT, ecógrafos) para el Centro de Imágenes Médicas Avanzadas CIMA. Respondés en español argentino, de forma concisa y práctica. No uses asteriscos ni markdown. Contexto del equipo:\n\n'+_buildAIContext(eq):'Sos un asistente técnico especializado en mantenimiento de equipos médicos de diagnóstico por imágenes (RM, CT, ecógrafos, mamógrafos) para el Centro de Imágenes Médicas Avanzadas CIMA. Respondés en español argentino, de forma concisa y práctica. No uses asteriscos ni markdown.';
+  var sysPrompt=eq?'Sos un asistente técnico especializado en mantenimiento de equipos médicos de diagnóstico por imágenes (RM, CT, ecógrafos) para el Centro de Imágenes Médicas Avanzadas CIMA. Respondés en español argentino, de forma concisa y práctica. Sin asteriscos ni markdown. Contexto del equipo:\n\n'+_buildAIContext(eq):'Sos un asistente técnico especializado en mantenimiento de equipos médicos de diagnóstico por imágenes (RM, CT, ecógrafos, mamógrafos) para el Centro de Imágenes Médicas Avanzadas CIMA. Respondés en español argentino, de forma concisa y práctica. Sin asteriscos ni markdown. Tenés acceso al estado actual de todos los equipos del centro. Contexto:\n\n'+_buildGlobalAIContext();
   var msgs=_aiChatHistory.slice();
   // Prepend context to first message for proxies that strip system field
   if(msgs.length===1){msgs=[{role:'user',content:sysPrompt+'\n\n---\n'+msgs[0].content}];}
@@ -14659,7 +14719,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.6.4";
+var APP_DISPLAY_VERSION="8.6.5";
 var APP_BUILD="30/06/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
