@@ -2189,7 +2189,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "4.36";
+const APP_VERSION = "4.37";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -5878,6 +5878,11 @@ function renderPracCostos(el){
   const pracs=_pracConfig.practicas||[];
   if(!_pracActivePrac && pracs.length) _pracActivePrac=pracs[0].id;
 
+  const syncNote=`<div style="display:flex;align-items:flex-start;gap:8px;background:var(--bg-blue,#ecf4ff);border:1px solid rgba(0,113,227,.18);border-radius:12px;padding:10px 13px;margin-bottom:14px;font-size:.76rem;color:var(--text2);line-height:1.45">
+    <span style="font-size:.95rem;flex-shrink:0">🔗</span>
+    <span>Los precios son <b>únicos para ambas sucursales</b>: al cargar un precio en GN o Sarmiento se aplica en las dos. Estos costos se <b>sincronizan en vivo</b> con el catálogo para el reporte mensual.</span>
+  </div>`;
+
   const tabsHtml=`<div class="prac-tabs">${pracs.map(p=>`
     <button class="prac-tab-btn${p.id===_pracActivePrac?' active':''}" onclick="setPracActivePrac('${escAttr(p.id)}')">${escHtml(p.nombre)}</button>
   `).join('')}</div>`;
@@ -5912,7 +5917,7 @@ function renderPracCostos(el){
     </div>`;
   }).join('');
 
-  el.innerHTML=tabsHtml+cardsHtml;
+  el.innerHTML=syncNote+tabsHtml+cardsHtml;
   if(!cardsHtml) el.innerHTML+=`<div style="padding:24px;text-align:center;color:var(--text3)">Sin sub-prácticas registradas</div>`;
 }
 
@@ -6006,11 +6011,12 @@ function renderPracCierre(el){
 
   const mesLabel=_pracCierreMes?new Date(_pracCierreMes+'-02').toLocaleDateString('es-AR',{month:'long',year:'numeric'}):'';
 
-  const monthSelector=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+  const monthSelector=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
     <input type="month" id="prac-mes-sel" value="${escAttr(_pracCierreMes)}"
       style="padding:8px 12px;border-radius:10px;border:1.5px solid #d1d5db;font-size:.85rem;font-weight:600;color:#1c1c1e;background:#fff;cursor:pointer"
       onchange="setPracMes(this.value)">
     <button class="btn btn-primary" style="padding:8px 14px;font-size:.82rem" onclick="savePracMes()">💾 Guardar mes</button>
+    <button class="btn btn-secondary" style="padding:8px 14px;font-size:.82rem" onclick="exportContablePDF()">📄 Exportar PDF</button>
   </div>`;
 
   const totalBar=`<div class="prac-total-bar">
@@ -6088,6 +6094,165 @@ function savePracMes(){
   _db.collection(DB_COL).doc("practicas_mes").set({[_pracCierreMes]:data},{merge:true})
     .then(()=>toast('✓ Cierre mensual guardado'))
     .catch(()=>toast('⚠️ Error al guardar'));
+}
+
+// ─── Exportar cierre mensual a PDF (tipología CIMA) ───────────────────────────
+async function exportContablePDF(){
+  if(!_pracConfig){toast("⚠️ Configuración no cargada");return;}
+  if(!_pracCierreMes){toast("⚠️ Seleccioná un mes");return;}
+  if(!window.jspdf){toast("⚠️ Librería PDF no cargada, intentá de nuevo");return;}
+  // Persistir cualquier cantidad editada en pantalla antes de exportar
+  document.querySelectorAll('.prac-mes-input').forEach(function(inp){
+    const k=inp.dataset.key; const q=parseInt(inp.value)||0;
+    if(k){ if(!_pracMes[_pracCierreMes]) _pracMes[_pracCierreMes]={}; if(q>0) _pracMes[_pracCierreMes][k]=q; else delete _pracMes[_pracCierreMes][k]; }
+  });
+  toast("Generando PDF…");
+  try{
+    const {jsPDF}=window.jspdf;
+    const doc=new jsPDF({orientation:"portrait",unit:"mm",format:"a4"});
+    const pageW=doc.internal.pageSize.getWidth();
+    const pageH=doc.internal.pageSize.getHeight();
+    const mg=14; let y=mg;
+
+    // Logo (mismo patrón que el reporte de stock)
+    let logoData=null,logoW=0,logoH=0;
+    try{
+      const resp=await fetch("logo.png");
+      if(resp.ok){
+        const blob=await resp.blob();
+        logoData=await new Promise(res=>{const r=new FileReader();r.onload=e=>res(e.target.result);r.readAsDataURL(blob);});
+        await new Promise(res=>{const img=new Image();img.onload=()=>{const maxH=16,maxW=42;const ratio=img.naturalWidth/img.naturalHeight;logoH=maxH;logoW=Math.min(maxW,logoH*ratio);res();};img.onerror=res;img.src=logoData;});
+      }
+    }catch(e){}
+
+    const C={navy:[15,35,80],blue:[0,113,227],blueLight:[0,90,180],dark:[28,28,30],gray2:[100,100,112],gray3:[155,155,168],bgLight:[245,247,252],bgBlue:[236,244,255],border:[208,220,238],white:[255,255,255]};
+
+    // ── HEADER ──
+    const headerH=32;
+    doc.setFillColor(...C.navy);doc.rect(0,0,pageW,headerH,"F");
+    doc.setFillColor(...C.blue);doc.rect(0,headerH-1.8,pageW,1.8,"F");
+    let titleX=mg;
+    if(logoData&&logoW>0){const logoY=(headerH-1.8-logoH)/2;try{doc.addImage(logoData,"PNG",mg,logoY,logoW,logoH,undefined,"FAST");titleX=mg+logoW+7;}catch(e){}}
+    doc.setTextColor(...C.white);doc.setFontSize(15.5);doc.setFont("helvetica","bold");
+    doc.text("Control Contable de Prácticas",titleX,headerH*0.43);
+    doc.setFontSize(7.5);doc.setFont("helvetica","normal");doc.setTextColor(170,200,240);
+    doc.text("CIMA · Costos de Insumos por Estudio · Cierre Mensual",titleX,headerH*0.71);
+    const mesLabel=new Date(_pracCierreMes+'-02').toLocaleDateString('es-AR',{month:'long',year:'numeric'});
+    const mesLabelCap=mesLabel.charAt(0).toUpperCase()+mesLabel.slice(1);
+    doc.setFontSize(7);doc.setTextColor(130,170,220);
+    doc.text(mesLabelCap,pageW-mg,headerH*0.55,{align:"right"});
+    y=headerH+9;
+
+    // ── Cálculo de totales ──
+    const pracs=_pracConfig.practicas||[];
+    const mesData=_pracMes[_pracCierreMes]||{};
+    let grandTotal=0, totalStudies=0;
+    const sections=[];
+    pracs.forEach(p=>{
+      const rows=[]; let pracTotal=0, pracStudies=0;
+      p.subPracticas.forEach(sp=>{
+        const key=p.id+"__"+sp.id;
+        const qty=parseInt(mesData[key])||0;
+        if(qty<=0) return;
+        const {total}=_pracCalcSubCost(sp,p.id);
+        const rowTotal=qty*total;
+        pracTotal+=rowTotal; pracStudies+=qty;
+        rows.push([sp.nombre,"$"+fmt(total),String(qty),"$"+fmt(rowTotal)]);
+      });
+      if(rows.length){ grandTotal+=pracTotal; totalStudies+=pracStudies; sections.push({nombre:p.nombre,rows,pracTotal,pracStudies}); }
+    });
+
+    // ── METADATA BOX ──
+    const metaBoxH=20;
+    doc.setFillColor(...C.bgLight);doc.setDrawColor(...C.border);doc.setLineWidth(0.3);
+    doc.roundedRect(mg,y,pageW-mg*2,metaBoxH,2,2,"FD");
+    const colW=(pageW-mg*2)/3;
+    const metaItems=[
+      {label:"PERÍODO",val:mesLabelCap},
+      {label:"ESTUDIOS REALIZADOS",val:String(totalStudies)},
+      {label:"COSTO TOTAL INSUMOS",val:"$"+fmt(grandTotal)},
+    ];
+    metaItems.forEach((item,i)=>{
+      const ix=mg+i*colW+5;
+      doc.setFontSize(6);doc.setFont("helvetica","bold");doc.setTextColor(...C.blue);
+      doc.text(item.label,ix,y+6.5);
+      doc.setFontSize(8.6);doc.setFont("helvetica","bold");doc.setTextColor(...C.dark);
+      doc.text(item.val,ix,y+13.5,{maxWidth:colW-8});
+      if(i<metaItems.length-1){doc.setDrawColor(...C.border);doc.setLineWidth(0.3);doc.line(mg+colW*(i+1),y+4,mg+colW*(i+1),y+metaBoxH-4);}
+    });
+    y+=metaBoxH+10;
+
+    function pageCheck(needed){if(y>pageH-needed){doc.addPage();y=mg+5;}}
+    const tableHeadStyle={fillColor:C.navy,textColor:255,fontStyle:"bold",fontSize:7.8,cellPadding:3.2};
+    const tableBodyStyle={fontSize:7.5,textColor:C.dark,cellPadding:2.8};
+    const tableAltStyle={fillColor:C.bgBlue};
+
+    if(!sections.length){
+      doc.setTextColor(140,140,148);doc.setFontSize(9);
+      doc.text("No hay estudios cargados para este mes.",mg+2,y);
+    }
+
+    // ── Una tabla por modalidad ──
+    sections.forEach(sec=>{
+      pageCheck(34);
+      doc.setFillColor(...C.bgBlue);doc.rect(mg,y-1,pageW-mg*2,7.5,"F");
+      doc.setTextColor(...C.blueLight);doc.setFontSize(8.5);doc.setFont("helvetica","bold");
+      doc.text(sec.nombre,mg+3,y+4.5);
+      doc.setTextColor(...C.gray2);doc.setFontSize(7.3);doc.setFont("helvetica","normal");
+      doc.text(sec.pracStudies+" estudios · $"+fmt(sec.pracTotal),pageW-mg-2,y+4.5,{align:"right"});
+      y+=10;
+      const body=sec.rows.slice();
+      body.push(["TOTAL "+sec.nombre.toUpperCase(),"",String(sec.pracStudies),"$"+fmt(sec.pracTotal)]);
+      doc.autoTable({startY:y,margin:{left:mg,right:mg},
+        head:[["Estudio","Costo unit.","Cantidad","Costo total"]],
+        body,headStyles:tableHeadStyle,bodyStyles:tableBodyStyle,
+        alternateRowStyles:tableAltStyle,styles:{cellPadding:2.4},
+        columnStyles:{0:{cellWidth:86},1:{cellWidth:30,halign:"right"},2:{cellWidth:24,halign:"center"},3:{cellWidth:42,halign:"right"}},
+        didParseCell:(data)=>{
+          if(data.row.index===body.length-1){data.cell.styles.fontStyle="bold";data.cell.styles.fillColor=[228,240,255];}
+        }
+      });
+      y=doc.lastAutoTable.finalY+8;
+    });
+
+    // ── Barra de total general ──
+    if(sections.length){
+      pageCheck(20);
+      doc.setFillColor(...C.navy);doc.roundedRect(mg,y,pageW-mg*2,14,2,2,"F");
+      doc.setTextColor(...C.white);doc.setFontSize(9);doc.setFont("helvetica","bold");
+      doc.text("COSTO TOTAL DE INSUMOS DEL MES",mg+5,y+9);
+      doc.setFontSize(12.5);
+      doc.text("$"+fmt(grandTotal),pageW-mg-5,y+9.4,{align:"right"});
+      y+=20;
+    }
+
+    // ── FOOTER en cada página ──
+    const pageCount=doc.internal.getNumberOfPages();
+    for(let i=1;i<=pageCount;i++){
+      doc.setPage(i);
+      doc.setFillColor(...C.blue);doc.rect(mg,pageH-10,4,0.8,"F");
+      doc.setDrawColor(...C.border);doc.setLineWidth(0.25);doc.line(mg+6,pageH-9.6,pageW-mg,pageH-9.6);
+      doc.setFontSize(7);doc.setFont("helvetica","bold");doc.setTextColor(...C.blue);
+      doc.text("CIMA",mg,pageH-5.5);
+      doc.setFont("helvetica","normal");doc.setTextColor(...C.gray3);
+      doc.text(" · Control Contable · "+new Date().getFullYear(),mg+8.5,pageH-5.5);
+      doc.setFont("helvetica","bold");doc.setTextColor(...C.gray2);
+      doc.text("Página "+i+" de "+pageCount,pageW-mg,pageH-5.5,{align:"right"});
+    }
+
+    const filename="contable-cima-"+_pracCierreMes+".pdf";
+    const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)&&!window.MSStream;
+    if(isIOS){doc.output("dataurlnewwindow",{filename});}
+    else{
+      const blob=doc.output("blob");const url=URL.createObjectURL(blob);
+      const a=document.createElement("a");a.href=url;a.download=filename;
+      document.body.appendChild(a);a.click();
+      setTimeout(()=>{URL.revokeObjectURL(url);a.remove();},2000);
+    }
+    toast("✓ PDF contable exportado");
+  }catch(e){
+    console.error(e);toast("⚠️ Error al generar PDF");
+  }
 }
 
 // ─── Sistema de Respaldos & Auditoría ─────────────────────────────────────────
