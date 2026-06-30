@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.30.493 -->
+<!-- v2026.06.30.494 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.30.493">
+<meta name="app-version" content="v2026.06.30.494">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -10475,7 +10475,7 @@ function _loadForReport(imageIds, cb){
   var pending=1+imageIds.length;
   function done(){pending--;if(pending<=0)finish();}
   // Safety net: always generate report within 12s even if logo/images fail to load
-  var _safetyTimer=setTimeout(function(){finish();},12000);
+  var _safetyTimer=setTimeout(function(){finish();},20000);
   // Try to get logo from already-loaded <img> in the DOM first (avoids XHR issues on iOS PWA)
   function _tryLogoFromDOM(){
     try{
@@ -10518,7 +10518,7 @@ function _loadForReport(imageIds, cb){
         _storageGetUrl(id,function(url){
           if(!url){done();return;}
           var xhrImg=new XMLHttpRequest();
-          xhrImg.open('GET',url,true);xhrImg.responseType='blob';xhrImg.timeout=8000;
+          xhrImg.open('GET',url,true);xhrImg.responseType='blob';xhrImg.timeout=14000;
           xhrImg.onload=function(){
             if((xhrImg.status===200||xhrImg.status===0)&&xhrImg.response){
               var rdr=new FileReader();
@@ -10684,7 +10684,7 @@ function generateReport(){
         antHistorial.push({ant:a,hist:h});
       });
     });
-    var tranRoturas=[];
+    var tranRoturas=[];var tranHistorial=[];
     (eq.transductorIds||[]).forEach(function(tId){
       var t=transductores.find(function(x){return x.id===tId;});
       if(!t)return;
@@ -10692,6 +10692,12 @@ function generateReport(){
         if(desde&&r.fecha<desde)return;
         if(hasta&&r.fecha>hasta)return;
         tranRoturas.push({tr:t,rot:r});
+      });
+      (t.historialTransductor||[]).forEach(function(h){
+        if(h.tipo!=='reparacion')return;
+        if(desde&&h.fecha<desde)return;
+        if(hasta&&h.fecha>hasta)return;
+        tranHistorial.push({tr:t,hist:h});
       });
     });
     var fallasDir=(eq.fallasDirectas||[]).filter(function(f){
@@ -10704,11 +10710,11 @@ function generateReport(){
     sumRows+='<tr><td><strong>'+esc(eq.nombre)+'</strong></td><td>'+ci.label+'</td><td>'+(eq.ubicacion?esc(eq.ubicacion):'—')+'</td><td><span class="'+estClass+'">'+estLabel(eq.estado)+'</span></td><td>'+mantH.length+'</td><td>'+repH.length+'</td><td>'+totalFallasResumen+'</td></tr>';
     sumData.push({nombre:eq.nombre,cat:ci.label,centro:eq.ubicacion||'—',estado:estLabel(eq.estado),estadoRaw:eq.estado,mant:mantH.length,rep:repH.length,fallas:totalFallasResumen});
     // Add to detail section only if has events in the period (including antenas/transductores/fallas)
-    var hasEq=mantH.length||repH.length||mejH.length||actH.length||mejP.length||trasladosH.length||antRoturas.length||antHistorial.length||tranRoturas.length||fallasDir.length;
+    var hasEq=mantH.length||repH.length||mejH.length||actH.length||mejP.length||trasladosH.length||antRoturas.length||antHistorial.length||tranRoturas.length||tranHistorial.length||fallasDir.length;
     if(!hasEq)return;
     hasData=true;
     tm+=mantH.length;tr+=repH.length;tmej+=mejH.length;tact+=actH.length;
-    eqData.push({eq:eq,ci:ci,mantH:mantH,repH:repH,mejH:mejH,actH:actH,mejP:mejP,trasladosH:trasladosH,antRoturas:antRoturas,antHistorial:antHistorial,tranRoturas:tranRoturas,fallasDir:fallasDir});
+    eqData.push({eq:eq,ci:ci,mantH:mantH,repH:repH,mejH:mejH,actH:actH,mejP:mejP,trasladosH:trasladosH,antRoturas:antRoturas,antHistorial:antHistorial,tranRoturas:tranRoturas,tranHistorial:tranHistorial,fallasDir:fallasDir});
   });}catch(_fe){showToast('Error procesando equipos: '+(_fe&&_fe.message?_fe.message:String(_fe)),'err');return;}
   // Always generate if equipment selected — no-activity periods still produce a status report
   try{localStorage.setItem('cima_nro_informe',String(nroInforme+1));localStorage.setItem('cima_rep_para',paraInforme);}catch(e){}
@@ -10719,6 +10725,7 @@ function generateReport(){
     d.repH.forEach(function(h){(h.imagenes||[]).forEach(function(im){if(im&&im.id&&allImgIds.indexOf(im.id)===-1)allImgIds.push(im.id);});});
     d.antRoturas.forEach(function(ar){(ar.rot.fotos||[]).forEach(function(fo){var fId=fo&&fo.id?fo.id:fo;if(fId&&typeof fId==='string'&&allImgIds.indexOf(fId)===-1)allImgIds.push(fId);});});
     d.tranRoturas.forEach(function(tr){(tr.rot.fotos||[]).forEach(function(fo){var fId=fo&&fo.id?fo.id:fo;if(fId&&typeof fId==='string'&&allImgIds.indexOf(fId)===-1)allImgIds.push(fId);});});
+    (d.tranHistorial||[]).forEach(function(th){(th.hist.fotos||[]).forEach(function(fo){var fId=fo&&fo.id?fo.id:fo;if(fId&&typeof fId==='string'&&allImgIds.indexOf(fId)===-1)allImgIds.push(fId);});});
     d.fallasDir.forEach(function(f){(f.fotos||[]).forEach(function(fo){var fId=fo&&fo.id?fo.id:fo;if(fId&&typeof fId==='string'&&allImgIds.indexOf(fId)===-1)allImgIds.push(fId);});});
   });
   // Get logo synchronously from already-loaded DOM image
@@ -10864,6 +10871,40 @@ function generateReport(){
             tranRoturasHtml+='</div>';
           }
           if(rot.fotos&&rot.fotos.length){var _trFS=(rot.fotos||[]).map(function(fo){return fo&&fo.id?fo.id:fo;}).filter(function(fId){return fId&&imgsMap[fId];});if(_trFS.length){tranRoturasHtml+='<div style="margin-top:8px;padding-top:6px;border-top:1px dashed #bae6fd;"><div style="font-size:7.5pt;font-weight:700;color:#0369a1;margin-bottom:6px;">📷 Fotos de la falla ('+_trFS.length+')</div><div style="display:flex;flex-wrap:wrap;gap:8px;">';_trFS.forEach(function(fId){tranRoturasHtml+='<img src="'+imgsMap[fId]+'" style="width:160px;height:120px;object-fit:cover;border-radius:6px;border:1.5px solid #bae6fd;box-shadow:0 2px 6px rgba(0,0,0,.15);">';});tranRoturasHtml+='</div></div>';}}
+          tranRoturasHtml+='</div>';
+        });
+        if(d.tranHistorial&&d.tranHistorial.length){
+          tranRoturasHtml+='<div style="font-size:8.5pt;font-weight:600;color:#16a34a;margin-bottom:6px;margin-top:4px;">Historial de reparaciones ('+d.tranHistorial.length+')</div>';
+          d.tranHistorial.forEach(function(th){
+            var tObj=th.tr;var h=th.hist;
+            tranRoturasHtml+='<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;padding:7px 10px;margin-bottom:6px;font-size:8pt;">';
+            tranRoturasHtml+='<span style="font-weight:700;color:#1e293b;">'+esc(tObj.nombre||tObj.id)+'</span>';
+            tranRoturasHtml+=' \xb7 <span style="color:#64748b;">'+esc(h.queSeRompio||h.descripcion||'Reparaci\xf3n')+'</span>';
+            tranRoturasHtml+=' \xb7 <span style="color:#16a34a;font-weight:600;">'+esc(h.fecha?fD(h.fecha):'')+'</span>';
+            if(h.tecnico)tranRoturasHtml+=' \xb7 T\xe9c: <span style="color:#475569;">'+esc(h.tecnico)+'</span>';
+            if(h.empresa)tranRoturasHtml+=' \xb7 '+esc(h.empresa);
+            if(h.precio&&parseFloat(h.precio)>0)tranRoturasHtml+=' \xb7 💵 '+(h.precioMoneda||'USD')+' '+esc(h.precio);
+            var _thFS=(h.fotos||[]).map(function(fo){return fo&&fo.id?fo.id:fo;}).filter(function(fId){return fId&&imgsMap[fId];});
+            if(_thFS.length){tranRoturasHtml+='<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;">';_thFS.forEach(function(fId){tranRoturasHtml+='<img src="'+imgsMap[fId]+'" style="width:120px;height:90px;object-fit:cover;border-radius:5px;border:1px solid #bbf7d0;">';});tranRoturasHtml+='</div>';}
+            tranRoturasHtml+='</div>';
+          });
+        }
+        tranRoturasHtml+='</div>';
+      } else if(d.tranHistorial&&d.tranHistorial.length){
+        tranRoturasHtml+='<div style="margin:10px 12px 0;border-top:1px solid #e2e8f0;padding-top:10px;">';
+        tranRoturasHtml+='<div style="font-size:9pt;font-weight:700;color:#0369a1;letter-spacing:.04em;margin-bottom:8px;">TRANSDUCTORES</div>';
+        tranRoturasHtml+='<div style="font-size:8.5pt;font-weight:600;color:#16a34a;margin-bottom:6px;">Historial de reparaciones ('+d.tranHistorial.length+')</div>';
+        d.tranHistorial.forEach(function(th){
+          var tObj=th.tr;var h=th.hist;
+          tranRoturasHtml+='<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;padding:7px 10px;margin-bottom:6px;font-size:8pt;">';
+          tranRoturasHtml+='<span style="font-weight:700;color:#1e293b;">'+esc(tObj.nombre||tObj.id)+'</span>';
+          tranRoturasHtml+=' \xb7 <span style="color:#64748b;">'+esc(h.queSeRompio||h.descripcion||'Reparaci\xf3n')+'</span>';
+          tranRoturasHtml+=' \xb7 <span style="color:#16a34a;font-weight:600;">'+esc(h.fecha?fD(h.fecha):'')+'</span>';
+          if(h.tecnico)tranRoturasHtml+=' \xb7 T\xe9c: <span style="color:#475569;">'+esc(h.tecnico)+'</span>';
+          if(h.empresa)tranRoturasHtml+=' \xb7 '+esc(h.empresa);
+          if(h.precio&&parseFloat(h.precio)>0)tranRoturasHtml+=' \xb7 💵 '+(h.precioMoneda||'USD')+' '+esc(h.precio);
+          var _thFS2=(h.fotos||[]).map(function(fo){return fo&&fo.id?fo.id:fo;}).filter(function(fId){return fId&&imgsMap[fId];});
+          if(_thFS2.length){tranRoturasHtml+='<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;">';_thFS2.forEach(function(fId){tranRoturasHtml+='<img src="'+imgsMap[fId]+'" style="width:120px;height:90px;object-fit:cover;border-radius:5px;border:1px solid #bbf7d0;">';});tranRoturasHtml+='</div>';}
           tranRoturasHtml+='</div>';
         });
         tranRoturasHtml+='</div>';
@@ -14879,7 +14920,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.8.1";
+var APP_DISPLAY_VERSION="8.8.2";
 var APP_BUILD="30/06/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
