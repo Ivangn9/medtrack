@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.29.480 -->
+<!-- v2026.06.29.481 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.29.480">
+<meta name="app-version" content="v2026.06.29.481">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -49,8 +49,8 @@
   --sys-fill:rgba(120,120,128,.12);
   --sys-fill2:rgba(120,120,128,.08);
   --label:#000000;
-  --label2:rgba(60,60,67,.6);
-  --label3:rgba(60,60,67,.3);
+  --label2:rgba(60,60,67,.82);
+  --label3:rgba(60,60,67,.48);
   --hairline:rgba(60,60,67,.12);
   --glass:rgba(255,255,255,.07);
   --glass2:rgba(255,255,255,.55);
@@ -63,7 +63,7 @@
   --accent:#0071e3; --accent2:#0058b0;
   --red:#ff3b30; --orange:#ff9500; --green:#34c759; --purple:#af52de;
   --bg:#e8eef6;
-  --text:#1c1c1e; --text2:#3a3a3c; --text3:#8e8e93;
+  --text:#1c1c1e; --text2:#3a3a3c; --text3:#5e5e62;
   --sep:rgba(60,60,67,.08);
   --spring:cubic-bezier(0.34,1.56,0.64,1);
   --spring-fast:cubic-bezier(0.34,1.4,0.64,1);
@@ -599,6 +599,41 @@ body.dark .ig{box-shadow:0 2px 8px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255
   .ibox{border-color:rgba(0,0,0,.20)!important;background:rgba(255,255,255,.92)!important;}
 }
 
+/* ── CONTRASTE WCAG AA ── */
+/* ibox-l: etiquetas mini sobre cards glass */
+.ibox-l{color:var(--text3);}
+/* hdr-time: hora en header */
+.hdr-time{color:var(--text3);}
+/* sec: section headers */
+.sec{color:var(--label2);}
+/* stat-lbl: label debajo de estadísticas */
+.stat-lbl{color:var(--label2);}
+/* ig-s / ig-val: subtítulo y valor en lista */
+.ig-s,.ig-val{color:var(--label2);}
+/* li-sub: subtítulo en lista de equipos */
+.li-eq .li-sub{color:var(--text3);}
+/* modal-close icon */
+.modal-close{color:var(--text2);}
+/* btn-icon color */
+.btn-icon{color:var(--text2);}
+/* tab inactiva */
+.tab{color:var(--text2);}
+/* bottom bar tabs inactive */
+#bottom-bar .tab{color:var(--text2);}
+
+/* dark mode: sidebar botones inactivos más visibles */
+body.dark .sb-nav-btn{color:rgba(255,255,255,.62);}
+body.dark .sb-sub-btn{color:rgba(255,255,255,.60);}
+/* dark mode: btn-secondary más contraste */
+body.dark .btn-secondary{color:var(--accent);background:rgba(173,198,255,.14);border-color:rgba(173,198,255,.3);}
+
+/* prefers-contrast: reforzar text3 y label2 */
+@media(prefers-contrast:more){
+  :root{--text3:#3a3a3c;--label2:rgba(60,60,67,.95);--label3:rgba(60,60,67,.75);}
+  body.dark{--text3:#c7c7cc;--label2:rgba(235,235,245,.95);--label3:rgba(235,235,245,.72);}
+  .ibox-l,.hdr-time,.stat-lbl,.ig-s,.ig-val,.li-eq .li-sub{color:var(--text2)!important;}
+}
+
 /* ── MOBILE SIDEBAR DRAWER ── */
 #sidebar-backdrop{
   display:none;position:fixed;inset:0;
@@ -645,11 +680,11 @@ body.dark .ig{box-shadow:0 2px 8px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255
   position:relative;overflow:hidden;}
 .settings-item::before{content:'';position:absolute;inset:0;border-radius:inherit;background:var(--lg-shimmer);opacity:.3;pointer-events:none;}
 .settings-title{font-weight:700;font-size:.86rem;color:#1c1c1e;position:relative;z-index:1;}
-.settings-desc{font-size:.72rem;color:#3a3a3c;margin-top:3px;position:relative;z-index:1;font-weight:500;line-height:1.4;}
+.settings-desc{font-size:.72rem;color:#2c2c2e;margin-top:3px;position:relative;z-index:1;font-weight:500;line-height:1.4;}
 
 /* ── DARK MODE OVERRIDES ── */
-body.dark{--bg:#06091a;--text:#f2f2f7;--text2:#aeaeb2;--text3:#636366;--sep:rgba(84,84,88,.5);
-  --label:#f2f2f7;--label2:rgba(235,235,245,.6);--label3:rgba(235,235,245,.3);--hairline:rgba(84,84,88,.55);--sys-fill:rgba(120,120,128,.24);--sys-fill2:rgba(120,120,128,.16);--sys-bg2:#1c1c2e;
+body.dark{--bg:#06091a;--text:#f2f2f7;--text2:#b8b8bc;--text3:#8e8e95;--sep:rgba(84,84,88,.5);
+  --label:#f2f2f7;--label2:rgba(235,235,245,.80);--label3:rgba(235,235,245,.50);--hairline:rgba(84,84,88,.55);--sys-fill:rgba(120,120,128,.24);--sys-fill2:rgba(120,120,128,.16);--sys-bg2:#1c1c2e;
   --accent:#adc6ff;--accent2:#7ba7f0;
   --glass:rgba(30,32,56,.72);--glass2:rgba(20,22,44,.88);--glass-border:rgba(255,255,255,.10);
   --lg-shadow:0 2px 4px rgba(0,0,0,.3),0 8px 28px rgba(0,0,0,.35),inset 0 1.5px 0 rgba(255,255,255,.07),inset 0 -1px 0 rgba(0,0,0,.15);
@@ -675,7 +710,7 @@ body.dark .modal-box{background:rgba(32,32,36,.94);border-color:rgba(80,80,90,.4
 body.dark .settings-panel{background:var(--panel-bg);border-color:rgba(255,255,255,.08);box-shadow:-4px 0 40px rgba(0,0,0,.35),inset 1px 0 0 rgba(255,255,255,.07);}
 body.dark .settings-item{background:var(--item-bg);border-color:var(--item-border);box-shadow:0 2px 8px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.08);}
 body.dark .settings-title{color:#f2f2f7!important;}
-body.dark .settings-desc{color:#aeaeb2!important;}
+body.dark .settings-desc{color:#c7c7cc!important;}
 body.dark .chip,body.dark .chip-tile{background:rgba(50,50,62,.75);border-color:rgba(80,80,100,.5);color:var(--text)!important;}
 body.dark .ibox{background:rgba(50,50,58,.5);border-color:rgba(80,80,90,.4);}
 
@@ -14613,8 +14648,8 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.6.1";
-var APP_BUILD="29/06/26 h";
+var APP_DISPLAY_VERSION="8.6.2";
+var APP_BUILD="30/06/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
