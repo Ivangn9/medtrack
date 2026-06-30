@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.06.30.485 -->
+<!-- v2026.06.30.486 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.06.30.485">
+<meta name="app-version" content="v2026.06.30.486">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -440,15 +440,13 @@ body.dark .ig{box-shadow:0 2px 8px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255
 
 /* ── TOAST ── */
 /* ── AI FAB ── */
-#ai-fab{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px)+82px);right:16px;
-  width:54px;height:54px;border-radius:50%;border:none;cursor:pointer;padding:0;
-  background:linear-gradient(135deg,rgba(20,22,50,.92),rgba(30,32,64,.96));
-  box-shadow:0 4px 20px rgba(0,0,0,.35),0 0 0 1.5px rgba(173,198,255,.25),inset 0 1px 0 rgba(255,255,255,.12);
-  z-index:150;transition:transform .2s var(--spring),box-shadow .2s var(--ease-out);
-  display:flex;align-items:center;justify-content:center;overflow:hidden;}
+#ai-fab{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px)+82px);right:12px;
+  width:64px;height:64px;border:none;cursor:pointer;padding:0;background:transparent;
+  filter:drop-shadow(0 4px 12px rgba(0,0,0,.45)) drop-shadow(0 1px 3px rgba(0,0,0,.3));
+  z-index:150;transition:transform .2s var(--spring),filter .2s var(--ease-out);}
 #ai-fab:active{transform:scale(.88);}
-#ai-fab img{width:38px;height:38px;object-fit:contain;}
-@media(min-width:900px){#ai-fab{right:24px;bottom:calc(env(safe-area-inset-bottom,0px)+24px);}}
+#ai-fab img{width:64px;height:64px;object-fit:contain;display:block;}
+@media(min-width:900px){#ai-fab{right:20px;bottom:calc(env(safe-area-inset-bottom,0px)+20px);}}
 #toast{position:fixed;top:calc(env(safe-area-inset-top,0px)+14px);left:50%;
   transform:translateX(-50%);z-index:9999;
   padding:11px 26px;border-radius:var(--r-pill);font-size:.84rem;font-weight:650;
@@ -14719,7 +14717,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.6.6";
+var APP_DISPLAY_VERSION="8.6.7";
 var APP_BUILD="30/06/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
