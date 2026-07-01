@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.01.505 -->
+<!-- v2026.07.01.506 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.01.505">
+<meta name="app-version" content="v2026.07.01.506">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3572,6 +3572,33 @@ function _genericHtmlPdfDoc(html,title){
     content:content
   };
 }
+// Convierte URLs https en imgsMap a base64 via crossOrigin img+canvas (para que pdfmake pueda incluirlas)
+// Si CORS no está configurado o la conversión falla, la URL https queda como estaba (HTML la muestra, PDF no)
+function _convertHttpsImgs(imgsMap,cb){
+  var ids=Object.keys(imgsMap||{});
+  var httpIds=[];
+  ids.forEach(function(id){var v=imgsMap[id];if(v&&typeof v==='string'&&v.indexOf('http')===0)httpIds.push(id);});
+  if(!httpIds.length){cb();return;}
+  var pending=httpIds.length;
+  function done(){pending--;if(pending<=0)cb();}
+  httpIds.forEach(function(id){
+    var url=imgsMap[id];
+    var fi=new Image();
+    fi.crossOrigin='anonymous';
+    fi.onload=function(){
+      try{
+        var cv=document.createElement('canvas');
+        cv.width=fi.naturalWidth;cv.height=fi.naturalHeight;
+        cv.getContext('2d').drawImage(fi,0,0);
+        var b64=cv.toDataURL('image/jpeg',0.82);
+        if(b64&&b64.indexOf('data:image/')===0)imgsMap[id]=b64;
+      }catch(e){}
+      done();
+    };
+    fi.onerror=function(){done();};
+    fi.src=url;
+  });
+}
 function printReport(){
   if(!_reportData&&!_reportHTML){showToast('Generá primero el informe','warn');return;}
   if(!window.pdfMake){showToast('Cargando generador, intentá en unos segundos','');return;}
@@ -3598,16 +3625,24 @@ function printReport(){
   // PRIMER TAP: generar PDF
   if(btn){btn.disabled=true;btn.textContent='⏳ Generando PDF...';}
   var restore=function(){if(btn){btn.disabled=false;btn.textContent='📄 Exportar PDF';}};
-  try{
-    var tel=document.getElementById('pdf-viewer-title');
-    var dd=_reportData?_buildPdfDoc():_genericHtmlPdfDoc(_reportHTML,(tel?tel.textContent.trim():'Informe CIMA'));
-    if(!dd){restore();showToast('Sin datos para el PDF','warn');return;}
-    _pendingPdfName=(tel?tel.textContent.trim():'Informe CIMA').replace(/[—–]+/g,'-').replace(/[\/\\:*?"<>|]/g,' ').replace(/\s+/g,' ').trim();
-    window.pdfMake.createPdf(dd).getBlob(function(blob){
-      _pendingPdfBlob=blob;
-      if(btn){btn.disabled=false;btn.textContent='📤 Tocar para compartir';}
-    });
-  }catch(e){restore();showToast('Error al generar: '+(e.message||e),'err');}
+  var _doPrintPdf=function(){
+    try{
+      var tel=document.getElementById('pdf-viewer-title');
+      var dd=_reportData?_buildPdfDoc():_genericHtmlPdfDoc(_reportHTML,(tel?tel.textContent.trim():'Informe CIMA'));
+      if(!dd){restore();showToast('Sin datos para el PDF','warn');return;}
+      _pendingPdfName=(tel?tel.textContent.trim():'Informe CIMA').replace(/[—–]+/g,'-').replace(/[\/\\:*?"<>|]/g,' ').replace(/\s+/g,' ').trim();
+      window.pdfMake.createPdf(dd).getBlob(function(blob){
+        _pendingPdfBlob=blob;
+        if(btn){btn.disabled=false;btn.textContent='📤 Tocar para compartir';}
+      });
+    }catch(e){restore();showToast('Error al generar: '+(e.message||e),'err');}
+  };
+  // Intentar convertir URLs https a base64 antes de generar el PDF (para fotos que cargaron via Firebase Storage URL)
+  if(_reportData&&_reportData.imgsMap){
+    _convertHttpsImgs(_reportData.imgsMap,_doPrintPdf);
+  } else {
+    _doPrintPdf();
+  }
 }
 function closePDFViewer(){
   var overlay=document.getElementById('pdf-viewer-overlay');
@@ -10676,7 +10711,13 @@ function _loadForReport(imageIds, cb){
             }else{imgsMap[id]=url;done();}
           };
           xhrImg.onerror=function(){imgsMap[id]=url;done();};
-          xhrImg.ontimeout=function(){imgsMap[id]=url;done();};
+          xhrImg.ontimeout=function(){
+            // XHR timed out: intentar crossOrigin img+canvas para obtener base64
+            var _fb=new Image();_fb.crossOrigin='anonymous';
+            _fb.onload=function(){try{var _cv=document.createElement('canvas');_cv.width=_fb.naturalWidth;_cv.height=_fb.naturalHeight;_cv.getContext('2d').drawImage(_fb,0,0);var _b64=_cv.toDataURL('image/jpeg',0.82);if(_b64&&_b64.indexOf('data:image/')===0){_resizeReportImg(_b64,function(r){imgsMap[id]=r;done();});}else{imgsMap[id]=url;done();}}catch(e){imgsMap[id]=url;done();}};
+            _fb.onerror=function(){imgsMap[id]=url;done();};
+            _fb.src=url;
+          };
           xhrImg.send();
         });
       }
@@ -15068,7 +15109,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.9.9";
+var APP_DISPLAY_VERSION="8.10.0";
 var APP_BUILD="01/07/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
