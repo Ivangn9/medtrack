@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.01.504 -->
+<!-- v2026.07.01.505 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.01.504">
+<meta name="app-version" content="v2026.07.01.505">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -9900,13 +9900,24 @@ function openMarcaReportModal(){
     if(e.marca&&marcas.indexOf(e.marca)===-1)marcas.push(e.marca);
   });
   marcas.sort();
-  if(!marcas.length){showToast('No hay equipos con marca registrada','warn');return;}
+  var provs=[];
+  eqs.filter(function(e){return !e.baja&&e.empresaVendio;}).forEach(function(e){
+    if(provs.indexOf(e.empresaVendio)===-1)provs.push(e.empresaVendio);
+  });
+  empresasRep.forEach(function(er){if(provs.indexOf(er.nombre)===-1)provs.push(er.nombre);});
+  provs.sort();
+  if(!marcas.length&&!provs.length){showToast('No hay equipos con marca o proveedor registrado','warn');return;}
   var fIn='width:100%;background:rgba(255,255,255,.07);border:1.5px solid rgba(120,120,128,.2);border-radius:var(--r-sm);padding:10px 12px;font-size:.88rem;font-family:inherit;color:var(--text);outline:none;box-sizing:border-box;';
   var lbl='display:block;font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:5px;';
   var marcaOpts=marcas.map(function(m){return '<option value="'+esc(m)+'">'+esc(m)+'</option>';}).join('');
-  var h='<div class="modal-title">Informe Técnico para Marcas</div>';
-  h+='<div class="ff" style="margin-bottom:14px;"><span style="'+lbl+'">Marca / Fabricante</span>';
-  h+='<select id="mif-marca" style="'+fIn+'" onchange="_updateMarcaFallas()"><option value="">— Seleccionar —</option>'+marcaOpts+'</select></div>';
+  var provOpts=provs.map(function(p){return '<option value="'+esc(p)+'">'+esc(p)+'</option>';}).join('');
+  var h='<div class="modal-title">Informe Técnico para Reclamos</div>';
+  h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">';
+  h+='<div class="ff"><span style="'+lbl+'">Marca / Fabricante</span>';
+  h+='<select id="mif-marca" style="'+fIn+'" onchange="_updateMarcaFallas()"><option value="">— Todas —</option>'+marcaOpts+'</select></div>';
+  h+='<div class="ff"><span style="'+lbl+'">Empresa representante (proveedor)</span>';
+  h+='<select id="mif-prov" style="'+fIn+'" onchange="_updateMarcaFallas()"><option value="">— Todas —</option>'+provOpts+'</select></div>';
+  h+='</div>';
   h+='<div id="mif-fallas-info" style="margin-bottom:14px;font-size:.78rem;"></div>';
   h+='<div style="display:flex;gap:10px;margin-bottom:14px;">';
   h+='<div style="flex:1;" class="ff"><span style="'+lbl+'">Dirigido a</span><input type="text" id="mif-para" placeholder="Representante Técnico" style="'+fIn+'"></div>';
@@ -9919,36 +9930,54 @@ function openMarcaReportModal(){
 
 function _updateMarcaFallas(){
   var marca=(document.getElementById('mif-marca')||{}).value||'';
+  var prov=(document.getElementById('mif-prov')||{}).value||'';
   var el=document.getElementById('mif-fallas-info');
   if(!el)return;
-  if(!marca){el.innerHTML='';return;}
-  var conFallas=eqs.filter(function(e){return !e.baja&&(e.marca||'').toLowerCase()===marca.toLowerCase()&&(e.partes||[]).some(function(p){return p.estado==='roto'||p.estado==='pendiente';});});
+  if(!marca&&!prov){el.innerHTML='';return;}
+  var conFallas=eqs.filter(function(e){
+    if(e.baja)return false;
+    if(!(e.partes||[]).some(function(p){return p.estado==='roto'||p.estado==='pendiente';}))return false;
+    var marcaOk=!marca||(e.marca||'').toLowerCase()===marca.toLowerCase();
+    var provOk=!prov||(e.empresaVendio||'').toLowerCase()===prov.toLowerCase();
+    return marcaOk&&provOk;
+  });
   var totalF=0;
   conFallas.forEach(function(e){(e.partes||[]).forEach(function(p){if(p.estado==='roto'||p.estado==='pendiente')totalF++;});});
   if(!conFallas.length){
-    el.innerHTML='<div style="background:rgba(255,59,48,.07);border:1px solid rgba(255,59,48,.18);border-radius:8px;padding:10px 14px;color:var(--red);">Sin fallas activas en esta marca</div>';
+    el.innerHTML='<div style="background:rgba(255,59,48,.07);border:1px solid rgba(255,59,48,.18);border-radius:8px;padding:10px 14px;color:var(--red);">Sin fallas activas con ese filtro</div>';
   }else{
+    var filtroLabel=(prov||marca);
     el.innerHTML='<div style="background:rgba(255,149,0,.08);border:1px solid rgba(255,149,0,.22);border-radius:8px;padding:10px 14px;color:#b45309;font-weight:600;"><strong>'+conFallas.length+' equipo'+(conFallas.length!==1?'s':'')+' con fallas</strong> — '+totalF+' falla'+(totalF!==1?'s':'')+' activa'+(totalF!==1?'s':'')+' en total</div>';
-    var paraEl=document.getElementById('mif-para');if(paraEl&&!paraEl.value)paraEl.value='Representante Técnico '+marca;
-    var asuntoEl=document.getElementById('mif-asunto');if(asuntoEl&&!asuntoEl.value)asuntoEl.value='Notificación de fallas activas en equipamiento '+marca+' — Solicitud de intervención técnica';
+    var paraEl=document.getElementById('mif-para');
+    if(paraEl&&!paraEl.value)paraEl.value=prov?'Representante Técnico — '+prov:'Representante Técnico '+marca;
+    var asuntoEl=document.getElementById('mif-asunto');
+    if(asuntoEl&&!asuntoEl.value)asuntoEl.value='Notificación de fallas activas en equipamiento '+filtroLabel+' — Solicitud de intervención técnica';
   }
 }
 
 function exportMarcaPDF(){
   var marca=(document.getElementById('mif-marca')||{}).value||'';
+  var prov=(document.getElementById('mif-prov')||{}).value||'';
   var para=(document.getElementById('mif-para')||{}).value||'Representante Técnico';
   var contacto=(document.getElementById('mif-contacto')||{}).value||'Lic. García Núñez Iván';
-  var asunto=(document.getElementById('mif-asunto')||{}).value||('Fallas activas en equipamiento '+marca);
-  if(!marca){showToast('Seleccioná una marca','warn');return;}
-  var eqsConFallas=eqs.filter(function(e){return !e.baja&&(e.marca||'').toLowerCase()===marca.toLowerCase()&&(e.partes||[]).some(function(p){return p.estado==='roto'||p.estado==='pendiente';});});
-  if(!eqsConFallas.length){showToast('No hay fallas activas en equipos de '+marca,'warn');return;}
+  var asunto=(document.getElementById('mif-asunto')||{}).value||('Fallas activas en equipamiento '+(prov||marca));
+  if(!marca&&!prov){showToast('Seleccioná una marca o proveedor','warn');return;}
+  var eqsConFallas=eqs.filter(function(e){
+    if(e.baja)return false;
+    if(!(e.partes||[]).some(function(p){return p.estado==='roto'||p.estado==='pendiente';}))return false;
+    var marcaOk=!marca||(e.marca||'').toLowerCase()===marca.toLowerCase();
+    var provOk=!prov||(e.empresaVendio||'').toLowerCase()===prov.toLowerCase();
+    return marcaOk&&provOk;
+  });
+  if(!eqsConFallas.length){showToast('No hay fallas activas con ese filtro','warn');return;}
   var nowDate=new Date();
   var fechaStr=nowDate.toLocaleDateString('es-AR',{day:'2-digit',month:'long',year:'numeric'});
   // Logo CIMA
   var logoTag='<div class="cima-wordmark"><div class="cima-title">CIMA<sup class="cima-reg">®</sup></div><div class="cima-sub">Investigaciones Avanzadas</div></div>';
   try{var _imgs=document.querySelectorAll('img');for(var _ii=0;_ii<_imgs.length;_ii++){if(_imgs[_ii].src&&_imgs[_ii].src.indexOf('logo.png')!==-1&&_imgs[_ii].complete&&_imgs[_ii].naturalWidth>0){var _cv=document.createElement('canvas');_cv.width=_imgs[_ii].naturalWidth;_cv.height=_imgs[_ii].naturalHeight;_cv.getContext('2d').drawImage(_imgs[_ii],0,0);logoTag='<img src="'+_cv.toDataURL('image/png')+'" style="height:80px;width:auto;display:block;">';break;}}}catch(e){}
-  // Logo marca
-  var brandLogoTag='<div style="font-size:20pt;font-weight:900;color:#1e293b;letter-spacing:-1px;">'+esc(marca)+'</div>';
+  // Logo marca / proveedor
+  var _brandLabel=prov?(prov+(marca?' · '+marca:'')):(marca);
+  var brandLogoTag='<div style="font-size:20pt;font-weight:900;color:#1e293b;letter-spacing:-1px;">'+esc(_brandLabel)+'</div>';
   try{
     var bKey=null;
     var bKeys=Object.keys(_RPT_BRAND_LOGOS);
@@ -10034,7 +10063,8 @@ function exportMarcaPDF(){
     eqSections+=fallasHtml+'</div>';
   });
   var avgDias=countDias?Math.round(totalDias/countDias):0;
-  var introText='Mediante el presente informe técnico, <strong>CIMA Investigaciones Avanzadas</strong> notifica formalmente a <strong>'+esc(para)+'</strong> la existencia de <strong>'+totalFallas+' falla'+(totalFallas!==1?'s activas':' activa')+' en '+eqsConFallas.length+' equipo'+(eqsConFallas.length!==1?'s':'')+'</strong> de la marca <strong>'+esc(marca)+'</strong>, con impacto directo en la prestación de servicios de diagnóstico. Se detallan a continuación las fallas registradas, su antigüedad y el estado de gestión de cada una.';
+  var _eqRef=prov?(esc(prov)+(marca?' (marca: '+esc(marca)+')':'')):('la marca <strong>'+esc(marca)+'</strong>');
+  var introText='Mediante el presente informe técnico, <strong>CIMA Investigaciones Avanzadas</strong> notifica formalmente a <strong>'+esc(para)+'</strong> la existencia de <strong>'+totalFallas+' falla'+(totalFallas!==1?'s activas':' activa')+' en '+eqsConFallas.length+' equipo'+(eqsConFallas.length!==1?'s':'')+'</strong> correspondiente'+(eqsConFallas.length!==1?'s':'')+' a <strong>'+_eqRef+'</strong>, con impacto directo en la prestación de servicios de diagnóstico. Se detallan a continuación las fallas registradas, su antigüedad y el estado de gestión de cada una.';
   var conclusionText='En virtud de lo expuesto, <strong>CIMA Investigaciones Avanzadas</strong> solicita formalmente a <strong>'+esc(para)+'</strong> gestionar con la mayor celeridad posible las intervenciones técnicas detalladas. La interrupción o degradación del funcionamiento de los equipos afectados compromete directamente la capacidad diagnóstica de la institución y la atención de los pacientes. Se agradece respuesta en el menor tiempo posible indicando fecha estimada de intervención para cada equipo.';
   // Tabla resumen
   var sumRows='';
@@ -10048,15 +10078,16 @@ function exportMarcaPDF(){
     });
   });
   // Build HTML
-  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width"><title>Notificación Técnica CIMA — '+esc(marca)+'</title><style>'+_reportCSS+'</style></head><body>';
-  html+='<div class="nav-bar"><button class="btn-print" onclick="window.print()">🖨 Imprimir / Guardar PDF</button><span style="font-size:11px;color:#64748b;margin-left:8px;">Notificación Técnica — '+esc(marca)+' — '+fechaStr+'</span></div>';
+  var _tituloLabel=(prov?esc(prov)+(marca?' / '+esc(marca):''):esc(marca)).toUpperCase();
+  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width"><title>Notificación Técnica CIMA — '+_tituloLabel+'</title><style>'+_reportCSS+'</style></head><body>';
+  html+='<div class="nav-bar"><button class="btn-print" onclick="window.print()">🖨 Imprimir / Guardar PDF</button><span style="font-size:11px;color:#64748b;margin-left:8px;">Notificación Técnica — '+_tituloLabel+' — '+fechaStr+'</span></div>';
   html+='<div class="page">';
   html+='<div class="logo-area" style="justify-content:space-between;">';
   html+=logoTag;
   html+='<div style="display:flex;align-items:center;">'+brandLogoTag+'</div>';
   html+='</div>';
   html+='<div class="informe-box">';
-  html+='<div class="informe-title">NOTIFICACIÓN TÉCNICA — FALLAS ACTIVAS EN EQUIPAMIENTO '+esc(marca).toUpperCase()+'</div>';
+  html+='<div class="informe-title">NOTIFICACIÓN TÉCNICA — FALLAS ACTIVAS EN EQUIPAMIENTO '+_tituloLabel+'</div>';
   html+='<div class="informe-row"><span class="informe-label">FECHA:</span><span class="informe-value">'+fechaStr+'</span></div>';
   html+='<div class="informe-row"><span class="informe-label">DE:</span><span class="informe-value">'+esc(contacto)+' — CIMA Investigaciones Avanzadas</span></div>';
   html+='<div class="informe-row"><span class="informe-label">PARA:</span><span class="informe-value">'+esc(para)+'</span></div>';
@@ -10078,11 +10109,11 @@ function exportMarcaPDF(){
   html+='<div class="footer-meta">CIMA Investigaciones Avanzadas · CIMA Hub · Generado: '+nowDate.toLocaleString('es-AR')+'</div>';
   html+='<div class="sig-row">';
   html+='<div class="sig-block"><div class="sig-line">'+esc(contacto)+'</div><div class="sig-title">Responsable de Equipos Biomédicos — CIMA</div></div>';
-  html+='<div class="sig-block"><div class="sig-line">'+esc(para)+'</div><div class="sig-title">'+esc(marca)+' — Servicio Técnico</div></div>';
+  html+='<div class="sig-block"><div class="sig-line">'+esc(para)+'</div><div class="sig-title">'+esc(prov||marca)+' — Servicio Técnico</div></div>';
   html+='</div></div>';
   html+='</div></body></html>';
   closeModal();
-  openHTMLViewer(html,'Notificación Técnica — '+marca);
+  openHTMLViewer(html,'Notificación Técnica — '+_tituloLabel);
 }
 
 function exportInventarioPDF(){
@@ -15037,7 +15068,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.9.8";
+var APP_DISPLAY_VERSION="8.9.9";
 var APP_BUILD="01/07/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
