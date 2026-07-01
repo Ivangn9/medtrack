@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.01.500 -->
+<!-- v2026.07.01.501 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.01.500">
+<meta name="app-version" content="v2026.07.01.501">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -5026,7 +5026,7 @@ function rUpsSchema(){
   h+='<div style="background:rgba(243,244,248,.65);border-radius:20px;padding:16px 14px;">';
 
   // Grid: 2 columnas fijas
-  h+='<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:208px 18px;">';
+  h+='<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:208px 54px;">';
 
   allUps.forEach(function(ups,upsIdx){
     var upsCon=ups.equiposConectados||[];
@@ -15035,7 +15035,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.9.4";
+var APP_DISPLAY_VERSION="8.9.5";
 var APP_BUILD="01/07/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
