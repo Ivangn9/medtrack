@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.01.501 -->
+<!-- v2026.07.01.502 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.01.501">
+<meta name="app-version" content="v2026.07.01.502">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -2822,6 +2822,7 @@ function openModalEq(eq){
     '</div>'+
     '</div>'+
     '<div class="ff"><div class="ff-label" style="display:flex;align-items:center;gap:6px;">Marca <span style="font-size:.6rem;opacity:.7;">(para mostrar logo)</span></div><select class="inp" id="eq-mk">'+marcaOpts+'</select></div>'+
+    '<div class="ff"><div class="ff-label" style="display:flex;align-items:center;gap:6px;">Empresa representante <span style="font-size:.6rem;opacity:.65;">(a quien reclamar)</span></div><input class="inp" id="eq-repr-empresa" value="'+esc(f.empresaVendio||'')+'" placeholder="Ej: INTEC, Fissore, PowerSystems..."></div>'+
     '<div class="ff"><div class="ff-label">Estado</div><select class="inp" id="eq-es">'+eOpts+'</select></div>'+
     '<div class="ff"><div class="ff-label">Garantía</div>'+
     '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'+
@@ -2853,7 +2854,6 @@ function openModalEq(eq){
         '<div class="ups-eq-nores" style="display:none;font-size:.75rem;color:var(--text3);padding:8px 0;">Sin resultados para esa búsqueda</div>'+
       '</div>'+
     '</div></div>'+
-    '<div class="ff"><div class="ff-label">Empresa que lo vendió</div><input class="inp" id="eq-ups-empresa" value="'+esc(f.empresaVendio||'')+'" placeholder="Ej: PowerSystems S.A."></div>'+
     '</div>':'')
     +'<div style="border-top:1px solid rgba(8,145,178,.18);margin:12px 0 10px;padding-top:12px;"><div style="font-size:.68rem;font-weight:800;color:#0891b2;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;">🌐 Datos de Red</div>'
     +(f.cat==='UPS'?
@@ -2886,6 +2886,7 @@ function submitEq(eid){
   d.servicioContratoNumero=((document.getElementById('eq-sv-numero')||{}).value||'').trim();
   d.servicioContratoVenc=((document.getElementById('eq-sv-venc')||{}).value||'').trim();
   d.servicioContratoContacto=((document.getElementById('eq-sv-contacto')||{}).value||'').trim();
+  d.empresaVendio=((document.getElementById('eq-repr-empresa')||{}).value||'').trim();
   if(cat==='DES'){
     d.modelo=((document.getElementById("eq-modelo")||{}).value||'').trim();
     d.parches_vencimiento=((document.getElementById("eq-parches-venc")||{}).value||'').trim();
@@ -2900,7 +2901,6 @@ function submitEq(eid){
     d.kva=((document.getElementById("eq-ups-kva")||{}).value||'').trim();
     d.consultorio=((document.getElementById("eq-ups-consultorio")||{}).value||'').trim();
     var _chks=document.querySelectorAll('.ups-eq-chk:checked');var _eqIds=[];for(var _ci=0;_ci<_chks.length;_ci++)_eqIds.push(_chks[_ci].value);d.equiposConectados=_eqIds;
-    d.empresaVendio=((document.getElementById("eq-ups-empresa")||{}).value||'').trim();
     d.macAddress=((document.getElementById("eq-ups-mac")||{}).value||'').trim();
   }
   d.pacsIp=((document.getElementById("eq-pacs-ip")||{}).value||'').trim();
@@ -8222,7 +8222,7 @@ function rDetalle(){
   if(eq.cat==='UPS'&&eq.modelo){h+='<div class="ibox"><div class="ibox-l">Modelo</div><div class="ibox-v">'+esc(eq.modelo)+'</div></div>';}
   if(eq.cat==='UPS'&&eq.kva){h+='<div class="ibox"><div class="ibox-l">KVA</div><div class="ibox-v" style="font-weight:700;">'+esc(eq.kva)+'</div></div>';}
   if(eq.cat==='UPS'&&eq.equiposConectados&&(Array.isArray(eq.equiposConectados)?eq.equiposConectados.length:eq.equiposConectados)){var _eqConHtml='';if(Array.isArray(eq.equiposConectados)){_eqConHtml=eq.equiposConectados.map(function(id){var e2=eqs.find(function(x){return x.id===id;});return e2?'<span style="display:inline-flex;align-items:center;padding:2px 9px;border-radius:50px;font-size:.72rem;font-weight:600;background:rgba(245,158,11,.14);color:#d97706;">'+esc(e2.nombre)+'</span>':'';}).filter(Boolean).join(' ');}else{_eqConHtml=esc(eq.equiposConectados);}if(_eqConHtml)h+='<div class="ibox" style="grid-column:1/-1;"><div class="ibox-l">Equipos conectados</div><div class="ibox-v" style="display:flex;flex-wrap:wrap;gap:5px;">'+_eqConHtml+'</div></div>';}
-  if(eq.cat==='UPS'&&eq.empresaVendio){h+='<div class="ibox"><div class="ibox-l">Empresa vendedora</div><div class="ibox-v">'+esc(eq.empresaVendio)+'</div></div>';}
+  if(eq.empresaVendio){h+='<div class="ibox"><div class="ibox-l">Empresa representante</div><div class="ibox-v">'+esc(eq.empresaVendio)+'</div></div>';}
   if(eq.garantia){var gd=diasH(eq.garantiaHasta);var gVenc=eq.garantiaHasta&&gd<0;var gProx=!gVenc&&eq.garantiaHasta&&gd<=30;var gColor=gVenc?"var(--red)":gProx?"var(--orange)":"var(--green)";var gBg=gVenc?"rgba(255,59,48,.12)":gProx?"rgba(255,149,0,.12)":"rgba(52,199,89,.12)";var gLabel=gVenc?"❌ Vencida":gProx?"⚠️ Vence en "+gd+"d":"✅ En garantía";h+='<div class="ibox" style="grid-column:1/-1;"><div class="ibox-l">Garantía</div><div class="ibox-v"><span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:50px;font-size:.72rem;font-weight:700;background:'+gBg+';color:'+gColor+';">'+gLabel+(eq.garantiaHasta?' · hasta '+fD(eq.garantiaHasta):'')+'</span></div></div>';}
   if(eq.tieneServicio){
     var _svVencHtml='';
@@ -15035,7 +15035,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.9.5";
+var APP_DISPLAY_VERSION="8.9.6";
 var APP_BUILD="01/07/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
