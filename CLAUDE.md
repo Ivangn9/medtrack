@@ -40,7 +40,7 @@ Este repositorio contiene **DOS apps completamente independientes**.
 
 ## Versiones
 
-- Formato Stock: `X.YY` (ej: `4.28`) — última estable: **V4.37**
+- Formato Stock: `X.YY` (ej: `4.28`) — última estable: **V4.38**
 - Formato MedTrack: `X.Y.Z` donde cada componente es 0–9 máx (ej: `5.4.5`)
   - Bump en cada commit significativo
   - Actualizar SIEMPRE: `APP_DISPLAY_VERSION`, `APP_BUILD`, meta `app-version`, y HTML comment `<!-- vXXX -->`

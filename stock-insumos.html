@@ -1609,6 +1609,19 @@
         <button class="btn btn-primary" onclick="openImportModal()"><span class="btn-icon">📋</span> Abrir herramienta de corrección</button>
       </div>
     </div>
+
+    <!-- ─ Importar precios de proveedor (Excel/PDF) ─ -->
+    <div id="priceImportSection" style="display:none;margin-top:16px">
+      <div class="gc" style="padding:16px 18px">
+        <div style="font-size:.82rem;font-weight:800;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">💲 Actualizar precios desde proveedor</div>
+        <div style="font-size:.78rem;color:var(--text3);line-height:1.5;margin-bottom:12px">
+          Subí la lista de precios del proveedor en <b>Excel</b> o <b>PDF</b>. Empareja por nombre con
+          <b>tolerancia ajustable</b> (por si está escrito distinto) y actualiza solo el <b>precio</b> de los
+          insumos existentes — el precio es único para ambas sucursales. Revisás cada cambio antes de guardar. Nada se borra.
+        </div>
+        <button class="btn btn-primary" onclick="openPriceImport()"><span class="btn-icon">📄</span> Importar lista de precios</button>
+      </div>
+    </div>
   </div>
 
   <!-- ════ COSTOS ════ -->
@@ -1831,6 +1844,18 @@
       <button class="btn" onclick="closeImportModal()" style="background:var(--surface2,#222)">Cancelar</button>
       <button class="btn btn-primary" id="importApplyBtn" onclick="applyImport()"><span class="btn-icon">💾</span> Aplicar cambios</button>
     </div>
+  </div>
+</div>
+
+<!-- ─── Modal Importar precios de proveedor (Excel/PDF) ─────────────── -->
+<div class="modal-overlay" id="priceImportModal" onclick="closePriceImport(event)">
+  <div class="modal-sheet" onclick="event.stopPropagation()" style="max-width:720px">
+    <div class="modal-handle"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div class="modal-title">💲 Importar precios de proveedor</div>
+      <button class="modal-close-btn" onclick="closePriceImport()">✕</button>
+    </div>
+    <div id="piBody"></div>
   </div>
 </div>
 
@@ -2189,7 +2214,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "4.37";
+const APP_VERSION = "4.38";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -3215,6 +3240,353 @@ async function applyImport(){
     if(btn) btn.disabled=false;
   }
 }
+// ═══ Importación de precios de proveedores (Excel / PDF) ══════════════════════
+// Sube una lista de precios (Excel .xlsx/.xls/.csv o PDF). Empareja por nombre
+// con tolerancia ajustable (similitud) y actualiza SOLO el precio de insumos
+// EXISTENTES (+ su historial). No crea, borra ni toca stock/movimientos/formatos.
+// El precio es de catálogo → único para ambas sucursales.
+let _piRows=[], _piTab='matched', _piThreshold=0.80, _piCols=null, _piRaw=null, _piFileName='', _piProv='';
+
+function _piLoadScript(src){
+  return new Promise((res,rej)=>{
+    if(document.querySelector('script[data-pi="'+src+'"]')){ res(); return; }
+    const s=document.createElement('script');
+    s.src=src; s.async=true; s.setAttribute('data-pi',src);
+    s.onload=()=>res(); s.onerror=()=>rej(new Error('No se pudo cargar la librería'));
+    document.head.appendChild(s);
+  });
+}
+
+// Parsea precios en formato AR ($1.140,46) o US (1,140.46) o simple (1140.46)
+function _piParsePrice(v){
+  if(typeof v==='number') return isFinite(v)&&v>0?Math.round(v*100)/100:null;
+  if(v==null) return null;
+  let s=String(v).replace(/[^0-9.,-]/g,'').trim();
+  if(!s) return null;
+  const lc=s.lastIndexOf(','), ld=s.lastIndexOf('.');
+  if(lc>-1&&ld>-1){ if(lc>ld) s=s.replace(/\./g,'').replace(',','.'); else s=s.replace(/,/g,''); }
+  else if(lc>-1){ const dec=s.length-lc-1; s=(dec===1||dec===2)?s.replace(',','.'):s.replace(/,/g,''); }
+  const n=parseFloat(s);
+  return isFinite(n)&&n>0?Math.round(n*100)/100:null;
+}
+
+function openPriceImport(){
+  _piRows=[]; _piCols=null; _piRaw=null; _piFileName=''; _piProv=''; _piThreshold=0.80; _piTab='matched';
+  document.getElementById('priceImportModal').classList.add('open');
+  _piRenderStage('pick');
+}
+function closePriceImport(ev){
+  if(ev&&ev.target!==ev.currentTarget) return;
+  document.getElementById('priceImportModal').classList.remove('open');
+}
+function _piSetProv(v){ _piProv=v; }
+
+async function _piOnFile(input){
+  const file=input.files&&input.files[0]; if(!file) return;
+  _piFileName=file.name;
+  const ext=(file.name.split('.').pop()||'').toLowerCase();
+  const status=document.getElementById('piStatus');
+  try{
+    if(ext==='pdf'){ if(status) status.textContent='Leyendo PDF… (puede tardar unos segundos)'; await _piParsePDF(file); }
+    else { if(status) status.textContent='Leyendo Excel…'; await _piParseExcel(file); }
+  }catch(e){
+    console.error(e); toast('⚠️ '+(e.message||'No se pudo leer el archivo'));
+    if(status) status.textContent='';
+  }
+  try{ input.value=''; }catch(e){}
+}
+
+async function _piParseExcel(file){
+  await _piLoadScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js');
+  if(typeof XLSX==='undefined') throw new Error('No se pudo iniciar el lector de Excel');
+  const buf=await file.arrayBuffer();
+  const wb=XLSX.read(buf,{type:'array'});
+  const ws=wb.Sheets[wb.SheetNames[0]];
+  const aoa=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+  _piRaw=aoa.filter(r=>Array.isArray(r)&&r.some(c=>String(c).trim()!==''));
+  if(!_piRaw.length){ toast('⚠️ El Excel está vacío'); return; }
+  _piAutoDetectCols();
+  _piRenderStage('map');
+}
+
+// Detecta columna de nombre (más texto) y de precio (más numérica)
+function _piAutoDetectCols(){
+  const rows=_piRaw; const ncols=Math.max.apply(null,rows.map(r=>r.length));
+  const scoreRows=rows.slice(rows.length>1?1:0);
+  let nameCol=0, priceCol=ncols>1?1:0, bestText=-1, bestNum=-1;
+  for(let c=0;c<ncols;c++){
+    let textLen=0, numCount=0;
+    scoreRows.forEach(r=>{
+      const raw=r[c]; const sv=String(raw==null?'':raw).trim(); if(!sv) return;
+      const isNum=_piParsePrice(raw)!=null && sv.replace(/[0-9.,$\s-]/g,'').length===0;
+      if(isNum) numCount++; else textLen+=sv.length;
+    });
+    if(textLen>bestText){ bestText=textLen; nameCol=c; }
+    if(numCount>bestNum){ bestNum=numCount; priceCol=c; }
+  }
+  if(priceCol===nameCol && ncols>1){ priceCol=(nameCol+1)%ncols; }
+  const first=rows[0]||[];
+  const looksHeader=first.some(c=>/precio|producto|descrip|articulo|art\.|nombre|detalle|unitario|importe|lista/i.test(String(c)));
+  _piCols={name:nameCol, price:priceCol, header:looksHeader?1:0, ncols};
+}
+
+function _piBuildRows(){
+  if(!_piRaw||!_piCols) return [];
+  const src=_piRaw.slice(_piCols.header);
+  const out=[];
+  src.forEach(r=>{
+    const nm=String(r[_piCols.name]==null?'':r[_piCols.name]).trim();
+    const pr=_piParsePrice(r[_piCols.price]);
+    if(nm && /[a-zA-Z]/.test(nm) && pr!=null) out.push({name:nm, price:pr});
+  });
+  return out;
+}
+
+async function _piParsePDF(file){
+  await _piLoadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
+  const lib=window.pdfjsLib||window['pdfjs-dist/build/pdf'];
+  if(!lib) throw new Error('No se pudo iniciar el lector de PDF');
+  try{ lib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'; }catch(e){}
+  const buf=await file.arrayBuffer();
+  const pdf=await lib.getDocument({data:buf}).promise;
+  const parsed=[];
+  for(let p=1;p<=pdf.numPages;p++){
+    const page=await pdf.getPage(p);
+    const content=await page.getTextContent();
+    const rowsByY={};
+    content.items.forEach(it=>{
+      if(!it.str||!it.str.trim()) return;
+      const y=Math.round(it.transform[5]);
+      (rowsByY[y]=rowsByY[y]||[]).push(it);
+    });
+    Object.keys(rowsByY).sort((a,b)=>b-a).forEach(y=>{
+      const items=rowsByY[y].sort((a,b)=>a.transform[4]-b.transform[4]);
+      const line=items.map(i=>i.str).join(' ').replace(/\s+/g,' ').trim();
+      const m=line.match(/^(.*?)[\s.·-]*(\$?\s*[0-9][0-9.,]*)\s*$/);
+      if(!m) return;
+      const nm=m[1].replace(/[.\s·-]+$/,'').trim();
+      const pr=_piParsePrice(m[2]);
+      if(nm.length>=3 && /[a-zA-Z]/.test(nm) && pr!=null) parsed.push({name:nm, price:pr});
+    });
+  }
+  _piRaw=null;
+  const status=document.getElementById('piStatus'); if(status) status.textContent='';
+  if(!parsed.length){ toast('⚠️ No se detectaron precios en el PDF. Probá exportar la lista a Excel.'); return; }
+  _piStartMatching(parsed);
+}
+
+function _piStartMatching(parsed){
+  if(!parsed || !parsed.length){ toast('⚠️ No se detectaron filas con nombre y precio'); return; }
+  const byNorm=new Map();
+  supplies.forEach(s=>{ if(s&&s.active!==false) byNorm.set(_impNorm(s.name), s); });
+  const normKeys=[...byNorm.keys()];
+  _piRows=parsed.map((p,i)=>{
+    const np=_impNorm(p.name);
+    let target=byNorm.get(np)||null, suggestion=null, score=0;
+    if(target){ score=1; }
+    else { for(const k of normKeys){ const sc=_impSim(np,k); if(sc>score){ score=sc; suggestion=byNorm.get(k); } } }
+    const tgt=target||suggestion;
+    return { i, name:p.name, price:p.price, targetId: tgt?tgt.id:'', score:score, manual:false, status:'review' };
+  });
+  _piRebucket();
+  _piTab='matched';
+  _piRenderStage('review');
+}
+
+function _piRebucket(){
+  _piRows.forEach(r=>{
+    if(r.manual) return;
+    r.status=(r.targetId && (r.score>=_piThreshold || r.score===1)) ? 'matched' : 'review';
+  });
+}
+
+function _piRenderStage(stage){
+  const body=document.getElementById('piBody'); if(!body) return;
+  if(stage==='pick'){
+    body.innerHTML=
+      '<div style="font-size:.82rem;color:var(--text3);line-height:1.55;margin-bottom:14px">'+
+        'Subí la lista de precios del proveedor (<b>Excel</b> .xlsx/.xls/.csv o <b>PDF</b>). '+
+        'Se empareja por nombre con <b>tolerancia ajustable</b> y vas a revisar cada cambio antes de guardar. '+
+        'Solo se actualiza el <b>precio</b> (y su historial), único para ambas sucursales. Nada se borra.'+
+      '</div>'+
+      '<div class="form-group"><label>Proveedor (opcional — queda en el historial de precios)</label>'+
+        '<input id="piProv" class="modal-input" value="'+escAttr(_piProv)+'" oninput="_piSetProv(this.value)" placeholder="Ej: Droguería XYZ"></div>'+
+      '<label class="btn btn-primary" style="cursor:pointer;display:inline-flex;align-items:center">'+
+        '<span class="btn-icon">📄</span> Elegir archivo Excel o PDF'+
+        '<input type="file" accept=".xlsx,.xls,.csv,application/pdf" style="display:none" onchange="_piOnFile(this)">'+
+      '</label>'+
+      '<div id="piStatus" style="font-size:.78rem;color:var(--text3);margin-top:10px"></div>';
+    return;
+  }
+  if(stage==='map'){ _piRenderMap(body); return; }
+  if(stage==='review'){ _piRenderReview(body); return; }
+}
+
+function _piColLabel(c){
+  const hdr=_piRaw&&_piRaw[0]||[];
+  if(_piCols.header && hdr[c]!=null && String(hdr[c]).trim()) return String(hdr[c]).trim().slice(0,40);
+  return 'Columna '+String.fromCharCode(65+c);
+}
+function _piRenderMap(body){
+  const {name,price,header,ncols}=_piCols;
+  let nameOpts='', priceOpts='';
+  for(let c=0;c<ncols;c++){
+    const lbl=escHtml(_piColLabel(c));
+    nameOpts+='<option value="'+c+'"'+(c===name?' selected':'')+'>'+lbl+'</option>';
+    priceOpts+='<option value="'+c+'"'+(c===price?' selected':'')+'>'+lbl+'</option>';
+  }
+  body.innerHTML=
+    '<div style="font-size:.82rem;color:var(--text3);margin-bottom:12px">Detecté las columnas automáticamente. Ajustá si hace falta:</div>'+
+    '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px">'+
+      '<div class="form-group" style="flex:1;min-width:150px"><label>Columna del nombre</label>'+
+        '<select id="piColName" class="modal-input" onchange="_piColChange()">'+nameOpts+'</select></div>'+
+      '<div class="form-group" style="flex:1;min-width:150px"><label>Columna del precio</label>'+
+        '<select id="piColPrice" class="modal-input" onchange="_piColChange()">'+priceOpts+'</select></div>'+
+    '</div>'+
+    '<label style="display:flex;align-items:center;gap:8px;font-size:.82rem;margin-bottom:12px;cursor:pointer">'+
+      '<input type="checkbox" id="piHeader" '+(header?'checked':'')+' onchange="_piColChange()"> La primera fila es un encabezado (ignorarla)'+
+    '</label>'+
+    '<div style="font-size:.72rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Vista previa</div>'+
+    '<div id="piPreview" style="margin-bottom:14px">'+_piPreviewHtml(_piBuildRows().slice(0,5))+'</div>'+
+    '<div style="display:flex;gap:10px;justify-content:flex-end">'+
+      '<button class="btn" onclick="_piRenderStage(\'pick\')" style="background:var(--surface2,#eee)">Atrás</button>'+
+      '<button class="btn btn-primary" onclick="_piContinueMatch()">Continuar →</button>'+
+    '</div>';
+}
+function _piColChange(){
+  _piCols.name=parseInt(document.getElementById('piColName').value)||0;
+  _piCols.price=parseInt(document.getElementById('piColPrice').value)||0;
+  _piCols.header=document.getElementById('piHeader').checked?1:0;
+  const pv=document.getElementById('piPreview'); if(pv) pv.innerHTML=_piPreviewHtml(_piBuildRows().slice(0,5));
+}
+function _piPreviewHtml(rows){
+  if(!rows.length) return '<div style="color:var(--text3);font-size:.8rem">No se detectaron filas válidas — revisá las columnas.</div>';
+  return rows.map(r=>'<div style="display:flex;justify-content:space-between;gap:10px;padding:6px 10px;border:1px solid var(--glass-border);border-radius:8px;margin-bottom:5px;font-size:.8rem"><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escHtml(r.name)+'</span><b style="flex-shrink:0">$'+fmt(r.price)+'</b></div>').join('');
+}
+function _piContinueMatch(){
+  const rows=_piBuildRows();
+  if(!rows.length){ toast('⚠️ No se detectaron filas — revisá las columnas'); return; }
+  _piStartMatching(rows);
+}
+
+function _piThLabelOnly(v){ const l=document.getElementById('piThLabel'); if(l) l.textContent=(parseInt(v)||80)+'%'; }
+function _piSetThreshold(v){ _piThreshold=(parseInt(v)||80)/100; _piRebucket(); _piRenderStage('review'); }
+function _piSwitchTab(t){ _piTab=t; _piRenderStage('review'); }
+function _piSetTarget(i,v){ const r=_piRows.find(x=>x.i===i); if(r){ r.targetId=v; _piRenderList(); } }
+function _piSetStatus(i,st){ const r=_piRows.find(x=>x.i===i); if(r){ r.status=st; r.manual=true; _piRenderStage('review'); } }
+function _piConfirm(i){ const r=_piRows.find(x=>x.i===i); if(r&&r.targetId){ r.status='matched'; r.manual=true; _piTab='matched'; _piRenderStage('review'); } else toast('⚠️ Elegí un insumo primero'); }
+function _piAcceptAll(){ _piRows.forEach(r=>{ if(r.status==='review'&&r.targetId){ r.status='matched'; r.manual=true; } }); _piTab='matched'; _piRenderStage('review'); }
+
+function _piRenderReview(body){
+  const c={matched:0,review:0,skip:0}; _piRows.forEach(r=>c[r.status]++);
+  const pct=Math.round(_piThreshold*100);
+  const backTo=_piRaw?'map':'pick';
+  body.innerHTML=
+    '<div class="form-group" style="margin-bottom:10px"><label>Proveedor (queda en el historial)</label>'+
+      '<input id="piProv" class="modal-input" value="'+escAttr(_piProv)+'" oninput="_piSetProv(this.value)" placeholder="Ej: Droguería XYZ"></div>'+
+    '<div style="background:var(--glass2);border:1px solid var(--glass-border);border-radius:12px;padding:12px 14px;margin-bottom:12px">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;font-size:.8rem;margin-bottom:6px">'+
+        '<span>Tolerancia de coincidencia por nombre</span><b id="piThLabel">'+pct+'%</b></div>'+
+      '<input type="range" min="50" max="100" value="'+pct+'" style="width:100%" oninput="_piThLabelOnly(this.value)" onchange="_piSetThreshold(this.value)">'+
+      '<div style="font-size:.72rem;color:var(--text3);margin-top:4px">Más alto = más estricto. Los que superen la tolerancia van a <b>Coinciden</b>; el resto, a <b>Revisar</b>.</div>'+
+    '</div>'+
+    '<div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">'+
+      '<button class="fmt-pill'+(_piTab==='matched'?' active':'')+'" onclick="_piSwitchTab(\'matched\')">✓ Coinciden ('+c.matched+')</button>'+
+      '<button class="fmt-pill'+(_piTab==='review'?' active':'')+'" onclick="_piSwitchTab(\'review\')">⚠️ Revisar ('+c.review+')</button>'+
+      '<button class="fmt-pill'+(_piTab==='skip'?' active':'')+'" onclick="_piSwitchTab(\'skip\')">⊘ Omitidos ('+c.skip+')</button>'+
+    '</div>'+
+    '<div id="piList" style="max-height:38vh;overflow-y:auto;margin-bottom:12px"></div>'+
+    '<div style="display:flex;gap:10px;align-items:center">'+
+      '<div style="font-size:.78rem;color:var(--text3);flex:1" id="piApplyMsg"></div>'+
+      '<button class="btn" onclick="_piRenderStage(\''+backTo+'\')" style="background:var(--surface2,#eee)">Atrás</button>'+
+      '<button class="btn btn-primary" id="piApplyBtn" onclick="_piApply()"><span class="btn-icon">💾</span> Aplicar precios</button>'+
+    '</div>';
+  _piRenderList();
+}
+
+function _piRenderList(){
+  const el=document.getElementById('piList'); if(!el) return;
+  const rows=_piRows.filter(r=>r.status===_piTab);
+  if(!rows.length){ el.innerHTML='<div style="text-align:center;color:var(--text3);padding:24px">Nada acá 👌</div>'; }
+  else {
+    let head='';
+    if(_piTab==='review'){
+      const pend=rows.filter(r=>r.targetId).length;
+      if(pend) head='<div style="margin-bottom:10px"><button class="btn btn-primary" style="padding:7px 14px;font-size:.82rem" onclick="_piAcceptAll()">✓ Aceptar las '+pend+' sugerencias</button></div>';
+    }
+    el.innerHTML=head+rows.map(r=>{
+      const tgt=supplies.find(s=>s.id===r.targetId);
+      const pctm=Math.round((r.score||0)*100);
+      const oldP=tgt?(tgt.price||0):0;
+      const delta=oldP>0?((r.price-oldP)/oldP*100):null;
+      const deltaTxt=delta==null?'':' <span style="color:'+(delta>=0?'#d92b20':'#1a9d4b')+';font-weight:600">('+(delta>=0?'+':'')+delta.toFixed(1)+'%)</span>';
+      const priceLine='<span style="color:var(--text3)">'+(oldP>0?'$'+fmt(oldP):'sin precio')+'</span> → <b>$'+fmt(r.price)+'</b>'+deltaTxt;
+      if(r.status==='matched'){
+        return '<div class="gc" style="padding:10px 14px;margin-bottom:8px">'+
+          '<div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">'+
+            '<div style="min-width:0">'+
+              '<div style="font-size:.88rem;font-weight:700;color:var(--text)">'+escHtml(tgt?tgt.name:r.name)+'</div>'+
+              '<div style="font-size:.75rem;margin-top:2px">'+priceLine+'</div>'+
+              '<div style="font-size:.7rem;color:var(--text3);margin-top:2px">proveedor: '+escHtml(r.name)+(r.score<1?(' · coincidencia '+pctm+'%'):' · exacto')+'</div>'+
+            '</div>'+
+            '<button class="fmt-pill" onclick="_piSetStatus('+r.i+',\'skip\')">Omitir</button>'+
+          '</div></div>';
+      }
+      if(r.status==='review'){
+        return '<div class="gc" style="padding:10px 14px;margin-bottom:8px">'+
+          '<div style="font-size:.86rem;font-weight:700;color:var(--text);margin-bottom:2px">'+escHtml(r.name)+' · <b>$'+fmt(r.price)+'</b></div>'+
+          '<div style="font-size:.72rem;color:var(--text3);margin-bottom:6px">'+(r.targetId?('Parecido '+pctm+'% — confirmá el insumo:'):'Sin coincidencia — elegí el insumo a actualizar:')+'</div>'+
+          '<select class="modal-input" style="margin-bottom:6px" onchange="_piSetTarget('+r.i+',this.value)">'+_impOptions(r.targetId)+'</select>'+
+          '<div style="display:flex;gap:8px">'+
+            '<button class="fmt-pill'+(r.targetId?' active':'')+'" onclick="_piConfirm('+r.i+')">'+(r.targetId?'✓ Actualizar precio':'Elegí un insumo')+'</button>'+
+            '<button class="fmt-pill" onclick="_piSetStatus('+r.i+',\'skip\')">Omitir</button>'+
+          '</div></div>';
+      }
+      return '<div class="gc" style="padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;opacity:.7">'+
+        '<div style="font-size:.82rem;color:var(--text2)">'+escHtml(r.name)+' · $'+fmt(r.price)+'</div>'+
+        '<button class="fmt-pill" onclick="_piSetStatus('+r.i+',\'review\')">Reactivar</button>'+
+      '</div>';
+    }).join('');
+  }
+  const willApply=_piRows.filter(r=>r.status==='matched'&&r.targetId&&r.price>0).length;
+  const msg=document.getElementById('piApplyMsg'); if(msg) msg.textContent=willApply+' precio(s) se actualizarán al guardar.';
+}
+
+async function _piApply(){
+  if(!_loadedFlags.supplies){ toast('⚠️ Esperá a que carguen los insumos'); return; }
+  const todo=_piRows.filter(r=>r.status==='matched'&&r.targetId&&r.price>0);
+  if(!todo.length){ toast('No hay precios para aplicar'); return; }
+  const seen=new Set(), conf=[];
+  todo.forEach(r=>{ if(seen.has(r.targetId)) conf.push(r); else seen.add(r.targetId); });
+  if(conf.length){ toast('⚠️ '+conf.length+' insumo(s) asignados a más de una fila — revisá antes de aplicar'); return; }
+  const btn=document.getElementById('piApplyBtn'); if(btn) btn.disabled=true;
+  const prov=(_piProv||'').trim();
+  const today=new Date().toISOString().slice(0,10);
+  let n=0; const changes=[];
+  todo.forEach(r=>{
+    const s=supplies.find(x=>x.id===r.targetId); if(!s) return;
+    const old=s.price||0;
+    if(Math.abs(old-r.price)<0.005) return;
+    s.price=r.price;
+    if(!s.priceHistory) s.priceHistory=[];
+    s.priceHistory.unshift({price:r.price,date:today,proveedorName:prov||('Import: '+_piFileName)});
+    if(s.priceHistory.length>20) s.priceHistory.length=20;
+    n++; changes.push({name:s.name, old:old, nuevo:r.price});
+  });
+  if(!n){ toast('Los precios ya estaban actualizados'); if(btn) btn.disabled=false; return; }
+  try{
+    await _enqueue(()=>_db.collection(DB_COL).doc("supplies").set({data:supplies,suppliers}).catch(e=>{throw e;}));
+    _auditLog('price_bulk_import','Import precios: '+n+' insumo(s)'+(prov?(' · '+prov):'')+' · archivo '+_piFileName,null,{count:n,changes:changes.slice(0,50)});
+    toast('✓ '+n+' precio(s) actualizados y sincronizados');
+    closePriceImport();
+    if(currentTab==='costos') renderCostos();
+    if(currentTab==='contable') renderContable();
+    if(currentTab==='gestion') renderGestion();
+  }catch(e){
+    toast('⚠️ Error al guardar: '+(e.message||e));
+  }finally{ if(btn) btn.disabled=false; }
+}
+
 
 // ─── Costos ───────────────────────────────────────────────────────────────────
 let _costosDetailId=null;
@@ -3870,6 +4242,7 @@ function showApp(){
   if(!_standalone) console.warn('[PWA] La app NO está en modo standalone. Abrila desde el ícono de pantalla de inicio, no desde Safari.');
   // Herramienta de corrección: disponible para todos los usuarios autorizados
   const _impSec=document.getElementById("importToolSection"); if(_impSec) _impSec.style.display="block";
+  const _piSec=document.getElementById("priceImportSection"); if(_piSec) _piSec.style.display="block";
   if(isAdmin){
     document.getElementById("adminSection").style.display="block";
     document.getElementById("backupAdminSection").style.display="block";
