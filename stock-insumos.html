@@ -2214,7 +2214,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "4.38";
+const APP_VERSION = "4.39";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -3245,7 +3245,7 @@ async function applyImport(){
 // con tolerancia ajustable (similitud) y actualiza SOLO el precio de insumos
 // EXISTENTES (+ su historial). No crea, borra ni toca stock/movimientos/formatos.
 // El precio es de catálogo → único para ambas sucursales.
-let _piRows=[], _piTab='matched', _piThreshold=0.80, _piCols=null, _piRaw=null, _piFileName='', _piProv='';
+let _piRows=[], _piTab='matched', _piThreshold=0.80, _piCols=null, _piRaw=null, _piFileName='', _piSupId='', _piNewSup='', _piStage='pick';
 
 function _piLoadScript(src){
   return new Promise((res,rej)=>{
@@ -3271,7 +3271,7 @@ function _piParsePrice(v){
 }
 
 function openPriceImport(){
-  _piRows=[]; _piCols=null; _piRaw=null; _piFileName=''; _piProv=''; _piThreshold=0.80; _piTab='matched';
+  _piRows=[]; _piCols=null; _piRaw=null; _piFileName=''; _piSupId=''; _piNewSup=''; _piThreshold=0.80; _piTab='matched';
   document.getElementById('priceImportModal').classList.add('open');
   _piRenderStage('pick');
 }
@@ -3279,7 +3279,23 @@ function closePriceImport(ev){
   if(ev&&ev.target!==ev.currentTarget) return;
   document.getElementById('priceImportModal').classList.remove('open');
 }
-function _piSetProv(v){ _piProv=v; }
+// Selector de proveedor: elegir uno existente o agregar uno nuevo (impacta en todo el sistema)
+function _piSupplierPickerHtml(){
+  const sorted=suppliers.slice().sort((a,b)=>a.name.localeCompare(b.name));
+  const opts=['<option value="">— Sin proveedor —</option>']
+    .concat(sorted.map(p=>'<option value="'+escAttr(p.id)+'"'+(p.id===_piSupId?' selected':'')+'>'+escHtml(p.name)+'</option>'))
+    .concat(['<option value="__new__"'+(_piSupId==='__new__'?' selected':'')+'>➕ Agregar nuevo proveedor…</option>']);
+  const newField=_piSupId==='__new__'
+    ? '<input id="piNewSup" class="modal-input" style="margin-top:8px" value="'+escAttr(_piNewSup)+'" oninput="_piSetNewSup(this.value)" placeholder="Nombre del nuevo proveedor">'
+    : '';
+  return '<div class="form-group"><label>Proveedor de esta lista de precios</label>'+
+    '<select id="piSupSel" class="modal-input" onchange="_piOnSupChange(this.value)">'+opts.join('')+'</select>'+
+    newField+
+    '<div style="font-size:.7rem;color:var(--text3);margin-top:4px">Señalá si ya está cargado o agregá uno nuevo. El proveedor queda vinculado al historial de precios y disponible en todo el sistema.</div>'+
+  '</div>';
+}
+function _piOnSupChange(v){ _piSupId=v; _piRenderStage(_piStage); }
+function _piSetNewSup(v){ _piNewSup=v; }
 
 async function _piOnFile(input){
   const file=input.files&&input.files[0]; if(!file) return;
@@ -3402,6 +3418,7 @@ function _piRebucket(){
 
 function _piRenderStage(stage){
   const body=document.getElementById('piBody'); if(!body) return;
+  _piStage=stage;
   if(stage==='pick'){
     body.innerHTML=
       '<div style="font-size:.82rem;color:var(--text3);line-height:1.55;margin-bottom:14px">'+
@@ -3409,8 +3426,7 @@ function _piRenderStage(stage){
         'Se empareja por nombre con <b>tolerancia ajustable</b> y vas a revisar cada cambio antes de guardar. '+
         'Solo se actualiza el <b>precio</b> (y su historial), único para ambas sucursales. Nada se borra.'+
       '</div>'+
-      '<div class="form-group"><label>Proveedor (opcional — queda en el historial de precios)</label>'+
-        '<input id="piProv" class="modal-input" value="'+escAttr(_piProv)+'" oninput="_piSetProv(this.value)" placeholder="Ej: Droguería XYZ"></div>'+
+      _piSupplierPickerHtml()+
       '<label class="btn btn-primary" style="cursor:pointer;display:inline-flex;align-items:center">'+
         '<span class="btn-icon">📄</span> Elegir archivo Excel o PDF'+
         '<input type="file" accept=".xlsx,.xls,.csv,application/pdf" style="display:none" onchange="_piOnFile(this)">'+
@@ -3482,8 +3498,7 @@ function _piRenderReview(body){
   const pct=Math.round(_piThreshold*100);
   const backTo=_piRaw?'map':'pick';
   body.innerHTML=
-    '<div class="form-group" style="margin-bottom:10px"><label>Proveedor (queda en el historial)</label>'+
-      '<input id="piProv" class="modal-input" value="'+escAttr(_piProv)+'" oninput="_piSetProv(this.value)" placeholder="Ej: Droguería XYZ"></div>'+
+    _piSupplierPickerHtml()+
     '<div style="background:var(--glass2);border:1px solid var(--glass-border);border-radius:12px;padding:12px 14px;margin-bottom:12px">'+
       '<div style="display:flex;justify-content:space-between;align-items:center;font-size:.8rem;margin-bottom:6px">'+
         '<span>Tolerancia de coincidencia por nombre</span><b id="piThLabel">'+pct+'%</b></div>'+
@@ -3559,8 +3574,19 @@ async function _piApply(){
   const seen=new Set(), conf=[];
   todo.forEach(r=>{ if(seen.has(r.targetId)) conf.push(r); else seen.add(r.targetId); });
   if(conf.length){ toast('⚠️ '+conf.length+' insumo(s) asignados a más de una fila — revisá antes de aplicar'); return; }
+  // Resolver proveedor: existente, nuevo (se crea) o ninguno
+  let provId='', provName='', newSupplierCreated=false;
+  if(_piSupId==='__new__'){
+    const nm=(_piNewSup||'').trim();
+    if(!nm){ toast('⚠️ Escribí el nombre del nuevo proveedor o elegí uno de la lista'); return; }
+    const ex=suppliers.find(s=>_impNorm(s.name)===_impNorm(nm));
+    if(ex){ provId=ex.id; provName=ex.name; }
+    else { provId='sup_'+Date.now(); provName=nm; suppliers.push({id:provId,name:nm}); newSupplierCreated=true; }
+  } else if(_piSupId){
+    const ex=suppliers.find(s=>s.id===_piSupId);
+    if(ex){ provId=ex.id; provName=ex.name; }
+  }
   const btn=document.getElementById('piApplyBtn'); if(btn) btn.disabled=true;
-  const prov=(_piProv||'').trim();
   const today=new Date().toISOString().slice(0,10);
   let n=0; const changes=[];
   todo.forEach(r=>{
@@ -3569,19 +3595,23 @@ async function _piApply(){
     if(Math.abs(old-r.price)<0.005) return;
     s.price=r.price;
     if(!s.priceHistory) s.priceHistory=[];
-    s.priceHistory.unshift({price:r.price,date:today,proveedorName:prov||('Import: '+_piFileName)});
+    const hist={price:r.price,date:today,proveedorName:provName||('Import: '+_piFileName)};
+    if(provId) hist.proveedorId=provId;
+    s.priceHistory.unshift(hist);
     if(s.priceHistory.length>20) s.priceHistory.length=20;
+    if(provId){ s.proveedorId=provId; s.proveedorName=provName; }
     n++; changes.push({name:s.name, old:old, nuevo:r.price});
   });
-  if(!n){ toast('Los precios ya estaban actualizados'); if(btn) btn.disabled=false; return; }
+  if(!n && !newSupplierCreated){ toast('Los precios ya estaban actualizados'); if(btn) btn.disabled=false; return; }
   try{
     await _enqueue(()=>_db.collection(DB_COL).doc("supplies").set({data:supplies,suppliers}).catch(e=>{throw e;}));
-    _auditLog('price_bulk_import','Import precios: '+n+' insumo(s)'+(prov?(' · '+prov):'')+' · archivo '+_piFileName,null,{count:n,changes:changes.slice(0,50)});
-    toast('✓ '+n+' precio(s) actualizados y sincronizados');
+    _auditLog('price_bulk_import','Import precios: '+n+' insumo(s)'+(provName?(' · '+provName):'')+(newSupplierCreated?' · proveedor NUEVO':'')+' · archivo '+_piFileName,null,{count:n,proveedor:provName,newSupplier:newSupplierCreated,changes:changes.slice(0,50)});
+    toast('✓ '+n+' precio(s) actualizados'+(newSupplierCreated?' · proveedor creado':'')+' y sincronizados');
     closePriceImport();
     if(currentTab==='costos') renderCostos();
     if(currentTab==='contable') renderContable();
     if(currentTab==='gestion') renderGestion();
+    renderSuppliersList();
   }catch(e){
     toast('⚠️ Error al guardar: '+(e.message||e));
   }finally{ if(btn) btn.disabled=false; }
