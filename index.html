@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.01.502 -->
+<!-- v2026.07.01.503 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.01.502">
+<meta name="app-version" content="v2026.07.01.503">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1788,6 +1788,7 @@ var pmProgramados=[];
 var auditLog=[];
 var reclamos=[];
 var mejoras=[];
+var empresasRep=[];
 var _mejFiltro='todos';
 var _otViewMode='lista';
 var _auditFiltEnt='todos';
@@ -1802,7 +1803,7 @@ function auditEntry(action,entity,entityId,entityName,details){
 
 function saveData(){
   var now=new Date().toISOString();
-  try{localStorage.setItem("mt_v4",JSON.stringify(eqs));localStorage.setItem("mt_antenas",JSON.stringify(antenas));localStorage.setItem("mt_aires",JSON.stringify(aires));localStorage.setItem("mt_transductores",JSON.stringify(transductores));localStorage.setItem("mt_ordenes",JSON.stringify(ordenesTrabajo));localStorage.setItem("mt_repuestos",JSON.stringify(repuestos));localStorage.setItem("mt_pm_prog",JSON.stringify(pmProgramados));localStorage.setItem("mt_mejoras",JSON.stringify(mejoras));localStorage.setItem("mt_updatedAt",now);}catch(e){}
+  try{localStorage.setItem("mt_v4",JSON.stringify(eqs));localStorage.setItem("mt_antenas",JSON.stringify(antenas));localStorage.setItem("mt_aires",JSON.stringify(aires));localStorage.setItem("mt_transductores",JSON.stringify(transductores));localStorage.setItem("mt_ordenes",JSON.stringify(ordenesTrabajo));localStorage.setItem("mt_repuestos",JSON.stringify(repuestos));localStorage.setItem("mt_pm_prog",JSON.stringify(pmProgramados));localStorage.setItem("mt_mejoras",JSON.stringify(mejoras));localStorage.setItem("mt_emp_rep",JSON.stringify(empresasRep));localStorage.setItem("mt_updatedAt",now);}catch(e){}
   // Mark dirty before the 400ms debounce fires so the sync indicator is accurate
   // even when offline (_fbUser absent) — firestoreSave() would early-return without setting this
   if(typeof _fsDirty!=='undefined')_fsDirty=true;
@@ -1997,7 +1998,7 @@ function firestoreSave(){
 // (add/edit/delete antenna, etc.) where iOS may kill the PWA before the timer fires.
 function saveDataCritical(){
   var now=new Date().toISOString();
-  try{localStorage.setItem("mt_v4",JSON.stringify(eqs));localStorage.setItem("mt_antenas",JSON.stringify(antenas));localStorage.setItem("mt_aires",JSON.stringify(aires));localStorage.setItem("mt_transductores",JSON.stringify(transductores));localStorage.setItem("mt_ordenes",JSON.stringify(ordenesTrabajo));localStorage.setItem("mt_repuestos",JSON.stringify(repuestos));localStorage.setItem("mt_pm_prog",JSON.stringify(pmProgramados));localStorage.setItem("mt_mejoras",JSON.stringify(mejoras));localStorage.setItem("mt_updatedAt",now);}catch(e){}
+  try{localStorage.setItem("mt_v4",JSON.stringify(eqs));localStorage.setItem("mt_antenas",JSON.stringify(antenas));localStorage.setItem("mt_aires",JSON.stringify(aires));localStorage.setItem("mt_transductores",JSON.stringify(transductores));localStorage.setItem("mt_ordenes",JSON.stringify(ordenesTrabajo));localStorage.setItem("mt_repuestos",JSON.stringify(repuestos));localStorage.setItem("mt_pm_prog",JSON.stringify(pmProgramados));localStorage.setItem("mt_mejoras",JSON.stringify(mejoras));localStorage.setItem("mt_emp_rep",JSON.stringify(empresasRep));localStorage.setItem("mt_updatedAt",now);}catch(e){}
   if(!window._fbUser||!window._fbdb){if(typeof _fsDirty!=='undefined')_fsDirty=true;return;}
   if(_fsSaveTimer){clearTimeout(_fsSaveTimer);_fsSaveTimer=null;}
   _fsDirty=true;_fsFailed=false;
@@ -2008,7 +2009,7 @@ function _fsWrite(tryN){
   if(!window._fbUser||!window._fbdb){_fsWriting=false;return;}
   _fsWriting=true;
   orgDataRef()
-    .set({eqs:eqs,antenas:antenas,aires:aires,transductores:transductores,ordenesTrabajo:ordenesTrabajo,repuestos:repuestos,pmProgramados:pmProgramados,auditLog:auditLog,reclamos:reclamos,mejoras:mejoras,updatedAt:new Date().toISOString()},{merge:true})
+    .set({eqs:eqs,antenas:antenas,aires:aires,transductores:transductores,ordenesTrabajo:ordenesTrabajo,repuestos:repuestos,pmProgramados:pmProgramados,auditLog:auditLog,reclamos:reclamos,mejoras:mejoras,empresasRep:empresasRep,updatedAt:new Date().toISOString()},{merge:true})
     .then(function(){_fsWriting=false;_fsDirty=false;_fsFailed=false;})
     .catch(function(e){
       _fsWriting=false;
@@ -2822,7 +2823,7 @@ function openModalEq(eq){
     '</div>'+
     '</div>'+
     '<div class="ff"><div class="ff-label" style="display:flex;align-items:center;gap:6px;">Marca <span style="font-size:.6rem;opacity:.7;">(para mostrar logo)</span></div><select class="inp" id="eq-mk">'+marcaOpts+'</select></div>'+
-    '<div class="ff"><div class="ff-label" style="display:flex;align-items:center;gap:6px;">Empresa representante <span style="font-size:.6rem;opacity:.65;">(a quien reclamar)</span></div><input class="inp" id="eq-repr-empresa" value="'+esc(f.empresaVendio||'')+'" placeholder="Ej: INTEC, Fissore, PowerSystems..."></div>'+
+    (function(){var _erOpts=empresasRep.map(function(er){return '<option value="'+esc(er.nombre)+'">'+esc(er.nombre)+(er.marcas?' ('+esc(er.marcas)+')'):'</option>';}).join('');return '<div class="ff"><div class="ff-label" style="display:flex;align-items:center;gap:6px;justify-content:space-between;"><span style="display:flex;align-items:center;gap:6px;">Empresa representante <span style="font-size:.6rem;opacity:.65;">(a quien reclamar)</span></span><button type="button" onclick="openEmpresasRepModal()" style="font-size:.6rem;padding:2px 8px;border-radius:6px;border:1px solid rgba(173,198,255,.35);background:rgba(173,198,255,.1);color:var(--accent);font-weight:700;cursor:pointer;">+ Gestionar</button></div><input class="inp" id="eq-repr-empresa" list="emp-rep-datalist" value="'+esc(f.empresaVendio||'')+'" placeholder="Ej: INTEC, Fissore, PowerSystems..."><datalist id="emp-rep-datalist">'+_erOpts+'</datalist></div>';})()+
     '<div class="ff"><div class="ff-label">Estado</div><select class="inp" id="eq-es">'+eOpts+'</select></div>'+
     '<div class="ff"><div class="ff-label">Garantía</div>'+
     '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'+
@@ -15035,7 +15036,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.9.6";
+var APP_DISPLAY_VERSION="8.9.7";
 var APP_BUILD="01/07/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
@@ -15135,6 +15136,45 @@ function checkAccess(user,onOk,onDeny){
     onOk(false);
   });
 }
+function openEmpresasRepModal(){
+  function _renderEmpModal(){
+    var list=empresasRep.map(function(er,i){
+      return '<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.06);margin-bottom:6px;">'+
+        '<div style="flex:1;">'+
+          '<div style="font-weight:600;font-size:.84rem;">'+esc(er.nombre)+'</div>'+
+          (er.marcas?'<div style="font-size:.68rem;color:var(--text3);margin-top:2px;">Marcas: '+esc(er.marcas)+'</div>':'')+'</div>'+
+        '<button onclick="_delEmpresaRep('+i+')" style="font-size:.7rem;padding:3px 9px;border-radius:6px;border:1px solid rgba(255,59,48,.3);background:rgba(255,59,48,.1);color:#ef4444;cursor:pointer;">Eliminar</button>'+
+      '</div>';
+    }).join('');
+    var h='<div class="modal-title">Empresas Representantes</div>'+
+      '<div style="font-size:.75rem;color:var(--text3);margin-bottom:14px;">Empresas que distribuyen o representan marcas — aparecen como sugerencias al cargar equipos.</div>'+
+      (list||'<div style="text-align:center;padding:18px 0;font-size:.8rem;color:var(--text3);">Sin empresas cargadas</div>')+
+      '<div style="border-top:1px solid var(--border);margin-top:10px;padding-top:12px;">'+
+        '<div style="font-size:.72rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Agregar empresa</div>'+
+        '<div class="ff" style="margin-bottom:6px;"><div class="ff-label">Nombre de la empresa</div><input class="inp" id="new-emp-rep-nombre" placeholder="Ej: INTEC, Fissore, PowerSystems S.A."></div>'+
+        '<div class="ff" style="margin-bottom:10px;"><div class="ff-label">Marcas que representa <span style="opacity:.6;">(opcional)</span></div><input class="inp" id="new-emp-rep-marcas" placeholder="Ej: GE, Philips"></div>'+
+        '<button class="btn-primary" style="width:100%;" onclick="_addEmpresaRep()">Agregar empresa</button>'+
+      '</div>';
+    openModal(h);
+  }
+  window._addEmpresaRep=function(){
+    var nom=((document.getElementById('new-emp-rep-nombre')||{}).value||'').trim();
+    if(!nom){showToast('Ingresá el nombre de la empresa','warn');return;}
+    if(empresasRep.some(function(e){return e.nombre.toLowerCase()===nom.toLowerCase();})){showToast('Ya existe esa empresa','warn');return;}
+    var marcas=((document.getElementById('new-emp-rep-marcas')||{}).value||'').trim();
+    empresasRep.push({nombre:nom,marcas:marcas});
+    saveDataCritical();
+    _renderEmpModal();
+    showToast('Empresa agregada');
+  };
+  window._delEmpresaRep=function(i){
+    empresasRep.splice(i,1);
+    saveDataCritical();
+    _renderEmpModal();
+    showToast('Empresa eliminada','warn');
+  };
+  _renderEmpModal();
+}
 function openAccessManager(){
   accessDocRef().get().then(function(doc){
     var emails=doc.exists?(doc.data().emails||[]):[];
@@ -15232,6 +15272,7 @@ function init(){
   try{var _cau=localStorage.getItem('mt_audit');if(_cau){var _cpau=JSON.parse(_cau);if(Array.isArray(_cpau))auditLog=_cpau;}}catch(e){}
   try{var _cre=localStorage.getItem('mt_reclamos');if(_cre){var _cpre=JSON.parse(_cre);if(Array.isArray(_cpre))reclamos=_cpre;}}catch(e){}
   try{var _cmj=localStorage.getItem('mt_mejoras');if(_cmj){var _cpmj=JSON.parse(_cmj);if(Array.isArray(_cpmj))mejoras=_cpmj;}}catch(e){}
+  try{var _cer=localStorage.getItem('mt_emp_rep');if(_cer){var _cper=JSON.parse(_cer);if(Array.isArray(_cper))empresasRep=_cper;}}catch(e){}
   render();
   // Deep-link: #EQ-xxx opens equipment directly
   try{
@@ -15298,6 +15339,7 @@ function init(){
             if(Array.isArray(d.auditLog))auditLog=d.auditLog;
             if(Array.isArray(d.reclamos))reclamos=d.reclamos;
             if(Array.isArray(d.mejoras))mejoras=d.mejoras;
+            if(Array.isArray(d.empresasRep))empresasRep=d.empresasRep;
           }
         }
         function _lsLoad(){
@@ -15311,6 +15353,7 @@ function init(){
           try{var sau=localStorage.getItem('mt_audit');if(sau){var pau=JSON.parse(sau);if(Array.isArray(pau))auditLog=pau;}}catch(e){}
           try{var sre=localStorage.getItem('mt_reclamos');if(sre){var pre=JSON.parse(sre);if(Array.isArray(pre))reclamos=pre;}}catch(e){}
           try{var smj=localStorage.getItem('mt_mejoras');if(smj){var pmj=JSON.parse(smj);if(Array.isArray(pmj))mejoras=pmj;}}catch(e){}
+          try{var ser=localStorage.getItem('mt_emp_rep');if(ser){var per=JSON.parse(ser);if(Array.isArray(per))empresasRep=per;}}catch(e){}
         }
         function _finishLoad(){
           migrateEqs();
@@ -15701,6 +15744,9 @@ function rReporte(){
   </button>
   <button class="sb-sub-btn" onclick="closeSbAjustesMenu();exportBackup()">
     <span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span>Descargar Backup
+  </button>
+  <button class="sb-sub-btn" onclick="closeSbAjustesMenu();openEmpresasRepModal()">
+    <span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-4 0v2"/><path d="M8 7V5a2 2 0 00-4 0"/><line x1="12" y1="12" x2="12" y2="17"/><line x1="9.5" y1="14.5" x2="14.5" y2="14.5"/></svg></span>Empresas Representantes
   </button>
   <div id="sb-access-btn" style="display:none;">
     <button class="sb-sub-btn" onclick="closeSbAjustesMenu();openAccessManager()">
