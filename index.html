@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.01.503 -->
+<!-- v2026.07.01.504 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.01.503">
+<meta name="app-version" content="v2026.07.01.504">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -2794,6 +2794,7 @@ function openModalEq(eq){
   var marcaOpts=MARCAS.map(function(x){return'<option value="'+x+'"'+(f.marca===x?' selected':'')+'>'+( x||"— Sin marca —")+'</option>';}).join("");
   var fOpts=["semestral","anual","trimestral","mensual","ninguna"].map(function(x){return'<option'+(f.frecuencia===x?' selected':'')+'>'+x+'</option>';}).join("");
   var eOpts=["operativo","con-rotura","fuera-de-servicio"].map(function(x){var sel=f.estado===x||(f.estado==='advertencia'&&x==='con-rotura');return'<option'+(sel?' selected':'')+'>'+x+'</option>';}).join("");
+  var _erDl=empresasRep.map(function(er){return '<option value="'+esc(er.nombre)+'">';}).join('');
   openModal('<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><div class="modal-title">'+(n?"Nuevo Equipo":"Editar Equipo")+'</div><button class="modal-close" onclick="closeModal()">✕</button></div>'+
     (n?'<button id="scan-label-btn" type="button" onclick="scanLabelEquipo()" style="width:100%;padding:11px 14px;border-radius:14px;background:linear-gradient(135deg,rgba(0,113,227,.1),rgba(0,113,227,.05));border:1.5px solid rgba(0,113,227,.3);color:var(--accent);font-weight:700;font-size:.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:14px;">📷 Escanear etiqueta con IA</button>':'')+
     '<div class="ff"><div class="ff-label">Nombre *</div><input class="inp" id="eq-n" value="'+esc(f.nombre)+'" placeholder="Ej: RM Explorer GN"></div>'+
@@ -2823,7 +2824,7 @@ function openModalEq(eq){
     '</div>'+
     '</div>'+
     '<div class="ff"><div class="ff-label" style="display:flex;align-items:center;gap:6px;">Marca <span style="font-size:.6rem;opacity:.7;">(para mostrar logo)</span></div><select class="inp" id="eq-mk">'+marcaOpts+'</select></div>'+
-    (function(){var _erOpts=empresasRep.map(function(er){return '<option value="'+esc(er.nombre)+'">'+esc(er.nombre)+(er.marcas?' ('+esc(er.marcas)+')'):'</option>';}).join('');return '<div class="ff"><div class="ff-label" style="display:flex;align-items:center;gap:6px;justify-content:space-between;"><span style="display:flex;align-items:center;gap:6px;">Empresa representante <span style="font-size:.6rem;opacity:.65;">(a quien reclamar)</span></span><button type="button" onclick="openEmpresasRepModal()" style="font-size:.6rem;padding:2px 8px;border-radius:6px;border:1px solid rgba(173,198,255,.35);background:rgba(173,198,255,.1);color:var(--accent);font-weight:700;cursor:pointer;">+ Gestionar</button></div><input class="inp" id="eq-repr-empresa" list="emp-rep-datalist" value="'+esc(f.empresaVendio||'')+'" placeholder="Ej: INTEC, Fissore, PowerSystems..."><datalist id="emp-rep-datalist">'+_erOpts+'</datalist></div>';})()+
+    '<div class="ff"><div class="ff-label" style="display:flex;align-items:center;gap:6px;justify-content:space-between;"><span style="display:flex;align-items:center;gap:6px;">Empresa representante <span style="font-size:.6rem;opacity:.65;">(a quien reclamar)</span></span><button type="button" onclick="openEmpresasRepModal()" style="font-size:.6rem;padding:2px 8px;border-radius:6px;border:1px solid rgba(173,198,255,.35);background:rgba(173,198,255,.1);color:var(--accent);font-weight:700;cursor:pointer;">+ Gestionar</button></div><input class="inp" id="eq-repr-empresa" list="emp-rep-datalist" value="'+esc(f.empresaVendio||'')+'" placeholder="Ej: INTEC, Fissore, PowerSystems..."><datalist id="emp-rep-datalist">'+_erDl+'</datalist></div>'+
     '<div class="ff"><div class="ff-label">Estado</div><select class="inp" id="eq-es">'+eOpts+'</select></div>'+
     '<div class="ff"><div class="ff-label">Garantía</div>'+
     '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'+
@@ -15036,7 +15037,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.9.7";
+var APP_DISPLAY_VERSION="8.9.8";
 var APP_BUILD="01/07/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
