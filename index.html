@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.02.509 -->
+<!-- v2026.07.02.510 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.02.509">
+<meta name="app-version" content="v2026.07.02.510">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1164,9 +1164,8 @@ body.dark .pill[style*="#ff9500"],body.dark .pill[style*="--orange"]{box-shadow:
       <button class="modal-close" onclick="toggleSettings()">✕</button>
     </div>
     <div style="padding:0 0 14px;border-bottom:1px solid rgba(0,0,0,.08);margin-bottom:14px;">
-      <button onclick="doUpdate()" style="width:100%;padding:11px;background:rgba(100,200,255,.15);color:#0071e3;border:1px solid rgba(0,113,227,.2);border-radius:50px;font-weight:600;font-size:.82rem;cursor:pointer;">⚡ Actualizar Aplicación</button>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:7px;"><div style="font-size:.65rem;color:var(--text3);">Recarga sin caché del navegador</div><div id="ver-label" style="font-size:.6rem;color:var(--text3);font-family:monospace;"></div></div>
-      <button onclick="doClearCache()" style="width:100%;padding:11px;margin-top:8px;background:rgba(255,149,0,.12);color:#b45309;border:1px solid rgba(255,149,0,.28);border-radius:50px;font-weight:600;font-size:.82rem;cursor:pointer;">🗑 Limpiar caché</button>
+      <div style="display:flex;justify-content:flex-end;"><div id="ver-label" style="font-size:.6rem;color:var(--text3);font-family:monospace;"></div></div>
+      <button onclick="doClearCache()" style="width:100%;padding:11px;background:rgba(255,149,0,.12);color:#b45309;border:1px solid rgba(255,149,0,.28);border-radius:50px;font-weight:600;font-size:.82rem;cursor:pointer;">🗑 Limpiar caché</button>
       <div style="font-size:.65rem;color:var(--text3);margin-top:5px;text-align:center;">Borra datos temporales y recarga la app</div>
     </div>
     <div class="settings-item">
@@ -1213,19 +1212,6 @@ body.dark .pill[style*="#ff9500"],body.dark .pill[style*="--orange"]{box-shadow:
       </div>
     </div>
     <div class="settings-item">
-      <div class="settings-title">💾 Backup / Respaldo</div>
-      <div class="settings-desc" style="margin-bottom:10px;">Descargá todos tus datos</div>
-      <button onclick="exportBackup()" class="btn-primary" style="width:100%;padding:12px;">📥 Descargar Backup</button>
-    </div>
-    <div class="settings-item">
-      <div class="settings-title">📤 Restaurar Datos</div>
-      <div class="settings-desc" style="margin-bottom:10px;">Recuperá datos desde un backup</div>
-      <label style="display:block;width:100%;padding:12px;background:var(--green);color:#fff;border-radius:var(--r-md);font-weight:600;font-size:.82rem;cursor:pointer;text-align:center;">
-        📤 Restaurar desde Backup
-        <input type="file" accept=".json" onchange="importBackup(event)" style="display:none;">
-      </label>
-    </div>
-    <div class="settings-item">
       <div class="settings-title">📄 Reporte General PDF</div>
       <div class="settings-desc" style="margin-bottom:10px;">PDF con resumen de todos los equipos</div>
       <button onclick="toggleSettings();exportInventarioPDF()" class="b-accent" style="width:100%;padding:12px;border-radius:50px;margin-bottom:8px;">📋 Inventario de Equipos</button>
@@ -1238,11 +1224,6 @@ body.dark .pill[style*="#ff9500"],body.dark .pill[style*="--orange"]{box-shadow:
       </div>
       <button onclick="expFiltered()" style="width:100%;padding:12px;background:var(--red);color:#fff;border:none;border-radius:50px;font-weight:600;font-size:.82rem;cursor:pointer;">📄 Informe Filtrado</button>
     </div>
-    <div class="settings-item">
-      <div class="settings-title">💼 Propuesta Comercial</div>
-      <div class="settings-desc" style="margin-bottom:10px;">PDF ejecutivo para presentar el sistema a la dirección o socios</div>
-      <button onclick="toggleSettings();generarPropuestaComercial()" class="b-accent" style="width:100%;padding:12px;border-radius:50px;margin-bottom:0;">📄 Generar Propuesta</button>
-    </div>
     <div class="settings-item" style="margin-bottom:12px;">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;position:relative;z-index:1;">
         <div style="width:36px;height:36px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1rem;flex-shrink:0;">👤</div>
@@ -1254,7 +1235,6 @@ body.dark .pill[style*="#ff9500"],body.dark .pill[style*="--orange"]{box-shadow:
       <div id="ai-key-settings-btn" style="display:none;margin-bottom:8px;">
         <button onclick="toggleSettings();openAIKeyModal()" style="width:100%;padding:10px;background:rgba(0,113,227,.08);color:var(--accent);border:1px solid rgba(0,113,227,.18);border-radius:50px;font-weight:600;font-size:.8rem;cursor:pointer;">📷 API Key Escáner IA</button>
       </div>
-      <button onclick="toggleSettings();doUpdate()" style="width:100%;padding:10px;background:rgba(0,113,227,.06);color:var(--accent);border:1px solid rgba(0,113,227,.15);border-radius:50px;font-weight:600;font-size:.8rem;cursor:pointer;margin-bottom:8px;">🔄 Actualizar App</button>
       <button onclick="doSignOut()" style="width:100%;padding:10px;background:rgba(255,59,48,.1);color:var(--red);border:1px solid rgba(255,59,48,.2);border-radius:50px;font-weight:600;font-size:.8rem;cursor:pointer;position:relative;z-index:1;">🚪 Cerrar sesión</button>
     </div>
     <div id="settings-footer" style="text-align:center;padding:14px 0;color:var(--text3);font-size:.66rem;line-height:1.6;"></div>
@@ -15278,7 +15258,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.12.0";
+var APP_DISPLAY_VERSION="8.12.1";
 var APP_BUILD="02/07/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
