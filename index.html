@@ -325,9 +325,7 @@ textarea.inp{resize:vertical;}
 .g2cat{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .cring-wrap{position:relative;border-radius:var(--r-lg);}
 .cring-el{position:absolute;inset:0;border-radius:inherit;overflow:hidden;padding:2px;-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:destination-out;mask-composite:exclude;pointer-events:none;z-index:2;}
-.cring-el::before{content:'';position:absolute;inset:-110%;width:320%;height:320%;background:conic-gradient(from 0deg,transparent 0deg,var(--cc,#818cf8) 48deg,transparent 96deg);transform:rotate(45deg);transform-origin:center;}
-/* Solo cards marcadas como alerta giran — limita layers GPU */
-.cring-wrap.cring-alert .cring-el::before{animation:cring-spin 5s linear infinite;will-change:transform;transform:none;}
+.cring-el::before{content:'';position:absolute;inset:-110%;width:320%;height:320%;background:conic-gradient(from 0deg,transparent 0deg,var(--cc,#818cf8) 48deg,transparent 96deg);transform-origin:center;animation:cring-spin 5s linear infinite;will-change:transform;}
 @keyframes cring-spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
 .cring-wrap>.gc{position:relative;z-index:1;}
 @media(max-width:480px){.g3{grid-template-columns:repeat(2,1fr);}.g2{grid-template-columns:1fr 1fr;}.g2cat{grid-template-columns:1fr 1fr;}}
