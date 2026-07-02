@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.01.506 -->
+<!-- v2026.07.02.507 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.01.506">
+<meta name="app-version" content="v2026.07.02.507">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -5828,7 +5828,10 @@ var OT_ESTADOS={pendiente:'Pendiente',asignada:'Asignada',en_progreso:'En progre
 var OT_TIPOS={correctivo:'Correctivo',preventivo:'Preventivo',mejora:'Mejora'};
 var OT_PRIORIDADES={urgente:'Urgente',alta:'Alta',normal:'Normal',baja:'Baja'};
 var _otFiltroEstado='todos';
+var _otHistorialOpen=false;
 function rOrdenes(){
+  // Reset filtro si era cerrada/cancelada (ahora están en historial)
+  if(_otFiltroEstado==='cerrada'||_otFiltroEstado==='cancelada')_otFiltroEstado='todos';
   var h='';
   h+=sedeBarHTML();
   h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">';
@@ -5839,12 +5842,15 @@ function rOrdenes(){
   h+='<button onclick="generarPDFOrdenes()" style="padding:7px 14px;border-radius:var(--r-pill);background:rgba(0,113,227,.12);border:1.5px solid rgba(0,113,227,.28);color:var(--accent);font-weight:700;font-size:.75rem;cursor:pointer;">📄 PDF</button>';
   h+='<button onclick="openModalOT(null,null)" style="padding:7px 14px;border-radius:var(--r-pill);background:rgba(52,199,89,.12);border:1.5px solid rgba(52,199,89,.28);color:var(--green);font-weight:700;font-size:.75rem;cursor:pointer;">+ Nueva OT</button>';
   h+='</div></div>';
-  var estadoFiltros=['todos','pendiente','asignada','en_progreso','cerrada','cancelada'];
-  var estadoLbls={todos:'Todas',pendiente:'Pendiente',asignada:'Asignada',en_progreso:'En progreso',cerrada:'Cerrada',cancelada:'Cancelada'};
+  // Filtros solo para OTs activas
+  var estadoFiltros=['todos','pendiente','asignada','en_progreso'];
+  var estadoLbls={todos:'Activas',pendiente:'Pendiente',asignada:'Asignada',en_progreso:'En progreso'};
   h+='<div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:12px;scrollbar-width:none;">';
   estadoFiltros.forEach(function(f){h+='<button onclick="_otFiltroEstado=\''+f+'\';render();" style="white-space:nowrap;padding:5px 13px;border-radius:50px;font-size:.72rem;font-weight:700;border:1.5px solid rgba(255,255,255,.12);background:'+(_otFiltroEstado===f?'rgba(0,113,227,.15)':'rgba(255,255,255,.05)')+';color:'+(_otFiltroEstado===f?'var(--accent)':'var(--text2)')+';cursor:pointer;">'+estadoLbls[f]+'</button>';});
   h+='</div>';
+  // Solo OTs activas (no cerradas ni canceladas)
   var filtered=ordenesTrabajo.filter(function(ot){
+    if(ot.estado==='cerrada'||ot.estado==='cancelada')return false;
     if(_sedeActiva&&_sedeActiva!==''){
       var eq2=eqs.find(function(e){return e.id===ot.eqId;});
       if(eq2&&(eq2.ubicacion||'').toUpperCase()!==_sedeActiva.toUpperCase())return false;
@@ -5853,9 +5859,9 @@ function rOrdenes(){
   });
   filtered=filtered.slice().sort(function(a,b){return a.fechaCreacion<b.fechaCreacion?1:-1;});
   if(_otViewMode==='kanban'){
-    var kanbanCols=['pendiente','en_progreso','cerrada','cancelada'];
-    var kanbanLabels={pendiente:'Pendiente',en_progreso:'En Progreso',cerrada:'Cerrada',cancelada:'Cancelada'};
-    var kanbanColors={pendiente:'#adc6ff',en_progreso:'#ff9500',cerrada:'#30d158',cancelada:'#98989d'};
+    var kanbanCols=['pendiente','asignada','en_progreso'];
+    var kanbanLabels={pendiente:'Pendiente',asignada:'Asignada',en_progreso:'En Progreso'};
+    var kanbanColors={pendiente:'#adc6ff',asignada:'var(--accent)',en_progreso:'#ff9500'};
     var khtml='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;align-items:start;">';
     for(var kci=0;kci<kanbanCols.length;kci++){
       var kcol=kanbanCols[kci];
@@ -5943,6 +5949,62 @@ function rOrdenes(){
     h+='<button onclick="deleteOT(\''+ot.id+'\')" style="padding:4px 10px;border-radius:var(--r-pill);background:rgba(255,59,48,.10);border:1px solid rgba(255,59,48,.25);color:var(--red);font-size:.65rem;font-weight:700;cursor:pointer;">🗑</button>';
     h+='</div></div></div></div>';
   });
+  // ── HISTORIAL DE OTs CERRADAS/CANCELADAS ──────────────────────────────────
+  var histOTs=ordenesTrabajo.filter(function(ot){return ot.estado==='cerrada'||ot.estado==='cancelada';});
+  histOTs=histOTs.slice().sort(function(a,b){
+    var da=a.fechaCierreISO||a.fechaCierre||a.fechaCreacion||'';
+    var db=b.fechaCierreISO||b.fechaCierre||b.fechaCreacion||'';
+    return da<db?1:-1;
+  });
+  if(histOTs.length){
+    h+='<div style="margin-top:28px;">';
+    h+='<button onclick="_otHistorialOpen=!_otHistorialOpen;render();" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-radius:12px;border:1.5px solid rgba(48,209,88,.22);background:rgba(48,209,88,.06);cursor:pointer;text-align:left;">';
+    h+='<div style="display:flex;align-items:center;gap:10px;">';
+    h+='<span style="font-size:.82rem;font-weight:700;color:var(--green);">📋 Historial de OTs cerradas</span>';
+    h+='<span style="font-size:.68rem;font-weight:700;padding:2px 9px;border-radius:20px;background:rgba(48,209,88,.14);color:var(--green);">'+histOTs.length+'</span>';
+    h+='</div>';
+    h+='<span style="font-size:.75rem;color:var(--text3);transition:transform .2s;display:inline-block;transform:rotate('+(_otHistorialOpen?'90':'0')+'deg);">▶</span>';
+    h+='</button>';
+    if(_otHistorialOpen){
+      h+='<div style="margin-top:8px;">';
+      histOTs.forEach(function(ot){
+        var eq3=eqs.find(function(e){return e.id===ot.eqId;});
+        var eqNom=eq3?eq3.nombre:(ot.sala||'Sin equipo');
+        var ec2=ot.estado==='cerrada'?'var(--green)':'#8e8e93';
+        var ec2lbl=OT_ESTADOS[ot.estado]||ot.estado;
+        var pc2={urgente:'var(--red)',alta:'var(--orange)',normal:'var(--accent)',baja:'var(--green)'}[ot.prioridad]||'var(--text3)';
+        var isMej2=ot.tipo==='mejora';
+        var tipoObraLabel2={pintura:'Pintura',carpinteria:'Carpintería',electricidad:'Electricidad',plomeria:'Plomería',mobiliario:'Mobiliario',obra:'Obra civil',limpieza:'Limpieza',otro:'Obra/Mejora'};
+        h+='<div class="cring-wrap" style="--cc:'+ec2+';margin-bottom:8px;opacity:.88;"><div class="cring-el"></div><div class="gc" style="padding:0;overflow:hidden;">';
+        h+='<div style="padding:9px 14px;display:flex;align-items:flex-start;gap:10px;">';
+        h+='<div style="flex:1;min-width:0;">';
+        h+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;flex-wrap:wrap;">';
+        h+='<span style="font-size:.58rem;font-weight:700;font-family:monospace;color:var(--text3);">'+ot.id+'</span>';
+        h+='<span style="font-size:.6rem;font-weight:700;padding:1px 7px;border-radius:20px;background:'+ec2+'22;color:'+ec2+';border:1px solid '+ec2+'44;">'+ec2lbl+'</span>';
+        h+='<span style="font-size:.6rem;font-weight:700;padding:1px 7px;border-radius:20px;background:'+pc2+'22;color:'+pc2+';border:1px solid '+pc2+'44;">'+(OT_PRIORIDADES[ot.prioridad]||ot.prioridad)+'</span>';
+        if(isMej2)h+='<span style="font-size:.6rem;font-weight:700;padding:1px 7px;border-radius:20px;background:rgba(139,92,246,.14);color:#8b5cf6;border:1px solid rgba(139,92,246,.3);">✏️ '+(tipoObraLabel2[ot.tipoObra]||'Mejora')+'</span>';
+        h+='</div>';
+        h+='<div style="font-weight:700;font-size:.84rem;margin-bottom:2px;">'+esc(ot.titulo)+'</div>';
+        h+='<div style="font-size:.7rem;color:var(--text3);">'+esc(eqNom)+(ot.tecnicoAsignado?' \xb7 👷 '+esc(ot.tecnicoAsignado):'')+'</div>';
+        h+='<div style="font-size:.64rem;color:var(--text3);margin-top:3px;">Creada: '+fD(ot.fechaCreacion)+(ot.fechaCierre?' \xb7 Cerrada: '+fD(ot.fechaCierre):'')+'</div>';
+        if(ot.resolucion)h+='<div style="font-size:.67rem;color:var(--text2);margin-top:3px;padding:4px 8px;background:rgba(52,199,89,.07);border-radius:6px;border-left:3px solid rgba(52,199,89,.35);">'+esc(ot.resolucion.slice(0,100))+(ot.resolucion.length>100?'…':'')+'</div>';
+        if(ot.firma)h+='<div style="font-size:.6rem;color:rgba(52,199,89,.7);margin-top:2px;">✍️ Firmada</div>';
+        if(ot.gastosCierre)h+='<div style="font-size:.62rem;color:var(--orange);margin-top:2px;">💵 '+(ot.monedaGastos||'ARS')+' '+ot.gastosCierre+'</div>';
+        if((ot.imagenesClose&&ot.imagenesClose.length)){
+          h+='<div style="margin-top:4px;">';
+          h+='<button onclick="openOTImagesModal('+JSON.stringify(ot.imagenesClose).replace(/'/g,"&#39;")+',\'Cierre - \'+\''+esc(ot.titulo)+'\')" style="padding:2px 9px;border-radius:var(--r-pill);background:rgba(52,199,89,.10);border:1px solid rgba(52,199,89,.22);color:var(--green);font-size:.62rem;font-weight:700;cursor:pointer;">📷 '+ot.imagenesClose.length+' foto cierre</button>';
+          h+='</div>';
+        }
+        h+='</div>';
+        h+='<div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end;flex-shrink:0;">';
+        h+='<button onclick="deleteOT(\''+ot.id+'\')" style="padding:4px 10px;border-radius:var(--r-pill);background:rgba(255,59,48,.10);border:1px solid rgba(255,59,48,.25);color:var(--red);font-size:.65rem;font-weight:700;cursor:pointer;">🗑</button>';
+        h+='</div>';
+        h+='</div></div></div>';
+      });
+      h+='</div>';
+    }
+    h+='</div>';
+  }
   return h;
 }
 function openModalOT(eqId,otId){
@@ -15109,8 +15171,8 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.10.0";
-var APP_BUILD="01/07/26 h";
+var APP_DISPLAY_VERSION="8.10.1";
+var APP_BUILD="02/07/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
