@@ -1633,6 +1633,7 @@
           <span class="search-icon">🔍</span>
           <input class="search-input" type="search" id="costosSearch" placeholder="Buscar insumo…" oninput="renderCostos()" autocomplete="off" />
         </div>
+        <button class="btn btn-secondary" style="flex-shrink:0" onclick="openPriceChanges()"><span class="btn-icon">🕑</span> Cambios recientes</button>
       </div>
       <div id="costosContainer"></div>
     </div>
@@ -1856,6 +1857,26 @@
       <button class="modal-close-btn" onclick="closePriceImport()">✕</button>
     </div>
     <div id="piBody"></div>
+  </div>
+</div>
+
+<!-- ─── Modal Cambios de precio en el sistema ───────────────────────── -->
+<div class="modal-overlay" id="priceChangesModal" onclick="closePriceChanges(event)">
+  <div class="modal-sheet" onclick="event.stopPropagation()" style="max-width:720px">
+    <div class="modal-handle"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div class="modal-title">🕑 Cambios de precio en el sistema</div>
+      <button class="modal-close-btn" onclick="closePriceChanges()">✕</button>
+    </div>
+    <div style="font-size:.78rem;color:var(--text3);line-height:1.5;margin-bottom:12px">
+      Evolución de precios de todos los insumos, con fecha, variación y origen del cambio. Tocá un ítem para ver su historial completo.
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
+      <label style="font-size:.78rem;color:var(--text3)">Filtrar por mes:</label>
+      <input type="month" id="pcMonth" class="modal-input" style="width:auto" onchange="_pcRender()">
+      <button class="fmt-pill" onclick="_pcClearMonth()">Todos</button>
+    </div>
+    <div id="pcList" style="max-height:56vh;overflow-y:auto"></div>
   </div>
 </div>
 
@@ -2214,7 +2235,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "4.39";
+const APP_VERSION = "4.40";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -3594,11 +3615,7 @@ async function _piApply(){
     const old=s.price||0;
     if(Math.abs(old-r.price)<0.005) return;
     s.price=r.price;
-    if(!s.priceHistory) s.priceHistory=[];
-    const hist={price:r.price,date:today,proveedorName:provName||('Import: '+_piFileName)};
-    if(provId) hist.proveedorId=provId;
-    s.priceHistory.unshift(hist);
-    if(s.priceHistory.length>20) s.priceHistory.length=20;
+    _pushPriceHistory(s, r.price, today, {origin:'import', proveedorName:provName||('Import: '+_piFileName), proveedorId:provId||undefined});
     if(provId){ s.proveedorId=provId; s.proveedorName=provName; }
     n++; changes.push({name:s.name, old:old, nuevo:r.price});
   });
@@ -3617,6 +3634,88 @@ async function _piApply(){
   }finally{ if(btn) btn.disabled=false; }
 }
 
+
+// ─── Historial de precios: registro con fecha, origen y proveedor ─────────────
+const PRICE_HIST_MAX = 60;
+// origin: 'import' (lista de proveedor) | 'entrada' (movimiento) | 'manual' (edición)
+function _pushPriceHistory(s, price, date, opts){
+  opts = opts || {};
+  if(!s.priceHistory) s.priceHistory = [];
+  // Evitar duplicado exacto: mismo día, mismo precio y mismo origen que el último registro
+  const last = s.priceHistory[0];
+  if(last && last.date===date && Math.abs((last.price||0)-price)<0.005 && (last.origin||'manual')===(opts.origin||'manual')){
+    if(opts.proveedorName){ last.proveedorName=opts.proveedorName; if(opts.proveedorId) last.proveedorId=opts.proveedorId; }
+    return;
+  }
+  const entry = { price:price, date:date, origin: opts.origin||'manual', ts: new Date().toISOString() };
+  if(opts.proveedorName) entry.proveedorName = opts.proveedorName;
+  if(opts.proveedorId)   entry.proveedorId   = opts.proveedorId;
+  s.priceHistory.unshift(entry);
+  if(s.priceHistory.length > PRICE_HIST_MAX) s.priceHistory.length = PRICE_HIST_MAX;
+}
+function _priceOriginLabel(o){
+  return o==='import' ? '📥 Lista proveedor' : o==='entrada' ? '📦 Entrada' : o==='manual' ? '✎ Manual' : '';
+}
+
+// ─── Cambios de precio en todo el sistema (evolución global) ──────────────────
+function openPriceChanges(){
+  const m=document.getElementById('pcMonth'); if(m) m.value='';
+  document.getElementById('priceChangesModal').classList.add('open');
+  _pcRender();
+}
+function closePriceChanges(ev){
+  if(ev&&ev.target!==ev.currentTarget) return;
+  document.getElementById('priceChangesModal').classList.remove('open');
+}
+function _pcClearMonth(){ const m=document.getElementById('pcMonth'); if(m) m.value=''; _pcRender(); }
+function _collectPriceChanges(){
+  const all=[];
+  supplies.forEach(s=>{
+    const h=s.priceHistory||[];
+    for(let i=0;i<h.length;i++){
+      const cur=h[i], prev=h[i+1];
+      if(!cur||!cur.date) continue;
+      all.push({ supplyId:s.id, name:s.name, code:s.code||'', unit:s.unit||'',
+        date:cur.date, ts:cur.ts||cur.date, price:cur.price,
+        prevPrice:prev?prev.price:null, proveedorName:cur.proveedorName||'', origin:cur.origin||'' });
+    }
+  });
+  all.sort((a,b)=> String(b.ts||'').localeCompare(String(a.ts||'')) || String(b.date||'').localeCompare(String(a.date||'')));
+  return all;
+}
+function _pcRender(){
+  const el=document.getElementById('pcList'); if(!el) return;
+  const month=(document.getElementById('pcMonth')?.value||'').trim();
+  let list=_collectPriceChanges();
+  if(month) list=list.filter(c=>String(c.date).slice(0,7)===month);
+  if(!list.length){ el.innerHTML='<div style="text-align:center;color:var(--text3);padding:28px;font-size:.85rem">Sin cambios de precio'+(month?' en este mes':'')+'.</div>'; return; }
+  const shown=list.slice(0,200);
+  let html='', lastDate=null;
+  shown.forEach(c=>{
+    if(c.date!==lastDate){
+      lastDate=c.date;
+      html+='<div style="font-size:.72rem;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin:12px 2px 6px">'+escHtml(fmtDate(c.date))+'</div>';
+    }
+    const pct=(c.prevPrice&&c.prevPrice>0)?((c.price-c.prevPrice)/c.prevPrice*100):null;
+    const pctTxt=pct==null?'':'<span style="font-weight:700;color:'+(pct>=0?'#d92b20':'#1a9d4b')+'">'+(pct>=0?'+':'')+pct.toFixed(1)+'%</span>';
+    const oldTxt=c.prevPrice!=null?('<span style="color:var(--text3)">$'+fmt(c.prevPrice)+'</span> → '):'';
+    const org=c.origin?('<span style="font-size:.66rem;color:var(--text3)">'+_priceOriginLabel(c.origin)+'</span>'):'';
+    const prov=c.proveedorName?('<span style="font-size:.66rem;color:var(--text3)">🚚 '+escHtml(c.proveedorName)+'</span>'):'';
+    html+='<div class="gc" style="padding:9px 13px;margin-bottom:6px;cursor:pointer" onclick="_pcOpen(\''+escAttr(c.supplyId)+'\')">'+
+      '<div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">'+
+        '<div style="min-width:0">'+
+          '<div style="font-size:.86rem;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escHtml(c.name)+'</div>'+
+          '<div style="font-size:.74rem;margin-top:2px">'+oldTxt+'<b>$'+fmt(c.price)+'</b> '+pctTxt+'</div>'+
+          ((org||prov)?('<div style="margin-top:3px;display:flex;gap:8px;flex-wrap:wrap">'+org+prov+'</div>'):'')+
+        '</div>'+
+        '<svg width="15" height="15" viewBox="0 0 18 18" fill="none" style="opacity:.35;flex-shrink:0;margin-top:3px"><path d="M7 4l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'+
+      '</div>'+
+    '</div>';
+  });
+  if(list.length>shown.length) html+='<div style="text-align:center;color:var(--text3);font-size:.75rem;padding:8px">Mostrando los '+shown.length+' cambios más recientes de '+list.length+'.</div>';
+  el.innerHTML=html;
+}
+function _pcOpen(id){ closePriceChanges(); switchTabDirect('costos'); openCostosDetail(id); }
 
 // ─── Costos ───────────────────────────────────────────────────────────────────
 let _costosDetailId=null;
@@ -3695,13 +3794,18 @@ function openCostosDetail(id){
       <div style="padding:14px 20px 8px;font-size:.72rem;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.07em">Historial de precios</div>
       ${histDesc.map((h,i)=>{
         const prev=histDesc[i+1];
-        let arrow="";
-        if(prev){arrow=h.price>prev.price?'<span class="costos-trend-up">▲</span>':h.price<prev.price?'<span class="costos-trend-down">▼</span>':'';}
-        return `<div class="costos-hist-row" id="costos-hist-row-${i}" style="padding:8px 20px">
-          <span class="costos-hist-date">${h.date||""}</span>
+        let arrow="",pctTxt="";
+        if(prev){
+          arrow=h.price>prev.price?'<span class="costos-trend-up">▲</span>':h.price<prev.price?'<span class="costos-trend-down">▼</span>':'';
+          if(prev.price>0){const p=((h.price-prev.price)/prev.price*100);pctTxt=`<span style="font-size:.72rem;font-weight:700;color:${p>=0?'#d92b20':'#1a9d4b'}">${p>=0?'+':''}${p.toFixed(1)}%</span>`;}
+        }
+        const org=h.origin?`<span style="font-size:.66rem;color:var(--text3)">${_priceOriginLabel(h.origin)}</span>`:"";
+        return `<div class="costos-hist-row" id="costos-hist-row-${i}" style="padding:8px 20px;flex-wrap:wrap">
+          <span class="costos-hist-date">${h.date?fmtDate(h.date):""}</span>
           <span class="costos-hist-price">$${fmt(h.price)}</span>
-          ${arrow}
+          ${arrow}${pctTxt}
           ${h.proveedorName?`<span class="costos-hist-prov">🚚 ${escHtml(h.proveedorName)}</span>`:""}
+          ${org}
           <span style="margin-left:auto;display:flex;gap:6px">
             <button onclick="editCostosHistInline(${i})" style="background:rgba(0,113,227,.15);border:none;border-radius:6px;padding:3px 8px;font-size:.78rem;color:var(--accent);cursor:pointer">✎</button>
             <button onclick="deleteCostosHist(${i})" style="background:rgba(255,59,48,.12);border:none;border-radius:6px;padding:3px 8px;font-size:.78rem;color:var(--red);cursor:pointer">✕</button>
@@ -3716,7 +3820,7 @@ function openCostosDetail(id){
       new Chart(ctx,{
         type:"line",
         data:{
-          labels:hist.map(h=>h.date||""),
+          labels:hist.map(h=>h.date?fmtDate(h.date):""),
           datasets:[{
             label:"Precio",data:hist.map(h=>h.price),
             borderColor:"#0071e3",backgroundColor:"rgba(0,113,227,.12)",
@@ -3749,9 +3853,7 @@ function confirmCostosPrice(){
   if(val<=0){toast("⚠️ Ingresá un precio válido");return;}
   const today=new Date().toISOString().slice(0,10);
   s.price=val;
-  if(!s.priceHistory)s.priceHistory=[];
-  s.priceHistory.unshift({price:val,date:today,proveedorName:""});
-  if(s.priceHistory.length>20)s.priceHistory.length=20;
+  _pushPriceHistory(s, val, today, {origin:'manual'});
   persist();
   toast("✓ Precio actualizado: $"+fmt(val));
   openCostosDetail(_costosDetailId);
@@ -4096,9 +4198,7 @@ function saveMovimiento(){
 
   if(_movType==="entrada"&&unitPrice>0){
     s.price=unitPrice;
-    if(!s.priceHistory)s.priceHistory=[];
-    s.priceHistory.unshift({price:unitPrice,date,proveedorName:proveedor?.name||""});
-    if(s.priceHistory.length>10)s.priceHistory.length=10;
+    _pushPriceHistory(s, unitPrice, date, {origin:'entrada', proveedorName:proveedor?.name||'', proveedorId:proveedorId||undefined});
     persistSupplies();
   }
 
