@@ -1,6 +1,6 @@
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Insumos CIMA" />
@@ -48,7 +48,7 @@
       --accent:#0071e3; --accent2:#0058b0;
       --red:#ff3b30; --orange:#ff9500; --green:#34c759; --purple:#af52de;
       --bg:#e2e4f0;
-      --text:#1c1c1e; --text2:#3a3a3c; --text3:#8e8e93;
+      --text:#1c1c1e; --text2:#3a3a3c; --text3:#6b6b70;
       --sep:rgba(60,60,67,.08);
       --spring:cubic-bezier(0.34,1.56,0.64,1);
       --spring-fast:cubic-bezier(0.34,1.4,0.64,1);
@@ -1210,6 +1210,12 @@
   .prac-total-bar{background:linear-gradient(135deg,#0f2942,#1c3553);border-radius:16px;padding:16px 18px;margin-bottom:14px;color:#fff;display:flex;align-items:center;justify-content:space-between}
   .prac-total-bar .label{font-size:.82rem;opacity:.8}
   .prac-total-bar .value{font-size:1.3rem;font-weight:800}
+  /* Inputs a 16px: evita el zoom automático de iOS al enfocar (ya no bloqueamos user-scalable) */
+  .modal-input, .search-input, .price-input, .prac-mes-input,
+  .form-group input, .form-group select, .form-group textarea,
+  input[type="text"], input[type="number"], input[type="search"],
+  input[type="date"], input[type="month"], input[type="email"], input[type="tel"],
+  select, textarea { font-size: 16px; }
   </style>
 </head>
 <body>
@@ -1459,6 +1465,7 @@
       <div class="date-filter-group"><label>Desde</label><input type="date" id="movDateFrom" onchange="renderMovimientos()" /></div>
       <div class="date-filter-group"><label>Hasta</label><input type="date" id="movDateTo"   onchange="renderMovimientos()" /></div>
       <div class="date-filter-group"><select id="movTypeFilter" onchange="renderMovimientos()"><option value="">Todos</option><option value="entrada">Solo entradas</option><option value="salida">Solo salidas</option></select></div>
+      <button class="btn btn-secondary" style="flex-shrink:0" onclick="movVerTodo()" title="Quitar el filtro de fechas y mostrar todo el historial">🗓️ Ver todo</button>
     </div>
     </div><!-- /movToolbar -->
     <div class="summary-strip gc" id="movStatsStrip" style="margin-bottom:16px">
@@ -1668,9 +1675,10 @@
         <button class="rep-pill" data-center="Sarmiento" onclick="setRepCenter('Sarmiento')">Pedernera-Sarmiento</button>
       </div>
       <div class="rep-section-label" style="margin-bottom:10px">Período</div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;align-items:flex-end">
         <div class="date-filter-group"><label>Desde</label><input type="date" id="repDateFrom" /></div>
         <div class="date-filter-group"><label>Hasta</label><input type="date" id="repDateTo" /></div>
+        <button class="btn btn-secondary" style="flex-shrink:0" onclick="repVerTodo()" title="Incluir todo el historial en el reporte">🗓️ Todo el período</button>
       </div>
       <div class="rep-section-label" style="margin-bottom:10px">Incluir en el reporte</div>
       <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:22px">
@@ -2235,7 +2243,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "4.40";
+const APP_VERSION = "4.41";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -2689,7 +2697,8 @@ function renderCurrentTab(){
 // ─── Inventario ──────────────────────────────────────────────────────────────
 function buildCatFilters(){
   const el=document.getElementById("invCatFilters"); if(!el)return;
-  const cats=["Todos",...Object.keys(CATALOG),"Otros"];
+  // Incluye categorías del catálogo + cualquier categoría personalizada existente en insumos activos
+  const cats=["Todos",...getCategories()];
   el.innerHTML=cats.map(c=>`<button class="cat-pill${c===activeCat?" active":""}" onclick="setCat('${escAttr(c)}')">${c==="Todos"?"🌐 Todos":(CAT_ICONS[c]||"📋")+" "+c}</button>`).join("");
 }
 function setCat(cat){activeCat=cat;buildCatFilters();renderInventario();}
@@ -2732,7 +2741,7 @@ function renderInventario(){
       let vencBadge="";
       if(lotesInv.length){
         const soonest=lotesInv[0]; // ya están ordenados FEFO
-        const daysLeft=Math.floor((new Date(soonest.fechaVenc)-new Date())/(1000*60*60*24));
+        const daysLeft=_daysLeft(soonest.fechaVenc);
         if(daysLeft<0){
           vencBadge=`<span style="font-size:.62rem;font-weight:700;padding:1px 6px;border-radius:10px;background:rgba(255,59,48,0.15);color:#d92b20;border:1px solid rgba(255,59,48,0.2)">VENCIDO ${fmtDate(soonest.fechaVenc)}</span>`;
         } else if(daysLeft<=30){
@@ -2843,12 +2852,37 @@ function renderMovimientos(){
     </div>`;
   }).join("");
 }
+function movVerTodo(){
+  const f=document.getElementById("movDateFrom"), t=document.getElementById("movDateTo");
+  if(f)f.value=""; if(t)t.value="";
+  renderMovimientos();
+}
 function deleteMov(id){
   openConfirm("¿Eliminar movimiento?","El stock se revertirá.",()=>{
-    const movs=curMov();
-    const m=movs.find(x=>x.id===id);
-    if(m){cs[activeCenter].stock[m.supplyId]=(cs[activeCenter].stock[m.supplyId]||0)+(m.type==="entrada"?-m.qty:m.qty);cs[activeCenter].movements=movs.filter(x=>x.id!==id);}
-    persist();renderMovimientos();toast("Movimiento eliminado");
+    const center=activeCenter;
+    const m=(cs[center]?.movements||[]).find(x=>x.id===id);
+    if(!m){ toast("Movimiento no encontrado"); return; }
+    // Transacción: lee estado fresco del servidor y revierte de forma atómica
+    // (evita last-write-wins con otros dispositivos y mantiene stock↔lotes en sync).
+    _txnCenter(center,function(data){
+      // Revertir stock
+      data.stock[m.supplyId]=(data.stock[m.supplyId]||0)+(m.type==="entrada"?-m.qty:m.qty);
+      if(data.stock[m.supplyId]<0) data.stock[m.supplyId]=0;
+      // Revertir lote SOLO en entradas con vencimiento (la salida FEFO no guarda el lote consumido)
+      if(m.type==="entrada" && m.fechaVenc && data.lotes[m.supplyId]){
+        var arr=data.lotes[m.supplyId];
+        var l=arr.find(function(x){return x.fechaVenc===m.fechaVenc;});
+        if(l){ l.qty-=m.qty; }
+        data.lotes[m.supplyId]=arr.filter(function(x){return x.qty>0;});
+        if(!data.lotes[m.supplyId].length) delete data.lotes[m.supplyId];
+      }
+      data.movements=(data.movements||[]).filter(function(x){return x.id!==id;});
+      return data;
+    }).then(function(data){
+      cs[center].stock=data.stock; cs[center].movements=data.movements; cs[center].lotes=data.lotes;
+      renderMovimientos(); updateVencBadge();
+      toast("Movimiento eliminado");
+    }).catch(function(e){ console.warn(e); toast("⚠️ Error al eliminar. Intentá de nuevo."); });
   });
 }
 
@@ -3414,6 +3448,13 @@ async function _piParsePDF(file){
 
 function _piStartMatching(parsed){
   if(!parsed || !parsed.length){ toast('⚠️ No se detectaron filas con nombre y precio'); return; }
+  // El emparejamiento (Levenshtein N×M) puede tardar 1-2s: mostramos estado y lo
+  // diferimos un tick para que el navegador pinte el mensaje antes de bloquear el hilo.
+  const status=document.getElementById('piStatus');
+  if(status) status.textContent='Emparejando '+parsed.length+' ítem(s) con el catálogo…';
+  setTimeout(function(){ _piDoMatch(parsed); }, 30);
+}
+function _piDoMatch(parsed){
   const byNorm=new Map();
   supplies.forEach(s=>{ if(s&&s.active!==false) byNorm.set(_impNorm(s.name), s); });
   const normKeys=[...byNorm.keys()];
@@ -3817,7 +3858,8 @@ function openCostosDetail(id){
   if(hist.length>=2){
     requestAnimationFrame(()=>{
       const ctx=document.getElementById("costosPriceChart")?.getContext("2d"); if(!ctx)return;
-      new Chart(ctx,{
+      if(_charts.cd)_charts.cd.destroy();
+      _charts.cd=new Chart(ctx,{
         type:"line",
         data:{
           labels:hist.map(h=>h.date?fmtDate(h.date):""),
@@ -3843,6 +3885,7 @@ function openCostosDetail(id){
 
 function closeCostosDetail(){
   _costosDetailId=null;
+  if(_charts.cd){ _charts.cd.destroy(); _charts.cd=null; }
   document.getElementById("costos-list-view").style.display="block";
   document.getElementById("costos-detail-view").style.display="none";
 }
@@ -4061,7 +4104,7 @@ function onMovSupplyChange(){
   const today=new Date();
   loteSelect.innerHTML=`<option value="fefo">🔄 FEFO — Automático (más próximo a vencer primero)</option>`+
     lotes.map(l=>{
-      const daysLeft=Math.floor((new Date(l.fechaVenc)-today)/(1000*60*60*24));
+      const daysLeft=_daysLeft(l.fechaVenc);
       const icon=daysLeft<0?"🔴":daysLeft<=30?"🟠":daysLeft<=90?"🟡":"🟢";
       const label=daysLeft<0?"VENCIDO":daysLeft===0?"Vence HOY":`${daysLeft}d restantes`;
       const presTag=l.presentacion?` · ${l.presentacion.tipo} × ${l.presentacion.units}`:"";
@@ -4118,7 +4161,7 @@ function onLoteSelectChange(){
   }
   const lote=(cs[activeCenter]?.lotes||{})[supplyId]?.find(l=>l.id===loteId);
   if(lote){
-    const daysLeft=Math.floor((new Date(lote.fechaVenc)-new Date())/(1000*60*60*24));
+    const daysLeft=_daysLeft(lote.fechaVenc);
     const status=daysLeft<0?"⚠️ VENCIDO":daysLeft===0?"⚠️ Vence hoy":`${daysLeft} días hasta el vencimiento`;
     loteInfo.textContent=`${status} · ${lote.qty} unidades disponibles`;
     loteInfo.style.color=daysLeft<0?"var(--red)":daysLeft<=30?"var(--orange)":"var(--text3)";
@@ -4334,6 +4377,15 @@ function escAttr(s){return escHtml(s).replace(/'/g,"&#39;");}
 function fmt(n){return Number(n||0).toLocaleString("es-AR",{minimumFractionDigits:0,maximumFractionDigits:2});}
 function fmtDate(d){if(!d)return"";const[y,m,day]=d.split("-");return`${day}/${m}/${y}`;}
 function fmtDateShort(d){if(!d)return"";const[,m,day]=d.split("-");return`${day}/${m}`;}
+// Días hasta el vencimiento, comparando medianoche LOCAL vs medianoche LOCAL
+// (evita el desfase de zona horaria de new Date("YYYY-MM-DD") que se parsea en UTC).
+function _daysLeft(fechaVenc){
+  if(!fechaVenc)return NaN;
+  const p=String(fechaVenc).split("-");
+  const venc=new Date(+p[0], (+p[1])-1, +p[2]);
+  const hoy=new Date(); hoy.setHours(0,0,0,0);
+  return Math.round((venc-hoy)/86400000);
+}
 function getCategories(){const fc=Object.keys(CATALOG);const cu=[...new Set(supplies.filter(s=>s.active&&!fc.includes(s.category)).map(s=>s.category))];return[...fc,...cu];}
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
@@ -4811,6 +4863,11 @@ function renderReportes(){
   if(df&&!df.value)df.value=monthAgo;
   if(dt&&!dt.value)dt.value=today;
 }
+function repVerTodo(){
+  const f=document.getElementById("repDateFrom"), t=document.getElementById("repDateTo");
+  if(f)f.value=""; if(t)t.value="";
+  toast("Reporte sin filtro de fechas: incluirá todo el historial");
+}
 
 async function generateReport(){
   const btn=document.getElementById("repGenerateBtn");
@@ -5189,7 +5246,7 @@ function openSupplyDetail(supplyId,openTab){
     lotesHtml+=`<div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin:${firstCenter?0:14}px 0 8px">${c.label}</div>`;
     firstCenter=false;
     lotesHtml+=lotes.map(function(l){
-      const daysLeft=Math.floor((new Date(l.fechaVenc)-today)/(1000*60*60*24));
+      const daysLeft=_daysLeft(l.fechaVenc);
       const icon=daysLeft<0?"🔴":daysLeft<=30?"🟠":daysLeft<=90?"🟡":"🟢";
       const labelD=daysLeft<0?`Venció hace ${Math.abs(daysLeft)}d`:daysLeft===0?"Vence HOY":`${daysLeft}d restantes`;
       const borderC=daysLeft<0?"#ff3b30":daysLeft<=30?"#ff9500":daysLeft<=90?"#ffd60a":"#30d158";
@@ -5339,7 +5396,7 @@ function getAllLotes(){
       if(!supply)continue;
       for(const lote of (lotes||[])){
         if(lote.qty<=0)continue;
-        const daysLeft=Math.floor((new Date(lote.fechaVenc)-today)/(1000*60*60*24));
+        const daysLeft=_daysLeft(lote.fechaVenc);
         rows.push({...lote,supplyId,supplyName:supply.name,supplyCode:supply.code,unit:supply.unit,center,centerLabel:centerLabels[center],daysLeft});
       }
     }
@@ -6293,7 +6350,14 @@ function openEntregaPdf(entregaId, nombre){
   if(!h||!h.pdfBase64){toast("⚠️ PDF no disponible");return;}
   const overlay=document.getElementById("pdf-viewer-overlay");
   document.getElementById("pdf-viewer-title").textContent=nombre||"Documento";
-  document.getElementById("pdf-viewer-frame").src=h.pdfBase64;
+  // El cuerpo del visor puede tener contenido no-iframe (firma/entrega): lo restauramos si falta
+  let frame=document.getElementById("pdf-viewer-frame");
+  const body=document.getElementById("pdf-viewer-body");
+  if(!frame && body){
+    body.innerHTML='<iframe id="pdf-viewer-frame" src="about:blank" style="flex:1;border:none;width:100%;height:100%"></iframe>';
+    frame=document.getElementById("pdf-viewer-frame");
+  }
+  if(frame) frame.src=h.pdfBase64;
   overlay.style.display="flex";
   document.body.style.overflow="hidden";
 }
