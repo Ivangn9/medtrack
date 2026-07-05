@@ -97,7 +97,12 @@ if (!eqId) {
   // Sign in anonymously — no UI, fully transparent to the user
   firebase.auth().signInAnonymously()
     .then(function() {
-      return db.collection('orgs').doc('cima').collection('app').doc('data').get();
+      // Doc espejo con SOLO campos públicos; fallback al doc completo si aún no existe
+      return db.collection('orgs').doc('cima').collection('app').doc('public').get()
+        .then(function(pubDoc) {
+          if (pubDoc.exists && (pubDoc.data().eqs || []).length) return pubDoc;
+          return db.collection('orgs').doc('cima').collection('app').doc('data').get();
+        });
     })
     .then(function(doc) {
       if (!doc.exists) { showError('Sin datos', 'No se encontraron equipos en el sistema.'); return; }
@@ -206,11 +211,7 @@ function renderEq(eq) {
   // Último mant
   html += '<div class="irow"><span class="irow-l">Último mantenimiento</span>';
   if (lastMant) {
-    html += '<div style="text-align:right;"><div class="irow-v">' + fD(lastMant.fecha) + '</div>';
-    if (lastMant.tecnico) html += '<div style="font-size:.65rem;color:rgba(255,255,255,.35);margin-top:2px;">👷 ' + esc(lastMant.tecnico) + '</div>';
-    if (lastMant.empresa) html += '<div style="font-size:.65rem;color:rgba(255,255,255,.35);">🏢 ' + esc(lastMant.empresa) + '</div>';
-    if (lastMant.nroOrden) html += '<div style="font-size:.63rem;color:rgba(173,198,255,.7);font-family:monospace;">OS: ' + esc(lastMant.nroOrden) + '</div>';
-    html += '</div>';
+    html += '<div style="text-align:right;"><div class="irow-v">' + fD(lastMant.fecha) + '</div></div>';
   } else {
     html += '<span class="irow-v" style="color:rgba(255,255,255,.3);">Sin registro</span>';
   }
@@ -232,12 +233,6 @@ function renderEq(eq) {
 
   if (eq.frecuencia && eq.frecuencia !== 'ninguna') {
     html += '<div class="irow"><span class="irow-l">Frecuencia</span><span class="irow-v" style="text-transform:capitalize;">' + esc(eq.frecuencia) + '</span></div>';
-  }
-  if (eq.contrato) {
-    html += '<div class="irow"><span class="irow-l">Proveedor de servicio</span><span class="irow-v">' + esc(eq.contrato) + '</span></div>';
-  }
-  if (eq.tieneServicio && eq.servicioContratoNumero) {
-    html += '<div class="irow"><span class="irow-l">Nº de contrato</span><span class="irow-v" style="font-family:monospace;">' + esc(eq.servicioContratoNumero) + '</span></div>';
   }
   html += '</div></div>';
 
