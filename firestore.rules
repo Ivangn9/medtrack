@@ -15,17 +15,17 @@ service cloud.firestore {
     }
 
     // ── MedTrack ──
-    match /orgs/cima/app/data {
-      // El doc principal (costos, contratos, auditoría) SOLO para el equipo.
-      // Los QR (login anónimo) NO pueden leerlo.
-      allow read, write: if isTeam();
-    }
-
     match /orgs/cima/app/public {
       // Espejo público de los QR: cualquiera autenticado (incluye anónimo) lee.
       // Solo el equipo escribe.
       allow read: if request.auth != null;
       allow write: if isTeam();
+    }
+
+    match /orgs/cima/app/{doc} {
+      // data + hist_eqs + hist_antenas + hist_ots (historiales sharded):
+      // SOLO para el equipo. Los QR (login anónimo) NO pueden leerlos.
+      allow read, write: if isTeam();
     }
 
     match /orgs/cima/backups/{doc} {

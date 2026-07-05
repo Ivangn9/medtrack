@@ -54,6 +54,10 @@ fs.unlinkSync(tmp);
 // ── 4. Invariantes críticos ──
 check('_reportCSS intacto', html.indexOf('_reportCSS') !== -1, 'desapareció la variable _reportCSS');
 check('espejo público definido', html.indexOf('_publicSnapshot') !== -1, 'falta _publicSnapshot (seguridad QR)');
+check('sharding de historiales definido', html.indexOf('_histShardSave') !== -1 && html.indexOf('_stripPayload') !== -1, 'falta la capa de sharding');
+check('migración con backup previo', html.indexOf("doc('pre-shard-'") !== -1 || html.indexOf('pre-shard-') !== -1, 'la migración no hace backup antes');
+var rules = fs.readFileSync(path.join(root, 'firestore.rules'), 'utf8');
+check('reglas cubren los shards', /match \/orgs\/cima\/app\/\{doc\}/.test(rules), 'firestore.rules no matchea hist_*');
 check('el espejo no incluye técnicos', !/_publicSnapshot[\s\S]{0,2000}tecnico/.test(html), 'el snapshot público expone "tecnico"');
 check('el espejo no incluye costos', !/_publicSnapshot[\s\S]{0,2000}(costo|gasto|presupuesto)/i.test(html), 'el snapshot público expone costos');
 

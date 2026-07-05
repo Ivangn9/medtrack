@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.02.512 -->
+<!-- v2026.07.02.513 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.02.512">
+<meta name="app-version" content="v2026.07.02.513">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1980,6 +1980,129 @@ function _publicSnapshot(){
     return pub;
   });
 }
+// ═══ SHARDING DE HISTORIALES ═══
+// El doc principal guarda solo lo reciente; el historial completo vive en docs
+// separados (hist_eqs / hist_antenas / hist_ots) con 1MB propio cada uno.
+// En memoria la app siempre ve TODO — el split ocurre solo al guardar en Firestore.
+var _HIST_KEEP=20;        // entradas recientes de historial que quedan en el doc principal
+var _OT_KEEP_CLOSED=30;   // OTs cerradas recientes que quedan en el doc principal
+var _histWritten={he:'',ha:'',ho:''};
+var _histMergedOnce=false;
+window._histReady=false;
+function _histRef(name){return window._fbdb.collection("orgs").doc("cima").collection("app").doc(name);}
+function _histMaps(){
+  var he={},ha={},ho={};
+  eqs.forEach(function(e){if((e.historialMant||[]).length)he[e.id]=e.historialMant;});
+  antenas.forEach(function(a){if((a.historialAntena||[]).length)ha[a.id]=a.historialAntena;});
+  ordenesTrabajo.forEach(function(o){if(o.estado==='cerrada')ho[o.id]=o;});
+  return{he:he,ha:ha,ho:ho};
+}
+function _histShardSave(){
+  if(!window._fbUser||!window._fbdb||!window._histReady)return;
+  var m=_histMaps();
+  var now=new Date().toISOString();
+  [['hist_eqs','he'],['hist_antenas','ha'],['hist_ots','ho']].forEach(function(p){
+    try{
+      var s=JSON.stringify(m[p[1]]);
+      if(s===_histWritten[p[1]])return;
+      _histRef(p[0]).set({data:m[p[1]],updatedAt:now})
+        .then(function(){_histWritten[p[1]]=s;})
+        .catch(function(e){console.warn('Shard '+p[0]+':',e);});
+    }catch(e){}
+  });
+}
+// Payload del doc principal: recorta historiales (el completo ya está en los shards)
+function _stripPayload(){
+  var eqs2=eqs.map(function(e){
+    var h=e.historialMant||[];
+    if(h.length<=_HIST_KEEP)return e;
+    var c=Object.assign({},e);c.historialMant=h.slice(-_HIST_KEEP);return c;
+  });
+  var ant2=antenas.map(function(a){
+    var h=a.historialAntena||[];
+    if(h.length<=_HIST_KEEP)return a;
+    var c=Object.assign({},a);c.historialAntena=h.slice(-_HIST_KEEP);return c;
+  });
+  var closed=ordenesTrabajo.filter(function(o){return o.estado==='cerrada';});
+  var ots2=ordenesTrabajo;
+  if(closed.length>_OT_KEEP_CLOSED){
+    closed.sort(function(x,y){var a2=x.fechaCierreISO||x.fechaCierre||'';var b2=y.fechaCierreISO||y.fechaCierre||'';return a2<b2?1:-1;});
+    var keep={};closed.slice(0,_OT_KEEP_CLOSED).forEach(function(o){keep[o.id]=1;});
+    ots2=ordenesTrabajo.filter(function(o){return o.estado!=='cerrada'||keep[o.id];});
+  }
+  return{eqs:eqs2,antenas:ant2,ordenesTrabajo:ots2};
+}
+// Re-fusión: shard = fuente de verdad del historial; el tail del doc principal
+// aporta solo entradas nuevas que un cliente viejo haya escrito ahí.
+function _histApplyMerge(){
+  var c=window._histCache||{};
+  function mergeArr(shardArr,tailArr){
+    var res=(shardArr||[]).slice();
+    var seen={};res.forEach(function(x){if(x&&x.id)seen[x.id]=1;});
+    (tailArr||[]).forEach(function(x){if(x&&(!x.id||!seen[x.id]))res.push(x);});
+    return res;
+  }
+  eqs.forEach(function(e){
+    if((c.he||{})[e.id]||((e.historialMant||[]).length))e.historialMant=mergeArr((c.he||{})[e.id],e.historialMant);
+  });
+  antenas.forEach(function(a){
+    if((c.ha||{})[a.id]||((a.historialAntena||[]).length))a.historialAntena=mergeArr((c.ha||{})[a.id],a.historialAntena);
+  });
+  var ids={};ordenesTrabajo.forEach(function(o){ids[o.id]=1;});
+  var add=[];var ho=c.ho||{};
+  Object.keys(ho).forEach(function(k){if(!ids[k])add.push(ho[k]);});
+  if(add.length)ordenesTrabajo=ordenesTrabajo.concat(add);
+}
+function _histTryMerge(){
+  var c=window._histCache;
+  if(!c||c.he===null||c.ha===null||c.ho===null)return;
+  if(_histMergedOnce){
+    // Update en vivo de otro dispositivo: reaplicar desde el doc crudo + shards,
+    // solo si no hay cambios locales sin guardar (mismo guard que el listener principal)
+    if(_fsDirty||_fsWriting||_fsSaveTimer)return;
+    if(window._lastRawDoc&&window._applyDataGlobal){
+      try{window._applyDataGlobal(JSON.parse(window._lastRawDoc));}catch(e){return;}
+      _histApplyMerge();
+      render();
+    }
+    return;
+  }
+  _histMergedOnce=true;
+  _histApplyMerge();
+  render();
+  _histMigrate();
+}
+// Migración única: backup completo → habilitar sharding → primer guardado poblará los shards
+function _histMigrate(){
+  var done='';try{done=localStorage.getItem('mt_shard_v1')||'';}catch(e){}
+  if(done){window._histReady=true;return;}
+  if(!window._fbUser||!window._fbdb)return;
+  var full={eqs:eqs,antenas:antenas,aires:aires,transductores:transductores,ordenesTrabajo:ordenesTrabajo,repuestos:repuestos,pmProgramados:pmProgramados,auditLog:auditLog,reclamos:reclamos,mejoras:mejoras,empresasRep:empresasRep,savedAt:new Date().toISOString(),by:(window._fbUser.email||''),motivo:'backup pre-migración historiales a shards'};
+  window._fbdb.collection("orgs").doc("cima").collection("backups").doc('pre-shard-'+new Date().toISOString().slice(0,10))
+    .set(full)
+    .then(function(){
+      try{localStorage.setItem('mt_shard_v1','1');}catch(e){}
+      window._histReady=true;
+      saveDataCritical();
+      console.log('Migración de historiales: backup listo, shards habilitados');
+    })
+    .catch(function(e){console.warn('Backup pre-shard falló — sharding pospuesto:',e);});
+}
+function _histShardInit(){
+  if(!window._fbdb||window._histSubbed)return;
+  window._histSubbed=true;
+  window._histCache={he:null,ha:null,ho:null};
+  [['hist_eqs','he'],['hist_antenas','ha'],['hist_ots','ho']].forEach(function(p){
+    _histRef(p[0]).onSnapshot(function(doc){
+      window._histCache[p[1]]=(doc.exists&&doc.data()&&doc.data().data)||{};
+      _histTryMerge();
+    },function(e){
+      console.warn('Shard listener '+p[0]+':',e);
+      if(window._histCache[p[1]]===null)window._histCache[p[1]]={};
+      _histTryMerge();
+    });
+  });
+}
 var _pubMirrorTimer=null;
 function _publicMirrorSave(){
   if(!window._fbUser||!window._fbdb)return;
@@ -2013,7 +2136,11 @@ function saveDataCritical(){
 function _fsWrite(tryN){
   if(!window._fbUser||!window._fbdb){_fsWriting=false;return;}
   _fsWriting=true;
-  var _payload={eqs:eqs,antenas:antenas,aires:aires,transductores:transductores,ordenesTrabajo:ordenesTrabajo,repuestos:repuestos,pmProgramados:pmProgramados,auditLog:auditLog,reclamos:reclamos,mejoras:mejoras,empresasRep:empresasRep,updatedAt:new Date().toISOString()};
+  // Con sharding activo el doc principal lleva solo historiales recientes;
+  // el completo va en paralelo a los docs hist_* (fuente de verdad del historial).
+  var _sp=window._histReady?_stripPayload():{eqs:eqs,antenas:antenas,ordenesTrabajo:ordenesTrabajo};
+  if(window._histReady)_histShardSave();
+  var _payload={eqs:_sp.eqs,antenas:_sp.antenas,aires:aires,transductores:transductores,ordenesTrabajo:_sp.ordenesTrabajo,repuestos:repuestos,pmProgramados:pmProgramados,auditLog:auditLog,reclamos:reclamos,mejoras:mejoras,empresasRep:empresasRep,updatedAt:new Date().toISOString()};
   // Firestore limita cada documento a ~1MB. Aviso temprano al 70% para migrar a tiempo.
   try{
     var _sz=JSON.stringify(_payload).length;
@@ -15347,7 +15474,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.14.0";
+var APP_DISPLAY_VERSION="8.15.0";
 var APP_BUILD="02/07/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
@@ -15642,6 +15769,8 @@ function init(){
         if(aiKeySettingsBtn)aiKeySettingsBtn.style.display=isOwner?"block":"none";
         // Load from shared org doc; migrate personal data on first run if org doesn't exist yet
         function _applyData(d){
+          // Snapshot crudo del doc para poder re-fusionar con los shards de historial
+          try{window._lastRawDoc=JSON.stringify(d);}catch(e){}
           if(d&&Array.isArray(d.eqs)&&d.eqs.length>0){
             eqs=d.eqs.map(function(eq){if(!eq.partes)eq.partes=[];return eq;});
             if(Array.isArray(d.antenas))antenas=d.antenas;
@@ -15656,6 +15785,7 @@ function init(){
             if(Array.isArray(d.empresasRep))empresasRep=d.empresasRep;
           }
         }
+        window._applyDataGlobal=_applyData;
         function _lsLoad(){
           try{var s=localStorage.getItem("mt_v4");if(s){var p=JSON.parse(s);if(Array.isArray(p)&&p.length>0)eqs=p;}}catch(e){}
           try{var sa=localStorage.getItem("mt_antenas");if(sa){var pa=JSON.parse(sa);if(Array.isArray(pa))antenas=pa;}}catch(e){}
@@ -15684,6 +15814,7 @@ function init(){
         function _startTickers(){
           if(window._tickersOn)return;
           window._tickersOn=true;
+          _histShardInit();
           setTimeout(checkForUpdates,3000);
           setInterval(checkForUpdates,60*1000);
           setTimeout(reconcileFiles,4000);              // upload any local-only files to the cloud
@@ -15743,6 +15874,7 @@ function init(){
           var _lsAt2=localStorage.getItem('mt_updatedAt')||'';
           if(_fsAt2&&(!_lsAt2||_fsAt2>_lsAt2)){
             _applyData(_d);
+            if(_histMergedOnce)_histApplyMerge();
             try{localStorage.setItem('mt_updatedAt',_fsAt2);}catch(e){}
             render();
             showToast('🔄 Datos actualizados por otro dispositivo');
