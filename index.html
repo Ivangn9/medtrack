@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.02.515 -->
+<!-- v2026.07.02.516 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.02.515">
+<meta name="app-version" content="v2026.07.02.516">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -4739,6 +4739,9 @@ function _mountView(m,d){
   m.appendChild(d);
   var spacer=document.createElement("div");spacer.style.height="80px";spacer.style.flexShrink="0";m.appendChild(spacer);
   if(sameView&&_sc>0){(document.scrollingElement||document.documentElement).scrollTop=_sc;}
+  // Visor 3D del resonador: montar al entrar a Estado RM, liberar GPU al salir
+  if(view==='estadorm'){requestAnimationFrame(function(){_rm3dMaybeInit();});}
+  else if(_rm3d.built){_rm3dDispose();}
   if(typeof AOS!=="undefined")requestAnimationFrame(function(){requestAnimationFrame(function(){AOS.refresh();});});
   // Kick off counter animations for numeric stat values
   requestAnimationFrame(function(){_runCounters(m);});
@@ -9086,6 +9089,266 @@ function rmCurrentEq(){
   if(!cur){cur=rms[0];selRM=cur.id;}
   return cur;
 }
+// ═══ VISOR 3D DE RESONADOR (Three.js r147 UMD, carga lazy) ═══
+// Modelo procedural del scanner con partes interactivas mapeadas al estado real.
+// Fallback silencioso al SVG clásico si falla WebGL o la carga de la librería.
+var _rm3d={renderer:null,scene:null,camera:null,controls:null,raf:null,parts:[],anim:{},built:false};
+function _rm3dLoadLibs(cb,errCb){
+  if(typeof THREE!=='undefined'&&THREE.OrbitControls){cb();return;}
+  if(window._rm3dLoading){window._rm3dCbs.push([cb,errCb]);return;}
+  window._rm3dLoading=true;window._rm3dCbs=[[cb,errCb]];
+  function fail(){window._rm3dLoading=false;window._rm3dCbs.forEach(function(p){if(p[1])p[1]();});}
+  function loadScript(src,ok){
+    var s=document.createElement('script');s.src=src;
+    s.onload=ok;s.onerror=fail;document.head.appendChild(s);
+  }
+  loadScript('https://cdnjs.cloudflare.com/ajax/libs/three.js/0.147.0/three.min.js',function(){
+    loadScript('https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/OrbitControls.js',function(){
+      window._rm3dLoading=false;
+      window._rm3dCbs.forEach(function(p){p[0]();});
+    });
+  });
+}
+function _rm3dMat(color,rough,metal){return new THREE.MeshStandardMaterial({color:color,roughness:rough,metalness:metal});}
+function _rm3dBuild(wrap){
+  var W=wrap.clientWidth||600,H=wrap.clientHeight||340;
+  var renderer;
+  try{renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'});}
+  catch(e){return false;}
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.75));
+  renderer.setSize(W,H);
+  renderer.outputEncoding=THREE.sRGBEncoding;
+  wrap.appendChild(renderer.domElement);
+  var scene=new THREE.Scene();
+  scene.fog=new THREE.Fog(0x06091a,14,26);
+  var camera=new THREE.PerspectiveCamera(42,W/H,.1,60);
+  camera.position.set(4.6,2.6,5.2);
+  // Iluminación sala médica: fría + rim azul tecnológico
+  scene.add(new THREE.HemisphereLight(0xdfe8ff,0x0a0e1c,.85));
+  var key=new THREE.DirectionalLight(0xffffff,1.15);key.position.set(4,7,3);scene.add(key);
+  var rim=new THREE.PointLight(0x4a7cff,.7,20);rim.position.set(-4,2.5,-3);scene.add(rim);
+  var boreGlow=new THREE.PointLight(0x9fd0ff,.5,4);boreGlow.position.set(0,1.15,0);scene.add(boreGlow);
+  // Piso
+  var floor=new THREE.Mesh(new THREE.CircleGeometry(9,48),_rm3dMat(0x0b1024,.92,.05));
+  floor.rotation.x=-Math.PI/2;scene.add(floor);
+  var parts=[];
+  function reg(key2,label,meshes){parts.push({key:key2,label:label,meshes:meshes,nivel:'ok',detalle:'Operativo'});meshes.forEach(function(m){m.userData.partKey=key2;});}
+  // ── Imán principal ──
+  var magnet=new THREE.Group();
+  var shell=new THREE.Mesh(new THREE.CylinderGeometry(1.5,1.5,2.1,64,1,true),_rm3dMat(0xf2f5f8,.32,.06));
+  shell.rotation.x=Math.PI/2;magnet.add(shell);
+  var rimF=new THREE.Mesh(new THREE.TorusGeometry(1.44,.13,24,64),_rm3dMat(0xe9edf2,.3,.08));
+  rimF.position.z=1.05;magnet.add(rimF);
+  var rimB=rimF.clone();rimB.position.z=-1.05;magnet.add(rimB);
+  var faceF=new THREE.Mesh(new THREE.RingGeometry(.62,1.44,64),_rm3dMat(0xf6f8fa,.28,.05));
+  faceF.position.z=1.055;magnet.add(faceF);
+  var faceB=faceF.clone();faceB.rotation.y=Math.PI;faceB.position.z=-1.055;magnet.add(faceB);
+  reg('iman','Imán principal',[shell,rimF,rimB,faceF,faceB]);
+  // ── Bobinas de gradiente (anillo cobre dentro del bore) ──
+  var grad=new THREE.Mesh(new THREE.CylinderGeometry(.68,.68,1.7,48,1,true),new THREE.MeshStandardMaterial({color:0xb87333,roughness:.38,metalness:.85,side:THREE.DoubleSide}));
+  grad.rotation.x=Math.PI/2;magnet.add(grad);
+  reg('gradiente','Bobinas de gradiente',[grad]);
+  // ── Bobina RF de cuerpo (cilindro translúcido cian) ──
+  var rfc=new THREE.Mesh(new THREE.CylinderGeometry(.60,.60,1.9,48,1,true),new THREE.MeshStandardMaterial({color:0x38bdf8,transparent:true,opacity:.16,emissive:0x38bdf8,emissiveIntensity:.35,side:THREE.DoubleSide}));
+  rfc.rotation.x=Math.PI/2;magnet.add(rfc);
+  reg('rf','Bobinas RF / Antenas',[rfc]);
+  // ── Anillo de estado (frente del bore) ──
+  var statusRing=new THREE.Mesh(new THREE.TorusGeometry(.72,.028,16,64),new THREE.MeshStandardMaterial({color:0x00e55b,emissive:0x00e55b,emissiveIntensity:1.2,roughness:.4,metalness:.1}));
+  statusRing.position.z=1.06;magnet.add(statusRing);
+  magnet.position.y=1.55;scene.add(magnet);
+  // ── Mesa de paciente ──
+  var tableG=new THREE.Group();
+  var ped=new THREE.Mesh(new THREE.BoxGeometry(.62,.82,1.15),_rm3dMat(0xe6eaef,.35,.1));
+  ped.position.set(0,.41,2.25);tableG.add(ped);
+  var top=new THREE.Mesh(new THREE.BoxGeometry(.55,.07,2.9),_rm3dMat(0xd7dde4,.4,.2));
+  top.position.set(0,.93,1.85);tableG.add(top);
+  var pad=new THREE.Mesh(new THREE.BoxGeometry(.5,.05,2.7),_rm3dMat(0x1c2c4e,.7,0));
+  pad.position.set(0,.99,1.85);tableG.add(pad);
+  scene.add(tableG);
+  reg('mesa','Mesa de paciente',[ped,top,pad]);
+  // ── Refrigeración: unidad trasera + quench pipe + ventilador ──
+  var cool=new THREE.Group();
+  var unit=new THREE.Mesh(new THREE.BoxGeometry(1.05,.85,.6),_rm3dMat(0xb9c2cc,.5,.35));
+  unit.position.set(-1.55,2.75,-.55);cool.add(unit);
+  var pipe=new THREE.Mesh(new THREE.CylinderGeometry(.09,.09,1.6,20),_rm3dMat(0x9aa5b1,.35,.7));
+  pipe.position.set(-1.55,4.0,-.55);cool.add(pipe);
+  var fanGroup=new THREE.Group();
+  for(var bi=0;bi<5;bi++){
+    var blade=new THREE.Mesh(new THREE.BoxGeometry(.30,.05,.09),_rm3dMat(0x39424d,.5,.6));
+    blade.position.x=.14;
+    var hold=new THREE.Group();hold.rotation.z=bi*(Math.PI*2/5);hold.add(blade);fanGroup.add(hold);
+  }
+  var fanRing=new THREE.Mesh(new THREE.TorusGeometry(.34,.03,12,36),_rm3dMat(0x39424d,.5,.6));
+  fanGroup.add(fanRing);
+  fanGroup.position.set(-1.55,2.75,-.24);cool.add(fanGroup);
+  scene.add(cool);
+  reg('refrigeracion','Sistema de refrigeración',[unit,pipe,fanRing]);
+  // ── Consola ──
+  var desk=new THREE.Mesh(new THREE.BoxGeometry(.9,.06,.5),_rm3dMat(0xdde2e8,.4,.15));
+  desk.position.set(3.1,.95,1.4);scene.add(desk);
+  var dleg=new THREE.Mesh(new THREE.BoxGeometry(.08,.95,.45),_rm3dMat(0xaab3bd,.4,.4));
+  dleg.position.set(3.1,.48,1.4);scene.add(dleg);
+  var mon=new THREE.Mesh(new THREE.BoxGeometry(.62,.4,.035),_rm3dMat(0x11151c,.3,.5));
+  mon.position.set(3.1,1.35,1.3);mon.rotation.y=-.5;scene.add(mon);
+  var screen=new THREE.Mesh(new THREE.PlaneGeometry(.56,.34),new THREE.MeshStandardMaterial({color:0x0a1020,emissive:0xadc6ff,emissiveIntensity:.55,roughness:.3}));
+  screen.position.copy(mon.position);screen.translateZ(.02);screen.rotation.y=mon.rotation.y;scene.add(screen);
+  reg('consola','Consola de control',[desk,dleg,mon,screen]);
+  // Controles
+  var controls=new THREE.OrbitControls(camera,renderer.domElement);
+  controls.enableDamping=true;controls.dampingFactor=.06;
+  controls.minDistance=3;controls.maxDistance=11;controls.maxPolarAngle=1.45;
+  controls.enablePan=false;controls.target.set(.3,1.3,.3);
+  controls.autoRotate=true;controls.autoRotateSpeed=.7;
+  controls.addEventListener('start',function(){controls.autoRotate=false;});
+  _rm3d.renderer=renderer;_rm3d.scene=scene;_rm3d.camera=camera;_rm3d.controls=controls;
+  _rm3d.parts=parts;_rm3d.anim={statusRing:statusRing,fan:fanGroup,tableTop:[top,pad]};
+  _rm3d.built=true;
+  // Interacción: tap/click en una parte → chip de info
+  var ray=new THREE.Raycaster(),ptr=new THREE.Vector2();
+  renderer.domElement.addEventListener('pointerdown',function(ev){
+    var r=renderer.domElement.getBoundingClientRect();
+    ptr.x=((ev.clientX-r.left)/r.width)*2-1;ptr.y=-((ev.clientY-r.top)/r.height)*2+1;
+    ray.setFromCamera(ptr,camera);
+    var hits=ray.intersectObjects(scene.children,true);
+    for(var hi=0;hi<hits.length;hi++){
+      var pk=hits[hi].object.userData.partKey;
+      if(pk){_rm3dShowTip(pk,ev.clientX,ev.clientY);return;}
+    }
+    _rm3dHideTip();
+  });
+  return true;
+}
+function _rm3dShowTip(key3,x,y){
+  var p=null;for(var i=0;i<_rm3d.parts.length;i++){if(_rm3d.parts[i].key===key3)p=_rm3d.parts[i];}
+  if(!p)return;
+  var t=document.getElementById('rm3d-tip');
+  if(!t){t=document.createElement('div');t.id='rm3d-tip';
+    t.style.cssText='position:fixed;z-index:9998;background:rgba(15,18,30,.94);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:10px 14px;pointer-events:none;max-width:230px;box-shadow:0 8px 28px rgba(0,0,0,.45);';
+    document.body.appendChild(t);}
+  var col=p.nivel==='roto'?'#ff3b30':p.nivel==='warn'?'#fe9800':'#00e55b';
+  t.innerHTML='<div style="display:flex;align-items:center;gap:7px;margin-bottom:3px;">'+
+    '<span style="width:8px;height:8px;border-radius:50%;background:'+col+';box-shadow:0 0 8px '+col+';"></span>'+
+    '<span style="font-size:.8rem;font-weight:700;color:#f2f2f7;">'+p.label+'</span></div>'+
+    '<div style="font-size:.68rem;color:'+col+';font-family:monospace;">'+esc(p.detalle)+'</div>';
+  t.style.left=Math.min(x+12,window.innerWidth-250)+'px';t.style.top=Math.max(10,y-56)+'px';t.style.display='block';
+  if(window._rm3dTipT)clearTimeout(window._rm3dTipT);
+  window._rm3dTipT=setTimeout(_rm3dHideTip,4000);
+}
+function _rm3dHideTip(){var t=document.getElementById('rm3d-tip');if(t)t.style.display='none';}
+function _rm3dUpdateStates(){
+  if(!_rm3d.built)return;
+  var eq=rmCurrentEq();if(!eq)return;
+  var kw={iman:/im[aá]n|magnet|shim/i,gradiente:/gradiente/i,rf:/\brf\b|antena|bobina/i,mesa:/mesa|camilla/i,refrigeracion:/chiller|refriger|compresor|coldhead|helio|quench/i,consola:/consola|workstation|host/i};
+  _rm3d.parts.forEach(function(p){
+    var nivel='ok',detalle='Operativo';
+    if(p.key==='refrigeracion'){
+      var worst='ok';var det=[];
+      ['compresor','chiller','tanque_helio','coldhead'].forEach(function(cid){
+        var st=rmCompEstado(eq,cid);
+        if(st.nivel==='roto')worst='roto';else if(st.nivel==='warn'&&worst!=='roto')worst='warn';
+        if(st.nivel!=='ok')det.push(cid+': '+st.detalle);
+      });
+      nivel=worst;if(det.length)detalle=det.join(' · ');
+    }
+    var fallas=(eq.partes||[]).filter(function(pt){return kw[p.key]&&kw[p.key].test(pt.nombre||'')&&(pt.estado==='roto'||pt.estado==='pendiente');});
+    if(fallas.length){
+      var hayRoto=fallas.some(function(f){return f.estado==='roto';});
+      if(hayRoto)nivel='roto';else if(nivel!=='roto')nivel='warn';
+      detalle=fallas.map(function(f){return f.nombre;}).join(', ');
+    }
+    p.nivel=nivel;p.detalle=detalle;
+    var tint=nivel==='roto'?0xff3b30:nivel==='warn'?0xfe9800:null;
+    p.meshes.forEach(function(m){
+      if(!m.userData.origEmissive){m.userData.origEmissive=m.material.emissive?m.material.emissive.getHex():0;m.userData.origEI=m.material.emissiveIntensity||0;}
+      if(tint&&m.material.emissive){m.material.emissive.setHex(tint);m.material.emissiveIntensity=.5;m.userData.faulty=true;}
+      else if(m.material.emissive){m.material.emissive.setHex(m.userData.origEmissive);m.material.emissiveIntensity=m.userData.origEI;m.userData.faulty=false;}
+    });
+  });
+  var ringCol=eq.estado==='fuera-de-servicio'?0xff3b30:eq.estado==='con-fallas'?0xfe9800:0x00e55b;
+  var hayRoto2=_rm3d.parts.some(function(p){return p.nivel==='roto';});
+  var hayWarn=_rm3d.parts.some(function(p){return p.nivel==='warn';});
+  if(hayRoto2)ringCol=0xff3b30;else if(hayWarn&&ringCol===0x00e55b)ringCol=0xfe9800;
+  _rm3d.anim.statusRing.material.color.setHex(ringCol);
+  _rm3d.anim.statusRing.material.emissive.setHex(ringCol);
+}
+function _rm3dLoop(){
+  if(!_rm3d.renderer)return;
+  _rm3d.raf=requestAnimationFrame(_rm3dLoop);
+  var t=performance.now()/1000;
+  _rm3d.anim.statusRing.material.emissiveIntensity=1.1+Math.sin(t*2.2)*.45;
+  _rm3d.anim.fan.rotation.z=t*7;
+  var tz=1.85+Math.sin(t*.32)*.7;
+  _rm3d.anim.tableTop.forEach(function(m){m.position.z=tz;});
+  _rm3d.parts.forEach(function(p){
+    p.meshes.forEach(function(m){
+      if(m.userData.faulty&&m.material.emissive)m.material.emissiveIntensity=.4+Math.sin(t*3.2)*.25;
+    });
+  });
+  _rm3d.controls.update();
+  _rm3d.renderer.render(_rm3d.scene,_rm3d.camera);
+}
+function _rm3dResize(){
+  if(!_rm3d.renderer)return;
+  var wrap=document.getElementById('rm3d-wrap');if(!wrap)return;
+  var W=wrap.clientWidth||600,H=wrap.clientHeight||340;
+  _rm3d.camera.aspect=W/H;_rm3d.camera.updateProjectionMatrix();
+  _rm3d.renderer.setSize(W,H);
+}
+function _rm3dDispose(){
+  if(_rm3d.raf)cancelAnimationFrame(_rm3d.raf);
+  _rm3dHideTip();
+  if(_rm3d.controls)try{_rm3d.controls.dispose();}catch(e){}
+  if(_rm3d.scene)_rm3d.scene.traverse(function(o){
+    if(o.geometry)o.geometry.dispose();
+    if(o.material){if(o.material.map)o.material.map.dispose();o.material.dispose();}
+  });
+  if(_rm3d.renderer){try{_rm3d.renderer.dispose();}catch(e){}
+    if(_rm3d.renderer.domElement&&_rm3d.renderer.domElement.parentNode)_rm3d.renderer.domElement.parentNode.removeChild(_rm3d.renderer.domElement);}
+  _rm3d={renderer:null,scene:null,camera:null,controls:null,raf:null,parts:[],anim:{},built:false};
+}
+function _rm3dMaybeInit(){
+  if(view!=='estadorm')return;
+  var on='';try{on=localStorage.getItem('mt_rm3d')||'';}catch(e){}
+  if(on!=='1')return;
+  var wrap=document.getElementById('rm3d-wrap'),classic=document.getElementById('rm-hero-classic');
+  if(!wrap)return;
+  wrap.style.display='block';if(classic)classic.style.display='none';
+  _rm3dLoadLibs(function(){
+    if(view!=='estadorm')return;
+    var w2=document.getElementById('rm3d-wrap');if(!w2)return;
+    if(_rm3d.built&&_rm3d.renderer){
+      if(_rm3d.renderer.domElement.parentNode!==w2)w2.appendChild(_rm3d.renderer.domElement);
+    }else{
+      if(!_rm3dBuild(w2)){_rm3dFallback();return;}
+    }
+    _rm3dResize();_rm3dUpdateStates();
+    if(_rm3d.raf)cancelAnimationFrame(_rm3d.raf);
+    _rm3dLoop();
+  },_rm3dFallback);
+}
+function _rm3dFallback(){
+  try{localStorage.setItem('mt_rm3d','');}catch(e){}
+  var wrap=document.getElementById('rm3d-wrap'),classic=document.getElementById('rm-hero-classic');
+  if(wrap)wrap.style.display='none';if(classic)classic.style.display='';
+  showToast('No se pudo cargar el visor 3D','warn');
+}
+function _rm3dToggle(){
+  var on='';try{on=localStorage.getItem('mt_rm3d')||'';}catch(e){}
+  if(on==='1'){
+    try{localStorage.setItem('mt_rm3d','');}catch(e){}
+    _rm3dDispose();
+    var wrap=document.getElementById('rm3d-wrap'),classic=document.getElementById('rm-hero-classic');
+    if(wrap)wrap.style.display='none';if(classic)classic.style.display='';
+  }else{
+    try{localStorage.setItem('mt_rm3d','1');}catch(e){}
+    _rm3dMaybeInit();
+  }
+}
+window.addEventListener('resize',function(){_rm3dResize();});
+document.addEventListener('visibilitychange',function(){
+  if(document.hidden){if(_rm3d.raf){cancelAnimationFrame(_rm3d.raf);_rm3d.raf=null;}}
+  else if(_rm3d.built&&view==='estadorm'&&!_rm3d.raf)_rm3dLoop();
+});
 function rEstadoRM(){
   var rms=eqs.filter(function(e){return e.cat==='RM'&&!e.baja;});
   if(!rms.length){
@@ -9196,7 +9459,11 @@ function rEstadoRM(){
     // Overlay oscuro para legibilidad del SVG
     '<div style="position:absolute;inset:0;background:rgba(6,9,26,.55);pointer-events:none;z-index:1;"></div>'+
     // SVG dinámico — siempre visible, siempre actualizado con datos reales
-    '<div style="position:relative;z-index:2;">'+rmSceneSVG(eq)+'</div>'+
+    '<div id="rm-hero-classic" style="position:relative;z-index:2;">'+rmSceneSVG(eq)+'</div>'+
+    // Visor 3D (lazy, reemplaza al SVG cuando está activo)
+    '<div id="rm3d-wrap" style="display:none;position:relative;z-index:2;height:360px;touch-action:none;"></div>'+
+    // Toggle 3D
+    '<button onclick="_rm3dToggle()" style="position:absolute;top:10px;right:10px;z-index:3;padding:6px 13px;background:rgba(6,9,26,.8);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid rgba(59,75,58,.5);border-radius:8px;color:#00e55b;font-family:JetBrains Mono,monospace;font-size:11px;font-weight:700;cursor:pointer;min-height:32px;">🧊 3D</button>'+
     // Location tag
     '<div style="position:absolute;top:10px;left:10px;z-index:3;">'+
       '<div style="padding:4px 10px;background:rgba(6,9,26,.8);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid rgba(59,75,58,.5);border-radius:8px;display:flex;align-items:center;gap:6px;">'+
@@ -15531,7 +15798,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.16.0";
+var APP_DISPLAY_VERSION="8.17.0";
 var APP_BUILD="02/07/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
