@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.02.513 -->
+<!-- v2026.07.02.514 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.02.513">
+<meta name="app-version" content="v2026.07.02.514">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -559,9 +559,10 @@ body.dark .ig{box-shadow:0 2px 8px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255
 @keyframes pillPop{from{opacity:.01;transform:scale(.75)}to{opacity:1;transform:scale(1)}}
 /* Hover effects — pointer device (iPad trackpad / desktop mouse) */
 @media(hover:hover){
-  .gc.tap{will-change:transform;}
-  .gc.tap:hover{transform:translateY(-3px) scale(1.014);box-shadow:0 0 0 1px rgba(160,195,255,.45),0 8px 24px rgba(120,155,225,.26),0 24px 56px rgba(120,155,225,.18),0 38px 72px rgba(0,0,0,.09),inset 0 2.5px 0 rgba(255,255,255,1.0),inset 0 0 0 1px rgba(255,255,255,.65);}
-  .li-eq:hover{background:rgba(255,255,255,.80)!important;transform:translateX(2px) scale(1.005);}
+  /* Sin scale() ni will-change en cards con texto + backdrop-filter: Safari/iPad
+     rasteriza la capa y escala el bitmap → texto borroso. Solo translate (sub-pixel safe). */
+  .gc.tap:hover{transform:translateY(-3px);box-shadow:0 0 0 1px rgba(160,195,255,.45),0 8px 24px rgba(120,155,225,.26),0 24px 56px rgba(120,155,225,.18),0 38px 72px rgba(0,0,0,.09),inset 0 2.5px 0 rgba(255,255,255,1.0),inset 0 0 0 1px rgba(255,255,255,.65);}
+  .li-eq:hover{background:rgba(255,255,255,.80)!important;transform:translateX(2px);}
   .chip:hover{transform:scale(1.07) translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.15),inset 0 1.5px 0 rgba(255,255,255,1.0);}
   .sb-nav-btn:hover .sb-icon svg{transform:scale(1.14);}
   .sb-nav-btn .sb-icon svg{transition:transform .2s var(--spring);}
@@ -4429,7 +4430,10 @@ function _loadQRLib(url){
 function _genQR(url){
   var b=document.getElementById('qr-box');if(!b)return;
   b.innerHTML='';
-  try{new QRCode(b,{text:url,width:200,height:200,colorDark:'#1a3a6b',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});}catch(e){b.textContent='Error al generar QR';}
+  try{new QRCode(b,{text:url,width:400,height:400,colorDark:'#1a3a6b',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
+    var _qc=b.querySelectorAll('canvas,img');
+    for(var qi=0;qi<_qc.length;qi++){_qc[qi].style.width='200px';_qc[qi].style.height='200px';}
+  }catch(e){b.textContent='Error al generar QR';}
 }
 function downloadQRCard(eqId){
   var card=document.getElementById('qr-card');
@@ -6415,8 +6419,16 @@ var _firmaDrawing=false;var _firmaCtx=null;var _firmaCanvas=null;
 function _initFirmaCanvas(){
   _firmaCanvas=document.getElementById('firma-canvas');
   if(!_firmaCanvas)return;
+  // Backing store al tamaño real en pantalla × devicePixelRatio — sin esto la firma
+  // se dibuja borrosa en retina (iPad/iPhone): bitmap de 460px estirado a 2x-3x.
+  var _dpr=window.devicePixelRatio||1;
+  var _rect=_firmaCanvas.getBoundingClientRect();
+  if(_rect.width>0){
+    _firmaCanvas.width=Math.round(_rect.width*_dpr);
+    _firmaCanvas.height=Math.round(110*_dpr);
+  }
   _firmaCtx=_firmaCanvas.getContext('2d');
-  _firmaCtx.strokeStyle='#1a2a4a';_firmaCtx.lineWidth=2.5;_firmaCtx.lineCap='round';_firmaCtx.lineJoin='round';
+  _firmaCtx.strokeStyle='#1a2a4a';_firmaCtx.lineWidth=2.5*_dpr;_firmaCtx.lineCap='round';_firmaCtx.lineJoin='round';
   var _getPos=function(e){
     var rect=_firmaCanvas.getBoundingClientRect();
     var scaleX=_firmaCanvas.width/rect.width;var scaleY=_firmaCanvas.height/rect.height;
@@ -15474,7 +15486,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.15.0";
+var APP_DISPLAY_VERSION="8.15.1";
 var APP_BUILD="02/07/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
