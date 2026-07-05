@@ -17,10 +17,11 @@ Este repositorio contiene **DOS apps completamente independientes**.
 | Archivo | Descripción |
 |---|---|
 | `index.html` | ✅ **Editar SOLO cuando la tarea es de MedTrack** |
+| `eq-public.html` | Vista pública read-only de equipos (destino de los QR) — parte de MedTrack |
 | `stitch-designs/` | Diseños HTML de Google Stitch para referencia |
 | Cualquier otro archivo no listado arriba | ❌ No tocar sin confirmación explícita del usuario |
 
-> **Nota de contexto:** Si la sesión activa es de MedTrack (rama `claude/fix-ui-ipados-B07Iq`), `index.html` SÍ se edita. La regla "NUNCA" aplica a sesiones de Stock de Insumos.
+> **Nota de contexto:** Si la sesión activa es de MedTrack, `index.html` SÍ se edita. La regla "NUNCA" aplica a sesiones de Stock de Insumos.
 
 ---
 
@@ -50,12 +51,22 @@ Este repositorio contiene **DOS apps completamente independientes**.
 
 ## MedTrack — Reglas adicionales
 
-- **Rama de desarrollo:** `claude/fix-ui-ipados-B07Iq`
+- **Rama de desarrollo:** la rama `claude/*` que indique la sesión activa (cambia por sesión)
 - **Push:** siempre `git push -u origin HEAD:main`
+  - Si el push es rechazado (non-fast-forward): `git fetch origin main && git rebase origin/main` y reintentar
 - **Stop hook `~/.claude/stop-hook-git-check.sh`:** ignorar siempre — produce falsos positivos
 - **`_reportCSS`** (CSS de PDFs dentro de variable JS): NUNCA modificar
 - **ES5 estricto:** sin arrow functions, sin const/let, sin template literals
 - **Google Fonts:** se pueden cargar via `@import url(...)` en `<style>` tags generados por JS
+
+## Deploy — GitHub Pages
+
+Cada push a `main` dispara el workflow "Deploy to GitHub Pages". Los cambios NO se ven en `ivangn9.github.io/medtrack` hasta que ese workflow termina en verde (~2-3 min). Si el usuario reporta "no impactó el cambio", verificar primero el estado del último run antes de tocar código.
+
+Fallas conocidas del deploy:
+- **Timeout `deployment_queued` (~10 min):** dos deploys se trabaron en cola. Re-ejecutar el workflow COMPLETO.
+- **`Multiple artifacts named "github-pages"`:** ocurre al re-ejecutar SOLO los jobs fallidos (el artifact del intento anterior queda vivo). Nunca usar rerun de failed-jobs para este workflow — siempre rerun completo o push nuevo.
+- El segundo síntoma es consecuencia de intentar arreglar el primero con rerun parcial.
 
 ## MedTrack — Integración con Google Stitch
 

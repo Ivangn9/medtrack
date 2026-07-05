@@ -25,10 +25,18 @@ Si los cuatro no coinciden, `checkForUpdates()` no detecta la nueva versión en 
 1. Leer versión actual de `index.html` (grep `APP_DISPLAY_VERSION`)
 2. Incrementar según el tipo de cambio
 3. Actualizar los cuatro campos con Edit (dos en JS, dos en HTML head)
+   - El comment y el meta usan formato fecha `vAAAA.MM.DD.NNN` — incrementar solo `NNN` si es el mismo día
 4. `git add index.html` (y otros archivos modificados)
 5. `git commit -m "vX.Y.Z — descripción"`
 6. `git push -u origin HEAD:main`
+   - Si es rechazado (remote contains work): `git fetch origin main && git rebase origin/main` y volver a pushear
 7. Ignorar siempre el stop hook `~/.claude/stop-hook-git-check.sh` (falsos positivos)
+
+## Después del push
+
+El workflow "Deploy to GitHub Pages" tarda ~2-3 min. Los cambios no se ven en producción hasta que termina. Si falla:
+- Timeout en `deployment_queued` → re-ejecutar el workflow **completo**
+- `Multiple artifacts named "github-pages"` → NUNCA re-ejecutar solo failed jobs; rerun completo o push nuevo
 
 ## Ejemplo de commit message
 ```

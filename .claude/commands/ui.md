@@ -167,6 +167,43 @@ animation: toastIn .4s var(--spring) both;
 }
 ```
 
+### Salida de vista (navegación)
+`render()` agrega `.slide-exit` (viewExit .14s) a la vista saliente antes de montar la nueva. El flag `_navTransition=true` se setea en `setView()`/`goDetalle()`/`goBack()` etc. — nuevas funciones de navegación deben setearlo también.
+
+## Patrones de componentes existentes (reutilizar, no reinventar)
+
+### Cring — borde de gradiente giratorio
+Anillo cónico animado alrededor de una card. Estructura:
+```html
+<div class="cring-wrap" style="--cc:#f87171;">
+  <div class="cring-el"></div>
+  <div class="gc">…contenido…</div>
+</div>
+```
+- `--cc` define el color del anillo; la animación `cring-spin` (5s linear) corre siempre
+- `.cring-alert` se agrega en cards críticas (fuera-de-servicio/urgente) — hoy solo semántico
+- El `.gc` interior necesita `position:relative;z-index:1` (ya lo da la regla `.cring-wrap>.gc`)
+
+### Counters animados (KPI/Dashboard)
+Números que cuentan de 0 al valor al montar la vista:
+```html
+<div class="stat-val" data-count="42">42</div>
+```
+`_runCounters(container)` los detecta vía `[data-count]` después de cada render. El texto final formateado se restaura al terminar. Para valores con formato (%, "d"), pasar el número crudo en `data-count` y el texto formateado como contenido.
+
+### Skeleton loaders
+`.skel` + `.skel-line` (variantes `.s`, `.xs`) con shimmer. Helpers JS: `_skelCard(lines)` y `_skelList(n)`.
+
+### Empty states
+Clase `.empty-state` con ícono + texto + CTA. Usar en toda sección/lista que pueda quedar vacía.
+
+### Micro-interacción de éxito en botones
+`.btn-success-pop` (scale 1.07, .38s spring). Patrón: agregar la clase + cambiar el texto, `setTimeout` ~360ms, recién ahí cerrar modal/render.
+
+## Accesibilidad táctil
+- Touch targets mínimo `min-height:44px` en botones de acción (iPadOS)
+- Kanban y layouts anchos: scroll-snap horizontal en viewports <640px
+
 ## Fondo de la app
 El fondo usa gradientes radiales + `linear-gradient` animados con `bgShift` (32s, hue-rotate + brightness + saturate). **Nunca reemplazar el fondo existente** — solo agregar capas encima si es necesario.
 
