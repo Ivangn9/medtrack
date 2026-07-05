@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.02.510 -->
+<!-- v2026.07.02.511 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.02.510">
+<meta name="app-version" content="v2026.07.02.511">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -122,8 +122,8 @@ body::after{
 /* ── LIQUID GLASS CARD ── */
 .gc{
   background:var(--gc-bg);
-  -webkit-backdrop-filter:blur(14px);
-  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:saturate(150%) blur(14px);
+  backdrop-filter:saturate(150%) blur(14px);
   border:1px solid var(--gc-border);
   border-top-color:var(--gc-border-top);
   border-radius:var(--r-lg);
@@ -733,7 +733,9 @@ body.dark::after{
     radial-gradient(ellipse 50% 55% at 15% 75%,rgba(20,80,100,.10) 0%,transparent 50%),
     radial-gradient(ellipse 40% 35% at 55% 50%,rgba(60,30,80,.08) 0%,transparent 50%);}
 body.dark input,body.dark select,body.dark textarea{background:rgba(60,60,70,.82);color:#f2f2f7;border-color:rgba(80,80,90,.5);-webkit-backdrop-filter:none;backdrop-filter:none;}
-body.dark .modal-box{background:rgba(32,32,36,.94);border-color:rgba(80,80,90,.4);}
+body.dark .modal-box{background:rgba(28,28,36,.86);border-color:rgba(80,80,90,.4);}
+body.dark .modal-handle{background:rgba(255,255,255,.22);}
+body.dark .gc::after{background:linear-gradient(180deg,rgba(255,255,255,.09) 0%,rgba(255,255,255,0) 100%);}
 body.dark .settings-panel{background:var(--panel-bg);border-color:rgba(255,255,255,.08);box-shadow:-4px 0 40px rgba(0,0,0,.35),inset 1px 0 0 rgba(255,255,255,.07);}
 body.dark .settings-item{background:var(--item-bg);border-color:var(--item-border);box-shadow:0 2px 8px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.08);}
 body.dark .settings-title{color:#f2f2f7!important;}
@@ -8924,7 +8926,7 @@ function rEstadoRM(){
     '<div style="position:relative;z-index:2;">'+rmSceneSVG(eq)+'</div>'+
     // Location tag
     '<div style="position:absolute;top:10px;left:10px;z-index:3;">'+
-      '<div style="padding:4px 10px;background:rgba(6,9,26,.8);backdrop-filter:blur(8px);border:1px solid rgba(59,75,58,.5);border-radius:8px;display:flex;align-items:center;gap:6px;">'+
+      '<div style="padding:4px 10px;background:rgba(6,9,26,.8);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid rgba(59,75,58,.5);border-radius:8px;display:flex;align-items:center;gap:6px;">'+
         '<span class="material-symbols-outlined" style="color:#00e55b;font-size:14px;">location_on</span>'+
         '<span style="font-family:JetBrains Mono,monospace;font-size:10px;color:#b9ccb5;">'+esc(eq.ubicacion||'Sin ubicación')+'</span>'+
       '</div>'+
@@ -10521,7 +10523,7 @@ function expFiltered(){
     sections+='</div>';
   });
   if(!hasData){alert("Sin registros en "+fD(desde)+" — "+fD(hasta));return;}
-  var filtCSS='body{font-family:Helvetica,sans-serif;font-size:11px;color:#1d1d1f;margin:0}.hd{background:linear-gradient(135deg,#1a3a6b,#2a5298);color:#fff;padding:20px 24px}.b{padding:16px 24px}.st{display:flex;gap:12px;margin-bottom:18px}.sb{background:#f0f6ff;border:1px solid #dce8f5;border-radius:6px;padding:8px 16px;text-align:center}.eq-block{border:1px solid #e2e8f0;border-radius:8px;margin-bottom:16px;overflow:hidden;page-break-inside:avoid}.eq-hdr{background:#1a3a6b;color:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:center}.eq-name{font-size:12px;font-weight:700}.eq-cat{font-size:9px;opacity:.8}.sec-lbl{margin:8px 12px 4px;font-size:9px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em}table{width:100%;border-collapse:collapse;margin-bottom:4px}th{background:#f1f5f9;color:#475569;padding:5px 10px;text-align:left;font-size:8px;text-transform:uppercase}td{padding:5px 10px;border-bottom:1px solid #f1f5f9;font-size:10px}.nav-bar{position:sticky;top:0;z-index:99;background:rgba(255,255,255,.95);backdrop-filter:blur(10px);border-bottom:1px solid #e2e8f0;padding:10px 16px;display:flex;gap:10px;align-items:center}.btn-print{background:#1a3a6b;color:#fff;border:none;border-radius:50px;padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer}@media print{.nav-bar{display:none}body{print-color-adjust:exact;-webkit-print-color-adjust:exact}.eq-block{page-break-inside:avoid}}';
+  var filtCSS='body{font-family:Helvetica,sans-serif;font-size:11px;color:#1d1d1f;margin:0}.hd{background:linear-gradient(135deg,#1a3a6b,#2a5298);color:#fff;padding:20px 24px}.b{padding:16px 24px}.st{display:flex;gap:12px;margin-bottom:18px}.sb{background:#f0f6ff;border:1px solid #dce8f5;border-radius:6px;padding:8px 16px;text-align:center}.eq-block{border:1px solid #e2e8f0;border-radius:8px;margin-bottom:16px;overflow:hidden;page-break-inside:avoid}.eq-hdr{background:#1a3a6b;color:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:center}.eq-name{font-size:12px;font-weight:700}.eq-cat{font-size:9px;opacity:.8}.sec-lbl{margin:8px 12px 4px;font-size:9px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em}table{width:100%;border-collapse:collapse;margin-bottom:4px}th{background:#f1f5f9;color:#475569;padding:5px 10px;text-align:left;font-size:8px;text-transform:uppercase}td{padding:5px 10px;border-bottom:1px solid #f1f5f9;font-size:10px}.nav-bar{position:sticky;top:0;z-index:99;background:rgba(255,255,255,.95);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:1px solid #e2e8f0;padding:10px 16px;display:flex;gap:10px;align-items:center}.btn-print{background:#1a3a6b;color:#fff;border:none;border-radius:50px;padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer}@media print{.nav-bar{display:none}body{print-color-adjust:exact;-webkit-print-color-adjust:exact}.eq-block{page-break-inside:avoid}}';
   var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CIMA Informe</title><style>'+filtCSS+'</style></head><body>'+
     '<div class="nav-bar"><button class="btn-print" onclick="window.print()">🖨 Imprimir</button></div>'+
     '<div class="hd"><div style="font-size:18px;font-weight:700;">CIMA — Informe por Equipo</div><div style="font-size:11px;opacity:.8;margin-top:2px;">'+fD(desde)+' al '+fD(hasta)+'</div></div>'+
@@ -15256,7 +15258,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.12.1";
+var APP_DISPLAY_VERSION="8.13.0";
 var APP_BUILD="02/07/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
@@ -15519,7 +15521,7 @@ function init(){
     var badge=document.createElement("div");
     badge.id="demo-badge";
     badge.textContent="MODO DEMO";
-    badge.style.cssText="position:fixed;top:calc(env(safe-area-inset-top,0px)+8px);left:50%;transform:translateX(-50%);z-index:9000;background:rgba(255,149,0,.92);color:#fff;font-size:.65rem;font-weight:800;letter-spacing:.08em;padding:4px 12px;border-radius:20px;pointer-events:none;box-shadow:0 2px 10px rgba(255,149,0,.35);backdrop-filter:blur(8px);";
+    badge.style.cssText="position:fixed;top:calc(env(safe-area-inset-top,0px)+8px);left:50%;transform:translateX(-50%);z-index:9000;background:rgba(255,149,0,.92);color:#fff;font-size:.65rem;font-weight:800;letter-spacing:.08em;padding:4px 12px;border-radius:20px;pointer-events:none;box-shadow:0 2px 10px rgba(255,149,0,.35);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);";
     document.body.appendChild(badge);
     render();
     return;
@@ -15585,6 +15587,11 @@ function init(){
           if(_ecoChanged||_mejCount>0||_mejOTCount>0){saveData();}
           render();
           if(window._pendingGEParams)setTimeout(_processGEUrlUpdate,600);
+          _startTickers();
+        }
+        function _startTickers(){
+          if(window._tickersOn)return;
+          window._tickersOn=true;
           setTimeout(checkForUpdates,3000);
           setInterval(checkForUpdates,60*1000);
           setTimeout(reconcileFiles,4000);              // upload any local-only files to the cloud
@@ -15626,13 +15633,7 @@ function init(){
                   migrateEqs();migrateEcoData();migrateTransductores();
                   firestoreSave();
                   render();
-                  setTimeout(checkForUpdates,3000);
-                  setInterval(checkForUpdates,60*1000);
-                  setTimeout(reconcileFiles,4000);
-                  setInterval(reconcileFiles,5*60*1000);
-                  setTimeout(dailyBackup,6000);
-                  setTimeout(hourlyBackup,10000);
-                  setInterval(hourlyBackup,60*60*1000);
+                  _startTickers();
                 })
                 .catch(function(){
                   eqs=JSON.parse(JSON.stringify(EQ0));
