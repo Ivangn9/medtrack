@@ -30,11 +30,16 @@ body{background:#06091a;color:rgba(255,255,255,.9);font-family:-apple-system,Bli
 .eq-meta{font-size:.7rem;color:rgba(255,255,255,.45);margin-bottom:10px;}
 .nivel-bar-wrap{background:rgba(255,255,255,.06);border-radius:6px;height:10px;overflow:hidden;margin-top:4px;}
 .nivel-bar{height:100%;border-radius:6px;transition:width .4s;}
-.falla-item{padding:9px 0;border-bottom:1px solid rgba(255,255,255,.05);display:flex;align-items:flex-start;gap:10px;}
+.falla-item{padding:9px 0;border-bottom:1px solid rgba(255,255,255,.05);display:flex;align-items:center;gap:10px;}
 .falla-item:last-child{border-bottom:none;}
-.falla-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+.falla-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
 .falla-nom{font-size:.82rem;font-weight:600;}
-.falla-desc{font-size:.7rem;color:rgba(255,255,255,.45);margin-top:2px;}
+.safety-card{text-align:center;padding:22px 16px 18px;}
+.safety-num{font-size:3rem;font-weight:800;line-height:1;letter-spacing:-1px;}
+.safety-label{font-size:.72rem;color:rgba(255,255,255,.45);margin-top:6px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;}
+.live-row{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:12px;font-size:.62rem;color:rgba(255,255,255,.35);}
+.live-dot{width:7px;height:7px;border-radius:50%;background:#34c759;box-shadow:0 0 6px #34c759;animation:livePulse 1.6s ease-in-out infinite;}
+@keyframes livePulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.35;transform:scale(.75);}}
 .empty-state{text-align:center;padding:18px 0;color:rgba(255,255,255,.3);font-size:.8rem;}
 .spinner{display:flex;justify-content:center;align-items:center;padding:60px 0;gap:10px;color:rgba(255,255,255,.3);font-size:.85rem;}
 .spinner-circle{width:22px;height:22px;border:2.5px solid rgba(255,255,255,.1);border-top-color:#adc6ff;border-radius:50%;animation:spin .8s linear infinite;}
@@ -155,6 +160,36 @@ function renderEq(eq) {
   html += '</div>';
   html += '</div>';
 
+  // ── Días sin incidentes ──
+  var activas = (eq.partes || []).filter(function(p){ return p.estado === 'roto' || p.estado === 'pendiente'; });
+  var lastIncident = null;
+  (eq.partes || []).forEach(function(p){
+    if (p.fechaRotura && (!lastIncident || p.fechaRotura > lastIncident)) lastIncident = p.fechaRotura;
+  });
+  (eq.historialMant || []).forEach(function(h){
+    if ((h.tipo === 'rotura' || h.tipo === 'reparacion') && h.fecha && (!lastIncident || h.fecha > lastIncident)) lastIncident = h.fecha;
+  });
+  var ahora = new Date();
+  var horaStr = ('0'+ahora.getHours()).slice(-2) + ':' + ('0'+ahora.getMinutes()).slice(-2);
+
+  html += '<div class="card"><div class="safety-card">';
+  if (activas.length) {
+    var oldestActiva = null;
+    activas.forEach(function(p){ if (p.fechaRotura && (!oldestActiva || p.fechaRotura < oldestActiva)) oldestActiva = p.fechaRotura; });
+    var diasFalla = oldestActiva ? Math.abs(diasH(oldestActiva)) : null;
+    html += '<div class="safety-num" style="color:#ff9500;">⚠️</div>';
+    html += '<div class="safety-label" style="color:#ff9500;">Falla activa' + (diasFalla !== null ? ' hace ' + diasFalla + ' día' + (diasFalla !== 1 ? 's' : '') : '') + '</div>';
+  } else if (lastIncident) {
+    var diasSin = Math.abs(diasH(lastIncident));
+    html += '<div class="safety-num" style="color:#34c759;">' + diasSin + '</div>';
+    html += '<div class="safety-label">día' + (diasSin !== 1 ? 's' : '') + ' sin incidentes</div>';
+  } else {
+    html += '<div class="safety-num" style="color:#34c759;">✅</div>';
+    html += '<div class="safety-label">Sin incidentes registrados</div>';
+  }
+  html += '<div class="live-row"><div class="live-dot"></div>Datos en tiempo real · ' + horaStr + '</div>';
+  html += '</div></div>';
+
   // ── Mantenimiento ──
   var lastMant = null;
   var allHist = (eq.historialMant || []).filter(function(h){ return h.tipo === 'mantenimiento'; });
@@ -220,17 +255,11 @@ function renderEq(eq) {
       var esRoto = p.estado === 'roto';
       var dotColor = esRoto ? '#ff3b30' : '#ff9500';
       var estadoLabel = esRoto ? 'Roto' : 'Pendiente';
-      var diasRoto = p.fechaRotura ? diasH(p.fechaRotura) : null;
       html += '<div class="falla-item">';
       html += '<div class="falla-dot" style="background:' + dotColor + ';box-shadow:0 0 6px ' + dotColor + ';"></div>';
-      html += '<div style="flex:1;">';
-      html += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">';
-      html += '<span class="falla-nom">' + esc(p.nombre) + '</span>';
+      html += '<span class="falla-nom" style="flex:1;">' + esc(p.nombre) + '</span>';
       html += '<span style="font-size:.55rem;font-weight:700;padding:1px 6px;border-radius:10px;background:' + dotColor + '22;color:' + dotColor + ';">' + estadoLabel + '</span>';
       html += '</div>';
-      if (p.descripcion || p.notas) html += '<div class="falla-desc">' + esc(p.descripcion || p.notas) + '</div>';
-      if (diasRoto !== null) html += '<div style="font-size:.65rem;color:#ff9500;margin-top:3px;">Desde: ' + fD(p.fechaRotura) + ' (hace ' + Math.abs(diasRoto) + ' días)</div>';
-      html += '</div></div>';
     });
   }
   html += '</div></div>';
