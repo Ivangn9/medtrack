@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.02.514 -->
+<!-- v2026.07.02.515 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.02.514">
+<meta name="app-version" content="v2026.07.02.515">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -118,6 +118,31 @@ body::after{
   100%{opacity:.75;}
 }
 #app,#login-screen{position:relative;z-index:1;}
+
+/* ── GRANO ANTI-BANDING (capa estática única, sin animación) ── */
+#bg-grain{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.30;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+  background-size:160px 160px;}
+body.dark #bg-grain{opacity:.22;}
+
+/* ── TINTE CONTEXTUAL DEL GLASS (identidad por sección) ── */
+.tint-red .gc{background-image:linear-gradient(rgba(255,59,48,.05),rgba(255,59,48,.025));}
+.tint-green .gc{background-image:linear-gradient(rgba(52,199,89,.05),rgba(52,199,89,.025));}
+.tint-cyan .gc{background-image:linear-gradient(rgba(56,189,248,.05),rgba(56,189,248,.025));}
+
+/* ── SEGMENTED CONTROL (estilo iOS) ── */
+.segctl{display:inline-flex;background:rgba(120,120,128,.13);border-radius:20px;padding:3px;gap:2px;}
+.segctl button{border:none;background:none;padding:7px 15px;border-radius:17px;font-size:.75rem;font-weight:600;color:var(--text2);cursor:pointer;min-height:36px;transition:background .28s var(--spring),color .18s,box-shadow .28s var(--ease-out);}
+.segctl button.on{background:var(--accent);color:#fff;box-shadow:0 2px 8px rgba(0,113,227,.3),inset 0 1px 0 rgba(255,255,255,.25);}
+
+/* ── HEADER COMPACTO AL SCROLLEAR (large-title collapse) ── */
+#header-inner{transition:padding .34s var(--ease-out),min-height .34s var(--ease-out);}
+body.hdr-compact #header-inner{padding:9px 16px 9px 22px;min-height:60px;}
+
+/* ── PARALLAX DE MODALES (la página retrocede como sheet de iOS) ── */
+#main,#header{transition:transform .42s var(--spring),filter .42s var(--ease-out),opacity .3s;}
+body.modal-open #main{transform:scale(.968);filter:brightness(.90) saturate(.96);}
+body.modal-open #header{transform:scale(.985);filter:brightness(.90);}
 
 /* ── LIQUID GLASS CARD ── */
 .gc{
@@ -602,6 +627,7 @@ body.dark .ig{box-shadow:0 2px 8px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255
   body::before{animation:none!important;opacity:.95;}
   body::after{animation:none!important;opacity:.72;}
   .gc,.gc.tap,#bb-inner,#header-inner,#sidebar,.sb-nav-btn{transition:none!important;}
+  body.modal-open #main,body.modal-open #header{transform:none!important;filter:none!important;}
   [data-aos]{opacity:1!important;transform:none!important;transition:none!important;}
 }
 
@@ -730,9 +756,10 @@ body.dark::before{
     linear-gradient(175deg,#06091a 0%,#07091e 35%,#060820 65%,#050718 100%);}
 body.dark::after{
   background:
-    radial-gradient(ellipse 60% 45% at 85% 15%,rgba(80,50,200,.12) 0%,transparent 50%),
-    radial-gradient(ellipse 50% 55% at 15% 75%,rgba(20,80,100,.10) 0%,transparent 50%),
-    radial-gradient(ellipse 40% 35% at 55% 50%,rgba(60,30,80,.08) 0%,transparent 50%);}
+    radial-gradient(ellipse 60% 45% at 85% 15%,rgba(110,70,255,.16) 0%,transparent 50%),
+    radial-gradient(ellipse 50% 55% at 15% 75%,rgba(20,140,170,.13) 0%,transparent 50%),
+    radial-gradient(ellipse 45% 40% at 55% 45%,rgba(70,40,130,.11) 0%,transparent 55%),
+    radial-gradient(ellipse 35% 30% at 30% 18%,rgba(40,90,220,.10) 0%,transparent 50%);}
 body.dark input,body.dark select,body.dark textarea{background:rgba(60,60,70,.82);color:#f2f2f7;border-color:rgba(80,80,90,.5);-webkit-backdrop-filter:none;backdrop-filter:none;}
 body.dark .modal-box{background:rgba(28,28,36,.86);border-color:rgba(80,80,90,.4);}
 body.dark .modal-handle{background:rgba(255,255,255,.22);}
@@ -1058,6 +1085,7 @@ body.dark .pill[style*="#ff9500"],body.dark .pill[style*="--orange"]{box-shadow:
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js" onerror="document.head.insertAdjacentHTML('beforeend','<style>[data-aos]{opacity:1!important;transform:none!important;transition:none!important;}</style>')"></script>
 </head>
 <body><script>(function(){try{if(localStorage.getItem("mt_dark")==="1")document.body.classList.add("dark");}catch(e){}})();</script>
+<div id="bg-grain" aria-hidden="true"></div>
 <!-- LIQUID GLASS SVG FILTERS -->
 <svg style="position:absolute;width:0;height:0;overflow:hidden;" aria-hidden="true">
   <defs>
@@ -2374,6 +2402,12 @@ function moveBBIndicator(){
   ind.classList.add("show");
 }
 window.addEventListener("resize",function(){moveBBIndicator();});
+// Header compacto al scrollear (large-title collapse)
+window.addEventListener('scroll',function(){
+  var sc=(document.scrollingElement||document.documentElement).scrollTop;
+  var c=sc>48;
+  if(c!==window._hdrCompact){window._hdrCompact=c;document.body.classList.toggle('hdr-compact',c);}
+},{passive:true});
 function toggleMobileNav(){document.body.classList.toggle('sb-open');}
 function closeMobileNav(){document.body.classList.remove('sb-open');}
 function setView(v){
@@ -2427,9 +2461,17 @@ function goAntenaDetalle(antenaId,rmEquipId){
 // ═══════════════════════════════════════════
 function openModal(h){var o=document.getElementById("modal-overlay"),b=document.getElementById("modal-box");
   b.innerHTML='<div class="modal-handle"></div>'+h;o.classList.remove("hidden");o.classList.add("fade");
+  // Parallax: la página retrocede detrás del sheet. Origin anclado al centro del
+  // viewport (no del documento) para que el scale no desplace el contenido scrolleado.
+  var _mn=document.getElementById('main');
+  if(_mn){
+    var _se=document.scrollingElement||document.documentElement;
+    _mn.style.transformOrigin='50% '+Math.max(0,_se.scrollTop+window.innerHeight/2-_mn.offsetTop)+'px';
+  }
+  document.body.classList.add('modal-open');
   var _mi=b.querySelectorAll('input,textarea');
   for(var _ii=0;_ii<_mi.length;_ii++){var _t=_mi[_ii].type;if(_t!=='date'&&_t!=='number'&&_t!=='range'&&_t!=='checkbox'&&_t!=='radio'&&_t!=='color'){_mi[_ii].setAttribute('autocapitalize','off');_mi[_ii].setAttribute('autocorrect','off');_mi[_ii].setAttribute('spellcheck','false');}}}
-function closeModal(){document.getElementById("modal-overlay").classList.add("hidden");}
+function closeModal(){document.getElementById("modal-overlay").classList.add("hidden");document.body.classList.remove('modal-open');}
 var _confirmCb=null;
 function _confirmModal(msg,cb){_confirmCb=cb;openModal('<div class="modal-hdr"><div class="modal-title">Confirmar</div><button class="modal-x" onclick="closeModal()">✕</button></div><div style="padding:4px 0 16px;font-size:.9rem;color:var(--text);">'+msg+'</div><div style="display:flex;gap:8px;"><button class="btn-secondary" style="flex:1;" onclick="closeModal()">Cancelar</button><button class="btn-danger" style="flex:1;" onclick="closeModal();if(window._confirmCb){var f=window._confirmCb;window._confirmCb=null;f();}">Eliminar</button></div>');}
 
@@ -4659,8 +4701,9 @@ function renderHeader(){
   updateSyncIndicator();
 }
 
+var _VIEW_TINTS={alertas:'tint-red',reclamos:'tint-red',kpi:'tint-green',estadorm:'tint-cyan'};
 function _buildView(){
-  var d=document.createElement("div");d.className="slide";
+  var d=document.createElement("div");d.className="slide"+(_VIEW_TINTS[view]?' '+_VIEW_TINTS[view]:'');
   if(view==="inicio")d.innerHTML=rInicio();
   else if(view==="dash")d.innerHTML=rDash();
   else if(view==="lista")d.innerHTML=rLista();
@@ -6125,8 +6168,10 @@ function rOrdenes(){
   h+='<button onclick="openModalOT(null,null)" style="padding:10px 18px;border-radius:var(--r-pill);background:rgba(52,199,89,.12);border:1.5px solid rgba(52,199,89,.28);color:var(--green);font-weight:700;font-size:.82rem;cursor:pointer;min-height:44px;display:flex;align-items:center;">+ Nueva OT</button>';
   h+='</div>';
   h+='<div style="display:flex;gap:8px;flex-wrap:wrap;">';
-  h+='<button onclick="_otViewMode=\'lista\';render();" style="padding:8px 14px;border-radius:20px;border:none;cursor:pointer;font-size:.75rem;font-weight:600;min-height:36px;background:'+(_otViewMode==='lista'?'var(--accent)':'rgba(120,120,128,.13)')+';color:'+(_otViewMode==='lista'?'#fff':'var(--text2)')+';">Lista</button>';
-  h+='<button onclick="_otViewMode=\'kanban\';render();" style="padding:8px 14px;border-radius:20px;border:none;cursor:pointer;font-size:.75rem;font-weight:600;min-height:36px;background:'+(_otViewMode==='kanban'?'var(--accent)':'rgba(120,120,128,.13)')+';color:'+(_otViewMode==='kanban'?'#fff':'var(--text2)')+';">Kanban</button>';
+  h+='<div class="segctl">';
+  h+='<button class="'+(_otViewMode==='lista'?'on':'')+'" onclick="_otViewMode=\'lista\';render();">Lista</button>';
+  h+='<button class="'+(_otViewMode==='kanban'?'on':'')+'" onclick="_otViewMode=\'kanban\';render();">Kanban</button>';
+  h+='</div>';
   h+='<button onclick="generarPDFOrdenes()" style="padding:8px 14px;border-radius:var(--r-pill);background:rgba(0,113,227,.12);border:1.5px solid rgba(0,113,227,.28);color:var(--accent);font-weight:700;font-size:.75rem;cursor:pointer;min-height:36px;">📄 PDF</button>';
   h+='</div></div>';
   // Filtros solo para OTs activas
@@ -15486,7 +15531,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.15.1";
+var APP_DISPLAY_VERSION="8.16.0";
 var APP_BUILD="02/07/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
