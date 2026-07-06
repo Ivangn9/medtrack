@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.02.516 -->
+<!-- v2026.07.02.517 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.02.516">
+<meta name="app-version" content="v2026.07.02.517">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -4977,6 +4977,64 @@ function rInicio(){
     '<div class="lt-title">'+_greeting+'</div>'+
     '<div class="lt-sub" style="text-transform:capitalize;">'+_fechaStr+' · CIMA Investigaciones Avanzadas</div>'+
   '</div>';
+
+  // ── MI DÍA — qué requiere acción hoy ──
+  var _td=today();
+  var _in7d=(function(){var d7=new Date();d7.setDate(d7.getDate()+7);return d7.toISOString().split('T')[0];})();
+  var _hace7d=(function(){var d8=new Date();d8.setDate(d8.getDate()-7);return d8.toISOString().split('T')[0];})();
+  function _fmd(s){if(!s)return'';var p=s.split('-');return p.length===3?p[2]+'/'+p[1]:s;}
+  var _tareas=[];
+  ordenesTrabajo.forEach(function(o){
+    if(o.estado==='cerrada')return;
+    var eqO=eqs.find(function(e2){return e2.id===o.eqId;})||{};
+    if(o.eqId&&eqO.id&&!_sedeMatch(eqO))return;
+    if(o.fechaProgramada&&o.fechaProgramada<_td)_tareas.push({pr:0,col:'var(--red)',ic:'📋',txt:'OT vencida: '+(o.titulo||o.id),sub:(eqO.nombre||'')+' · '+_fmd(o.fechaProgramada),go:"setView('ordenes')"});
+    else if(o.fechaProgramada===_td)_tareas.push({pr:1,col:'var(--orange)',ic:'📋',txt:'OT para hoy: '+(o.titulo||o.id),sub:eqO.nombre||'',go:"setView('ordenes')"});
+    else if(o.prioridad==='urgente')_tareas.push({pr:1,col:'var(--red)',ic:'🚨',txt:'OT urgente: '+(o.titulo||o.id),sub:eqO.nombre||'',go:"setView('ordenes')"});
+  });
+  activeEqs.forEach(function(e3){
+    if(e3.frecuencia&&e3.frecuencia!=='ninguna'&&e3.proximoMant&&e3.proximoMant<_td)
+      _tareas.push({pr:2,col:'var(--orange)',ic:'🔧',txt:'Mantenimiento vencido: '+e3.nombre,sub:'desde '+_fmd(e3.proximoMant),go:"goDetalle('"+e3.id+"')"});
+  });
+  pmProgramados.forEach(function(pm){
+    if(pm.fecha&&pm.fecha>=_td&&pm.fecha<=_in7d){
+      var eqP=eqs.find(function(e4){return e4.id===pm.eqId;})||{};
+      if(eqP.id&&!_sedeMatch(eqP))return;
+      _tareas.push({pr:pm.fecha===_td?1:3,col:pm.fecha===_td?'var(--orange)':'var(--accent)',ic:'📅',txt:'PM '+(pm.fecha===_td?'HOY':_fmd(pm.fecha))+': '+(eqP.nombre||pm.eqId),sub:(pm.horaInicio||'')+(pm.tecnico?' · '+pm.tecnico:''),go:"setView('calendario')"});
+    }
+  });
+  activeEqs.forEach(function(e5){
+    if(e5.cat!=='RM')return;
+    var pcH=rmHelioPct(e5);
+    if(pcH!==null&&pcH<75)_tareas.push({pr:pcH<60?0:2,col:pcH<60?'var(--red)':'var(--orange)',ic:'🧊',txt:'Helio '+(pcH<60?'crítico':'bajo')+': '+Math.round(pcH)+'%',sub:e5.nombre,go:"setView('estadorm')"});
+    var lecs=(_refrigData(e5).lecturas||[]);
+    var ultF='';lecs.forEach(function(l){if((l.fecha||'')>ultF)ultF=l.fecha;});
+    if(ultF&&ultF<_hace7d)_tareas.push({pr:3,col:'var(--accent)',ic:'📝',txt:'Registrar lectura de helio',sub:e5.nombre+' · última '+_fmd(ultF),go:"setView('estadorm')"});
+  });
+  _tareas.sort(function(a,b){return a.pr-b.pr;});
+  h+='<div class="gc" style="padding:16px;margin-bottom:14px;">';
+  h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:'+(_tareas.length?'10':'0')+'px;">';
+  h+='<div style="font-size:.72rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);">☀️ Mi día</div>';
+  if(_tareas.length)h+='<span style="font-size:.64rem;font-weight:800;min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:'+(_tareas.some(function(t2){return t2.pr===0;})?'var(--red)':'var(--orange)')+';color:#fff;display:inline-flex;align-items:center;justify-content:center;">'+_tareas.length+'</span>';
+  h+='</div>';
+  if(!_tareas.length){
+    h+='<div style="display:flex;align-items:center;gap:9px;padding:6px 0 2px;"><span style="font-size:1.1rem;">✅</span><span style="font-size:.84rem;color:var(--text2);font-weight:600;">Nada urgente por hoy</span></div>';
+  }else{
+    var _tmax=Math.min(_tareas.length,6);
+    for(var ti=0;ti<_tmax;ti++){
+      var tk=_tareas[ti];
+      h+='<div class="tap" onclick="'+tk.go+'" style="display:flex;align-items:center;gap:10px;padding:9px 6px;border-radius:12px;cursor:pointer;min-height:44px;'+(ti<_tmax-1?'border-bottom:1px solid rgba(120,120,128,.1);':'')+'">'+
+        '<span style="font-size:1rem;flex-shrink:0;">'+tk.ic+'</span>'+
+        '<div style="flex:1;min-width:0;">'+
+          '<div style="font-size:.82rem;font-weight:700;color:'+tk.col+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+esc(tk.txt)+'</div>'+
+          (tk.sub?'<div style="font-size:.66rem;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+esc(tk.sub)+'</div>':'')+
+        '</div>'+
+        '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2.2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>'+
+      '</div>';
+    }
+    if(_tareas.length>_tmax)h+='<div style="text-align:center;font-size:.68rem;color:var(--text3);padding-top:7px;">+'+(_tareas.length-_tmax)+' pendiente'+(_tareas.length-_tmax!==1?'s':'')+' más</div>';
+  }
+  h+='</div>';
 
   // Status grid 2x2
   var _stats=[
@@ -15798,7 +15856,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.17.0";
+var APP_DISPLAY_VERSION="8.18.0";
 var APP_BUILD="02/07/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
