@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.02.518 -->
+<!-- v2026.07.02.519 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.02.518">
+<meta name="app-version" content="v2026.07.02.519">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1197,17 +1197,17 @@ body.dark .pill[style*="#ff9500"],body.dark .pill[style*="--orange"]{box-shadow:
 <div id="settings-overlay" class="hidden" onclick="if(event.target===this)toggleSettings();" style="position:fixed;inset:0;background:rgba(0,0,0,.28);z-index:600;display:flex;align-items:stretch;justify-content:flex-end;">
   <div class="settings-panel" id="settings-panel">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-      <div style="font-weight:700;font-size:1.05rem;">⚙️ Ajustes</div>
+      <div style="font-weight:700;font-size:1.05rem;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:2px;"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33 1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> Ajustes</div>
       <button class="modal-close" onclick="toggleSettings()">✕</button>
     </div>
     <div style="padding:0 0 14px;border-bottom:1px solid rgba(0,0,0,.08);margin-bottom:14px;">
       <div style="display:flex;justify-content:flex-end;"><div id="ver-label" style="font-size:.6rem;color:var(--text3);font-family:monospace;"></div></div>
-      <button onclick="doClearCache()" style="width:100%;padding:11px;background:rgba(255,149,0,.12);color:#b45309;border:1px solid rgba(255,149,0,.28);border-radius:50px;font-weight:600;font-size:.82rem;cursor:pointer;">🗑 Limpiar caché</button>
+      <button onclick="doClearCache()" style="width:100%;padding:11px;background:rgba(255,149,0,.12);color:#b45309;border:1px solid rgba(255,149,0,.28);border-radius:50px;font-weight:600;font-size:.82rem;cursor:pointer;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:2px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> Limpiar caché</button>
       <div style="font-size:.65rem;color:var(--text3);margin-top:5px;text-align:center;">Borra datos temporales y recarga la app</div>
     </div>
     <div class="settings-item">
       <div style="display:flex;justify-content:space-between;align-items:center;">
-        <div><div class="settings-title">🌙 Modo Oscuro</div><div class="settings-desc">Tema oscuro para la interfaz</div></div>
+        <div><div class="settings-title"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:2px;"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg> Modo Oscuro</div><div class="settings-desc">Tema oscuro para la interfaz</div></div>
         <button id="dark-toggle" onclick="toggleDarkMode()" style="width:50px;height:30px;border-radius:15px;border:none;cursor:pointer;position:relative;transition:background .3s;background:#e5e5ea;">
           <div id="dark-dot" style="width:24px;height:24px;border-radius:50%;background:#fff;position:absolute;top:3px;left:3px;transition:left .3s;box-shadow:0 1px 3px rgba(0,0,0,.2);"></div>
         </button>
@@ -1215,7 +1215,7 @@ body.dark .pill[style*="#ff9500"],body.dark .pill[style*="--orange"]{box-shadow:
     </div>
     <div class="settings-item">
       <div style="display:flex;justify-content:space-between;align-items:center;">
-        <div><div class="settings-title">🔔 Recordatorio Mensual</div><div class="settings-desc">Aviso el último día del mes para generar el reporte</div><div id="reminder-status" style="font-size:.62rem;color:var(--text3);margin-top:3px;"></div></div>
+        <div><div class="settings-title"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:2px;"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg> Recordatorio Mensual</div><div class="settings-desc">Aviso el último día del mes para generar el reporte</div><div id="reminder-status" style="font-size:.62rem;color:var(--text3);margin-top:3px;"></div></div>
         <button id="reminder-toggle" onclick="toggleMonthlyReminder()" style="width:50px;height:30px;border-radius:15px;border:none;cursor:pointer;position:relative;transition:background .3s;background:#e5e5ea;flex-shrink:0;margin-left:12px;">
           <div id="reminder-dot" style="width:24px;height:24px;border-radius:50%;background:#fff;position:absolute;top:3px;left:3px;transition:left .3s;box-shadow:0 1px 3px rgba(0,0,0,.2);"></div>
         </button>
@@ -1223,14 +1223,14 @@ body.dark .pill[style*="#ff9500"],body.dark .pill[style*="--orange"]{box-shadow:
     </div>
     <div class="settings-item">
       <div style="display:flex;justify-content:space-between;align-items:center;">
-        <div><div class="settings-title">🚨 Alertas Críticas</div><div class="settings-desc">Notificaciones automáticas cuando un equipo vence o falla</div><div id="alertnotif-status" style="font-size:.62rem;color:var(--text3);margin-top:3px;"></div></div>
+        <div><div class="settings-title"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:2px;"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Alertas Críticas</div><div class="settings-desc">Notificaciones automáticas cuando un equipo vence o falla</div><div id="alertnotif-status" style="font-size:.62rem;color:var(--text3);margin-top:3px;"></div></div>
         <button id="alertnotif-toggle" onclick="toggleAlertNotif()" style="width:50px;height:30px;border-radius:15px;border:none;cursor:pointer;position:relative;transition:background .3s;background:#e5e5ea;flex-shrink:0;margin-left:12px;">
           <div id="alertnotif-dot" style="width:24px;height:24px;border-radius:50%;background:#fff;position:absolute;top:3px;left:3px;transition:left .3s;box-shadow:0 1px 3px rgba(0,0,0,.2);"></div>
         </button>
       </div>
     </div>
     <div class="settings-item">
-      <div class="settings-title" style="margin-bottom:10px;">🔤 Tamaño de Texto</div>
+      <div class="settings-title" style="margin-bottom:10px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:2px;"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg> Tamaño de Texto</div>
       <div style="display:flex;align-items:center;justify-content:center;gap:14px;">
         <button onclick="changeFont(-1)" style="width:42px;height:42px;border-radius:50%;background:rgba(0,113,227,.1);border:none;color:var(--accent);font-size:1.3rem;font-weight:700;cursor:pointer;">−</button>
         <div id="font-label" style="font-weight:700;font-size:.9rem;min-width:44px;text-align:center;">100%</div>
@@ -1239,7 +1239,7 @@ body.dark .pill[style*="#ff9500"],body.dark .pill[style*="--orange"]{box-shadow:
       <button onclick="resetFont()" style="width:100%;margin-top:8px;padding:6px;background:none;border:none;color:var(--text3);font-size:.72rem;cursor:pointer;">Restablecer</button>
     </div>
     <div class="settings-item">
-      <div class="settings-title" style="margin-bottom:8px;">🪟 Transparencia</div>
+      <div class="settings-title" style="margin-bottom:8px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:2px;"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg> Transparencia</div>
       <div class="settings-desc" style="margin-bottom:12px;">Nivel de transparencia de la interfaz</div>
       <div style="display:flex;gap:6px;">
         <button id="glass-btn-1" onclick="setGlassMode(1)" style="flex:1;padding:9px 4px;border-radius:50px;border:none;font-weight:700;font-size:.72rem;cursor:pointer;transition:background .2s,color .2s;background:rgba(0,113,227,.1);color:var(--accent);">Ultra</button>
@@ -1249,7 +1249,7 @@ body.dark .pill[style*="#ff9500"],body.dark .pill[style*="--orange"]{box-shadow:
       </div>
     </div>
     <div class="settings-item">
-      <div class="settings-title">📄 Reporte General PDF</div>
+      <div class="settings-title"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:2px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Reporte General PDF</div>
       <div class="settings-desc" style="margin-bottom:10px;">PDF con resumen de todos los equipos</div>
       <button onclick="toggleSettings();exportInventarioPDF()" class="b-accent" style="width:100%;padding:12px;border-radius:50px;margin-bottom:8px;">📋 Inventario de Equipos</button>
       <div class="settings-desc" style="margin-bottom:8px;font-size:.7rem;">Estado operativo de todos los equipos + UPS conectada</div>
@@ -1267,12 +1267,12 @@ body.dark .pill[style*="#ff9500"],body.dark .pill[style*="--orange"]{box-shadow:
         <div style="flex:1;min-width:0;"><div style="font-size:.7rem;color:var(--text3);">Sesión activa</div><div id="user-info" style="font-size:.8rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">—</div></div>
       </div>
       <div id="access-admin-btn" style="display:none;margin-bottom:8px;">
-        <button onclick="toggleSettings();openAccessManager()" style="width:100%;padding:10px;background:rgba(0,113,227,.1);color:var(--accent);border:1px solid rgba(0,113,227,.2);border-radius:50px;font-weight:600;font-size:.8rem;cursor:pointer;">🔐 Gestionar Acceso</button>
+        <button onclick="toggleSettings();openAccessManager()" style="width:100%;padding:10px;background:rgba(0,113,227,.1);color:var(--accent);border:1px solid rgba(0,113,227,.2);border-radius:50px;font-weight:600;font-size:.8rem;cursor:pointer;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:2px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Gestionar Acceso</button>
       </div>
       <div id="ai-key-settings-btn" style="display:none;margin-bottom:8px;">
-        <button onclick="toggleSettings();openAIKeyModal()" style="width:100%;padding:10px;background:rgba(0,113,227,.08);color:var(--accent);border:1px solid rgba(0,113,227,.18);border-radius:50px;font-weight:600;font-size:.8rem;cursor:pointer;">📷 API Key Escáner IA</button>
+        <button onclick="toggleSettings();openAIKeyModal()" style="width:100%;padding:10px;background:rgba(0,113,227,.08);color:var(--accent);border:1px solid rgba(0,113,227,.18);border-radius:50px;font-weight:600;font-size:.8rem;cursor:pointer;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:2px;"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> API Key Escáner IA</button>
       </div>
-      <button onclick="doSignOut()" style="width:100%;padding:10px;background:rgba(255,59,48,.1);color:var(--red);border:1px solid rgba(255,59,48,.2);border-radius:50px;font-weight:600;font-size:.8rem;cursor:pointer;position:relative;z-index:1;">🚪 Cerrar sesión</button>
+      <button onclick="doSignOut()" style="width:100%;padding:10px;background:rgba(255,59,48,.1);color:var(--red);border:1px solid rgba(255,59,48,.2);border-radius:50px;font-weight:600;font-size:.8rem;cursor:pointer;position:relative;z-index:1;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:2px;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> Cerrar sesión</button>
     </div>
     <div id="settings-footer" style="text-align:center;padding:14px 0;color:var(--text3);font-size:.66rem;line-height:1.6;"></div>
   </div>
@@ -2358,6 +2358,36 @@ function _doUndo(){
   if(_undoTimer){clearTimeout(_undoTimer);_undoTimer=null;}
   if(_undoFn){var f=_undoFn;_undoFn=null;f();}
 }
+// Íconos SVG de línea (estilo SF Symbols) — reemplazo gradual de emojis en UI.
+// icn(nombre, tamaño, colorOpcional) → svg inline alineado a texto.
+var _ICONS={
+  edit:'<path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/>',
+  trash:'<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
+  camera:'<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',
+  printer:'<polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>',
+  qr:'<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3z"/><path d="M21 14v3M17 21h4M14 20v1"/>',
+  file:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>',
+  check:'<polyline points="20 6 9 17 4 12"/>',
+  x:'<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
+  alert:'<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
+  wrench:'<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
+  ban:'<circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>',
+  calendar:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
+  clipboard:'<path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/>',
+  search:'<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
+  moon:'<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>',
+  bell:'<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>',
+  lock:'<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+  logout:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>',
+  refresh:'<polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>',
+  type:'<polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/>',
+  layers:'<polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/>'
+};
+function icn(name,size,color){
+  var p=_ICONS[name];if(!p)return'';
+  var s=size||14;
+  return'<svg width="'+s+'" height="'+s+'" viewBox="0 0 24 24" fill="none" stroke="'+(color||'currentColor')+'" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0;">'+p+'</svg>';
+}
 function pillH(c,txt){return'<span class="pill" style="background:'+c+'18;color:'+c+';">'+txt+'</span>';}
 
 function normBrand(s){return(s||'').toLowerCase().trim().replace(/[áàä]/g,'a').replace(/[éèë]/g,'e').replace(/[íìï]/g,'i').replace(/[óòö]/g,'o').replace(/[úùü]/g,'u').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');}
@@ -2868,7 +2898,7 @@ function openHistDetail(eqId,hid){
   var hh=(eq.historialMant||[]).find(function(h){return h.id===hid;});if(!hh)return;
   var isMant=hh.tipo==="mantenimiento";
   var archivos=hh.archivos||[];
-  function makePdfRow(a){return '<div style="display:flex;align-items:center;gap:10px;padding:8px;background:rgba(0,113,227,.05);border-radius:var(--r-sm);margin-bottom:6px;"><span style="font-size:1.3rem;">📄</span><span style="font-size:.78rem;flex:1;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(a.nombre)+'</span><button onclick="openPDFViewer(\''+a.id+'\',\''+esc(a.nombre)+'\')" style="background:var(--accent);color:#fff;border:none;border-radius:50px;padding:6px 14px;font-size:.72rem;font-weight:700;cursor:pointer;flex-shrink:0;">Abrir PDF</button><button onclick="delHistFileDirect(\''+eqId+'\',\''+hid+'\',\''+a.id+'\')" style="background:rgba(255,59,48,.10);border:1.5px solid rgba(255,59,48,.25);color:var(--red);border-radius:50px;padding:6px 10px;font-size:.78rem;cursor:pointer;flex-shrink:0;" title="Eliminar PDF">🗑</button></div>';}
+  function makePdfRow(a){return '<div style="display:flex;align-items:center;gap:10px;padding:8px;background:rgba(0,113,227,.05);border-radius:var(--r-sm);margin-bottom:6px;"><span style="font-size:1.3rem;">📄</span><span style="font-size:.78rem;flex:1;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(a.nombre)+'</span><button onclick="openPDFViewer(\''+a.id+'\',\''+esc(a.nombre)+'\')" style="background:var(--accent);color:#fff;border:none;border-radius:50px;padding:6px 14px;font-size:.72rem;font-weight:700;cursor:pointer;flex-shrink:0;">Abrir PDF</button><button onclick="delHistFileDirect(\''+eqId+'\',\''+hid+'\',\''+a.id+'\')" style="background:rgba(255,59,48,.10);border:1.5px solid rgba(255,59,48,.25);color:var(--red);border-radius:50px;padding:6px 10px;font-size:.78rem;cursor:pointer;flex-shrink:0;" title="Eliminar PDF">'+icn('trash',13)+'</button></div>';}
   var presFiles=archivos.filter(function(a){return a.tipo==='presupuesto'||(archivos.length&&!a.tipo&&archivos.indexOf(a)<archivos.filter(function(x){return x.tipo;}).length);});
   var repFiles=archivos.filter(function(a){return a.tipo==='reporte';});
   var untypedFiles=archivos.filter(function(a){return !a.tipo;});
@@ -2895,7 +2925,7 @@ function openHistDetail(eqId,hid){
     '</div>'+
     (hh.notas?'<div class="ff"><div class="ff-label">Notas</div><div style="background:rgba(120,120,128,.06);border-radius:var(--r-sm);padding:10px 14px;font-size:.82rem;color:var(--text2);">'+esc(hh.notas)+'</div></div>':'')+
     '<div class="ff"><div class="ff-label">Archivos PDF</div>'+pdfRows+'</div>'+
-    '<button onclick="openEditHist(\''+eqId+'\',\''+hid+'\')" style="width:100%;padding:13px;margin-top:12px;border:none;border-radius:var(--r-md);background:var(--accent);color:#fff;font-size:.9rem;font-weight:700;cursor:pointer;">✏️ Editar</button>'
+    '<button onclick="openEditHist(\''+eqId+'\',\''+hid+'\')" style="width:100%;padding:13px;margin-top:12px;border:none;border-radius:var(--r-md);background:var(--accent);color:#fff;font-size:.9rem;font-weight:700;cursor:pointer;">'+icn('edit',11)+' Editar</button>'
   );
 }
 function openEditHist(eqId,hid){
@@ -2920,7 +2950,7 @@ function openEditHist(eqId,hid){
   }
   openModal(
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">'+
-    '<div class="modal-title">✏️ Editar '+(isMant?"Mantenimiento":"Reparación")+'</div>'+
+    '<div class="modal-title">'+icn('edit',11)+' Editar '+(isMant?"Mantenimiento":"Reparación")+'</div>'+
     '<button class="modal-close" onclick="closeModal()">✕</button></div>'+
     '<div class="ff"><div class="ff-label">Fecha *</div><input class="inp" type="date" id="eh-fecha" value="'+hh.fecha+'"></div>'+
     '<div class="ff"><div class="ff-label">Costo</div>'+
@@ -4302,7 +4332,7 @@ function openModalParte(eqId,pt){
   var _datalistHtml='<datalist id="pt-n-list">'+_datalistOpts+'</datalist>';
   var estBtns=["ok","pendiente","roto","mejora"].map(function(e){var a=f.estado===e;return'<button data-est="'+e+'" style="flex:1;padding:10px;border-radius:var(--r-sm);font-size:.68rem;font-weight:700;border:none;cursor:pointer;background:'+(a?CP[e]+"20":"rgba(120,120,128,.08)")+';color:'+(a?CP[e]:"var(--text3)")+';'+(a?"box-shadow:0 0 0 2px "+CP[e]+"40;":"")+'" onclick="setPtEst(\''+e+'\')">'+(e==="ok"?"✅ OK":e==="pendiente"?"⚠️ Pend.":e==="roto"?"🔴 Roto":"🎨 Mejora")+'</button>';}).join("");
   function pdfSection(tipo,label){
-    var existHtml=f.archivos.filter(function(a){return a.tipo===tipo||(tipo==='presupuesto'&&!a.tipo);}).map(function(a){return'<div id="pt-file-row-'+a.id+'" style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(0,0,0,.05);"><span style="font-size:1.1rem;">📄</span><span style="font-size:.74rem;flex:1;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(a.nombre)+'</span><button onclick="openPDFViewer(\''+a.id+'\',\''+esc(a.nombre)+'\')" style="background:rgba(0,113,227,.1);color:var(--accent);border:none;border-radius:8px;padding:3px 10px;font-size:.68rem;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;">Abrir</button><button onclick="removeParteFile(\''+a.id+'\')" style="background:none;border:none;color:var(--red);font-size:.9rem;cursor:pointer;padding:2px 6px;" title="Eliminar PDF">🗑</button></div>';}).join('');
+    var existHtml=f.archivos.filter(function(a){return a.tipo===tipo||(tipo==='presupuesto'&&!a.tipo);}).map(function(a){return'<div id="pt-file-row-'+a.id+'" style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(0,0,0,.05);"><span style="font-size:1.1rem;">📄</span><span style="font-size:.74rem;flex:1;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(a.nombre)+'</span><button onclick="openPDFViewer(\''+a.id+'\',\''+esc(a.nombre)+'\')" style="background:rgba(0,113,227,.1);color:var(--accent);border:none;border-radius:8px;padding:3px 10px;font-size:.68rem;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;">Abrir</button><button onclick="removeParteFile(\''+a.id+'\')" style="background:none;border:none;color:var(--red);font-size:.9rem;cursor:pointer;padding:2px 6px;" title="Eliminar PDF">'+icn('trash',13)+'</button></div>';}).join('');
     return '<div class="ff" style="background:rgba(0,0,0,.02);border-radius:var(--r-sm);padding:10px;margin-bottom:4px;"><div class="ff-label" style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;">'+label+'</div>'+(existHtml?'<div style="margin-bottom:6px;">'+existHtml+'</div>':'')+'<div id="pdf-list-'+tipo+'"></div><button onclick="attachPDF(\''+tipo+'\')" type="button" style="margin-top:6px;width:100%;padding:8px;border:1.5px dashed rgba(0,113,227,.4);border-radius:var(--r-md);background:rgba(0,113,227,.05);color:var(--accent);font-size:.78rem;font-weight:600;cursor:pointer;">📎 Adjuntar '+label+'</button></div>';
   }
   var isMejora=f.estado==="mejora";
@@ -6372,9 +6402,9 @@ function rOrdenes(){
     h+='<div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;flex-shrink:0;">';
     if(ot.estado!=='cerrada'&&ot.estado!=='cancelada'){
       h+='<button onclick="cerrarOT(\''+ot.id+'\')" style="padding:10px 14px;border-radius:var(--r-pill);background:rgba(52,199,89,.12);border:1px solid rgba(52,199,89,.28);color:var(--green);font-size:.72rem;font-weight:700;cursor:pointer;white-space:nowrap;min-height:44px;display:flex;align-items:center;">✅ Cerrar</button>';
-      h+='<button onclick="openModalOT(\''+ot.eqId+'\',\''+ot.id+'\')" style="padding:10px 14px;border-radius:var(--r-pill);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:var(--text2);font-size:.72rem;font-weight:700;cursor:pointer;min-height:44px;display:flex;align-items:center;">✏️ Editar</button>';
+      h+='<button onclick="openModalOT(\''+ot.eqId+'\',\''+ot.id+'\')" style="padding:10px 14px;border-radius:var(--r-pill);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:var(--text2);font-size:.72rem;font-weight:700;cursor:pointer;min-height:44px;display:flex;align-items:center;">'+icn('edit',11)+' Editar</button>';
     }
-    h+='<button onclick="deleteOT(\''+ot.id+'\')" style="padding:10px 14px;border-radius:var(--r-pill);background:rgba(255,59,48,.10);border:1px solid rgba(255,59,48,.25);color:var(--red);font-size:.72rem;font-weight:700;cursor:pointer;min-height:44px;display:flex;align-items:center;">🗑</button>';
+    h+='<button onclick="deleteOT(\''+ot.id+'\')" style="padding:10px 14px;border-radius:var(--r-pill);background:rgba(255,59,48,.10);border:1px solid rgba(255,59,48,.25);color:var(--red);font-size:.72rem;font-weight:700;cursor:pointer;min-height:44px;display:flex;align-items:center;">'+icn('trash',13)+'</button>';
     h+='</div></div></div></div>';
   });
   // ── HISTORIAL DE OTs CERRADAS/CANCELADAS ──────────────────────────────────
@@ -6425,7 +6455,7 @@ function rOrdenes(){
         }
         h+='</div>';
         h+='<div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end;flex-shrink:0;">';
-        h+='<button onclick="deleteOT(\''+ot.id+'\')" style="padding:10px 14px;border-radius:var(--r-pill);background:rgba(255,59,48,.10);border:1px solid rgba(255,59,48,.25);color:var(--red);font-size:.72rem;font-weight:700;cursor:pointer;min-height:44px;display:flex;align-items:center;">🗑</button>';
+        h+='<button onclick="deleteOT(\''+ot.id+'\')" style="padding:10px 14px;border-radius:var(--r-pill);background:rgba(255,59,48,.10);border:1px solid rgba(255,59,48,.25);color:var(--red);font-size:.72rem;font-weight:700;cursor:pointer;min-height:44px;display:flex;align-items:center;">'+icn('trash',13)+'</button>';
         h+='</div>';
         h+='</div></div></div>';
       });
@@ -6546,7 +6576,7 @@ function cerrarOT(otId){
   html+='<div style="margin-bottom:14px;"><label style="font-size:.72rem;color:var(--text2);font-weight:600;display:block;margin-bottom:6px;">📋 Reclamo / gestión con proveedor (opcional)</label>';
   html+='<textarea class="inp" id="ot-reclamo" rows="2" placeholder="Ej: Reclamo a Siemens por garant\xeda, ticket #12345, en seguimiento..." style="width:100%;resize:vertical;">'+esc(ot.reclamoCierre||'')+'</textarea></div>';
   html+='<div style="display:flex;gap:10px;margin-top:16px;">';
-  html+='<button onclick="submitCerrarOT(\''+otId+'\');" style="flex:1;background:#30d158;color:#fff;border:none;border-radius:var(--r-md);padding:12px;font-weight:700;font-size:.88rem;cursor:pointer;">✅ Cerrar OT</button>';
+  html+='<button onclick="submitCerrarOT(\''+otId+'\');" style="flex:1;background:#30d158;color:#fff;border:none;border-radius:var(--r-md);padding:12px;font-weight:700;font-size:.88rem;cursor:pointer;">'+icn('check',13)+' Cerrar OT</button>';
   html+='<button onclick="closeModal();" style="background:rgba(120,120,128,.13);color:var(--text2);border:none;border-radius:var(--r-md);padding:12px 18px;font-weight:600;font-size:.88rem;cursor:pointer;">Cancelar</button>';
   html+='</div></div>';
   openModal(html);
@@ -6836,8 +6866,8 @@ function rRepuestos(){
     h+='<button onclick="ajustarStock(\''+r3.id+'\',1)" style="padding:2px 9px;border-radius:6px;background:rgba(52,199,89,.10);border:1px solid rgba(52,199,89,.25);color:var(--green);font-weight:700;font-size:.8rem;cursor:pointer;">+</button>';
     h+='</div></div>';
     h+='<div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end;flex-shrink:0;">';
-    h+='<button onclick="openModalRepuesto(\''+r3.id+'\')" style="padding:4px 10px;border-radius:var(--r-pill);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:var(--text2);font-size:.65rem;font-weight:700;cursor:pointer;">✏️ Editar</button>';
-    h+='<button onclick="deleteRepuesto(\''+r3.id+'\')" style="padding:4px 10px;border-radius:var(--r-pill);background:rgba(255,59,48,.10);border:1px solid rgba(255,59,48,.25);color:var(--red);font-size:.65rem;font-weight:700;cursor:pointer;">🗑</button>';
+    h+='<button onclick="openModalRepuesto(\''+r3.id+'\')" style="padding:4px 10px;border-radius:var(--r-pill);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:var(--text2);font-size:.65rem;font-weight:700;cursor:pointer;">'+icn('edit',11)+' Editar</button>';
+    h+='<button onclick="deleteRepuesto(\''+r3.id+'\')" style="padding:4px 10px;border-radius:var(--r-pill);background:rgba(255,59,48,.10);border:1px solid rgba(255,59,48,.25);color:var(--red);font-size:.65rem;font-weight:700;cursor:pointer;">'+icn('trash',13)+'</button>';
     h+='</div></div></div>';
   });
   return h;
@@ -7307,7 +7337,7 @@ function rMejoras(){
     if(m.estado!=='completado'){
       h+='<button onclick="completarMejoraGlobal(\''+m.id+'\')" style="padding:6px 10px;border:none;border-radius:10px;background:linear-gradient(135deg,#30d158,#25a244);color:#fff;font-size:.72rem;font-weight:700;cursor:pointer;">✅ Completar</button>';
     }
-    h+='<button onclick="openModalMejora(\''+m.id+'\')" style="padding:6px 10px;border:1.5px solid rgba(120,120,128,.25);border-radius:10px;background:transparent;color:var(--text2);font-size:.72rem;cursor:pointer;">✏️ Editar</button>';
+    h+='<button onclick="openModalMejora(\''+m.id+'\')" style="padding:6px 10px;border:1.5px solid rgba(120,120,128,.25);border-radius:10px;background:transparent;color:var(--text2);font-size:.72rem;cursor:pointer;">'+icn('edit',11)+' Editar</button>';
     h+='<button onclick="delMejora(\''+m.id+'\')" style="padding:6px 10px;border:1.5px solid rgba(255,59,48,.3);border-radius:10px;background:transparent;color:#ff3b30;font-size:.72rem;cursor:pointer;">🗑 Borrar</button>';
     h+='</div>';
     h+='</div></div>';
@@ -8087,7 +8117,7 @@ function _rDetalleAdmin(eq){
     '<div style="background:linear-gradient(90deg,rgba(94,92,230,.12),rgba(94,92,230,.05));padding:9px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(94,92,230,.10);">'+
       adminSvgIcon(15)+
       '<span style="font-size:.72rem;font-weight:700;color:#5e5ce6;text-transform:uppercase;letter-spacing:.06em;flex:1;">Administrativo</span>'+
-      '<button onclick="openAdminModal(\''+eq.id+'\')" style="padding:5px 12px;border-radius:var(--r-pill);background:rgba(94,92,230,.10);border:1.5px solid rgba(94,92,230,.28);color:#5e5ce6;font-weight:700;font-size:.72rem;cursor:pointer;">✏️ Editar</button>'+
+      '<button onclick="openAdminModal(\''+eq.id+'\')" style="padding:5px 12px;border-radius:var(--r-pill);background:rgba(94,92,230,.10);border:1.5px solid rgba(94,92,230,.28);color:#5e5ce6;font-weight:700;font-size:.72rem;cursor:pointer;">'+icn('edit',11)+' Editar</button>'+
     '</div>'+
     '<div style="padding:14px 16px;">'+
       // Seguro
@@ -8136,7 +8166,7 @@ function _rDetalleAdmin(eq){
           '<div style="font-size:.62rem;color:var(--text3);margin-top:1px;">'+_docTipoLbl(d.tipo)+(d.fecha?' · '+fD(d.fecha):'')+'</div>'+
         '</div>'+
         '<button onclick="openPDFViewer(\''+d.id+'\',\''+esc(d.nombre)+'\')" style="background:#0ea5e9;color:#fff;border:none;border-radius:50px;padding:6px 14px;font-size:.72rem;font-weight:700;cursor:pointer;flex-shrink:0;">Abrir</button>'+
-        '<button onclick="delDoc(\''+eq.id+'\',\''+d.id+'\')" style="background:rgba(255,59,48,.10);border:1.5px solid rgba(255,59,48,.25);color:var(--red);border-radius:50px;padding:6px 10px;font-size:.78rem;cursor:pointer;flex-shrink:0;" title="Eliminar">🗑</button>'+
+        '<button onclick="delDoc(\''+eq.id+'\',\''+d.id+'\')" style="background:rgba(255,59,48,.10);border:1.5px solid rgba(255,59,48,.25);color:var(--red);border-radius:50px;padding:6px 10px;font-size:.78rem;cursor:pointer;flex-shrink:0;" title="Eliminar">'+icn('trash',13)+'</button>'+
       '</div>';
     });
   }
@@ -8619,7 +8649,7 @@ function _rDetalleFallas(eq){
       '</div></div>':'')+
       '</div>'+
       (p.notas?'<div style="font-size:.73rem;color:var(--text2);background:rgba(0,0,0,.04);padding:7px 10px;border-radius:8px;margin-bottom:8px;">'+esc(p.notas)+'</div>':'')+
-      ((p.archivos&&p.archivos.length)?'<div style="margin-bottom:8px;">'+p.archivos.map(function(a){return'<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(0,0,0,.05);"><span>📄</span><span style="font-size:.72rem;flex:1;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(a.nombre)+'</span><button onclick="openPDFViewer(\''+a.id+'\',\''+esc(a.nombre)+'\')" style="background:rgba(0,113,227,.1);color:var(--accent);border:none;border-radius:8px;padding:3px 10px;font-size:.65rem;font-weight:600;cursor:pointer;flex-shrink:0;">Abrir</button><button onclick="delParteFileDirect(\''+eq.id+'\',\''+p.id+'\',\''+a.id+'\')" style="background:none;border:none;color:var(--red);font-size:.85rem;cursor:pointer;padding:2px 5px;flex-shrink:0;">🗑</button></div>';}).join('')+'</div>':'')+
+      ((p.archivos&&p.archivos.length)?'<div style="margin-bottom:8px;">'+p.archivos.map(function(a){return'<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(0,0,0,.05);"><span>📄</span><span style="font-size:.72rem;flex:1;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(a.nombre)+'</span><button onclick="openPDFViewer(\''+a.id+'\',\''+esc(a.nombre)+'\')" style="background:rgba(0,113,227,.1);color:var(--accent);border:none;border-radius:8px;padding:3px 10px;font-size:.65rem;font-weight:600;cursor:pointer;flex-shrink:0;">Abrir</button><button onclick="delParteFileDirect(\''+eq.id+'\',\''+p.id+'\',\''+a.id+'\')" style="background:none;border:none;color:var(--red);font-size:.85rem;cursor:pointer;padding:2px 5px;flex-shrink:0;">'+icn('trash',13)+'</button></div>';}).join('')+'</div>':'')+
       (function(){
         var sgHtml='';
         var pSegs=(p.seguimientos||[]).slice().sort(function(a,b){return a.fecha>b.fecha?1:-1;});
@@ -8641,7 +8671,7 @@ function _rDetalleFallas(eq){
         return sgHtml;
       })()+
       (p.estado!=='ok'?'<button onclick="repararParte(\''+eq.id+'\',\''+p.id+'\')" style="width:100%;padding:11px;margin-bottom:8px;border:none;border-radius:12px;background:var(--green);color:#fff;font-size:.86rem;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(52,199,89,.3);">✅ Marcar como Reparado</button>':'')+
-      '<div style="display:flex;gap:6px;"><button class="btn-secondary btn-sm" style="flex:1;" onclick="openModalParteById(\''+eq.id+'\',\''+p.id+'\')">✏️ Editar</button><button class="btn-danger btn-sm" onclick="delParte(\''+eq.id+'\',\''+p.id+'\')">🗑</button></div></div>';
+      '<div style="display:flex;gap:6px;"><button class="btn-secondary btn-sm" style="flex:1;" onclick="openModalParteById(\''+eq.id+'\',\''+p.id+'\')">'+icn('edit',11)+' Editar</button><button class="btn-danger btn-sm" onclick="delParte(\''+eq.id+'\',\''+p.id+'\')">'+icn('trash',13)+'</button></div></div>';
   });
   // Fallas de componentes vinculados dentro de la misma sección
   if(_linkedFaults.length){
@@ -8715,7 +8745,7 @@ function _rDetalleFallas(eq){
         '<div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;flex-shrink:0;">'+
         (hasPdf?(hh.archivos).map(function(af){return'<button onclick="openPDFViewer(\''+af.id+'\',\''+esc(af.nombre)+'\')" style="padding:4px 10px;background:rgba(0,113,227,.1);color:var(--accent);border-radius:8px;font-size:.66rem;font-weight:600;border:none;cursor:pointer;">📄 '+esc(af.nombre.length>18?af.nombre.slice(0,16)+'…':af.nombre)+'</button>';}).join(''):'<button onclick="openHistDetail(\''+eq.id+'\',\''+hh.id+'\')" style="padding:4px 10px;background:rgba(0,113,227,.1);color:var(--accent);border-radius:8px;font-size:.66rem;font-weight:600;border:none;cursor:pointer;">🔍 Ver</button>')+
         '<button onclick="openEditHist(\''+eq.id+'\',\''+hh.id+'\')" style="padding:4px 10px;background:rgba(52,199,89,.1);color:var(--green);border-radius:8px;font-size:.66rem;font-weight:600;border:none;cursor:pointer;">✏️</button>'+
-        '<button onclick="delHist(\''+eq.id+'\',\''+hh.id+'\')" style="padding:4px 8px;background:rgba(255,59,48,.07);color:var(--red);border-radius:8px;font-size:.68rem;border:none;cursor:pointer;">🗑</button>'+
+        '<button onclick="delHist(\''+eq.id+'\',\''+hh.id+'\')" style="padding:4px 8px;background:rgba(255,59,48,.07);color:var(--red);border-radius:8px;font-size:.68rem;border:none;cursor:pointer;">'+icn('trash',13)+'</button>'+
         '</div></div></div></div>';
     });
     h+='</div>';
@@ -8749,7 +8779,7 @@ function rDetalle(){
   var navRowFn=function(lbl,detail2,fn){return'<div onclick="'+fn+'" style="display:flex;align-items:center;gap:8px;padding:9px 2px;margin-top:6px;cursor:pointer;border-top:1px solid rgba(255,255,255,.06);"><span style="flex:1;font-size:.78rem;font-weight:600;color:var(--text2);">'+lbl+'</span>'+(detail2?'<span style="font-size:.67rem;color:var(--text3);">'+detail2+'</span>':'')+'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="2.2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></div>';};
   var estBtns=["operativo","con-rotura","fuera-de-servicio"].map(function(est){
     var a=eq.estado===est||(est==="con-rotura"&&eq.estado==="advertencia");var c=CE[est]||"var(--green)";
-    return'<button style="flex:1;padding:9px 4px;border-radius:var(--r-sm);font-size:.64rem;font-weight:600;border:none;cursor:pointer;background:'+(a?c+"18":"rgba(120,120,128,.08)")+';color:'+(a?c:"var(--text3)")+';'+(a?"box-shadow:0 0 0 2px "+c+"40;":"")+'" onclick="setEst(\''+eq.id+'\',\''+est+'\')">'+(est==="operativo"?"✅ OK":est==="con-rotura"?"🔧 Roto/Con Fallas":"🚫 Fuera de servicio")+'</button>';
+    return'<button style="flex:1;padding:9px 4px;border-radius:var(--r-sm);font-size:.64rem;font-weight:600;border:none;cursor:pointer;background:'+(a?c+"18":"rgba(120,120,128,.08)")+';color:'+(a?c:"var(--text3)")+';'+(a?"box-shadow:0 0 0 2px "+c+"40;":"")+'" onclick="setEst(\''+eq.id+'\',\''+est+'\')">'+(est==="operativo"?icn('check',11)+" OK":est==="con-rotura"?icn('wrench',11)+" Roto/Con Fallas":icn('ban',11)+" Fuera de servicio")+'</button>';
   }).join("");
   var catIconBig=catSvgIcon(eq.cat,110)||'';
 
@@ -8761,8 +8791,8 @@ function rDetalle(){
   h+='<div style="background:linear-gradient(90deg,rgba(0,113,227,.13),rgba(0,180,255,.07));padding:9px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(0,113,227,.12);">';
   h+='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(0,113,227,.9)" stroke-width="2.2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>';
   h+='<span style="font-size:.72rem;font-weight:700;color:rgba(0,113,227,.9);text-transform:uppercase;letter-spacing:.06em;flex:1;">Equipo</span>';
-  h+='<button class="btn-secondary" style="padding:4px 11px;font-size:.68rem;" onclick="openModalEq('+JSON.stringify(eq).replace(/"/g,'&quot;')+')">✏️ Editar</button>';
-  h+='<button onclick="openQRModal(\''+eq.id+'\')" style="margin-left:5px;padding:4px 11px;border-radius:var(--r-pill);background:rgba(0,113,227,.10);border:1.5px solid rgba(0,113,227,.28);color:var(--accent);font-weight:700;font-size:.68rem;cursor:pointer;">📱 QR</button>';
+  h+='<button class="btn-secondary" style="padding:4px 11px;font-size:.68rem;" onclick="openModalEq('+JSON.stringify(eq).replace(/"/g,'&quot;')+')">'+icn('edit',11)+' Editar</button>';
+  h+='<button onclick="openQRModal(\''+eq.id+'\')" style="margin-left:5px;padding:4px 11px;border-radius:var(--r-pill);background:rgba(0,113,227,.10);border:1.5px solid rgba(0,113,227,.28);color:var(--accent);font-weight:700;font-size:.68rem;cursor:pointer;">'+icn('qr',11)+' QR</button>';
   h+='<button onclick="openDarDeBajaModal(\''+eq.id+'\')" style="margin-left:5px;padding:4px 11px;border-radius:var(--r-pill);background:rgba(255,59,48,.10);border:1.5px solid rgba(255,59,48,.28);color:var(--red);font-weight:700;font-size:.68rem;cursor:pointer;">Dar de baja</button>';
   h+='<button onclick="generarPDFEquipo(\''+eq.id+'\')" style="margin-left:5px;padding:4px 11px;border-radius:var(--r-pill);background:rgba(173,198,255,.15);border:1.5px solid rgba(173,198,255,.3);color:#adc6ff;font-weight:700;font-size:.68rem;cursor:pointer;">PDF Equipo</button>';
   h+='</div>';
@@ -8919,7 +8949,7 @@ function rDetalle(){
   hR+='<div class="gc" style="padding:0;margin-bottom:14px;overflow:hidden;border-left:4px solid rgba(255,149,0,.45);background:linear-gradient(135deg,rgba(255,149,0,.08) 0%,rgba(255,204,0,.04) 100%);">';
   hR+='<div style="background:linear-gradient(90deg,rgba(255,149,0,.12),rgba(255,204,0,.07));padding:9px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,149,0,.10);">';
   hR+='<div style="display:flex;align-items:center;gap:7px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(200,110,0,.9)" stroke-width="2.2" stroke-linecap="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg><span style="font-size:.72rem;font-weight:700;color:rgba(200,110,0,.9);text-transform:uppercase;letter-spacing:.06em;">Mantenimiento</span></div>';
-  hR+='<button onclick="openEditMantConfigModal(\''+eq.id+'\')" style="font-size:.7rem;padding:4px 10px;border-radius:12px;background:rgba(255,149,0,.10);border:1px solid rgba(255,149,0,.28);color:rgba(160,90,0,.9);cursor:pointer;font-weight:600;box-shadow:inset 0 1px 0 rgba(255,255,255,.8);">✏️ Editar</button></div>';
+  hR+='<button onclick="openEditMantConfigModal(\''+eq.id+'\')" style="font-size:.7rem;padding:4px 10px;border-radius:12px;background:rgba(255,149,0,.10);border:1px solid rgba(255,149,0,.28);color:rgba(160,90,0,.9);cursor:pointer;font-weight:600;box-shadow:inset 0 1px 0 rgba(255,255,255,.8);">'+icn('edit',11)+' Editar</button></div>';
   hR+='<div style="padding:14px 16px;">';
   hR+='<div class="det-grid" style="margin-bottom:10px;">';
   hR+='<div class="ibox"><div class="ibox-l">Frecuencia</div><div class="ibox-v">'+esc(eq.frecuencia)+'</div></div>';
@@ -9807,7 +9837,7 @@ function rAntenas(){
       '<div style="display:flex;gap:5px;margin-top:7px;flex-wrap:wrap;">'+
         '<button onclick="openSeguimientoTransductorRotura(\''+t.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.22);color:rgba(245,158,11,1);cursor:pointer;font-weight:700;">📋 Seguimiento</button>'+
         (_nFotos>0?'<button onclick="openFotosTransductorRotura(\''+t.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(52,199,89,.10);border:1px solid rgba(52,199,89,.2);color:var(--green);cursor:pointer;font-weight:600;">📷 '+_nFotos+' foto'+(_nFotos!==1?'s':'')+'</button>':'')+
-        '<button onclick="openEditTransductorRotura(\''+t.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(173,198,255,.06);border:1px solid rgba(173,198,255,.22);color:var(--accent);cursor:pointer;font-weight:600;">✏️ Editar</button>'+
+        '<button onclick="openEditTransductorRotura(\''+t.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(173,198,255,.06);border:1px solid rgba(173,198,255,.22);color:var(--accent);cursor:pointer;font-weight:600;">'+icn('edit',11)+' Editar</button>'+
         '<button onclick="goTransductores(\''+eq.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(14,165,233,.06);border:1px solid rgba(14,165,233,.2);color:rgba(14,165,233,.9);cursor:pointer;font-weight:600;">Ver transductor →</button>'+
       '</div>'+
     '</div>';
@@ -9845,7 +9875,7 @@ function rAntenas(){
             '<button onclick="openSeguimientoFallaDirecta(\''+eq.id+'\',\''+f.id+'\')" style="font-size:.66rem;padding:5px 11px;border-radius:14px;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.22);color:rgba(245,158,11,1);font-weight:700;cursor:pointer;">📋 Seguimiento</button>'+
             (_nFotos>0?'<button onclick="openFotosFallaDirecta(\''+eq.id+'\',\''+f.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(52,199,89,.10);border:1px solid rgba(52,199,89,.2);color:var(--green);cursor:pointer;font-weight:600;">📷 Ver fotos</button>':'')+
             '<button onclick="openAgregarFotosFallaDirecta(\''+eq.id+'\',\''+f.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(52,199,89,.06);border:1px dashed rgba(52,199,89,.22);color:var(--green);cursor:pointer;font-weight:600;">📷 + Foto</button>'+
-            '<button onclick="openEditFallaDirecta(\''+eq.id+'\',\''+f.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(173,198,255,.06);border:1px solid rgba(173,198,255,.22);color:var(--accent);cursor:pointer;font-weight:600;">✏️ Editar</button>'+
+            '<button onclick="openEditFallaDirecta(\''+eq.id+'\',\''+f.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(173,198,255,.06);border:1px solid rgba(173,198,255,.22);color:var(--accent);cursor:pointer;font-weight:600;">'+icn('edit',11)+' Editar</button>'+
             '<button onclick="deleteFallaDirecta(\''+eq.id+'\',\''+f.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(255,59,48,.08);border:1px solid rgba(255,59,48,.15);color:var(--red);cursor:pointer;font-weight:600;">&#x2715;</button>'+
           '</div>'+
         '</div>';}).join('')
@@ -10171,7 +10201,7 @@ function rTransductorDetalle(){
             (_nFotos>0?'<button onclick="openFotosTransductorRotura(\''+tr.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(52,199,89,.10);border:1px solid rgba(52,199,89,.2);color:var(--green);cursor:pointer;font-weight:600;">📷 Ver fotos</button>':'')+
             '<button onclick="openAgregarFotosTransductorRotura(\''+tr.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(52,199,89,.06);border:1px dashed rgba(52,199,89,.22);color:var(--green);cursor:pointer;font-weight:600;">📷 + Foto</button>'+
             (_nPres>0?(r.presupuestosArreglo||[]).map(function(p,_pi){return '<button onclick="openPDFViewer(\''+p.id+'\',\'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(0,113,227,.10);color:var(--accent);border:1px solid rgba(0,113,227,.18);cursor:pointer;font-weight:600;">📄 Pres.'+((r.presupuestosArreglo||[]).length>1?' '+(_pi+1):'')+'</button>';}).join(''):'')+
-            '<button onclick="openEditTransductorRotura(\''+tr.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(173,198,255,.06);border:1px solid rgba(173,198,255,.22);color:var(--accent);cursor:pointer;font-weight:600;">✏️ Editar</button>'+
+            '<button onclick="openEditTransductorRotura(\''+tr.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(173,198,255,.06);border:1px solid rgba(173,198,255,.22);color:var(--accent);cursor:pointer;font-weight:600;">'+icn('edit',11)+' Editar</button>'+
             '<button onclick="deleteTransductorRotura(\''+tr.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(255,59,48,.08);border:1px solid rgba(255,59,48,.15);color:var(--red);cursor:pointer;font-weight:600;">&#x2715;</button>'+
           '</div>'+
         '</div>';}).join('')
@@ -14940,9 +14970,9 @@ function rAireDetalle(){
   '</div>';
   // Action buttons
   h+='<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">'+
-    '<button class="btn-grad" style="background:linear-gradient(135deg,#06b6d4,#0891b2);color:#fff;font-size:.8rem;padding:10px 18px;flex:1;" onclick="openEditAire(\''+a.id+'\')">✏️ Editar</button>'+
+    '<button class="btn-grad" style="background:linear-gradient(135deg,#06b6d4,#0891b2);color:#fff;font-size:.8rem;padding:10px 18px;flex:1;" onclick="openEditAire(\''+a.id+'\')">'+icn('edit',11)+' Editar</button>'+
     '<button class="btn-grad" style="background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;font-size:.8rem;padding:10px 18px;flex:1;" onclick="openServiceAire(\''+a.id+'\')">🔧 Registrar service</button>'+
-    '<button onclick="deleteAire(\''+a.id+'\')" style="background:rgba(239,68,68,.10);color:var(--red);border:1.5px solid rgba(239,68,68,.25);border-radius:var(--r-pill);padding:10px 14px;font-size:.8rem;font-weight:600;cursor:pointer;">🗑</button>'+
+    '<button onclick="deleteAire(\''+a.id+'\')" style="background:rgba(239,68,68,.10);color:var(--red);border:1.5px solid rgba(239,68,68,.25);border-radius:var(--r-pill);padding:10px 14px;font-size:.8rem;font-weight:600;cursor:pointer;">'+icn('trash',13)+'</button>'+
   '</div>';
   // Estado buttons
   h+='<div class="gc" style="padding:14px 16px;margin-bottom:12px;">'+
@@ -14995,7 +15025,7 @@ function rAireDetalle(){
           (ev.tecnico?'<div style="font-size:.68rem;color:var(--text3);">👷 '+esc(ev.tecnico)+'</div>':'')+
           (ev.notas?'<div style="font-size:.68rem;color:var(--text3);">'+esc(ev.notas)+'</div>':'')+
         '</div>'+
-        '<button onclick="deleteAireHistEntry(\''+a.id+'\',\''+ev.id+'\')" style="background:none;border:none;cursor:pointer;font-size:.78rem;color:var(--text3);padding:2px 5px;" title="Eliminar">🗑</button>'+
+        '<button onclick="deleteAireHistEntry(\''+a.id+'\',\''+ev.id+'\')" style="background:none;border:none;cursor:pointer;font-size:.78rem;color:var(--text3);padding:2px 5px;" title="Eliminar">'+icn('trash',13)+'</button>'+
       '</div>';
     });
   }
@@ -15634,7 +15664,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.19.0";
+var APP_DISPLAY_VERSION="8.19.1";
 var APP_BUILD="02/07/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
