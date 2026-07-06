@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.02.520 -->
+<!-- v2026.07.06.001 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.02.520">
+<meta name="app-version" content="v2026.07.06.001">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1201,7 +1201,7 @@ body.dark .pill[style*="#ff9500"],body.dark .pill[style*="--orange"]{box-shadow:
       <button class="modal-close" onclick="toggleSettings()">✕</button>
     </div>
     <div style="padding:0 0 14px;border-bottom:1px solid rgba(0,0,0,.08);margin-bottom:14px;">
-      <div style="display:flex;justify-content:flex-end;"><div id="ver-label" style="font-size:.6rem;color:var(--text3);font-family:monospace;"></div></div>
+      <div style="display:flex;justify-content:flex-end;"><div id="ver-label" onclick="toggleSettings();openChangelogModal()" style="font-size:.6rem;color:var(--accent);font-family:monospace;cursor:pointer;padding:4px 0;min-height:24px;"></div></div>
       <button onclick="doClearCache()" style="width:100%;padding:11px;background:rgba(255,149,0,.12);color:#b45309;border:1px solid rgba(255,149,0,.28);border-radius:50px;font-weight:600;font-size:.82rem;cursor:pointer;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:2px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> Limpiar caché</button>
       <div style="font-size:.65rem;color:var(--text3);margin-top:5px;text-align:center;">Borra datos temporales y recarga la app</div>
     </div>
@@ -15664,8 +15664,41 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.19.2";
-var APP_BUILD="02/07/26 h";
+var APP_DISPLAY_VERSION="1.0.0";
+var APP_BUILD="06/07/26 h";
+// ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
+// PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
+// Actualizar con tools/bump.js — no editar la versión a mano.
+var CHANGELOG=[
+  {v:'1.0.0',fecha:'06/07/2026',tipo:'major',cambios:[
+    'Reset de versionado a SemVer — punto de partida comercial',
+    'Historiales en documentos separados (sharding) con backup automático pre-migración',
+    'Vista pública QR segura: solo datos no sensibles + contador de días sin incidentes',
+    'Modo offline con sincronización automática al reconectar',
+    'Búsqueda global (⌘K), deshacer al eliminar y panel Mi día',
+    'Rediseño Liquid Glass: fondo con grano, tintes por sección, header colapsable, parallax de modales',
+    'Estado RM integrado al design system (modo claro/oscuro)',
+    'Íconos SVG en acciones y Ajustes, 2 columnas en iPad, pull-to-refresh',
+    'Tests de humo y monitoreo de tamaño de base de datos'
+  ]}
+];
+function openChangelogModal(){
+  var h='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;"><div class="modal-title">Novedades</div><button class="modal-close" onclick="closeModal()">✕</button></div>';
+  h+='<div style="font-size:.7rem;color:var(--text3);margin-bottom:14px;">CIMA Hub · versión actual v'+APP_DISPLAY_VERSION+' · build '+APP_BUILD+'</div>';
+  CHANGELOG.forEach(function(c){
+    var col=c.tipo==='major'?'#af52de':c.tipo==='minor'?'var(--accent)':'var(--green)';
+    h+='<div style="margin-bottom:16px;">';
+    h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;">';
+    h+='<span style="font-family:JetBrains Mono,monospace;font-size:1rem;font-weight:800;">v'+c.v+'</span>';
+    h+='<span style="font-size:.56rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;padding:2px 8px;border-radius:10px;background:'+col+'22;color:'+col+';">'+c.tipo+'</span>';
+    h+='<span style="font-size:.66rem;color:var(--text3);margin-left:auto;">'+c.fecha+'</span></div>';
+    c.cambios.forEach(function(cb){
+      h+='<div style="display:flex;gap:8px;padding:3px 0;font-size:.78rem;color:var(--text2);line-height:1.45;"><span style="color:'+col+';flex-shrink:0;">•</span><span>'+cb+'</span></div>';
+    });
+    h+='</div>';
+  });
+  openModal(h);
+}
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
   showToast("⚡ Actualizando...");
@@ -16233,7 +16266,7 @@ function _renderHdrStatus(){
     '</svg>';
   var label=issues===0?'<div style="font-size:.72rem;font-weight:800;color:#34c759;line-height:1.1;letter-spacing:-.3px;">100%</div><div style="font-size:.52rem;font-weight:600;color:rgba(52,199,89,.7);white-space:nowrap;">Operativos</div>':
     '<div style="font-size:.72rem;font-weight:800;color:'+clr+';line-height:1.1;letter-spacing:-.3px;">'+pct+'%</div><div style="font-size:.52rem;font-weight:600;color:'+clr+'99;white-space:nowrap;">'+issues+' fuera srv</div>';
-  var verBadge='<div style="font-size:.52rem;font-weight:700;color:var(--text3);font-family:monospace;padding:2px 7px;border-radius:6px;background:rgba(0,0,0,.05);border:1px solid rgba(0,0,0,.06);white-space:nowrap;">v'+(APP_DISPLAY_VERSION||APP_VERSION||'')+'</div>';
+  var verBadge='<div onclick="openChangelogModal()" style="font-size:.52rem;font-weight:700;color:var(--text3);font-family:monospace;padding:2px 7px;border-radius:6px;background:rgba(0,0,0,.05);border:1px solid rgba(0,0,0,.06);white-space:nowrap;cursor:pointer;">v'+(APP_DISPLAY_VERSION||APP_VERSION||'')+'</div>';
   el.innerHTML=svg+'<div>'+label+'</div>'+verBadge;
 }
 
