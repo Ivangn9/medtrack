@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.02.519 -->
+<!-- v2026.07.02.520 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.02.519">
+<meta name="app-version" content="v2026.07.02.520">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -2925,7 +2925,7 @@ function openHistDetail(eqId,hid){
     '</div>'+
     (hh.notas?'<div class="ff"><div class="ff-label">Notas</div><div style="background:rgba(120,120,128,.06);border-radius:var(--r-sm);padding:10px 14px;font-size:.82rem;color:var(--text2);">'+esc(hh.notas)+'</div></div>':'')+
     '<div class="ff"><div class="ff-label">Archivos PDF</div>'+pdfRows+'</div>'+
-    '<button onclick="openEditHist(\''+eqId+'\',\''+hid+'\')" style="width:100%;padding:13px;margin-top:12px;border:none;border-radius:var(--r-md);background:var(--accent);color:#fff;font-size:.9rem;font-weight:700;cursor:pointer;">'+icn('edit',11)+' Editar</button>'
+    '<button onclick="openEditHist(\''+eqId+'\',\''+hid+'\')" style="width:100%;padding:13px;margin-top:12px;border:none;border-radius:var(--r-md);background:var(--accent);color:#fff;font-size:.9rem;font-weight:700;cursor:pointer;">'+icn('edit',12)+' Editar</button>'
   );
 }
 function openEditHist(eqId,hid){
@@ -2950,7 +2950,7 @@ function openEditHist(eqId,hid){
   }
   openModal(
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">'+
-    '<div class="modal-title">'+icn('edit',11)+' Editar '+(isMant?"Mantenimiento":"Reparación")+'</div>'+
+    '<div class="modal-title">'+icn('edit',12)+' Editar '+(isMant?"Mantenimiento":"Reparación")+'</div>'+
     '<button class="modal-close" onclick="closeModal()">✕</button></div>'+
     '<div class="ff"><div class="ff-label">Fecha *</div><input class="inp" type="date" id="eh-fecha" value="'+hh.fecha+'"></div>'+
     '<div class="ff"><div class="ff-label">Costo</div>'+
@@ -3110,7 +3110,7 @@ function openModalEq(eq){
   var eOpts=["operativo","con-rotura","fuera-de-servicio"].map(function(x){var sel=f.estado===x||(f.estado==='advertencia'&&x==='con-rotura');return'<option'+(sel?' selected':'')+'>'+x+'</option>';}).join("");
   var _erDl=empresasRep.map(function(er){return '<option value="'+esc(er.nombre)+'">';}).join('');
   openModal('<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><div class="modal-title">'+(n?"Nuevo Equipo":"Editar Equipo")+'</div><button class="modal-close" onclick="closeModal()">✕</button></div>'+
-    (n?'<button id="scan-label-btn" type="button" onclick="scanLabelEquipo()" style="width:100%;padding:11px 14px;border-radius:14px;background:linear-gradient(135deg,rgba(0,113,227,.1),rgba(0,113,227,.05));border:1.5px solid rgba(0,113,227,.3);color:var(--accent);font-weight:700;font-size:.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:14px;">📷 Escanear etiqueta con IA</button>':'')+
+    (n?'<button id="scan-label-btn" type="button" onclick="scanLabelEquipo()" style="width:100%;padding:11px 14px;border-radius:14px;background:linear-gradient(135deg,rgba(0,113,227,.1),rgba(0,113,227,.05));border:1.5px solid rgba(0,113,227,.3);color:var(--accent);font-weight:700;font-size:.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:14px;">'+icn('camera',13)+' Escanear etiqueta con IA</button>':'')+
     '<div class="ff"><div class="ff-label">Nombre *</div><input class="inp" id="eq-n" value="'+esc(f.nombre)+'" placeholder="Ej: RM Explorer GN"></div>'+
     '<div class="ff"><div class="ff-label">Categoría</div><select class="inp" id="eq-cat">'+catOpts+'</select></div>'+
     '<div class="g2"><div class="ff"><div class="ff-label">Centro</div><div style="display:flex;gap:6px;">'+["Pedernera","CRS","GN"].map(function(c){var a=(f.ubicacion||"").toUpperCase()===c.toUpperCase();return'<button type="button" onclick="setCentro(\''+c+'\')" data-centro="'+c+'" style="flex:1;padding:9px 4px;border-radius:12px;font-size:.75rem;font-weight:700;border:none;cursor:pointer;background:'+(a?'rgba(0,113,227,.18)':'rgba(120,120,128,.08)')+';color:'+(a?'var(--accent)':'var(--text3)')+(a?';box-shadow:0 0 0 2px rgba(0,113,227,.3)':'')+';transition:all .15s;text-transform:uppercase;letter-spacing:.03em;">'+c+'</button>';}).join("")+'</div><input type="hidden" id="eq-ub" value="'+esc(f.ubicacion)+'"></div><div class="ff"><div class="ff-label">SystemID</div><input class="inp" id="eq-sr" value="'+esc(f.serie)+'"></div></div>'+
@@ -4066,7 +4066,7 @@ function _renderOTCloseImages(){
 }
 function openOTImagesModal(imagenes, titulo){
   if(!imagenes||!imagenes.length)return;
-  openModal('<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;"><div class="modal-title">📷 '+esc(titulo)+'</div><button class="modal-close" onclick="closeModal()">✕</button></div><div id="ot-img-viewer" style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding:8px 0;"></div>');
+  openModal('<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;"><div class="modal-title">'+icn('camera',15)+' '+esc(titulo)+'</div><button class="modal-close" onclick="closeModal()">✕</button></div><div id="ot-img-viewer" style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding:8px 0;"></div>');
   var el=document.getElementById('ot-img-viewer');
   if(!el)return;
   el.innerHTML='<div style="color:var(--text3);font-size:.8rem;padding:20px;">Cargando imágenes...</div>';
@@ -4409,7 +4409,7 @@ function openModalParte(eqId,pt){
     '<div class="g2"><div class="ff"><div class="ff-label">Marca</div><input class="inp" id="pt-mk" value="'+esc(f.marca)+'"></div><div class="ff"><div class="ff-label">N° Serie</div><input class="inp" id="pt-sn" value="'+esc(f.nroSerie)+'"></div></div>'+
     '<div class="ff"><div class="ff-label">Notas</div><textarea class="inp" id="pt-nt" rows="2">'+esc(f.notas)+'</textarea></div>'+
     '<div class="ff"><div class="ff-label" style="margin-bottom:6px;">Archivos PDF</div>'+pdfSection('presupuesto','Presupuesto')+pdfSection('reporte','Reporte')+'</div>'+
-    '<div class="ff"><div class="ff-label" style="margin-bottom:6px;">📷 Imágenes</div>'+
+    '<div class="ff"><div class="ff-label" style="margin-bottom:6px;">'+icn('camera',12)+' Imágenes</div>'+
     ((f.imagenes&&f.imagenes.length)?'<div style="font-size:.7rem;color:var(--text3);margin-bottom:6px;">'+f.imagenes.length+' imagen(es) existente(s) — se mantienen al guardar</div>':'')+
     '<div id="pt-img-list"></div>'+
     '<button type="button" onclick="attachParteImage()" style="width:100%;padding:9px;border:1.5px dashed rgba(0,113,227,.35);border-radius:var(--r-md);background:rgba(0,113,227,.05);color:var(--accent);font-size:.78rem;font-weight:600;cursor:pointer;">📷 Adjuntar foto(s)</button></div>'+
@@ -4501,7 +4501,7 @@ function openQRModal(eqId){
   var ci=catById(eq.cat);
   openModal(
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">'+
-    '<div class="modal-title">📱 Código QR</div>'+
+    '<div class="modal-title">'+icn('qr',15)+' Código QR</div>'+
     '<button class="modal-close" onclick="closeModal()">✕</button></div>'+
     '<div style="display:flex;justify-content:center;padding:8px 0 18px;">'+
       '<div id="qr-card" style="background:#fff;border-radius:16px;padding:20px 20px 16px;box-shadow:0 4px 24px rgba(0,0,0,.18),0 1px 4px rgba(0,0,0,.12);display:inline-flex;flex-direction:column;align-items:center;border:2px solid #e2e8f0;">'+
@@ -4519,7 +4519,7 @@ function openQRModal(eqId){
     '</div>'+
     '<div style="display:flex;gap:8px;">'+
       '<button onclick="downloadQRCard(\''+eqId+'\')" style="flex:1;padding:12px;border-radius:var(--r-md);background:rgba(0,113,227,.1);border:1.5px solid rgba(0,113,227,.2);color:var(--accent);font-weight:700;font-size:.8rem;cursor:pointer;">⬇️ Descargar PNG</button>'+
-      '<button onclick="printQRCard()" style="padding:12px 16px;border-radius:var(--r-md);background:rgba(52,199,89,.1);border:1.5px solid rgba(52,199,89,.2);color:var(--green);font-weight:700;font-size:.8rem;cursor:pointer;">🖨 Imprimir</button>'+
+      '<button onclick="printQRCard()" style="padding:12px 16px;border-radius:var(--r-md);background:rgba(52,199,89,.1);border:1.5px solid rgba(52,199,89,.2);color:var(--green);font-weight:700;font-size:.8rem;cursor:pointer;">'+icn('printer',13)+' Imprimir</button>'+
     '</div>'
   );
   setTimeout(function(){_loadQRLib(url);},50);
@@ -4576,7 +4576,7 @@ function openPrintQRModal(){
   });
   openModal(
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">'+
-    '<div class="modal-title">🖨 Imprimir QR Equipos</div>'+
+    '<div class="modal-title">'+icn('printer',13)+' Imprimir QR Equipos</div>'+
     '<button class="modal-close" onclick="closeModal()">✕</button></div>'+
     '<div style="font-size:.75rem;color:var(--text3);margin-bottom:10px;">Seleccioná los equipos a imprimir. Se imprimen 6 tarjetas por página.</div>'+
     '<div style="display:flex;gap:8px;margin-bottom:10px;">'+
@@ -4586,7 +4586,7 @@ function openPrintQRModal(){
     '<div style="max-height:340px;overflow-y:auto;border:1px solid rgba(120,120,128,.15);border-radius:14px;padding:6px;">'+rows+'</div>'+
     '<div style="margin-top:14px;display:flex;gap:8px;">'+
       '<button onclick="closeModal()" style="flex:1;padding:12px;border-radius:var(--r-md);background:rgba(120,120,128,.1);border:1px solid rgba(120,120,128,.2);color:var(--text2);font-weight:700;font-size:.82rem;cursor:pointer;">Cancelar</button>'+
-      '<button onclick="_doPrintQR()" style="flex:2;padding:12px;border-radius:var(--r-md);background:rgba(0,113,227,.12);border:1.5px solid rgba(0,113,227,.25);color:var(--accent);font-weight:700;font-size:.82rem;cursor:pointer;">🖨 Imprimir seleccionados</button>'+
+      '<button onclick="_doPrintQR()" style="flex:2;padding:12px;border-radius:var(--r-md);background:rgba(0,113,227,.12);border:1.5px solid rgba(0,113,227,.25);color:var(--accent);font-weight:700;font-size:.82rem;cursor:pointer;">'+icn('printer',13)+' Imprimir seleccionados</button>'+
     '</div>'
   );
 }
@@ -6072,7 +6072,7 @@ function rCalendarioPM(){
         var pmDone=pmObj.realizado;
         h+='<div style="display:flex;gap:4px;margin-top:4px;justify-content:flex-end;flex-wrap:wrap;">';
         h+='<button onclick="togglePMRealizado(\''+sitem.pmId+'\')" style="padding:3px 9px;border-radius:var(--r-pill);font-size:.6rem;font-weight:700;cursor:pointer;border:1px solid '+(pmDone?'rgba(52,199,89,.35)':'rgba(120,120,128,.25)')+';background:'+(pmDone?'rgba(52,199,89,.15)':'rgba(120,120,128,.1)')+';color:'+(pmDone?'var(--green)':'var(--text3)')+';">'+(pmDone?'✅ Realizado':'○ Marcar realizado')+'</button>';
-        h+='<button onclick="openModalProgramarPM(\''+sitem.pmId+'\',null)" style="padding:3px 8px;border-radius:var(--r-pill);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--text2);font-size:.6rem;font-weight:600;cursor:pointer;">✏️</button>';
+        h+='<button onclick="openModalProgramarPM(\''+sitem.pmId+'\',null)" style="padding:3px 8px;border-radius:var(--r-pill);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--text2);font-size:.6rem;font-weight:600;cursor:pointer;">'+icn('edit',14)+'</button>';
         h+='<button onclick="deletePMProgramado(\''+sitem.pmId+'\')" style="padding:3px 10px;border-radius:var(--r-pill);background:rgba(255,59,48,.18);border:1.5px solid rgba(255,59,48,.35);color:var(--red);font-size:.6rem;font-weight:700;cursor:pointer;">Cancelar PM</button>';
         h+='</div>';
       } else {
@@ -6402,7 +6402,7 @@ function rOrdenes(){
     h+='<div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;flex-shrink:0;">';
     if(ot.estado!=='cerrada'&&ot.estado!=='cancelada'){
       h+='<button onclick="cerrarOT(\''+ot.id+'\')" style="padding:10px 14px;border-radius:var(--r-pill);background:rgba(52,199,89,.12);border:1px solid rgba(52,199,89,.28);color:var(--green);font-size:.72rem;font-weight:700;cursor:pointer;white-space:nowrap;min-height:44px;display:flex;align-items:center;">✅ Cerrar</button>';
-      h+='<button onclick="openModalOT(\''+ot.eqId+'\',\''+ot.id+'\')" style="padding:10px 14px;border-radius:var(--r-pill);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:var(--text2);font-size:.72rem;font-weight:700;cursor:pointer;min-height:44px;display:flex;align-items:center;">'+icn('edit',11)+' Editar</button>';
+      h+='<button onclick="openModalOT(\''+ot.eqId+'\',\''+ot.id+'\')" style="padding:10px 14px;border-radius:var(--r-pill);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:var(--text2);font-size:.72rem;font-weight:700;cursor:pointer;min-height:44px;display:flex;align-items:center;">'+icn('edit',12)+' Editar</button>';
     }
     h+='<button onclick="deleteOT(\''+ot.id+'\')" style="padding:10px 14px;border-radius:var(--r-pill);background:rgba(255,59,48,.10);border:1px solid rgba(255,59,48,.25);color:var(--red);font-size:.72rem;font-weight:700;cursor:pointer;min-height:44px;display:flex;align-items:center;">'+icn('trash',13)+'</button>';
     h+='</div></div></div></div>';
@@ -6499,7 +6499,7 @@ function openModalOT(eqId,otId){
     '<div class="ff"><div class="ff-label">Técnico / Responsable</div><input class="inp" id="ot-tec" value="'+(ot?esc(ot.tecnicoAsignado||''):'')+'"></div>'+
     '<div class="ff"><div class="ff-label">Fecha programada</div><input class="inp" type="date" id="ot-fecha" value="'+(ot&&ot.fechaProgramada?ot.fechaProgramada:today())+'"></div>'+
     '<div style="display:flex;gap:10px;"><div style="flex:1;"><label style="font-size:.72rem;color:var(--text2);font-weight:600;">SLA (horas)</label><input class="inp" type="number" id="ot-sla" min="0" placeholder="ej: 24" value="'+(ot&&ot.slaHoras?ot.slaHoras:'')+'" style="margin-top:4px;"></div></div>'+
-    '<div class="ff"><div class="ff-label">📷 Imágenes (opcional)</div>'+
+    '<div class="ff"><div class="ff-label">'+icn('camera',12)+' Imágenes (opcional)</div>'+
     '<button type="button" onclick="attachOTImage()" style="padding:7px 14px;border-radius:var(--r-pill);background:rgba(0,113,227,.08);border:1.5px dashed rgba(0,113,227,.3);color:var(--accent);font-size:.76rem;font-weight:600;cursor:pointer;margin-bottom:6px;">+ Adjuntar imagen</button>'+
     '<div id="ot-img-list" style="display:flex;flex-wrap:wrap;gap:4px;"></div>'+
     ((ot&&ot.imagenes&&ot.imagenes.length)?'<button onclick="openOTImagesModal('+(JSON.stringify(ot.imagenes)).replace(/'/g,"&#39;")+',\'Imágenes guardadas\')" style="margin-top:4px;padding:4px 12px;border-radius:var(--r-pill);background:rgba(0,113,227,.08);border:1px solid rgba(0,113,227,.2);color:var(--accent);font-size:.7rem;cursor:pointer;">👁 Ver '+ot.imagenes.length+' imagen'+(ot.imagenes.length!==1?'es':'')+' guardada'+(ot.imagenes.length!==1?'s':'')+'</button>':'')+
@@ -6866,7 +6866,7 @@ function rRepuestos(){
     h+='<button onclick="ajustarStock(\''+r3.id+'\',1)" style="padding:2px 9px;border-radius:6px;background:rgba(52,199,89,.10);border:1px solid rgba(52,199,89,.25);color:var(--green);font-weight:700;font-size:.8rem;cursor:pointer;">+</button>';
     h+='</div></div>';
     h+='<div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end;flex-shrink:0;">';
-    h+='<button onclick="openModalRepuesto(\''+r3.id+'\')" style="padding:4px 10px;border-radius:var(--r-pill);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:var(--text2);font-size:.65rem;font-weight:700;cursor:pointer;">'+icn('edit',11)+' Editar</button>';
+    h+='<button onclick="openModalRepuesto(\''+r3.id+'\')" style="padding:4px 10px;border-radius:var(--r-pill);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:var(--text2);font-size:.65rem;font-weight:700;cursor:pointer;">'+icn('edit',12)+' Editar</button>';
     h+='<button onclick="deleteRepuesto(\''+r3.id+'\')" style="padding:4px 10px;border-radius:var(--r-pill);background:rgba(255,59,48,.10);border:1px solid rgba(255,59,48,.25);color:var(--red);font-size:.65rem;font-weight:700;cursor:pointer;">'+icn('trash',13)+'</button>';
     h+='</div></div></div>';
   });
@@ -7337,7 +7337,7 @@ function rMejoras(){
     if(m.estado!=='completado'){
       h+='<button onclick="completarMejoraGlobal(\''+m.id+'\')" style="padding:6px 10px;border:none;border-radius:10px;background:linear-gradient(135deg,#30d158,#25a244);color:#fff;font-size:.72rem;font-weight:700;cursor:pointer;">✅ Completar</button>';
     }
-    h+='<button onclick="openModalMejora(\''+m.id+'\')" style="padding:6px 10px;border:1.5px solid rgba(120,120,128,.25);border-radius:10px;background:transparent;color:var(--text2);font-size:.72rem;cursor:pointer;">'+icn('edit',11)+' Editar</button>';
+    h+='<button onclick="openModalMejora(\''+m.id+'\')" style="padding:6px 10px;border:1.5px solid rgba(120,120,128,.25);border-radius:10px;background:transparent;color:var(--text2);font-size:.72rem;cursor:pointer;">'+icn('edit',12)+' Editar</button>';
     h+='<button onclick="delMejora(\''+m.id+'\')" style="padding:6px 10px;border:1.5px solid rgba(255,59,48,.3);border-radius:10px;background:transparent;color:#ff3b30;font-size:.72rem;cursor:pointer;">🗑 Borrar</button>';
     h+='</div>';
     h+='</div></div>';
@@ -7956,7 +7956,7 @@ function exportKpiPDF(){
   var tcInfo=_kpiUsdRate?'TC Oficial BNA USD: $'+_kpiUsdRate+' ARS al momento del informe':'(costos en USD)';
   var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CIMA KPI '+curYear+'</title>'+
     '<style>'+_reportCSS+'</style></head><body>'+
-    '<div class="nav-bar"><button class="btn-print" onclick="window.print()">🖨 Imprimir / Exportar PDF</button></div>'+
+    '<div class="nav-bar"><button class="btn-print" onclick="window.print()">'+icn('printer',13)+' Imprimir / Exportar PDF</button></div>'+
     '<div class="page">'+
       '<div class="logo-area">'+logoTag+'</div>'+
       '<div class="informe-box">'+
@@ -8117,7 +8117,7 @@ function _rDetalleAdmin(eq){
     '<div style="background:linear-gradient(90deg,rgba(94,92,230,.12),rgba(94,92,230,.05));padding:9px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(94,92,230,.10);">'+
       adminSvgIcon(15)+
       '<span style="font-size:.72rem;font-weight:700;color:#5e5ce6;text-transform:uppercase;letter-spacing:.06em;flex:1;">Administrativo</span>'+
-      '<button onclick="openAdminModal(\''+eq.id+'\')" style="padding:5px 12px;border-radius:var(--r-pill);background:rgba(94,92,230,.10);border:1.5px solid rgba(94,92,230,.28);color:#5e5ce6;font-weight:700;font-size:.72rem;cursor:pointer;">'+icn('edit',11)+' Editar</button>'+
+      '<button onclick="openAdminModal(\''+eq.id+'\')" style="padding:5px 12px;border-radius:var(--r-pill);background:rgba(94,92,230,.10);border:1.5px solid rgba(94,92,230,.28);color:#5e5ce6;font-weight:700;font-size:.72rem;cursor:pointer;">'+icn('edit',12)+' Editar</button>'+
     '</div>'+
     '<div style="padding:14px 16px;">'+
       // Seguro
@@ -8492,7 +8492,7 @@ function _rDetalleComponentes(eq){
       if(p.estado!=='ok')h+='<button onclick="registrarFallaComponente(\''+eq.id+'\',\''+p.id+'\',\'ok\')" style="padding:3px 9px;border-radius:20px;font-size:.6rem;font-weight:700;border:1px solid rgba(52,199,89,.4);background:rgba(52,199,89,.1);color:#30d158;cursor:pointer;">✅ OK</button>';
       if(p.estado!=='pendiente')h+='<button onclick="registrarFallaComponente(\''+eq.id+'\',\''+p.id+'\',\'pendiente\')" style="padding:3px 9px;border-radius:20px;font-size:.6rem;font-weight:700;border:1px solid rgba(255,149,0,.4);background:rgba(255,149,0,.1);color:#ff9500;cursor:pointer;">⚠️</button>';
       if(p.estado!=='roto')h+='<button onclick="registrarFallaComponente(\''+eq.id+'\',\''+p.id+'\',\'roto\')" style="padding:3px 9px;border-radius:20px;font-size:.6rem;font-weight:700;border:1px solid rgba(255,59,48,.4);background:rgba(255,59,48,.1);color:#ff3b30;cursor:pointer;">🔴</button>';
-      h+='<button onclick="openModalParteById(\''+eq.id+'\',\''+p.id+'\')" style="padding:3px 8px;border-radius:20px;font-size:.6rem;font-weight:700;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:var(--text2);cursor:pointer;">✏️</button>';
+      h+='<button onclick="openModalParteById(\''+eq.id+'\',\''+p.id+'\')" style="padding:3px 8px;border-radius:20px;font-size:.6rem;font-weight:700;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:var(--text2);cursor:pointer;">'+icn('edit',14)+'</button>';
       h+='</div></div>';
     }
   }
@@ -8671,7 +8671,7 @@ function _rDetalleFallas(eq){
         return sgHtml;
       })()+
       (p.estado!=='ok'?'<button onclick="repararParte(\''+eq.id+'\',\''+p.id+'\')" style="width:100%;padding:11px;margin-bottom:8px;border:none;border-radius:12px;background:var(--green);color:#fff;font-size:.86rem;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(52,199,89,.3);">✅ Marcar como Reparado</button>':'')+
-      '<div style="display:flex;gap:6px;"><button class="btn-secondary btn-sm" style="flex:1;" onclick="openModalParteById(\''+eq.id+'\',\''+p.id+'\')">'+icn('edit',11)+' Editar</button><button class="btn-danger btn-sm" onclick="delParte(\''+eq.id+'\',\''+p.id+'\')">'+icn('trash',13)+'</button></div></div>';
+      '<div style="display:flex;gap:6px;"><button class="btn-secondary btn-sm" style="flex:1;" onclick="openModalParteById(\''+eq.id+'\',\''+p.id+'\')">'+icn('edit',12)+' Editar</button><button class="btn-danger btn-sm" onclick="delParte(\''+eq.id+'\',\''+p.id+'\')">'+icn('trash',13)+'</button></div></div>';
   });
   // Fallas de componentes vinculados dentro de la misma sección
   if(_linkedFaults.length){
@@ -8744,7 +8744,7 @@ function _rDetalleFallas(eq){
         (hh.firma?'<div style="margin-top:6px;border:1px solid rgba(0,0,0,.08);border-radius:6px;overflow:hidden;"><img src="'+hh.firma+'" style="width:100%;max-height:60px;object-fit:contain;display:block;background:#fff;" alt="Firma"></div>':'')+'</div>'+
         '<div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;flex-shrink:0;">'+
         (hasPdf?(hh.archivos).map(function(af){return'<button onclick="openPDFViewer(\''+af.id+'\',\''+esc(af.nombre)+'\')" style="padding:4px 10px;background:rgba(0,113,227,.1);color:var(--accent);border-radius:8px;font-size:.66rem;font-weight:600;border:none;cursor:pointer;">📄 '+esc(af.nombre.length>18?af.nombre.slice(0,16)+'…':af.nombre)+'</button>';}).join(''):'<button onclick="openHistDetail(\''+eq.id+'\',\''+hh.id+'\')" style="padding:4px 10px;background:rgba(0,113,227,.1);color:var(--accent);border-radius:8px;font-size:.66rem;font-weight:600;border:none;cursor:pointer;">🔍 Ver</button>')+
-        '<button onclick="openEditHist(\''+eq.id+'\',\''+hh.id+'\')" style="padding:4px 10px;background:rgba(52,199,89,.1);color:var(--green);border-radius:8px;font-size:.66rem;font-weight:600;border:none;cursor:pointer;">✏️</button>'+
+        '<button onclick="openEditHist(\''+eq.id+'\',\''+hh.id+'\')" style="padding:4px 10px;background:rgba(52,199,89,.1);color:var(--green);border-radius:8px;font-size:.66rem;font-weight:600;border:none;cursor:pointer;">'+icn('edit',14)+'</button>'+
         '<button onclick="delHist(\''+eq.id+'\',\''+hh.id+'\')" style="padding:4px 8px;background:rgba(255,59,48,.07);color:var(--red);border-radius:8px;font-size:.68rem;border:none;cursor:pointer;">'+icn('trash',13)+'</button>'+
         '</div></div></div></div>';
     });
@@ -8791,7 +8791,7 @@ function rDetalle(){
   h+='<div style="background:linear-gradient(90deg,rgba(0,113,227,.13),rgba(0,180,255,.07));padding:9px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(0,113,227,.12);">';
   h+='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(0,113,227,.9)" stroke-width="2.2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>';
   h+='<span style="font-size:.72rem;font-weight:700;color:rgba(0,113,227,.9);text-transform:uppercase;letter-spacing:.06em;flex:1;">Equipo</span>';
-  h+='<button class="btn-secondary" style="padding:4px 11px;font-size:.68rem;" onclick="openModalEq('+JSON.stringify(eq).replace(/"/g,'&quot;')+')">'+icn('edit',11)+' Editar</button>';
+  h+='<button class="btn-secondary" style="padding:4px 11px;font-size:.68rem;" onclick="openModalEq('+JSON.stringify(eq).replace(/"/g,'&quot;')+')">'+icn('edit',12)+' Editar</button>';
   h+='<button onclick="openQRModal(\''+eq.id+'\')" style="margin-left:5px;padding:4px 11px;border-radius:var(--r-pill);background:rgba(0,113,227,.10);border:1.5px solid rgba(0,113,227,.28);color:var(--accent);font-weight:700;font-size:.68rem;cursor:pointer;">'+icn('qr',11)+' QR</button>';
   h+='<button onclick="openDarDeBajaModal(\''+eq.id+'\')" style="margin-left:5px;padding:4px 11px;border-radius:var(--r-pill);background:rgba(255,59,48,.10);border:1.5px solid rgba(255,59,48,.28);color:var(--red);font-weight:700;font-size:.68rem;cursor:pointer;">Dar de baja</button>';
   h+='<button onclick="generarPDFEquipo(\''+eq.id+'\')" style="margin-left:5px;padding:4px 11px;border-radius:var(--r-pill);background:rgba(173,198,255,.15);border:1.5px solid rgba(173,198,255,.3);color:#adc6ff;font-weight:700;font-size:.68rem;cursor:pointer;">PDF Equipo</button>';
@@ -8949,7 +8949,7 @@ function rDetalle(){
   hR+='<div class="gc" style="padding:0;margin-bottom:14px;overflow:hidden;border-left:4px solid rgba(255,149,0,.45);background:linear-gradient(135deg,rgba(255,149,0,.08) 0%,rgba(255,204,0,.04) 100%);">';
   hR+='<div style="background:linear-gradient(90deg,rgba(255,149,0,.12),rgba(255,204,0,.07));padding:9px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,149,0,.10);">';
   hR+='<div style="display:flex;align-items:center;gap:7px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(200,110,0,.9)" stroke-width="2.2" stroke-linecap="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg><span style="font-size:.72rem;font-weight:700;color:rgba(200,110,0,.9);text-transform:uppercase;letter-spacing:.06em;">Mantenimiento</span></div>';
-  hR+='<button onclick="openEditMantConfigModal(\''+eq.id+'\')" style="font-size:.7rem;padding:4px 10px;border-radius:12px;background:rgba(255,149,0,.10);border:1px solid rgba(255,149,0,.28);color:rgba(160,90,0,.9);cursor:pointer;font-weight:600;box-shadow:inset 0 1px 0 rgba(255,255,255,.8);">'+icn('edit',11)+' Editar</button></div>';
+  hR+='<button onclick="openEditMantConfigModal(\''+eq.id+'\')" style="font-size:.7rem;padding:4px 10px;border-radius:12px;background:rgba(255,149,0,.10);border:1px solid rgba(255,149,0,.28);color:rgba(160,90,0,.9);cursor:pointer;font-weight:600;box-shadow:inset 0 1px 0 rgba(255,255,255,.8);">'+icn('edit',12)+' Editar</button></div>';
   hR+='<div style="padding:14px 16px;">';
   hR+='<div class="det-grid" style="margin-bottom:10px;">';
   hR+='<div class="ibox"><div class="ibox-l">Frecuencia</div><div class="ibox-v">'+esc(eq.frecuencia)+'</div></div>';
@@ -9837,7 +9837,7 @@ function rAntenas(){
       '<div style="display:flex;gap:5px;margin-top:7px;flex-wrap:wrap;">'+
         '<button onclick="openSeguimientoTransductorRotura(\''+t.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.22);color:rgba(245,158,11,1);cursor:pointer;font-weight:700;">📋 Seguimiento</button>'+
         (_nFotos>0?'<button onclick="openFotosTransductorRotura(\''+t.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(52,199,89,.10);border:1px solid rgba(52,199,89,.2);color:var(--green);cursor:pointer;font-weight:600;">📷 '+_nFotos+' foto'+(_nFotos!==1?'s':'')+'</button>':'')+
-        '<button onclick="openEditTransductorRotura(\''+t.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(173,198,255,.06);border:1px solid rgba(173,198,255,.22);color:var(--accent);cursor:pointer;font-weight:600;">'+icn('edit',11)+' Editar</button>'+
+        '<button onclick="openEditTransductorRotura(\''+t.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(173,198,255,.06);border:1px solid rgba(173,198,255,.22);color:var(--accent);cursor:pointer;font-weight:600;">'+icn('edit',12)+' Editar</button>'+
         '<button onclick="goTransductores(\''+eq.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(14,165,233,.06);border:1px solid rgba(14,165,233,.2);color:rgba(14,165,233,.9);cursor:pointer;font-weight:600;">Ver transductor →</button>'+
       '</div>'+
     '</div>';
@@ -9875,7 +9875,7 @@ function rAntenas(){
             '<button onclick="openSeguimientoFallaDirecta(\''+eq.id+'\',\''+f.id+'\')" style="font-size:.66rem;padding:5px 11px;border-radius:14px;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.22);color:rgba(245,158,11,1);font-weight:700;cursor:pointer;">📋 Seguimiento</button>'+
             (_nFotos>0?'<button onclick="openFotosFallaDirecta(\''+eq.id+'\',\''+f.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(52,199,89,.10);border:1px solid rgba(52,199,89,.2);color:var(--green);cursor:pointer;font-weight:600;">📷 Ver fotos</button>':'')+
             '<button onclick="openAgregarFotosFallaDirecta(\''+eq.id+'\',\''+f.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(52,199,89,.06);border:1px dashed rgba(52,199,89,.22);color:var(--green);cursor:pointer;font-weight:600;">📷 + Foto</button>'+
-            '<button onclick="openEditFallaDirecta(\''+eq.id+'\',\''+f.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(173,198,255,.06);border:1px solid rgba(173,198,255,.22);color:var(--accent);cursor:pointer;font-weight:600;">'+icn('edit',11)+' Editar</button>'+
+            '<button onclick="openEditFallaDirecta(\''+eq.id+'\',\''+f.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(173,198,255,.06);border:1px solid rgba(173,198,255,.22);color:var(--accent);cursor:pointer;font-weight:600;">'+icn('edit',12)+' Editar</button>'+
             '<button onclick="deleteFallaDirecta(\''+eq.id+'\',\''+f.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(255,59,48,.08);border:1px solid rgba(255,59,48,.15);color:var(--red);cursor:pointer;font-weight:600;">&#x2715;</button>'+
           '</div>'+
         '</div>';}).join('')
@@ -10201,7 +10201,7 @@ function rTransductorDetalle(){
             (_nFotos>0?'<button onclick="openFotosTransductorRotura(\''+tr.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(52,199,89,.10);border:1px solid rgba(52,199,89,.2);color:var(--green);cursor:pointer;font-weight:600;">📷 Ver fotos</button>':'')+
             '<button onclick="openAgregarFotosTransductorRotura(\''+tr.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(52,199,89,.06);border:1px dashed rgba(52,199,89,.22);color:var(--green);cursor:pointer;font-weight:600;">📷 + Foto</button>'+
             (_nPres>0?(r.presupuestosArreglo||[]).map(function(p,_pi){return '<button onclick="openPDFViewer(\''+p.id+'\',\'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(0,113,227,.10);color:var(--accent);border:1px solid rgba(0,113,227,.18);cursor:pointer;font-weight:600;">📄 Pres.'+((r.presupuestosArreglo||[]).length>1?' '+(_pi+1):'')+'</button>';}).join(''):'')+
-            '<button onclick="openEditTransductorRotura(\''+tr.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(173,198,255,.06);border:1px solid rgba(173,198,255,.22);color:var(--accent);cursor:pointer;font-weight:600;">'+icn('edit',11)+' Editar</button>'+
+            '<button onclick="openEditTransductorRotura(\''+tr.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(173,198,255,.06);border:1px solid rgba(173,198,255,.22);color:var(--accent);cursor:pointer;font-weight:600;">'+icn('edit',12)+' Editar</button>'+
             '<button onclick="deleteTransductorRotura(\''+tr.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(255,59,48,.08);border:1px solid rgba(255,59,48,.15);color:var(--red);cursor:pointer;font-weight:600;">&#x2715;</button>'+
           '</div>'+
         '</div>';}).join('')
@@ -10477,7 +10477,7 @@ function exportAllPDF(){
     rows+="<tr><td style='width:34px;padding:4px 6px;'>"+(_sv?'<div style="width:28px;height:28px;">'+_sv+'</div>':'')+"</td><td>"+esc(eq.nombre)+"</td><td>"+ci.label+"</td><td>"+esc(eq.ubicacion||"—")+"</td><td>"+eq.estado+"</td><td>"+eq.frecuencia+"</td><td>"+fD(eq.ultimoMant)+"</td><td>"+fD(eq.proximoMant)+"</td><td>"+eq.partes.length+"</td><td>"+rot+"</td><td>"+(eq.historialMant||[]).length+"</td></tr>";
   });
   var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CIMA Reporte</title><style>'+_reportCSS+'</style></head><body>'+
-    '<div class="nav-bar"><button class="btn-print" onclick="window.print()">🖨 Imprimir</button></div>'+
+    '<div class="nav-bar"><button class="btn-print" onclick="window.print()">'+icn('printer',13)+' Imprimir</button></div>'+
     '<div class="h"><div class="h1">CIMA — Reporte General</div><div class="h-sub">'+new Date().toLocaleString("es-AR")+' · '+eqs.length+' equipos</div></div>'+
     '<div class="b"><h2>Equipos</h2><table><thead><tr><th></th><th>Equipo</th><th>Cat.</th><th>Ubic.</th><th>Estado</th><th>Frec.</th><th>Últ.Mant.</th><th>Próx.Mant.</th><th>Roturas</th><th>Rotas</th><th>Hist.</th></tr></thead><tbody>'+rows+'</tbody></table></div></body></html>';
   toggleSettings();openHTMLViewer(html);
@@ -10670,7 +10670,7 @@ function exportMarcaPDF(){
   // Build HTML
   var _tituloLabel=(prov?esc(prov)+(marca?' / '+esc(marca):''):esc(marca)).toUpperCase();
   var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width"><title>Notificación Técnica CIMA — '+_tituloLabel+'</title><style>'+_reportCSS+'</style></head><body>';
-  html+='<div class="nav-bar"><button class="btn-print" onclick="window.print()">🖨 Imprimir / Guardar PDF</button><span style="font-size:11px;color:#64748b;margin-left:8px;">Notificación Técnica — '+_tituloLabel+' — '+fechaStr+'</span></div>';
+  html+='<div class="nav-bar"><button class="btn-print" onclick="window.print()">'+icn('printer',13)+' Imprimir / Guardar PDF</button><span style="font-size:11px;color:#64748b;margin-left:8px;">Notificación Técnica — '+_tituloLabel+' — '+fechaStr+'</span></div>';
   html+='<div class="page">';
   html+='<div class="logo-area" style="justify-content:space-between;">';
   html+=logoTag;
@@ -10869,7 +10869,7 @@ function exportInventarioPDF(){
   '</div>';
 
   var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width"><title>Inventario de Equipos CIMA</title><style>'+_reportCSS+'</style></head><body>'+
-    '<div class="nav-bar"><button class="btn-print" onclick="window.print()">🖨 Imprimir / Guardar PDF</button><span style="font-size:11px;color:#64748b;margin-left:8px;">Inventario de Equipos CIMA · '+fechaStr+'</span></div>'+
+    '<div class="nav-bar"><button class="btn-print" onclick="window.print()">'+icn('printer',13)+' Imprimir / Guardar PDF</button><span style="font-size:11px;color:#64748b;margin-left:8px;">Inventario de Equipos CIMA · '+fechaStr+'</span></div>'+
     '<div class="page">'+
       '<div class="logo-area">'+logoTag+'</div>'+
       '<div class="informe-box">'+
@@ -10931,7 +10931,7 @@ function expFiltered(){
   if(!hasData){alert("Sin registros en "+fD(desde)+" — "+fD(hasta));return;}
   var filtCSS='body{font-family:Helvetica,sans-serif;font-size:11px;color:#1d1d1f;margin:0}.hd{background:linear-gradient(135deg,#1a3a6b,#2a5298);color:#fff;padding:20px 24px}.b{padding:16px 24px}.st{display:flex;gap:12px;margin-bottom:18px}.sb{background:#f0f6ff;border:1px solid #dce8f5;border-radius:6px;padding:8px 16px;text-align:center}.eq-block{border:1px solid #e2e8f0;border-radius:8px;margin-bottom:16px;overflow:hidden;page-break-inside:avoid}.eq-hdr{background:#1a3a6b;color:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:center}.eq-name{font-size:12px;font-weight:700}.eq-cat{font-size:9px;opacity:.8}.sec-lbl{margin:8px 12px 4px;font-size:9px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em}table{width:100%;border-collapse:collapse;margin-bottom:4px}th{background:#f1f5f9;color:#475569;padding:5px 10px;text-align:left;font-size:8px;text-transform:uppercase}td{padding:5px 10px;border-bottom:1px solid #f1f5f9;font-size:10px}.nav-bar{position:sticky;top:0;z-index:99;background:rgba(255,255,255,.95);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:1px solid #e2e8f0;padding:10px 16px;display:flex;gap:10px;align-items:center}.btn-print{background:#1a3a6b;color:#fff;border:none;border-radius:50px;padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer}@media print{.nav-bar{display:none}body{print-color-adjust:exact;-webkit-print-color-adjust:exact}.eq-block{page-break-inside:avoid}}';
   var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CIMA Informe</title><style>'+filtCSS+'</style></head><body>'+
-    '<div class="nav-bar"><button class="btn-print" onclick="window.print()">🖨 Imprimir</button></div>'+
+    '<div class="nav-bar"><button class="btn-print" onclick="window.print()">'+icn('printer',13)+' Imprimir</button></div>'+
     '<div class="hd"><div style="font-size:18px;font-weight:700;">CIMA — Informe por Equipo</div><div style="font-size:11px;opacity:.8;margin-top:2px;">'+fD(desde)+' al '+fD(hasta)+'</div></div>'+
     '<div class="b"><div class="st">'+
     '<div class="sb"><div style="font-size:8px;color:#64748b;text-transform:uppercase">Total</div><div style="font-size:20px;font-weight:700;color:#1a3a6b">'+(tm+tr)+'</div></div>'+
@@ -11710,7 +11710,7 @@ function generateReport(){
     var conclusionText='Se recomienda dar seguimiento oportuno a las fallas activas registradas a fin de garantizar la continuidad operativa del servicio y la seguridad de los pacientes. '+(tm>0?'Las intervenciones preventivas realizadas contribuyen a la prolongación de la vida útil del equipamiento y a la reducción de fallas no planificadas. ':'')+'Ante cualquier consulta o requerimiento adicional, el responsable técnico queda a disposición del Comité Ejecutivo.';
     var logoTag=logoB64?'<img src="'+logoB64+'" style="height:88px;width:auto;display:block;">':'<div style="font-size:11pt;font-weight:900;color:#1a3a6b;">CIMA</div>';
     var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width"><title>Informe Equipos CIMA — '+mesAnio+'</title><style>'+_reportCSS+'</style></head><body>';
-    html+='<div class="nav-bar"><button class="btn-print" onclick="window.print()">🖨 Imprimir / Guardar PDF</button><span style="font-size:11px;color:#64748b;margin-left:8px;">Informe Equipos CIMA — '+mesAnio+'</span></div>';
+    html+='<div class="nav-bar"><button class="btn-print" onclick="window.print()">'+icn('printer',13)+' Imprimir / Guardar PDF</button><span style="font-size:11px;color:#64748b;margin-left:8px;">Informe Equipos CIMA — '+mesAnio+'</span></div>';
     html+='<div class="page">';
      // logo-area removed — background already contains CIMA logo
     html+='<div class="informe-box">';
@@ -12198,7 +12198,7 @@ function openAddAntennaModal(rmEquipId){
       '</div>'+
       '<button onclick="closeModal();" style="margin-left:auto;width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.85rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">‹</button>'+
     '</div>'+
-    '<button id="scan-label-btn" type="button" onclick="scanLabelAntena()" style="width:100%;padding:11px 14px;border-radius:14px;background:linear-gradient(135deg,rgba(0,113,227,.1),rgba(0,113,227,.05));border:1.5px solid rgba(0,113,227,.3);color:var(--accent);font-weight:700;font-size:.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:14px;">📷 Escanear etiqueta con IA</button>'+
+    '<button id="scan-label-btn" type="button" onclick="scanLabelAntena()" style="width:100%;padding:11px 14px;border-radius:14px;background:linear-gradient(135deg,rgba(0,113,227,.1),rgba(0,113,227,.05));border:1.5px solid rgba(0,113,227,.3);color:var(--accent);font-weight:700;font-size:.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:14px;">'+icn('camera',13)+' Escanear etiqueta con IA</button>'+
     '<div class="ff"><div class="ff-label">Nombre de la antena *</div>'+
       '<input class="inp" id="ant-nombre" placeholder="Ej: Antena de cabeza 1.5T" autocomplete="off">'+
     '</div>'+
@@ -13763,7 +13763,7 @@ function openAddTransductorModal(ecoEquipId){
         '<div style="font-size:.65rem;color:var(--text3);">Completá los datos del transductor</div></div>'+
       '<button onclick="closeModal();" style="margin-left:auto;width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.85rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">‹</button>'+
     '</div>'+
-    '<button id="scan-label-btn" type="button" onclick="scanLabelTransductor()" style="width:100%;padding:11px 14px;border-radius:14px;background:linear-gradient(135deg,rgba(14,165,233,.1),rgba(14,165,233,.05));border:1.5px solid rgba(14,165,233,.3);color:rgba(14,165,233,1);font-weight:700;font-size:.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:14px;">📷 Escanear etiqueta con IA</button>'+
+    '<button id="scan-label-btn" type="button" onclick="scanLabelTransductor()" style="width:100%;padding:11px 14px;border-radius:14px;background:linear-gradient(135deg,rgba(14,165,233,.1),rgba(14,165,233,.05));border:1.5px solid rgba(14,165,233,.3);color:rgba(14,165,233,1);font-weight:700;font-size:.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:14px;">'+icn('camera',13)+' Escanear etiqueta con IA</button>'+
     '<div class="ff"><div class="ff-label">Nombre del transductor *</div>'+
       '<input class="inp" id="tr-nombre" placeholder="Ej: Transductor convexo 3.5MHz" autocomplete="off">'+
     '</div>'+
@@ -14825,7 +14825,7 @@ function openMRotura(){
     '<div class="ff"><div class="ff-label">Posible fecha de visita técnica</div><input class="inp" type="date" id="rot-visita"></div>'+
     '<div class="ff"><div class="ff-label">Canal de Reclamo</div><div style="display:flex;gap:5px;flex-wrap:wrap;">'+canalBtnsHTML('rot-canal','')+'</div><input type="hidden" id="rot-canal" value=""></div>'+
     '<div class="ff"><div class="ff-label">Notas adicionales</div><textarea class="inp" id="rot-notas" rows="2" placeholder="Proveedor contactado, presupuesto, urgencia..."></textarea></div>'+
-    '<div class="ff"><div class="ff-label" style="margin-bottom:6px;">📷 Imágenes de la falla</div>'+
+    '<div class="ff"><div class="ff-label" style="margin-bottom:6px;">'+icn('camera',12)+' Imágenes de la falla</div>'+
     '<div id="rot-img-list" style="display:flex;flex-wrap:wrap;gap:0;"></div>'+
     '<button type="button" onclick="attachRotImage()" style="width:100%;padding:9px;border:1.5px dashed rgba(255,59,48,.35);border-radius:var(--r-md);background:rgba(255,59,48,.05);color:var(--red);font-size:.78rem;font-weight:600;cursor:pointer;margin-top:6px;">📷 Adjuntar foto(s)</button></div>'+
     '<button style="width:100%;padding:14px;background:var(--red);color:#fff;border:none;border-radius:50px;font-weight:700;font-size:.9rem;cursor:pointer;box-shadow:0 2px 8px rgba(255,59,48,.3);" onclick="submitRotura()">🔴 Registrar Rotura</button>'
@@ -14970,7 +14970,7 @@ function rAireDetalle(){
   '</div>';
   // Action buttons
   h+='<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">'+
-    '<button class="btn-grad" style="background:linear-gradient(135deg,#06b6d4,#0891b2);color:#fff;font-size:.8rem;padding:10px 18px;flex:1;" onclick="openEditAire(\''+a.id+'\')">'+icn('edit',11)+' Editar</button>'+
+    '<button class="btn-grad" style="background:linear-gradient(135deg,#06b6d4,#0891b2);color:#fff;font-size:.8rem;padding:10px 18px;flex:1;" onclick="openEditAire(\''+a.id+'\')">'+icn('edit',12)+' Editar</button>'+
     '<button class="btn-grad" style="background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;font-size:.8rem;padding:10px 18px;flex:1;" onclick="openServiceAire(\''+a.id+'\')">🔧 Registrar service</button>'+
     '<button onclick="deleteAire(\''+a.id+'\')" style="background:rgba(239,68,68,.10);color:var(--red);border:1.5px solid rgba(239,68,68,.25);border-radius:var(--r-pill);padding:10px 14px;font-size:.8rem;font-weight:600;cursor:pointer;">'+icn('trash',13)+'</button>'+
   '</div>';
@@ -15074,7 +15074,7 @@ function submitAddAire(){
 function openEditAire(id){
   var a=aires.find(function(x){return x.id===id;});if(!a)return;
   openModal(
-    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;"><span style="font-size:1.4rem;">✏️</span><span style="font-size:.85rem;font-weight:700;color:#06b6d4;">Editar Aire Acondicionado</span></div>'+
+    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">'+icn('edit',18)+'<span style="font-size:.85rem;font-weight:700;color:#06b6d4;">Editar Aire Acondicionado</span></div>'+
     '<div class="ff"><div class="ff-label">Nombre *</div><input class="inp" id="ai-nom" value="'+esc(a.nombre)+'"></div>'+
     '<div class="ff"><div class="ff-label">Equipo asociado</div><select class="inp" id="ai-cat"><option value="">-- Seleccionar --</option>'+['RM','TC','MG','RX','DM','AW Server','Bombas','Odontología','General'].map(function(c){return'<option'+(a.equipoCat===c?' selected':'')+'>'+c+'</option>';}).join('')+'</select></div>'+
     '<div class="ff"><div class="ff-label">Ubicación / Sala</div><input class="inp" id="ai-ub" value="'+esc(a.ubicacion||'')+'"></div>'+
@@ -15664,7 +15664,7 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.19.1";
+var APP_DISPLAY_VERSION="8.19.2";
 var APP_BUILD="02/07/26 h";
 window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
