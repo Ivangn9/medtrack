@@ -2243,7 +2243,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "4.41";
+const APP_VERSION = "4.42";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -4391,7 +4391,25 @@ function getCategories(){const fc=Object.keys(CATALOG);const cu=[...new Set(supp
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 function signIn(){
   const p=new firebase.auth.GoogleAuthProvider();
-  _auth.signInWithPopup(p).catch(e=>toast("⚠️ Error al iniciar sesión: "+e.message));
+  p.setCustomParameters({ prompt:'select_account' });
+  const btn=document.getElementById('loginBtn');
+  if(btn) btn.disabled=true;
+  _auth.signInWithPopup(p).catch(function(e){
+    const code=(e&&e.code)||'';
+    // En Windows/escritorio el popup suele bloquearse o no poder comunicar la respuesta.
+    // Caemos automáticamente al flujo por REDIRECCIÓN, que no depende de popups.
+    const useRedirect=[
+      'auth/popup-blocked','auth/popup-closed-by-user','auth/cancelled-popup-request',
+      'auth/operation-not-supported-in-this-environment','auth/network-request-failed',
+      'auth/internal-error','auth/web-storage-unsupported'
+    ].indexOf(code)>=0;
+    if(useRedirect){
+      try{ _auth.signInWithRedirect(p); return; }
+      catch(err){ if(btn) btn.disabled=false; toast('⚠️ No se pudo abrir el login de Google: '+(err.message||err)); return; }
+    }
+    if(btn) btn.disabled=false;
+    toast('⚠️ Error al iniciar sesión: '+(e.message||e));
+  });
 }
 function signOut(){
   _auth.signOut();
@@ -4722,6 +4740,16 @@ async function _checkUserAccess(user, attempt, seq){
   }
 }
 
+// Completa el login por redirección (Windows/escritorio) y expone errores reales.
+_auth.getRedirectResult().catch(function(e){
+  const code=(e&&e.code)||'';
+  if(!code || code==='auth/no-auth-event') return;
+  if(code==='auth/unauthorized-domain'){
+    toast('⚠️ Dominio no autorizado en Firebase — avisale al administrador.');
+  } else {
+    toast('⚠️ Error de login: '+(e.message||e));
+  }
+});
 _auth.onAuthStateChanged(async user=>{
   _accessSeq++;
   if(!user){ showLogin(false); currentUser=null; isAdmin=false; return; }
