@@ -1442,7 +1442,7 @@
       <div class="stat-card"><div class="stat-icon orange">⚠️</div><div class="stat-info"><div class="stat-num" id="stat-low">0</div><div class="stat-lbl">Stock bajo</div></div></div>
       <div class="stat-card"><div class="stat-icon purple">💰</div><div class="stat-info"><div class="stat-num" id="stat-valor">$0</div><div class="stat-lbl">Valor en stock</div></div></div>
     </div>
-    <div class="search-wrap"><span class="search-icon">🔍</span><input class="search-input" type="search" id="invSearch" placeholder="Buscar insumo…" oninput="renderInventario()" autocomplete="off" /></div>
+    <div class="search-wrap"><span class="search-icon">🔍</span><input class="search-input" type="search" id="invSearch" placeholder="Buscar insumo…" oninput="_debSearch(renderInventario)" autocomplete="off" /></div>
     <div class="cat-filters" id="invCatFilters"></div>
     <div id="invContainer"></div>
     <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:16px" onclick="openMovModal(null,'entrada')"><span class="btn-icon">+</span> Registrar entrada de stock</button>
@@ -1572,7 +1572,7 @@
     <div id="gestionToolbar" style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
       <div class="search-wrap" style="flex:1;margin-bottom:0;min-width:200px">
         <span class="search-icon">🔍</span>
-        <input class="search-input" type="search" id="gestionSearch" placeholder="Buscar insumo…" oninput="renderGestion()" autocomplete="off" />
+        <input class="search-input" type="search" id="gestionSearch" placeholder="Buscar insumo…" oninput="_debSearch(renderGestion)" autocomplete="off" />
       </div>
       <button class="btn btn-primary" onclick="openAddModal()"><span class="btn-icon">+</span> Nuevo insumo</button>
     </div>
@@ -1638,7 +1638,7 @@
       <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
         <div class="search-wrap" style="flex:1;margin-bottom:0;min-width:200px">
           <span class="search-icon">🔍</span>
-          <input class="search-input" type="search" id="costosSearch" placeholder="Buscar insumo…" oninput="renderCostos()" autocomplete="off" />
+          <input class="search-input" type="search" id="costosSearch" placeholder="Buscar insumo…" oninput="_debSearch(renderCostos)" autocomplete="off" />
         </div>
         <button class="btn btn-secondary" style="flex-shrink:0" onclick="openPriceChanges()"><span class="btn-icon">🕑</span> Cambios recientes</button>
       </div>
@@ -1881,7 +1881,7 @@
     </div>
     <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
       <label style="font-size:.78rem;color:var(--text3)">Filtrar por mes:</label>
-      <input type="month" id="pcMonth" class="modal-input" style="width:auto" onchange="_pcRender()">
+      <select id="pcMonth" class="modal-input" style="width:auto" onchange="_pcRender()"><option value="">Todos los meses</option></select>
       <button class="fmt-pill" onclick="_pcClearMonth()">Todos</button>
     </div>
     <div id="pcList" style="max-height:56vh;overflow-y:auto"></div>
@@ -2076,25 +2076,6 @@
   </div>
 </div>
 
-<!-- ─── Modal Agregar Equipo ─────────────────────────── -->
-<div class="modal-overlay" id="addEquipoModal" onclick="closeAddEquipoModal(event)">
-  <div class="modal-sheet" onclick="event.stopPropagation()" style="max-width:420px">
-    <div class="modal-handle"></div>
-    <div class="modal-title" style="margin-bottom:18px">Agregar equipo</div>
-    <div style="padding:0 24px">
-      <div class="ff">
-        <div class="ff-label">Nombre del equipo</div>
-        <input class="inp" id="addEquipoNombre" type="text" placeholder="Ej: Resonador Siemens 1.5T"
-          onkeydown="if(event.key==='Enter')saveNuevoEquipo()" />
-      </div>
-      <div style="display:flex;gap:10px;margin-top:16px;padding-bottom:24px">
-        <button class="btn btn-secondary" onclick="closeAddEquipoModal()">Cancelar</button>
-        <button class="btn btn-primary" onclick="saveNuevoEquipo()">Guardar</button>
-      </div>
-    </div>
-  </div>
-</div>
-
 <!-- ─── Modal Nueva Entrega ───────────────────────────── -->
 <div class="modal-overlay" id="nuevaEntregaModal" onclick="closeNuevaEntregaModal(event)">
   <div class="modal-sheet" onclick="event.stopPropagation()" style="max-width:480px">
@@ -2243,7 +2224,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "4.42";
+const APP_VERSION = "4.43";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -3698,9 +3679,31 @@ function _priceOriginLabel(o){
   return o==='import' ? '📥 Lista proveedor' : o==='entrada' ? '📦 Entrada' : o==='manual' ? '✎ Manual' : '';
 }
 
+// ─── Meses: helpers compatibles con iPad (Safari iOS no soporta input[type=month]) ─
+function _monthLabel(ym){
+  const d=new Date(+ym.slice(0,4), +ym.slice(5,7)-1, 2);
+  const s=d.toLocaleDateString('es-AR',{month:'long',year:'numeric'});
+  return s.charAt(0).toUpperCase()+s.slice(1);
+}
+function _monthOptionsHtml(selected, extraKeys){
+  const keys=new Set(extraKeys||[]);
+  const now=new Date();
+  for(let i=-1;i<=24;i++){
+    const d=new Date(now.getFullYear(), now.getMonth()-i, 1);
+    keys.add(d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0"));
+  }
+  if(selected) keys.add(selected);
+  return [...keys].sort().reverse().map(k=>`<option value="${escAttr(k)}"${k===selected?" selected":""}>${escHtml(_monthLabel(k))}</option>`).join("");
+}
+
 // ─── Cambios de precio en todo el sistema (evolución global) ──────────────────
 function openPriceChanges(){
-  const m=document.getElementById('pcMonth'); if(m) m.value='';
+  const m=document.getElementById('pcMonth');
+  if(m){
+    const months=[...new Set(_collectPriceChanges().map(c=>String(c.date).slice(0,7)))];
+    m.innerHTML='<option value="">Todos los meses</option>'+_monthOptionsHtml('',months);
+    m.value='';
+  }
   document.getElementById('priceChangesModal').classList.add('open');
   _pcRender();
 }
@@ -4375,6 +4378,13 @@ function toast(msg){const c=document.getElementById("toastContainer");const t=do
 function escHtml(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
 function escAttr(s){return escHtml(s).replace(/'/g,"&#39;");}
 function fmt(n){return Number(n||0).toLocaleString("es-AR",{minimumFractionDigits:0,maximumFractionDigits:2});}
+// Debounce para búsquedas: evita re-renderizar toda la lista en cada tecla
+const _debTimers={};
+function _debSearch(fn){
+  const k=fn.name||String(fn);
+  clearTimeout(_debTimers[k]);
+  _debTimers[k]=setTimeout(fn,180);
+}
 function fmtDate(d){if(!d)return"";const[y,m,day]=d.split("-");return`${day}/${m}/${y}`;}
 function fmtDateShort(d){if(!d)return"";const[,m,day]=d.split("-");return`${day}/${m}`;}
 // Días hasta el vencimiento, comparando medianoche LOCAL vs medianoche LOCAL
@@ -4425,7 +4435,9 @@ function showLogin(unauthorized){
   document.getElementById("mainApp").style.display="none";
   document.getElementById("loginOverlay").classList.add("visible");
   document.getElementById("unauthorizedMsg").style.display=unauthorized?"block":"none";
-  document.getElementById("loginBtn").style.display=unauthorized?"none":"flex";
+  const lb=document.getElementById("loginBtn");
+  lb.style.display=unauthorized?"none":"flex";
+  lb.disabled=false; // re-habilitar siempre: signIn() lo deshabilita durante el intento
   document.getElementById("loginSignout").style.display=unauthorized?"block":"none";
 }
 function showApp(){
@@ -4731,6 +4743,14 @@ async function _checkUserAccess(user, attempt, seq){
     throw new Error('cache-miss');
   }catch(e){
     if(seq!==_accessSeq) return;
+    // Permisos de Firestore mal publicados: no es un problema de red — avisar claro
+    if(e&&e.code==='permission-denied'){
+      const bl2=document.querySelector('#bootLoader div:last-child');
+      if(bl2) bl2.textContent="Error de permisos en Firebase — avisar al administrador";
+      toast("⚠️ Firestore rechazó el acceso (reglas de seguridad). Avisale al administrador que publique las reglas actualizadas.");
+      showLogin(true);
+      return;
+    }
     if(attempt===0) toast("⚠️ Verificando acceso — reintentando…");
     // Feedback en el splash para que la espera nunca parezca un cuelgue
     const bl=document.querySelector('#bootLoader div:last-child');
@@ -6607,9 +6627,9 @@ function renderPracCierre(el){
   const mesLabel=_pracCierreMes?new Date(_pracCierreMes+'-02').toLocaleDateString('es-AR',{month:'long',year:'numeric'}):'';
 
   const monthSelector=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
-    <input type="month" id="prac-mes-sel" value="${escAttr(_pracCierreMes)}"
-      style="padding:8px 12px;border-radius:10px;border:1.5px solid #d1d5db;font-size:.85rem;font-weight:600;color:#1c1c1e;background:#fff;cursor:pointer"
-      onchange="setPracMes(this.value)">
+    <select id="prac-mes-sel"
+      style="padding:8px 12px;border-radius:10px;border:1.5px solid #d1d5db;font-size:16px;font-weight:600;color:#1c1c1e;background:#fff;cursor:pointer"
+      onchange="setPracMes(this.value)">${_monthOptionsHtml(_pracCierreMes, Object.keys(_pracMes||{}))}</select>
     <button class="btn btn-primary" style="padding:8px 14px;font-size:.82rem" onclick="savePracMes()">💾 Guardar mes</button>
     <button class="btn btn-secondary" style="padding:8px 14px;font-size:.82rem" onclick="exportContablePDF()">📄 Exportar PDF</button>
   </div>`;
