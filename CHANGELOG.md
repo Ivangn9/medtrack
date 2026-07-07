@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v1.1.1 — 07/07/2026 (patch)
+
+- Informe de Antenas: parser de fechas robusto (corrige antenas >8 años no contadas), diferencia origen de compra vs resonador actual, y antenas sin equipo vinculado separadas + herramienta de limpieza en Ajustes
+
 ## v1.1.0 — 07/07/2026 (minor)
 
 - Nuevo Informe de Antenas: estado, origen y antigüedad de cada antena RF con estadísticas de vida útil

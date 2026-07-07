@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.07.001 -->
+<!-- v2026.07.07.002 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.07.001">
+<meta name="app-version" content="v2026.07.07.002">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1256,6 +1256,7 @@ body.dark .pill[style*="#ff9500"],body.dark .pill[style*="--orange"]{box-shadow:
       <button onclick="toggleSettings();exportAllPDF()" class="b-accent" style="width:100%;padding:12px;border-radius:50px;margin-bottom:10px;">📄 Reporte General</button>
       <div class="settings-desc" style="margin-bottom:8px;font-size:.7rem;">Estado, origen y antigüedad de cada antena RF</div>
       <button onclick="toggleSettings();exportAntenasPDF()" class="b-accent" style="width:100%;padding:12px;border-radius:50px;margin-bottom:10px;">📡 Informe de Antenas</button>
+      <button onclick="toggleSettings();openAntenasHuerfanasModal()" style="width:100%;padding:10px;background:rgba(120,120,128,.08);border:1px solid rgba(120,120,128,.18);color:var(--text2);font-weight:600;font-size:.76rem;border-radius:50px;cursor:pointer;margin-bottom:10px;">🧹 Antenas sin equipo vinculado</button>
       <div style="font-size:.68rem;color:var(--text3);margin:6px 0 5px;font-weight:600;">Filtrar por fechas:</div>
       <div style="display:flex;gap:8px;margin-bottom:8px;">
         <div style="flex:1;"><div style="font-size:.58rem;color:var(--text3);margin-bottom:3px;">DESDE</div><input class="inp" type="date" id="r-desde" style="padding:8px 10px;font-size:.78rem;"></div>
@@ -10900,11 +10901,40 @@ function exportInventarioPDF(){
 // equipo. No existe una norma fija publicada por fabricante — se usa como
 // referencia orientativa: 0–4 años vida temprana, 5–7 vigilar, 8+ años revisar.
 var _ANT_VIDA_UTIL_ANIOS=8;
+// Parser robusto: acepta YYYY-MM-DD (input date), YYYY-MM (mes/año) y DD/MM/YYYY
+// (formato argentino cargado a mano en registros viejos) — new Date() nativo
+// falla silenciosamente con DD/MM/YYYY y eso hacía perder antenas antiguas reales.
+function _antParseFecha(s){
+  if(!s)return null;
+  s=String(s).trim();
+  var m=s.match(/^(\d{4})-(\d{2})(-(\d{2}))?$/);
+  if(m)return new Date(+m[1],+m[2]-1,m[4]?+m[4]:1);
+  m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if(m)return new Date(+m[3],+m[2]-1,+m[1]);
+  var d=new Date(s);
+  return isNaN(d.getTime())?null:d;
+}
 function _antAntiguedadAnios(fechaCompra){
-  if(!fechaCompra)return null;
-  var d=new Date(fechaCompra);if(isNaN(d.getTime()))return null;
+  var d=_antParseFecha(fechaCompra);if(!d)return null;
   var ms=new Date()-d;
   return ms/(365.25*24*60*60*1000);
+}
+// Borrado real de antenas huérfanas: "quitar del equipo" (removeAntennaFromEq)
+// desvincula pero NO elimina el registro — queda invisible en la UI normal
+// (que navega antenas vía eq.antenaIds) pero sigue en el array antenas[].
+function openAntenasHuerfanasModal(){
+  var huerf=antenas.filter(function(a){return !a.baja&&!eqs.some(function(e){return(e.antenaIds||[]).indexOf(a.id)!==-1;});});
+  if(!huerf.length){showToast('No hay antenas huérfanas — todo está vinculado correctamente ✅','');return;}
+  var h='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><div class="modal-title">Antenas sin equipo vinculado</div><button class="modal-close" onclick="closeModal()">✕</button></div>';
+  h+='<div style="font-size:.78rem;color:var(--text2);margin-bottom:14px;line-height:1.5;">Estas antenas no están asignadas a ningún resonador. Puede ser una antena de repuesto en stock, o un registro que quedó huérfano al usar "Quitar del equipo" en vez de "Eliminar". Revisá y borrá las que correspondan.</div>';
+  huerf.forEach(function(a){
+    h+='<div class="gc" style="padding:12px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:10px;">'+
+      '<div style="min-width:0;"><div style="font-weight:700;font-size:.84rem;">'+esc(a.nombre||'Antena sin nombre')+'</div>'+
+      '<div style="font-size:.68rem;color:var(--text3);">'+esc(a.tipo||'—')+(a.nombreOrigen?' · Origen: '+esc(a.nombreOrigen):'')+(a.fechaCompra?' · Compra: '+fD(a.fechaCompra):'')+'</div></div>'+
+      '<button onclick="deleteAntena(\''+a.id+'\');setTimeout(openAntenasHuerfanasModal,300);" style="flex-shrink:0;padding:8px 14px;border-radius:var(--r-pill);background:rgba(255,59,48,.10);border:1px solid rgba(255,59,48,.25);color:var(--red);font-weight:700;font-size:.72rem;cursor:pointer;min-height:36px;">'+icn('trash',13)+' Eliminar</button>'+
+    '</div>';
+  });
+  openModal(h);
 }
 function exportAntenasPDF(){
   var logoTag='<div class="cima-wordmark"><div class="cima-title">CIMA<sup class="cima-reg">®</sup></div><div class="cima-sub">Investigaciones Avanzadas</div></div>';
@@ -10914,13 +10944,31 @@ function exportAntenasPDF(){
   var fechaStr=now.toLocaleDateString('es-AR',{day:'2-digit',month:'long',year:'numeric'});
   var horaStr=now.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
 
-  var activas=antenas.filter(function(a){return !a.baja;});
-  if(!activas.length){showToast('No hay antenas cargadas','warn');return;}
+  var todas=antenas.filter(function(a){return !a.baja;});
+  if(!todas.length){showToast('No hay antenas cargadas','warn');return;}
 
+  // Origen de compra (nombreOrigen, texto libre elegido al cargar la antena) vs
+  // resonador ACTUAL (el equipo que hoy la tiene en su antenaIds) — pueden diferir
+  // si la antena se reasignó a otro equipo después de comprada.
   function origenDe(a){
     var eqPadre=eqs.find(function(e){return(e.antenaIds||[]).indexOf(a.id)!==-1;});
-    return{eq:eqPadre,label:eqPadre?eqPadre.nombre:(a.nombreOrigen||'Sin equipo vinculado'),sede:eqPadre?(eqPadre.ubicacion||'—'):'—'};
+    var origenCompra=a.nombreOrigen||null;
+    var reasignada=!!(eqPadre&&origenCompra&&eqPadre.nombre!==origenCompra);
+    return{
+      eq:eqPadre,
+      origenCompra:origenCompra||'—',
+      actualLabel:eqPadre?eqPadre.nombre:null,
+      sede:eqPadre?(eqPadre.ubicacion||'—'):'—',
+      reasignada:reasignada,
+      huerfana:!eqPadre
+    };
   }
+  // Antenas sin equipo vinculado hoy: se excluyen de la tabla y estadísticas
+  // principales (no representan un equipo real en uso) y se listan aparte.
+  var huerfanas=todas.filter(function(a){return origenDe(a).huerfana;});
+  var activas=todas.filter(function(a){return !origenDe(a).huerfana;});
+  if(!activas.length){showToast('Todas las antenas están sin equipo vinculado — revisá "Antenas huérfanas" en Ajustes','warn');return;}
+
   function estadoInfo(a){
     var e=a.estado||'operativa';
     if(e==='fuera_servicio')return{label:'Fuera de servicio',color:'#dc2626',bg:'#fef2f2'};
@@ -10963,9 +11011,11 @@ function exportAntenasPDF(){
     var reps=(a.historialAntena||[]).length;
     var rotAct=(a.roturas||[]).length;
     var marcaModelo=[a.marca,a.modelo].filter(Boolean).join(' ')||a.origen||'—';
+    var origenHtml='<div>'+esc(org.actualLabel)+'</div>'+(org.sede!=='—'?'<div style="font-size:7.5pt;color:#64748b;">📍 '+esc(org.sede)+'</div>':'');
+    if(org.reasignada)origenHtml+='<div style="font-size:7.2pt;color:#c2410c;font-weight:700;margin-top:2px;">🔄 Reasignada — origen de compra: '+esc(org.origenCompra)+'</div>';
     return '<tr style="border-bottom:1px solid #e8edf4;">'+
       '<td style="font-weight:600;">'+esc(a.nombre||'Antena sin nombre')+'<div style="font-size:7.5pt;color:#94a3b8;font-weight:400;">'+esc(a.tipo||'—')+(a.cantidadCanales?' · '+a.cantidadCanales+' canales':'')+'</div></td>'+
-      '<td style="font-size:8.5pt;">'+esc(org.label)+(org.sede!=='—'?'<div style="font-size:7.5pt;color:#64748b;">📍 '+esc(org.sede)+'</div>':'')+'</td>'+
+      '<td style="font-size:8.5pt;">'+origenHtml+'</td>'+
       '<td style="font-size:8.5pt;color:#64748b;">'+esc(marcaModelo)+'</td>'+
       '<td style="font-size:8.5pt;">'+(a.fechaCompra?fD(a.fechaCompra):'<span style="color:#94a3b8;">—</span>')+'</td>'+
       '<td style="text-align:center;font-weight:700;color:'+edadColor+';font-size:8.5pt;">'+edadLabel+'</td>'+
@@ -10976,7 +11026,7 @@ function exportAntenasPDF(){
 
   var tablaSection='<div class="section"><div class="section-title">Detalle por Antena — Estado, Origen y Antigüedad</div>'+
     '<table class="sum"><thead><tr>'+
-      '<th>Antena</th><th>Origen (equipo / sede)</th><th>Marca / Modelo</th><th>Fecha de compra</th><th style="text-align:center;">Antigüedad</th><th style="text-align:center;">Estado</th><th style="text-align:center;">Roturas / Reparaciones</th>'+
+      '<th>Antena</th><th>Resonador actual / sede</th><th>Marca / Modelo</th><th>Fecha de compra</th><th style="text-align:center;">Antigüedad</th><th style="text-align:center;">Estado</th><th style="text-align:center;">Roturas / Reparaciones</th>'+
     '</tr></thead><tbody>'+rows+'</tbody></table>'+
   '</div>';
 
@@ -10995,7 +11045,7 @@ function exportAntenasPDF(){
       if((a.historialAntena||[]).length>=2)motivos.push((a.historialAntena.length)+' reparaciones históricas');
       return '<tr style="border-bottom:1px solid #e8edf4;">'+
         '<td style="font-weight:600;">'+esc(a.nombre||'—')+'</td>'+
-        '<td style="font-size:8.5pt;">'+esc(org.label)+'</td>'+
+        '<td style="font-size:8.5pt;">'+esc(org.actualLabel)+'</td>'+
         '<td style="font-size:8.5pt;color:#b45309;">'+motivos.join(' · ')+'</td>'+
       '</tr>';
     }).join('');
@@ -11013,6 +11063,24 @@ function exportAntenasPDF(){
 
   var sinFechaNote=sinFechaCompra?'<div style="font-size:8pt;color:#94a3b8;margin-top:6px;">* '+sinFechaCompra+' antena(s) sin fecha de compra cargada — no se incluyen en el cálculo de antigüedad promedio.</div>':'';
 
+  // — Antenas sin equipo vinculado (huérfanas) — fuera de la tabla y estadísticas
+  // principales; se listan para que se revisen y, si corresponde, se eliminen
+  // desde Ajustes → Antenas sin equipo vinculado (usa deleteAntena, no solo desvincula).
+  var huerfSection='';
+  if(huerfanas.length){
+    var huerfRows=huerfanas.map(function(a){
+      return '<tr style="border-bottom:1px solid #e8edf4;">'+
+        '<td style="font-weight:600;">'+esc(a.nombre||'Antena sin nombre')+'</td>'+
+        '<td style="font-size:8.5pt;">'+esc(a.nombreOrigen||'—')+'</td>'+
+        '<td style="font-size:8.5pt;">'+(a.fechaCompra?fD(a.fechaCompra):'—')+'</td>'+
+      '</tr>';
+    }).join('');
+    huerfSection='<div class="section" style="page-break-inside:avoid;"><div class="section-title" style="color:#94a3b8;border-color:#94a3b8;">Antenas Sin Equipo Vinculado ('+huerfanas.length+')</div>'+
+      '<div style="font-size:8pt;color:#94a3b8;margin-bottom:8px;">No están incluidas en las estadísticas ni en la tabla principal — no tienen un resonador asignado hoy. Pueden ser repuestos en stock o registros que quedaron sin eliminar al usar "Quitar del equipo" en vez de "Eliminar". Se pueden depurar desde Ajustes → Antenas sin equipo vinculado.</div>'+
+      '<table class="sum"><thead><tr><th>Antena</th><th>Origen de compra</th><th>Fecha de compra</th></tr></thead><tbody>'+huerfRows+'</tbody></table>'+
+    '</div>';
+  }
+
   var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width"><title>Informe de Antenas CIMA</title><style>'+_reportCSS+'</style></head><body>'+
     '<div class="nav-bar"><button class="btn-print" onclick="window.print()">'+icn('printer',13)+' Imprimir / Guardar PDF</button><span style="font-size:11px;color:#64748b;margin-left:8px;">Informe de Antenas CIMA · '+fechaStr+'</span></div>'+
     '<div class="page">'+
@@ -11026,6 +11094,7 @@ function exportAntenasPDF(){
       '<div class="section"><div class="section-title">Resumen General</div>'+stats+sinFechaNote+'</div>'+
       tablaSection+
       vigilarSection+
+      huerfSection+
       refSection+
       '<div class="footer">'+
         '<div class="footer-meta">CIMA Investigaciones Avanzadas · CIMA Hub '+APP_DISPLAY_VERSION+' · Generado: '+fechaStr+' '+horaStr+'</div>'+
@@ -15810,12 +15879,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="1.1.0";
+var APP_DISPLAY_VERSION="1.1.1";
 var APP_BUILD="07/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'1.1.1',fecha:'07/07/2026',tipo:'patch',cambios:[
+    'Informe de Antenas: parser de fechas robusto (corrige antenas >8 años no contadas), diferencia origen de compra vs resonador actual, y antenas sin equipo vinculado separadas + herramienta de limpieza en Ajustes'
+  ]},
   {v:'1.1.0',fecha:'07/07/2026',tipo:'minor',cambios:[
     'Nuevo Informe de Antenas: estado, origen y antigüedad de cada antena RF con estadísticas de vida útil'
   ]},
