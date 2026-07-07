@@ -2224,7 +2224,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "4.43";
+const APP_VERSION = "4.44";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -2863,7 +2863,7 @@ function deleteMov(id){
       cs[center].stock=data.stock; cs[center].movements=data.movements; cs[center].lotes=data.lotes;
       renderMovimientos(); updateVencBadge();
       toast("Movimiento eliminado");
-    }).catch(function(e){ console.warn(e); toast("⚠️ Error al eliminar. Intentá de nuevo."); });
+    }).catch(function(e){ console.warn(e); toast(_txnErrorMsg(e,"⚠️ Error al eliminar. Intentá de nuevo.")); });
   });
 }
 
@@ -4171,6 +4171,14 @@ function onLoteSelectChange(){
   }
 }
 // ─── Helpers de concurrencia (Firestore runTransaction) ───────────────────────
+// runTransaction requiere ida y vuelta al servidor: sin conexión, falla en el
+// acto (no se encola como persist()/batch.set()). Mensaje claro para el usuario.
+function _txnErrorMsg(e,fallback){
+  var code=(e&&e.code)||'';
+  if(code==='unavailable'||code==='deadline-exceeded'||code==='cancelled')
+    return "⚠️ Sin conexión a internet — no se pudo guardar. Reintentá cuando vuelva la señal.";
+  return fallback;
+}
 function _txnCenter(center,fn){
   var key=center==="GN"?"center_GN":"center_Sarmiento";
   var ref=_db.collection(DB_COL).doc(key);
@@ -4292,7 +4300,7 @@ function saveMovimiento(){
     updateVencBadge();
   }).catch(function(e){
     console.warn("Error al guardar movimiento:",e);
-    toast("⚠️ Error al guardar. Intentá de nuevo.");
+    toast(_txnErrorMsg(e,"⚠️ Error al guardar. Intentá de nuevo."));
   });
 }
 
@@ -4422,6 +4430,17 @@ function signIn(){
   });
 }
 function signOut(){
+  // Dar de baja el token push de este usuario antes de cerrar sesión — si no,
+  // en un dispositivo compartido seguiría recibiendo notificaciones a nombre
+  // de un usuario que ya no está usando ese equipo.
+  if(currentUser&&_db){
+    _db.collection("insumos_cima").doc("push_tokens")
+      .update({[currentUser.uid]:firebase.firestore.FieldValue.delete()})
+      .catch(function(e){ console.warn('[FCM] No se pudo dar de baja el token:',e); });
+  }
+  if(_messaging){
+    _messaging.deleteToken().catch(function(e){ console.warn('[FCM] deleteToken:',e); });
+  }
   _auth.signOut();
   _stopListeners();
   // Reset data-ready state so next login starts fresh
@@ -5389,7 +5408,7 @@ function saveEditLote(){
     toast('✓ Lote actualizado');
   }).catch(function(e){
     console.warn(e);
-    toast('⚠️ Error al actualizar lote');
+    toast(_txnErrorMsg(e,'⚠️ Error al actualizar lote'));
   });
 }
 function deleteEditLote(){
@@ -5426,7 +5445,7 @@ function deleteEditLote(){
         toast('✓ Lote eliminado');
       }).catch(function(e){
         console.warn(e);
-        toast('⚠️ Error al eliminar lote');
+        toast(_txnErrorMsg(e,'⚠️ Error al eliminar lote'));
       });
     }
   );
@@ -5780,47 +5799,57 @@ function toggleItemPrep(solId, key){
 function exportarSolicitudPDF(id){
   const s=solicitudes.find(x=>x.id===id); if(!s)return;
   if(!window.jspdf){toast("⚠️ Librería PDF no cargada");return;}
-  const {jsPDF}=window.jspdf;
-  const doc=new jsPDF({orientation:"portrait",unit:"mm",format:"a4"});
-  const pageW=doc.internal.pageSize.getWidth(),mg=14;let y=mg;
-  doc.setFillColor(5,22,68);doc.rect(0,0,pageW,36,"F");
-  doc.setFillColor(0,122,255);doc.rect(0,0,pageW,3,"F");
-  doc.setTextColor(255,255,255);doc.setFontSize(17);doc.setFont("helvetica","bold");
-  doc.text("Pedido de Insumos",mg,20);
-  doc.setFontSize(8.5);doc.setFont("helvetica","normal");
-  doc.text("CIMA · Sistema de Gestion",mg,28);
-  y=44;
-  const prioColors2={"Muy urgente":[255,59,48],"Urgente":[255,149,0],"Normal":[52,199,89]};
-  const pc=prioColors2[s.prioridad]||[52,199,89];
-  doc.setFontSize(8.5);doc.setTextColor(60,60,67);
-  const meta=[["Solicitante",s.solicitante||""],["Fecha",s.fecha||""],["Sector",s.sector||""],["Equipo",s.equipo||"—"],["Prioridad",s.prioridad||"Normal"]];
-  meta.forEach(([k,v])=>{doc.setFont("helvetica","bold");doc.text(k+":",mg,y);doc.setFont("helvetica","normal");doc.text(v,mg+26,y);y+=5;});
-  y+=4;
-  const items=s.items||[];
-  doc.autoTable({startY:y,margin:{left:mg,right:mg},
-    head:[["Insumo","Categoria","Cant.","Caja","Pack"]],
-    body:items.map(item=>[item.name||"",item.cat||"",item.cantidad||0,item.caja||0,item.pack||0]),
-    headStyles:{fillColor:[5,22,68],textColor:255,fontStyle:"bold",fontSize:8},
-    bodyStyles:{fontSize:8},alternateRowStyles:{fillColor:[240,246,255]},
-    styles:{cellPadding:2.5},
-    columnStyles:{0:{cellWidth:75},1:{cellWidth:38},2:{cellWidth:18},3:{cellWidth:18},4:{cellWidth:18}}
-  });
-  y=doc.lastAutoTable.finalY+8;
-  if(s.observaciones){
-    doc.setFontSize(8);doc.setFont("helvetica","bold");doc.setTextColor(60,60,67);
-    doc.text("Observaciones:",mg,y);y+=5;doc.setFont("helvetica","normal");
-    const lines=doc.splitTextToSize(s.observaciones,pageW-mg*2);doc.text(lines,mg,y);
+  try{
+    const {jsPDF}=window.jspdf;
+    const doc=new jsPDF({orientation:"portrait",unit:"mm",format:"a4"});
+    const pageW=doc.internal.pageSize.getWidth(),pageH=doc.internal.pageSize.getHeight(),mg=14;let y=mg;
+    function pageCheck(needed){ if(y>pageH-needed){doc.addPage();y=mg;} }
+    doc.setFillColor(5,22,68);doc.rect(0,0,pageW,36,"F");
+    doc.setFillColor(0,122,255);doc.rect(0,0,pageW,3,"F");
+    doc.setTextColor(255,255,255);doc.setFontSize(17);doc.setFont("helvetica","bold");
+    doc.text("Pedido de Insumos",mg,20);
+    doc.setFontSize(8.5);doc.setFont("helvetica","normal");
+    doc.text("CIMA · Sistema de Gestion",mg,28);
+    y=44;
+    const prioColors2={"Muy urgente":[255,59,48],"Urgente":[255,149,0],"Normal":[52,199,89]};
+    const pc=prioColors2[s.prioridad]||[52,199,89];
+    doc.setFontSize(8.5);doc.setTextColor(60,60,67);
+    const meta=[["Solicitante",s.solicitante||""],["Fecha",s.fecha||""],["Sector",s.sector||""],["Equipo",s.equipo||"—"],["Prioridad",s.prioridad||"Normal"]];
+    meta.forEach(([k,v])=>{doc.setFont("helvetica","bold");doc.text(k+":",mg,y);doc.setFont("helvetica","normal");doc.text(v,mg+26,y);y+=5;});
+    y+=4;
+    const items=s.items||[];
+    doc.autoTable({startY:y,margin:{left:mg,right:mg},
+      head:[["Insumo","Categoria","Cant.","Caja","Pack"]],
+      body:items.map(item=>[item.name||"",item.cat||"",item.cantidad||0,item.caja||0,item.pack||0]),
+      headStyles:{fillColor:[5,22,68],textColor:255,fontStyle:"bold",fontSize:8},
+      bodyStyles:{fontSize:8},alternateRowStyles:{fillColor:[240,246,255]},
+      styles:{cellPadding:2.5},
+      columnStyles:{0:{cellWidth:75},1:{cellWidth:38},2:{cellWidth:18},3:{cellWidth:18},4:{cellWidth:18}}
+    });
+    y=doc.lastAutoTable.finalY+8;
+    if(s.observaciones){
+      pageCheck(30);
+      doc.setFontSize(8);doc.setFont("helvetica","bold");doc.setTextColor(60,60,67);
+      doc.text("Observaciones:",mg,y);y+=5;doc.setFont("helvetica","normal");
+      const lines=doc.splitTextToSize(s.observaciones,pageW-mg*2);
+      pageCheck(lines.length*4+6);
+      doc.text(lines,mg,y);
+    }
+    const pageCount=doc.internal.getNumberOfPages();
+    for(let i=1;i<=pageCount;i++){
+      doc.setPage(i);doc.setFontSize(7);doc.setTextColor(160,160,170);
+      doc.text("CIMA · Pedido de Insumos · "+new Date().toLocaleDateString("es-AR"),mg,290);
+      doc.text("Pagina "+i+" de "+pageCount,pageW-mg,290,{align:"right"});
+    }
+    const safeName=(s.solicitante||"cima").replace(/[^\w\-]+/g,"_").slice(0,60);
+    const fname="pedido-"+safeName+"-"+s.fecha+".pdf";
+    const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)&&!window.MSStream;
+    if(isIOS){doc.output("dataurlnewwindow",{filename:fname});}
+    else{doc.save(fname);}
+  }catch(e){
+    console.error('[PDF Solicitud]',e);
+    toast("⚠️ Error al generar el PDF del pedido");
   }
-  const pageCount=doc.internal.getNumberOfPages();
-  for(let i=1;i<=pageCount;i++){
-    doc.setPage(i);doc.setFontSize(7);doc.setTextColor(160,160,170);
-    doc.text("CIMA · Pedido de Insumos · "+new Date().toLocaleDateString("es-AR"),mg,290);
-    doc.text("Pagina "+i+" de "+pageCount,pageW-mg,290,{align:"right"});
-  }
-  const fname="pedido-"+escHtml(s.solicitante||"cima")+"-"+s.fecha+".pdf";
-  const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)&&!window.MSStream;
-  if(isIOS){doc.output("dataurlnewwindow",{filename:fname});}
-  else{doc.save(fname);}
 }
 function markSolicitudRead(id){
   _db.collection("insumos_cima").doc("solicitudes_log").collection("items")
@@ -5892,7 +5921,7 @@ function markSolicitudEntregado(id, qtyMap, recibidoPor, firma){
     return updateSolicitud();
   }).catch(function(e){
     console.warn(e);
-    toast("⚠️ Error al actualizar stock");
+    toast(_txnErrorMsg(e,"⚠️ Error al actualizar stock"));
   });
 }
 // ─── Cantidades entregadas — dentro de pdf-viewer-overlay, sin getElementById ──
@@ -6716,11 +6745,21 @@ async function exportContablePDF(){
   if(!_pracConfig){toast("⚠️ Configuración no cargada");return;}
   if(!_pracCierreMes){toast("⚠️ Seleccioná un mes");return;}
   if(!window.jspdf){toast("⚠️ Librería PDF no cargada, intentá de nuevo");return;}
-  // Persistir cualquier cantidad editada en pantalla antes de exportar
+  // Volcar cualquier cantidad editada en pantalla a _pracMes (en memoria)…
   document.querySelectorAll('.prac-mes-input').forEach(function(inp){
     const k=inp.dataset.key; const q=parseInt(inp.value)||0;
     if(k){ if(!_pracMes[_pracCierreMes]) _pracMes[_pracCierreMes]={}; if(q>0) _pracMes[_pracCierreMes][k]=q; else delete _pracMes[_pracCierreMes][k]; }
   });
+  // …y PERSISTIRLA antes de exportar: si no, el PDF puede mostrar datos que
+  // después se pierden porque nunca se guardaron en Firestore (solo quedaban
+  // en memoria local hasta que alguien tocara "💾 Guardar mes").
+  try{
+    await _db.collection(DB_COL).doc("practicas_mes").set({[_pracCierreMes]:_pracMes[_pracCierreMes]||{}},{merge:true});
+  }catch(e){
+    console.warn('[Contable] Error guardando antes de exportar:',e);
+    toast("⚠️ No se pudo guardar el cierre — el PDF puede no coincidir con lo guardado. Reintentá.");
+    return;
+  }
   toast("Generando PDF…");
   try{
     const {jsPDF}=window.jspdf;
