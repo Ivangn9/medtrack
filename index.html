@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.06.001 -->
+<!-- v2026.07.07.001 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.06.001">
+<meta name="app-version" content="v2026.07.07.001">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1254,6 +1254,8 @@ body.dark .pill[style*="#ff9500"],body.dark .pill[style*="--orange"]{box-shadow:
       <button onclick="toggleSettings();exportInventarioPDF()" class="b-accent" style="width:100%;padding:12px;border-radius:50px;margin-bottom:8px;">📋 Inventario de Equipos</button>
       <div class="settings-desc" style="margin-bottom:8px;font-size:.7rem;">Estado operativo de todos los equipos + UPS conectada</div>
       <button onclick="toggleSettings();exportAllPDF()" class="b-accent" style="width:100%;padding:12px;border-radius:50px;margin-bottom:10px;">📄 Reporte General</button>
+      <div class="settings-desc" style="margin-bottom:8px;font-size:.7rem;">Estado, origen y antigüedad de cada antena RF</div>
+      <button onclick="toggleSettings();exportAntenasPDF()" class="b-accent" style="width:100%;padding:12px;border-radius:50px;margin-bottom:10px;">📡 Informe de Antenas</button>
       <div style="font-size:.68rem;color:var(--text3);margin:6px 0 5px;font-weight:600;">Filtrar por fechas:</div>
       <div style="display:flex;gap:8px;margin-bottom:8px;">
         <div style="flex:1;"><div style="font-size:.58rem;color:var(--text3);margin-bottom:3px;">DESDE</div><input class="inp" type="date" id="r-desde" style="padding:8px 10px;font-size:.78rem;"></div>
@@ -10890,6 +10892,150 @@ function exportInventarioPDF(){
   openHTMLViewer(html,'Inventario de Equipos CIMA');
 }
 
+// ── INFORME DE ANTENAS: ESTADO, ORIGEN Y ANTIGÜEDAD ──
+// Referencia de vida útil: la industria de reparación/refacción de bobinas RF
+// (Innovatus Imaging, Centella Health Tech) reporta que los resonadores tienen
+// un ciclo típico de reemplazo de ~10 años, y que las antenas/bobinas muestran
+// degradación (conectores, cables flex, soldaduras) bien antes que el propio
+// equipo. No existe una norma fija publicada por fabricante — se usa como
+// referencia orientativa: 0–4 años vida temprana, 5–7 vigilar, 8+ años revisar.
+var _ANT_VIDA_UTIL_ANIOS=8;
+function _antAntiguedadAnios(fechaCompra){
+  if(!fechaCompra)return null;
+  var d=new Date(fechaCompra);if(isNaN(d.getTime()))return null;
+  var ms=new Date()-d;
+  return ms/(365.25*24*60*60*1000);
+}
+function exportAntenasPDF(){
+  var logoTag='<div class="cima-wordmark"><div class="cima-title">CIMA<sup class="cima-reg">®</sup></div><div class="cima-sub">Investigaciones Avanzadas</div></div>';
+  try{var imgs=document.querySelectorAll('img');for(var ii=0;ii<imgs.length;ii++){if(imgs[ii].src&&imgs[ii].src.indexOf('logo.png')!==-1&&imgs[ii].complete&&imgs[ii].naturalWidth>0){var cv=document.createElement('canvas');cv.width=imgs[ii].naturalWidth;cv.height=imgs[ii].naturalHeight;cv.getContext('2d').drawImage(imgs[ii],0,0);logoTag='<img src="'+cv.toDataURL('image/png')+'" style="height:80px;width:auto;display:block;">';break;}}}catch(e){}
+
+  var now=new Date();
+  var fechaStr=now.toLocaleDateString('es-AR',{day:'2-digit',month:'long',year:'numeric'});
+  var horaStr=now.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
+
+  var activas=antenas.filter(function(a){return !a.baja;});
+  if(!activas.length){showToast('No hay antenas cargadas','warn');return;}
+
+  function origenDe(a){
+    var eqPadre=eqs.find(function(e){return(e.antenaIds||[]).indexOf(a.id)!==-1;});
+    return{eq:eqPadre,label:eqPadre?eqPadre.nombre:(a.nombreOrigen||'Sin equipo vinculado'),sede:eqPadre?(eqPadre.ubicacion||'—'):'—'};
+  }
+  function estadoInfo(a){
+    var e=a.estado||'operativa';
+    if(e==='fuera_servicio')return{label:'Fuera de servicio',color:'#dc2626',bg:'#fef2f2'};
+    if(e==='rota')return{label:'Rota',color:'#dc2626',bg:'#fef2f2'};
+    if(e==='con_fallas')return{label:'Con fallas',color:'#d97706',bg:'#fffbeb'};
+    return{label:'Operativa',color:'#15803d',bg:'#f0fdf4'};
+  }
+
+  // — Estadísticas generales —
+  var totalAnt=activas.length;
+  var opAnt=activas.filter(function(a){return(a.estado||'operativa')==='operativa';}).length;
+  var fallaAnt=totalAnt-opAnt;
+  var edades=activas.map(function(a){return _antAntiguedadAnios(a.fechaCompra);}).filter(function(v){return v!==null;});
+  var edadProm=edades.length?(edades.reduce(function(x,y){return x+y;},0)/edades.length):null;
+  var superanVidaUtil=activas.filter(function(a){var ed=_antAntiguedadAnios(a.fechaCompra);return ed!==null&&ed>=_ANT_VIDA_UTIL_ANIOS;});
+  var totalReparaciones=0;activas.forEach(function(a){totalReparaciones+=(a.historialAntena||[]).length;});
+  var totalRoturasAct=0;activas.forEach(function(a){totalRoturasAct+=(a.roturas||[]).length;});
+  var sinFechaCompra=activas.filter(function(a){return!a.fechaCompra;}).length;
+
+  var stats='<div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;">'+
+    '<div style="flex:1;min-width:90px;background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:8px;padding:12px 16px;text-align:center;"><div style="font-size:8pt;color:#1d4ed8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Total Antenas</div><div style="font-size:26pt;font-weight:900;color:#1d4ed8;">'+totalAnt+'</div></div>'+
+    '<div style="flex:1;min-width:90px;background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:8px;padding:12px 16px;text-align:center;"><div style="font-size:8pt;color:#15803d;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Operativas</div><div style="font-size:26pt;font-weight:900;color:#15803d;">'+opAnt+'</div></div>'+
+    '<div style="flex:1;min-width:90px;background:#fef2f2;border:1.5px solid #fecaca;border-radius:8px;padding:12px 16px;text-align:center;"><div style="font-size:8pt;color:#dc2626;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Con fallas / Rotas</div><div style="font-size:26pt;font-weight:900;color:#dc2626;">'+fallaAnt+'</div></div>'+
+    '<div style="flex:1;min-width:90px;background:#f0f5fc;border:1.5px solid #dce8f5;border-radius:8px;padding:12px 16px;text-align:center;"><div style="font-size:8pt;color:#1a3a6b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Antigüedad Prom.</div><div style="font-size:22pt;font-weight:900;color:#1a3a6b;">'+(edadProm!==null?edadProm.toFixed(1)+' a':'—')+'</div></div>'+
+    '<div style="flex:1;min-width:90px;background:#fff7ed;border:1.5px solid #fed7aa;border-radius:8px;padding:12px 16px;text-align:center;"><div style="font-size:8pt;color:#c2410c;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">≥ '+_ANT_VIDA_UTIL_ANIOS+' años</div><div style="font-size:26pt;font-weight:900;color:#c2410c;">'+superanVidaUtil.length+'</div></div>'+
+    '<div style="flex:1;min-width:90px;background:#f5f3ff;border:1.5px solid #ddd6fe;border-radius:8px;padding:12px 16px;text-align:center;"><div style="font-size:8pt;color:#6d28d9;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Reparaciones Históricas</div><div style="font-size:26pt;font-weight:900;color:#6d28d9;">'+totalReparaciones+'</div></div>'+
+  '</div>';
+
+  // — Tabla principal: estado, origen, antigüedad —
+  var rows=activas.slice().sort(function(a,b){
+    var ea=_antAntiguedadAnios(a.fechaCompra),eb=_antAntiguedadAnios(b.fechaCompra);
+    if(ea===null&&eb===null)return 0;if(ea===null)return 1;if(eb===null)return-1;
+    return eb-ea;
+  }).map(function(a){
+    var org=origenDe(a);
+    var est=estadoInfo(a);
+    var edad=_antAntiguedadAnios(a.fechaCompra);
+    var edadLabel=edad!==null?edad.toFixed(1)+' años':'—';
+    var edadColor=edad===null?'#94a3b8':edad>=_ANT_VIDA_UTIL_ANIOS?'#dc2626':edad>=5?'#d97706':'#15803d';
+    var reps=(a.historialAntena||[]).length;
+    var rotAct=(a.roturas||[]).length;
+    var marcaModelo=[a.marca,a.modelo].filter(Boolean).join(' ')||a.origen||'—';
+    return '<tr style="border-bottom:1px solid #e8edf4;">'+
+      '<td style="font-weight:600;">'+esc(a.nombre||'Antena sin nombre')+'<div style="font-size:7.5pt;color:#94a3b8;font-weight:400;">'+esc(a.tipo||'—')+(a.cantidadCanales?' · '+a.cantidadCanales+' canales':'')+'</div></td>'+
+      '<td style="font-size:8.5pt;">'+esc(org.label)+(org.sede!=='—'?'<div style="font-size:7.5pt;color:#64748b;">📍 '+esc(org.sede)+'</div>':'')+'</td>'+
+      '<td style="font-size:8.5pt;color:#64748b;">'+esc(marcaModelo)+'</td>'+
+      '<td style="font-size:8.5pt;">'+(a.fechaCompra?fD(a.fechaCompra):'<span style="color:#94a3b8;">—</span>')+'</td>'+
+      '<td style="text-align:center;font-weight:700;color:'+edadColor+';font-size:8.5pt;">'+edadLabel+'</td>'+
+      '<td style="text-align:center;"><span style="background:'+est.bg+';color:'+est.color+';border:1px solid '+est.color+'33;border-radius:20px;padding:3px 10px;font-size:8.5pt;font-weight:700;white-space:nowrap;">'+est.label+'</span></td>'+
+      '<td style="text-align:center;font-size:8.5pt;">'+(rotAct>0?'<span style="color:#dc2626;font-weight:700;">'+rotAct+' activa'+(rotAct!==1?'s':'')+'</span>':'<span style="color:#94a3b8;">—</span>')+(reps>0?'<div style="font-size:7.5pt;color:#15803d;">'+reps+' reparada'+(reps!==1?'s':'')+'</div>':'')+'</td>'+
+    '</tr>';
+  }).join('');
+
+  var tablaSection='<div class="section"><div class="section-title">Detalle por Antena — Estado, Origen y Antigüedad</div>'+
+    '<table class="sum"><thead><tr>'+
+      '<th>Antena</th><th>Origen (equipo / sede)</th><th>Marca / Modelo</th><th>Fecha de compra</th><th style="text-align:center;">Antigüedad</th><th style="text-align:center;">Estado</th><th style="text-align:center;">Roturas / Reparaciones</th>'+
+    '</tr></thead><tbody>'+rows+'</tbody></table>'+
+  '</div>';
+
+  // — Antenas a vigilar (superan referencia de vida útil o con historial de reparaciones) —
+  var aVigilar=activas.filter(function(a){
+    var ed=_antAntiguedadAnios(a.fechaCompra);
+    return(ed!==null&&ed>=_ANT_VIDA_UTIL_ANIOS)||(a.historialAntena||[]).length>=2||(a.roturas||[]).length>0;
+  });
+  var vigilarSection='';
+  if(aVigilar.length){
+    var vigRows=aVigilar.map(function(a){
+      var org=origenDe(a);var edad=_antAntiguedadAnios(a.fechaCompra);
+      var motivos=[];
+      if(edad!==null&&edad>=_ANT_VIDA_UTIL_ANIOS)motivos.push('Antigüedad ≥ '+_ANT_VIDA_UTIL_ANIOS+' años ('+edad.toFixed(1)+')');
+      if((a.roturas||[]).length>0)motivos.push((a.roturas.length)+' rotura(s) activa(s)');
+      if((a.historialAntena||[]).length>=2)motivos.push((a.historialAntena.length)+' reparaciones históricas');
+      return '<tr style="border-bottom:1px solid #e8edf4;">'+
+        '<td style="font-weight:600;">'+esc(a.nombre||'—')+'</td>'+
+        '<td style="font-size:8.5pt;">'+esc(org.label)+'</td>'+
+        '<td style="font-size:8.5pt;color:#b45309;">'+motivos.join(' · ')+'</td>'+
+      '</tr>';
+    }).join('');
+    vigilarSection='<div class="section" style="page-break-inside:avoid;"><div class="section-title" style="color:#c2410c;border-color:#c2410c;">Antenas a Vigilar ('+aVigilar.length+')</div>'+
+      '<table class="sum"><thead><tr><th>Antena</th><th>Origen</th><th>Motivo</th></tr></thead><tbody>'+vigRows+'</tbody></table>'+
+    '</div>';
+  }
+
+  var refSection='<div class="section" style="page-break-inside:avoid;"><div class="section-title">Referencia de Vida Útil</div>'+
+    '<div style="font-size:8.5pt;color:#475569;line-height:1.6;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px 14px;">'+
+      'No existe una norma fija publicada por el fabricante para la vida útil de bobinas/antenas de radiofrecuencia de RM. Según proveedores especializados en reparación de bobinas (Innovatus Imaging, Centella Health Tech), los resonadores tienen un ciclo típico de reemplazo de referencia de ~10 años, y las antenas suelen mostrar degradación (conectores, cables flex, soldaduras) antes que el propio equipo, dependiendo del uso y cuidado.<br><br>'+
+      '<strong>Criterio aplicado en este informe</strong> (orientativo, no normativo): 0–4 años = vida temprana · 5–7 años = vigilar · <span style="color:#c2410c;font-weight:700;">≥ 8 años = revisar / planificar reemplazo</span>.'+
+    '</div>'+
+  '</div>';
+
+  var sinFechaNote=sinFechaCompra?'<div style="font-size:8pt;color:#94a3b8;margin-top:6px;">* '+sinFechaCompra+' antena(s) sin fecha de compra cargada — no se incluyen en el cálculo de antigüedad promedio.</div>':'';
+
+  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width"><title>Informe de Antenas CIMA</title><style>'+_reportCSS+'</style></head><body>'+
+    '<div class="nav-bar"><button class="btn-print" onclick="window.print()">'+icn('printer',13)+' Imprimir / Guardar PDF</button><span style="font-size:11px;color:#64748b;margin-left:8px;">Informe de Antenas CIMA · '+fechaStr+'</span></div>'+
+    '<div class="page">'+
+      '<div class="logo-area">'+logoTag+'</div>'+
+      '<div class="informe-box">'+
+        '<div class="informe-title">INFORME&nbsp; DE&nbsp; ANTENAS&nbsp; RF&nbsp; &mdash;&nbsp; CIMA</div>'+
+        '<div class="informe-row"><span class="informe-label">FECHA:</span><span class="informe-value">'+fechaStr+' · '+horaStr+'</span></div>'+
+        '<div class="informe-row"><span class="informe-label">DE:</span><span class="informe-value">Lic. García Núñez Iván</span></div>'+
+        '<div class="informe-row"><span class="informe-label">ASUNTO:</span><span class="informe-value">Estado, origen y antigüedad del parque de antenas de RF</span></div>'+
+      '</div>'+
+      '<div class="section"><div class="section-title">Resumen General</div>'+stats+sinFechaNote+'</div>'+
+      tablaSection+
+      vigilarSection+
+      refSection+
+      '<div class="footer">'+
+        '<div class="footer-meta">CIMA Investigaciones Avanzadas · CIMA Hub '+APP_DISPLAY_VERSION+' · Generado: '+fechaStr+' '+horaStr+'</div>'+
+        '<div class="sig-row"><div class="sig-block"><div class="sig-line">Lic. García Núñez Iván</div><div class="sig-title">Responsable de Equipos Biomédicos</div></div></div>'+
+      '</div>'+
+    '</div></body></html>';
+
+  openHTMLViewer(html,'Informe de Antenas CIMA');
+}
+
 // ── EXPORT SINGLE PDF ──
 
 function expFiltered(){
@@ -15664,12 +15810,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="1.0.0";
-var APP_BUILD="06/07/26 h";
+var APP_DISPLAY_VERSION="1.1.0";
+var APP_BUILD="07/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'1.1.0',fecha:'07/07/2026',tipo:'minor',cambios:[
+    'Nuevo Informe de Antenas: estado, origen y antigüedad de cada antena RF con estadísticas de vida útil'
+  ]},
   {v:'1.0.0',fecha:'06/07/2026',tipo:'major',cambios:[
     'Reset de versionado a SemVer — punto de partida comercial',
     'Historiales en documentos separados (sharding) con backup automático pre-migración',
