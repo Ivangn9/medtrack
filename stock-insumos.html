@@ -2224,7 +2224,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "4.44";
+const APP_VERSION = "4.45";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -2536,9 +2536,30 @@ const DB_USERS    = "insumos_users";
 
 let currentUser = null, isAdmin = false, _lastUsers = [];
 let _unsubSupplies, _unsubGN, _unsubSarm, _unsubUsers, _unsubSolicitudes, _unsubPrac, _unsubPracMes;
+let _unsubMovGN=null, _unsubMovSarm=null;
 function _stopListeners(){
-  [_unsubSupplies,_unsubGN,_unsubSarm,_unsubUsers,_unsubSolicitudes,_unsubPrac,_unsubPracMes].forEach(u=>{ if(u) try{u();}catch(e){} });
-  _unsubSupplies=_unsubGN=_unsubSarm=_unsubUsers=_unsubSolicitudes=_unsubPrac=_unsubPracMes=null;
+  [_unsubSupplies,_unsubGN,_unsubSarm,_unsubUsers,_unsubSolicitudes,_unsubPrac,_unsubPracMes,_unsubMovGN,_unsubMovSarm].forEach(u=>{ if(u) try{u();}catch(e){} });
+  _unsubSupplies=_unsubGN=_unsubSarm=_unsubUsers=_unsubSolicitudes=_unsubPrac=_unsubPracMes=_unsubMovGN=_unsubMovSarm=null;
+}
+// Se activa solo, la primera vez que el doc del centro llega con
+// movementsMigrated:true — alimenta cs[center].movements desde la
+// subcolección en vez del array embebido (que en ese punto ya no existe).
+function _ensureMovementsListener(center){
+  if(center==="GN"){
+    if(_unsubMovGN) return;
+    _unsubMovGN=_db.collection(DB_COL).doc("center_GN").collection("movements").onSnapshot(function(snap){
+      cs.GN.movements=snap.docs.map(function(d){return d.data();});
+      updateVencBadge();
+      if(activeCenter==="GN") renderCurrentTab();
+    },function(e){ console.warn("[movements GN]",e); });
+  } else {
+    if(_unsubMovSarm) return;
+    _unsubMovSarm=_db.collection(DB_COL).doc("center_Sarmiento").collection("movements").onSnapshot(function(snap){
+      cs.Sarmiento.movements=snap.docs.map(function(d){return d.data();});
+      updateVencBadge();
+      if(activeCenter==="Sarmiento") renderCurrentTab();
+    },function(e){ console.warn("[movements Sarmiento]",e); });
+  }
 }
 let _pracConfig = null;          // {practicas:[...]}
 let _pracMes = {};               // {"2026-06": {"rmn__reso_simple": qty, ...}}
@@ -2587,21 +2608,33 @@ function _warnWriteBlocked(){
 let _persistQ = Promise.resolve();
 function _enqueue(fn){ _persistQ = _persistQ.then(fn).catch(e=>console.warn('[Persist]',e)); return _persistQ; }
 
+// Si el centro ya está migrado a subcolección, cs[c].movements sigue poblado
+// EN MEMORIA (lo alimenta el listener de la subcolección, para que renderMovimientos
+// y compañía sigan funcionando igual) — pero NUNCA hay que escribirlo de vuelta
+// en el documento padre, o se reintroduciría el array embebido en cada persist().
+function _centerPayload(c){
+  if(!c) return c;
+  if(c.movementsMigrated){
+    const copy={}; Object.keys(c).forEach(k=>{ if(k!=='movements') copy[k]=c[k]; });
+    return copy;
+  }
+  return c;
+}
 function persist(){
   if(!_dataReady){ console.warn('[Safety] persist() bloqueado — datos aún cargando'); _warnWriteBlocked(); return Promise.resolve(); }
   if(!supplies.length){ console.warn('[Safety] persist() bloqueado — supplies vacío'); return Promise.resolve(); }
   return _enqueue(()=>{
     const batch = _db.batch();
     batch.set(_db.collection(DB_COL).doc("supplies"), {data: supplies, suppliers: suppliers});
-    batch.set(_db.collection(DB_COL).doc("center_GN"), cs.GN);
-    batch.set(_db.collection(DB_COL).doc("center_Sarmiento"), cs.Sarmiento);
+    batch.set(_db.collection(DB_COL).doc("center_GN"), _centerPayload(cs.GN));
+    batch.set(_db.collection(DB_COL).doc("center_Sarmiento"), _centerPayload(cs.Sarmiento));
     return batch.commit().catch(e=>toast("⚠️ Error guardando: "+e.message));
   });
 }
 function persistCenter(c){
   if(!_dataReady){ console.warn('[Safety] persistCenter() bloqueado — datos aún cargando'); _warnWriteBlocked(); return Promise.resolve(); }
   const key = c==="GN"?"center_GN":"center_Sarmiento";
-  return _enqueue(()=>_db.collection(DB_COL).doc(key).set(cs[c]).catch(e=>toast("⚠️ Error guardando")));
+  return _enqueue(()=>_db.collection(DB_COL).doc(key).set(_centerPayload(cs[c])).catch(e=>toast("⚠️ Error guardando")));
 }
 function persistSupplies(){
   if(!_dataReady){ console.warn('[Safety] persistSupplies() bloqueado — datos aún cargando'); _warnWriteBlocked(); return Promise.resolve(); }
@@ -2857,10 +2890,10 @@ function deleteMov(id){
         data.lotes[m.supplyId]=arr.filter(function(x){return x.qty>0;});
         if(!data.lotes[m.supplyId].length) delete data.lotes[m.supplyId];
       }
-      data.movements=(data.movements||[]).filter(function(x){return x.id!==id;});
+      _movDrop(data,id);
       return data;
     }).then(function(data){
-      cs[center].stock=data.stock; cs[center].movements=data.movements; cs[center].lotes=data.lotes;
+      cs[center].stock=data.stock; if(data.movements) cs[center].movements=data.movements; cs[center].lotes=data.lotes;
       renderMovimientos(); updateVencBadge();
       toast("Movimiento eliminado");
     }).catch(function(e){ console.warn(e); toast(_txnErrorMsg(e,"⚠️ Error al eliminar. Intentá de nuevo.")); });
@@ -4179,21 +4212,46 @@ function _txnErrorMsg(e,fallback){
     return "⚠️ Sin conexión a internet — no se pudo guardar. Reintentá cuando vuelva la señal.";
   return fallback;
 }
+// Los movimientos viven en el doc del centro (legacy) HASTA que se corre la
+// migración a subcolección (ver migrateMovementsToSubcollection). Mientras un
+// centro no esté migrado (`movementsMigrated` ausente), _txnCenter expone
+// `data.movements` igual que siempre y fn() puede pushear/filtrar ahí directo.
+// Una vez migrado, `data.movements` NO existe — fn() debe usar
+// `data._movSet`/`data._movDelete` para indicar qué escribir en la subcolección
+// (ver helper _movPush/_movDrop más abajo), y _txnCenter aplica esos writes
+// atómicamente en la MISMA transacción que el stock/lotes.
 function _txnCenter(center,fn){
   var key=center==="GN"?"center_GN":"center_Sarmiento";
   var ref=_db.collection(DB_COL).doc(key);
+  var movCol=ref.collection("movements");
   return _db.runTransaction(function(txn){
     return txn.get(ref).then(function(snap){
-      var data=snap.exists?snap.data():{stock:{},movements:[],lotes:{}};
-      if(!data.stock)data.stock={};
-      if(!data.movements)data.movements=[];
-      if(!data.lotes)data.lotes={};
-      data.lotes=JSON.parse(JSON.stringify(data.lotes));
-      var updated=fn(data);
-      txn.set(ref,updated);
-      return updated;
+      var raw=snap.exists?snap.data():{stock:{},lotes:{},movements:[]};
+      var migrated=raw.movementsMigrated===true;
+      var data={stock:raw.stock||{},lotes:JSON.parse(JSON.stringify(raw.lotes||{}))};
+      if(!migrated) data.movements=raw.movements||[];
+      var updated=fn(data)||data;
+      var movSet=updated._movSet||[], movDelete=updated._movDelete||[];
+      delete updated._movSet; delete updated._movDelete;
+      var toWrite=migrated
+        ? {stock:updated.stock,lotes:updated.lotes,movementsMigrated:true}
+        : {stock:updated.stock,lotes:updated.lotes,movements:updated.movements||[]};
+      txn.set(ref,toWrite);
+      movSet.forEach(function(m){ txn.set(movCol.doc(m.id),m); });
+      movDelete.forEach(function(id){ txn.delete(movCol.doc(id)); });
+      return toWrite;
     });
   });
+}
+// Helpers para que cada caller registre/borre un movimiento sin preocuparse
+// de si el centro está migrado o no (data.movements existe solo en legacy).
+function _movPush(data,mov){
+  if(data.movements){ if(!data.movements.some(function(m){return m.id===mov.id;})) data.movements.push(mov); }
+  else { data._movSet=(data._movSet||[]).concat([mov]); }
+}
+function _movDrop(data,movId){
+  if(data.movements){ data.movements=data.movements.filter(function(m){return m.id!==movId;}); }
+  else { data._movDelete=(data._movDelete||[]).concat([movId]); }
 }
 function _lotesEntrada(lotes,supplyId,qty,fechaVenc,presentacion,date){
   if(!lotes[supplyId])lotes[supplyId]=[];
@@ -4287,11 +4345,11 @@ function saveMovimiento(){
     const stockAntes=data.stock[supplyId]||0;
     if(_movType==="salida"&&qty>stockAntes) toast("⚠️ Stock insuficiente: hay "+stockAntes+" pero se registran "+qty);
     data.stock[supplyId]=(data.stock[supplyId]||0)+(_movType==="entrada"?qty:-qty);
-    if(!data.movements.some(function(m){return m.id===movId;})) data.movements.push(mov);
+    _movPush(data,mov);
     return data;
   }).then(function(data){
     cs[center].stock=data.stock;
-    cs[center].movements=data.movements;
+    if(data.movements) cs[center].movements=data.movements; // legacy: migrado lo maneja el listener de la subcolección
     cs[center].lotes=data.lotes;
     _auditLog("mov_"+_movType,(_movType==="entrada"?"Entrada":"Salida")+": "+qty+" "+(s.unit||"ud")+" de \""+s.name+"\" en "+center+toastDetail+(note?" · "+note:""),null,{stock:cs[center].stock[supplyId]});
     toast("✓ "+(_movType==="entrada"?"Entrada":"Salida")+" registrada: "+qty+" "+s.unit+" de "+s.name+toastDetail);
@@ -4365,7 +4423,20 @@ function saveSupply(){
     supplies.push({id,name,code:code||"USR-"+supplies.length,category,unit,price,minStock,active:true,presentacion,unidadesPorCaja,pedidoFormatos});
     CENTERS.forEach(c=>{if(!cs[c].stock[id])cs[c].stock[id]=0;});
     cs[activeCenter].stock[id]=initStk;
-    if(initStk>0)cs[activeCenter].movements.push({id:"mov_init_"+id,supplyId:id,supplyName:name,type:"entrada",qty:initStk,date:new Date().toISOString().slice(0,10),time:new Date().toTimeString().slice(0,5),note:"Stock inicial"});
+    if(initStk>0){
+      const initMovId="mov_init_"+id;
+      const initMov={id:initMovId,supplyId:id,supplyName:name,type:"entrada",qty:initStk,date:new Date().toISOString().slice(0,10),time:new Date().toTimeString().slice(0,5),note:"Stock inicial"};
+      if(cs[activeCenter].movementsMigrated){
+        // Centro migrado: el movimiento va directo a la subcolección, NUNCA al
+        // array embebido — si no, persist() más abajo reescribiría el doc del
+        // centro con cs[activeCenter] entero y reintroduciría `movements`.
+        const key=activeCenter==="GN"?"center_GN":"center_Sarmiento";
+        _db.collection(DB_COL).doc(key).collection("movements").doc(initMovId).set(initMov)
+          .catch(e=>console.warn('[Stock inicial]',e));
+      } else {
+        cs[activeCenter].movements.push(initMov);
+      }
+    }
     _auditLog('supply_add',`Insumo creado: "${name}" (${code||'sin código'}) — precio: $${price}`);
     toast("✓ Insumo agregado");
   }
@@ -4533,7 +4604,14 @@ function startListeners(){
   });
 
   _unsubGN = _db.collection(DB_COL).doc("center_GN").onSnapshot(snap=>{
-    if(snap.exists){ cs.GN=snap.data(); if(!cs.GN.stock)cs.GN.stock={}; if(!cs.GN.movements)cs.GN.movements=[]; if(!cs.GN.lotes)cs.GN.lotes={}; }
+    if(snap.exists){
+      const prevMovements=cs.GN&&cs.GN.movements; // preservar entre snapshots del doc (no viene en migrados)
+      cs.GN=snap.data();
+      if(!cs.GN.stock)cs.GN.stock={};
+      if(!cs.GN.lotes)cs.GN.lotes={};
+      if(cs.GN.movementsMigrated){ cs.GN.movements=prevMovements||[]; _ensureMovementsListener('GN'); }
+      else if(!cs.GN.movements){ cs.GN.movements=[]; }
+    }
     _markLoaded('GN', snap);
     updateCenterStats(); updateVencBadge();
     if(!activeCenter)setTimeout(updateHomeStats,0);
@@ -4558,7 +4636,14 @@ function startListeners(){
     },e=>console.warn("solicitudes error:",e));
 
   _unsubSarm = _db.collection(DB_COL).doc("center_Sarmiento").onSnapshot(snap=>{
-    if(snap.exists){ cs.Sarmiento=snap.data(); if(!cs.Sarmiento.stock)cs.Sarmiento.stock={}; if(!cs.Sarmiento.movements)cs.Sarmiento.movements=[]; if(!cs.Sarmiento.lotes)cs.Sarmiento.lotes={}; }
+    if(snap.exists){
+      const prevMovements=cs.Sarmiento&&cs.Sarmiento.movements;
+      cs.Sarmiento=snap.data();
+      if(!cs.Sarmiento.stock)cs.Sarmiento.stock={};
+      if(!cs.Sarmiento.lotes)cs.Sarmiento.lotes={};
+      if(cs.Sarmiento.movementsMigrated){ cs.Sarmiento.movements=prevMovements||[]; _ensureMovementsListener('Sarmiento'); }
+      else if(!cs.Sarmiento.movements){ cs.Sarmiento.movements=[]; }
+    }
     _markLoaded('Sarmiento', snap);
     updateCenterStats(); updateVencBadge();
     if(!activeCenter)setTimeout(updateHomeStats,0);
@@ -5908,12 +5993,12 @@ function markSolicitudEntregado(id, qtyMap, recibidoPor, firma){
         if(remaining.length) data.lotes[supplyId]=remaining;
         else delete data.lotes[supplyId];
       }
-      if(!data.movements.some(function(m){return m.id===mov.id;})) data.movements.push(mov);
+      _movPush(data,mov);
     });
     return data;
   }).then(function(data){
     cs[center].stock=data.stock;
-    cs[center].movements=data.movements;
+    if(data.movements) cs[center].movements=data.movements;
     cs[center].lotes=data.lotes;
     const auditItems=(s.items||[]).filter(function(i){return i.id;}).map(function(i){return {id:i.id,name:i.name,qty:qtyMap?(qtyMap[i.id]??i.cantidad):i.cantidad};});
     _auditLog('solicitud_entregado',"Pedido entregado: "+(s.solicitante||'?')+" · "+(s.sector||'')+" · "+(s.fecha||''),null,{id,items:auditItems,center});
@@ -6942,14 +7027,23 @@ async function initBackupSystem(){
   } catch(e){ console.warn('[Backup]',e); }
 }
 
+// El respaldo diario es para poder volver el catálogo/stock/lotes a un día
+// anterior — NO es el lugar para duplicar el historial de movimientos, que ya
+// vive de forma segura y permanente en el propio centro (o su subcolección,
+// si está migrado). Embeberlo acá era lo que hacía crecer los respaldos sin
+// límite y arriesgaba tocar el tope de 1MB de Firestore en CADA snapshot diario.
+function _centerForBackup(c){
+  const copy={}; Object.keys(c||{}).forEach(k=>{ if(k!=='movements') copy[k]=c[k]; });
+  return copy;
+}
 async function _takeSnapshot(dateStr){
   if(!_db||!supplies.length) return;
   if(!_dataReady){ console.warn('[Backup] Abortado — datos aún cargando'); return; }
   const data={
     supplies,
     suppliers,
-    center_GN: cs.GN||{},
-    center_Sarmiento: cs.Sarmiento||{},
+    center_GN: _centerForBackup(cs.GN),
+    center_Sarmiento: _centerForBackup(cs.Sarmiento),
     practicas_config: _pracConfig||null,
     practicas_mes: _pracMes||{},
     createdAt: new Date().toISOString(),
@@ -6988,11 +7082,24 @@ async function manualSnapshot(){
 }
 
 // ── Restaurar desde snapshot ─────────────────────────────────────────────────
+// Los respaldos ya no incluyen `movements` (ver _centerForBackup) — el
+// historial de movimientos NUNCA se toca al restaurar, sin importar qué día
+// elijas: si el centro no está migrado a subcolección, se preserva tal cual
+// está en vivo; si ya migró, la migración es irreversible (nunca se revierte
+// el flag, y los movimientos siguen intactos en su propia subcolección,
+// completamente ajena a este restore que solo pisa el doc padre).
+function _prepRestoreCenter(backupCenter, liveCenter){
+  const out=Object.assign({}, backupCenter||{});
+  delete out.movements;
+  if(liveCenter&&liveCenter.movementsMigrated){ out.movementsMigrated=true; }
+  else if(liveCenter&&liveCenter.movements){ out.movements=liveCenter.movements; }
+  return out;
+}
 function restoreSnapshot(dateStr){
   if(!isAdmin){toast("⚠️ Sin permisos");return;}
   openConfirm(
     `⚠️ Restaurar respaldo del ${fmtDate(dateStr)}`,
-    'Esto reemplazará el catálogo de insumos y el stock de ambas sucursales con los datos de ese día. Los movimientos posteriores se perderán. ¿Confirmar?',
+    'Esto reemplazará el catálogo de insumos y el stock/lotes de ambas sucursales con los datos de ese día. El historial de movimientos NO se toca. ¿Confirmar?',
     async ()=>{
       try {
         toast('Restaurando…');
@@ -7001,8 +7108,8 @@ function restoreSnapshot(dateStr){
         const d=snap.data();
         const batch=_db.batch();
         batch.set(_db.collection(DB_COL).doc('supplies'),{data:d.supplies,suppliers:d.suppliers||suppliers});
-        batch.set(_db.collection(DB_COL).doc('center_GN'),d.center_GN);
-        batch.set(_db.collection(DB_COL).doc('center_Sarmiento'),d.center_Sarmiento);
+        batch.set(_db.collection(DB_COL).doc('center_GN'),_prepRestoreCenter(d.center_GN,cs.GN));
+        batch.set(_db.collection(DB_COL).doc('center_Sarmiento'),_prepRestoreCenter(d.center_Sarmiento,cs.Sarmiento));
         if(d.practicas_config) batch.set(_db.collection(DB_COL).doc('practicas_config'),d.practicas_config);
         if(d.practicas_mes) batch.set(_db.collection(DB_COL).doc('practicas_mes'),d.practicas_mes);
         await batch.commit();
@@ -7068,6 +7175,18 @@ async function renderBackupAdmin(){
     </div>`;}).join('')
     :`<div style="padding:16px;text-align:center;color:var(--text3);font-size:.82rem">Sin registros aún</div>`;
 
+  const needsMigration = !(cs.GN&&cs.GN.movementsMigrated) || !(cs.Sarmiento&&cs.Sarmiento.movementsMigrated);
+  const migrationCard = needsMigration ? `
+    <div class="backup-card" style="margin-top:12px;background:rgba(255,149,0,.10)">
+      <div class="backup-head" style="justify-content:space-between">
+        <div>
+          <div class="title">🗄️ Migrar historial de movimientos</div>
+          <div class="sub">Recomendado: mueve los movimientos a un formato sin límite de tamaño (evita tocar el tope de Firestore a futuro). Hace un respaldo antes; no borra nada.</div>
+        </div>
+        <button id="migrateMovBtn" onclick="migrateMovementsToSubcollection()" style="padding:6px 14px;background:rgba(255,149,0,.85);border:none;border-radius:8px;color:#fff;font-size:.78rem;font-weight:700;cursor:pointer;white-space:nowrap;touch-action:manipulation">🗄️ Migrar ahora</button>
+      </div>
+    </div>` : '';
+
   container.innerHTML=`
     <div class="backup-card">
       <div class="backup-head" style="justify-content:space-between">
@@ -7079,6 +7198,7 @@ async function renderBackupAdmin(){
       </div>
       ${snapRows}
     </div>
+    ${migrationCard}
     <div class="backup-card" style="margin-top:12px">
       <div class="backup-head">
         <div>
@@ -7088,6 +7208,95 @@ async function renderBackupAdmin(){
       </div>
       ${auditRows}
     </div>`;
+}
+
+// ── Migración de movements[] embebido → subcolección (una sola vez) ─────────
+// Por qué: el array de movimientos dentro de center_GN/center_Sarmiento crece
+// para siempre y puede chocar contra el límite de 1MB por documento de
+// Firestore, bloqueando TODAS las escrituras de ese centro sin aviso previo.
+// Cómo: se hace un respaldo completo primero, se copian los movimientos a
+// center_X/movements/{movId} en lotes, se VERIFICA que la copia esté completa
+// (incluso releyendo por si se agregó algo durante la migración) y recién
+// entonces se borra el array embebido y se marca movementsMigrated:true.
+// Si algo falla a mitad de camino, es seguro reintentar: la copia usa el id
+// propio del movimiento como id de documento (sobreescribir el mismo dato no
+// hace daño), y el array original solo se borra al final, una vez confirmado
+// que todo se copió bien.
+async function migrateMovementsToSubcollection(){
+  if(!isAdmin){toast("⚠️ Sin permisos");return;}
+  if(!_dataReady){toast("⚠️ Esperá a que carguen los datos");return;}
+  openConfirm(
+    '🗄️ Migrar historial de movimientos',
+    'Se hace un respaldo completo antes de empezar y no se borra ningún dato. No cierres la app ni registres movimientos mientras corre (puede tardar uno o dos minutos). ¿Confirmar?',
+    async ()=>{
+      const btn=document.getElementById('migrateMovBtn');
+      if(btn){ btn.disabled=true; btn.textContent='Migrando…'; }
+      try{
+        toast('Generando respaldo previo a la migración…');
+        const preId='pre-migracion-movimientos-'+Date.now();
+        await _db.collection(BACKUP_COL).doc(preId).set({
+          supplies, suppliers,
+          center_GN: cs.GN||{}, center_Sarmiento: cs.Sarmiento||{},
+          practicas_config: _pracConfig||null, practicas_mes: _pracMes||{},
+          createdAt: new Date().toISOString(), createdBy: currentUser?.email||'?',
+          appVersion: APP_VERSION,
+          counts:{ supplies: supplies.length, movsGN:(cs.GN?.movements||[]).length, movsSarm:(cs.Sarmiento?.movements||[]).length },
+          note:'Respaldo automático previo a migrar movements a subcolección'
+        });
+
+        for(const center of CENTERS){
+          const key=center==="GN"?"center_GN":"center_Sarmiento";
+          const ref=_db.collection(DB_COL).doc(key);
+          const snap=await ref.get();
+          const raw=snap.data()||{};
+          if(raw.movementsMigrated) continue; // este centro ya está migrado
+
+          const movs=raw.movements||[];
+          const total=movs.length;
+          const CHUNK=450; // margen bajo el límite de 500 escrituras por batch
+          for(let i=0;i<movs.length;i+=CHUNK){
+            const chunk=movs.slice(i,i+CHUNK);
+            const b=_db.batch();
+            chunk.forEach(m=>b.set(ref.collection('movements').doc(m.id),m));
+            await b.commit();
+            toast(`Migrando ${center}: ${Math.min(i+CHUNK,total)}/${total}…`);
+          }
+
+          // Releer antes de borrar: por si se registró un movimiento nuevo
+          // mientras copiábamos, para no perderlo.
+          const finalSnap=await ref.get();
+          const finalMovs=(finalSnap.data()||{}).movements||[];
+          const copiedIds=new Set(movs.map(m=>m.id));
+          const extra=finalMovs.filter(m=>!copiedIds.has(m.id));
+          if(extra.length){
+            const b2=_db.batch();
+            extra.forEach(m=>b2.set(ref.collection('movements').doc(m.id),m));
+            await b2.commit();
+          }
+
+          // Verificación final antes del punto de no-retorno
+          const verifySnap=await ref.collection('movements').get();
+          const expected=total+extra.length;
+          if(verifySnap.size<expected){
+            throw new Error(`Verificación falló en ${center}: se copiaron ${verifySnap.size} de ${expected} — no se tocó el historial original, reintentá.`);
+          }
+
+          // Punto de no retorno: recién ahora se quita el array embebido
+          // set(...,{merge:true}) en vez de update(): funciona igual para borrar
+          // el campo, pero además no revienta si el doc no existiera (no debería
+          // pasar en producción, pero así queda robusto sin costo extra).
+          await ref.set({movements:firebase.firestore.FieldValue.delete(), movementsMigrated:true},{merge:true});
+          _auditLog('movements_migration',`Migración de movimientos a subcolección: ${center} (${expected} movimientos)`,null,{center,total:expected});
+        }
+        toast('✓ Migración completa — el historial de movimientos ya no tiene límite de tamaño');
+        renderBackupAdmin();
+      }catch(e){
+        console.error('[Migración movimientos]',e);
+        toast('⚠️ Error en la migración: '+(e.message||e)+' — no se perdió nada, podés reintentar.');
+        if(btn){ btn.disabled=false; btn.textContent='🗄️ Migrar ahora'; }
+      }
+    }
+  );
 }
 
 // ── Llamar initBackupSystem cuando los datos estén listos ───────────────────
