@@ -1781,6 +1781,24 @@
   </div>
 </div>
 
+<!-- ─── Modal: Editar insumos de un estudio (Control Contable) ────────── -->
+<div class="prac-link-overlay" id="pracEditStudyOverlay" style="display:none" onclick="closePracEditStudy(event)">
+  <div class="prac-link-sheet" onclick="event.stopPropagation()" style="max-height:88vh">
+    <div class="prac-link-handle"></div>
+    <div class="prac-link-head">
+      <div class="prac-link-title" id="pracEditStudyTitle">Editar estudio</div>
+      <div class="prac-link-sub">Agregá, quitá o ajustá la cantidad de insumos que usa este estudio</div>
+    </div>
+    <div id="pracEditRows" style="padding:6px 18px;overflow-y:auto;flex:1"></div>
+    <div style="padding:12px 18px;border-top:1px solid rgba(0,0,0,.08);flex-shrink:0">
+      <div style="font-size:.72rem;font-weight:700;color:#636366;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Agregar insumo del catálogo</div>
+      <input type="search" id="pracEditAddSearch" class="prac-link-search" style="margin:0 0 8px" placeholder="Buscar insumo por nombre o código…"
+        oninput="_pracEditSearch(this.value)" autocomplete="off" autocorrect="off" spellcheck="false">
+      <div id="pracEditAddList" style="max-height:180px;overflow-y:auto"></div>
+    </div>
+  </div>
+</div>
+
 <!-- ─── Modal Usuarios (Admin) ──────────────────────── -->
 <div class="modal-overlay" id="usersModal" onclick="closeUsersModal(event)">
   <div class="modal-sheet" onclick="event.stopPropagation()" style="max-width:520px">
@@ -2224,7 +2242,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "4.45";
+const APP_VERSION = "4.46";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -4654,10 +4672,15 @@ function startListeners(){
   _unsubPrac = _db.collection(DB_COL).doc("practicas_config").onSnapshot(snap=>{
     if(snap.exists){
       _pracConfig = snap.data();
+      // Migración transparente y única: asigna ids estables a insumos legacy
+      // (config cargada por posición) para que agregar/quitar insumos no
+      // corrompa las vinculaciones manuales existentes.
+      if(_pracEnsureStableIds()) _savePracConfig();
     } else if(!_pracConfig && !snap.metadata.fromCache) {
       // Seed defaults only when el SERVIDOR confirma que el doc no existe —
       // un miss del cache offline nunca debe disparar la siembra de defaults
       _pracConfig = PRAC_DEFAULT_CONFIG;
+      _pracEnsureStableIds();
       _db.collection(DB_COL).doc("practicas_config").set(_pracConfig)
         .catch(e=>console.warn('[PracConfig seed]',e));
     }
@@ -6554,24 +6577,59 @@ function _pracNorm(s){
     .replace(/\s+/g,' ').trim();
 }
 
-// Match supply: check manual override first, then name-based matching
-function _pracMatchSupply(nombre, overrideKey){
+// Match supply: primero supplyId propio del insumo (asignado al agregarlo
+// desde el catálogo — inequívoco), luego vinculación manual (🔗), luego
+// coincidencia por nombre normalizado (comportamiento legacy).
+function _pracMatchSupply(ins, overrideKey){
+  if(ins.supplyId){
+    const byId=supplies.find(x=>x.id===ins.supplyId);
+    if(byId) return byId;
+  }
   const overrides=_pracConfig&&_pracConfig.overrides||{};
   if(overrideKey && overrides[overrideKey]){
     const s=supplies.find(x=>x.id===overrides[overrideKey]);
     if(s) return s;
   }
-  const n=_pracNorm(nombre);
+  const n=_pracNorm(ins.nombre);
   const s=supplies.find(x=>_pracNorm(x.name)===n);
   return s||null;
 }
 
-// Calculate unit cost; pracId+spId used to build override key per insumo
+// Asigna un id ESTABLE a cada insumo que todavía no lo tenga (config legacy
+// cargada por posición) y remapea sus overrides de la key vieja basada en
+// índice (pracId__spId__idx — se corrompía al agregar/quitar insumos) a la
+// key nueva basada en id (pracId__spId__insId — estable ante cualquier edición).
+// Corre una sola vez por config; devuelve true si hubo que guardar cambios.
+function _pracEnsureStableIds(){
+  if(!_pracConfig||!_pracConfig.practicas) return false;
+  let changed=false;
+  const oldOverrides=_pracConfig.overrides||{};
+  const newOverrides={};
+  _pracConfig.practicas.forEach(function(p){
+    (p.subPracticas||[]).forEach(function(sp){
+      (sp.insumos||[]).forEach(function(ins,idx){
+        if(!ins.id){
+          ins.id='ins_'+p.id+'_'+sp.id+'_'+idx+'_'+Math.random().toString(36).slice(2,7);
+          changed=true;
+          const oldKey=p.id+'__'+sp.id+'__'+idx;
+          if(oldOverrides[oldKey]!=null) newOverrides[p.id+'__'+sp.id+'__'+ins.id]=oldOverrides[oldKey];
+        } else {
+          const newKey=p.id+'__'+sp.id+'__'+ins.id;
+          if(oldOverrides[newKey]!=null) newOverrides[newKey]=oldOverrides[newKey];
+        }
+      });
+    });
+  });
+  if(changed) _pracConfig.overrides=newOverrides;
+  return changed;
+}
+
+// Calculate unit cost; pracId+spId+ins.id se usan para la key de override
 function _pracCalcSubCost(sp, pracId){
   let total=0;
-  const items=sp.insumos.map((ins,idx)=>{
-    const oKey=pracId?`${pracId}__${sp.id}__${idx}`:null;
-    const sup=_pracMatchSupply(ins.nombre, oKey);
+  const items=sp.insumos.map((ins)=>{
+    const oKey=pracId?`${pracId}__${sp.id}__${ins.id}`:null;
+    const sup=_pracMatchSupply(ins, oKey);
     const precio=sup?sup.price:ins.precioBase;
     const costo=precio*ins.consumo;
     total+=costo;
@@ -6640,7 +6698,11 @@ function renderPracCostos(el){
           <div class="name">${escHtml(sp.nombre)}</div>
           ${unlinked?`<div style="font-size:.7rem;opacity:.7;margin-top:2px">⚠ ${unlinked} sin precio — toca ⚠ para vincular</div>`:''}
         </div>
-        <div class="cost">${_pracFmt(total)}</div>
+        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+          <div class="cost">${_pracFmt(total)}</div>
+          <button onclick="event.stopPropagation();openPracEditStudy('${escAttr(prac.id)}','${escAttr(sp.id)}')" title="Editar insumos de este estudio"
+            style="width:28px;height:28px;border-radius:8px;border:none;background:rgba(255,255,255,.22);color:#fff;cursor:pointer;flex-shrink:0;font-size:.8rem;display:inline-flex;align-items:center;justify-content:center">✏️</button>
+        </div>
       </div>
       <div class="prac-card-body">${rowsHtml}</div>
     </div>`;
@@ -6718,6 +6780,107 @@ function clearPracLink(){
 function _savePracConfig(){
   _db.collection(DB_COL).doc("practicas_config").set(_pracConfig)
     .catch(()=>toast('⚠️ Error guardando configuración'));
+}
+
+// ─── Editar insumos de un estudio (agregar/quitar/ajustar cantidad) ───────────
+// _pracConfig vive en su propio doc (practicas_config), sin relación alguna
+// con center_GN/center_Sarmiento ni con la migración de movimientos.
+let _pracEditSp=null; // {pracId, spId}
+
+function _pracGetEditSp(){
+  if(!_pracEditSp||!_pracConfig) return null;
+  const prac=(_pracConfig.practicas||[]).find(p=>p.id===_pracEditSp.pracId);
+  return prac&&prac.subPracticas.find(s=>s.id===_pracEditSp.spId);
+}
+
+function openPracEditStudy(pracId,spId){
+  const prac=(_pracConfig.practicas||[]).find(p=>p.id===pracId);
+  const sp=prac&&prac.subPracticas.find(s=>s.id===spId);
+  if(!sp) return;
+  _pracEditSp={pracId,spId};
+  document.getElementById('pracEditStudyTitle').textContent=sp.nombre;
+  document.getElementById('pracEditAddSearch').value='';
+  _pracEditRenderRows();
+  _pracEditSearch('');
+  document.getElementById('pracEditStudyOverlay').style.display='flex';
+}
+function closePracEditStudy(e){
+  if(e&&e.target!==document.getElementById('pracEditStudyOverlay')) return;
+  document.getElementById('pracEditStudyOverlay').style.display='none';
+  _pracEditSp=null;
+  renderContable(); // refresca el total de la card por si cambió algo
+}
+function _pracEditRenderRows(){
+  const sp=_pracGetEditSp(); const list=document.getElementById('pracEditRows'); if(!sp||!list) return;
+  if(!sp.insumos.length){
+    list.innerHTML='<div style="text-align:center;color:#8e8e93;font-size:.82rem;padding:24px 0">Sin insumos todavía — agregá el primero abajo.</div>';
+    return;
+  }
+  list.innerHTML=sp.insumos.map(function(ins){
+    const oKey=_pracEditSp.pracId+'__'+_pracEditSp.spId+'__'+ins.id;
+    const sup=_pracMatchSupply(ins,oKey);
+    const statusTxt=sup?(sup.price>0?'$'+fmt(sup.price)+'/ud · catálogo':'sin precio cargado en catálogo'):'⚠ no vinculado al catálogo';
+    return `<div style="display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid rgba(0,0,0,.06)">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:.85rem;font-weight:700;color:#1c1c1e;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(ins.nombre)}</div>
+        <div style="font-size:.7rem;color:${sup?'#636366':'#ff9500'}">${statusTxt}</div>
+      </div>
+      <input type="number" min="0" step="0.001" value="${ins.consumo}" inputmode="decimal"
+        style="width:78px;padding:6px 8px;border-radius:8px;border:1.5px solid #d1d5db;font-size:16px;text-align:right;flex-shrink:0"
+        onchange="_pracEditUpdateConsumo('${escAttr(ins.id)}',this.value)">
+      <button onclick="_pracEditRemoveInsumo('${escAttr(ins.id)}')" title="Quitar insumo"
+        style="width:30px;height:30px;border-radius:8px;border:none;background:rgba(255,59,48,.12);color:#ff3b30;cursor:pointer;flex-shrink:0;font-size:.85rem">✕</button>
+    </div>`;
+  }).join('');
+}
+function _pracEditUpdateConsumo(insId,val){
+  const sp=_pracGetEditSp(); if(!sp) return;
+  const ins=sp.insumos.find(function(i){return i.id===insId;}); if(!ins) return;
+  const num=parseFloat(val);
+  if(!isFinite(num)||num<0){ toast('⚠️ Ingresá una cantidad válida'); _pracEditRenderRows(); return; }
+  ins.consumo=num;
+  _savePracConfig();
+  toast('✓ Cantidad actualizada');
+}
+function _pracEditRemoveInsumo(insId){
+  const sp=_pracGetEditSp(); if(!sp) return;
+  const ins=sp.insumos.find(function(i){return i.id===insId;}); if(!ins) return;
+  openConfirm('Quitar insumo','¿Quitar "'+ins.nombre+'" de este estudio? El estudio deja de contar este insumo en su costo.',function(){
+    sp.insumos=sp.insumos.filter(function(i){return i.id!==insId;});
+    _savePracConfig();
+    _pracEditRenderRows();
+    toast('✓ Insumo quitado del estudio');
+  });
+}
+function _pracEditSearch(q){
+  const list=document.getElementById('pracEditAddList'); if(!list) return;
+  const sp=_pracGetEditSp(); if(!sp) return;
+  const already=new Set(sp.insumos.map(function(i){return i.supplyId;}).filter(Boolean));
+  const norm=_pracNorm(q);
+  const matched=supplies.filter(function(s){
+    return s.active!==false && !already.has(s.id) && (!norm||_pracNorm(s.name).includes(norm)||_pracNorm(s.code||'').includes(norm));
+  }).slice(0,30);
+  if(!matched.length){
+    list.innerHTML='<div style="padding:14px;text-align:center;color:#8e8e93;font-size:.8rem">Sin resultados</div>';
+    return;
+  }
+  list.innerHTML=matched.map(function(s){
+    return `<div class="prac-link-item" onclick="_pracEditAddInsumo('${escAttr(s.id)}')">
+      <div class="li-name">${escHtml(s.name)}</div>
+      <div class="li-sub">${escHtml(s.code||'')}${s.price>0?' · '+_pracFmt(s.price):''}${s.category?' · '+escHtml(s.category):''}</div>
+    </div>`;
+  }).join('');
+}
+function _pracEditAddInsumo(supplyId){
+  const sp=_pracGetEditSp(); if(!sp) return;
+  const s=supplies.find(function(x){return x.id===supplyId;}); if(!s) return;
+  const id='ins_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
+  sp.insumos.push({id:id,nombre:s.name,consumo:1,precioBase:0,supplyId:s.id});
+  _savePracConfig();
+  document.getElementById('pracEditAddSearch').value='';
+  _pracEditRenderRows();
+  _pracEditSearch('');
+  toast('✓ "'+s.name+'" agregado — ajustá la cantidad usada');
 }
 
 // ─── Vista: Cierre Mensual ────────────────────────────────────────────────────
