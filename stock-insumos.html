@@ -410,6 +410,7 @@
     .mov-details { display: flex; align-items: center; gap: 8px; margin-top: 3px; flex-wrap: wrap; }
     .mov-date { font-size: 11px; color: var(--text2); }
     .mov-note { font-size: 11px; color: var(--text2); font-style: italic; }
+    .mov-tag { font-size: 11px; color: var(--text2); background: rgba(0,0,0,.05); padding: 2px 7px; border-radius: 10px; white-space: nowrap; }
     .mov-qty-badge { font-size: 15px; font-weight: 750; padding: 4px 12px; border-radius: 20px; flex-shrink: 0; position: relative; z-index: 1; }
     .mov-qty-badge.entrada { background: rgba(52,199,89,.14); color: #1a8f3c; }
     .mov-qty-badge.salida  { background: rgba(255,59,48,.12); color: #c0271f; }
@@ -2242,7 +2243,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "4.46";
+const APP_VERSION = "4.47";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -2868,6 +2869,10 @@ function renderMovimientos(){
     const sign=m.type==="entrada"?"+":"−";
     const icon=m.type==="entrada"?"📥":"📤";
     const gastoTag=m.type==="salida"&&s?.price?` · $${fmt(m.qty*s.price)}`:"";
+    const loteTag=(m.lotesConsumidos&&m.lotesConsumidos.length)
+      ?`<span class="mov-tag" title="${escAttr(m.lotesConsumidos.map(function(c){return 'Vence '+fmtDate(c.fechaVenc)+': '+c.qty;}).join(' · '))}">📦 ${m.lotesConsumidos.length>1?m.lotesConsumidos.length+' lotes':'Vence '+fmtDate(m.lotesConsumidos[0].fechaVenc)}</span>`
+      :"";
+    const userTag=m.user?`<span class="mov-tag" title="${escAttr(m.user)}">👤 ${escHtml(m.user.split('@')[0])}</span>`:"";
     return `<div class="mov-card gc">
       <div class="mov-type-icon ${m.type}">${icon}</div>
       <div class="mov-info">
@@ -2877,6 +2882,8 @@ function renderMovimientos(){
           ${m.note?`<span class="mov-note">${escHtml(m.note)}</span>`:""}
           ${gastoTag?`<span class="mov-note" style="color:#1a8f3c">${gastoTag}</span>`:""}
           ${m.proveedorName?`<span class="mov-tag">🚚 ${escHtml(m.proveedorName)}</span>`:""}
+          ${loteTag}
+          ${userTag}
         </div>
       </div>
       <span class="mov-qty-badge ${m.type}">${sign}${m.qty} ${escHtml(unit)}</span>
@@ -2900,13 +2907,17 @@ function deleteMov(id){
       // Revertir stock
       data.stock[m.supplyId]=(data.stock[m.supplyId]||0)+(m.type==="entrada"?-m.qty:m.qty);
       if(data.stock[m.supplyId]<0) data.stock[m.supplyId]=0;
-      // Revertir lote SOLO en entradas con vencimiento (la salida FEFO no guarda el lote consumido)
+      // Revertir lote: en entradas con vencimiento, o en salidas que tengan
+      // registrado de qué lote(s) consumieron (mov.lotesConsumidos — movimientos
+      // viejos sin este dato no revierten lote, igual que antes).
       if(m.type==="entrada" && m.fechaVenc && data.lotes[m.supplyId]){
         var arr=data.lotes[m.supplyId];
         var l=arr.find(function(x){return x.fechaVenc===m.fechaVenc;});
         if(l){ l.qty-=m.qty; }
         data.lotes[m.supplyId]=arr.filter(function(x){return x.qty>0;});
         if(!data.lotes[m.supplyId].length) delete data.lotes[m.supplyId];
+      } else if(m.type==="salida" && m.lotesConsumidos && m.lotesConsumidos.length){
+        _revertLotesSalida(data.lotes,m.supplyId,m.lotesConsumidos);
       }
       _movDrop(data,id);
       return data;
@@ -4290,13 +4301,23 @@ function _lotesEntrada(lotes,supplyId,qty,fechaVenc,presentacion,date){
   lotes[supplyId].sort(function(a,b){return a.fechaVenc.localeCompare(b.fechaVenc);});
   return " · Vence "+fmtDate(fechaVenc)+(presentacion?" · "+presentacion.count+" "+presentacion.tipo.toLowerCase()+(presentacion.count!==1?"s":""):"");
 }
+// Descuenta stock de lote(s) en una salida y devuelve, además del texto para
+// mostrar, la trazabilidad exacta: de qué lote(s) salió cada unidad
+// ({loteId,fechaVenc,qty}) — necesaria para poder revertir con precisión
+// (deleteMov) y para responder "¿a qué lote pertenece esta salida?" ante un
+// eventual recall sanitario.
 function _lotesSalida(lotes,supplyId,qty,loteId){
   var arr=(lotes[supplyId]||[]).filter(function(l){return l.qty>0;});
-  var consumed=[];
+  var consumed=[]; var consumedLotes=[];
   if(arr.length){
     if(loteId&&loteId!=="fefo"){
       var lote=arr.find(function(l){return l.id===loteId;});
-      if(lote){lote.qty=Math.max(0,lote.qty-qty);consumed.push("Vence "+fmtDate(lote.fechaVenc));}
+      if(lote){
+        var take1=Math.min(qty,lote.qty);
+        lote.qty=Math.max(0,lote.qty-qty);
+        consumed.push("Vence "+fmtDate(lote.fechaVenc));
+        consumedLotes.push({loteId:lote.id,fechaVenc:lote.fechaVenc,qty:take1});
+      }
     }else{
       var toRemove=qty;
       for(var i=0;i<arr.length;i++){
@@ -4304,12 +4325,26 @@ function _lotesSalida(lotes,supplyId,qty,loteId){
         var take=Math.min(toRemove,arr[i].qty);
         arr[i].qty-=take;toRemove-=take;
         consumed.push(fmtDate(arr[i].fechaVenc)+":"+take);
+        consumedLotes.push({loteId:arr[i].id,fechaVenc:arr[i].fechaVenc,qty:take});
       }
     }
     lotes[supplyId]=(lotes[supplyId]||[]).filter(function(l){return l.qty>0;});
     if(!lotes[supplyId].length)delete lotes[supplyId];
   }
-  return consumed.length?" · Lote "+consumed[0]:"";
+  return {detail:consumed.length?" · Lote "+consumed[0]:"", consumedLotes:consumedLotes};
+}
+// Revierte una salida por lote (usado al eliminar un movimiento): suma la
+// cantidad de vuelta al lote correspondiente, y si el lote ya no existe
+// (se había vaciado del todo y fue podado) lo recrea con su fecha original.
+function _revertLotesSalida(lotes,supplyId,consumedLotes){
+  if(!lotes[supplyId])lotes[supplyId]=[];
+  var arr=lotes[supplyId];
+  consumedLotes.forEach(function(c){
+    var l=arr.find(function(x){return x.id===c.loteId;});
+    if(l){ l.qty+=c.qty; }
+    else{ arr.push({id:c.loteId,fechaVenc:c.fechaVenc,qty:c.qty}); }
+  });
+  arr.sort(function(a,b){return a.fechaVenc.localeCompare(b.fechaVenc);});
 }
 function saveMovimiento(){
   const supplyId=document.getElementById("movSupplySelect").value;
@@ -4345,20 +4380,23 @@ function saveMovimiento(){
 
   // ── Gestión de LOTES via transacción (evita race condition entre dispositivos) ─
   const movId="mov_"+Date.now();
-  const toastDetail=_movType==="entrada"&&fechaVenc?" · Vence "+fmtDate(fechaVenc):"";
   const center=activeCenter;
+  let salidaDetail=""; // se completa dentro de la transacción (solo aplica a salida)
   const mov={id:movId,supplyId,supplyName:s.name,type:_movType,qty,date,
     time:new Date().toTimeString().slice(0,5),note,
     ...(proveedorId&&{proveedorId,proveedorName:proveedor?.name||""}),
     ...(fechaVenc&&_movType==="entrada"&&{fechaVenc}),
-    ...(presentacion&&{presentacion})
+    ...(presentacion&&{presentacion}),
+    ...(currentUser?.email&&{user:currentUser.email})
   };
   document.getElementById("movModal").classList.remove("open");
   _txnCenter(center,function(data){
     if(_movType==="entrada"&&fechaVenc){
       _lotesEntrada(data.lotes,supplyId,qty,fechaVenc,presentacion,date);
     } else if(_movType==="salida"){
-      _lotesSalida(data.lotes,supplyId,qty,loteSelectId);
+      const r=_lotesSalida(data.lotes,supplyId,qty,loteSelectId);
+      salidaDetail=r.detail;
+      if(r.consumedLotes.length) mov.lotesConsumidos=r.consumedLotes;
     }
     const stockAntes=data.stock[supplyId]||0;
     if(_movType==="salida"&&qty>stockAntes) toast("⚠️ Stock insuficiente: hay "+stockAntes+" pero se registran "+qty);
@@ -4369,6 +4407,7 @@ function saveMovimiento(){
     cs[center].stock=data.stock;
     if(data.movements) cs[center].movements=data.movements; // legacy: migrado lo maneja el listener de la subcolección
     cs[center].lotes=data.lotes;
+    const toastDetail=_movType==="entrada"?(fechaVenc?" · Vence "+fmtDate(fechaVenc):""):salidaDetail;
     _auditLog("mov_"+_movType,(_movType==="entrada"?"Entrada":"Salida")+": "+qty+" "+(s.unit||"ud")+" de \""+s.name+"\" en "+center+toastDetail+(note?" · "+note:""),null,{stock:cs[center].stock[supplyId]});
     toast("✓ "+(_movType==="entrada"?"Entrada":"Salida")+" registrada: "+qty+" "+s.unit+" de "+s.name+toastDetail);
     if(navigator.vibrate)navigator.vibrate([8,50,8]);
@@ -5997,7 +6036,8 @@ function markSolicitudEntregado(id, qtyMap, recibidoPor, firma){
     const qty=qtyMap?((qtyMap[item.id]??item.cantidad)||0):(item.cantidad||0);
     return {id:"sol_"+Date.now()+"_"+item.id,supplyId:item.id,supplyName:supply.name,
       type:"salida",qty,date:dateStr,time:timeStr,
-      note:"Pedido · "+(s.solicitante||"")+(s.equipo?" · "+s.equipo:"")};
+      note:"Pedido · "+(s.solicitante||"")+(s.equipo?" · "+s.equipo:""),
+      ...(currentUser?.email&&{user:currentUser.email})};
   });
   _txnCenter(center,function(data){
     movItems.forEach(function(mov){
@@ -6006,12 +6046,15 @@ function markSolicitudEntregado(id, qtyMap, recibidoPor, firma){
       if(data.lotes&&data.lotes[supplyId]){
         var rem=qty;
         var lotes=data.lotes[supplyId];
+        var consumedLotes=[];
         lotes.sort(function(a,b){return a.fechaVenc.localeCompare(b.fechaVenc);});
         for(var i=0;i<lotes.length&&rem>0;i++){
           if(lotes[i].qty<=0) continue;
           var take=Math.min(lotes[i].qty,rem);
           lotes[i].qty-=take; rem-=take;
+          consumedLotes.push({loteId:lotes[i].id,fechaVenc:lotes[i].fechaVenc,qty:take});
         }
+        if(consumedLotes.length) mov.lotesConsumidos=consumedLotes;
         var remaining=lotes.filter(function(l){return l.qty>0;});
         if(remaining.length) data.lotes[supplyId]=remaining;
         else delete data.lotes[supplyId];
