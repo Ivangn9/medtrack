@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v1.2.1 — 08/07/2026 (patch)
+
+- Informe de Antenas: emoji semáforo junto al nombre para antenas con fallas/fuera de servicio — más robusto que solo color de texto en PDFs exportados desde iOS
+
 ## v1.2.0 — 08/07/2026 (minor)
 
 - Contador de reparaciones editable para antenas (previas al sistema + automáticas) y color de estado visible en el Informe de Antenas

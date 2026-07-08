@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.08.002 -->
+<!-- v2026.07.08.003 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.08.002">
+<meta name="app-version" content="v2026.07.08.003">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -11044,10 +11044,14 @@ function exportAntenasPDF(){
     if(org.reasignada)origenHtml+='<div style="font-size:7.2pt;color:#c2410c;font-weight:700;margin-top:2px;">🔄 Reasignada — origen de compra: '+esc(org.origenCompra)+'</div>';
     // Fila entera marcada con el color del estado (no solo el pill): borde izquierdo
     // grueso + nombre en el color del estado cuando no está operativa — que salte a
-    // la vista igual que en la app, sin depender de leer la columna Estado.
+    // la vista igual que en la app, sin depender de leer la columna Estado. Además,
+    // un emoji semáforo al lado del nombre: los PDFs generados desde "Guardar en
+    // Archivos" en iOS a veces no imprimen el color CSS del texto, pero un emoji
+    // trae su propio color pintado en el glifo — sobrevive a cualquier motor de impresión.
     var noOperativa=(a.estado||'operativa')!=='operativa';
+    var semaforo=(a.estado==='fuera_servicio'||a.estado==='rota')?'🔴 ':a.estado==='con_fallas'?'🟠 ':'';
     return '<tr style="border-bottom:1px solid #e8edf4;">'+
-      '<td style="font-weight:600;border-left:4px solid '+(noOperativa?est.color:'transparent')+';padding-left:9px;'+(noOperativa?'color:'+est.color+';':'')+'">'+esc(a.nombre||'Antena sin nombre')+'<div style="font-size:7.5pt;color:#94a3b8;font-weight:400;">'+esc(a.tipo||'—')+(a.cantidadCanales?' · '+a.cantidadCanales+' canales':'')+'</div></td>'+
+      '<td style="font-weight:600;border-left:4px solid '+(noOperativa?est.color:'transparent')+';padding-left:9px;print-color-adjust:exact;-webkit-print-color-adjust:exact;'+(noOperativa?'color:'+est.color+';':'')+'">'+semaforo+esc(a.nombre||'Antena sin nombre')+'<div style="font-size:7.5pt;color:#94a3b8;font-weight:400;">'+esc(a.tipo||'—')+(a.cantidadCanales?' · '+a.cantidadCanales+' canales':'')+'</div></td>'+
       '<td style="font-size:8.5pt;">'+origenHtml+'</td>'+
       '<td style="font-size:8.5pt;color:#64748b;">'+esc(marcaModelo)+'</td>'+
       '<td style="font-size:8.5pt;">'+(a.fechaCompra?fD(a.fechaCompra):'<span style="color:#94a3b8;">—</span>')+'</td>'+
@@ -11079,8 +11083,9 @@ function exportAntenasPDF(){
       if((a.roturas||[]).length>0)motivos.push((a.roturas.length)+' rotura(s) activa(s)');
       if(antVecesReparada(a)>=2)motivos.push(antVecesReparada(a)+' reparaciones en total');
       var noOperativa=(a.estado||'operativa')!=='operativa';
+      var semaforo2=(a.estado==='fuera_servicio'||a.estado==='rota')?'🔴 ':a.estado==='con_fallas'?'🟠 ':'';
       return '<tr style="border-bottom:1px solid #e8edf4;">'+
-        '<td style="font-weight:600;border-left:4px solid '+(noOperativa?est.color:'transparent')+';padding-left:9px;'+(noOperativa?'color:'+est.color+';':'')+'">'+esc(a.nombre||'—')+'</td>'+
+        '<td style="font-weight:600;border-left:4px solid '+(noOperativa?est.color:'transparent')+';padding-left:9px;print-color-adjust:exact;-webkit-print-color-adjust:exact;'+(noOperativa?'color:'+est.color+';':'')+'">'+semaforo2+esc(a.nombre||'—')+'</td>'+
         '<td style="font-size:8.5pt;">'+esc(org.actualLabel)+'</td>'+
         '<td style="font-size:8.5pt;color:#b45309;">'+motivos.join(' · ')+'</td>'+
       '</tr>';
@@ -15922,12 +15927,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="1.2.0";
+var APP_DISPLAY_VERSION="1.2.1";
 var APP_BUILD="08/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'1.2.1',fecha:'08/07/2026',tipo:'patch',cambios:[
+    'Informe de Antenas: emoji semáforo junto al nombre para antenas con fallas/fuera de servicio — más robusto que solo color de texto en PDFs exportados desde iOS'
+  ]},
   {v:'1.2.0',fecha:'08/07/2026',tipo:'minor',cambios:[
     'Contador de reparaciones editable para antenas (previas al sistema + automáticas) y color de estado visible en el Informe de Antenas'
   ]},
