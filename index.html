@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.08.003 -->
+<!-- v2026.07.08.004 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.08.003">
+<meta name="app-version" content="v2026.07.08.004">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1257,6 +1257,7 @@ body.dark .pill[style*="#ff9500"],body.dark .pill[style*="--orange"]{box-shadow:
       <div class="settings-desc" style="margin-bottom:8px;font-size:.7rem;">Estado, origen y antigüedad de cada antena RF</div>
       <button onclick="toggleSettings();exportAntenasPDF()" class="b-accent" style="width:100%;padding:12px;border-radius:50px;margin-bottom:10px;">📡 Informe de Antenas</button>
       <button onclick="toggleSettings();openAntenasHuerfanasModal()" style="width:100%;padding:10px;background:rgba(120,120,128,.08);border:1px solid rgba(120,120,128,.18);color:var(--text2);font-weight:600;font-size:.76rem;border-radius:50px;cursor:pointer;margin-bottom:10px;">🧹 Antenas sin equipo vinculado</button>
+      <button onclick="forzarSincronizacionArchivos()" style="width:100%;padding:10px;background:rgba(120,120,128,.08);border:1px solid rgba(120,120,128,.18);color:var(--text2);font-weight:600;font-size:.76rem;border-radius:50px;cursor:pointer;margin-bottom:10px;">☁️ Sincronizar archivos de este dispositivo</button>
       <div style="font-size:.68rem;color:var(--text3);margin:6px 0 5px;font-weight:600;">Filtrar por fechas:</div>
       <div style="display:flex;gap:8px;margin-bottom:8px;">
         <div style="flex:1;"><div style="font-size:.58rem;color:var(--text3);margin-bottom:3px;">DESDE</div><input class="inp" type="date" id="r-desde" style="padding:8px 10px;font-size:.78rem;"></div>
@@ -3369,6 +3370,28 @@ function reconcileFiles(){
   // If queue and refs were both empty, release immediately
   if(_pending===0){clearTimeout(_safeguard);_reconcileRunning=false;}
 }
+// Botón manual (Ajustes): fuerza la subida de archivos pendientes EN ESTE dispositivo
+// y muestra el resultado — en vez de depender en silencio del timer de 5 minutos o de
+// que la app siga abierta. Solo sirve si el archivo vive localmente en este dispositivo;
+// si se cargó en otro, hay que ejecutar esto desde ese otro dispositivo.
+function forzarSincronizacionArchivos(){
+  var pendientesAntes=Object.keys(_upqGet()).length;
+  var refsAntes=Object.keys(_collectFileRefs()).length;
+  if(!window._fbUser||!window._fbStorage){showToast('Sin conexión a la nube — reintentá con internet','warn');return;}
+  showToast('🔄 Sincronizando archivos de este dispositivo…','');
+  _cloudConfirmed={}; // forzar re-chequeo completo, no solo lo ya confirmado en esta sesión
+  reconcileFiles();
+  var checks=0;
+  var iv=setInterval(function(){
+    checks++;
+    if(!_reconcileRunning||checks>40){
+      clearInterval(iv);
+      var pendientesAhora=Object.keys(_upqGet()).length;
+      if(pendientesAhora===0)showToast('✅ Todos los archivos de este dispositivo están sincronizados','');
+      else showToast('⚠️ '+pendientesAhora+' archivo(s) no se pudieron subir — revisá la conexión','warn');
+    }
+  },750);
+}
 
 // Lifecycle: flush pending Firestore save when the app is hidden/closed (iOS kills PWAs),
 // and retry file uploads when the app comes back to the foreground or regains network.
@@ -3429,7 +3452,7 @@ function openPDFViewer(fileId,nombre){
         // lookup returned null prematurely — retry a few times before failing.
         if(n<4&&(!window._fbStorage||!window._fbUser)){setTimeout(function(){attempt(n+1);},900);return;}
         if(n<2){setTimeout(function(){attempt(n+1);},900);return;}
-        fail('Archivo no disponible — aún no se sincronizó desde el dispositivo donde se cargó');
+        fail('Archivo no disponible — abrí la app en el dispositivo donde lo cargaste y tocá Ajustes → Sincronizar archivos');
       });
     });
   }
@@ -15927,12 +15950,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="1.2.1";
+var APP_DISPLAY_VERSION="1.2.2";
 var APP_BUILD="08/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'1.2.2',fecha:'08/07/2026',tipo:'patch',cambios:[
+    'Botón para forzar la sincronización de archivos pendientes de este dispositivo y mensaje de error más claro cuando un PDF no llegó a la nube'
+  ]},
   {v:'1.2.1',fecha:'08/07/2026',tipo:'patch',cambios:[
     'Informe de Antenas: emoji semáforo junto al nombre para antenas con fallas/fuera de servicio — más robusto que solo color de texto en PDFs exportados desde iOS'
   ]},

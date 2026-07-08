@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v1.2.2 — 08/07/2026 (patch)
+
+- Botón para forzar la sincronización de archivos pendientes de este dispositivo y mensaje de error más claro cuando un PDF no llegó a la nube
+
 ## v1.2.1 — 08/07/2026 (patch)
 
 - Informe de Antenas: emoji semáforo junto al nombre para antenas con fallas/fuera de servicio — más robusto que solo color de texto en PDFs exportados desde iOS
