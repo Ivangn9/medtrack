@@ -41,7 +41,7 @@ Este repositorio contiene **DOS apps completamente independientes**.
 
 ## Versiones
 
-- Formato Stock: `X.YY` (ej: `4.28`) — última estable: **V4.48**
+- Formato Stock: `X.YY` (ej: `4.28`) — última estable: **V4.49**
 - Formato MedTrack: **SemVer `MAJOR.MINOR.PATCH`** desde v1.0.0 (06/07/2026; la 8.19.2 fue la última interna)
   - patch = fix · minor = feature · major = cambio estructural
   - Bump SIEMPRE con `node tools/bump.js <tipo> "descripción"` — actualiza los 4 campos sincronizados, el CHANGELOG embebido (modal Novedades) y `CHANGELOG.md`
