@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.07.002 -->
+<!-- v2026.07.08.001 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.07.002">
+<meta name="app-version" content="v2026.07.08.001">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -2190,11 +2190,38 @@ function _fsWrite(tryN){
       showToast('⚠️ Base de datos al '+Math.round(_sz/10000)+'% del límite — avisar a soporte','warn');
     }
   }catch(e){}
-  orgDataRef()
-    .set(_payload,{merge:true})
+  // Antes de escribir, verificamos con una transacción que ningún otro dispositivo
+  // haya guardado datos más nuevos que los últimos que ESTE dispositivo aplicó. Sin
+  // esto, un dispositivo con copia vieja en memoria (backgrounded, offline un momento,
+  // etc.) sobrescribe en silencio el array completo — incluida una edición reciente
+  // de otro dispositivo — porque Firestore reemplaza arrays enteros, no los fusiona.
+  var _lastSeen=localStorage.getItem('mt_updatedAt')||'';
+  window._fbdb.runTransaction(function(tx){
+    return tx.get(orgDataRef()).then(function(snap){
+      var serverAt=(snap.exists&&snap.data()&&snap.data().updatedAt)||'';
+      if(serverAt&&_lastSeen&&serverAt>_lastSeen){
+        var conflict=new Error('stale-write');conflict.code='stale-write';conflict.serverData=snap.data();
+        throw conflict;
+      }
+      tx.set(orgDataRef(),_payload,{merge:true});
+    });
+  })
     .then(function(){_fsWriting=false;_fsDirty=false;_fsFailed=false;_publicMirrorSave();})
     .catch(function(e){
       _fsWriting=false;
+      if(e&&e.code==='stale-write'){
+        // Otro dispositivo guardó primero: cargamos su versión (no perdemos su cambio)
+        // y avisamos para que el usuario rehaga el suyo sobre los datos frescos.
+        try{
+          if(window._applyDataGlobal)window._applyDataGlobal(e.serverData);
+          if(typeof _histMergedOnce!=='undefined'&&_histMergedOnce&&typeof _histApplyMerge==='function')_histApplyMerge();
+          localStorage.setItem('mt_updatedAt',e.serverData.updatedAt||'');
+        }catch(e2){}
+        _fsDirty=false;_fsFailed=false;
+        render();
+        showToast('⚠️ Otro dispositivo guardó cambios justo ahora — se actualizó con lo más reciente. Volvé a hacer tu cambio.','warn');
+        return;
+      }
       console.warn("Firestore save (try "+(tryN+1)+"):",e);
       var t=(tryN||0)+1;
       if(t<6){setTimeout(function(){_fsWrite(t);},Math.min(1000*Math.pow(2,t),20000));}
@@ -15879,12 +15906,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="1.1.1";
-var APP_BUILD="07/07/26 h";
+var APP_DISPLAY_VERSION="1.1.2";
+var APP_BUILD="08/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'1.1.2',fecha:'08/07/2026',tipo:'patch',cambios:[
+    'Corrige pérdida silenciosa de datos: un dispositivo con copia vieja en memoria ya no sobrescribe cambios más recientes guardados desde otro dispositivo'
+  ]},
   {v:'1.1.1',fecha:'07/07/2026',tipo:'patch',cambios:[
     'Informe de Antenas: parser de fechas robusto (corrige antenas >8 años no contadas), diferencia origen de compra vs resonador actual, y antenas sin equipo vinculado separadas + herramienta de limpieza en Ajustes'
   ]},

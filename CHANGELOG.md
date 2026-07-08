@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v1.1.2 — 08/07/2026 (patch)
+
+- Corrige pérdida silenciosa de datos: un dispositivo con copia vieja en memoria ya no sobrescribe cambios más recientes guardados desde otro dispositivo
+
 ## v1.1.1 — 07/07/2026 (patch)
 
 - Informe de Antenas: parser de fechas robusto (corrige antenas >8 años no contadas), diferencia origen de compra vs resonador actual, y antenas sin equipo vinculado separadas + herramienta de limpieza en Ajustes
