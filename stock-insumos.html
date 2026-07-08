@@ -66,6 +66,18 @@
       --teal: var(--green);
     }
 
+    /* ── Identidad visual por sucursal ──────────────────────────────────
+       Sobrescribe SOLO --accent/--accent2 sobre la base de arriba, según
+       el atributo data-center que pone applyBranchTheme() en <html>. Como
+       todo el CSS ya consume var(--accent), esto repinta botones, tabs
+       activos, badges y la franja del header sin tocar nada más. */
+    :root[data-center="GN"] {
+      --accent:#0071e3; --accent2:#0058b0;
+    }
+    :root[data-center="Sarmiento"] {
+      --accent:#248a4e; --accent2:#1c6d3d;
+    }
+
     html { scroll-behavior: smooth; }
 
     body {
@@ -191,6 +203,11 @@
       content: ''; position: absolute; top: 0; left: 0; right: 0; height: 58%;
       background: linear-gradient(180deg, rgba(255,255,255,.82) 0%, rgba(255,255,255,.30) 40%, transparent 100%);
       pointer-events: none; z-index: 0;
+    }
+    .header-accent-bar {
+      position: absolute; top: 0; left: 0; right: 0; height: 3.5px;
+      background: var(--accent); z-index: 2; border-radius: var(--r-xl) var(--r-xl) 0 0;
+      transition: background .25s var(--ease-out);
     }
     .header-logo-wrap {
       flex-shrink: 0; background: white; border-radius: 18px;
@@ -1344,12 +1361,13 @@
 
   <!-- Header con logo grande -->
   <header class="header-card gc">
+    <div class="header-accent-bar"></div>
     <div class="header-logo-wrap">
       <img src="logo.png" alt="CIMA" class="header-logo" />
     </div>
     <div class="header-text">
-      <h1>Stock de Insumos</h1>
-      <p>CIMA · Control de Inventario por Depósito</p>
+      <h1 id="headerTitle">Stock de Insumos</h1>
+      <p id="headerSubtitle">CIMA · Control de Inventario por Depósito</p>
     </div>
     <div class="user-bar" id="userBar"></div>
   </header>
@@ -2243,7 +2261,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "4.47";
+const APP_VERSION = "4.48";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -2524,6 +2542,30 @@ const CAT_SVG = {
   "Otros": `<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" width="22" height="22"><circle cx="20" cy="20" r="12" fill="rgba(142,142,147,.1)" stroke="#8e8e93" stroke-width="2"/><circle cx="14" cy="20" r="2" fill="#8e8e93"/><circle cx="20" cy="20" r="2" fill="#8e8e93"/><circle cx="26" cy="20" r="2" fill="#8e8e93"/></svg>`
 };
 const CENTERS    = ["GN","Sarmiento"];
+
+// ─── Identidad visual por sucursal ─────────────────────────────────────────
+// El logo de CIMA queda igual en las dos (es la marca de la institución, no
+// de la sede) — la identidad de sucursal se ve en el color de acento (via
+// CSS, atributo data-center) y en el nombre/subtítulo del header.
+const BRAND_THEMES = {
+  GN:        { nombre:"GN · Guardias Nacionales", subtitulo:"CIMA · Control de Inventario por Depósito" },
+  Sarmiento: { nombre:"Pedernera-Sarmiento",       subtitulo:"CIMA · Control de Inventario por Depósito" },
+};
+function applyBranchTheme(center){
+  document.documentElement.setAttribute("data-center", center||"");
+  const t=BRAND_THEMES[center];
+  const h1=document.getElementById("headerTitle"), p=document.getElementById("headerSubtitle");
+  if(h1) h1.textContent=t?t.nombre:"Stock de Insumos";
+  if(p)  p.textContent=t?t.subtitulo:"CIMA · Control de Inventario por Depósito";
+}
+// Único punto que fija la sucursal activa: aplica el tema y lo recuerda para
+// la próxima vez que se abra la app (antes no persistía nada — cada recarga
+// volvía a pedir elegir sucursal).
+function _setActiveCenter(c){
+  activeCenter=c;
+  try{ localStorage.setItem("cima_center",c); }catch(e){}
+  applyBranchTheme(c);
+}
 
 // ─── Firebase ─────────────────────────────────────────────────────────────────
 const firebaseConfig = {
@@ -4081,7 +4123,7 @@ function removeSupplier(id){
 }
 
 function pickCenterForTab(c){
-  activeCenter=c;
+  _setActiveCenter(c);
   renderCurrentTab();
 }
 function archiveSupply(id){
@@ -4592,6 +4634,13 @@ function showApp(){
   document.getElementById("loginOverlay").classList.remove("visible");
   document.getElementById("mainApp").style.display="";
   renderUserBar();
+  // Restaurar la sucursal recordada de la última sesión (si hay) — entra
+  // directo en vez de mostrar el selector. Los datos reales llegan poco
+  // después vía los listeners de Firestore, que ya re-renderizan solos.
+  try{
+    const savedCenter=localStorage.getItem("cima_center");
+    if(savedCenter&&CENTERS.includes(savedCenter)) enterCenter(savedCenter);
+  }catch(e){}
   // Limpiar globo del ícono al abrir la app
   if('clearAppBadge' in navigator) navigator.clearAppBadge().catch(()=>{});
   if(navigator.serviceWorker?.controller) navigator.serviceWorker.controller.postMessage('clearBadge');
@@ -4992,7 +5041,7 @@ function sidebarNav(tab){
 
 // ─── Center selection ─────────────────────────────────────────────────────────
 function enterCenter(c){
-  activeCenter=c;
+  _setActiveCenter(c);
   const hs=document.getElementById("home-screen");
   const cc=document.getElementById("center-content");
   const bh=document.getElementById("center-back-header");
@@ -5014,6 +5063,7 @@ function enterCenter(c){
 }
 function backToHome(){
   activeCenter=null;
+  applyBranchTheme(null); // vuelve al tema neutro; NO borra la preferencia guardada
   const hs=document.getElementById("home-screen");
   const cc=document.getElementById("center-content");
   const bh=document.getElementById("center-back-header");
@@ -5024,10 +5074,12 @@ function backToHome(){
 }
 function backFromMovimientos(){
   activeCenter=null;
+  applyBranchTheme(null);
   renderMovimientos();
 }
 function backFromGestion(){
   activeCenter=null;
+  applyBranchTheme(null);
   renderGestion();
 }
 function updateHomeStats(){
