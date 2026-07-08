@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v1.2.0 — 08/07/2026 (minor)
+
+- Contador de reparaciones editable para antenas (previas al sistema + automáticas) y color de estado visible en el Informe de Antenas
+
 ## v1.1.2 — 08/07/2026 (patch)
 
 - Corrige pérdida silenciosa de datos: un dispositivo con copia vieja en memoria ya no sobrescribe cambios más recientes guardados desde otro dispositivo

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.08.001 -->
+<!-- v2026.07.08.002 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.08.001">
+<meta name="app-version" content="v2026.07.08.002">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -9954,7 +9954,9 @@ function rAntenaDetalle(){
   h+='<div style="display:flex;gap:8px;margin-bottom:12px;">'+
     '<div class="gc" style="flex:1;padding:10px 12px;text-align:center;"><div style="font-size:1.5rem;font-weight:900;color:'+(roturasActivas.length>0?'var(--red)':'var(--green)')+';line-height:1;">'+roturasActivas.length+'</div><div style="font-size:.6rem;color:var(--text3);margin-top:3px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;">Roturas activas</div></div>'+
     '<div class="gc" style="flex:1;padding:10px 12px;text-align:center;"><div style="font-size:1.5rem;font-weight:900;color:'+c1+';line-height:1;">'+historial.length+'</div><div style="font-size:.6rem;color:var(--text3);margin-top:3px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;">En historial</div></div>'+
-  '</div>';
+    '<div class="gc" style="flex:1;padding:10px 12px;text-align:center;"><div style="font-size:1.5rem;font-weight:900;color:#8b5cf6;line-height:1;">'+antVecesReparada(ant)+'</div><div style="font-size:.6rem;color:var(--text3);margin-top:3px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;">Total reparada</div></div>'+
+  '</div>'+
+  (ant.vecesReparadaManual?'<div style="font-size:.66rem;color:var(--text3);margin:-6px 0 12px;text-align:center;">Incluye '+ant.vecesReparadaManual+' reparación'+(ant.vecesReparadaManual!==1?'es':'')+' previa'+(ant.vecesReparadaManual!==1?'s':'')+' al sistema (cargada manualmente)</div>':'');
   /* DOCUMENTOS PDF SECTION */
   h+='<div class="gc" style="padding:0;margin-bottom:12px;overflow:hidden;">'+
     '<div style="background:linear-gradient(90deg,rgba(0,113,227,.10),rgba(0,180,255,.05));padding:9px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(0,113,227,.10);">'+
@@ -11011,7 +11013,7 @@ function exportAntenasPDF(){
   var edades=activas.map(function(a){return _antAntiguedadAnios(a.fechaCompra);}).filter(function(v){return v!==null;});
   var edadProm=edades.length?(edades.reduce(function(x,y){return x+y;},0)/edades.length):null;
   var superanVidaUtil=activas.filter(function(a){var ed=_antAntiguedadAnios(a.fechaCompra);return ed!==null&&ed>=_ANT_VIDA_UTIL_ANIOS;});
-  var totalReparaciones=0;activas.forEach(function(a){totalReparaciones+=(a.historialAntena||[]).length;});
+  var totalReparaciones=0;activas.forEach(function(a){totalReparaciones+=antVecesReparada(a);});
   var totalRoturasAct=0;activas.forEach(function(a){totalRoturasAct+=(a.roturas||[]).length;});
   var sinFechaCompra=activas.filter(function(a){return!a.fechaCompra;}).length;
 
@@ -11035,13 +11037,17 @@ function exportAntenasPDF(){
     var edad=_antAntiguedadAnios(a.fechaCompra);
     var edadLabel=edad!==null?edad.toFixed(1)+' años':'—';
     var edadColor=edad===null?'#94a3b8':edad>=_ANT_VIDA_UTIL_ANIOS?'#dc2626':edad>=5?'#d97706':'#15803d';
-    var reps=(a.historialAntena||[]).length;
+    var reps=antVecesReparada(a);
     var rotAct=(a.roturas||[]).length;
     var marcaModelo=[a.marca,a.modelo].filter(Boolean).join(' ')||a.origen||'—';
     var origenHtml='<div>'+esc(org.actualLabel)+'</div>'+(org.sede!=='—'?'<div style="font-size:7.5pt;color:#64748b;">📍 '+esc(org.sede)+'</div>':'');
     if(org.reasignada)origenHtml+='<div style="font-size:7.2pt;color:#c2410c;font-weight:700;margin-top:2px;">🔄 Reasignada — origen de compra: '+esc(org.origenCompra)+'</div>';
+    // Fila entera marcada con el color del estado (no solo el pill): borde izquierdo
+    // grueso + nombre en el color del estado cuando no está operativa — que salte a
+    // la vista igual que en la app, sin depender de leer la columna Estado.
+    var noOperativa=(a.estado||'operativa')!=='operativa';
     return '<tr style="border-bottom:1px solid #e8edf4;">'+
-      '<td style="font-weight:600;">'+esc(a.nombre||'Antena sin nombre')+'<div style="font-size:7.5pt;color:#94a3b8;font-weight:400;">'+esc(a.tipo||'—')+(a.cantidadCanales?' · '+a.cantidadCanales+' canales':'')+'</div></td>'+
+      '<td style="font-weight:600;border-left:4px solid '+(noOperativa?est.color:'transparent')+';padding-left:9px;'+(noOperativa?'color:'+est.color+';':'')+'">'+esc(a.nombre||'Antena sin nombre')+'<div style="font-size:7.5pt;color:#94a3b8;font-weight:400;">'+esc(a.tipo||'—')+(a.cantidadCanales?' · '+a.cantidadCanales+' canales':'')+'</div></td>'+
       '<td style="font-size:8.5pt;">'+origenHtml+'</td>'+
       '<td style="font-size:8.5pt;color:#64748b;">'+esc(marcaModelo)+'</td>'+
       '<td style="font-size:8.5pt;">'+(a.fechaCompra?fD(a.fechaCompra):'<span style="color:#94a3b8;">—</span>')+'</td>'+
@@ -11057,21 +11063,24 @@ function exportAntenasPDF(){
     '</tr></thead><tbody>'+rows+'</tbody></table>'+
   '</div>';
 
-  // — Antenas a vigilar (superan referencia de vida útil o con historial de reparaciones) —
+  // — Antenas a vigilar (superan referencia de vida útil, con historial de reparaciones,
+  // o el sistema las tiene marcadas con fallas/fuera de servicio ahora mismo) —
   var aVigilar=activas.filter(function(a){
     var ed=_antAntiguedadAnios(a.fechaCompra);
-    return(ed!==null&&ed>=_ANT_VIDA_UTIL_ANIOS)||(a.historialAntena||[]).length>=2||(a.roturas||[]).length>0;
+    return(ed!==null&&ed>=_ANT_VIDA_UTIL_ANIOS)||antVecesReparada(a)>=2||(a.roturas||[]).length>0||(a.estado||'operativa')!=='operativa';
   });
   var vigilarSection='';
   if(aVigilar.length){
     var vigRows=aVigilar.map(function(a){
-      var org=origenDe(a);var edad=_antAntiguedadAnios(a.fechaCompra);
+      var org=origenDe(a);var edad=_antAntiguedadAnios(a.fechaCompra);var est=estadoInfo(a);
       var motivos=[];
+      if((a.estado||'operativa')!=='operativa')motivos.push('<span style="color:'+est.color+';font-weight:800;">'+est.label+'</span>');
       if(edad!==null&&edad>=_ANT_VIDA_UTIL_ANIOS)motivos.push('Antigüedad ≥ '+_ANT_VIDA_UTIL_ANIOS+' años ('+edad.toFixed(1)+')');
       if((a.roturas||[]).length>0)motivos.push((a.roturas.length)+' rotura(s) activa(s)');
-      if((a.historialAntena||[]).length>=2)motivos.push((a.historialAntena.length)+' reparaciones históricas');
+      if(antVecesReparada(a)>=2)motivos.push(antVecesReparada(a)+' reparaciones en total');
+      var noOperativa=(a.estado||'operativa')!=='operativa';
       return '<tr style="border-bottom:1px solid #e8edf4;">'+
-        '<td style="font-weight:600;">'+esc(a.nombre||'—')+'</td>'+
+        '<td style="font-weight:600;border-left:4px solid '+(noOperativa?est.color:'transparent')+';padding-left:9px;'+(noOperativa?'color:'+est.color+';':'')+'">'+esc(a.nombre||'—')+'</td>'+
         '<td style="font-size:8.5pt;">'+esc(org.actualLabel)+'</td>'+
         '<td style="font-size:8.5pt;color:#b45309;">'+motivos.join(' · ')+'</td>'+
       '</tr>';
@@ -13726,12 +13735,17 @@ function openEditAntennaModal(antenaId){
     '<div class="ff"><div class="ff-label">Fecha de compra</div>'+
       '<input class="inp" id="edit-ant-fecha" type="date" value="'+(ant.fechaCompra||'')+'">'+
     '</div>'+
+    '<div class="ff"><div class="ff-label">Reparaciones previas al sistema</div>'+
+      '<input class="inp" id="edit-ant-rep-manual" type="number" min="0" value="'+(ant.vecesReparadaManual||0)+'" placeholder="0">'+
+      '<div style="font-size:.66rem;color:var(--text3);margin-top:3px;">Reparaciones históricas que no están cargadas en el historial del sistema. Las que se registren de acá en más (Marcar como reparada) se suman solas — no las cuentes acá.</div>'+
+    '</div>'+
     '<div class="ff"><div class="ff-label">Notas</div>'+
       '<textarea class="inp" id="edit-ant-notas" rows="2" placeholder="Observaciones opcionales...">'+esc(ant.notas||'')+'</textarea>'+
     '</div>'+
     '<button class="btn-grad btn-grad-blue" onclick="submitEditAntenna(\''+antenaId+'\')">Guardar cambios</button>'
   );
 }
+function antVecesReparada(a){return(a.vecesReparadaManual||0)+((a.historialAntena||[]).length);}
 function submitEditAntenna(antenaId){
   var nombre=(document.getElementById('edit-ant-nombre')||{}).value||'';
   var tipo=((document.getElementById('edit-ant-tipo')||{}).value||'').trim();
@@ -13741,12 +13755,14 @@ function submitEditAntenna(antenaId){
   var estado=(document.getElementById('edit-ant-estado')||{}).value||'operativa';
   var fecha=(document.getElementById('edit-ant-fecha')||{}).value||'';
   var notas=(document.getElementById('edit-ant-notas')||{}).value||'';
+  var repManual=parseInt((document.getElementById('edit-ant-rep-manual')||{}).value,10);
+  if(isNaN(repManual)||repManual<0)repManual=0;
   if(!nombre.trim()){alert('Ingresá el nombre de la antena');return;}
   var antPrev=antenas.find(function(a){return a.id===antenaId;})||{};
   var estadoPrev=antPrev.estado||'operativa';
   antenas=antenas.map(function(a){
     if(a.id!==antenaId)return a;
-    return Object.assign({},a,{nombre:nombre.trim(),tipo:tipo||null,nroSerie:nroSerie||null,nombreOrigen:origen,cantidadCanales:canales||null,estado:estado,fechaCompra:fecha,notas:notas.trim()});
+    return Object.assign({},a,{nombre:nombre.trim(),tipo:tipo||null,nroSerie:nroSerie||null,nombreOrigen:origen,cantidadCanales:canales||null,estado:estado,fechaCompra:fecha,notas:notas.trim(),vecesReparadaManual:repManual});
   });
   saveDataCritical();closeModal();showToast('✏️ Antena actualizada','');render();
   if(estadoPrev!==estado&&(estado==='con_fallas'||estado==='fuera_servicio')){
@@ -15906,12 +15922,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="1.1.2";
+var APP_DISPLAY_VERSION="1.2.0";
 var APP_BUILD="08/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'1.2.0',fecha:'08/07/2026',tipo:'minor',cambios:[
+    'Contador de reparaciones editable para antenas (previas al sistema + automáticas) y color de estado visible en el Informe de Antenas'
+  ]},
   {v:'1.1.2',fecha:'08/07/2026',tipo:'patch',cambios:[
     'Corrige pérdida silenciosa de datos: un dispositivo con copia vieja en memoria ya no sobrescribe cambios más recientes guardados desde otro dispositivo'
   ]},
