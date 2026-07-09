@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v1.2.3 — 09/07/2026 (patch)
+
+- Previene pérdida de PDFs: solicita almacenamiento persistente al SO, avisa si la subida a la nube falla, y reintenta también al ocultar la app
+
 ## v1.2.2 — 08/07/2026 (patch)
 
 - Botón para forzar la sincronización de archivos pendientes de este dispositivo y mensaje de error más claro cuando un PDF no llegó a la nube

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.08.004 -->
+<!-- v2026.07.09.001 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.08.004">
+<meta name="app-version" content="v2026.07.09.001">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3282,7 +3282,17 @@ function dbSave(id,nombre,data,cb){
     }
     var tx=d.transaction('files','readwrite');
     tx.objectStore('files').put({id:id,nombre:nombre,data:data});
-    tx.oncomplete=function(){cb&&cb(true);_storageSaveB64(id,nombre,data,null);};
+    tx.oncomplete=function(){
+      cb&&cb(true);
+      // No basta con guardarlo localmente: si la subida a la nube falla (sin señal,
+      // Firebase recién iniciando, etc.) y el usuario cierra la app antes de que el
+      // reintento en segundo plano la complete, el archivo puede perderse para siempre
+      // si iOS libera ese almacenamiento. Avisar explícitamente cuando falla, en vez
+      // de fallar en silencio y depender solo del reconcile periódico.
+      _storageSaveB64(id,nombre,data,function(ok){
+        if(!ok)showToast('⚠️ "'+(nombre||'Archivo')+'" se guardó en este dispositivo pero no subió a la nube — no cierres la app todavía, o hacé Ajustes → Sincronizar archivos más tarde','warn');
+      });
+    };
     tx.onerror=function(){_upqDel(id);cb&&cb(false);};
   });
 }
@@ -3396,8 +3406,12 @@ function forzarSincronizacionArchivos(){
 // Lifecycle: flush pending Firestore save when the app is hidden/closed (iOS kills PWAs),
 // and retry file uploads when the app comes back to the foreground or regains network.
 (function(){
+  // Pedile al navegador que NO purgue este almacenamiento bajo presión de espacio.
+  // Sin esto, iOS puede borrar el IndexedDB de la PWA (donde viven los PDFs que
+  // todavía no llegaron a la nube) sin avisar, perdiéndolos para siempre.
+  try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(function(){});}catch(e){}
   document.addEventListener('visibilitychange',function(){
-    if(document.visibilityState==='hidden'){flushSaveNow();}
+    if(document.visibilityState==='hidden'){flushSaveNow();reconcileFiles();}
     else{reconcileFiles();}
   });
   window.addEventListener('pagehide',flushSaveNow);
@@ -15950,12 +15964,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="1.2.2";
-var APP_BUILD="08/07/26 h";
+var APP_DISPLAY_VERSION="1.2.3";
+var APP_BUILD="09/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'1.2.3',fecha:'09/07/2026',tipo:'patch',cambios:[
+    'Previene pérdida de PDFs: solicita almacenamiento persistente al SO, avisa si la subida a la nube falla, y reintenta también al ocultar la app'
+  ]},
   {v:'1.2.2',fecha:'08/07/2026',tipo:'patch',cambios:[
     'Botón para forzar la sincronización de archivos pendientes de este dispositivo y mensaje de error más claro cuando un PDF no llegó a la nube'
   ]},
