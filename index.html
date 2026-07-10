@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.10.014 -->
+<!-- v2026.07.10.015 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.10.014">
+<meta name="app-version" content="v2026.07.10.015">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -6202,7 +6202,7 @@ function rCalendarioPM(){
     var d3=new Date(p.fecha+'T12:00:00');
     thisMonthItems.push({tipo:'manual',pmId:p.id,eq:eq2,eqId:p.eqId,fecha:p.fecha,horaInicio:p.horaInicio||'',horaFin:p.horaFin||'',notas:p.notas||'',tecnico:p.tecnico||'',day:d3.getDate()});
   });
-  var daysInMonth=lastDay.getDate();var startDow=firstDay.getDay();
+  var daysInMonth=lastDay.getDate();var startDow=(firstDay.getDay()+6)%7; // semana empieza en lunes
   var byDay={};
   thisMonthItems.forEach(function(item){if(!byDay[item.day])byDay[item.day]=[];byDay[item.day].push(item);});
   var h='';
@@ -6224,7 +6224,7 @@ function rCalendarioPM(){
   }
   h+='<button onclick="openModalProgramarPM(null,null)" style="padding:7px 14px;border-radius:var(--r-pill);background:rgba(0,113,227,.12);border:1.5px solid rgba(0,113,227,.28);color:var(--accent);font-weight:700;font-size:.75rem;cursor:pointer;">+ Programar PM</button>';
   h+='</div>';
-  var dow=['Dom','Lun','Mar','Mi\xe9','Jue','Vie','S\xe1b'];
+  var dow=['Lun','Mar','Mi\xe9','Jue','Vie','S\xe1b','Dom'];
   h+='<div class="gc" style="padding:12px 14px;margin-bottom:12px;">';
   h+='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:8px;">';
   for(var di=0;di<dow.length;di++){h+='<div style="text-align:center;font-size:.62rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;padding:4px 0;">'+dow[di]+'</div>';}
@@ -16123,12 +16123,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="1.5.2";
+var APP_DISPLAY_VERSION="1.5.3";
 var APP_BUILD="10/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'1.5.3',fecha:'10/07/2026',tipo:'patch',cambios:[
+    'Calendario de PM: la semana empieza en lunes'
+  ]},
   {v:'1.5.2',fecha:'10/07/2026',tipo:'patch',cambios:[
     'Reemplaza runTransaction por get()+set() simple: las transacciones de Firestore pueden colgarse reintentando internamente por contención, mucho más allá de cualquier timeout externo'
   ]},

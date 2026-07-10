@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v1.5.3 — 10/07/2026 (patch)
+
+- Calendario de PM: la semana empieza en lunes
+
 ## v1.5.2 — 10/07/2026 (patch)
 
 - Reemplaza runTransaction por get()+set() simple: las transacciones de Firestore pueden colgarse reintentando internamente por contención, mucho más allá de cualquier timeout externo
