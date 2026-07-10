@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.10.008 -->
+<!-- v2026.07.10.009 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.10.008">
+<meta name="app-version" content="v2026.07.10.009">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -8425,8 +8425,8 @@ function _rDetalleRefrig(eq,rf){
   h+='<div class="cring-wrap" style="--cc:rgba(99,102,241,.9);margin-bottom:10px;"><div class="cring-el"></div><div class="gc" style="padding:0;overflow:hidden;">'+
     '<div style="background:linear-gradient(90deg,rgba(99,102,241,.12),rgba(139,92,246,.06));padding:8px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(99,102,241,.08);">'+
       '<span style="font-size:.72rem;font-weight:700;color:#818cf8;text-transform:uppercase;letter-spacing:.06em;flex:1;">📱 Estado GE Healthcare</span>'+
-      '<button onclick="openGEShortcutGuide(\''+eq.id+'\')" style="padding:3px 10px;border-radius:var(--r-pill);font-size:.64rem;font-weight:700;cursor:pointer;border:1.5px solid rgba(99,102,241,.28);background:rgba(99,102,241,.08);color:#818cf8;margin-right:4px;">⚙️ Shortcut</button>'+
-      '<button onclick="openActualizarEstadoMagneto(\''+eq.id+'\')" style="padding:3px 10px;border-radius:var(--r-pill);font-size:.64rem;font-weight:700;cursor:pointer;border:1.5px solid rgba(99,102,241,.35);background:rgba(99,102,241,.14);color:#818cf8;">Actualizar</button>'+
+      '<button onclick="openGEShortcutGuide(\''+eq.id+'\')" style="min-height:32px;padding:6px 12px;border-radius:var(--r-pill);font-size:.68rem;font-weight:700;cursor:pointer;border:1.5px solid rgba(99,102,241,.3);background:rgba(99,102,241,.1);color:#818cf8;margin-right:6px;">⚙️ Shortcut</button>'+
+      '<button onclick="openActualizarEstadoMagneto(\''+eq.id+'\')" style="min-height:32px;padding:6px 12px;border-radius:var(--r-pill);font-size:.68rem;font-weight:700;cursor:pointer;border:1.5px solid rgba(99,102,241,.35);background:rgba(99,102,241,.15);color:#818cf8;">Actualizar</button>'+
     '</div>'+
     '<div style="padding:12px 14px;">'+
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;">'+
@@ -9915,7 +9915,7 @@ function rAntenas(){
         '<div style="border-top:1px solid rgba(120,120,128,.08);padding:8px 10px;display:flex;gap:6px;">'+
           _aBtns.map(function(b){
             var isActive=estA===b.k;
-            return '<button onclick="event.stopPropagation();setAntenaEstado(\''+a.id+'\',\''+b.k+'\')" style="flex:1;padding:6px 4px;border-radius:10px;font-size:.62rem;font-weight:700;cursor:pointer;border:'+(isActive?'1.5px solid '+b.c:'1px solid rgba(120,120,128,.15)')+';background:'+(isActive?b.bg+'.14)':'rgba(120,120,128,.05)')+';color:'+(isActive?b.c:'var(--text3)')+';transition:all .15s;">'+b.label+'</button>';
+            return '<button onclick="event.stopPropagation();setAntenaEstado(\''+a.id+'\',\''+b.k+'\')" style="flex:1;min-height:38px;padding:8px 4px;border-radius:10px;font-size:.66rem;font-weight:700;cursor:pointer;border:'+(isActive?'1.5px solid '+b.c:'1.5px solid rgba(120,120,128,.18)')+';background:'+(isActive?b.bg+'.16)':'rgba(120,120,128,.06)')+';color:'+(isActive?b.c:'var(--text3)')+';transition:all .15s;">'+b.label+'</button>';
           }).join('')+
         '</div>'+
       '</div>';
@@ -10235,7 +10235,7 @@ function rTransductores(){
         '<div style="border-top:1px solid rgba(120,120,128,.08);padding:8px 10px;display:flex;gap:6px;">'+
           _tBtns.map(function(b){
             var isActive=estT===b.k;
-            return '<button onclick="event.stopPropagation();setTransductorEstado(\''+t.id+'\',\''+b.k+'\')" style="flex:1;padding:6px 4px;border-radius:10px;font-size:.62rem;font-weight:700;cursor:pointer;border:'+(isActive?'1.5px solid '+b.c:'1px solid rgba(120,120,128,.15)')+';background:'+(isActive?b.bg+'.14)':'rgba(120,120,128,.05)')+';color:'+(isActive?b.c:'var(--text3)')+';transition:all .15s;">'+b.label+'</button>';
+            return '<button onclick="event.stopPropagation();setTransductorEstado(\''+t.id+'\',\''+b.k+'\')" style="flex:1;min-height:38px;padding:8px 4px;border-radius:10px;font-size:.66rem;font-weight:700;cursor:pointer;border:'+(isActive?'1.5px solid '+b.c:'1.5px solid rgba(120,120,128,.18)')+';background:'+(isActive?b.bg+'.16)':'rgba(120,120,128,.06)')+';color:'+(isActive?b.c:'var(--text3)')+';transition:all .15s;">'+b.label+'</button>';
           }).join('')+
         '</div>'+
       '</div>';
@@ -13178,8 +13178,8 @@ function _refrigHelioChart(rf,eqId){
   h2+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px;">';
   h2+='<span style="font-size:.68rem;font-weight:700;color:#0891b2;text-transform:uppercase;letter-spacing:.05em;">📈 Helio — Tendencia</span>';
   h2+='<div style="display:flex;gap:3px;">';
-  h2+='<button onclick="setRefrigChartMode(\''+eqId+'\',\'anual\')" style="padding:3px 11px;border-radius:var(--r-pill);font-size:.7rem;font-weight:700;cursor:pointer;border:1.5px solid rgba(99,179,237,'+(mode==='anual'?.5:.2)+');'+(mode==='anual'?'background:rgba(8,145,178,.18);color:#63b3ed;':'background:none;color:var(--text3);')+'">Anual</button>';
-  h2+='<button onclick="setRefrigChartMode(\''+eqId+'\',\'mensual\')" style="padding:3px 11px;border-radius:var(--r-pill);font-size:.7rem;font-weight:700;cursor:pointer;border:1.5px solid rgba(99,179,237,'+(mode==='mensual'?.5:.2)+');'+(mode==='mensual'?'background:rgba(8,145,178,.18);color:#63b3ed;':'background:none;color:var(--text3);')+'">Mensual</button>';
+  h2+='<button onclick="setRefrigChartMode(\''+eqId+'\',\'anual\')" style="min-height:32px;padding:7px 13px;border-radius:var(--r-pill);font-size:.72rem;font-weight:700;cursor:pointer;border:1.5px solid rgba(99,179,237,'+(mode==='anual'?.5:.25)+');'+(mode==='anual'?'background:rgba(8,145,178,.18);color:#63b3ed;':'background:rgba(255,255,255,.05);color:var(--text3);')+'">Anual</button>';
+  h2+='<button onclick="setRefrigChartMode(\''+eqId+'\',\'mensual\')" style="min-height:32px;padding:7px 13px;border-radius:var(--r-pill);font-size:.72rem;font-weight:700;cursor:pointer;border:1.5px solid rgba(99,179,237,'+(mode==='mensual'?.5:.25)+');'+(mode==='mensual'?'background:rgba(8,145,178,.18);color:#63b3ed;':'background:rgba(255,255,255,.05);color:var(--text3);')+'">Mensual</button>';
   h2+='</div></div>';
   h2+='<div style="display:flex;align-items:center;justify-content:flex-end;gap:6px;margin-bottom:12px;">';
   h2+='<button onclick="setRefrigChartNav('+prevArgs+')" style="'+btnSt+'">‹</button>';
@@ -13444,7 +13444,7 @@ function openSeguimientoRotura(antenaId,roturaId){
           '<div style="font-size:.64rem;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Estado actual</div>'+
           '<span style="font-size:.75rem;font-weight:700;padding:3px 10px;border-radius:12px;background:'+_eBg+';color:'+_eColor+';">'+_eLabel+'</span>'+
         '</div>'+
-        (rot.estado!=='en_reparacion'?'<button onclick="setEstadoRotura(\''+antenaId+'\',\''+roturaId+'\',\'en_reparacion\')" style="font-size:.66rem;padding:6px 11px;border-radius:14px;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.22);color:rgba(245,158,11,1);cursor:pointer;font-weight:700;">📤 En reparaci\xf3n</button>':'<span style="font-size:.66rem;color:var(--text3);">Cam. estado al guardar</span>')+
+        (rot.estado!=='en_reparacion'?'<button onclick="setEstadoRotura(\''+antenaId+'\',\''+roturaId+'\',\'en_reparacion\')" style="font-size:.7rem;min-height:34px;padding:7px 13px;border-radius:14px;background:rgba(245,158,11,.14);border:1.5px solid rgba(245,158,11,.26);color:rgba(245,158,11,1);cursor:pointer;font-weight:700;">📤 En reparaci\xf3n</button>':'<span style="font-size:.66rem;color:var(--text3);">Cam. estado al guardar</span>')+
       '</div>'+
     '</div>'+
     '<div class="g2">'+
@@ -13457,7 +13457,7 @@ function openSeguimientoRotura(antenaId,roturaId){
     '</div>'+
     '<div class="ff"><div class="ff-label">Presupuestos ('+_presAll.length+')</div>'+
       (_presAll.length?'<div style="display:flex;flex-direction:column;gap:4px;margin-bottom:6px;">'+
-        _presAll.map(function(p,_pi){return '<button onclick="openPDFViewer(\''+p.id+'\',\'\')" style="font-size:.68rem;padding:4px 10px;border-radius:12px;background:rgba(0,113,227,.10);color:var(--accent);border:1px solid rgba(0,113,227,.18);cursor:pointer;font-weight:600;text-align:left;">📄 Presupuesto '+(_pi+1)+(p.nombre?' \xb7 '+esc(p.nombre.slice(0,22)):'')+'</button>';}).join('')+
+        _presAll.map(function(p,_pi){return '<button onclick="openPDFViewer(\''+p.id+'\',\'\')" style="font-size:.72rem;min-height:36px;padding:8px 12px;border-radius:12px;background:rgba(0,113,227,.12);color:var(--accent);border:1.5px solid rgba(0,113,227,.24);cursor:pointer;font-weight:700;text-align:left;">📄 Presupuesto '+(_pi+1)+(p.nombre?' \xb7 '+esc(p.nombre.slice(0,22)):'')+'</button>';}).join('')+
       '</div>':'')+
       '<div id="seg-pres-name" style="font-size:.7rem;color:var(--green);margin-bottom:4px;min-height:16px;"></div>'+
       '<label style="display:flex;align-items:center;gap:6px;padding:9px 12px;border-radius:var(--r-md);background:rgba(0,113,227,.08);border:1.5px dashed rgba(0,113,227,.25);cursor:pointer;font-size:.75rem;color:var(--accent);font-weight:600;">'+
@@ -14405,7 +14405,7 @@ function openSeguimientoTransductorRotura(transId,rotId){
     '</div>'+
     '<div class="ff"><div class="ff-label">Presupuestos ('+_presAll.length+')</div>'+
       (_presAll.length?'<div style="display:flex;flex-direction:column;gap:4px;margin-bottom:6px;">'+
-        _presAll.map(function(p,_pi){return '<button onclick="openPDFViewer(\''+p.id+'\',\'\')" style="font-size:.68rem;padding:4px 10px;border-radius:12px;background:rgba(0,113,227,.10);color:var(--accent);border:1px solid rgba(0,113,227,.18);cursor:pointer;font-weight:600;text-align:left;">📄 Presupuesto '+(_pi+1)+(p.nombre?' \xb7 '+esc(p.nombre.slice(0,22)):'')+'</button>';}).join('')+
+        _presAll.map(function(p,_pi){return '<button onclick="openPDFViewer(\''+p.id+'\',\'\')" style="font-size:.72rem;min-height:36px;padding:8px 12px;border-radius:12px;background:rgba(0,113,227,.12);color:var(--accent);border:1.5px solid rgba(0,113,227,.24);cursor:pointer;font-weight:700;text-align:left;">📄 Presupuesto '+(_pi+1)+(p.nombre?' \xb7 '+esc(p.nombre.slice(0,22)):'')+'</button>';}).join('')+
       '</div>':'')+
       '<div id="trseg-pres-name" style="font-size:.7rem;color:var(--green);margin-bottom:4px;min-height:16px;"></div>'+
       '<label style="display:flex;align-items:center;gap:6px;padding:9px 12px;border-radius:var(--r-md);background:rgba(0,113,227,.08);border:1.5px dashed rgba(0,113,227,.25);cursor:pointer;font-size:.75rem;color:var(--accent);font-weight:600;">'+
@@ -14688,7 +14688,7 @@ function openSeguimientoFallaDirecta(eqId,fallaId){
     '</div>'+
     '<div class="ff"><div class="ff-label">Presupuestos ('+_presAll.length+')</div>'+
       (_presAll.length?'<div style="display:flex;flex-direction:column;gap:4px;margin-bottom:6px;">'+
-        _presAll.map(function(p,_pi){return '<button onclick="openPDFViewer(\''+p.id+'\',\'\')" style="font-size:.68rem;padding:4px 10px;border-radius:12px;background:rgba(0,113,227,.10);color:var(--accent);border:1px solid rgba(0,113,227,.18);cursor:pointer;font-weight:600;text-align:left;">📄 Presupuesto '+(_pi+1)+(p.nombre?' \xb7 '+esc(p.nombre.slice(0,22)):'')+'</button>';}).join('')+
+        _presAll.map(function(p,_pi){return '<button onclick="openPDFViewer(\''+p.id+'\',\'\')" style="font-size:.72rem;min-height:36px;padding:8px 12px;border-radius:12px;background:rgba(0,113,227,.12);color:var(--accent);border:1.5px solid rgba(0,113,227,.24);cursor:pointer;font-weight:700;text-align:left;">📄 Presupuesto '+(_pi+1)+(p.nombre?' \xb7 '+esc(p.nombre.slice(0,22)):'')+'</button>';}).join('')+
       '</div>':'')+
       '<div id="fdseg-pres-name" style="font-size:.7rem;color:var(--green);margin-bottom:4px;min-height:16px;"></div>'+
       '<label style="display:flex;align-items:center;gap:6px;padding:9px 12px;border-radius:var(--r-md);background:rgba(0,113,227,.08);border:1.5px dashed rgba(0,113,227,.25);cursor:pointer;font-size:.75rem;color:var(--accent);font-weight:600;">'+
@@ -16008,12 +16008,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="1.4.4";
+var APP_DISPLAY_VERSION="1.4.5";
 var APP_BUILD="10/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'1.4.5',fecha:'10/07/2026',tipo:'patch',cambios:[
+    'Rediseño Liquid Glass de botones táctiles (lote 6): estado antena/transductor, refrigeración, gráfico helio, seguimiento de reparación'
+  ]},
   {v:'1.4.4',fecha:'10/07/2026',tipo:'patch',cambios:[
     'Rediseño Liquid Glass de botones táctiles (lote 5): cerrar OT, auditoría, alertas'
   ]},
