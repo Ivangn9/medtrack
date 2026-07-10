@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v1.5.0 — 10/07/2026 (minor)
+
+- Datos de red por equipo (MAC Address para todas las categorías) + importador masivo desde Excel/TSV con matching por SystemID o nombre
+
 ## v1.4.7 — 10/07/2026 (patch)
 
 - Rediseño Liquid Glass de botones táctiles (lote 8, final): empresas representantes, control de acceso, restablecer fuente
