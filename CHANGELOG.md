@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v1.4.3 — 10/07/2026 (patch)
+
+- Rediseño Liquid Glass de botones táctiles (lote 4): panel de reporte PDF, imprimir QR, formulario de falla/rotura
+
 ## v1.4.2 — 10/07/2026 (patch)
 
 - Rediseño Liquid Glass de botones táctiles (lote 3): reclamos, mejoras
