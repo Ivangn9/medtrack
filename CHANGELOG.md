@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v1.3.2 — 10/07/2026 (patch)
+
+- Botones Ver/Editar/Eliminar del historial de reparaciones: más grandes (44px+), estilo Liquid Glass, con más espacio entre ellos para evitar clics accidentales
+
 ## v1.3.1 — 10/07/2026 (patch)
 
 - El % de equipos operativos (header, Panel y Ejecutivo) ya no cuenta UPS ni Desfibriladores
