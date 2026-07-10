@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v1.5.1 — 10/07/2026 (patch)
+
+- Corrige indicador 'Guardando...' colgado indefinidamente: timeout de seguridad de 15s si la transacción de Firestore no responde
+
 ## v1.5.0 — 10/07/2026 (minor)
 
 - Datos de red por equipo (MAC Address para todas las categorías) + importador masivo desde Excel/TSV con matching por SystemID o nombre

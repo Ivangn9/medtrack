@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.10.012 -->
+<!-- v2026.07.10.013 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.10.012">
+<meta name="app-version" content="v2026.07.10.013">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -2000,7 +2000,7 @@ function _kpiArsToUsd(ars){
   if(!_kpiUsdRate||_kpiUsdRate<=0)return ars;
   return ars/_kpiUsdRate;
 }
-var _fsSaveTimer=null,_fsWriting=false,_fsDirty=false,_fsFailed=false;
+var _fsSaveTimer=null,_fsWriting=false,_fsDirty=false,_fsFailed=false,_fsWriteToken=0;
 function orgDataRef(){return window._fbdb.collection("orgs").doc("cima").collection("app").doc("data");}
 // Espejo público para eq-public.html (QRs): SOLO campos no sensibles.
 // Sin técnicos, empresas, contratos, costos, notas ni auditoría.
@@ -2178,6 +2178,19 @@ function saveDataCritical(){
 function _fsWrite(tryN){
   if(!window._fbUser||!window._fbdb){_fsWriting=false;return;}
   _fsWriting=true;
+  // Red de seguridad: si la transacción de Firestore nunca resuelve (ni .then
+  // ni .catch — puede pasar con conexiones inestables o el navegador en background
+  // largo rato), el indicador quedaba en "Guardando…" para siempre sin ningún
+  // error visible. Forzamos un reintento/fallo visible pasados 15s.
+  var _writeToken=++_fsWriteToken;
+  var _safeguard=setTimeout(function(){
+    if(_fsWriteToken!==_writeToken||!_fsWriting)return; // ya resolvió por su cuenta
+    console.warn('Firestore: sin respuesta en 15s, forzando reintento');
+    _fsWriting=false;
+    var t2=(tryN||0)+1;
+    if(t2<6)_fsWrite(t2);
+    else{_fsDirty=false;_fsFailed=true;}
+  },15000);
   // Con sharding activo el doc principal lleva solo historiales recientes;
   // el completo va en paralelo a los docs hist_* (fuente de verdad del historial).
   var _sp=window._histReady?_stripPayload():{eqs:eqs,antenas:antenas,ordenesTrabajo:ordenesTrabajo};
@@ -2208,8 +2221,9 @@ function _fsWrite(tryN){
       tx.set(orgDataRef(),_payload,{merge:true});
     });
   })
-    .then(function(){_fsWriting=false;_fsDirty=false;_fsFailed=false;_publicMirrorSave();})
+    .then(function(){clearTimeout(_safeguard);_fsWriting=false;_fsDirty=false;_fsFailed=false;_publicMirrorSave();})
     .catch(function(e){
+      clearTimeout(_safeguard);
       _fsWriting=false;
       if(e&&e.code==='stale-write'){
         // Otro dispositivo guardó primero: cargamos su versión (no perdemos su cambio)
@@ -16107,12 +16121,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="1.5.0";
+var APP_DISPLAY_VERSION="1.5.1";
 var APP_BUILD="10/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'1.5.1',fecha:'10/07/2026',tipo:'patch',cambios:[
+    'Corrige indicador \'Guardando...\' colgado indefinidamente: timeout de seguridad de 15s si la transacción de Firestore no responde'
+  ]},
   {v:'1.5.0',fecha:'10/07/2026',tipo:'minor',cambios:[
     'Datos de red por equipo (MAC Address para todas las categorías) + importador masivo desde Excel/TSV con matching por SystemID o nombre'
   ]},
