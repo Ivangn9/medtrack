@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v1.4.0 — 10/07/2026 (minor)
+
+- Rediseño Liquid Glass de botones táctiles (lote 1/2): detalle de antena, detalle de equipo, fallas, componentes
+
 ## v1.3.2 — 10/07/2026 (patch)
 
 - Botones Ver/Editar/Eliminar del historial de reparaciones: más grandes (44px+), estilo Liquid Glass, con más espacio entre ellos para evitar clics accidentales

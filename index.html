@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.10.003 -->
+<!-- v2026.07.10.004 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.10.003">
+<meta name="app-version" content="v2026.07.10.004">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -2420,6 +2420,33 @@ function icn(name,size,color){
   return'<svg width="'+s+'" height="'+s+'" viewBox="0 0 24 24" fill="none" stroke="'+(color||'currentColor')+'" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0;">'+p+'</svg>';
 }
 function pillH(c,txt){return'<span class="pill" style="background:'+c+'18;color:'+c+';">'+txt+'</span>';}
+
+// ── Botón de acción compacto, estilo Liquid Glass, con área de toque táctil real ──
+// Reemplaza los <button style="padding:3-5px..."> chiquitos repartidos por todo el
+// archivo (Editar/Eliminar/Ver/etc. en listas densas) por un tamaño consistente
+// (min-height 38px, o 34px en variante 'sm' para filas muy apretadas de 4+ botones)
+// con el mismo lenguaje visual: gradiente glass + blur + borde + brillo superior.
+var _ACTBTN_COLORS={
+  accent:{c:'var(--accent)',rgb:'0,113,227'},
+  green:{c:'var(--green)',rgb:'52,199,89'},
+  red:{c:'var(--red)',rgb:'255,59,48'},
+  orange:{c:'rgba(245,158,11,1)',rgb:'245,158,11'},
+  purple:{c:'#8b5cf6',rgb:'139,92,246'}
+};
+function actBtn(onclick,label,color,iconName,size){
+  var k=_ACTBTN_COLORS[color]||_ACTBTN_COLORS.accent;
+  var sm=size==='sm';
+  var minH=sm?34:38;
+  var pad=sm?'6px 11px':'8px 13px';
+  var fs=sm?'.7rem':'.74rem';
+  var ic=iconName?icn(iconName,sm?12:13)+(label?' ':''):'';
+  return '<button onclick="'+onclick+'" style="display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:'+minH+'px;padding:'+pad+';background:linear-gradient(180deg,rgba('+k.rgb+',.16),rgba('+k.rgb+',.09));backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border:1.5px solid rgba('+k.rgb+',.28);color:'+k.c+';border-radius:12px;font-size:'+fs+';font-weight:700;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 1px 3px rgba('+k.rgb+',.12);white-space:nowrap;">'+ic+esc(label||'')+'</button>';
+}
+// Variante ícono-solo circular (para "✕ quitar" en filas de archivos pendientes, etc.)
+function actBtnIcon(onclick,iconName,color,title){
+  var k=_ACTBTN_COLORS[color]||_ACTBTN_COLORS.red;
+  return '<button onclick="'+onclick+'"'+(title?' title="'+esc(title)+'"':'')+' style="display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;flex-shrink:0;background:linear-gradient(180deg,rgba('+k.rgb+',.14),rgba('+k.rgb+',.07));backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border:1.5px solid rgba('+k.rgb+',.24);color:'+k.c+';border-radius:11px;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.55);">'+icn(iconName,15)+'</button>';
+}
 
 function normBrand(s){return(s||'').toLowerCase().trim().replace(/[áàä]/g,'a').replace(/[éèë]/g,'e').replace(/[íìï]/g,'i').replace(/[óòö]/g,'o').replace(/[úùü]/g,'u').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');}
 var _LOGO_EXTS=['png','PNG','jpg','JPG','jpeg','JPEG','webp','WEBP','svg','SVG'];
@@ -8202,7 +8229,7 @@ function _rDetalleAdmin(eq){
     '<div style="background:linear-gradient(90deg,rgba(94,92,230,.12),rgba(94,92,230,.05));padding:9px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(94,92,230,.10);">'+
       adminSvgIcon(15)+
       '<span style="font-size:.72rem;font-weight:700;color:#5e5ce6;text-transform:uppercase;letter-spacing:.06em;flex:1;">Administrativo</span>'+
-      '<button onclick="openAdminModal(\''+eq.id+'\')" style="padding:5px 12px;border-radius:var(--r-pill);background:rgba(94,92,230,.10);border:1.5px solid rgba(94,92,230,.28);color:#5e5ce6;font-weight:700;font-size:.72rem;cursor:pointer;">'+icn('edit',12)+' Editar</button>'+
+      '<button onclick="openAdminModal(\''+eq.id+'\')" style="min-height:34px;padding:7px 13px;border-radius:var(--r-pill);background:rgba(94,92,230,.12);border:1.5px solid rgba(94,92,230,.30);color:#5e5ce6;font-weight:700;font-size:.72rem;cursor:pointer;">'+icn('edit',13)+' Editar</button>'+
     '</div>'+
     '<div style="padding:14px 16px;">'+
       // Seguro
@@ -8237,7 +8264,7 @@ function _rDetalleAdmin(eq){
     '<div style="background:linear-gradient(90deg,rgba(14,165,233,.12),rgba(14,165,233,.05));padding:9px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(14,165,233,.10);">'+
       '<span style="font-size:1rem;">📁</span>'+
       '<span style="font-size:.72rem;font-weight:700;color:#0ea5e9;text-transform:uppercase;letter-spacing:.06em;flex:1;">Documentos'+(_docs.length?' ('+_docs.length+')':'')+'</span>'+
-      '<button onclick="openDocsModal(\''+eq.id+'\')" style="padding:5px 12px;border-radius:var(--r-pill);background:rgba(14,165,233,.10);border:1.5px solid rgba(14,165,233,.28);color:#0ea5e9;font-weight:700;font-size:.72rem;cursor:pointer;">+ Agregar</button>'+
+      '<button onclick="openDocsModal(\''+eq.id+'\')" style="min-height:34px;padding:7px 13px;border-radius:var(--r-pill);background:rgba(14,165,233,.12);border:1.5px solid rgba(14,165,233,.30);color:#0ea5e9;font-weight:700;font-size:.72rem;cursor:pointer;">+ Agregar</button>'+
     '</div>'+
     '<div style="padding:12px 14px;">';
   if(!_docs.length){
@@ -8250,8 +8277,8 @@ function _rDetalleAdmin(eq){
           '<div style="font-size:.78rem;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(d.nombre)+'</div>'+
           '<div style="font-size:.62rem;color:var(--text3);margin-top:1px;">'+_docTipoLbl(d.tipo)+(d.fecha?' · '+fD(d.fecha):'')+'</div>'+
         '</div>'+
-        '<button onclick="openPDFViewer(\''+d.id+'\',\''+esc(d.nombre)+'\')" style="background:#0ea5e9;color:#fff;border:none;border-radius:50px;padding:6px 14px;font-size:.72rem;font-weight:700;cursor:pointer;flex-shrink:0;">Abrir</button>'+
-        '<button onclick="delDoc(\''+eq.id+'\',\''+d.id+'\')" style="background:rgba(255,59,48,.10);border:1.5px solid rgba(255,59,48,.25);color:var(--red);border-radius:50px;padding:6px 10px;font-size:.78rem;cursor:pointer;flex-shrink:0;" title="Eliminar">'+icn('trash',13)+'</button>'+
+        '<button onclick="openPDFViewer(\''+d.id+'\',\''+esc(d.nombre)+'\')" style="min-height:36px;background:#0ea5e9;color:#fff;border:none;border-radius:50px;padding:8px 15px;font-size:.74rem;font-weight:700;cursor:pointer;flex-shrink:0;">Abrir</button>'+
+        actBtnIcon("delDoc('"+eq.id+"','"+d.id+"')",'trash','red','Eliminar')+
       '</div>';
     });
   }
@@ -8556,7 +8583,7 @@ function _rDetalleComponentes(eq){
   if(faltantes.length>0){
     h+='<div style="padding:10px 12px;margin-bottom:10px;background:rgba(173,198,255,.08);border:1px dashed rgba(173,198,255,.3);border-radius:12px;display:flex;align-items:center;gap:10px;">';
     h+='<div style="flex:1;font-size:.72rem;color:var(--text2);">'+faltantes.length+' componente'+(faltantes.length!==1?'s':'')+' de la lista est\xe1ndar sin cargar</div>';
-    h+='<button onclick="_initComponentesEquipo(\''+eq.id+'\')" style="padding:6px 14px;border-radius:var(--r-pill);background:rgba(173,198,255,.15);border:1.5px solid rgba(173,198,255,.35);color:#adc6ff;font-weight:700;font-size:.7rem;cursor:pointer;white-space:nowrap;">+ Cargar lista</button>';
+    h+='<button onclick="_initComponentesEquipo(\''+eq.id+'\')" style="min-height:36px;padding:8px 16px;border-radius:var(--r-pill);background:rgba(173,198,255,.15);border:1.5px solid rgba(173,198,255,.35);color:#adc6ff;font-weight:700;font-size:.72rem;cursor:pointer;white-space:nowrap;">+ Cargar lista</button>';
     h+='</div>';
   }
   if(!todasPartes.length){
@@ -8573,15 +8600,15 @@ function _rDetalleComponentes(eq){
       if(p.estado==='roto'&&p.fechaRotura)h+='<div style="font-size:.62rem;color:#ff3b30;margin-top:1px;">Roto desde: '+_fmtFechaCort(p.fechaRotura)+'</div>';
       if(p.estado==='pendiente'&&p.fechaRotura)h+='<div style="font-size:.62rem;color:#ff9500;margin-top:1px;">Detectado: '+_fmtFechaCort(p.fechaRotura)+'</div>';
       h+='</div>';
-      h+='<div style="display:flex;gap:4px;flex-shrink:0;">';
-      if(p.estado!=='ok')h+='<button onclick="registrarFallaComponente(\''+eq.id+'\',\''+p.id+'\',\'ok\')" style="padding:3px 9px;border-radius:20px;font-size:.6rem;font-weight:700;border:1px solid rgba(52,199,89,.4);background:rgba(52,199,89,.1);color:#30d158;cursor:pointer;">✅ OK</button>';
-      if(p.estado!=='pendiente')h+='<button onclick="registrarFallaComponente(\''+eq.id+'\',\''+p.id+'\',\'pendiente\')" style="padding:3px 9px;border-radius:20px;font-size:.6rem;font-weight:700;border:1px solid rgba(255,149,0,.4);background:rgba(255,149,0,.1);color:#ff9500;cursor:pointer;">⚠️</button>';
-      if(p.estado!=='roto')h+='<button onclick="registrarFallaComponente(\''+eq.id+'\',\''+p.id+'\',\'roto\')" style="padding:3px 9px;border-radius:20px;font-size:.6rem;font-weight:700;border:1px solid rgba(255,59,48,.4);background:rgba(255,59,48,.1);color:#ff3b30;cursor:pointer;">🔴</button>';
-      h+='<button onclick="openModalParteById(\''+eq.id+'\',\''+p.id+'\')" style="padding:3px 8px;border-radius:20px;font-size:.6rem;font-weight:700;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:var(--text2);cursor:pointer;">'+icn('edit',14)+'</button>';
+      h+='<div style="display:flex;gap:6px;flex-shrink:0;">';
+      if(p.estado!=='ok')h+='<button onclick="registrarFallaComponente(\''+eq.id+'\',\''+p.id+'\',\'ok\')" style="min-width:34px;min-height:34px;padding:6px 10px;border-radius:14px;font-size:.68rem;font-weight:700;border:1.5px solid rgba(52,199,89,.4);background:rgba(52,199,89,.12);color:#30d158;cursor:pointer;">✅</button>';
+      if(p.estado!=='pendiente')h+='<button onclick="registrarFallaComponente(\''+eq.id+'\',\''+p.id+'\',\'pendiente\')" style="min-width:34px;min-height:34px;padding:6px 10px;border-radius:14px;font-size:.68rem;font-weight:700;border:1.5px solid rgba(255,149,0,.4);background:rgba(255,149,0,.12);color:#ff9500;cursor:pointer;">⚠️</button>';
+      if(p.estado!=='roto')h+='<button onclick="registrarFallaComponente(\''+eq.id+'\',\''+p.id+'\',\'roto\')" style="min-width:34px;min-height:34px;padding:6px 10px;border-radius:14px;font-size:.68rem;font-weight:700;border:1.5px solid rgba(255,59,48,.4);background:rgba(255,59,48,.12);color:#ff3b30;cursor:pointer;">🔴</button>';
+      h+='<button onclick="openModalParteById(\''+eq.id+'\',\''+p.id+'\')" style="min-width:34px;min-height:34px;padding:6px 10px;border-radius:14px;font-size:.7rem;font-weight:700;border:1.5px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:var(--text2);cursor:pointer;">'+icn('edit',14)+'</button>';
       h+='</div></div>';
     }
   }
-  h+='<button onclick="openModalParte(\''+eq.id+'\',null)" style="width:100%;margin-top:10px;padding:10px;border:1.5px dashed rgba(173,198,255,.3);border-radius:12px;background:rgba(173,198,255,.05);color:#adc6ff;font-size:.78rem;font-weight:600;cursor:pointer;">+ Agregar componente</button>';
+  h+='<button onclick="openModalParte(\''+eq.id+'\',null)" style="width:100%;min-height:44px;margin-top:10px;padding:11px;border:1.5px dashed rgba(173,198,255,.3);border-radius:12px;background:rgba(173,198,255,.05);color:#adc6ff;font-size:.8rem;font-weight:600;cursor:pointer;">+ Agregar componente</button>';
   h+='</div></div>';
   // Historial de componentes OK (reparados)
   var histPartes=(eq.historialMant||[]).filter(function(hm){return hm._parteOriginal||hm.tipo==='reparacion';});
@@ -8690,8 +8717,8 @@ function _rDetalleFallas(eq){
     if(_detalleQ)h+='<button onclick="_detalleQ=\'\';render();" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:.9rem;cursor:pointer;color:var(--text3);">✕</button>';
     h+='</div>';
   }
-  h+='<button onclick="toggleDetalleSearch()" style="background:'+((_detalleSearchOpen||_detalleQ)?'rgba(220,38,38,.12)':'rgba(255,59,48,.07)')+';border:1px solid '+((_detalleSearchOpen||_detalleQ)?'rgba(220,38,38,.28)':'rgba(255,59,48,.18)')+';border-radius:10px;padding:4px 8px;cursor:pointer;font-size:.82rem;color:'+((_detalleSearchOpen||_detalleQ)?'#dc2626':'rgba(220,38,38,.6)')+';">🔍</button>';
-  h+='<button onclick="openModalParte(\''+eq.id+'\',null)" style="padding:5px 12px;border-radius:var(--r-pill);background:rgba(220,38,38,.10);border:1.5px solid rgba(220,38,38,.28);color:#dc2626;font-weight:700;font-size:.72rem;cursor:pointer;">+ Agregar</button>';
+  h+='<button onclick="toggleDetalleSearch()" style="display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;flex-shrink:0;background:'+((_detalleSearchOpen||_detalleQ)?'rgba(220,38,38,.14)':'rgba(255,59,48,.08)')+';border:1.5px solid '+((_detalleSearchOpen||_detalleQ)?'rgba(220,38,38,.3)':'rgba(255,59,48,.2)')+';border-radius:11px;cursor:pointer;font-size:.9rem;color:'+((_detalleSearchOpen||_detalleQ)?'#dc2626':'rgba(220,38,38,.6)')+';">🔍</button>';
+  h+=actBtn("openModalParte('"+eq.id+"',null)",'+ Agregar','red',null,'sm');
   h+='</div></div>';
   h+='<div style="padding:14px 16px;">';
   var partesActivas=eq.partes.filter(function(p){
@@ -8706,10 +8733,10 @@ function _rDetalleFallas(eq){
     _allFaultParts.forEach(function(p){if(p.nombre&&_compNames.indexOf(p.nombre)===-1)_compNames.push(p.nombre);});
     if(_compNames.length>1){
       h+='<div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:10px;scrollbar-width:none;">';
-      h+='<button onclick="_detalleQ=\'\';render();" style="white-space:nowrap;padding:4px 12px;border-radius:50px;font-size:.62rem;font-weight:700;border:1.5px solid rgba(220,38,38,'+(dq?'.2':'.45')+');background:'+(dq?'rgba(120,120,128,.07)':'rgba(220,38,38,.12)')+';color:'+(dq?'var(--text3)':'#dc2626')+';cursor:pointer;flex-shrink:0;">Todas ('+_allFaultParts.length+')</button>';
+      h+='<button onclick="_detalleQ=\'\';render();" style="white-space:nowrap;min-height:34px;padding:7px 14px;border-radius:50px;font-size:.66rem;font-weight:700;border:1.5px solid rgba(220,38,38,'+(dq?'.2':'.45')+');background:'+(dq?'rgba(120,120,128,.07)':'rgba(220,38,38,.12)')+';color:'+(dq?'var(--text3)':'#dc2626')+';cursor:pointer;flex-shrink:0;">Todas ('+_allFaultParts.length+')</button>';
       _compNames.forEach(function(nm){
         var isActive=dq===nm.toLowerCase();
-        h+='<button onclick="setDetalleQ(\''+esc(nm).replace(/'/g,'\\\'')+'\')" style="white-space:nowrap;padding:4px 12px;border-radius:50px;font-size:.62rem;font-weight:700;border:1.5px solid rgba(220,38,38,'+(isActive?'.5':'.2')+');background:'+(isActive?'rgba(220,38,38,.15)':'rgba(120,120,128,.07)')+';color:'+(isActive?'#dc2626':'var(--text3)')+';cursor:pointer;flex-shrink:0;">'+esc(nm)+'</button>';
+        h+='<button onclick="setDetalleQ(\''+esc(nm).replace(/'/g,'\\\'')+'\')" style="white-space:nowrap;min-height:34px;padding:7px 14px;border-radius:50px;font-size:.66rem;font-weight:700;border:1.5px solid rgba(220,38,38,'+(isActive?'.5':'.2')+');background:'+(isActive?'rgba(220,38,38,.15)':'rgba(120,120,128,.07)')+';color:'+(isActive?'#dc2626':'var(--text3)')+';cursor:pointer;flex-shrink:0;">'+esc(nm)+'</button>';
       });
       h+='</div>';
     }
@@ -8734,7 +8761,7 @@ function _rDetalleFallas(eq){
       '</div></div>':'')+
       '</div>'+
       (p.notas?'<div style="font-size:.73rem;color:var(--text2);background:rgba(0,0,0,.04);padding:7px 10px;border-radius:8px;margin-bottom:8px;">'+esc(p.notas)+'</div>':'')+
-      ((p.archivos&&p.archivos.length)?'<div style="margin-bottom:8px;">'+p.archivos.map(function(a){return'<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(0,0,0,.05);"><span>📄</span><span style="font-size:.72rem;flex:1;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(a.nombre)+'</span><button onclick="openPDFViewer(\''+a.id+'\',\''+esc(a.nombre)+'\')" style="background:rgba(0,113,227,.1);color:var(--accent);border:none;border-radius:8px;padding:3px 10px;font-size:.65rem;font-weight:600;cursor:pointer;flex-shrink:0;">Abrir</button><button onclick="delParteFileDirect(\''+eq.id+'\',\''+p.id+'\',\''+a.id+'\')" style="background:none;border:none;color:var(--red);font-size:.85rem;cursor:pointer;padding:2px 5px;flex-shrink:0;">'+icn('trash',13)+'</button></div>';}).join('')+'</div>':'')+
+      ((p.archivos&&p.archivos.length)?'<div style="margin-bottom:8px;">'+p.archivos.map(function(a){return'<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(0,0,0,.05);"><span>📄</span><span style="font-size:.72rem;flex:1;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(a.nombre)+'</span>'+actBtn("openPDFViewer('"+a.id+"','"+esc(a.nombre)+"')",'Abrir','accent',null,'sm')+actBtnIcon("delParteFileDirect('"+eq.id+"','"+p.id+"','"+a.id+"')",'trash','red','Eliminar')+'</div>';}).join('')+'</div>':'')+
       (function(){
         var sgHtml='';
         var pSegs=(p.seguimientos||[]).slice().sort(function(a,b){return a.fecha>b.fecha?1:-1;});
@@ -8747,7 +8774,7 @@ function _rDetalleFallas(eq){
             sgHtml+='<span style="font-size:.6rem;font-weight:700;color:rgba(255,149,0,.6);min-width:18px;">#'+(_si+1)+'</span>';
             sgHtml+='<span style="font-size:.67rem;font-weight:700;color:#ff9500;white-space:nowrap;min-width:68px;">'+_fmtFechaCort(_sg.fecha)+'</span>';
             sgHtml+='<span style="font-size:.72rem;color:#555;flex:1;line-height:1.4;">'+esc(_sg.nota||'')+'</span>';
-            sgHtml+='<button onclick="event.stopPropagation();_delSeguimientoFalla(\''+eq.id+'\',\''+p.id+'\',\''+_sg.id+'\');" style="background:none;border:none;color:rgba(120,120,128,.35);font-size:.75rem;cursor:pointer;padding:0 2px;flex-shrink:0;">✕</button>';
+            sgHtml+='<button onclick="event.stopPropagation();_delSeguimientoFalla(\''+eq.id+'\',\''+p.id+'\',\''+_sg.id+'\');" style="background:rgba(120,120,128,.08);border:none;border-radius:8px;color:var(--text3);font-size:.8rem;cursor:pointer;min-width:30px;min-height:30px;flex-shrink:0;">✕</button>';
             sgHtml+='</div>';
           }
           sgHtml+='</div>';
@@ -8756,7 +8783,7 @@ function _rDetalleFallas(eq){
         return sgHtml;
       })()+
       (p.estado!=='ok'?'<button onclick="repararParte(\''+eq.id+'\',\''+p.id+'\')" style="width:100%;padding:11px;margin-bottom:8px;border:none;border-radius:12px;background:var(--green);color:#fff;font-size:.86rem;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(52,199,89,.3);">✅ Marcar como Reparado</button>':'')+
-      '<div style="display:flex;gap:6px;"><button class="btn-secondary btn-sm" style="flex:1;" onclick="openModalParteById(\''+eq.id+'\',\''+p.id+'\')">'+icn('edit',12)+' Editar</button><button class="btn-danger btn-sm" onclick="delParte(\''+eq.id+'\',\''+p.id+'\')">'+icn('trash',13)+'</button></div></div>';
+      '<div style="display:flex;gap:6px;">'+actBtn("openModalParteById('"+eq.id+"','"+p.id+"')",'Editar','accent','edit')+actBtn("delParte('"+eq.id+"','"+p.id+"')",'Eliminar','red','trash')+'</div></div>';
   });
   // Fallas de componentes vinculados dentro de la misma sección
   if(_linkedFaults.length){
@@ -8876,10 +8903,10 @@ function rDetalle(){
   h+='<div style="background:linear-gradient(90deg,rgba(0,113,227,.13),rgba(0,180,255,.07));padding:9px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(0,113,227,.12);">';
   h+='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(0,113,227,.9)" stroke-width="2.2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>';
   h+='<span style="font-size:.72rem;font-weight:700;color:rgba(0,113,227,.9);text-transform:uppercase;letter-spacing:.06em;flex:1;">Equipo</span>';
-  h+='<button class="btn-secondary" style="padding:4px 11px;font-size:.68rem;" onclick="openModalEq('+JSON.stringify(eq).replace(/"/g,'&quot;')+')">'+icn('edit',12)+' Editar</button>';
-  h+='<button onclick="openQRModal(\''+eq.id+'\')" style="margin-left:5px;padding:4px 11px;border-radius:var(--r-pill);background:rgba(0,113,227,.10);border:1.5px solid rgba(0,113,227,.28);color:var(--accent);font-weight:700;font-size:.68rem;cursor:pointer;">'+icn('qr',11)+' QR</button>';
-  h+='<button onclick="openDarDeBajaModal(\''+eq.id+'\')" style="margin-left:5px;padding:4px 11px;border-radius:var(--r-pill);background:rgba(255,59,48,.10);border:1.5px solid rgba(255,59,48,.28);color:var(--red);font-weight:700;font-size:.68rem;cursor:pointer;">Dar de baja</button>';
-  h+='<button onclick="generarPDFEquipo(\''+eq.id+'\')" style="margin-left:5px;padding:4px 11px;border-radius:var(--r-pill);background:rgba(173,198,255,.15);border:1.5px solid rgba(173,198,255,.3);color:#adc6ff;font-weight:700;font-size:.68rem;cursor:pointer;">PDF Equipo</button>';
+  h+='<button onclick="openModalEq('+JSON.stringify(eq).replace(/"/g,'&quot;')+')" style="display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:36px;padding:8px 13px;background:linear-gradient(180deg,rgba(0,113,227,.16),rgba(0,113,227,.09));backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border:1.5px solid rgba(0,113,227,.28);color:var(--accent);border-radius:12px;font-size:.72rem;font-weight:700;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.6);">'+icn('edit',13)+' Editar</button>';
+  h+='<button onclick="openQRModal(\''+eq.id+'\')" style="margin-left:6px;display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:36px;padding:8px 13px;border-radius:12px;background:rgba(0,113,227,.10);border:1.5px solid rgba(0,113,227,.28);color:var(--accent);font-weight:700;font-size:.72rem;cursor:pointer;">'+icn('qr',13)+' QR</button>';
+  h+='<button onclick="openDarDeBajaModal(\''+eq.id+'\')" style="margin-left:6px;display:inline-flex;align-items:center;justify-content:center;min-height:36px;padding:8px 13px;border-radius:12px;background:rgba(255,59,48,.10);border:1.5px solid rgba(255,59,48,.28);color:var(--red);font-weight:700;font-size:.72rem;cursor:pointer;">Dar de baja</button>';
+  h+='<button onclick="generarPDFEquipo(\''+eq.id+'\')" style="margin-left:6px;display:inline-flex;align-items:center;justify-content:center;min-height:36px;padding:8px 13px;border-radius:12px;background:rgba(173,198,255,.15);border:1.5px solid rgba(173,198,255,.3);color:#adc6ff;font-weight:700;font-size:.72rem;cursor:pointer;">PDF Equipo</button>';
   h+='</div>';
   h+='<div style="padding:16px;position:relative;overflow:hidden;">';
   h+='<div style="position:absolute;right:-12px;top:-8px;width:130px;height:130px;display:flex;align-items:center;justify-content:center;opacity:.45;pointer-events:none;z-index:0;">'+catIconBig+'</div>';
@@ -8930,7 +8957,7 @@ function rDetalle(){
     var _lastBat=_batHist.length?_batHist[0].fecha:null;
     var _batDias=_lastBat?diasH(_lastBat):-1;
     var _batAlert=!_lastBat||(-_batDias)>730;
-    h+='<div style="background:rgba(245,158,11,.06);border:1.5px solid rgba(245,158,11,.20);border-radius:var(--r-md);padding:12px 14px;margin-bottom:12px;"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;"><div style="font-size:.66rem;font-weight:800;color:#f59e0b;text-transform:uppercase;letter-spacing:.07em;">🔋 Cambios de Baterías</div><button onclick="openCambioBateriasModal(\''+eq.id+'\')" style="font-size:.7rem;padding:4px 10px;border-radius:12px;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.30);color:#d97706;cursor:pointer;font-weight:600;">+ Registrar</button></div>'+(_batAlert?'<div style="background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.30);border-radius:var(--r-md);padding:8px 10px;margin-bottom:10px;font-size:.74rem;color:#d97706;font-weight:600;">⚠️ '+(!_lastBat?'Sin cambio de baterías registrado':'Último cambio hace más de 2 años — verificar')+'</div>':'')+(_batHist.length?'<div class="det-grid">'+_batHist.slice(0,3).map(function(b){return '<div class="ibox"><div class="ibox-l">'+fD(b.fecha)+'</div><div class="ibox-v" style="font-size:.74rem;">'+(b.proveedor?'🏢 '+esc(b.proveedor):'')+((b.proveedor&&b.tecnico)?' · ':'')+( b.tecnico?'Téc: '+esc(b.tecnico):'')+( b.notas?'<br><span style="color:var(--text3);font-size:.68rem;">'+esc(b.notas)+'</span>':'')+'</div></div>';}).join('')+(_batHist.length>3?'<div class="ibox" style="grid-column:1/-1;"><div style="font-size:.7rem;color:var(--text3);">+'+(_batHist.length-3)+' cambio(s) anteriores</div></div>':'')+
+    h+='<div style="background:rgba(245,158,11,.06);border:1.5px solid rgba(245,158,11,.20);border-radius:var(--r-md);padding:12px 14px;margin-bottom:12px;"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;"><div style="font-size:.66rem;font-weight:800;color:#f59e0b;text-transform:uppercase;letter-spacing:.07em;">🔋 Cambios de Baterías</div><button onclick="openCambioBateriasModal(\''+eq.id+'\')" style="min-height:34px;padding:7px 13px;border-radius:12px;background:rgba(245,158,11,.12);border:1.5px solid rgba(245,158,11,.30);color:#d97706;cursor:pointer;font-weight:700;font-size:.72rem;">+ Registrar</button></div>'+(_batAlert?'<div style="background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.30);border-radius:var(--r-md);padding:8px 10px;margin-bottom:10px;font-size:.74rem;color:#d97706;font-weight:600;">⚠️ '+(!_lastBat?'Sin cambio de baterías registrado':'Último cambio hace más de 2 años — verificar')+'</div>':'')+(_batHist.length?'<div class="det-grid">'+_batHist.slice(0,3).map(function(b){return '<div class="ibox"><div class="ibox-l">'+fD(b.fecha)+'</div><div class="ibox-v" style="font-size:.74rem;">'+(b.proveedor?'🏢 '+esc(b.proveedor):'')+((b.proveedor&&b.tecnico)?' · ':'')+( b.tecnico?'Téc: '+esc(b.tecnico):'')+( b.notas?'<br><span style="color:var(--text3);font-size:.68rem;">'+esc(b.notas)+'</span>':'')+'</div></div>';}).join('')+(_batHist.length>3?'<div class="ibox" style="grid-column:1/-1;"><div style="font-size:.7rem;color:var(--text3);">+'+(_batHist.length-3)+' cambio(s) anteriores</div></div>':'')+
     '</div>':'<div style="font-size:.78rem;color:var(--text3);padding:8px 0;">Sin cambios de baterías registrados</div>')+'</div>';
   }
   h+='</div></div></div>';
@@ -8964,11 +8991,11 @@ function rDetalle(){
     h+=cCell('Nivel Líq.','<span style="color:'+_liqPCol+';font-family:JetBrains Mono,monospace;">'+_liqPTxt+'</span>',(!isNaN(_liqPorc)&&_liqPorc<70?'⚠ bajo (mín 70%)':'≥70% óptimo'));
     h+=cCell('Pres. Líq.','<span style="color:'+_liqPresCol+';font-family:JetBrains Mono,monospace;">'+_liqPresTxt+'</span>',(!isNaN(_liqPres)&&(_liqPres<0.9||_liqPres>2.0)?'⚠ fuera de rango':'0.9–2.0 PSI'));
     h+='</div>';
-    h+='<div style="display:flex;gap:5px;flex-wrap:wrap;">';
-    h+='<button onclick="event.stopPropagation();openActualizarHelioGaseoso(\''+eq.id+'\')" style="padding:5px 10px;border-radius:var(--r-pill);font-size:.7rem;font-weight:600;cursor:pointer;border:1.5px solid rgba(99,179,237,.3);background:rgba(99,179,237,.08);color:#63b3ed;">📝 Gas</button>';
-    h+='<button onclick="event.stopPropagation();openActualizarHelioLiquido(\''+eq.id+'\')" style="padding:5px 10px;border-radius:var(--r-pill);font-size:.7rem;font-weight:600;cursor:pointer;border:1.5px solid rgba(99,179,237,.3);background:rgba(99,179,237,.08);color:#63b3ed;">📝 Líq</button>';
-    h+='<button onclick="event.stopPropagation();openCargaRealHelioGaseoso(\''+eq.id+'\')" style="padding:5px 10px;border-radius:var(--r-pill);font-size:.7rem;font-weight:600;cursor:pointer;border:1.5px solid rgba(8,145,178,.4);background:rgba(8,145,178,.12);color:#0ea5e9;">⚗️ Gas</button>';
-    h+='<button onclick="event.stopPropagation();openCargaRealHelioLiquido(\''+eq.id+'\')" style="padding:5px 10px;border-radius:var(--r-pill);font-size:.7rem;font-weight:600;cursor:pointer;border:1.5px solid rgba(8,145,178,.4);background:rgba(8,145,178,.12);color:#0ea5e9;">💧 Líq</button>';
+    h+='<div style="display:flex;gap:6px;flex-wrap:wrap;">';
+    h+='<button onclick="event.stopPropagation();openActualizarHelioGaseoso(\''+eq.id+'\')" style="min-height:34px;padding:7px 13px;border-radius:var(--r-pill);font-size:.72rem;font-weight:700;cursor:pointer;border:1.5px solid rgba(99,179,237,.35);background:rgba(99,179,237,.10);color:#63b3ed;">📝 Gas</button>';
+    h+='<button onclick="event.stopPropagation();openActualizarHelioLiquido(\''+eq.id+'\')" style="min-height:34px;padding:7px 13px;border-radius:var(--r-pill);font-size:.72rem;font-weight:700;cursor:pointer;border:1.5px solid rgba(99,179,237,.35);background:rgba(99,179,237,.10);color:#63b3ed;">📝 Líq</button>';
+    h+='<button onclick="event.stopPropagation();openCargaRealHelioGaseoso(\''+eq.id+'\')" style="min-height:34px;padding:7px 13px;border-radius:var(--r-pill);font-size:.72rem;font-weight:700;cursor:pointer;border:1.5px solid rgba(8,145,178,.45);background:rgba(8,145,178,.14);color:#0ea5e9;">⚗️ Gas</button>';
+    h+='<button onclick="event.stopPropagation();openCargaRealHelioLiquido(\''+eq.id+'\')" style="min-height:34px;padding:7px 13px;border-radius:var(--r-pill);font-size:.72rem;font-weight:700;cursor:pointer;border:1.5px solid rgba(8,145,178,.45);background:rgba(8,145,178,.14);color:#0ea5e9;">💧 Líq</button>';
     h+='</div>';
     h+=navRowFn('Historial · Cargas · Gráficos',_rfLastCarga?('Últ. '+fD(_rfLastCarga.fecha)):'Sin cargas','setDetalleTab(\'refrig\')');
     h+='</div></div>';
@@ -9034,7 +9061,7 @@ function rDetalle(){
   hR+='<div class="gc" style="padding:0;margin-bottom:14px;overflow:hidden;border-left:4px solid rgba(255,149,0,.45);background:linear-gradient(135deg,rgba(255,149,0,.08) 0%,rgba(255,204,0,.04) 100%);">';
   hR+='<div style="background:linear-gradient(90deg,rgba(255,149,0,.12),rgba(255,204,0,.07));padding:9px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,149,0,.10);">';
   hR+='<div style="display:flex;align-items:center;gap:7px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(200,110,0,.9)" stroke-width="2.2" stroke-linecap="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg><span style="font-size:.72rem;font-weight:700;color:rgba(200,110,0,.9);text-transform:uppercase;letter-spacing:.06em;">Mantenimiento</span></div>';
-  hR+='<button onclick="openEditMantConfigModal(\''+eq.id+'\')" style="font-size:.7rem;padding:4px 10px;border-radius:12px;background:rgba(255,149,0,.10);border:1px solid rgba(255,149,0,.28);color:rgba(160,90,0,.9);cursor:pointer;font-weight:600;box-shadow:inset 0 1px 0 rgba(255,255,255,.8);">'+icn('edit',12)+' Editar</button></div>';
+  hR+='<button onclick="openEditMantConfigModal(\''+eq.id+'\')" style="min-height:34px;padding:7px 13px;border-radius:12px;background:rgba(255,149,0,.12);border:1.5px solid rgba(255,149,0,.30);color:rgba(160,90,0,.9);cursor:pointer;font-weight:700;font-size:.72rem;box-shadow:inset 0 1px 0 rgba(255,255,255,.8);">'+icn('edit',13)+' Editar</button></div>';
   hR+='<div style="padding:14px 16px;">';
   hR+='<div class="det-grid" style="margin-bottom:10px;">';
   hR+='<div class="ibox"><div class="ibox-l">Frecuencia</div><div class="ibox-v">'+esc(eq.frecuencia)+'</div></div>';
@@ -9058,7 +9085,7 @@ function rDetalle(){
   '<div class="gc" style="padding:0;overflow:hidden;background:linear-gradient(135deg,rgba(139,92,246,.07) 0%,rgba(167,139,250,.04) 100%);">';
   hR+='<div style="background:linear-gradient(90deg,rgba(139,92,246,.12),rgba(167,139,250,.07));padding:8px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(139,92,246,.10);">';
   hR+='<span style="font-size:.72rem;font-weight:700;color:rgba(139,92,246,.9);text-transform:uppercase;letter-spacing:.06em;">📊 Análisis Técnico</span>';
-  hR+='<button onclick="openAIAssistant(\''+eq.id+'\')" style="display:flex;align-items:center;gap:5px;font-size:.68rem;font-weight:700;padding:4px 10px;border-radius:20px;background:rgba(173,198,255,.12);border:1.5px solid rgba(173,198,255,.3);color:#adc6ff;cursor:pointer;">🤖 Consultar IA</button>';
+  hR+='<button onclick="openAIAssistant(\''+eq.id+'\')" style="display:flex;align-items:center;justify-content:center;gap:6px;min-height:36px;font-size:.72rem;font-weight:700;padding:8px 14px;border-radius:20px;background:rgba(173,198,255,.14);border:1.5px solid rgba(173,198,255,.32);color:#adc6ff;cursor:pointer;">🤖 Consultar IA</button>';
   hR+='</div>';
   hR+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px 14px;">';
   if(_mtbf!==null)hR+='<div class="ibox"><div class="ibox-l">MTBF</div><div class="ibox-v" style="font-family:monospace;font-weight:700;">'+_mtbf+'d</div><div style="font-size:.6rem;color:var(--text3);margin-top:1px;">entre fallas</div></div>';
@@ -9105,7 +9132,7 @@ function rDetalle(){
   hR+='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(220,38,38,.9)" stroke-width="2.2" stroke-linecap="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>';
   hR+='<span style="font-size:.72rem;font-weight:700;color:rgba(220,38,38,.9);text-transform:uppercase;letter-spacing:.06em;flex:1;">Roturas y Fallas</span>';
   hR+=(_rotTotal>0?'<span style="font-size:.62rem;font-weight:700;padding:1px 7px;border-radius:20px;background:rgba(220,38,38,.15);color:#dc2626;border:1px solid rgba(220,38,38,.25);">'+_rotTotal+' activa'+(_rotTotal!==1?'s':'')+'</span>':'');
-  hR+='<button onclick="event.stopPropagation();openModalParte(\''+eq.id+'\',null)" style="margin-left:4px;padding:4px 10px;border-radius:var(--r-pill);background:rgba(220,38,38,.10);border:1.5px solid rgba(220,38,38,.28);color:#dc2626;font-weight:700;font-size:.68rem;cursor:pointer;">+ Agregar</button>';
+  hR+='<button onclick="event.stopPropagation();openModalParte(\''+eq.id+'\',null)" style="margin-left:6px;min-height:34px;padding:7px 13px;border-radius:var(--r-pill);background:rgba(220,38,38,.12);border:1.5px solid rgba(220,38,38,.30);color:#dc2626;font-weight:700;font-size:.72rem;cursor:pointer;">+ Agregar</button>';
   hR+='</div>';
   hR+='<div style="padding:10px 14px 12px;">';
   if(!_rotTotal){
@@ -9135,7 +9162,7 @@ function rDetalle(){
   hR+='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(217,119,6,.9)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>';
   hR+='<span style="font-size:.72rem;font-weight:700;color:rgba(217,119,6,.9);text-transform:uppercase;letter-spacing:.06em;flex:1;">Órdenes de Trabajo</span>';
   hR+=(_eqOTsActivas.length?'<span style="font-size:.62rem;font-weight:700;padding:1px 7px;border-radius:20px;background:rgba(245,158,11,.15);color:#d97706;border:1px solid rgba(245,158,11,.25);">'+_eqOTsActivas.length+' activa'+(_eqOTsActivas.length!==1?'s':'')+'</span>':'');
-  hR+='<button onclick="event.stopPropagation();openModalOT(\''+eq.id+'\',null)" style="margin-left:4px;padding:4px 10px;border-radius:var(--r-pill);background:rgba(245,158,11,.10);border:1.5px solid rgba(245,158,11,.28);color:#d97706;font-weight:700;font-size:.68rem;cursor:pointer;">+ Nueva</button>';
+  hR+='<button onclick="event.stopPropagation();openModalOT(\''+eq.id+'\',null)" style="margin-left:6px;min-height:34px;padding:7px 13px;border-radius:var(--r-pill);background:rgba(245,158,11,.12);border:1.5px solid rgba(245,158,11,.30);color:#d97706;font-weight:700;font-size:.72rem;cursor:pointer;">+ Nueva</button>';
   hR+='</div>';
   hR+='<div style="padding:10px 14px 12px;">';
   if(!_eqOTsActivas.length){
@@ -9919,11 +9946,11 @@ function rAntenas(){
       '<div style="font-size:.66rem;color:var(--accent);margin-bottom:2px;">🔌 Transductor: '+esc(t.nombre||t.modelo||t.id)+'</div>'+
       (r.fecha?'<div style="font-size:.66rem;color:var(--text3);">📅 '+fD(r.fecha)+'</div>':'')+
       (r.empresa?'<div style="font-size:.66rem;color:rgba(245,158,11,1);margin-top:2px;">🏗️ '+esc(r.empresa)+'</div>':'')+
-      '<div style="display:flex;gap:5px;margin-top:7px;flex-wrap:wrap;">'+
-        '<button onclick="openSeguimientoTransductorRotura(\''+t.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.22);color:rgba(245,158,11,1);cursor:pointer;font-weight:700;">📋 Seguimiento</button>'+
-        (_nFotos>0?'<button onclick="openFotosTransductorRotura(\''+t.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(52,199,89,.10);border:1px solid rgba(52,199,89,.2);color:var(--green);cursor:pointer;font-weight:600;">📷 '+_nFotos+' foto'+(_nFotos!==1?'s':'')+'</button>':'')+
-        '<button onclick="openEditTransductorRotura(\''+t.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(173,198,255,.06);border:1px solid rgba(173,198,255,.22);color:var(--accent);cursor:pointer;font-weight:600;">'+icn('edit',12)+' Editar</button>'+
-        '<button onclick="goTransductores(\''+eq.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(14,165,233,.06);border:1px solid rgba(14,165,233,.2);color:rgba(14,165,233,.9);cursor:pointer;font-weight:600;">Ver transductor →</button>'+
+      '<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">'+
+        actBtn("openSeguimientoTransductorRotura('"+t.id+"','"+r.id+"')",'Seguimiento','orange',null,'sm')+
+        (_nFotos>0?actBtn("openFotosTransductorRotura('"+t.id+"','"+r.id+"')",_nFotos+' foto'+(_nFotos!==1?'s':''),'green','camera','sm'):'')+
+        actBtn("openEditTransductorRotura('"+t.id+"','"+r.id+"')",'Editar','accent','edit','sm')+
+        actBtn("goTransductores('"+eq.id+"')",'Ver transductor →','accent',null,'sm')+
       '</div>'+
     '</div>';
   }).join('');
@@ -9931,7 +9958,7 @@ function rAntenas(){
     '<div style="background:linear-gradient(90deg,rgba(217,119,6,.10),rgba(217,119,6,.05));padding:9px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(217,119,6,.10);">'+
       '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2.2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'+
       '<span style="font-size:.72rem;font-weight:700;color:#d97706;text-transform:uppercase;letter-spacing:.06em;flex:1;">Fallas del Equipo'+(_totalFallas>0?' ('+_totalFallas+')':"")+'</span>'+
-      '<button onclick="openAddFallaDirectaModal(\''+eq.id+'\')" style="font-size:.66rem;padding:4px 10px;border-radius:14px;background:#d97706;color:#fff;border:none;cursor:pointer;font-weight:700;">+ Nueva Falla</button>'+
+      '<button onclick="openAddFallaDirectaModal(\''+eq.id+'\')" style="display:inline-flex;align-items:center;justify-content:center;min-height:34px;padding:7px 13px;border-radius:12px;background:#d97706;color:#fff;border:none;cursor:pointer;font-weight:700;font-size:.7rem;box-shadow:inset 0 1px 0 rgba(255,255,255,.25);">+ Nueva Falla</button>'+
     '</div>'+
     '<div style="padding:12px 14px;">'+
       (_totalFallas===0?
@@ -9957,11 +9984,11 @@ function rAntenas(){
             '</div>'+
           '</div>'+
           '<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">'+
-            '<button onclick="openSeguimientoFallaDirecta(\''+eq.id+'\',\''+f.id+'\')" style="font-size:.66rem;padding:5px 11px;border-radius:14px;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.22);color:rgba(245,158,11,1);font-weight:700;cursor:pointer;">📋 Seguimiento</button>'+
-            (_nFotos>0?'<button onclick="openFotosFallaDirecta(\''+eq.id+'\',\''+f.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(52,199,89,.10);border:1px solid rgba(52,199,89,.2);color:var(--green);cursor:pointer;font-weight:600;">📷 Ver fotos</button>':'')+
-            '<button onclick="openAgregarFotosFallaDirecta(\''+eq.id+'\',\''+f.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(52,199,89,.06);border:1px dashed rgba(52,199,89,.22);color:var(--green);cursor:pointer;font-weight:600;">📷 + Foto</button>'+
-            '<button onclick="openEditFallaDirecta(\''+eq.id+'\',\''+f.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(173,198,255,.06);border:1px solid rgba(173,198,255,.22);color:var(--accent);cursor:pointer;font-weight:600;">'+icn('edit',12)+' Editar</button>'+
-            '<button onclick="deleteFallaDirecta(\''+eq.id+'\',\''+f.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(255,59,48,.08);border:1px solid rgba(255,59,48,.15);color:var(--red);cursor:pointer;font-weight:600;">&#x2715;</button>'+
+            actBtn("openSeguimientoFallaDirecta('"+eq.id+"','"+f.id+"')",'Seguimiento','orange',null,'sm')+
+            (_nFotos>0?actBtn("openFotosFallaDirecta('"+eq.id+"','"+f.id+"')",'Ver fotos','green','camera','sm'):'')+
+            actBtn("openAgregarFotosFallaDirecta('"+eq.id+"','"+f.id+"')",'+ Foto','green','camera','sm')+
+            actBtn("openEditFallaDirecta('"+eq.id+"','"+f.id+"')",'Editar','accent','edit','sm')+
+            actBtn("deleteFallaDirecta('"+eq.id+"','"+f.id+"')",'Eliminar','red','trash','sm')+
           '</div>'+
         '</div>';}).join('')
       )+
@@ -9986,8 +10013,7 @@ function rAntenaDetalle(){
   h+='<div class="gc" style="padding:0;margin-bottom:12px;overflow:hidden;border-left:4px solid rgba(79,120,224,.6);background:linear-gradient(135deg,rgba(79,120,224,.07) 0%,rgba(99,102,241,.04) 100%);">'+
     '<div style="background:linear-gradient(90deg,rgba(79,120,224,.13),rgba(99,102,241,.07));padding:9px 16px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(79,120,224,.12);">'+
       antenaSvgIcon(14)+'<span style="font-size:.72rem;font-weight:700;color:rgba(79,120,224,.9);text-transform:uppercase;letter-spacing:.06em;">Antena RF</span>'+
-      '<button onclick="openEditAntennaModal(\''+ant.id+'\')" style="margin-left:auto;font-size:.7rem;padding:4px 10px;border-radius:12px;background:rgba(79,120,224,.12);border:1px solid rgba(79,120,224,.22);color:#4f78e0;cursor:pointer;font-weight:600;">✎ Editar</button>'+
-      '<button onclick="generarPDFAntena(\''+ant.id+'\')" style="font-size:.7rem;padding:4px 10px;border-radius:12px;background:rgba(0,113,227,.12);border:1px solid rgba(0,113,227,.22);color:#0071e3;cursor:pointer;font-weight:600;margin-left:6px;">📄 PDF</button>'+
+      '<div style="margin-left:auto;display:flex;gap:6px;">'+actBtn("openEditAntennaModal('"+ant.id+"')",'Editar','accent','edit')+actBtn("generarPDFAntena('"+ant.id+"')",'PDF','accent','file')+'</div>'+
     '</div>'+
     '<div style="padding:16px;position:relative;overflow:hidden;min-height:120px;">'+
       '<div style="position:absolute;right:-14px;top:50%;transform:translateY(-50%);width:190px;height:190px;display:flex;align-items:center;justify-content:center;opacity:.80;pointer-events:none;z-index:0;">'+antenaSvgIcon(190,ant.tipo)+'</div>'+
@@ -10026,8 +10052,8 @@ function rAntenaDetalle(){
           '<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:var(--r-md);background:rgba(52,199,89,.08);border:1px solid rgba(52,199,89,.18);">'+
             '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'+
             '<span style="flex:1;font-size:.78rem;font-weight:600;color:var(--text);">'+esc(ant.presupuestoCompraPdf.nombre||'Presupuesto')+'</span>'+
-            '<button onclick="openPDFViewer(\''+ant.presupuestoCompraPdf.id+'\',\'\')" style="font-size:.7rem;padding:4px 10px;border-radius:14px;background:var(--accent);color:#fff;border:none;cursor:pointer;font-weight:600;">Ver</button>'+
-            '<button onclick="deleteAntenaPresupuestoCompra(\''+ant.id+'\')" style="font-size:.7rem;padding:4px 8px;border-radius:14px;background:rgba(255,59,48,.10);color:var(--red);border:1px solid rgba(255,59,48,.20);cursor:pointer;font-weight:600;">✕</button>'+
+            actBtn("openPDFViewer('"+ant.presupuestoCompraPdf.id+"','')",'Ver','accent','search','sm')+
+            actBtnIcon("deleteAntenaPresupuestoCompra('"+ant.id+"')",'trash','red','Eliminar')+
           '</div>'
           :
           '<label style="display:flex;align-items:center;gap:6px;padding:9px 12px;border-radius:var(--r-md);background:rgba(0,113,227,.06);border:1.5px dashed rgba(0,113,227,.25);cursor:pointer;font-size:.75rem;color:var(--accent);font-weight:600;">'+
@@ -10049,8 +10075,8 @@ function rAntenaDetalle(){
             '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'+
             '<span style="flex:1;font-size:.74rem;font-weight:600;">'+esc(p.nombre||'Reporte')+'</span>'+
             (p.fecha?'<span style="font-size:.64rem;color:var(--text3);">'+fD(p.fecha)+'</span>':'')+
-            '<button onclick="openPDFViewer(\''+p.id+'\',\'\')" style="font-size:.68rem;padding:3px 9px;border-radius:12px;background:rgba(0,113,227,.10);color:var(--accent);border:1px solid rgba(0,113,227,.18);cursor:pointer;font-weight:600;">Ver</button>'+
-            '<button onclick="deleteAntenaReporte(\''+ant.id+'\',\''+p.id+'\')" style="font-size:.68rem;padding:3px 7px;border-radius:12px;background:rgba(255,59,48,.08);color:var(--red);border:1px solid rgba(255,59,48,.15);cursor:pointer;">✕</button>'+
+            actBtn("openPDFViewer('"+p.id+"','')",'Ver','accent','search','sm')+
+            actBtnIcon("deleteAntenaReporte('"+ant.id+"','"+p.id+"')",'trash','red','Eliminar')+
           '</div>';}).join('')
         )+
       '</div>'+
@@ -10061,7 +10087,7 @@ function rAntenaDetalle(){
     '<div style="background:linear-gradient(90deg,rgba(239,68,68,.10),rgba(239,68,68,.05));padding:9px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(239,68,68,.10);">'+
       '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'+
       '<span style="font-size:.72rem;font-weight:700;color:#dc2626;text-transform:uppercase;letter-spacing:.06em;flex:1;">Roturas activas</span>'+
-      '<button onclick="openAddRoturaModalV2(\''+ant.id+'\')" style="font-size:.66rem;padding:4px 10px;border-radius:14px;background:#dc2626;color:#fff;border:none;cursor:pointer;font-weight:700;">+ Nueva</button>'+
+      '<button onclick="openAddRoturaModalV2(\''+ant.id+'\')" style="display:inline-flex;align-items:center;justify-content:center;min-height:36px;padding:8px 14px;border-radius:12px;background:#dc2626;color:#fff;border:none;cursor:pointer;font-weight:700;font-size:.72rem;box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 1px 3px rgba(220,38,38,.25);">+ Nueva</button>'+
     '</div>'+
     '<div style="padding:12px 14px;">'+
       (roturasActivas.length===0?
@@ -10085,17 +10111,17 @@ function rAntenaDetalle(){
               '<div style="font-size:.68rem;color:var(--text3);margin-top:4px;">📅 '+fD(r.fecha)+(r.tecnico?' \xb7 👷 '+esc(r.tecnico):'')+(r.empresa?' \xb7 🏭 '+esc(r.empresa):'')+'</div>'+
               (r.fechaEnvio?'<div style="font-size:.66rem;color:rgba(245,158,11,1);margin-top:2px;">📤 Enviado: '+fD(r.fechaEnvio)+'</div>':'')+
               (_lEq?'<div style="font-size:.65rem;color:var(--accent);margin-top:3px;font-weight:600;">🔗 '+esc(_lEq.nombre)+'</div>':'')+
-              '<div style="margin-top:5px;display:flex;gap:5px;flex-wrap:wrap;">'+(_nFotos?'<button onclick="openFotosRotura(\''+ant.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:3px 9px;border-radius:12px;background:rgba(52,199,89,.10);color:var(--green);border:1px solid rgba(52,199,89,.2);cursor:pointer;font-weight:600;">📷 '+_nFotos+' foto'+(_nFotos!==1?'s':'')+'</button>':'')+
-            '<button onclick="openAgregarFotosAntenaRotura(\''+ant.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:3px 9px;border-radius:12px;background:rgba(52,199,89,.06);color:var(--green);border:1px dashed rgba(52,199,89,.22);cursor:pointer;font-weight:600;">📷 + Foto</button>'+
+              '<div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;">'+(_nFotos?actBtn("openFotosRotura('"+ant.id+"','"+r.id+"')",_nFotos+' foto'+(_nFotos!==1?'s':''),'green','camera','sm'):'')+
+            actBtn("openAgregarFotosAntenaRotura('"+ant.id+"','"+r.id+"')",'+ Foto','green','camera','sm')+
             '</div>'+
-              (_presAll.length?'<div style="margin-top:5px;display:flex;flex-wrap:wrap;gap:4px;">'+_presAll.map(function(p,_pi){return '<button onclick="openPDFViewer(\''+p.id+'\',\'\')" style="font-size:.66rem;padding:3px 9px;border-radius:12px;background:rgba(0,113,227,.10);color:var(--accent);border:1px solid rgba(0,113,227,.18);cursor:pointer;font-weight:600;">📄 Presupuesto '+(_pi+1)+'</button>';}).join('')+'</div>':'')+
+              (_presAll.length?'<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;">'+_presAll.map(function(p,_pi){return actBtn("openPDFViewer('"+p.id+"','')",'Presupuesto '+(_pi+1),'accent','file','sm');}).join('')+'</div>':'')+
               (_notas.length?'<div style="margin-top:5px;border-top:1px solid rgba(239,68,68,.1);padding-top:4px;">'+_notas.slice().reverse().slice(0,2).map(function(n){return '<div style="font-size:.65rem;color:var(--text2);margin-top:2px;"><span style="color:var(--text3);">'+fD(n.fecha)+'</span> '+esc(n.nota)+'</div>';}).join('')+'</div>':'')+
             '</div>'+
-            '<div style="display:flex;flex-direction:column;gap:5px;flex-shrink:0;">'+
-              '<button onclick="markRoturaReparada(\''+ant.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 11px;border-radius:14px;background:rgba(52,199,89,.12);border:1px solid rgba(52,199,89,.25);color:var(--green);font-weight:700;cursor:pointer;">✓ Reparada</button>'+
-              '<button onclick="openSeguimientoRotura(\''+ant.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.22);color:rgba(245,158,11,1);cursor:pointer;font-weight:700;">📋 Seguim.</button>'+
-              '<button onclick="openEditRoturaModal(\''+ant.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(79,120,224,.08);border:1px solid rgba(79,120,224,.18);color:#4f78e0;cursor:pointer;font-weight:600;">✎ Editar</button>'+
-              '<button onclick="deleteRoturaV2(\''+ant.id+'\',\''+r.id+'\')" style="font-size:.66rem;padding:5px 9px;border-radius:14px;background:rgba(255,59,48,.08);border:1px solid rgba(255,59,48,.15);color:var(--red);cursor:pointer;font-weight:600;">✕</button>'+
+            '<div style="display:flex;flex-direction:column;gap:7px;flex-shrink:0;min-width:98px;align-items:stretch;">'+
+              actBtn("markRoturaReparada('"+ant.id+"','"+r.id+"')",'Reparada','green','check','sm')+
+              actBtn("openSeguimientoRotura('"+ant.id+"','"+r.id+"')",'Seguim.','orange',null,'sm')+
+              actBtn("openEditRoturaModal('"+ant.id+"','"+r.id+"')",'Editar','accent','edit','sm')+
+              actBtn("deleteRoturaV2('"+ant.id+"','"+r.id+"')",'Eliminar','red','trash','sm')+
             '</div>'+
           '</div>'+
         '</div>';}).join('');})()
@@ -10120,11 +10146,11 @@ function rAntenaDetalle(){
             '✓ Arreglo: <span style="color:var(--green);font-weight:600;">'+fD(hh.fecha)+'</span>'+
             (hh.tecnico?' · 👷 '+esc(hh.tecnico):'')+
           '</div>'+
-          '<div style="display:flex;gap:5px;margin-top:6px;flex-wrap:wrap;">'+
-            (hh.presupuestoArregloPdf?'<button onclick="openPDFViewer(\''+hh.presupuestoArregloPdf.id+'\',\'\')" style="font-size:.64rem;padding:3px 9px;border-radius:12px;background:rgba(0,113,227,.10);color:var(--accent);border:1px solid rgba(0,113,227,.18);cursor:pointer;font-weight:600;">📄 Presupuesto</button>':'')+
-            (hh.reporteArregloPdf?'<button onclick="openPDFViewer(\''+hh.reporteArregloPdf.id+'\',\'\')" style="font-size:.64rem;padding:3px 9px;border-radius:12px;background:rgba(52,199,89,.10);color:var(--green);border:1px solid rgba(52,199,89,.18);cursor:pointer;font-weight:600;">📋 Reporte</button>':'')+
-            '<button onclick="openEditHistorialModal(\''+ant.id+'\',\''+hh.id+'\')" style="font-size:.64rem;padding:3px 9px;border-radius:12px;background:rgba(79,120,224,.08);color:#4f78e0;border:1px solid rgba(79,120,224,.18);cursor:pointer;font-weight:600;">✎ Editar</button>'+
-            '<button onclick="deleteHistorialAntena(\''+ant.id+'\',\''+hh.id+'\')" style="font-size:.64rem;padding:3px 8px;border-radius:12px;background:rgba(255,59,48,.05);color:var(--red);border:1px solid rgba(255,59,48,.12);cursor:pointer;margin-left:auto;">✕ Eliminar</button>'+
+          '<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">'+
+            (hh.presupuestoArregloPdf?actBtn("openPDFViewer('"+hh.presupuestoArregloPdf.id+"','')",'Presupuesto','accent','file','sm'):'')+
+            (hh.reporteArregloPdf?actBtn("openPDFViewer('"+hh.reporteArregloPdf.id+"','')",'Reporte','green','file','sm'):'')+
+            actBtn("openEditHistorialModal('"+ant.id+"','"+hh.id+"')",'Editar','accent','edit','sm')+
+            '<div style="margin-left:auto;">'+actBtn("deleteHistorialAntena('"+ant.id+"','"+hh.id+"')",'Eliminar','red','trash','sm')+'</div>'+
           '</div>'+
         '</div>';}).join('')
       )+
@@ -15982,12 +16008,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="1.3.2";
+var APP_DISPLAY_VERSION="1.4.0";
 var APP_BUILD="10/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'1.4.0',fecha:'10/07/2026',tipo:'minor',cambios:[
+    'Rediseño Liquid Glass de botones táctiles (lote 1/2): detalle de antena, detalle de equipo, fallas, componentes'
+  ]},
   {v:'1.3.2',fecha:'10/07/2026',tipo:'patch',cambios:[
     'Botones Ver/Editar/Eliminar del historial de reparaciones: más grandes (44px+), estilo Liquid Glass, con más espacio entre ellos para evitar clics accidentales'
   ]},
