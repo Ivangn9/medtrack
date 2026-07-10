@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v1.6.1 — 10/07/2026 (patch)
+
+- Fix crítico: FS2 rompía la subida de PDFs — la base IndexedDB compartida subió de versión sin coordinar con el store viejo, causando VersionError en cada guardado
+
 ## v1.6.0 — 10/07/2026 (minor)
 
 - Nueva capa de almacenamiento de archivos con Blob nativo en IndexedDB (FS2), en paralelo al store existente — migración no destructiva con backup automático y verificación de integridad
