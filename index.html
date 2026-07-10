@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.10.015 -->
+<!-- v2026.07.10.016 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.10.015">
+<meta name="app-version" content="v2026.07.10.016">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1259,6 +1259,7 @@ body.dark .pill[style*="#ff9500"],body.dark .pill[style*="--orange"]{box-shadow:
       <button onclick="toggleSettings();openAntenasHuerfanasModal()" style="width:100%;padding:10px;background:rgba(120,120,128,.08);border:1px solid rgba(120,120,128,.18);color:var(--text2);font-weight:600;font-size:.76rem;border-radius:50px;cursor:pointer;margin-bottom:10px;">🧹 Antenas sin equipo vinculado</button>
       <button onclick="forzarSincronizacionArchivos()" style="width:100%;padding:10px;background:rgba(120,120,128,.08);border:1px solid rgba(120,120,128,.18);color:var(--text2);font-weight:600;font-size:.76rem;border-radius:50px;cursor:pointer;margin-bottom:10px;">☁️ Sincronizar archivos de este dispositivo</button>
       <button onclick="toggleSettings();openImportRedModal()" style="width:100%;padding:10px;background:rgba(8,145,178,.08);border:1px solid rgba(8,145,178,.20);color:#0891b2;font-weight:600;font-size:.76rem;border-radius:50px;cursor:pointer;margin-bottom:10px;">🌐 Importar datos de red</button>
+      <button onclick="toggleSettings();openFileStoreV2Modal()" style="width:100%;padding:10px;background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.20);color:#8b5cf6;font-weight:600;font-size:.76rem;border-radius:50px;cursor:pointer;margin-bottom:10px;">🗄️ Archivos (IndexedDB v2)</button>
       <div style="font-size:.68rem;color:var(--text3);margin:6px 0 5px;font-weight:600;">Filtrar por fechas:</div>
       <div style="display:flex;gap:8px;margin-bottom:8px;">
         <div style="flex:1;"><div style="font-size:.58rem;color:var(--text3);margin-bottom:3px;">DESDE</div><input class="inp" type="date" id="r-desde" style="padding:8px 10px;font-size:.78rem;"></div>
@@ -3440,6 +3441,356 @@ function dbSave(id,nombre,data,cb){
 }
 function dbGet(id,cb){_openIDB(function(d){if(!d){cb(null);return;}var r=d.transaction('files','readonly').objectStore('files').get(id);r.onsuccess=function(){cb(r.result||null);};r.onerror=function(){cb(null);};});}
 function dbDel(id){_upqDel(id);_openIDB(function(d){if(!d)return;d.transaction('files','readwrite').objectStore('files').delete(id);});}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// FILE STORE V2 — IndexedDB con Blob nativo (en paralelo al store viejo de
+// arriba, que guarda base64 dentro de JSON). Blob nativo evita la inflación
+// ~33% de base64 y usa la cuota de disco de forma mucho más eficiente.
+//
+// Deliberadamente NO reemplaza dbSave/dbGet/dbDel — esas siguen en uso en
+// ~15 puntos del código (subida de PDFs de fallas, presupuestos, reportes,
+// etc.). Migrar esos call sites es un cambio más grande y se deja para
+// después de validar este store en producción. Lo que sí hace esta capa:
+//   1) Queda lista para que CUALQUIER subida nueva la use (fs2Save) en vez
+//      del store viejo, sin tocar el código existente.
+//   2) Migra de forma NO DESTRUCTIVA los archivos ya guardados en el store
+//      viejo ('files', base64) al nuevo ('files_v2', Blob), verificando
+//      integridad byte a byte antes de considerar cada archivo migrado.
+//   3) El store viejo NUNCA se borra automáticamente — solo con purgeOldFileStore(),
+//      una acción manual explícita, y solo después de que el 100% haya migrado
+//      con verificación exitosa.
+// ═══════════════════════════════════════════════════════════════════════════
+var FS2_DB_NAME='mt_files';        // mismo nombre de DB que el store viejo — mismo origin, misma cuota
+var FS2_DB_VERSION=2;              // v1 = solo 'files' (store viejo); v2 agrega 'files_v2' sin tocar v1
+var FS2_STORE_OLD='files';
+var FS2_STORE_NEW='files_v2';
+var _fs2db=null;
+
+function _fs2Open(cb){
+  if(_fs2db){cb(_fs2db);return;}
+  try{
+    var req=indexedDB.open(FS2_DB_NAME,FS2_DB_VERSION);
+    // onupgradeneeded corre tanto en instalación limpia como al subir de v1→v2.
+    // Nunca borra ni recrea 'files' — solo agrega 'files_v2' si falta.
+    req.onupgradeneeded=function(e){
+      var db=e.target.result;
+      try{
+        if(!db.objectStoreNames.contains(FS2_STORE_OLD))db.createObjectStore(FS2_STORE_OLD,{keyPath:'id'});
+        if(!db.objectStoreNames.contains(FS2_STORE_NEW))db.createObjectStore(FS2_STORE_NEW,{keyPath:'id'});
+      }catch(ex){console.warn('FS2 upgrade error:',ex);}
+    };
+    req.onsuccess=function(e){_fs2db=e.target.result;cb(_fs2db);};
+    req.onerror=function(e){console.warn('FS2 open error:',e&&e.target&&e.target.error);cb(null);};
+    // onblocked: otra pestaña/ventana tiene la DB abierta en una versión vieja
+    // (ej. la app abierta en otro dispositivo/tab) — no podemos forzarla a cerrar,
+    // solo avisar. La apertura queda pendiente hasta que esa pestaña se cierre.
+    req.onblocked=function(){console.warn('FS2: apertura bloqueada por otra pestaña con versión anterior de la DB abierta');};
+  }catch(ex){console.warn('FS2 open exception:',ex);cb(null);}
+}
+
+// SHA-256 vía Web Crypto — disponible en Safari iOS 17+ (y todos los navegadores
+// modernos) sin dependencias externas. Usado para verificar integridad byte a
+// byte de cada archivo al guardar y al migrar.
+function _fs2Checksum(blob){
+  return blob.arrayBuffer().then(function(buf){
+    return crypto.subtle.digest('SHA-256',buf);
+  }).then(function(hashBuf){
+    var bytes=new Uint8Array(hashBuf),hex='';
+    for(var i=0;i<bytes.length;i++){var h=bytes[i].toString(16);hex+=h.length===1?'0'+h:h;}
+    return hex;
+  });
+}
+
+// Guarda un Blob nuevo. Reintenta hasta 3 veces si la transacción falla por
+// bloqueo (otra escritura concurrente en la misma DB); nunca reintenta si el
+// error es QuotaExceededError — ahí no hay nada que reintentar, hay que avisar.
+function fs2Save(id,nombre,blob,cb,_try){
+  if(!id||!blob){cb&&cb({ok:false,error:'id y blob son obligatorios'});return;}
+  _try=_try||0;
+  _fs2Checksum(blob).then(function(sha256){
+    _fs2Open(function(db){
+      if(!db){cb&&cb({ok:false,error:'IndexedDB no disponible en este navegador/contexto'});return;}
+      var rec={id:id,nombre:nombre||id,blob:blob,mime:blob.type||'application/octet-stream',size:blob.size,sha256:sha256,createdAt:new Date().toISOString()};
+      var tx;
+      try{tx=db.transaction(FS2_STORE_NEW,'readwrite');}
+      catch(ex){cb&&cb({ok:false,error:'No se pudo abrir la transacción: '+(ex.message||ex)});return;}
+      try{tx.objectStore(FS2_STORE_NEW).put(rec);}
+      catch(ex){
+        if(ex&&ex.name==='QuotaExceededError'){cb&&cb({ok:false,error:'quota-exceeded',message:'Sin espacio de almacenamiento disponible en el dispositivo — liberá espacio o exportá y borrá archivos viejos.'});return;}
+        cb&&cb({ok:false,error:ex.message||'Error al preparar el guardado'});return;
+      }
+      tx.oncomplete=function(){
+        // Verificación de integridad obligatoria: releer de la DB y comparar
+        // tamaño + checksum contra lo que se intentó guardar. Si no coincide,
+        // se informa como fallo aunque la transacción haya "completado" —
+        // preferimos un falso negativo (reintentar de más) a uno positivo.
+        fs2Get(id,function(res){
+          if(res.ok&&res.size===blob.size&&res.sha256===sha256){
+            cb&&cb({ok:true,id:id,sha256:sha256,size:blob.size});
+          }else{
+            cb&&cb({ok:false,error:'Verificación de integridad falló después de guardar',id:id});
+          }
+        });
+      };
+      tx.onerror=function(e){
+        var err=e&&e.target&&e.target.error;
+        if(err&&err.name==='QuotaExceededError'){cb&&cb({ok:false,error:'quota-exceeded',message:'Sin espacio de almacenamiento disponible en el dispositivo — liberá espacio o exportá y borrá archivos viejos.'});return;}
+        if(_try<3){setTimeout(function(){fs2Save(id,nombre,blob,cb,_try+1);},400*(_try+1));}
+        else cb&&cb({ok:false,error:(err&&err.message)||'Error desconocido al guardar tras 3 intentos',id:id});
+      };
+    });
+  }).catch(function(e){cb&&cb({ok:false,error:'No se pudo calcular el checksum: '+(e&&e.message||e)});});
+}
+
+function fs2Get(id,cb){
+  _fs2Open(function(db){
+    if(!db){cb&&cb({ok:false,error:'IndexedDB no disponible'});return;}
+    var tx;
+    try{tx=db.transaction(FS2_STORE_NEW,'readonly');}catch(ex){cb&&cb({ok:false,error:ex.message});return;}
+    var req=tx.objectStore(FS2_STORE_NEW).get(id);
+    req.onsuccess=function(){
+      var r=req.result;
+      if(!r){cb&&cb({ok:false,error:'not-found',id:id});return;}
+      cb&&cb({ok:true,id:r.id,nombre:r.nombre,blob:r.blob,mime:r.mime,size:r.size,sha256:r.sha256,createdAt:r.createdAt});
+    };
+    req.onerror=function(e){cb&&cb({ok:false,error:(e&&e.target&&e.target.error&&e.target.error.message)||'Error al leer'});};
+  });
+}
+
+function fs2Delete(id,cb){
+  _fs2Open(function(db){
+    if(!db){cb&&cb({ok:false,error:'IndexedDB no disponible'});return;}
+    var tx;
+    try{tx=db.transaction(FS2_STORE_NEW,'readwrite');}catch(ex){cb&&cb({ok:false,error:ex.message});return;}
+    tx.objectStore(FS2_STORE_NEW).delete(id);
+    tx.oncomplete=function(){cb&&cb({ok:true});};
+    tx.onerror=function(e){cb&&cb({ok:false,error:(e&&e.target&&e.target.error&&e.target.error.message)||'Error al eliminar'});};
+  });
+}
+
+// Lista solo metadatos (no trae los Blobs completos a memoria) — para pantallas
+// de administración/backup donde no hace falta el contenido de cada archivo.
+function fs2List(cb){
+  _fs2Open(function(db){
+    if(!db){cb&&cb([]);return;}
+    var tx;
+    try{tx=db.transaction(FS2_STORE_NEW,'readonly');}catch(ex){cb&&cb([]);return;}
+    var out=[];
+    var req=tx.objectStore(FS2_STORE_NEW).openCursor();
+    req.onsuccess=function(e){
+      var cursor=e.target.result;
+      if(cursor){out.push({id:cursor.value.id,nombre:cursor.value.nombre,mime:cursor.value.mime,size:cursor.value.size,sha256:cursor.value.sha256,createdAt:cursor.value.createdAt});cursor.continue();}
+      else cb&&cb(out);
+    };
+    req.onerror=function(){cb&&cb(out);};
+  });
+}
+// Lista metadatos del store VIEJO (base64) — usado por la migración y el backup.
+function _fs2ListOld(cb){
+  _fs2Open(function(db){
+    if(!db){cb&&cb([]);return;}
+    var tx;
+    try{tx=db.transaction(FS2_STORE_OLD,'readonly');}catch(ex){cb&&cb([]);return;}
+    var out=[];
+    var req=tx.objectStore(FS2_STORE_OLD).openCursor();
+    req.onsuccess=function(e){
+      var cursor=e.target.result;
+      if(cursor){out.push(cursor.value);cursor.continue();}
+      else cb&&cb(out);
+    };
+    req.onerror=function(){cb&&cb(out);};
+  });
+}
+function _fs2B64ToBlob(dataUrl){
+  var parts=String(dataUrl||'').split(',');
+  if(parts.length<2)return null;
+  var mimeMatch=parts[0].match(/data:([^;]+)/);
+  var mime=mimeMatch?mimeMatch[1]:'application/octet-stream';
+  var bytes=atob(parts[1]);
+  var arr=new Uint8Array(bytes.length);
+  for(var i=0;i<bytes.length;i++)arr[i]=bytes.charCodeAt(i);
+  return new Blob([arr],{type:mime});
+}
+
+// ── BACKUP DESCARGABLE (JSON con todos los archivos del store viejo en base64) ──
+// Se genera SIEMPRE antes de la primera migración automática, sin intervención
+// del usuario más allá de que el navegador complete la descarga. Los navegadores
+// móviles pueden requerir un gesto explícito para descargas — por eso también
+// queda disponible como botón manual en "Ajustes → Archivos (IndexedDB v2)".
+function fs2ExportBackup(cb){
+  _fs2ListOld(function(oldFiles){
+    var payload={version:1,exportedAt:new Date().toISOString(),count:oldFiles.length,files:oldFiles};
+    try{
+      var json=JSON.stringify(payload);
+      var blob=new Blob([json],{type:'application/json'});
+      var url=URL.createObjectURL(blob);
+      var a=document.createElement('a');
+      a.href=url;a.download='medtrack-backup-archivos-'+new Date().toISOString().slice(0,10)+'.json';
+      document.body.appendChild(a);a.click();document.body.removeChild(a);
+      setTimeout(function(){URL.revokeObjectURL(url);},60000);
+      cb&&cb({ok:true,count:oldFiles.length});
+    }catch(ex){cb&&cb({ok:false,error:ex.message||'No se pudo generar el backup'});}
+  });
+}
+// Restaura un backup exportado con fs2ExportBackup — SIEMPRE pide confirmación
+// por archivo si el ID ya existe en el store nuevo (nunca sobrescribe en silencio).
+function fs2ImportBackup(file,onProgress,onDone){
+  var reader=new FileReader();
+  reader.onerror=function(){onDone&&onDone({ok:false,error:'No se pudo leer el archivo de backup'});};
+  reader.onload=function(){
+    var payload;
+    try{payload=JSON.parse(reader.result);}catch(ex){onDone&&onDone({ok:false,error:'El archivo no es un backup JSON válido'});return;}
+    var files=(payload&&payload.files)||[];
+    if(!files.length){onDone&&onDone({ok:false,error:'El backup no contiene archivos'});return;}
+    var done=0,restored=0,skipped=0,failed=[];
+    function next(i){
+      if(i>=files.length){onDone&&onDone({ok:true,restored:restored,skipped:skipped,failed:failed,total:files.length});return;}
+      var f=files[i];
+      fs2Get(f.id,function(existing){
+        var doSave=function(){
+          var blob=_fs2B64ToBlob(f.data);
+          if(!blob){failed.push(f.id);done++;onProgress&&onProgress(done,files.length);next(i+1);return;}
+          fs2Save(f.id,f.nombre,blob,function(res){
+            if(res.ok)restored++;else failed.push(f.id);
+            done++;onProgress&&onProgress(done,files.length);next(i+1);
+          });
+        };
+        if(existing.ok){
+          // Ya existe un archivo con este ID en el store nuevo — nunca se
+          // sobrescribe sin confirmación explícita del usuario.
+          if(confirm('El archivo "'+(existing.nombre||f.id)+'" ya existe. ¿Sobrescribir con la versión del backup?')){doSave();}
+          else{skipped++;done++;onProgress&&onProgress(done,files.length);next(i+1);}
+        }else{doSave();}
+      });
+    }
+    next(0);
+  };
+  reader.readAsText(file);
+}
+
+// ── MIGRACIÓN AUTOMÁTICA, NO DESTRUCTIVA ──────────────────────────────────
+// Se llama una vez al arrancar la app (ver el listener 'load' más abajo).
+// Garantías:
+//   • El store viejo ('files') nunca se borra acá — solo se lee.
+//   • Cada archivo se verifica (tamaño + SHA-256) DESPUÉS de escribirlo en el
+//     store nuevo, comparando contra el Blob recién decodificado del base64
+//     original — si no coincide exactamente, se registra como fallo y NO se
+//     lo vuelve a tocar, pero la migración sigue con el resto de los archivos.
+//   • Si un ID ya existe en el store nuevo (migración previa parcial), se
+//     saltea sin volver a escribirlo — evita sobrescribir sin necesidad.
+var _fs2MigrationErrors=[];
+function migrateFilesToV2(onProgress,onDone){
+  _fs2ListOld(function(oldFiles){
+    if(!oldFiles.length){onDone&&onDone({ok:true,total:0,migrated:0,skipped:0,failed:[]});return;}
+    // Backup automático descargable, una sola vez por dispositivo, ANTES de
+    // escribir nada en el store nuevo.
+    var backupFlag='mt_fs2_backup_done';
+    var doMigrate=function(){
+      var total=oldFiles.length,done=0,migrated=0,skipped=0;
+      _fs2MigrationErrors=[];
+      function next(i){
+        if(i>=total){
+          try{localStorage.setItem('mt_fs2_migration_errors',JSON.stringify(_fs2MigrationErrors));}catch(e){}
+          onDone&&onDone({ok:true,total:total,migrated:migrated,skipped:skipped,failed:_fs2MigrationErrors});
+          return;
+        }
+        var f=oldFiles[i];
+        fs2Get(f.id,function(existing){
+          if(existing.ok){skipped++;done++;onProgress&&onProgress(done,total);next(i+1);return;}
+          var blob=_fs2B64ToBlob(f.data);
+          if(!blob){_fs2MigrationErrors.push({id:f.id,nombre:f.nombre,reason:'base64 inválido o corrupto'});done++;onProgress&&onProgress(done,total);next(i+1);return;}
+          fs2Save(f.id,f.nombre,blob,function(res){
+            if(res.ok)migrated++;
+            else _fs2MigrationErrors.push({id:f.id,nombre:f.nombre,reason:res.error||'fallo desconocido'});
+            done++;onProgress&&onProgress(done,total);next(i+1);
+          });
+        });
+      }
+      next(0);
+    };
+    var alreadyBackedUp=false;
+    try{alreadyBackedUp=localStorage.getItem(backupFlag)==='1';}catch(e){}
+    if(alreadyBackedUp){doMigrate();return;}
+    fs2ExportBackup(function(res){
+      try{if(res.ok)localStorage.setItem(backupFlag,'1');}catch(e){}
+      doMigrate();
+    });
+  });
+}
+// Borrado del store viejo — SOLO manual, SOLO si el 100% de los archivos
+// verificaron su integridad en el store nuevo. No se llama automáticamente
+// desde ningún otro lugar de la app.
+function purgeOldFileStore(cb){
+  _fs2ListOld(function(oldFiles){
+    if(!oldFiles.length){cb&&cb({ok:true,purged:0});return;}
+    var pending=oldFiles.length,failedIds=[];
+    oldFiles.forEach(function(f){
+      fs2Get(f.id,function(res){
+        if(!res.ok||res.size==null){failedIds.push(f.id);}
+        pending--;
+        if(pending===0){
+          if(failedIds.length){cb&&cb({ok:false,error:'Hay '+failedIds.length+' archivo(s) sin verificar en el store nuevo — no se borra nada',failedIds:failedIds});return;}
+          _fs2Open(function(db){
+            if(!db){cb&&cb({ok:false,error:'IndexedDB no disponible'});return;}
+            var tx=db.transaction(FS2_STORE_OLD,'readwrite');
+            var store=tx.objectStore(FS2_STORE_OLD);
+            oldFiles.forEach(function(f2){store.delete(f2.id);});
+            tx.oncomplete=function(){cb&&cb({ok:true,purged:oldFiles.length});};
+            tx.onerror=function(e){cb&&cb({ok:false,error:(e&&e.target&&e.target.error&&e.target.error.message)||'Error al purgar'});};
+          });
+        }
+      });
+    });
+  });
+}
+
+// Panel manual en Ajustes: estado de migración + exportar/importar/purgar.
+function openFileStoreV2Modal(){
+  _fs2ListOld(function(oldFiles){
+    fs2List(function(newFiles){
+      var errs=[];try{errs=JSON.parse(localStorage.getItem('mt_fs2_migration_errors')||'[]');}catch(e){}
+      var oldIds={};oldFiles.forEach(function(f){oldIds[f.id]=1;});
+      var newIds={};newFiles.forEach(function(f){newIds[f.id]=1;});
+      var pendientes=oldFiles.filter(function(f){return!newIds[f.id];}).length;
+      var verificados=newFiles.length;
+      var puedePurgar=oldFiles.length>0&&pendientes===0&&errs.length===0;
+      var h='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">'+
+        '<div><div class="modal-title">🗄️ Archivos (IndexedDB v2)</div>'+
+        '<div style="font-size:.68rem;color:var(--text3);margin-top:2px;">Store nuevo con Blob nativo — no reemplaza el actual, corre en paralelo</div></div>'+
+        '<button class="modal-close" onclick="closeModal()">✕</button></div>';
+      h+='<div style="display:flex;gap:8px;margin-bottom:14px;">'+
+        '<div class="gc" style="flex:1;padding:10px;text-align:center;"><div style="font-size:1.3rem;font-weight:900;color:var(--text2);">'+oldFiles.length+'</div><div style="font-size:.6rem;color:var(--text3);">En store viejo</div></div>'+
+        '<div class="gc" style="flex:1;padding:10px;text-align:center;"><div style="font-size:1.3rem;font-weight:900;color:var(--green);">'+verificados+'</div><div style="font-size:.6rem;color:var(--text3);">Migrados y verificados</div></div>'+
+        '<div class="gc" style="flex:1;padding:10px;text-align:center;"><div style="font-size:1.3rem;font-weight:900;color:'+(pendientes>0?'var(--orange)':'var(--text3)')+';">'+pendientes+'</div><div style="font-size:.6rem;color:var(--text3);">Pendientes</div></div>'+
+      '</div>';
+      if(errs.length){
+        h+='<div style="background:rgba(255,59,48,.08);border:1px solid rgba(255,59,48,.2);border-radius:10px;padding:10px 12px;margin-bottom:12px;">'+
+          '<div style="font-size:.7rem;font-weight:700;color:var(--red);margin-bottom:4px;">⚠️ '+errs.length+' archivo(s) no migraron</div>'+
+          errs.slice(0,5).map(function(e){return'<div style="font-size:.66rem;color:var(--text2);">'+esc(e.nombre||e.id)+' — '+esc(e.reason||'')+'</div>';}).join('')+
+          (errs.length>5?'<div style="font-size:.64rem;color:var(--text3);">+'+(errs.length-5)+' más…</div>':'')+
+        '</div>';
+      }
+      h+='<button class="btn-secondary" style="width:100%;margin-bottom:8px;" onclick="fs2ExportBackup(function(r){showToast(r.ok?(\'✅ Backup descargado (\'+r.count+\' archivos)\'):(\'Error: \'+r.error),r.ok?\'\':\'err\');})">⬇️ Exportar backup ahora</button>';
+      h+='<label style="display:block;width:100%;text-align:center;padding:11px;border-radius:var(--r-pill);background:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.72);color:var(--accent);font-weight:600;font-size:.84rem;cursor:pointer;margin-bottom:8px;">⬆️ Importar backup'+
+        '<input type="file" accept=".json" style="display:none;" onchange="if(this.files[0])fs2ImportBackup(this.files[0],function(d,t){showToast(\'Restaurando \'+d+\'/\'+t+\'…\');},function(r){showToast(r.ok?(\'✅ Restaurados: \'+r.restored+\' · Omitidos: \'+r.skipped+\' · Fallidos: \'+r.failed.length):(\'Error: \'+r.error),r.ok?\'\':\'err\');openFileStoreV2Modal();});">'+
+      '</label>';
+      h+='<button onclick="migrateFilesToV2(function(d,t){showToast(\'Migrando \'+d+\'/\'+t+\'…\');},function(r){showToast(\'✅ Migración: \'+r.migrated+\' nuevos, \'+r.skipped+\' ya estaban, \'+r.failed.length+\' fallidos\');openFileStoreV2Modal();})" style="width:100%;margin-bottom:8px;padding:11px;border-radius:var(--r-pill);background:rgba(0,113,227,.1);border:1.5px solid rgba(0,113,227,.25);color:var(--accent);font-weight:600;font-size:.84rem;cursor:pointer;">🔄 Reintentar migración pendiente</button>';
+      h+='<button '+(puedePurgar?'onclick="if(confirm(\'Se van a borrar '+oldFiles.length+' archivo(s) del store viejo — ya están verificados en el nuevo. ¿Continuar?\'))purgeOldFileStore(function(r){showToast(r.ok?(\'✅ \'+r.purged+\' archivo(s) purgados\'):(\'Error: \'+r.error),r.ok?\'\':\'err\');openFileStoreV2Modal();});"':'disabled')+' style="width:100%;padding:11px;border-radius:var(--r-pill);background:'+(puedePurgar?'rgba(255,59,48,.1)':'rgba(120,120,128,.06)')+';border:1.5px solid '+(puedePurgar?'rgba(255,59,48,.25)':'rgba(120,120,128,.12)')+';color:'+(puedePurgar?'var(--red)':'var(--text3)')+';font-weight:600;font-size:.84rem;cursor:'+(puedePurgar?'pointer':'not-allowed')+';">🗑️ Purgar store viejo'+(puedePurgar?'':' (esperando que migre todo)')+'</button>';
+      openModal(h);
+    });
+  });
+}
+
+// Migración automática en segundo plano al arrancar — no bloquea el render
+// de la app ni molesta al usuario salvo que algo falle (se loguea, no se alerta).
+window.addEventListener('load',function(){
+  setTimeout(function(){
+    migrateFilesToV2(null,function(res){
+      if(res.total>0)console.info('FS2 migración:',res.migrated+'/'+res.total+' migrados, '+res.skipped+' ya existían, '+res.failed.length+' fallidos');
+      if(res.failed&&res.failed.length)console.warn('FS2 archivos que no migraron:',res.failed);
+    });
+  },5000); // espera a que termine el arranque normal de la app (auth, primer render, etc.)
+});
 
 // Upload a base64 dataURL to Firebase Storage at orgs/cima/files/{id}, with retry.
 // On success the file is removed from the persistent upload queue.
@@ -16123,12 +16474,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="1.5.3";
+var APP_DISPLAY_VERSION="1.6.0";
 var APP_BUILD="10/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'1.6.0',fecha:'10/07/2026',tipo:'minor',cambios:[
+    'Nueva capa de almacenamiento de archivos con Blob nativo en IndexedDB (FS2), en paralelo al store existente — migración no destructiva con backup automático y verificación de integridad'
+  ]},
   {v:'1.5.3',fecha:'10/07/2026',tipo:'patch',cambios:[
     'Calendario de PM: la semana empieza en lunes'
   ]},

@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v1.6.0 — 10/07/2026 (minor)
+
+- Nueva capa de almacenamiento de archivos con Blob nativo en IndexedDB (FS2), en paralelo al store existente — migración no destructiva con backup automático y verificación de integridad
+
 ## v1.5.3 — 10/07/2026 (patch)
 
 - Calendario de PM: la semana empieza en lunes
