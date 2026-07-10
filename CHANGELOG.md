@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v1.6.2 — 10/07/2026 (patch)
+
+- Informe de Marcas: ahora incluye roturas activas de transductores y antenas vinculados, no solo fallas directas del equipo
+
 ## v1.6.1 — 10/07/2026 (patch)
 
 - Fix crítico: FS2 rompía la subida de PDFs — la base IndexedDB compartida subió de versión sin coordinar con el store viejo, causando VersionError en cada guardado

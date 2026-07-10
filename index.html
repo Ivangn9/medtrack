@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.10.017 -->
+<!-- v2026.07.10.018 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.10.017">
+<meta name="app-version" content="v2026.07.10.018">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -11108,6 +11108,49 @@ function openMarcaReportModal(){
   openModal(h);
 }
 
+// Fallas activas de un equipo para el Informe de Marcas: combina las fallas
+// propias (eq.partes) con las roturas activas de transductores y antenas
+// VINCULADOS a ese equipo — antes solo se miraba eq.partes, así que un
+// transductor de ecografía roto (que vive en transductores[].roturas, no en
+// eq.partes) nunca aparecía en el informe de fallas de la marca del ecógrafo.
+function _marcaFallasDeEquipo(eq){
+  var out=(eq.partes||[]).filter(function(p){return p.estado==='roto'||p.estado==='pendiente';}).slice();
+  (eq.transductorIds||[]).forEach(function(tid){
+    var t=transductores.find(function(x){return x.id===tid;});
+    if(!t)return;
+    (t.roturas||[]).filter(function(r){return r.estado!=='reparado';}).forEach(function(r){
+      out.push({
+        nombre:'🔌 Transductor '+(t.nombre||t.modelo||'')+' — '+(r.queSeRompio||'Falla'),
+        descripcion:r.descripcion||'',
+        estado:r.estado==='en_reparacion'?'pendiente':'roto',
+        fechaRotura:r.fecha||'',
+        presupuestoAprobado:false,
+        precio:'',
+        canalReclamo:'',
+        notas:'',
+        seguimientos:r.notasSeguimiento||[]
+      });
+    });
+  });
+  (eq.antenaIds||[]).forEach(function(aid){
+    var a=antenas.find(function(x){return x.id===aid;});
+    if(!a)return;
+    (a.roturas||[]).filter(function(r){return r.estado!=='reparado';}).forEach(function(r){
+      out.push({
+        nombre:'📡 Antena '+(a.nombre||a.tipo||'')+' — '+(r.queSeRompio||'Falla'),
+        descripcion:r.descripcion||'',
+        estado:r.estado==='en_reparacion'?'pendiente':'roto',
+        fechaRotura:r.fecha||'',
+        presupuestoAprobado:false,
+        precio:'',
+        canalReclamo:'',
+        notas:'',
+        seguimientos:r.notasSeguimiento||[]
+      });
+    });
+  });
+  return out;
+}
 function _updateMarcaFallas(){
   var marca=(document.getElementById('mif-marca')||{}).value||'';
   var prov=(document.getElementById('mif-prov')||{}).value||'';
@@ -11116,13 +11159,13 @@ function _updateMarcaFallas(){
   if(!marca&&!prov){el.innerHTML='';return;}
   var conFallas=eqs.filter(function(e){
     if(e.baja)return false;
-    if(!(e.partes||[]).some(function(p){return p.estado==='roto'||p.estado==='pendiente';}))return false;
+    if(!_marcaFallasDeEquipo(e).length)return false;
     var marcaOk=!marca||(e.marca||'').toLowerCase()===marca.toLowerCase();
     var provOk=!prov||(e.empresaVendio||'').toLowerCase()===prov.toLowerCase();
     return marcaOk&&provOk;
   });
   var totalF=0;
-  conFallas.forEach(function(e){(e.partes||[]).forEach(function(p){if(p.estado==='roto'||p.estado==='pendiente')totalF++;});});
+  conFallas.forEach(function(e){totalF+=_marcaFallasDeEquipo(e).length;});
   if(!conFallas.length){
     el.innerHTML='<div style="background:rgba(255,59,48,.07);border:1px solid rgba(255,59,48,.18);border-radius:8px;padding:10px 14px;color:var(--red);">Sin fallas activas con ese filtro</div>';
   }else{
@@ -11144,7 +11187,7 @@ function exportMarcaPDF(){
   if(!marca&&!prov){showToast('Seleccioná una marca o proveedor','warn');return;}
   var eqsConFallas=eqs.filter(function(e){
     if(e.baja)return false;
-    if(!(e.partes||[]).some(function(p){return p.estado==='roto'||p.estado==='pendiente';}))return false;
+    if(!_marcaFallasDeEquipo(e).length)return false;
     var marcaOk=!marca||(e.marca||'').toLowerCase()===marca.toLowerCase();
     var provOk=!prov||(e.empresaVendio||'').toLowerCase()===prov.toLowerCase();
     return marcaOk&&provOk;
@@ -11180,7 +11223,7 @@ function exportMarcaPDF(){
   eqsConFallas.forEach(function(eq){
     var ci=catById(eq.cat);
     var _sv=catSvgIcon(eq.cat,36)||'';
-    var fallas=(eq.partes||[]).filter(function(p){return p.estado==='roto'||p.estado==='pendiente';});
+    var fallas=_marcaFallasDeEquipo(eq);
     var fallasHtml='';
     fallas.forEach(function(p,fi){
       totalFallas++;
@@ -16485,12 +16528,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="1.6.1";
+var APP_DISPLAY_VERSION="1.6.2";
 var APP_BUILD="10/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'1.6.2',fecha:'10/07/2026',tipo:'patch',cambios:[
+    'Informe de Marcas: ahora incluye roturas activas de transductores y antenas vinculados, no solo fallas directas del equipo'
+  ]},
   {v:'1.6.1',fecha:'10/07/2026',tipo:'patch',cambios:[
     'Fix crítico: FS2 rompía la subida de PDFs — la base IndexedDB compartida subió de versión sin coordinar con el store viejo, causando VersionError en cada guardado'
   ]},
