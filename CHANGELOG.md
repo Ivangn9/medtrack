@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v1.4.6 — 10/07/2026 (patch)
+
+- Rediseño Liquid Glass de botones táctiles (lote 7): historial de mantenimiento, limpiar firma, imágenes de OT, filtro de panel, empresas representantes
+
 ## v1.4.5 — 10/07/2026 (patch)
 
 - Rediseño Liquid Glass de botones táctiles (lote 6): estado antena/transductor, refrigeración, gráfico helio, seguimiento de reparación

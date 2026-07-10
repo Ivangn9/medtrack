@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.10.009 -->
+<!-- v2026.07.10.010 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.10.009">
+<meta name="app-version" content="v2026.07.10.010">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -2991,11 +2991,11 @@ function openEditHist(eqId,hid){
   var eq=eqs.find(function(e){return e.id===eqId;});if(!eq)return;
   var hh=(eq.historialMant||[]).find(function(h){return h.id===hid;});if(!hh)return;
   var isMant=hh.tipo==="mantenimiento";
-  function histFileRow(a){return '<div id="hf-row-'+a.id+'" style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(0,0,0,.05);">'+
+  function histFileRow(a){return '<div id="hf-row-'+a.id+'" style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(0,0,0,.05);">'+
     '<span style="font-size:1.1rem;">📄</span>'+
     '<span style="font-size:.74rem;flex:1;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(a.nombre)+'</span>'+
-    '<button onclick="openPDFViewer(\''+a.id+'\',\''+esc(a.nombre)+'\')" style="background:rgba(0,113,227,.1);color:var(--accent);border:none;border-radius:8px;padding:3px 10px;font-size:.68rem;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;">Abrir</button>'+
-    '<button onclick="removeHistFile(\''+a.id+'\')" style="background:none;border:none;color:var(--red);font-size:.9rem;cursor:pointer;padding:2px 6px;">✕</button></div>';}
+    actBtn("openPDFViewer('"+a.id+"','"+esc(a.nombre)+"')",'Abrir','accent',null,'sm')+
+    actBtnIcon("removeHistFile('"+a.id+"')",'trash','red','Eliminar')+'</div>';}
   var allFiles=hh.archivos||[];
   var presExist=allFiles.filter(function(a){return a.tipo==='presupuesto'||!a.tipo;}).map(histFileRow).join('');
   var repExist=allFiles.filter(function(a){return a.tipo==='reporte';}).map(histFileRow).join('');
@@ -3050,7 +3050,7 @@ function renderHistPendingFiles(tipo){
       '<span style="font-size:1.1rem;">📄</span>'+
       '<span style="font-size:.74rem;flex:1;color:var(--text2);">'+esc(f.nombre)+'</span>'+
       '<span style="font-size:.64rem;color:var(--text3);">'+(f.size/1024).toFixed(0)+'KB</span>'+
-      '<button onclick="removeHistPending(\''+tipo+'\','+i+')" style="background:none;border:none;color:var(--red);font-size:.9rem;cursor:pointer;padding:2px 6px;">✕</button></div>';
+      actBtnIcon("removeHistPending('"+tipo+"',"+i+")",'x','red','Quitar')+'</div>';
   }).join('');
 }
 function removeHistPending(tipo,i){if(tipo==='presupuesto'){_pendingHistPresupuestos.splice(i,1);}else{_pendingHistReportes.splice(i,1);}renderHistPendingFiles(tipo);}
@@ -3196,7 +3196,7 @@ function openModalEq(eq){
     '</div>'+
     '</div>'+
     '<div class="ff"><div class="ff-label" style="display:flex;align-items:center;gap:6px;">Marca <span style="font-size:.6rem;opacity:.7;">(para mostrar logo)</span></div><select class="inp" id="eq-mk">'+marcaOpts+'</select></div>'+
-    '<div class="ff"><div class="ff-label" style="display:flex;align-items:center;gap:6px;justify-content:space-between;"><span style="display:flex;align-items:center;gap:6px;">Empresa representante <span style="font-size:.6rem;opacity:.65;">(a quien reclamar)</span></span><button type="button" onclick="openEmpresasRepModal()" style="font-size:.6rem;padding:2px 8px;border-radius:6px;border:1px solid rgba(173,198,255,.35);background:rgba(173,198,255,.1);color:var(--accent);font-weight:700;cursor:pointer;">+ Gestionar</button></div><input class="inp" id="eq-repr-empresa" list="emp-rep-datalist" value="'+esc(f.empresaVendio||'')+'" placeholder="Ej: INTEC, Fissore, PowerSystems..."><datalist id="emp-rep-datalist">'+_erDl+'</datalist></div>'+
+    '<div class="ff"><div class="ff-label" style="display:flex;align-items:center;gap:6px;justify-content:space-between;"><span style="display:flex;align-items:center;gap:6px;">Empresa representante <span style="font-size:.6rem;opacity:.65;">(a quien reclamar)</span></span><button type="button" onclick="openEmpresasRepModal()" style="font-size:.66rem;min-height:30px;padding:6px 11px;border-radius:8px;border:1.5px solid rgba(173,198,255,.4);background:rgba(173,198,255,.12);color:var(--accent);font-weight:700;cursor:pointer;">+ Gestionar</button></div><input class="inp" id="eq-repr-empresa" list="emp-rep-datalist" value="'+esc(f.empresaVendio||'')+'" placeholder="Ej: INTEC, Fissore, PowerSystems..."><datalist id="emp-rep-datalist">'+_erDl+'</datalist></div>'+
     '<div class="ff"><div class="ff-label">Estado</div><select class="inp" id="eq-es">'+eOpts+'</select></div>'+
     '<div class="ff"><div class="ff-label">Garantía</div>'+
     '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'+
@@ -4228,7 +4228,7 @@ function renderPendingFiles(tipo){
       '<span style="font-size:1.1rem;">📄</span>'+
       '<span style="font-size:.74rem;flex:1;color:var(--text2);">'+esc(f.nombre)+'</span>'+
       '<span style="font-size:.64rem;color:var(--text3);">'+(f.size/1024).toFixed(0)+'KB</span>'+
-      '<button onclick="removePending(\''+tipo+'\','+i+')" style="background:none;border:none;color:var(--red);font-size:.9rem;cursor:pointer;padding:2px 6px;">✕</button></div>';
+      actBtnIcon("removePending('"+tipo+"',"+i+")",'x','red','Quitar')+'</div>';
   }).join('');
 }
 function removePending(tipo,i){if(tipo==='presupuesto'){_pendingPresupuestos.splice(i,1);}else{_pendingReportes.splice(i,1);}renderPendingFiles(tipo);}
@@ -4789,7 +4789,7 @@ function openModalMant(eqId){
     '<div style="border:1.5px solid var(--border);border-radius:var(--r-md);overflow:hidden;background:rgba(255,255,255,.97);">'+
       '<canvas id="sig-canvas" width="500" height="110" style="width:100%;height:110px;display:block;touch-action:none;"></canvas>'+
     '</div>'+
-    '<button onclick="clearSig()" type="button" style="margin-top:4px;font-size:.67rem;color:var(--text3);background:none;border:none;cursor:pointer;padding:2px 0;">🗑 Limpiar</button>'+
+    '<button onclick="clearSig()" type="button" style="margin-top:6px;min-height:32px;font-size:.7rem;font-weight:600;color:var(--text3);background:rgba(120,120,128,.08);border:1px solid rgba(120,120,128,.15);border-radius:8px;cursor:pointer;padding:6px 12px;">🗑 Limpiar</button>'+
     '</div>'+
     '<div style="background:rgba(52,199,89,.08);border-radius:var(--r-sm);padding:10px;margin-bottom:14px;font-size:.76rem;color:var(--green);">✅ Próximo mant. calculado: <strong>'+fD(px)+'</strong></div>'+
     '<button class="btn-primary" style="width:100%;padding:14px;font-size:.92rem;" onclick="submitMant(\''+eqId+'\')">✅ Confirmar</button>');
@@ -5446,7 +5446,7 @@ function rLista(){
       '<div><div style="font-size:.72rem;font-weight:700;color:'+fd.c+';">'+fd.l+'</div>'+
       '<div style="font-size:.64rem;color:var(--text3);">Filtro activo desde el panel</div></div>'+
       '</div>'+
-      '<button onclick="clearDashFilter()" style="background:'+fd.c+'20;border:none;border-radius:50px;padding:5px 12px;font-size:.7rem;font-weight:700;color:'+fd.c+';cursor:pointer;">✕ Quitar</button>'+
+      '<button onclick="clearDashFilter()" style="background:'+fd.c+'22;border:1.5px solid '+fd.c+'40;border-radius:50px;min-height:34px;padding:7px 14px;font-size:.72rem;font-weight:700;color:'+fd.c+';cursor:pointer;">✕ Quitar</button>'+
       '</div>';
   }
   // ── Barra de búsqueda ──
@@ -6610,7 +6610,7 @@ function openModalOT(eqId,otId){
     '<div class="ff"><div class="ff-label">'+icn('camera',12)+' Imágenes (opcional)</div>'+
     '<button type="button" onclick="attachOTImage()" style="padding:7px 14px;border-radius:var(--r-pill);background:rgba(0,113,227,.08);border:1.5px dashed rgba(0,113,227,.3);color:var(--accent);font-size:.76rem;font-weight:600;cursor:pointer;margin-bottom:6px;">+ Adjuntar imagen</button>'+
     '<div id="ot-img-list" style="display:flex;flex-wrap:wrap;gap:4px;"></div>'+
-    ((ot&&ot.imagenes&&ot.imagenes.length)?'<button onclick="openOTImagesModal('+(JSON.stringify(ot.imagenes)).replace(/'/g,"&#39;")+',\'Imágenes guardadas\')" style="margin-top:4px;padding:4px 12px;border-radius:var(--r-pill);background:rgba(0,113,227,.08);border:1px solid rgba(0,113,227,.2);color:var(--accent);font-size:.7rem;cursor:pointer;">👁 Ver '+ot.imagenes.length+' imagen'+(ot.imagenes.length!==1?'es':'')+' guardada'+(ot.imagenes.length!==1?'s':'')+'</button>':'')+
+    ((ot&&ot.imagenes&&ot.imagenes.length)?'<button onclick="openOTImagesModal('+(JSON.stringify(ot.imagenes)).replace(/'/g,"&#39;")+',\'Imágenes guardadas\')" style="margin-top:6px;min-height:34px;padding:7px 14px;border-radius:var(--r-pill);background:rgba(0,113,227,.1);border:1.5px solid rgba(0,113,227,.24);color:var(--accent);font-size:.72rem;font-weight:600;cursor:pointer;">👁 Ver '+ot.imagenes.length+' imagen'+(ot.imagenes.length!==1?'es':'')+' guardada'+(ot.imagenes.length!==1?'s':'')+'</button>':'')+
     '</div>'+
     '<button class="btn-primary" style="width:100%;padding:13px;margin-top:8px;" onclick="submitOT(\''+((ot&&ot.id)||'')+'\')">'+(ot?'Guardar cambios':'Crear OT')+'</button>'
   );
@@ -8329,7 +8329,7 @@ function renderDocPending(){
       '<span style="font-size:1.1rem;">📄</span>'+
       '<div style="flex:1;min-width:0;"><div style="font-size:.74rem;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(f.nombre)+'</div>'+
       '<div style="font-size:.6rem;color:var(--text3);">'+_docTipoLbl(f.tipo)+' · '+(f.size/1024).toFixed(0)+'KB</div></div>'+
-      '<button onclick="removeDocPending('+i+')" style="background:none;border:none;color:var(--red);font-size:.9rem;cursor:pointer;padding:2px 6px;">✕</button></div>';
+      actBtnIcon("removeDocPending("+i+")",'x','red','Quitar')+'</div>';
   }).join('');
 }
 function removeDocPending(i){_pendingDocs.splice(i,1);renderDocPending();}
@@ -16008,12 +16008,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="1.4.5";
+var APP_DISPLAY_VERSION="1.4.6";
 var APP_BUILD="10/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'1.4.6',fecha:'10/07/2026',tipo:'patch',cambios:[
+    'Rediseño Liquid Glass de botones táctiles (lote 7): historial de mantenimiento, limpiar firma, imágenes de OT, filtro de panel, empresas representantes'
+  ]},
   {v:'1.4.5',fecha:'10/07/2026',tipo:'patch',cambios:[
     'Rediseño Liquid Glass de botones táctiles (lote 6): estado antena/transductor, refrigeración, gráfico helio, seguimiento de reparación'
   ]},
