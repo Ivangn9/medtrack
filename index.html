@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.10.007 -->
+<!-- v2026.07.10.008 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.10.007">
+<meta name="app-version" content="v2026.07.10.008">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -6666,12 +6666,12 @@ function cerrarOT(otId){
   html+='<div id="firma-hint" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;transition:opacity .2s;">';
   html+='<span style="font-size:.72rem;color:rgba(120,120,128,.55);font-weight:500;user-select:none;">✍️ Dibujá tu firma aquí</span>';
   html+='</div>';
-  html+='<button onclick="_clearFirma();" style="position:absolute;top:6px;right:8px;background:rgba(120,120,128,.18);border:none;border-radius:8px;padding:3px 10px;font-size:.65rem;color:rgba(80,80,80,.9);cursor:pointer;">Borrar</button>';
+  html+='<button onclick="_clearFirma();" style="position:absolute;top:6px;right:8px;min-height:32px;background:rgba(120,120,128,.2);border:1px solid rgba(120,120,128,.15);border-radius:8px;padding:6px 12px;font-size:.68rem;font-weight:600;color:rgba(80,80,80,.9);cursor:pointer;">Borrar</button>';
   html+='</div></div>';
   html+='<div style="margin-bottom:14px;"><label style="font-size:.72rem;color:var(--text2);font-weight:600;display:block;margin-bottom:6px;">📷 Fotos del trabajo (opcional)</label>';
   html+='<button type="button" onclick="attachOTCloseImage()" style="padding:7px 14px;border-radius:var(--r-pill);background:rgba(52,199,89,.08);border:1.5px dashed rgba(52,199,89,.35);color:var(--green);font-size:.76rem;font-weight:600;cursor:pointer;margin-bottom:6px;">+ Adjuntar foto de cierre</button>';
   html+='<div id="ot-close-img-list" style="display:flex;flex-wrap:wrap;gap:4px;"></div>';
-  if(ot.imagenesClose&&ot.imagenesClose.length)html+='<button onclick="openOTImagesModal('+JSON.stringify(ot.imagenesClose).replace(/'/g,"&#39;")+',\'Fotos de cierre\')" style="margin-top:4px;padding:4px 12px;border-radius:var(--r-pill);background:rgba(52,199,89,.08);border:1px solid rgba(52,199,89,.25);color:var(--green);font-size:.7rem;cursor:pointer;">👁 Ver '+ot.imagenesClose.length+' foto'+(ot.imagenesClose.length!==1?'s':'')+' de cierre</button>';
+  if(ot.imagenesClose&&ot.imagenesClose.length)html+='<button onclick="openOTImagesModal('+JSON.stringify(ot.imagenesClose).replace(/'/g,"&#39;")+',\'Fotos de cierre\')" style="margin-top:4px;min-height:34px;padding:7px 14px;border-radius:var(--r-pill);background:rgba(52,199,89,.10);border:1.5px solid rgba(52,199,89,.28);color:var(--green);font-size:.72rem;font-weight:600;cursor:pointer;">👁 Ver '+ot.imagenesClose.length+' foto'+(ot.imagenesClose.length!==1?'s':'')+' de cierre</button>';
   html+='</div>';
   html+='<div style="margin-bottom:12px;"><label style="font-size:.72rem;color:var(--text2);font-weight:600;display:block;margin-bottom:6px;">💰 Gastos del trabajo (opcional)</label>';
   html+='<div style="display:flex;gap:8px;">';
@@ -7546,7 +7546,7 @@ function rAuditoria(){
   for(var fi=0;fi<filters.length;fi++){
     var fk=filters[fi];
     var fon=filtEnt===fk;
-    fBtns+='<button onclick="_auditFiltEnt=\''+fk+'\';render();" style="padding:5px 14px;border-radius:20px;border:none;cursor:pointer;font-size:.75rem;font-weight:600;background:'+(fon?'var(--accent)':'rgba(120,120,128,.13)')+';color:'+(fon?'#fff':'var(--text2)')+';">'+(entityLabels[fk]||fk)+'</button>';
+    fBtns+='<button onclick="_auditFiltEnt=\''+fk+'\';render();" style="min-height:36px;padding:8px 16px;border-radius:20px;border:none;cursor:pointer;font-size:.76rem;font-weight:700;background:'+(fon?'var(--accent)':'rgba(120,120,128,.13)')+';color:'+(fon?'#fff':'var(--text2)')+';">'+(entityLabels[fk]||fk)+'</button>';
   }
   var rows='';
   if(!entries.length){rows='<div class="empty-state"><div class="empty-state-icon">🔍</div><div class="empty-state-title">Sin registros de auditoría</div><div class="empty-state-sub">Las acciones del sistema quedarán registradas acá</div></div>';}
@@ -7572,7 +7572,7 @@ function rAuditoria(){
   var h='';
   h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;">';
   h+='<h2 style="font-size:1.1rem;font-weight:700;color:var(--text);margin:0;">Auditoría</h2>';
-  h+='<button onclick="if(confirm(\'¿Limpiar el log de auditoría?\')){auditLog=[];try{localStorage.removeItem(\'mt_audit\');}catch(e){}render();}" style="font-size:.72rem;color:var(--text3);background:none;border:none;cursor:pointer;padding:4px 8px;">Limpiar log</button>';
+  h+='<button onclick="if(confirm(\'¿Limpiar el log de auditoría?\')){auditLog=[];try{localStorage.removeItem(\'mt_audit\');}catch(e){}render();}" style="font-size:.74rem;font-weight:600;color:var(--text3);background:rgba(120,120,128,.08);border:1px solid rgba(120,120,128,.15);border-radius:10px;min-height:34px;cursor:pointer;padding:7px 12px;">Limpiar log</button>';
   h+='</div>';
   h+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;">'+fBtns+'</div>';
   h+='<div class="gc" style="padding:0 16px;">'+rows+'</div>';
@@ -8161,7 +8161,7 @@ function rAlertas(){
         '<div style="font-weight:700;font-size:.86rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+esc(a.tit)+'</div>'+
         '<div style="font-size:.74rem;color:var(--text3);margin-top:2px;">'+esc(a.desc)+'</div>'+
         '</div>'+
-        '<button onclick="openSnoozeModal(\''+a.k+'\',\''+esc(a.tit)+' — '+esc(a.desc)+'\')" style="flex-shrink:0;padding:6px 9px;border-radius:var(--r-md);background:rgba(255,149,0,.10);border:1px solid rgba(255,149,0,.25);color:var(--orange);font-size:.7rem;font-weight:600;cursor:pointer;" title="Posponer">⏰</button>'+
+        '<button onclick="openSnoozeModal(\''+a.k+'\',\''+esc(a.tit)+' — '+esc(a.desc)+'\')" style="flex-shrink:0;min-width:38px;min-height:38px;border-radius:var(--r-md);background:rgba(255,149,0,.12);border:1.5px solid rgba(255,149,0,.28);color:var(--orange);font-size:.8rem;font-weight:600;cursor:pointer;" title="Posponer">⏰</button>'+
         '</div></div>';
     });
     return out;
@@ -8181,7 +8181,7 @@ function rAlertas(){
         '<div style="font-size:.68rem;color:var(--text3);">'+esc(a.desc)+(s&&s.nota?' · '+esc(s.nota):'')+'</div>'+
         '</div>'+
         '<span style="font-size:.65rem;color:var(--text3);flex-shrink:0;white-space:nowrap;">'+daysLeft+'d restante'+(daysLeft!==1?'s':'')+'</span>'+
-        '<button onclick="delete _alertSnoozes[\''+a.k+'\'];_saveAlertSnooze();render();" style="padding:4px 8px;border-radius:var(--r-sm);background:rgba(255,59,48,.08);border:none;color:var(--red);font-size:.65rem;cursor:pointer;">✕</button>'+
+        actBtnIcon("delete _alertSnoozes['"+a.k+"'];_saveAlertSnooze();render()",'x','red','Quitar snooze')+
       '</div>';
     });
     snoozeH+='</div>';
@@ -16008,12 +16008,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="1.4.3";
+var APP_DISPLAY_VERSION="1.4.4";
 var APP_BUILD="10/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'1.4.4',fecha:'10/07/2026',tipo:'patch',cambios:[
+    'Rediseño Liquid Glass de botones táctiles (lote 5): cerrar OT, auditoría, alertas'
+  ]},
   {v:'1.4.3',fecha:'10/07/2026',tipo:'patch',cambios:[
     'Rediseño Liquid Glass de botones táctiles (lote 4): panel de reporte PDF, imprimir QR, formulario de falla/rotura'
   ]},
