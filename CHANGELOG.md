@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v1.3.0 — 10/07/2026 (minor)
+
+- Amplía el catálogo de partes de RM: GPA, PDU, Host Computer, RSP, Digital Receiver, Gradient Driver/Interface, interfaces de mesa y bobinas, UPS, filtros de línea, interconexión con chiller y módulo ICE
+
 ## v1.2.3 — 09/07/2026 (patch)
 
 - Previene pérdida de PDFs: solicita almacenamiento persistente al SO, avisa si la subida a la nube falla, y reintenta también al ocultar la app
