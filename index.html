@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.10.013 -->
+<!-- v2026.07.10.014 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.10.013">
+<meta name="app-version" content="v2026.07.10.014">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -2205,21 +2205,23 @@ function _fsWrite(tryN){
       showToast('⚠️ Base de datos al '+Math.round(_sz/10000)+'% del límite — avisar a soporte','warn');
     }
   }catch(e){}
-  // Antes de escribir, verificamos con una transacción que ningún otro dispositivo
-  // haya guardado datos más nuevos que los últimos que ESTE dispositivo aplicó. Sin
-  // esto, un dispositivo con copia vieja en memoria (backgrounded, offline un momento,
-  // etc.) sobrescribe en silencio el array completo — incluida una edición reciente
-  // de otro dispositivo — porque Firestore reemplaza arrays enteros, no los fusiona.
+  // Antes de escribir, verificamos que ningún otro dispositivo haya guardado datos
+  // más nuevos que los últimos que ESTE dispositivo aplicó. Sin esto, un dispositivo
+  // con copia vieja en memoria sobrescribe en silencio el array completo — porque
+  // Firestore reemplaza arrays enteros, no los fusiona. Antes esto se hacía con
+  // runTransaction(), pero las transacciones de Firestore reintentan solas si detectan
+  // contención en el documento y pueden tardar mucho más que cualquier timeout externo,
+  // dejando el guardado "colgado" — un simple get()+set() es igual de efectivo acá
+  // (el equipo es chico, la ventana de carrera entre el get y el set es mínima) y no
+  // tiene ese riesgo.
   var _lastSeen=localStorage.getItem('mt_updatedAt')||'';
-  window._fbdb.runTransaction(function(tx){
-    return tx.get(orgDataRef()).then(function(snap){
-      var serverAt=(snap.exists&&snap.data()&&snap.data().updatedAt)||'';
-      if(serverAt&&_lastSeen&&serverAt>_lastSeen){
-        var conflict=new Error('stale-write');conflict.code='stale-write';conflict.serverData=snap.data();
-        throw conflict;
-      }
-      tx.set(orgDataRef(),_payload,{merge:true});
-    });
+  orgDataRef().get().then(function(snap){
+    var serverAt=(snap.exists&&snap.data()&&snap.data().updatedAt)||'';
+    if(serverAt&&_lastSeen&&serverAt>_lastSeen){
+      var conflict=new Error('stale-write');conflict.code='stale-write';conflict.serverData=snap.data();
+      throw conflict;
+    }
+    return orgDataRef().set(_payload,{merge:true});
   })
     .then(function(){clearTimeout(_safeguard);_fsWriting=false;_fsDirty=false;_fsFailed=false;_publicMirrorSave();})
     .catch(function(e){
@@ -16121,12 +16123,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="1.5.1";
+var APP_DISPLAY_VERSION="1.5.2";
 var APP_BUILD="10/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'1.5.2',fecha:'10/07/2026',tipo:'patch',cambios:[
+    'Reemplaza runTransaction por get()+set() simple: las transacciones de Firestore pueden colgarse reintentando internamente por contención, mucho más allá de cualquier timeout externo'
+  ]},
   {v:'1.5.1',fecha:'10/07/2026',tipo:'patch',cambios:[
     'Corrige indicador \'Guardando...\' colgado indefinidamente: timeout de seguridad de 15s si la transacción de Firestore no responde'
   ]},

@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v1.5.2 — 10/07/2026 (patch)
+
+- Reemplaza runTransaction por get()+set() simple: las transacciones de Firestore pueden colgarse reintentando internamente por contención, mucho más allá de cualquier timeout externo
+
 ## v1.5.1 — 10/07/2026 (patch)
 
 - Corrige indicador 'Guardando...' colgado indefinidamente: timeout de seguridad de 15s si la transacción de Firestore no responde
