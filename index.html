@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.10.001 -->
+<!-- v2026.07.10.002 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.10.001">
+<meta name="app-version" content="v2026.07.10.002">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -4951,8 +4951,11 @@ function _skelList(n){
 // ── DASHBOARD ──
 function rDash(){
   var activeEqs=eqs.filter(function(e){return !e.baja&&_sedeMatch(e);});
-  var opF=activeEqs.filter(function(e){return e.estado==="fuera-de-servicio";}).length;
-  var opOK=activeEqs.length-opF;
+  // UPS y Desfibriladores no cuentan para el % de operatividad (no son equipos de
+  // diagnóstico por imágenes). El total de "Equipos" del chip sigue siendo el real.
+  var eqsDisponibilidad=activeEqs.filter(function(e){return e.cat!=='UPS'&&e.cat!=='DES';});
+  var opF=eqsDisponibilidad.filter(function(e){return e.estado==="fuera-de-servicio";}).length;
+  var opOK=eqsDisponibilidad.length-opF;
   var mU=activeEqs.filter(function(e){return!sinMant(e)&&(semafo(e)==="vencido"||semafo(e)==="urgente");}).length;
   var rot=0,pend=0;activeEqs.forEach(function(e){e.partes.forEach(function(p){if(p.estado==="roto")rot++;if(p.estado==="pendiente")pend++;});});
 
@@ -5091,12 +5094,17 @@ function rDash(){
 // ── INICIO (Home Dashboard) ──
 function rInicio(){
   var activeEqs=eqs.filter(function(e){return !e.baja&&_sedeMatch(e);});
-  var opOK=activeEqs.filter(function(e){return e.estado==='operativo';}).length;
-  var opAdv=activeEqs.filter(function(e){return e.estado==='advertencia'||e.estado==='con-rotura';}).length;
-  var opFuera=activeEqs.filter(function(e){return e.estado==='fuera-de-servicio';}).length;
+  // % de disponibilidad: UPS y Desfibriladores no son equipos de diagnóstico por
+  // imágenes y no deben impactar esta métrica. Aires ya vive en su propio array,
+  // aparte de eqs. El resto de la función sigue usando activeEqs sin filtrar,
+  // para no ocultar UPS/Desfibriladores de las listas/tarjetas del panel.
+  var eqsDisponibilidad=activeEqs.filter(function(e){return e.cat!=='UPS'&&e.cat!=='DES';});
+  var opOK=eqsDisponibilidad.filter(function(e){return e.estado==='operativo';}).length;
+  var opAdv=eqsDisponibilidad.filter(function(e){return e.estado==='advertencia'||e.estado==='con-rotura';}).length;
+  var opFuera=eqsDisponibilidad.filter(function(e){return e.estado==='fuera-de-servicio';}).length;
   var falActivas=0;
-  activeEqs.forEach(function(e){(e.partes||[]).forEach(function(p){if(p.estado==='roto')falActivas++;});});
-  var avail=activeEqs.length?Math.round(100*opOK/activeEqs.length):0;
+  eqsDisponibilidad.forEach(function(e){(e.partes||[]).forEach(function(p){if(p.estado==='roto')falActivas++;});});
+  var avail=eqsDisponibilidad.length?Math.round(100*opOK/eqsDisponibilidad.length):0;
   var _dias=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
   var _meses=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
   var _hoy=new Date();
@@ -7547,10 +7555,14 @@ function rAuditoria(){
 function rEjecutivo(){
   var todayStr=today();
   var activeEqs=eqs.filter(function(e){return !e.baja;});
-  var totalN=activeEqs.length;
-  var opN=activeEqs.filter(function(e){return e.estado==='operativo';}).length;
-  var fueraN=activeEqs.filter(function(e){return e.estado==='fuera-de-servicio';}).length;
-  var rotN=activeEqs.filter(function(e){return e.estado==='con-rotura'||e.estado==='advertencia';}).length;
+  // % operativo ejecutivo: UPS y Desfibriladores no cuentan (no son equipos de
+  // diagnóstico por imágenes). El resto de la vista sigue usando activeEqs completo
+  // (vencimientos de mantenimiento/contrato/seguro por sede siguen incluyéndolos).
+  var eqsDisponibilidad=activeEqs.filter(function(e){return e.cat!=='UPS'&&e.cat!=='DES';});
+  var totalN=eqsDisponibilidad.length;
+  var opN=eqsDisponibilidad.filter(function(e){return e.estado==='operativo';}).length;
+  var fueraN=eqsDisponibilidad.filter(function(e){return e.estado==='fuera-de-servicio';}).length;
+  var rotN=eqsDisponibilidad.filter(function(e){return e.estado==='con-rotura'||e.estado==='advertencia';}).length;
   var al=getAlertas();
   var critN=al.filter(function(a){return a.niv==='critico'&&!_isAlertSnoozed(a.k);}).length;
   var warnN=al.filter(function(a){return a.niv==='advertencia'&&!_isAlertSnoozed(a.k);}).length;
@@ -15970,12 +15982,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="1.3.0";
+var APP_DISPLAY_VERSION="1.3.1";
 var APP_BUILD="10/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'1.3.1',fecha:'10/07/2026',tipo:'patch',cambios:[
+    'El % de equipos operativos (header, Panel y Ejecutivo) ya no cuenta UPS ni Desfibriladores'
+  ]},
   {v:'1.3.0',fecha:'10/07/2026',tipo:'minor',cambios:[
     'Amplía el catálogo de partes de RM: GPA, PDU, Host Computer, RSP, Digital Receiver, Gradient Driver/Interface, interfaces de mesa y bobinas, UPS, filtros de línea, interconexión con chiller y módulo ICE'
   ]},
@@ -16580,7 +16595,10 @@ function rSidebar(){
 }
 function _renderHdrStatus(){
   var el=document.getElementById('hdr-equip-status');if(!el)return;
-  var active=eqs.filter(function(e){return !e.baja;});
+  // UPS y Desfibriladores no son equipos de diagnóstico por imágenes — no deben
+  // impactar el % de equipos operativos. Aires Acondicionados ya vive en su propio
+  // array (aires), separado de eqs, así que no requiere exclusión explícita acá.
+  var active=eqs.filter(function(e){return !e.baja&&e.cat!=='UPS'&&e.cat!=='DES';});
   var total=active.length;
   if(!total){el.innerHTML='';return;}
   var fuera=active.filter(function(e){return e.estado==='fuera-de-servicio';}).length;

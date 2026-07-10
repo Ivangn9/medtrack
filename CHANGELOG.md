@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v1.3.1 — 10/07/2026 (patch)
+
+- El % de equipos operativos (header, Panel y Ejecutivo) ya no cuenta UPS ni Desfibriladores
+
 ## v1.3.0 — 10/07/2026 (minor)
 
 - Amplía el catálogo de partes de RM: GPA, PDU, Host Computer, RSP, Digital Receiver, Gradient Driver/Interface, interfaces de mesa y bobinas, UPS, filtros de línea, interconexión con chiller y módulo ICE
