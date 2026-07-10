@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.10.010 -->
+<!-- v2026.07.10.011 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.10.010">
+<meta name="app-version" content="v2026.07.10.011">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1236,7 +1236,7 @@ body.dark .pill[style*="#ff9500"],body.dark .pill[style*="--orange"]{box-shadow:
         <div id="font-label" style="font-weight:700;font-size:.9rem;min-width:44px;text-align:center;">100%</div>
         <button onclick="changeFont(1)" style="width:42px;height:42px;border-radius:50%;background:rgba(0,113,227,.1);border:none;color:var(--accent);font-size:1.3rem;font-weight:700;cursor:pointer;">+</button>
       </div>
-      <button onclick="resetFont()" style="width:100%;margin-top:8px;padding:6px;background:none;border:none;color:var(--text3);font-size:.72rem;cursor:pointer;">Restablecer</button>
+      <button onclick="resetFont()" style="width:100%;min-height:36px;margin-top:8px;padding:8px;background:rgba(120,120,128,.07);border:1px solid rgba(120,120,128,.13);border-radius:9px;color:var(--text3);font-size:.74rem;font-weight:600;cursor:pointer;">Restablecer</button>
     </div>
     <div class="settings-item">
       <div class="settings-title" style="margin-bottom:8px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:2px;"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg> Transparencia</div>
@@ -16008,12 +16008,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="1.4.6";
+var APP_DISPLAY_VERSION="1.4.7";
 var APP_BUILD="10/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'1.4.7',fecha:'10/07/2026',tipo:'patch',cambios:[
+    'Rediseño Liquid Glass de botones táctiles (lote 8, final): empresas representantes, control de acceso, restablecer fuente'
+  ]},
   {v:'1.4.6',fecha:'10/07/2026',tipo:'patch',cambios:[
     'Rediseño Liquid Glass de botones táctiles (lote 7): historial de mantenimiento, limpiar firma, imágenes de OT, filtro de panel, empresas representantes'
   ]},
@@ -16202,7 +16205,7 @@ function openEmpresasRepModal(){
         '<div style="flex:1;">'+
           '<div style="font-weight:600;font-size:.84rem;">'+esc(er.nombre)+'</div>'+
           (er.marcas?'<div style="font-size:.68rem;color:var(--text3);margin-top:2px;">Marcas: '+esc(er.marcas)+'</div>':'')+'</div>'+
-        '<button onclick="_delEmpresaRep('+i+')" style="font-size:.7rem;padding:3px 9px;border-radius:6px;border:1px solid rgba(255,59,48,.3);background:rgba(255,59,48,.1);color:#ef4444;cursor:pointer;">Eliminar</button>'+
+        '<button onclick="_delEmpresaRep('+i+')" style="font-size:.72rem;min-height:34px;padding:7px 13px;border-radius:9px;border:1.5px solid rgba(255,59,48,.3);background:rgba(255,59,48,.12);color:#ef4444;font-weight:600;cursor:pointer;">Eliminar</button>'+
       '</div>';
     }).join('');
     var h='<div class="modal-title">Empresas Representantes</div>'+
@@ -16252,7 +16255,7 @@ function renderAccessModal(emails){
       '</div>'+
       (isOwner
         ?'<span style="font-size:.62rem;font-weight:700;background:rgba(0,113,227,.15);color:var(--accent);padding:3px 10px;border-radius:20px;flex-shrink:0;border:1px solid rgba(0,113,227,.2);">Admin</span>'
-        :'<button onclick="removeAccessEmail(\''+esc(em)+'\')" style="flex-shrink:0;background:rgba(255,59,48,.12);color:#dc2626;border:1.5px solid rgba(255,59,48,.25);border-radius:20px;padding:5px 14px;font-size:.72rem;font-weight:700;cursor:pointer;">Quitar</button>'
+        :'<button onclick="removeAccessEmail(\''+esc(em)+'\')" style="flex-shrink:0;min-height:36px;background:rgba(255,59,48,.12);color:#dc2626;border:1.5px solid rgba(255,59,48,.25);border-radius:20px;padding:8px 16px;font-size:.74rem;font-weight:700;cursor:pointer;">Quitar</button>'
       )+
     '</div>';
   }).join('');
