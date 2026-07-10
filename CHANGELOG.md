@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v1.4.2 — 10/07/2026 (patch)
+
+- Rediseño Liquid Glass de botones táctiles (lote 3): reclamos, mejoras
+
 ## v1.4.1 — 10/07/2026 (patch)
 
 - Rediseño Liquid Glass de botones táctiles (lote 2, parcial): transductor, aire acondicionado, calendario PM, órdenes de trabajo, repuestos

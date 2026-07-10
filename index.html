@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.10.005 -->
+<!-- v2026.07.10.006 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.10.005">
+<meta name="app-version" content="v2026.07.10.006">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -7123,7 +7123,7 @@ function rReclamos(){
   for(var fi=0;fi<filts.length;fi++){
     var fk=filts[fi][0];var fl=filts[fi][1];
     var fon=filtEst===fk;
-    fBtns+='<button onclick="_reclamosFilt=\''+fk+'\';render();" style="padding:5px 14px;border-radius:20px;border:none;cursor:pointer;font-size:.75rem;font-weight:600;background:'+(fon?'var(--accent)':'rgba(120,120,128,.13)')+';color:'+(fon?'#fff':'var(--text2)')+';">'+fl+'</button>';
+    fBtns+='<button onclick="_reclamosFilt=\''+fk+'\';render();" style="min-height:36px;padding:8px 16px;border-radius:20px;border:none;cursor:pointer;font-size:.76rem;font-weight:700;background:'+(fon?'var(--accent)':'rgba(120,120,128,.13)')+';color:'+(fon?'#fff':'var(--text2)')+';">'+fl+'</button>';
   }
 
   var cards='';
@@ -7154,7 +7154,7 @@ function rReclamos(){
               '</div>'+
               '<div style="font-size:.73rem;color:var(--text2);margin-top:3px;line-height:1.4;">'+htmlEsc(sg.nota||'')+'</div>'+
             '</div>'+
-            '<button onclick="event.stopPropagation();_delSeguimiento(\''+rc.id+'\',\''+sg.id+'\');" style="background:none;border:none;color:rgba(120,120,128,.5);font-size:.8rem;cursor:pointer;padding:0 2px;flex-shrink:0;">&#10005;</button>'+
+            '<button onclick="event.stopPropagation();_delSeguimiento(\''+rc.id+'\',\''+sg.id+'\');" style="background:rgba(120,120,128,.08);border:none;border-radius:8px;color:var(--text3);font-size:.8rem;cursor:pointer;min-width:30px;min-height:30px;flex-shrink:0;">&#10005;</button>'+
           '</div>';
         }
         segHtml+='</div>';
@@ -7173,10 +7173,10 @@ function rReclamos(){
             (rc.resultado?'<div style="font-size:.72rem;color:var(--text2);margin-top:4px;font-style:italic;">Resultado: '+htmlEsc(rc.resultado)+'</div>':'')+
             segHtml+
           '</div>'+
-          '<div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;">'+
-            '<button onclick="openModalReclamo(\''+rc.id+'\');" style="background:rgba(120,120,128,.12);border:none;border-radius:8px;padding:5px 10px;font-size:.68rem;font-weight:600;color:var(--text2);cursor:pointer;">Editar</button>'+
-            '<button onclick="openModalSeguimiento(\''+rc.id+'\');" style="background:rgba(173,198,255,.15);border:1px solid rgba(173,198,255,.3);border-radius:8px;padding:5px 10px;font-size:.68rem;font-weight:600;color:#adc6ff;cursor:pointer;">+ Seguim.</button>'+
-            '<button onclick="_deleteReclamo(\''+rc.id+'\');" style="background:none;border:none;color:rgba(120,120,128,.5);font-size:.7rem;cursor:pointer;padding:2px;">Eliminar</button>'+
+          '<div style="display:flex;flex-direction:column;gap:7px;flex-shrink:0;align-items:stretch;">'+
+            actBtn("openModalReclamo('"+rc.id+"')",'Editar','accent','edit','sm')+
+            actBtn("openModalSeguimiento('"+rc.id+"')",'+ Seguim.','accent',null,'sm')+
+            actBtn("_deleteReclamo('"+rc.id+"')",'Eliminar','red','trash','sm')+
           '</div>'+
         '</div>'+
       '</div>';
@@ -7410,7 +7410,7 @@ function rMejoras(){
   for(var fi=0;fi<filtArr.length;fi++){
     var fk=filtArr[fi][0];var fl=filtArr[fi][1];
     var fon=filtEst===fk;
-    fBtns+='<button onclick="_mejFiltro=\''+fk+'\';render();" style="padding:5px 14px;border-radius:20px;border:none;cursor:pointer;font-size:.75rem;font-weight:600;background:'+(fon?'rgba(139,92,246,.85)':'rgba(120,120,128,.13)')+';color:'+(fon?'#fff':'var(--text2)')+';">'+fl+'</button>';
+    fBtns+='<button onclick="_mejFiltro=\''+fk+'\';render();" style="min-height:36px;padding:8px 16px;border-radius:20px;border:none;cursor:pointer;font-size:.76rem;font-weight:700;background:'+(fon?'rgba(139,92,246,.85)':'rgba(120,120,128,.13)')+';color:'+(fon?'#fff':'var(--text2)')+';">'+fl+'</button>';
   }
   h+='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">'+fBtns+'</div>';
   if(!filtered.length){
@@ -7441,12 +7441,12 @@ function rMejoras(){
     h+='</div>';
     if(m.notas)h+='<div style="font-size:.73rem;color:var(--text2);background:rgba(139,92,246,.06);padding:5px 8px;border-radius:8px;margin-top:4px;">'+esc(m.notas)+'</div>';
     h+='</div>';
-    h+='<div style="display:flex;flex-direction:column;gap:6px;min-width:88px;">';
+    h+='<div style="display:flex;flex-direction:column;gap:7px;min-width:96px;align-items:stretch;">';
     if(m.estado!=='completado'){
-      h+='<button onclick="completarMejoraGlobal(\''+m.id+'\')" style="padding:6px 10px;border:none;border-radius:10px;background:linear-gradient(135deg,#30d158,#25a244);color:#fff;font-size:.72rem;font-weight:700;cursor:pointer;">✅ Completar</button>';
+      h+=actBtn("completarMejoraGlobal('"+m.id+"')",'Completar','green','check','sm');
     }
-    h+='<button onclick="openModalMejora(\''+m.id+'\')" style="padding:6px 10px;border:1.5px solid rgba(120,120,128,.25);border-radius:10px;background:transparent;color:var(--text2);font-size:.72rem;cursor:pointer;">'+icn('edit',12)+' Editar</button>';
-    h+='<button onclick="delMejora(\''+m.id+'\')" style="padding:6px 10px;border:1.5px solid rgba(255,59,48,.3);border-radius:10px;background:transparent;color:#ff3b30;font-size:.72rem;cursor:pointer;">🗑 Borrar</button>';
+    h+=actBtn("openModalMejora('"+m.id+"')",'Editar','accent','edit','sm');
+    h+=actBtn("delMejora('"+m.id+"')",'Borrar','red','trash','sm');
     h+='</div>';
     h+='</div></div>';
   }
@@ -16008,12 +16008,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="1.4.1";
+var APP_DISPLAY_VERSION="1.4.2";
 var APP_BUILD="10/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'1.4.2',fecha:'10/07/2026',tipo:'patch',cambios:[
+    'Rediseño Liquid Glass de botones táctiles (lote 3): reclamos, mejoras'
+  ]},
   {v:'1.4.1',fecha:'10/07/2026',tipo:'patch',cambios:[
     'Rediseño Liquid Glass de botones táctiles (lote 2, parcial): transductor, aire acondicionado, calendario PM, órdenes de trabajo, repuestos'
   ]},
