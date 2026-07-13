@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v1.8.2 — 13/07/2026 (patch)
+
+- Calendario de PM: celdas más legibles con auto-scroll para días con muchos eventos
+
 ## v1.8.1 — 13/07/2026 (patch)
 
 - Blower Box de RM dividido en enfriamiento de túnel y enfriamiento electrónico (PEN/SPW)
