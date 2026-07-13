@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v1.8.0 — 13/07/2026 (minor)
+
+- Monitoreo de Sala de Máquinas en Refrigeración: carga manual de temperatura/humedad de sala, agua de chiller y helio, con timeline independiente por variable y filtro de rango. Amplía catálogo de partes de RM con gradientes internos, refrigeración líquida y ventilación del túnel
+
 ## v1.7.0 — 13/07/2026 (minor)
 
 - Nueva función 'Mover a otro equipo' en el detalle de antena — mueve la antena entre resonadores preservando 100% del historial (roturas, reparaciones, PDFs)

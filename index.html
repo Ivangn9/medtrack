@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.13.001 -->
+<!-- v2026.07.13.002 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.13.001">
+<meta name="app-version" content="v2026.07.13.002">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -4775,6 +4775,21 @@ var CAT_COMPONENTES={
     "Gradient Driver","Gradient Coil Interface","Interface board de mesa","Interface board de bobinas (coil interface)",
     "UPS del sistema","Filtros de l\xednea","Interconexi\xf3n con chiller externo",
     "M\xf3dulo ICE (Image Calculation Environment)",
+    // Sistema interno de gradientes (bobina física dentro del bore)
+    "Bobina de gradiente X (bore)","Bobina de gradiente Y (bore)","Bobina de gradiente Z (bore)",
+    "Formador/shell de bobina de gradiente (cer\xe1mica-alúmina)","Blindaje RF de bobina de gradiente",
+    // Refrigeración líquida de gradientes
+    "Chiller de gradientes (Gradient Water Chiller - GWC)","Bomba de recirculaci\xf3n de agua de gradientes",
+    "Tuber\xeda/circuito de refrigeraci\xf3n de bobina de gradiente","Intercambiador de calor gradiente-agua",
+    "Sensor de temperatura del circuito de gradientes","Sensor de flujo del circuito de gradientes",
+    "Filtro del circuito de agua de gradientes",
+    // Sistema criogénico interno (más allá del compresor/tanque ya listados)
+    "Tubo de venteo criog\xe9nico (cryostat vent pipe)","Aislaci\xf3n de vac\xedo del criostato (vacuum jacket)",
+    "Sensor de nivel de helio l\xedquido (interno del criostato)",
+    // Ventilación del túnel y gradientes (módulo Bore/Patient Blower de GE)
+    "Ventilador del t\xfanel (Bore/Patient Blower Fan)","Motor/turbina del blower del t\xfanel",
+    "Rejilla/salida de ventilaci\xf3n del t\xfanel","Ducto de ventilaci\xf3n del t\xfanel",
+    "Filtro de aire del blower del t\xfanel",
     // Mantenimiento rutinario
     "Filtros de aire del gabinete electr\xf3nico","Limpieza de bobinas y accesorios",
     "Registro de presi\xf3n y temperatura del compresor","Lubricaci\xf3n de mesa de paciente"
@@ -9031,6 +9046,7 @@ function _rDetalleRefrig(eq,rf){
       _refrigHelioChart(rf,eq.id)+
     '</div>'+
   '</div></div>';
+  h+=_rLecturasSalaSection(eq,rf);
   return h;
 }
 
@@ -13519,6 +13535,214 @@ function setRefrigChartMode(eqId,mode){
   _refrigChartMode[eqId]=mode;
   render();
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MONITOREO DE SALA DE MÁQUINAS — carga manual de lecturas (sin conexión a
+// sensores todavía) con timeline independiente por variable. Reutiliza
+// eq.refrig.lecturas (ya existía en el modelo con helioGasPresion/helioLiqPorc/
+// helioLiqPresion) sumando los campos nuevos: chillerTempC, salaTempC,
+// salaHumedad. Cada lectura lleva timestamp completo (fecha+hora) para poder
+// detectar patrones horarios, no solo evolución día a día.
+// ═══════════════════════════════════════════════════════════════════════════
+function openRegistrarLecturaSalaModal(eqId){
+  var now=new Date();
+  openModal(
+    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">'+
+      '<span style="font-size:1.4rem;">🌡️</span>'+
+      '<div><div style="font-weight:800;font-size:1rem;">Nueva Lectura — Sala de Máquinas</div>'+
+      '<div style="font-size:.65rem;color:var(--text3);">Cargá los valores disponibles — no hace falta completar todos</div></div>'+
+    '</div>'+
+    '<div class="g2">'+
+      '<div class="ff"><div class="ff-label">Fecha *</div><input class="inp" id="ls-fecha" type="date" value="'+today()+'"></div>'+
+      '<div class="ff"><div class="ff-label">Hora *</div><input class="inp" id="ls-hora" type="time" value="'+_pad2(now.getHours())+':'+_pad2(now.getMinutes())+'"></div>'+
+    '</div>'+
+    '<div style="font-size:.63rem;font-weight:800;color:#0891b2;text-transform:uppercase;letter-spacing:.06em;margin:12px 0 8px;">❄️ Chiller</div>'+
+    '<div class="ff"><div class="ff-label">Temperatura de agua (°C)</div><input class="inp" id="ls-chiller-temp" type="number" step="0.1" placeholder="Ej: 18.5"></div>'+
+    '<div style="font-size:.63rem;font-weight:800;color:#63b3ed;text-transform:uppercase;letter-spacing:.06em;margin:12px 0 8px;">⚗️ Helio</div>'+
+    '<div class="g2">'+
+      '<div class="ff"><div class="ff-label">Presión gas (MPa)</div><input class="inp" id="ls-gas-presion" type="number" step="0.01" placeholder="Ej: 2.15"></div>'+
+      '<div class="ff"><div class="ff-label">Presión líquido (PSI)</div><input class="inp" id="ls-liq-presion" type="number" step="0.01" placeholder="Ej: 1.2"></div>'+
+    '</div>'+
+    '<div class="ff"><div class="ff-label">Nivel de líquido (%)</div><input class="inp" id="ls-liq-porc" type="number" min="0" max="100" step="1" placeholder="Ej: 82"></div>'+
+    '<div style="font-size:.63rem;font-weight:800;color:#f97316;text-transform:uppercase;letter-spacing:.06em;margin:12px 0 8px;">🏠 Sala de máquinas</div>'+
+    '<div class="g2">'+
+      '<div class="ff"><div class="ff-label">Temperatura (°C)</div><input class="inp" id="ls-sala-temp" type="number" step="0.1" placeholder="Ej: 22.0"></div>'+
+      '<div class="ff"><div class="ff-label">Humedad (%)</div><input class="inp" id="ls-sala-hum" type="number" min="0" max="100" step="1" placeholder="Ej: 45"></div>'+
+    '</div>'+
+    '<div class="ff"><div class="ff-label">Notas</div><input class="inp" id="ls-notas" placeholder="Opcional"></div>'+
+    '<button class="btn-grad btn-grad-blue" style="width:100%;margin-top:6px;" onclick="submitLecturaSala(\''+eqId+'\')">✅ Guardar lectura</button>'
+  );
+}
+function submitLecturaSala(eqId){
+  var fecha=(document.getElementById('ls-fecha')||{}).value;
+  var hora=(document.getElementById('ls-hora')||{}).value||'12:00';
+  if(!fecha){alert('La fecha es obligatoria');return;}
+  function numOrNull(id){var v=(document.getElementById(id)||{}).value;return(v===''||v==null)?null:parseFloat(v);}
+  var rec={
+    id:'LEC-'+Date.now(),
+    fecha:fecha,hora:hora,ts:fecha+'T'+hora+':00',
+    chillerTempC:numOrNull('ls-chiller-temp'),
+    helioGasPresion:numOrNull('ls-gas-presion'),
+    helioLiqPresion:numOrNull('ls-liq-presion'),
+    helioLiqPorc:numOrNull('ls-liq-porc'),
+    salaTempC:numOrNull('ls-sala-temp'),
+    salaHumedad:numOrNull('ls-sala-hum'),
+    notas:((document.getElementById('ls-notas')||{}).value||'').trim(),
+    registradoEn:new Date().toISOString()
+  };
+  var cargados=[rec.chillerTempC,rec.helioGasPresion,rec.helioLiqPresion,rec.helioLiqPorc,rec.salaTempC,rec.salaHumedad].filter(function(v){return v!=null&&!isNaN(v);});
+  if(!cargados.length){alert('Cargá al menos un valor');return;}
+  _saveRefrig(eqId,{},null,rec);
+  closeModal();showToast('✅ Lectura registrada','');
+}
+function deleteLecturaSala(eqId,lecId){
+  if(!confirm('¿Eliminar esta lectura?'))return;
+  eqs=eqs.map(function(e){
+    if(e.id!==eqId)return e;
+    var rf=_refrigData(e);
+    return Object.assign({},e,{refrig:Object.assign({},rf,{lecturas:(rf.lecturas||[]).filter(function(l){return l.id!==lecId;})})});
+  });
+  saveDataCritical();showToast('Lectura eliminada','warn');render();
+}
+function _fmtFechaHora(ts){
+  var d=new Date(ts);
+  if(isNaN(d.getTime()))return'—';
+  return _pad2(d.getDate())+'/'+_pad2(d.getMonth()+1)+' '+_pad2(d.getHours())+':'+_pad2(d.getMinutes());
+}
+// Al tocar/hacer click en un punto del gráfico, actualiza el readout fijo
+// arriba del SVG — más confiable en iPad que depender de :hover.
+function _showLecturaReadout(el,txt){
+  var wrap=el;
+  while(wrap&&wrap.parentNode){
+    wrap=wrap.parentNode;
+    var ro=wrap.querySelector?wrap.querySelector('.lec-readout'):null;
+    if(ro){ro.innerHTML=txt;return;}
+  }
+}
+// Gráfico de línea de tiempo para UNA sola variable (small multiple — nunca
+// dual-axis). points ya vienen ordenados ascendente por timestamp real, así
+// que el eje X refleja el tiempo transcurrido real entre lecturas, no solo el
+// orden — permite ver de un vistazo si las lecturas están agrupadas en
+// ciertas horas del día.
+function _lecturaChartSVG(points,opts){
+  if(!points.length)return'';
+  var dec=opts.decimals!=null?opts.decimals:1;
+  var W=560,H=120,padL=4,padR=4,padT=8,padB=6;
+  var plotW=W-padL-padR,plotH=H-padT-padB;
+  var vals=points.map(function(p){return p.v;});
+  var vMin=Math.min.apply(null,vals),vMax=Math.max.apply(null,vals);
+  if(opts.refMin!=null)vMin=Math.min(vMin,opts.refMin);
+  if(opts.refMax!=null)vMax=Math.max(vMax,opts.refMax);
+  if(vMin===vMax){vMin-=1;vMax+=1;}
+  var padV=(vMax-vMin)*0.18;vMin-=padV;vMax+=padV;
+  var t0=new Date(points[0].ts).getTime(),t1=new Date(points[points.length-1].ts).getTime();
+  if(t1===t0)t1=t0+3600000;
+  function xp(ts){return padL+((new Date(ts).getTime()-t0)/(t1-t0))*plotW;}
+  function yp(v){return padT+plotH-((v-vMin)/(vMax-vMin))*plotH;}
+  var refBand='';
+  if(opts.refMin!=null&&opts.refMax!=null){
+    var ry1=yp(opts.refMax),ry2=yp(opts.refMin);
+    refBand='<rect x="'+padL+'" y="'+ry1.toFixed(1)+'" width="'+plotW+'" height="'+(ry2-ry1).toFixed(1)+'" fill="'+opts.color+'" opacity=".08"/>';
+  }
+  var gridLines='';
+  for(var gi=0;gi<=2;gi++){
+    var gy=(padT+plotH*gi/2).toFixed(1);
+    gridLines+='<line x1="'+padL+'" y1="'+gy+'" x2="'+(padL+plotW)+'" y2="'+gy+'" stroke="rgba(255,255,255,.06)" stroke-width="1"/>';
+  }
+  var linePath='M '+xp(points[0].ts).toFixed(1)+' '+yp(points[0].v).toFixed(1);
+  var areaPath='M '+xp(points[0].ts).toFixed(1)+' '+(padT+plotH)+' L '+xp(points[0].ts).toFixed(1)+' '+yp(points[0].v).toFixed(1);
+  for(var i=1;i<points.length;i++){
+    linePath+=' L '+xp(points[i].ts).toFixed(1)+' '+yp(points[i].v).toFixed(1);
+    areaPath+=' L '+xp(points[i].ts).toFixed(1)+' '+yp(points[i].v).toFixed(1);
+  }
+  areaPath+=' L '+xp(points[points.length-1].ts).toFixed(1)+' '+(padT+plotH)+' Z';
+  var dots='';
+  var dotR=points.length>40?2:3;
+  points.forEach(function(p){
+    var cx=xp(p.ts).toFixed(1),cy=yp(p.v).toFixed(1);
+    var lbl=_fmtFechaHora(p.ts)+' — '+p.v.toFixed(dec)+opts.unit;
+    dots+='<circle cx="'+cx+'" cy="'+cy+'" r="'+dotR+'" fill="'+opts.color+'" stroke="rgba(255,255,255,.85)" stroke-width="1" style="cursor:pointer;" onclick="_showLecturaReadout(this,\''+esc(lbl).replace(/'/g,"\\'")+'\')"><title>'+esc(lbl)+'</title></circle>';
+  });
+  var last=points[points.length-1];
+  return '<div>'+
+    '<div class="lec-readout" style="font-size:.68rem;color:var(--text3);margin-bottom:4px;">Último: <strong style="color:'+opts.color+';">'+last.v.toFixed(dec)+opts.unit+'</strong> · '+_fmtFechaHora(last.ts)+'</div>'+
+    '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block;" preserveAspectRatio="none">'+
+      refBand+gridLines+
+      '<path d="'+areaPath+'" fill="'+opts.color+'" opacity=".12"/>'+
+      '<path d="'+linePath+'" fill="none" stroke="'+opts.color+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'+
+      dots+
+    '</svg>'+
+  '</div>';
+}
+var _lecturasRango={};
+function setLecturasRango(eqId,rango){_lecturasRango[eqId]=rango;render();}
+function _rLecturasSalaSection(eq,rf){
+  var eqId=eq.id;
+  var rango=_lecturasRango[eqId]||'7d';
+  var rangoMs={'24h':864e5,'7d':7*864e5,'30d':30*864e5,'90d':90*864e5,'todo':null}[rango];
+  var nowMs=Date.now();
+  var lecturas=(rf.lecturas||[]).filter(function(l){return l.ts;}).slice().sort(function(a,b){return a.ts<b.ts?-1:1;});
+  var filtradas=rangoMs?lecturas.filter(function(l){return(nowMs-new Date(l.ts).getTime())<=rangoMs;}):lecturas;
+  var vars=[
+    {key:'chillerTempC',label:'Temperatura Agua Chiller',icon:'❄️',unit:'°C',color:'#0891b2',refMin:null,refMax:null,decimals:1},
+    {key:'helioGasPresion',label:'Presión Helio Gaseoso',icon:'⚗️',unit:' MPa',color:'#0ea5e9',refMin:2.0,refMax:2.3,decimals:2},
+    {key:'helioLiqPresion',label:'Presión Helio Líquido',icon:'💧',unit:' PSI',color:'#6366f1',refMin:0.9,refMax:2.0,decimals:2},
+    {key:'helioLiqPorc',label:'Nivel Helio Líquido',icon:'🧊',unit:'%',color:'#10b981',refMin:70,refMax:100,decimals:0},
+    {key:'salaTempC',label:'Temperatura Sala de Máquinas',icon:'🌡️',unit:'°C',color:'#f97316',refMin:18,refMax:24,decimals:1},
+    {key:'salaHumedad',label:'Humedad Sala de Máquinas',icon:'💦',unit:'%',color:'#38bdf8',refMin:30,refMax:60,decimals:0}
+  ];
+  var rangoLbls={'24h':'24 h','7d':'7 días','30d':'30 días','90d':'90 días','todo':'Todo'};
+  var rangoChips=['24h','7d','30d','90d','todo'].map(function(r){
+    var on=rango===r;
+    return '<button onclick="setLecturasRango(\''+eqId+'\',\''+r+'\')" style="min-height:32px;padding:6px 13px;border-radius:20px;font-size:.68rem;font-weight:700;cursor:pointer;border:1.5px solid '+(on?'rgba(8,145,178,.5)':'rgba(255,255,255,.1)')+';background:'+(on?'rgba(8,145,178,.18)':'rgba(255,255,255,.04)')+';color:'+(on?'#0891b2':'var(--text3)')+';">'+rangoLbls[r]+'</button>';
+  }).join('');
+  var chartsHtml=vars.map(function(v){
+    var pts=filtradas.filter(function(l){return l[v.key]!=null&&!isNaN(l[v.key]);}).map(function(l){return{ts:l.ts,v:parseFloat(l[v.key])};});
+    if(!pts.length)return'';
+    return '<div style="margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,.05);">'+
+      '<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">'+
+        '<span style="font-size:.9rem;">'+v.icon+'</span>'+
+        '<span style="font-size:.72rem;font-weight:700;color:var(--text2);flex:1;">'+v.label+'</span>'+
+        '<span style="font-size:.6rem;color:var(--text3);">'+pts.length+' lectura'+(pts.length!==1?'s':'')+'</span>'+
+      '</div>'+
+      _lecturaChartSVG(pts,v)+
+    '</div>';
+  }).join('');
+  var listaHtml='';
+  var ultimas=lecturas.slice().reverse().slice(0,10);
+  if(ultimas.length){
+    listaHtml=ultimas.map(function(l){
+      var partes=[];
+      if(l.chillerTempC!=null)partes.push('❄️ '+l.chillerTempC+'°C');
+      if(l.helioGasPresion!=null)partes.push('⚗️ '+l.helioGasPresion+' MPa');
+      if(l.helioLiqPresion!=null)partes.push('💧 '+l.helioLiqPresion+' PSI');
+      if(l.helioLiqPorc!=null)partes.push('🧊 '+l.helioLiqPorc+'%');
+      if(l.salaTempC!=null)partes.push('🌡️ '+l.salaTempC+'°C');
+      if(l.salaHumedad!=null)partes.push('💦 '+l.salaHumedad+'%');
+      return '<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04);">'+
+        '<div style="flex:1;min-width:0;">'+
+          '<div style="font-size:.7rem;color:var(--text3);">'+_fmtFechaHora(l.ts)+(l.notas?' · '+esc(l.notas):'')+'</div>'+
+          '<div style="font-size:.72rem;color:var(--text2);font-family:JetBrains Mono,monospace;">'+esc(partes.join(' · ')||'—')+'</div>'+
+        '</div>'+
+        '<button onclick="deleteLecturaSala(\''+eqId+'\',\''+l.id+'\')" style="flex-shrink:0;width:30px;height:30px;border-radius:8px;background:rgba(255,59,48,.08);border:1px solid rgba(255,59,48,.15);color:var(--red);cursor:pointer;font-size:.72rem;">✕</button>'+
+      '</div>';
+    }).join('');
+  }
+  var emptyMsg=lecturas.length
+    ?'<div style="text-align:center;padding:20px 10px;color:var(--text3);font-size:.8rem;">Sin lecturas en este rango — probá "Todo" o cargá una nueva</div>'
+    :'<div style="text-align:center;padding:20px 10px;color:var(--text3);font-size:.8rem;">Sin lecturas cargadas todavía — usá "+ Nueva lectura" para empezar</div>';
+  return '<div class="cring-wrap" style="--cc:rgba(249,115,22,.85);margin-bottom:10px;"><div class="cring-el"></div><div class="gc" style="padding:0;overflow:hidden;">'+
+    '<div style="background:linear-gradient(90deg,rgba(249,115,22,.10),rgba(8,145,178,.05));padding:8px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(249,115,22,.08);">'+
+      '<span style="font-size:.72rem;font-weight:700;color:#f97316;text-transform:uppercase;letter-spacing:.06em;flex:1;">🌡️ Monitoreo de Sala de Máquinas</span>'+
+      '<button onclick="openRegistrarLecturaSalaModal(\''+eqId+'\')" style="min-height:32px;padding:6px 12px;border-radius:var(--r-pill);font-size:.68rem;font-weight:700;cursor:pointer;border:1.5px solid rgba(249,115,22,.35);background:rgba(249,115,22,.14);color:#f97316;">+ Nueva lectura</button>'+
+    '</div>'+
+    '<div style="padding:12px 14px;">'+
+      '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">'+rangoChips+'</div>'+
+      (chartsHtml||emptyMsg)+
+      (listaHtml?'<div style="font-size:.62rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:10px 0 4px;">Últimas lecturas</div>'+listaHtml:'')+
+    '</div>'+
+  '</div></div>';
+}
 function _refrigHelioChart(rf,eqId){
   var nowD=new Date();
   var nowY=nowD.getFullYear();
@@ -16567,12 +16791,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="1.7.0";
+var APP_DISPLAY_VERSION="1.8.0";
 var APP_BUILD="13/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'1.8.0',fecha:'13/07/2026',tipo:'minor',cambios:[
+    'Monitoreo de Sala de Máquinas en Refrigeración: carga manual de temperatura/humedad de sala, agua de chiller y helio, con timeline independiente por variable y filtro de rango. Amplía catálogo de partes de RM con gradientes internos, refrigeración líquida y ventilación del túnel'
+  ]},
   {v:'1.7.0',fecha:'13/07/2026',tipo:'minor',cambios:[
     'Nueva función \'Mover a otro equipo\' en el detalle de antena — mueve la antena entre resonadores preservando 100% del historial (roturas, reparaciones, PDFs)'
   ]},
