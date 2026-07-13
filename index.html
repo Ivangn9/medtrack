@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.10.018 -->
+<!-- v2026.07.13.001 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.10.018">
+<meta name="app-version" content="v2026.07.13.001">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -10638,6 +10638,7 @@ function rAntenaDetalle(){
     h+='<div class="gc" style="padding:14px;margin-bottom:12px;"><div style="font-size:.66rem;color:var(--text3);font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:5px;">Notas</div><div style="font-size:.82rem;color:var(--text2);">'+esc(ant.notas)+'</div></div>';
   }
   /* delete antenna */
+  h+='<button onclick="openMoverAntenaModal(\''+ant.id+'\')" style="width:100%;padding:11px;border-radius:var(--r-pill);background:rgba(79,120,224,.08);border:1.5px solid rgba(79,120,224,.20);color:#4f78e0;font-weight:600;font-size:.78rem;cursor:pointer;margin-bottom:8px;">🔄 Mover a otro equipo</button>';
   if(selAntenaEqId){
     h+='<button onclick="if(confirm(\'¿Quitar esta antena del equipo?\'))removeAntennaFromEq(\''+ant.id+'\',\''+selAntenaEqId+'\');" style="width:100%;padding:11px;border-radius:var(--r-pill);background:rgba(255,59,48,.08);border:1.5px solid rgba(255,59,48,.18);color:var(--red);font-weight:600;font-size:.78rem;cursor:pointer;">Quitar del equipo</button>';
   }
@@ -13141,6 +13142,44 @@ function setAntenaEstado(antenaId,estado){
 function removeAntennaFromEq(antenaId,rmEquipId){
   eqs=eqs.map(function(e){if(e.id===rmEquipId)return Object.assign({},e,{antenaIds:(e.antenaIds||[]).filter(function(id){return id!==antenaId;})});return e;});
   saveDataCritical();closeModal();showToast('Antena quitada del equipo','');
+  render();
+}
+// Mover una antena existente a otro resonador — preserva 100% del historial
+// (roturas, reparaciones, PDFs). Quita el ID de eq.antenaIds del origen y lo
+// agrega en el destino en un mismo paso, para que la antena nunca quede
+// huérfana ni un segundo — a diferencia de "Quitar del equipo" + "Agregar
+// Antena" (que crea una antena NUEVA desde cero, sin el historial de la vieja).
+function openMoverAntenaModal(antenaId){
+  var ant=antenas.find(function(a){return a.id===antenaId;});if(!ant)return;
+  var actual=eqs.find(function(e){return(e.antenaIds||[]).indexOf(antenaId)!==-1;});
+  var destinos=eqs.filter(function(e){return e.cat==='RM'&&!e.baja&&(!actual||e.id!==actual.id);});
+  if(!destinos.length){showToast('No hay otro resonador disponible para mover esta antena','warn');return;}
+  var opts=destinos.map(function(e){return'<option value="'+e.id+'">'+esc(e.nombre)+(e.ubicacion?' — '+esc(e.ubicacion):'')+'</option>';}).join('');
+  openModal(
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">'+
+      '<div style="flex-shrink:0;">'+antenaSvgIcon(36)+'</div>'+
+      '<div><div style="font-weight:800;font-size:1.05rem;">Mover Antena</div>'+
+      '<div style="font-size:.65rem;color:var(--text3);">'+esc(ant.nombre||ant.tipo||'Antena')+(actual?' · actualmente en '+esc(actual.nombre):' · sin equipo vinculado')+'</div></div>'+
+      '<button onclick="closeModal()" style="margin-left:auto;width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">✕</button>'+
+    '</div>'+
+    '<div style="font-size:.76rem;color:var(--text2);background:rgba(79,120,224,.07);border:1px solid rgba(79,120,224,.18);border-radius:10px;padding:10px 12px;margin-bottom:14px;line-height:1.5;">Se conserva todo el historial de la antena (roturas, reparaciones, PDFs) — solo cambia a qué resonador está asignada.</div>'+
+    '<div class="ff"><div class="ff-label">Mover a</div><select class="inp" id="mover-ant-destino">'+opts+'</select></div>'+
+    '<button class="btn-grad btn-grad-blue" style="width:100%;margin-top:6px;" onclick="submitMoverAntena(\''+antenaId+'\')">Mover antena</button>'
+  );
+}
+function submitMoverAntena(antenaId){
+  var destId=(document.getElementById('mover-ant-destino')||{}).value;
+  if(!destId){showToast('Elegí un resonador de destino','warn');return;}
+  var origen=eqs.find(function(e){return(e.antenaIds||[]).indexOf(antenaId)!==-1;});
+  eqs=eqs.map(function(e){
+    if(origen&&e.id===origen.id)return Object.assign({},e,{antenaIds:(e.antenaIds||[]).filter(function(id){return id!==antenaId;})});
+    if(e.id===destId)return Object.assign({},e,{antenaIds:(e.antenaIds||[]).indexOf(antenaId)===-1?(e.antenaIds||[]).concat(antenaId):e.antenaIds});
+    return e;
+  });
+  var destino=eqs.find(function(e){return e.id===destId;});
+  auditEntry('modificar','eq',antenaId,'Antena',(origen?'Movida de '+origen.nombre+' a ':'Vinculada a ')+(destino?destino.nombre:destId));
+  saveDataCritical();closeModal();showToast('✅ Antena movida a '+(destino?destino.nombre:'el equipo elegido'),'');
+  selAntenaEqId=destId;
   render();
 }
 function deleteAntena(antenaId){
@@ -16528,12 +16567,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="1.6.2";
-var APP_BUILD="10/07/26 h";
+var APP_DISPLAY_VERSION="1.7.0";
+var APP_BUILD="13/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'1.7.0',fecha:'13/07/2026',tipo:'minor',cambios:[
+    'Nueva función \'Mover a otro equipo\' en el detalle de antena — mueve la antena entre resonadores preservando 100% del historial (roturas, reparaciones, PDFs)'
+  ]},
   {v:'1.6.2',fecha:'10/07/2026',tipo:'patch',cambios:[
     'Informe de Marcas: ahora incluye roturas activas de transductores y antenas vinculados, no solo fallas directas del equipo'
   ]},

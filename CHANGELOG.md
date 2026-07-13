@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v1.7.0 — 13/07/2026 (minor)
+
+- Nueva función 'Mover a otro equipo' en el detalle de antena — mueve la antena entre resonadores preservando 100% del historial (roturas, reparaciones, PDFs)
+
 ## v1.6.2 — 10/07/2026 (patch)
 
 - Informe de Marcas: ahora incluye roturas activas de transductores y antenas vinculados, no solo fallas directas del equipo
