@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.13.002 -->
+<!-- v2026.07.13.003 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.13.002">
+<meta name="app-version" content="v2026.07.13.003">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -4786,10 +4786,15 @@ var CAT_COMPONENTES={
     // Sistema criogénico interno (más allá del compresor/tanque ya listados)
     "Tubo de venteo criog\xe9nico (cryostat vent pipe)","Aislaci\xf3n de vac\xedo del criostato (vacuum jacket)",
     "Sensor de nivel de helio l\xedquido (interno del criostato)",
-    // Ventilación del túnel y gradientes (módulo Bore/Patient Blower de GE)
-    "Ventilador del t\xfanel (Bore/Patient Blower Fan)","Motor/turbina del blower del t\xfanel",
+    // Blower Box (GE) — se divide en dos subsistemas independientes
+    // 1) Enfriamiento del t\xfanel / paciente (Patient Comfort Blower Box)
+    "Blower Box del t\xfanel (Patient Comfort Blower Box)","Motor/turbina del blower del t\xfanel",
     "Rejilla/salida de ventilaci\xf3n del t\xfanel","Ducto de ventilaci\xf3n del t\xfanel",
     "Filtro de aire del blower del t\xfanel",
+    // 2) Enfriamiento de componentes electr\xf3nicos (PEN/SPW Blower Box - gabinete PEN)
+    "Blower Box electr\xf3nico (PEN/SPW Blower Box)","Motor/turbina del blower electr\xf3nico",
+    "Ducto de ventilaci\xf3n del gabinete PEN","Filtro de aire del blower electr\xf3nico",
+    "Intercambio de aire del cl\xf3set PEN (400 CFM)",
     // Mantenimiento rutinario
     "Filtros de aire del gabinete electr\xf3nico","Limpieza de bobinas y accesorios",
     "Registro de presi\xf3n y temperatura del compresor","Lubricaci\xf3n de mesa de paciente"
@@ -16791,12 +16796,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="1.8.0";
+var APP_DISPLAY_VERSION="1.8.1";
 var APP_BUILD="13/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'1.8.1',fecha:'13/07/2026',tipo:'patch',cambios:[
+    'Blower Box de RM dividido en enfriamiento de túnel y enfriamiento electrónico (PEN/SPW)'
+  ]},
   {v:'1.8.0',fecha:'13/07/2026',tipo:'minor',cambios:[
     'Monitoreo de Sala de Máquinas en Refrigeración: carga manual de temperatura/humedad de sala, agua de chiller y helio, con timeline independiente por variable y filtro de rango. Amplía catálogo de partes de RM con gradientes internos, refrigeración líquida y ventilación del túnel'
   ]},

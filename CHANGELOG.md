@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v1.8.1 — 13/07/2026 (patch)
+
+- Blower Box de RM dividido en enfriamiento de túnel y enfriamiento electrónico (PEN/SPW)
+
 ## v1.8.0 — 13/07/2026 (minor)
 
 - Monitoreo de Sala de Máquinas en Refrigeración: carga manual de temperatura/humedad de sala, agua de chiller y helio, con timeline independiente por variable y filtro de rango. Amplía catálogo de partes de RM con gradientes internos, refrigeración líquida y ventilación del túnel
