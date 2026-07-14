@@ -1513,6 +1513,7 @@
     <div class="mov-toolbar">
       <button class="btn btn-primary" onclick="openMovModal(null,'entrada')"><span class="btn-icon">📥</span> Entrada</button>
       <button class="btn btn-red"     onclick="openMovModal(null,'salida')"><span class="btn-icon">📤</span> Salida</button>
+      <button class="btn btn-secondary" onclick="openTrasladoModal()"><span class="btn-icon">🔀</span> Traslado</button>
       <div class="date-filter-group"><label>Desde</label><input type="date" id="movDateFrom" onchange="renderMovimientos()" /></div>
       <div class="date-filter-group"><label>Hasta</label><input type="date" id="movDateTo"   onchange="renderMovimientos()" /></div>
       <div class="date-filter-group"><select id="movTypeFilter" onchange="renderMovimientos()"><option value="">Todos</option><option value="entrada">Solo entradas</option><option value="salida">Solo salidas</option></select></div>
@@ -2051,6 +2052,46 @@
   </div>
 </div>
 
+<!-- ─── Modal Traslado entre sucursales ─────────────────────────── -->
+<div class="modal-overlay" id="trasladoModal" onclick="closeTrasladoModal(event)">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🔀 Traslado entre sucursales</div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Desde</label>
+          <select id="trasladoFrom" onchange="onTrasladoFromChange()">
+            <option value="GN">GN · Guardias Nacionales</option>
+            <option value="Sarmiento">Pedernera-Sarmiento</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Hacia</label><input type="text" id="trasladoToDisplay" disabled /></div>
+      </div>
+      <div class="form-group"><label>Insumo</label><select id="trasladoSupplySelect" onchange="onTrasladoSupplyChange()"><option value="">— Seleccionar —</option></select></div>
+      <div id="trasladoStockInfo" style="font-size:.78rem;color:var(--text3);margin-top:-6px;margin-bottom:10px"></div>
+      <!-- Lotes disponibles en el centro origen (solo si el insumo los tiene cargados) -->
+      <div class="form-group" id="trasladoLotesGroup" style="display:none">
+        <label style="display:flex;align-items:center;gap:6px">
+          <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><rect x="3" y="4" width="14" height="13" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M7 2v3M13 2v3M3 8h14" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          Lote a trasladar
+        </label>
+        <select id="trasladoLoteSelect" onchange="onTrasladoLoteChange()" style="font-size:.85rem"></select>
+        <div id="trasladoLoteInfo" style="font-size:.75rem;color:var(--text3);margin-top:4px"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Cantidad</label><input type="number" id="trasladoQty" min="1" placeholder="0" /></div>
+        <div class="form-group"><label>Fecha</label><input type="date" id="trasladoDate" /></div>
+      </div>
+      <div class="form-group"><label>Nota (opcional)</label><input type="text" id="trasladoNote" placeholder="Ej: Faltante urgente…" /></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeTrasladoModal()">Cancelar</button>
+      <button class="btn btn-primary"   onclick="saveTraslado()"><span class="btn-icon">🔀</span> Trasladar</button>
+    </div>
+  </div>
+</div>
+
 <!-- ─── Modal Proveedor ──────────────────────────────── -->
 <div class="modal-overlay" id="supplierModal" onclick="closeSupplierModal(event)">
   <div class="modal-sheet" onclick="event.stopPropagation()" style="max-width:540px">
@@ -2308,7 +2349,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "5.2";
+const APP_VERSION = "5.3";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -2965,7 +3006,7 @@ function renderMovimientos(){
     return true;
   }).sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
   let ent=0,sal=0,gasto=0;
-  filtered.forEach(m=>{const s=supplies.find(x=>x.id===m.supplyId);if(m.type==="entrada")ent+=m.qty;else{sal+=m.qty;gasto+=m.qty*(s?.price||0);}});
+  filtered.forEach(m=>{const s=supplies.find(x=>x.id===m.supplyId);if(m.type==="entrada")ent+=m.qty;else{sal+=m.qty;if(!m.traslado)gasto+=m.qty*(s?.price||0);}});
   document.getElementById("mov-stat-entradas").textContent=ent;
   document.getElementById("mov-stat-salidas").textContent=sal;
   document.getElementById("mov-stat-gasto").textContent="$"+fmt(gasto);
@@ -2975,7 +3016,8 @@ function renderMovimientos(){
     const unit=s?.unit||"UND";
     const sign=m.type==="entrada"?"+":"−";
     const icon=m.type==="entrada"?"📥":"📤";
-    const gastoTag=m.type==="salida"&&s?.price?` · $${fmt(m.qty*s.price)}`:"";
+    const gastoTag=m.type==="salida"&&s?.price&&!m.traslado?` · $${fmt(m.qty*s.price)}`:"";
+    const trasladoTag=m.traslado?`<span class="mov-tag" title="${m.type==="salida"?"Trasladado a "+escAttr((BRAND_THEMES[m.trasladoDestino]&&BRAND_THEMES[m.trasladoDestino].nombre)||m.trasladoDestino||""):"Trasladado desde "+escAttr((BRAND_THEMES[m.trasladoOrigen]&&BRAND_THEMES[m.trasladoOrigen].nombre)||m.trasladoOrigen||"")}">🔀 Traslado</span>`:"";
     const loteTag=(m.lotesConsumidos&&m.lotesConsumidos.length)
       ?`<span class="mov-tag" title="${escAttr(m.lotesConsumidos.map(function(c){return 'Vence '+fmtDate(c.fechaVenc)+': '+c.qty;}).join(' · '))}">📦 ${m.lotesConsumidos.length>1?m.lotesConsumidos.length+' lotes':'Vence '+fmtDate(m.lotesConsumidos[0].fechaVenc)}</span>`
       :"";
@@ -2989,12 +3031,13 @@ function renderMovimientos(){
           ${m.note?`<span class="mov-note">${escHtml(m.note)}</span>`:""}
           ${gastoTag?`<span class="mov-note" style="color:#1a8f3c">${gastoTag}</span>`:""}
           ${m.proveedorName?`<span class="mov-tag">🚚 ${escHtml(m.proveedorName)}</span>`:""}
+          ${trasladoTag}
           ${loteTag}
           ${userTag}
         </div>
       </div>
       <span class="mov-qty-badge ${m.type}">${sign}${m.qty} ${escHtml(unit)}</span>
-      <button class="btn btn-sm btn-red" onclick="deleteMov('${m.id}')">✕</button>
+      ${m.traslado?`<button class="btn btn-sm" disabled title="Los traslados no se eliminan directamente — registrá uno en sentido inverso para corregirlo" style="opacity:.4;cursor:not-allowed">🔒</button>`:`<button class="btn btn-sm btn-red" onclick="deleteMov('${m.id}')">✕</button>`}
     </div>`;
   }).join("");
 }
@@ -3004,10 +3047,14 @@ function movVerTodo(){
   renderMovimientos();
 }
 function deleteMov(id){
+  const center=activeCenter;
+  const m=(cs[center]?.movements||[]).find(x=>x.id===id);
+  if(!m){ toast("Movimiento no encontrado"); return; }
+  if(m.traslado){
+    toast("⚠️ Los traslados no se eliminan directamente — registrá un traslado en sentido inverso para corregirlo.");
+    return;
+  }
   openConfirm("¿Eliminar movimiento?","El stock se revertirá.",()=>{
-    const center=activeCenter;
-    const m=(cs[center]?.movements||[]).find(x=>x.id===id);
-    if(!m){ toast("Movimiento no encontrado"); return; }
     // Transacción: lee estado fresco del servidor y revierte de forma atómica
     // (evita last-write-wins con otros dispositivos y mantiene stock↔lotes en sync).
     _txnCenter(center,function(data){
@@ -3080,7 +3127,7 @@ function renderSalidasChart(){
 }
 function renderGastoCategoria(){
   const palette=["#0071e3","#34c759","#ff9500","#ff3b30","#af52de","#5ac8fa","#ff2d55","#A2845E"];
-  const getCatTotal=(movs,cat)=>movs.filter(m=>m.type==="salida").reduce((s,m)=>{const sup=supplies.find(x=>x.id===m.supplyId&&x.category===cat);return s+(sup?m.qty*(sup.price||0):0);},0);
+  const getCatTotal=(movs,cat)=>movs.filter(m=>m.type==="salida"&&!m.traslado).reduce((s,m)=>{const sup=supplies.find(x=>x.id===m.supplyId&&x.category===cat);return s+(sup?m.qty*(sup.price||0):0);},0);
   const ctx=document.getElementById("chartGastoCategoria")?.getContext("2d"); if(!ctx)return;
   if(_charts.gc)_charts.gc.destroy();
   if(chartCenter2==="ambos"){
@@ -3109,7 +3156,7 @@ function renderGastoCategoria(){
 function renderTopInsumos(){
   const movsArr=chartCenter2==="ambos"?[...(cs.GN.movements||[]),...(cs.Sarmiento.movements||[])]:(cs[chartCenter2]?.movements||[]);
   const movs=movsArr,totals={};
-  movs.filter(m=>m.type==="salida").forEach(m=>{const s=supplies.find(x=>x.id===m.supplyId);if(!s)return;totals[m.supplyId]=(totals[m.supplyId]||0)+m.qty*(s.price||0);});
+  movs.filter(m=>m.type==="salida"&&!m.traslado).forEach(m=>{const s=supplies.find(x=>x.id===m.supplyId);if(!s)return;totals[m.supplyId]=(totals[m.supplyId]||0)+m.qty*(s.price||0);});
   const sorted=Object.entries(totals).sort((a,b)=>b[1]-a[1]).slice(0,10);
   const labels=sorted.map(([id])=>{const s=supplies.find(x=>x.id===id);return s?(s.name.length>24?s.name.slice(0,21)+"…":s.name):id;});
   const data=sorted.map(([,v])=>v);
@@ -4356,26 +4403,61 @@ function _txnErrorMsg(e,fallback){
 // `data._movSet`/`data._movDelete` para indicar qué escribir en la subcolección
 // (ver helper _movPush/_movDrop más abajo), y _txnCenter aplica esos writes
 // atómicamente en la MISMA transacción que el stock/lotes.
-function _txnCenter(center,fn){
-  var key=center==="GN"?"center_GN":"center_Sarmiento";
-  var ref=_db.collection(DB_COL).doc(key);
+function _centerKey(center){ return center==="GN"?"center_GN":"center_Sarmiento"; }
+// Normaliza el snapshot crudo de un centro al shape {stock,lotes,[movements]}
+// que consumen fn() en _txnCenter/_txnTransfer — pieza compartida entre ambos.
+function _txnBuildCenterData(raw,migrated){
+  var data={stock:raw.stock||{},lotes:JSON.parse(JSON.stringify(raw.lotes||{}))};
+  if(!migrated) data.movements=raw.movements||[];
+  return data;
+}
+// Aplica el write de un centro DENTRO de una transacción ya abierta (no hace
+// commit por sí sola) — pieza compartida entre _txnCenter y _txnTransfer.
+function _txnWriteCenterData(txn,ref,data,migrated){
+  var movSet=data._movSet||[], movDelete=data._movDelete||[];
+  delete data._movSet; delete data._movDelete;
+  var toWrite=migrated
+    ? {stock:data.stock,lotes:data.lotes,movementsMigrated:true}
+    : {stock:data.stock,lotes:data.lotes,movements:data.movements||[]};
   var movCol=ref.collection("movements");
+  txn.set(ref,toWrite);
+  movSet.forEach(function(m){ txn.set(movCol.doc(m.id),m); });
+  movDelete.forEach(function(id){ txn.delete(movCol.doc(id)); });
+  return toWrite;
+}
+function _txnCenter(center,fn){
+  var ref=_db.collection(DB_COL).doc(_centerKey(center));
   return _db.runTransaction(function(txn){
     return txn.get(ref).then(function(snap){
       var raw=snap.exists?snap.data():{stock:{},lotes:{},movements:[]};
       var migrated=raw.movementsMigrated===true;
-      var data={stock:raw.stock||{},lotes:JSON.parse(JSON.stringify(raw.lotes||{}))};
-      if(!migrated) data.movements=raw.movements||[];
+      var data=_txnBuildCenterData(raw,migrated);
       var updated=fn(data)||data;
-      var movSet=updated._movSet||[], movDelete=updated._movDelete||[];
-      delete updated._movSet; delete updated._movDelete;
-      var toWrite=migrated
-        ? {stock:updated.stock,lotes:updated.lotes,movementsMigrated:true}
-        : {stock:updated.stock,lotes:updated.lotes,movements:updated.movements||[]};
-      txn.set(ref,toWrite);
-      movSet.forEach(function(m){ txn.set(movCol.doc(m.id),m); });
-      movDelete.forEach(function(id){ txn.delete(movCol.doc(id)); });
-      return toWrite;
+      return _txnWriteCenterData(txn,ref,updated,migrated);
+    });
+  });
+}
+// Traslado de stock entre sucursales: UNA sola transacción de Firestore que
+// lee y escribe los DOS documentos de centro. O se aplican los dos lados
+// (resta en origen + suma en destino, con sus lotes y movimientos) o no se
+// aplica ninguno — nunca puede quedar stock "restado de un lado sin sumar
+// al otro" por un corte de conexión a mitad de camino.
+function _txnTransfer(fromCenter,toCenter,fn){
+  var fromRef=_db.collection(DB_COL).doc(_centerKey(fromCenter));
+  var toRef=_db.collection(DB_COL).doc(_centerKey(toCenter));
+  return _db.runTransaction(function(txn){
+    // Firestore exige TODAS las lecturas antes de cualquier escritura.
+    return Promise.all([txn.get(fromRef),txn.get(toRef)]).then(function(snaps){
+      var fromRaw=snaps[0].exists?snaps[0].data():{stock:{},lotes:{},movements:[]};
+      var toRaw=snaps[1].exists?snaps[1].data():{stock:{},lotes:{},movements:[]};
+      var fromMigrated=fromRaw.movementsMigrated===true;
+      var toMigrated=toRaw.movementsMigrated===true;
+      var fromData=_txnBuildCenterData(fromRaw,fromMigrated);
+      var toData=_txnBuildCenterData(toRaw,toMigrated);
+      var result=fn(fromData,toData)||{from:fromData,to:toData};
+      var writtenFrom=_txnWriteCenterData(txn,fromRef,result.from||fromData,fromMigrated);
+      var writtenTo=_txnWriteCenterData(txn,toRef,result.to||toData,toMigrated);
+      return {from:writtenFrom,to:writtenTo};
     });
   });
 }
@@ -4523,6 +4605,128 @@ function saveMovimiento(){
   }).catch(function(e){
     console.warn("Error al guardar movimiento:",e);
     toast(_txnErrorMsg(e,"⚠️ Error al guardar. Intentá de nuevo."));
+  });
+}
+
+// ─── Traslado de stock entre sucursales ────────────────────────────────────
+// Reutiliza _txnTransfer (transacción atómica de 2 documentos): stock y lotes
+// se mueven de un centro a otro en la MISMA transacción — nunca puede quedar
+// restado de uno y no sumado en el otro, ni al revés.
+function _otherCenter(center){ return center==="GN"?"Sarmiento":"GN"; }
+function openTrasladoModal(){
+  const from=(activeCenter==="GN"||activeCenter==="Sarmiento")?activeCenter:"GN";
+  document.getElementById("trasladoFrom").value=from;
+  onTrasladoFromChange();
+  document.getElementById("trasladoQty").value="";
+  document.getElementById("trasladoDate").valueAsDate=new Date();
+  document.getElementById("trasladoNote").value="";
+  document.getElementById("trasladoModal").classList.add("open");
+}
+function closeTrasladoModal(e){if(e&&e.target!==document.getElementById("trasladoModal"))return;document.getElementById("trasladoModal").classList.remove("open");}
+function onTrasladoFromChange(){
+  const from=document.getElementById("trasladoFrom").value;
+  const to=_otherCenter(from);
+  const toDisp=document.getElementById("trasladoToDisplay");
+  if(toDisp)toDisp.value=(BRAND_THEMES[to]&&BRAND_THEMES[to].nombre)||to;
+  buildTrasladoSupplySelect();
+}
+function buildTrasladoSupplySelect(){
+  const from=document.getElementById("trasladoFrom").value;
+  const sel=document.getElementById("trasladoSupplySelect");
+  const stock=(cs[from]&&cs[from].stock)||{};
+  const actv=supplies.filter(s=>s.active&&(stock[s.id]||0)>0).sort((a,b)=>a.name.localeCompare(b.name));
+  sel.innerHTML=`<option value="">— Seleccionar insumo —</option>`+actv.map(s=>`<option value="${escAttr(s.id)}">${escHtml(s.name)} (${escHtml(s.code)}) — ${stock[s.id]||0} disp.</option>`).join("");
+  if(!actv.length)toast("⚠️ No hay insumos con stock disponible en "+((BRAND_THEMES[from]&&BRAND_THEMES[from].nombre)||from));
+  onTrasladoSupplyChange();
+}
+function onTrasladoSupplyChange(){
+  const from=document.getElementById("trasladoFrom").value;
+  const supplyId=document.getElementById("trasladoSupplySelect").value;
+  const lotesGroup=document.getElementById("trasladoLotesGroup");
+  const loteSelect=document.getElementById("trasladoLoteSelect");
+  const stockInfo=document.getElementById("trasladoStockInfo");
+  if(!supplyId){lotesGroup.style.display="none";if(stockInfo)stockInfo.textContent="";return;}
+  const disp=(cs[from]?.stock||{})[supplyId]||0;
+  if(stockInfo)stockInfo.textContent="Stock disponible en "+((BRAND_THEMES[from]&&BRAND_THEMES[from].nombre)||from)+": "+disp;
+  const lotes=(cs[from]?.lotes||{})[supplyId]?.filter(l=>l.qty>0)||[];
+  if(!lotes.length){lotesGroup.style.display="none";return;}
+  loteSelect.innerHTML=`<option value="fefo">🔄 FEFO — Automático (más próximo a vencer primero)</option>`+
+    lotes.map(l=>{
+      const daysLeft=_daysLeft(l.fechaVenc);
+      const icon=daysLeft<0?"🔴":daysLeft<=30?"🟠":daysLeft<=90?"🟡":"🟢";
+      const label=daysLeft<0?"VENCIDO":daysLeft===0?"Vence HOY":`${daysLeft}d restantes`;
+      return `<option value="${escAttr(l.id)}">${icon} Vence ${fmtDate(l.fechaVenc)} — ${l.qty} disp. (${label})</option>`;
+    }).join("");
+  lotesGroup.style.display="block";
+  onTrasladoLoteChange();
+}
+function onTrasladoLoteChange(){
+  const from=document.getElementById("trasladoFrom").value;
+  const supplyId=document.getElementById("trasladoSupplySelect").value;
+  const loteId=document.getElementById("trasladoLoteSelect")?.value;
+  const loteInfo=document.getElementById("trasladoLoteInfo");
+  if(!loteInfo||!supplyId)return;
+  if(loteId==="fefo"){
+    const lotes=(cs[from]?.lotes||{})[supplyId]?.filter(l=>l.qty>0)||[];
+    if(lotes.length)loteInfo.textContent=`FEFO: se trasladará del lote que vence ${fmtDate(lotes[0].fechaVenc)} (${lotes[0].qty} disp.)`;
+    return;
+  }
+  const lote=(cs[from]?.lotes||{})[supplyId]?.find(l=>l.id===loteId);
+  if(lote){
+    const daysLeft=_daysLeft(lote.fechaVenc);
+    const status=daysLeft<0?"⚠️ VENCIDO":daysLeft===0?"⚠️ Vence hoy":`${daysLeft} días hasta el vencimiento`;
+    loteInfo.textContent=`${status} · ${lote.qty} unidades disponibles`;
+    loteInfo.style.color=daysLeft<0?"var(--red)":daysLeft<=30?"var(--orange)":"var(--text3)";
+  }
+}
+function saveTraslado(){
+  const from=document.getElementById("trasladoFrom").value;
+  const to=_otherCenter(from);
+  const supplyId=document.getElementById("trasladoSupplySelect").value;
+  const qty=parseInt(document.getElementById("trasladoQty").value);
+  const date=document.getElementById("trasladoDate").value;
+  const note=document.getElementById("trasladoNote").value.trim();
+  const loteSelectId=document.getElementById("trasladoLoteSelect")?.value||"fefo";
+  if(!supplyId){toast("⚠️ Seleccioná un insumo");return;}
+  if(!qty||qty<=0){toast("⚠️ Ingresá una cantidad válida");return;}
+  if(!date){toast("⚠️ Seleccioná una fecha");return;}
+  const s=supplies.find(x=>x.id===supplyId); if(!s)return;
+  const stockActual=(cs[from]?.stock||{})[supplyId]||0;
+  if(qty>stockActual){toast("⚠️ Stock insuficiente en "+((BRAND_THEMES[from]&&BRAND_THEMES[from].nombre)||from)+": hay "+stockActual+" disponibles");return;}
+
+  const ts=Date.now();
+  const movIdOut="mov_"+ts+"_out", movIdIn="mov_"+ts+"_in";
+  const time=new Date().toTimeString().slice(0,5);
+  document.getElementById("trasladoModal").classList.remove("open");
+  _txnTransfer(from,to,function(fromData,toData){
+    const r=_lotesSalida(fromData.lotes,supplyId,qty,loteSelectId);
+    fromData.stock[supplyId]=(fromData.stock[supplyId]||0)-qty;
+    if(r.consumedLotes.length){
+      r.consumedLotes.forEach(function(c){ _lotesEntrada(toData.lotes,supplyId,c.qty,c.fechaVenc,null,date); });
+    }
+    toData.stock[supplyId]=(toData.stock[supplyId]||0)+qty;
+    const movOut={id:movIdOut,supplyId,supplyName:s.name,type:"salida",qty,date,time,note,
+      traslado:true,trasladoDestino:to,trasladoPar:movIdIn,
+      ...(r.consumedLotes.length&&{lotesConsumidos:r.consumedLotes}),
+      ...(currentUser?.email&&{user:currentUser.email})};
+    const movIn={id:movIdIn,supplyId,supplyName:s.name,type:"entrada",qty,date,time,note,
+      traslado:true,trasladoOrigen:from,trasladoPar:movIdOut,
+      ...(currentUser?.email&&{user:currentUser.email})};
+    _movPush(fromData,movOut);
+    _movPush(toData,movIn);
+    return {from:fromData,to:toData};
+  }).then(function(result){
+    cs[from].stock=result.from.stock; if(result.from.movements)cs[from].movements=result.from.movements; cs[from].lotes=result.from.lotes;
+    cs[to].stock=result.to.stock; if(result.to.movements)cs[to].movements=result.to.movements; cs[to].lotes=result.to.lotes;
+    _auditLog("mov_traslado","Traslado: "+qty+" "+(s.unit||"ud")+" de \""+s.name+"\" de "+from+" a "+to+(note?" · "+note:""),null,
+      {stockOrigen:cs[from].stock[supplyId],stockDestino:cs[to].stock[supplyId]});
+    toast("✓ Traslado registrado: "+qty+" "+s.unit+" de "+s.name+" — "+from+" → "+to);
+    if(navigator.vibrate)navigator.vibrate([8,50,8]);
+    renderCurrentTab();
+    updateVencBadge();
+  }).catch(function(e){
+    console.warn("Error al guardar traslado:",e);
+    toast(_txnErrorMsg(e,"⚠️ Error al guardar el traslado. Intentá de nuevo."));
   });
 }
 
@@ -5399,7 +5603,7 @@ async function generateReport(){
         const movs=getMovs(center);
         let totalGasto=0;
         const rows=supplies.filter(s=>s.active).map(s=>{
-          const sal=movs.filter(m=>m.supplyId===s.id&&m.type==="salida").reduce((a,m)=>a+m.qty,0);
+          const sal=movs.filter(m=>m.supplyId===s.id&&m.type==="salida"&&!m.traslado).reduce((a,m)=>a+m.qty,0);
           if(!sal)return null;
           const precio=s.price||0;const gasto=sal*precio;totalGasto+=gasto;
           return[s.name,s.code,sal+" "+s.unit,precio>0?"$"+fmt(precio):"—",precio>0?"$"+fmt(gasto):"—"];
