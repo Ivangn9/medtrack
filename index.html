@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.14.011 -->
+<!-- v2026.07.14.012 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.14.011">
+<meta name="app-version" content="v2026.07.14.012">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -9508,10 +9508,16 @@ function _rDetalleFallas(eq){
       h+='</div>';
     });
   }
-  h+='</div></div>';
+  h+='</div></div></div>';
+  // ↑ Ojo acá: faltaba este 3er </div> — sin él, la card de Historial quedaba anidada
+  // DENTRO del .cring-wrap (anillo animado rojo) de Roturas y Fallas en vez de ser una
+  // sección propia y separada. Por eso las dos secciones se veían pegadas/mezcladas.
   var histAll=(eq.historialMant||[]).slice().reverse();
   var hist=dq?histAll.filter(function(hh){return (hh.nombre||'').toLowerCase().indexOf(dq)!==-1||(hh.notas||'').toLowerCase().indexOf(dq)!==-1||(hh.tecnico||'').toLowerCase().indexOf(dq)!==-1||(hh.tipo||'').toLowerCase().indexOf(dq)!==-1;}) : histAll;
-  h+='<div class="gc" style="padding:0;margin-bottom:12px;overflow:hidden;border-left:4px solid rgba(0,113,227,.45);background:linear-gradient(135deg,rgba(0,113,227,.08) 0%,rgba(0,130,255,.04) 100%);">';
+  // Historial ahora tiene su propio anillo animado (mismo efecto que Roturas y Fallas,
+  // pero en azul) y un margen superior extra para que las dos secciones se vean
+  // claramente separadas, no como si fueran una sola.
+  h+='<div class="cring-wrap" style="--cc:rgba(0,113,227,.9);margin-top:22px;margin-bottom:12px;"><div class="cring-el"></div><div class="gc" style="padding:0;overflow:hidden;border-left:4px solid rgba(0,113,227,.45);background:linear-gradient(135deg,rgba(0,113,227,.08) 0%,rgba(0,130,255,.04) 100%);">';
   h+='<div style="background:linear-gradient(90deg,rgba(0,113,227,.12),rgba(0,130,255,.07));padding:9px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(0,113,227,.10);">';
   h+='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(0,113,227,.9)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
   h+='<span style="font-size:.72rem;font-weight:700;color:rgba(0,113,227,.9);text-transform:uppercase;letter-spacing:.06em;flex:1;">Historial</span>';
@@ -17054,12 +17060,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="1.13.1";
+var APP_DISPLAY_VERSION="1.13.2";
 var APP_BUILD="14/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'1.13.2',fecha:'14/07/2026',tipo:'patch',cambios:[
+    'Fallas: separa Historial de Roturas y Fallas (estaban anidados) y agrega anillo animado azul'
+  ]},
   {v:'1.13.1',fecha:'14/07/2026',tipo:'patch',cambios:[
     'Informe de Marcas: corrige espaciado del título del equipo y borde de tabla'
   ]},
