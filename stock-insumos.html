@@ -2291,7 +2291,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "4.49";
+const APP_VERSION = "4.50";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -7056,7 +7056,7 @@ function renderPracCierre(el){
         <div class="prac-mes-subname">${escHtml(sp.nombre)}</div>
         <div class="prac-mes-unitcost">${_pracFmt(total)}/prac.</div>
         <input type="number" class="prac-mes-input" min="0" max="99999" value="${qty}"
-          data-key="${escAttr(key)}" oninput="updatePracQty(this)" inputmode="numeric">
+          data-key="${escAttr(key)}" data-prac="${escAttr(p.id)}" data-sp="${escAttr(sp.id)}" oninput="updatePracQty(this)" inputmode="numeric">
         <div class="prac-mes-total" id="prac-row-${escAttr(key)}">${rowTotal>0?_pracFmt(rowTotal):'—'}</div>
       </div>`;
     }).join('');
@@ -7078,27 +7078,27 @@ function updatePracQty(input){
   const key=input.dataset.key;
   const qty=Math.max(0,parseInt(input.value)||0);
   if(parseInt(input.value)<0) input.value=0;
-  // Update inline total for this row
+  // Actualizar el total de ESTA fila usando data-prac/data-sp — NUNCA partir la
+  // clave con split('__'): varios ids de estudio contienen "__" (ej.
+  // "mama___multip", "cap_dif___dlco", "med_bucal___curva") y el split los
+  // rompía, dejando esas filas sin calcular.
   const rowTotalEl=document.getElementById('prac-row-'+key);
   if(rowTotalEl){
-    const [pracId,spId]=key.split('__');
-    const prac=(_pracConfig.practicas||[]).find(p=>p.id===pracId);
-    const sp=prac?prac.subPracticas.find(s=>s.id===spId):null;
+    const prac=(_pracConfig.practicas||[]).find(p=>p.id===input.dataset.prac);
+    const sp=prac?prac.subPracticas.find(s=>s.id===input.dataset.sp):null;
     if(sp){
-      const {total}=_pracCalcSubCost(sp, pracId);
+      const {total}=_pracCalcSubCost(sp, input.dataset.prac);
       rowTotalEl.textContent=qty>0?_pracFmt(qty*total):'—';
     }
   }
-  // Recalculate grand total
+  // Recalcular el total general (misma corrección: sin split de la clave)
   let grandTotal=0;
   document.querySelectorAll('.prac-mes-input').forEach(inp=>{
-    const k=inp.dataset.key;
     const q=parseInt(inp.value)||0;
-    if(!k||!q) return;
-    const [pId,sId]=k.split('__');
-    const pr=(_pracConfig.practicas||[]).find(p=>p.id===pId);
-    const sp=pr?pr.subPracticas.find(s=>s.id===sId):null;
-    if(sp){const {total}=_pracCalcSubCost(sp, pId);grandTotal+=q*total;}
+    if(!q) return;
+    const pr=(_pracConfig.practicas||[]).find(p=>p.id===inp.dataset.prac);
+    const sp=pr?pr.subPracticas.find(s=>s.id===inp.dataset.sp):null;
+    if(sp){const {total}=_pracCalcSubCost(sp, inp.dataset.prac);grandTotal+=q*total;}
   });
   const gtEl=document.getElementById('prac-grand-total');
   if(gtEl) gtEl.textContent=_pracFmt(grandTotal);
