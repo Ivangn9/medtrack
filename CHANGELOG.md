@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v1.8.3 — 14/07/2026 (patch)
+
+- Agrega logo de marca MEDRAD
+
 ## v1.8.2 — 13/07/2026 (patch)
 
 - Calendario de PM: celdas más legibles con auto-scroll para días con muchos eventos
