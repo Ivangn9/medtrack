@@ -8,6 +8,10 @@ rules_version = '2';
 // v2 — Corrige el bloqueo de la app "Pedido de Insumos" (anónima)
 // y agrega las colecciones del Stock que faltaban:
 // insumos_users, cima_backups, cima_audit.
+// v3 — El visor "Pendientes/Entregados" de Pedido de Insumos (login anónimo
+// por defecto) necesita LEER solicitudes_log/items para armar el badge y las
+// listas; antes solo isTeam() podía leer, así que a un usuario anónimo le
+// daba permission-denied en silencio y el visor quedaba siempre vacío.
 // ═══════════════════════════════════════════════════════════════
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -71,11 +75,13 @@ service cloud.firestore {
     }
 
     // Pedidos enviados desde el formulario público: cualquiera autenticado
-    // (incluye anónimo) puede CREAR un pedido; solo el equipo los lee,
-    // marca como entregados o borra.
+    // (incluye anónimo) puede CREAR un pedido y LEER la lista (para el visor
+    // de Pendientes/Entregados — transparencia global, ver commit del
+    // visor). Marcar como entregado o borrar sigue siendo solo del equipo.
     match /insumos_cima/solicitudes_log/items/{item} {
       allow create: if request.auth != null && isValidSolicitud(request.resource.data);
-      allow read, update, delete: if isTeam();
+      allow read: if request.auth != null;
+      allow update, delete: if isTeam();
     }
 
     // Resto de Stock de Insumos (center_GN, center_Sarmiento, push_tokens,
