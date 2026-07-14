@@ -2291,7 +2291,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "5.0";
+const APP_VERSION = "5.1";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -7086,10 +7086,25 @@ function setPracMes(val){
   renderContable();
 }
 
+// Autoguardado con debounce: escribir una cantidad ya la persiste sola a los
+// pocos segundos, sin depender de acordarse de tocar "💾 Guardar mes"
+// (igual criterio que el resto de Control Contable, donde cada edición
+// guarda directo).
+let _pracMesSaveTimer=null;
 function updatePracQty(input){
   const key=input.dataset.key;
   const qty=Math.max(0,parseInt(input.value)||0);
   if(parseInt(input.value)<0) input.value=0;
+  // Actualizar SIEMPRE la fuente de verdad en memoria (_pracMes), no solo el
+  // texto en pantalla. Antes, escribir un número solo cambiaba el DOM — si
+  // navegabas a otra pestaña (o incluso alternabas Costos↔Cierre dentro de
+  // Contable) sin tocar "Guardar mes", el próximo render reconstruía todo
+  // desde _pracMes desactualizado y el número recién tipeado desaparecía
+  // ("quedaba bugueado"). Ahora cada tecla ya actualiza la fuente real.
+  if(!_pracMes[_pracCierreMes]) _pracMes[_pracCierreMes]={};
+  if(qty>0) _pracMes[_pracCierreMes][key]=qty;
+  else delete _pracMes[_pracCierreMes][key];
+
   // Actualizar el total de ESTA fila usando data-prac/data-sp — NUNCA partir la
   // clave con split('__'): varios ids de estudio contienen "__" (ej.
   // "mama___multip", "cap_dif___dlco", "med_bucal___curva") y el split los
@@ -7114,18 +7129,23 @@ function updatePracQty(input){
   });
   const gtEl=document.getElementById('prac-grand-total');
   if(gtEl) gtEl.textContent=_pracFmt(grandTotal);
+
+  clearTimeout(_pracMesSaveTimer);
+  _pracMesSaveTimer=setTimeout(function(){ savePracMes(true); }, 900);
 }
 
-function savePracMes(){
+function savePracMes(silent){
   if(!_pracCierreMes) return;
+  clearTimeout(_pracMesSaveTimer);
   const data={};
   document.querySelectorAll('.prac-mes-input').forEach(inp=>{
     const k=inp.dataset.key;
     const q=parseInt(inp.value)||0;
     if(k && q>0) data[k]=q;
   });
+  _pracMes[_pracCierreMes]=data; // mantener la fuente en memoria alineada con lo guardado
   _db.collection(DB_COL).doc("practicas_mes").set({[_pracCierreMes]:data},{merge:true})
-    .then(()=>toast('✓ Cierre mensual guardado'))
+    .then(()=>{ if(!silent) toast('✓ Cierre mensual guardado'); })
     .catch(()=>toast('⚠️ Error al guardar'));
 }
 
