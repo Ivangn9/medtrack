@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.14.007 -->
+<!-- v2026.07.14.008 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.14.007">
+<meta name="app-version" content="v2026.07.14.008">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -11304,6 +11304,7 @@ function _marcaFallasDeEquipo(eq){
     if(!t)return;
     (t.roturas||[]).filter(function(r){return r.estado!=='reparado';}).forEach(function(r){
       out.push({
+        id:'tr-'+t.id+'-'+r.id,
         nombre:'🔌 Transductor '+(t.nombre||t.modelo||'')+' — '+(r.queSeRompio||'Falla'),
         descripcion:r.descripcion||'',
         estado:r.estado==='en_reparacion'?'pendiente':'roto',
@@ -11321,6 +11322,7 @@ function _marcaFallasDeEquipo(eq){
     if(!a)return;
     (a.roturas||[]).filter(function(r){return r.estado!=='reparado';}).forEach(function(r){
       out.push({
+        id:'ant-'+a.id+'-'+r.id,
         nombre:'📡 Antena '+(a.nombre||a.tipo||'')+' — '+(r.queSeRompio||'Falla'),
         descripcion:r.descripcion||'',
         estado:r.estado==='en_reparacion'?'pendiente':'roto',
@@ -11335,6 +11337,18 @@ function _marcaFallasDeEquipo(eq){
   });
   return out;
 }
+// Marca/quita todos los checkboxes de fallas de una sola vez ("Seleccionar todas"/"Ninguna").
+function _marcaToggleAll(checked){
+  var boxes=document.querySelectorAll('.mif-fchk');
+  for(var i=0;i<boxes.length;i++)boxes[i].checked=checked;
+  _marcaUpdateCount();
+}
+function _marcaUpdateCount(){
+  var boxes=document.querySelectorAll('.mif-fchk');
+  var n=0;for(var i=0;i<boxes.length;i++)if(boxes[i].checked)n++;
+  var c=document.getElementById('mif-fchk-count');
+  if(c)c.textContent=n+' de '+boxes.length+' seleccionada'+(boxes.length!==1?'s':'');
+}
 function _updateMarcaFallas(){
   var marca=(document.getElementById('mif-marca')||{}).value||'';
   var prov=(document.getElementById('mif-prov')||{}).value||'';
@@ -11348,18 +11362,41 @@ function _updateMarcaFallas(){
     var provOk=!prov||(e.empresaVendio||'').toLowerCase()===prov.toLowerCase();
     return marcaOk&&provOk;
   });
-  var totalF=0;
-  conFallas.forEach(function(e){totalF+=_marcaFallasDeEquipo(e).length;});
   if(!conFallas.length){
     el.innerHTML='<div style="background:rgba(255,59,48,.07);border:1px solid rgba(255,59,48,.18);border-radius:8px;padding:10px 14px;color:var(--red);">Sin fallas activas con ese filtro</div>';
-  }else{
-    var filtroLabel=(prov||marca);
-    el.innerHTML='<div style="background:rgba(255,149,0,.08);border:1px solid rgba(255,149,0,.22);border-radius:8px;padding:10px 14px;color:#b45309;font-weight:600;"><strong>'+conFallas.length+' equipo'+(conFallas.length!==1?'s':'')+' con fallas</strong> — '+totalF+' falla'+(totalF!==1?'s':'')+' activa'+(totalF!==1?'s':'')+' en total</div>';
-    var paraEl=document.getElementById('mif-para');
-    if(paraEl&&!paraEl.value)paraEl.value=prov?'Representante Técnico — '+prov:'Representante Técnico '+marca;
-    var asuntoEl=document.getElementById('mif-asunto');
-    if(asuntoEl&&!asuntoEl.value)asuntoEl.value='Notificación de fallas activas en equipamiento '+filtroLabel+' — Solicitud de intervención técnica';
+    return;
   }
+  var filtroLabel=(prov||marca);
+  var paraEl=document.getElementById('mif-para');
+  if(paraEl&&!paraEl.value)paraEl.value=prov?'Representante Técnico — '+prov:'Representante Técnico '+marca;
+  var asuntoEl=document.getElementById('mif-asunto');
+  if(asuntoEl&&!asuntoEl.value)asuntoEl.value='Notificación de fallas activas en equipamiento '+filtroLabel+' — Solicitud de intervención técnica';
+  // Checklist: por defecto todas tildadas, pero se puede destildar la que no
+  // se quiera mandar en este informe puntual (ej. una que ya está resuelta
+  // de palabra pero todavía no se cerró en el sistema).
+  var rows='';
+  var totalF=0;
+  conFallas.forEach(function(e){
+    var fallas=_marcaFallasDeEquipo(e);
+    totalF+=fallas.length;
+    rows+='<div style="margin-bottom:4px;font-size:.7rem;font-weight:700;color:var(--text2);">'+esc(e.nombre)+'</div>';
+    fallas.forEach(function(f){
+      rows+='<label style="display:flex;align-items:flex-start;gap:8px;padding:6px 8px;border-radius:8px;cursor:pointer;" onmousedown="event.currentTarget.style.background=\'rgba(120,120,128,.08)\'">'+
+        '<input type="checkbox" class="mif-fchk" data-fid="'+esc(f.id||'')+'" checked onchange="_marcaUpdateCount()" style="margin-top:2px;flex-shrink:0;width:16px;height:16px;">'+
+        '<span style="font-size:.76rem;color:var(--text);line-height:1.4;">'+esc(f.nombre||'Falla')+(f.fechaRotura?' <span style="color:var(--text3);">· '+fD(f.fechaRotura)+'</span>':'')+'</span>'+
+        '</label>';
+    });
+  });
+  el.innerHTML='<div style="background:rgba(255,149,0,.08);border:1px solid rgba(255,149,0,.22);border-radius:8px;padding:10px 14px;color:#b45309;font-weight:600;margin-bottom:8px;"><strong>'+conFallas.length+' equipo'+(conFallas.length!==1?'s':'')+' con fallas</strong> — '+totalF+' falla'+(totalF!==1?'s':'')+' activa'+(totalF!==1?'s':'')+' en total</div>'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">'+
+      '<span style="font-size:.68rem;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.04em;">Fallas a incluir en el informe</span>'+
+      '<span style="display:flex;gap:6px;">'+
+        '<button type="button" onclick="_marcaToggleAll(true)" style="font-size:.66rem;font-weight:700;color:var(--accent);background:none;border:none;cursor:pointer;padding:2px 4px;">Todas</button>'+
+        '<button type="button" onclick="_marcaToggleAll(false)" style="font-size:.66rem;font-weight:700;color:var(--text3);background:none;border:none;cursor:pointer;padding:2px 4px;">Ninguna</button>'+
+      '</span>'+
+    '</div>'+
+    '<div style="max-height:220px;overflow-y:auto;-webkit-overflow-scrolling:touch;border:1px solid rgba(120,120,128,.15);border-radius:10px;padding:6px;margin-bottom:6px;">'+rows+'</div>'+
+    '<div id="mif-fchk-count" style="font-size:.66rem;color:var(--text3);text-align:right;">'+totalF+' de '+totalF+' seleccionadas</div>';
 }
 
 function exportMarcaPDF(){
@@ -11369,14 +11406,28 @@ function exportMarcaPDF(){
   var contacto=(document.getElementById('mif-contacto')||{}).value||'Lic. García Núñez Iván';
   var asunto=(document.getElementById('mif-asunto')||{}).value||('Fallas activas en equipamiento '+(prov||marca));
   if(!marca&&!prov){showToast('Seleccioná una marca o proveedor','warn');return;}
+  // Solo se incluyen en el PDF las fallas que quedaron tildadas en el checklist
+  // (por defecto están todas tildadas). Si por algún motivo el checklist nunca
+  // se renderizó, se incluyen todas — nunca se genera un informe vacío por error.
+  var _fchks=document.querySelectorAll('.mif-fchk');
+  var _selFids=null;
+  if(_fchks.length){
+    _selFids={};
+    for(var _fi=0;_fi<_fchks.length;_fi++){if(_fchks[_fi].checked)_selFids[_fchks[_fi].getAttribute('data-fid')]=1;}
+  }
+  function _fallasSeleccionadas(eq){
+    var fs=_marcaFallasDeEquipo(eq);
+    if(!_selFids)return fs;
+    return fs.filter(function(f){return _selFids[f.id];});
+  }
   var eqsConFallas=eqs.filter(function(e){
     if(e.baja)return false;
-    if(!_marcaFallasDeEquipo(e).length)return false;
+    if(!_fallasSeleccionadas(e).length)return false;
     var marcaOk=!marca||(e.marca||'').toLowerCase()===marca.toLowerCase();
     var provOk=!prov||(e.empresaVendio||'').toLowerCase()===prov.toLowerCase();
     return marcaOk&&provOk;
   });
-  if(!eqsConFallas.length){showToast('No hay fallas activas con ese filtro','warn');return;}
+  if(!eqsConFallas.length){showToast('No hay fallas seleccionadas para incluir en el informe','warn');return;}
   var nowDate=new Date();
   var fechaStr=nowDate.toLocaleDateString('es-AR',{day:'2-digit',month:'long',year:'numeric'});
   // Logo CIMA
@@ -11407,7 +11458,7 @@ function exportMarcaPDF(){
   eqsConFallas.forEach(function(eq){
     var ci=catById(eq.cat);
     var _sv=catSvgIcon(eq.cat,36)||'';
-    var fallas=_marcaFallasDeEquipo(eq);
+    var fallas=_fallasSeleccionadas(eq);
     var fallasHtml='';
     fallas.forEach(function(p,fi){
       totalFallas++;
@@ -11417,7 +11468,7 @@ function exportMarcaPDF(){
       var diasCol=dias===null?'#64748b':dias>30?'#dc2626':dias>14?'#b45309':'#15803d';
       var diasBg=dias===null?'#f8fafc':dias>30?'#fef2f2':dias>14?'#fffbeb':'#f0fdf4';
       var diasBd=dias===null?'#e2e8f0':dias>30?'#fca5a5':dias>14?'#fcd34d':'#86efac';
-      var diasTag=dias!==null?('<span style="background:'+diasBg+';color:'+diasCol+';border:1px solid '+diasBd+';border-radius:20px;padding:2px 10px;font-size:8pt;font-weight:700;white-space:nowrap;">'+dias+' días sin resolución</span>'):'';
+      var diasTag=dias!==null?('<span style="background:'+diasBg+';color:'+diasCol+';border:1px solid '+diasBd+';border-radius:20px;padding:2px 10px;font-size:8pt;font-weight:700;white-space:nowrap;margin-left:8px;">'+dias+' días sin resolución</span>'):'';
       var ptoBadge=p.presupuestoAprobado
         ?'<span style="background:#f0fdf4;color:#15803d;border:1px solid #86efac;border-radius:20px;padding:2px 9px;font-size:8pt;font-weight:700;">✓ Presupuesto aprobado'+(p.precio?' — $'+esc(String(p.precio)):'')+' </span>'
         :p.precio
@@ -11430,7 +11481,7 @@ function exportMarcaPDF(){
         segsHtml+='<div style="font-size:7.5pt;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#b45309;margin-bottom:6px;">Historial de gestión</div>';
         segs.forEach(function(sg){
           segsHtml+='<div style="display:flex;gap:8px;padding:4px 0;border-bottom:1px solid rgba(245,158,11,.12);align-items:flex-start;">';
-          segsHtml+='<span style="font-size:8pt;font-weight:700;color:#f59e0b;white-space:nowrap;min-width:68px;">'+_fmtFechaCort(sg.fecha)+'</span>';
+          segsHtml+='<span style="font-size:8pt;font-weight:700;color:#f59e0b;white-space:nowrap;min-width:68px;margin-right:8px;">'+_fmtFechaCort(sg.fecha)+'</span>';
           segsHtml+='<span style="font-size:8.5pt;color:#374151;flex:1;line-height:1.55;">'+esc(sg.nota||'')+'</span>';
           segsHtml+='</div>';
         });
@@ -11477,7 +11528,7 @@ function exportMarcaPDF(){
   var sumRows='';
   eqsConFallas.forEach(function(eq){
     var ci=catById(eq.cat);
-    (eq.partes||[]).filter(function(p){return p.estado==='roto'||p.estado==='pendiente';}).forEach(function(p){
+    _fallasSeleccionadas(eq).forEach(function(p){
       var dias=p.fechaRotura?Math.floor((nowDate-new Date(p.fechaRotura+'T12:00:00'))/(1000*60*60*24)):null;
       var dc=dias===null?'#64748b':dias>30?'#dc2626':dias>14?'#b45309':'#15803d';
       var ptoTxt=p.presupuestoAprobado?'<span class="sok">Aprobado</span>':p.precio?'<span class="swarn">Pendiente</span>':'<span class="sbad">Sin cotizar</span>';
@@ -11502,10 +11553,10 @@ function exportMarcaPDF(){
   html+='</div>';
   // KPI boxes
   html+='<div style="display:flex;gap:12px;margin-bottom:22px;flex-wrap:wrap;">';
-  html+='<div style="flex:1;min-width:80px;background:#fef2f2;border:1.5px solid #fca5a5;border-radius:8px;padding:12px 16px;text-align:center;"><div style="font-size:7.5pt;color:#dc2626;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;font-weight:700;">Equipos Afectados</div><div style="font-size:28pt;font-weight:900;color:#dc2626;">'+eqsConFallas.length+'</div></div>';
-  html+='<div style="flex:1;min-width:80px;background:#fff7ed;border:1.5px solid #fcd34d;border-radius:8px;padding:12px 16px;text-align:center;"><div style="font-size:7.5pt;color:#b45309;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;font-weight:700;">Fallas Activas</div><div style="font-size:28pt;font-weight:900;color:#b45309;">'+totalFallas+'</div></div>';
-  if(totalSinPpto)html+='<div style="flex:1;min-width:80px;background:#fefce8;border:1.5px solid #fde047;border-radius:8px;padding:12px 16px;text-align:center;"><div style="font-size:7.5pt;color:#854d0e;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;font-weight:700;">Sin Presupuesto</div><div style="font-size:28pt;font-weight:900;color:#854d0e;">'+totalSinPpto+'</div></div>';
-  if(avgDias)html+='<div style="flex:1;min-width:80px;background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:8px;padding:12px 16px;text-align:center;"><div style="font-size:7.5pt;color:#1d4ed8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;font-weight:700;">Antigüedad Media</div><div style="font-size:28pt;font-weight:900;color:#1d4ed8;">'+avgDias+'<span style="font-size:13pt;"> días</span></div></div>';
+  html+='<div style="flex:1;min-width:80px;margin-right:12px;background:#fef2f2;border:1.5px solid #fca5a5;border-radius:8px;padding:12px 16px;text-align:center;"><div style="font-size:7.5pt;color:#dc2626;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;font-weight:700;">Equipos Afectados</div><div style="font-size:28pt;font-weight:900;color:#dc2626;">'+eqsConFallas.length+'</div></div>';
+  html+='<div style="flex:1;min-width:80px;margin-right:12px;background:#fff7ed;border:1.5px solid #fcd34d;border-radius:8px;padding:12px 16px;text-align:center;"><div style="font-size:7.5pt;color:#b45309;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;font-weight:700;">Fallas Activas</div><div style="font-size:28pt;font-weight:900;color:#b45309;">'+totalFallas+'</div></div>';
+  if(totalSinPpto)html+='<div style="flex:1;min-width:80px;margin-right:12px;background:#fefce8;border:1.5px solid #fde047;border-radius:8px;padding:12px 16px;text-align:center;"><div style="font-size:7.5pt;color:#854d0e;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;font-weight:700;">Sin Presupuesto</div><div style="font-size:28pt;font-weight:900;color:#854d0e;">'+totalSinPpto+'</div></div>';
+  if(avgDias)html+='<div style="flex:1;min-width:80px;margin-right:12px;background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:8px;padding:12px 16px;text-align:center;"><div style="font-size:7.5pt;color:#1d4ed8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;font-weight:700;">Antigüedad Media</div><div style="font-size:28pt;font-weight:900;color:#1d4ed8;">'+avgDias+'<span style="font-size:13pt;"> días</span></div></div>';
   html+='</div>';
   html+='<div class="section"><div class="section-title">1. Objeto</div><div class="narrative"><p>'+introText+'</p></div></div>';
   html+='<div class="section"><div class="section-title">2. Detalle de fallas activas</div>'+eqSections+'</div>';
@@ -16958,12 +17009,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="1.10.1";
+var APP_DISPLAY_VERSION="1.11.0";
 var APP_BUILD="14/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'1.11.0',fecha:'14/07/2026',tipo:'minor',cambios:[
+    'Informe de Marcas: espaciado corregido en PDF y selección de fallas a incluir'
+  ]},
   {v:'1.10.1',fecha:'14/07/2026',tipo:'patch',cambios:[
     'Agrega RF Cable y DC Cable a componentes de RM'
   ]},

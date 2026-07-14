@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v1.11.0 — 14/07/2026 (minor)
+
+- Informe de Marcas: espaciado corregido en PDF y selección de fallas a incluir
+
 ## v1.10.1 — 14/07/2026 (patch)
 
 - Agrega RF Cable y DC Cable a componentes de RM
