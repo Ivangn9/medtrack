@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v1.12.0 — 14/07/2026 (minor)
+
+- Permite cargar varios componentes afectados en una misma falla
+
 ## v1.11.0 — 14/07/2026 (minor)
 
 - Informe de Marcas: espaciado corregido en PDF y selección de fallas a incluir
