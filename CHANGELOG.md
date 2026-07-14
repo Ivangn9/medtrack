@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v1.13.1 — 14/07/2026 (patch)
+
+- Informe de Marcas: corrige espaciado del título del equipo y borde de tabla
+
 ## v1.13.0 — 14/07/2026 (minor)
 
 - Catálogo de componentes editable desde Ajustes por modalidad de equipo

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.14.010 -->
+<!-- v2026.07.14.011 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.14.010">
+<meta name="app-version" content="v2026.07.14.011">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -11552,12 +11552,16 @@ function exportMarcaPDF(){
     var estLbl=(eq.estado==='fuera-de-servicio')?'Fuera de servicio':(eq.estado==='con-rotura')?'Operativo con fallas':estLabel(eq.estado);
     eqSections+='<div class="eq-block">';
     eqSections+='<div class="eq-title">';
-    eqSections+=(_sv?'<div style="width:36px;height:36px;flex-shrink:0;">'+_sv+'</div>':'');
+    // .eq-title (definida en _reportCSS, que no se toca) separa estos 3 elementos con
+    // flexbox gap — igual que con los badges de fallas, Safari/iPadOS no respeta gap al
+    // exportar a PDF vía "Guardar en Archivos", así que sin margen explícito el nombre,
+    // la metadata y el badge de estado quedan pegados en una sola línea corrida.
+    eqSections+=(_sv?'<div style="width:36px;height:36px;flex-shrink:0;margin-right:10px;">'+_sv+'</div>':'');
     eqSections+='<div style="flex:1;min-width:0;">';
     eqSections+='<div style="font-size:11pt;font-weight:700;color:#1e293b;">'+esc(eq.nombre)+'</div>';
     eqSections+='<div style="font-size:8.5pt;color:#64748b;margin-top:2px;">'+ci.label+(eq.ubicacion?' · '+esc(eq.ubicacion):'')+(eq.modelo?' · '+esc(eq.modelo):'')+(eq.serie?' · S/N: '+esc(eq.serie):'')+'</div>';
     eqSections+='</div>';
-    eqSections+='<span style="background:'+estBg+';color:'+estColor+';border:1px solid '+estBd+';border-radius:20px;padding:4px 12px;font-size:8.5pt;font-weight:700;white-space:nowrap;flex-shrink:0;">'+estLbl+'</span>';
+    eqSections+='<span style="background:'+estBg+';color:'+estColor+';border:1px solid '+estBd+';border-radius:20px;padding:4px 12px;font-size:8.5pt;font-weight:700;white-space:nowrap;flex-shrink:0;margin-left:10px;">'+estLbl+'</span>';
     eqSections+='</div>';
     eqSections+=fallasHtml+'</div>';
   });
@@ -11602,7 +11606,7 @@ function exportMarcaPDF(){
   html+='<div class="section"><div class="section-title">1. Objeto</div><div class="narrative"><p>'+introText+'</p></div></div>';
   html+='<div class="section"><div class="section-title">2. Detalle de fallas activas</div>'+eqSections+'</div>';
   html+='<div class="section"><div class="section-title">3. Cuadro resumen</div>';
-  html+='<table class="sum"><thead><tr><th>Equipo</th><th>Cat.</th><th>Falla</th><th>Detectada</th><th style="text-align:center;">Días</th><th>Presupuesto</th><th>Reclamo</th></tr></thead><tbody>'+sumRows+'</tbody></table></div>';
+  html+='<table class="sum" style="border:1px solid #dbeafe;"><thead><tr><th>Equipo</th><th>Cat.</th><th>Falla</th><th>Detectada</th><th style="text-align:center;">Días</th><th>Presupuesto</th><th>Reclamo</th></tr></thead><tbody>'+sumRows+'</tbody></table></div>';
   html+='<div class="section"><div class="section-title">4. Solicitud formal</div><div class="narrative"><p>'+conclusionText+'</p></div></div>';
   html+='<div class="footer">';
   html+='<div class="footer-meta">CIMA Investigaciones Avanzadas · CIMA Hub · Generado: '+nowDate.toLocaleString('es-AR')+'</div>';
@@ -17050,12 +17054,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="1.13.0";
+var APP_DISPLAY_VERSION="1.13.1";
 var APP_BUILD="14/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'1.13.1',fecha:'14/07/2026',tipo:'patch',cambios:[
+    'Informe de Marcas: corrige espaciado del título del equipo y borde de tabla'
+  ]},
   {v:'1.13.0',fecha:'14/07/2026',tipo:'minor',cambios:[
     'Catálogo de componentes editable desde Ajustes por modalidad de equipo'
   ]},
