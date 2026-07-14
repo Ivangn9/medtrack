@@ -2373,7 +2373,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "5.5";
+const APP_VERSION = "5.6";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -2989,8 +2989,7 @@ function renderInventario(){
   document.getElementById("stat-total").textContent=totalItems;
   document.getElementById("stat-ok").textContent=okItems;
   document.getElementById("stat-low").textContent=lowItems;
-  const v=totalValue>=1000?"$"+(totalValue/1000).toFixed(1)+"k":"$"+Math.round(totalValue);
-  document.getElementById("stat-valor").textContent=v;
+  document.getElementById("stat-valor").textContent="$"+fmt(totalValue);
   updateCenterStats();
 }
 function quickMov(id,type){if(navigator.vibrate)navigator.vibrate(8);openMovModal(id,type);}
