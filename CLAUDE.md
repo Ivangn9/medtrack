@@ -41,7 +41,7 @@ Este repositorio contiene **DOS apps completamente independientes**.
 
 ## Versiones
 
-- Formato Stock: `MAJOR.MINOR` — última estable: **V5.4**
+- Formato Stock: `MAJOR.MINOR` — última estable: **V5.5**
   - ⚠️ **MINOR nunca debe pasar de 9** (0-9 únicamente). Al llegar a 9, el próximo bump sube el MAJOR y resetea MINOR a 0 (ej: `4.9`→`5.0`, NUNCA `4.10`).
   - Motivo: la detección de actualización usaba `parseFloat()` para comparar versiones. `parseFloat("4.10")` da `4.1`, que la comparación numérica interpreta como MENOR que `parseFloat("4.9")=4.9` — el aviso de "nueva versión" no se mostraba nunca al cruzar esa frontera. Se corrigió la comparación (`_versionIsNewer()`, compara MAJOR y MINOR como enteros separados) pero el formato de un solo dígito en MINOR se mantiene como regla dura igual, para no volver a depender de eso.
 - Formato MedTrack: **SemVer `MAJOR.MINOR.PATCH`** desde v1.0.0 (06/07/2026; la 8.19.2 fue la última interna)

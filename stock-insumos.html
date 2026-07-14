@@ -2373,7 +2373,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "5.4";
+const APP_VERSION = "5.5";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -3215,7 +3215,7 @@ function renderStockChart(){
 
 // ─── Gestión ─────────────────────────────────────────────────────────────────
 function renderGestion(){
-  if(isAdmin && document.getElementById('backupAdminContainer')?.innerHTML==='') renderBackupAdmin();
+  if(isAdmin && (_backupAdminState==='idle'||_backupAdminState==='error')) renderBackupAdmin();
   const q=(document.getElementById("gestionSearch")?.value||"").toLowerCase();
   const el=document.getElementById("gestionContainer"); if(!el)return;
   const toolbar=document.getElementById("gestionToolbar");
@@ -7772,10 +7772,34 @@ function restoreSnapshot(dateStr){
 }
 
 // ── Render panel de respaldos (admin) ────────────────────────────────────────
+// _backupAdminState reemplaza el viejo guard `innerHTML===''` de renderGestion():
+// ese guard se disparaba una sola vez (el placeholder "Cargando lista…" ya deja
+// de ser '' apenas arranca la función) y si algo fallaba a mitad de camino sin
+// caer en los try/catch de más abajo, quedaba pegado en "Cargando lista…" para
+// siempre — ni reintentaba solo, ni había forma de reintentar manualmente.
+let _backupAdminState='idle'; // idle|loading|done|error
 async function renderBackupAdmin(){
   const container=document.getElementById('backupAdminContainer'); if(!container) return;
+  _backupAdminState='loading';
   container.innerHTML=`<div class="backup-card"><div class="backup-head"><div><div class="title">💾 Respaldos automáticos</div><div class="sub">Cargando lista…</div></div></div></div>`;
-
+  try {
+    await _renderBackupAdminBody(container);
+    _backupAdminState='done';
+  } catch(e){
+    console.error('[Respaldos] Error al renderizar panel',e);
+    _backupAdminState='error';
+    container.innerHTML=`<div class="backup-card" style="background:rgba(255,59,48,.10)">
+      <div class="backup-head" style="justify-content:space-between">
+        <div>
+          <div class="title">⚠️ No se pudo cargar el panel de respaldos</div>
+          <div class="sub">${escHtml(e.message||String(e))}</div>
+        </div>
+        <button onclick="renderBackupAdmin()" style="padding:6px 14px;background:rgba(255,255,255,.2);border:none;border-radius:8px;color:#fff;font-size:.78rem;font-weight:700;cursor:pointer;white-space:nowrap;touch-action:manipulation">🔄 Reintentar</button>
+      </div>
+    </div>`;
+  }
+}
+async function _renderBackupAdminBody(container){
   // Load last 30 snapshots
   let snapshots=[];
   try {
