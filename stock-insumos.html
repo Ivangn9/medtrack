@@ -1848,6 +1848,23 @@
   </div>
 </div>
 
+<!-- ─── Modal: Agregar estudio nuevo a una categoría (Control Contable) ─── -->
+<div class="prac-link-overlay" id="pracAddStudyOverlay" style="display:none" onclick="closePracAddStudy(event)">
+  <div class="prac-link-sheet" onclick="event.stopPropagation()" style="max-height:44vh">
+    <div class="prac-link-handle"></div>
+    <div class="prac-link-head">
+      <div class="prac-link-title">➕ Nuevo estudio</div>
+      <div class="prac-link-sub" id="pracAddStudyCatName"></div>
+    </div>
+    <div style="padding:16px 18px">
+      <input type="text" id="pracAddStudyName" class="modal-input" placeholder="Nombre del estudio (ej. TAC 3 FASES)"
+        style="margin-bottom:12px" onkeydown="if(event.key==='Enter')confirmPracAddStudy()">
+      <button class="btn btn-primary" style="width:100%" onclick="confirmPracAddStudy()">Crear estudio</button>
+      <div style="font-size:.72rem;color:#8e8e93;margin-top:8px">Se crea sin insumos — después le agregás desde el botón ✏️ de su tarjeta.</div>
+    </div>
+  </div>
+</div>
+
 <!-- ─── Modal Usuarios (Admin) ──────────────────────── -->
 <div class="modal-overlay" id="usersModal" onclick="closeUsersModal(event)">
   <div class="modal-sheet" onclick="event.stopPropagation()" style="max-width:520px">
@@ -2291,7 +2308,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "5.1";
+const APP_VERSION = "5.2";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -6816,6 +6833,9 @@ function renderPracCostos(el){
   `).join('')}</div>`;
 
   const prac=pracs.find(p=>p.id===_pracActivePrac);
+  const addStudyRow=`<div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+    <button class="btn btn-secondary" style="padding:7px 14px;font-size:.82rem" onclick="openPracAddStudy()">➕ Agregar estudio</button>
+  </div>`;
   if(!prac){el.innerHTML=tabsHtml+'<div style="padding:24px;text-align:center;color:var(--text3)">Sin datos</div>';return;}
 
   const cardsHtml=prac.subPracticas.map(sp=>{
@@ -6843,14 +6863,16 @@ function renderPracCostos(el){
           <div class="cost">${_pracFmt(total)}</div>
           <button onclick="event.stopPropagation();openPracEditStudy('${escAttr(prac.id)}','${escAttr(sp.id)}')" title="Editar insumos de este estudio"
             style="width:28px;height:28px;border-radius:8px;border:none;background:rgba(255,255,255,.22);color:#fff;cursor:pointer;flex-shrink:0;font-size:.8rem;display:inline-flex;align-items:center;justify-content:center">✏️</button>
+          <button onclick="event.stopPropagation();deletePracStudy('${escAttr(prac.id)}','${escAttr(sp.id)}')" title="Eliminar este estudio"
+            style="width:28px;height:28px;border-radius:8px;border:none;background:rgba(255,59,48,.28);color:#fff;cursor:pointer;flex-shrink:0;font-size:.8rem;display:inline-flex;align-items:center;justify-content:center">🗑</button>
         </div>
       </div>
       <div class="prac-card-body">${rowsHtml}</div>
     </div>`;
   }).join('');
 
-  el.innerHTML=syncNote+tabsHtml+cardsHtml;
-  if(!cardsHtml) el.innerHTML+=`<div style="padding:24px;text-align:center;color:var(--text3)">Sin sub-prácticas registradas</div>`;
+  el.innerHTML=syncNote+tabsHtml+addStudyRow+cardsHtml;
+  if(!cardsHtml) el.innerHTML+=`<div style="padding:24px;text-align:center;color:var(--text3)">Sin sub-prácticas registradas en esta categoría — tocá "➕ Agregar estudio" arriba.</div>`;
 }
 
 function setPracActivePrac(id){
@@ -6921,6 +6943,60 @@ function clearPracLink(){
 function _savePracConfig(){
   _db.collection(DB_COL).doc("practicas_config").set(_pracConfig)
     .catch(()=>toast('⚠️ Error guardando configuración'));
+}
+
+// ─── Agregar / eliminar estudios completos dentro de una categoría ────────────
+function openPracAddStudy(){
+  if(!_pracActivePrac){ toast('⚠️ Elegí una categoría primero'); return; }
+  const prac=(_pracConfig.practicas||[]).find(function(p){return p.id===_pracActivePrac;});
+  if(!prac) return;
+  document.getElementById('pracAddStudyCatName').textContent='Categoría: '+prac.nombre;
+  const inp=document.getElementById('pracAddStudyName');
+  inp.value='';
+  document.getElementById('pracAddStudyOverlay').style.display='flex';
+  setTimeout(function(){ inp.focus(); },150);
+}
+function closePracAddStudy(e){
+  if(e&&e.target!==document.getElementById('pracAddStudyOverlay')) return;
+  document.getElementById('pracAddStudyOverlay').style.display='none';
+}
+function confirmPracAddStudy(){
+  const prac=(_pracConfig.practicas||[]).find(function(p){return p.id===_pracActivePrac;});
+  if(!prac) return;
+  const nombre=(document.getElementById('pracAddStudyName').value||'').trim();
+  if(!nombre){ toast('⚠️ Ingresá el nombre del estudio'); return; }
+  const yaExiste=prac.subPracticas.some(function(s){return _pracNorm(s.nombre)===_pracNorm(nombre);});
+  if(yaExiste){ toast('⚠️ Ya existe un estudio con ese nombre en esta categoría'); return; }
+  const id='sp_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
+  prac.subPracticas.push({id:id, nombre:nombre, insumos:[]});
+  _savePracConfig();
+  document.getElementById('pracAddStudyOverlay').style.display='none';
+  renderContable();
+  toast('✓ Estudio "'+nombre+'" creado — agregale insumos con ✏️');
+}
+function deletePracStudy(pracId,spId){
+  const prac=(_pracConfig.practicas||[]).find(function(p){return p.id===pracId;});
+  const sp=prac?prac.subPracticas.find(function(s){return s.id===spId;}):null;
+  if(!sp) return;
+  // Avisar si el estudio ya tiene cantidades cargadas en algún cierre mensual
+  // anterior — esos registros NO se borran (quedan guardados en _pracMes),
+  // simplemente dejan de listarse porque el estudio ya no existe.
+  const key=pracId+'__'+spId;
+  const mesesConDatos=Object.keys(_pracMes||{}).filter(function(mes){return key in (_pracMes[mes]||{});});
+  const avisoMeses=mesesConDatos.length
+    ? ' Este estudio tiene cantidades cargadas en '+mesesConDatos.length+' mes(es) anterior(es) — esos registros no se borran, pero van a dejar de aparecer en el listado.'
+    : '';
+  const cantInsumos=sp.insumos.length;
+  openConfirm(
+    'Eliminar estudio',
+    '¿Eliminar "'+sp.nombre+'" de esta categoría?'+(cantInsumos?' Se pierde la configuración de sus '+cantInsumos+' insumo(s).':'')+avisoMeses,
+    function(){
+      prac.subPracticas=prac.subPracticas.filter(function(s){return s.id!==spId;});
+      _savePracConfig();
+      renderContable();
+      toast('✓ Estudio eliminado');
+    }
+  );
 }
 
 // ─── Editar insumos de un estudio (agregar/quitar/ajustar cantidad) ───────────
