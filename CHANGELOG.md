@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v1.8.4 — 14/07/2026 (patch)
+
+- Agrega Medrad a la lista de marcas del formulario de equipo
+
 ## v1.8.3 — 14/07/2026 (patch)
 
 - Agrega logo de marca MEDRAD

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.14.001 -->
+<!-- v2026.07.14.002 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.14.001">
+<meta name="app-version" content="v2026.07.14.002">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3180,7 +3180,7 @@ function _upsFilter(inp){
 function openModalEq(eq){
   var n=!eq;var f=eq||{nombre:"",cat:"RM",ubicacion:"",instalacion:"",serie:"",tecnico:"",contrato:"",marca:"",estado:"operativo",frecuencia:"semestral",ultimoMant:today(),proximoMant:calcP(today(),"semestral"),notas:"",garantia:false,garantiaHasta:"",tieneServicio:false};
   var catOpts=CATS.map(function(c){return'<option value="'+c.id+'"'+(f.cat===c.id?' selected':'')+'>'+c.label+'</option>';}).join("");
-  var MARCAS=["","GE","Siemens","Philips","Nihon Kohden","Planmeca","Carestream","AGFA","Bayer","Eaton","Samsung","ABB","TRV","Otra"];
+  var MARCAS=["","GE","Siemens","Philips","Nihon Kohden","Planmeca","Carestream","AGFA","Bayer","Medrad","Eaton","Samsung","ABB","TRV","Otra"];
   var marcaOpts=MARCAS.map(function(x){return'<option value="'+x+'"'+(f.marca===x?' selected':'')+'>'+( x||"— Sin marca —")+'</option>';}).join("");
   var fOpts=["semestral","anual","trimestral","mensual","ninguna"].map(function(x){return'<option'+(f.frecuencia===x?' selected':'')+'>'+x+'</option>';}).join("");
   var eOpts=["operativo","con-rotura","fuera-de-servicio"].map(function(x){var sel=f.estado===x||(f.estado==='advertencia'&&x==='con-rotura');return'<option'+(sel?' selected':'')+'>'+x+'</option>';}).join("");
@@ -16796,12 +16796,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="1.8.3";
+var APP_DISPLAY_VERSION="1.8.4";
 var APP_BUILD="14/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'1.8.4',fecha:'14/07/2026',tipo:'patch',cambios:[
+    'Agrega Medrad a la lista de marcas del formulario de equipo'
+  ]},
   {v:'1.8.3',fecha:'14/07/2026',tipo:'patch',cambios:[
     'Agrega logo de marca MEDRAD'
   ]},
