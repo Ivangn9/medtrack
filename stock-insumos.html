@@ -2291,7 +2291,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "4.50";
+const APP_VERSION = "5.0";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -2321,10 +2321,22 @@ function checkForUpdates(silent){
     .finally(()=>{ if(!silent){ btn && btn.classList.remove("spin"); } });
 }
 
+// Compara "MAJOR.MINOR" como pares de enteros, NO como parseFloat: parseFloat
+// lee "4.10" como el número 4.1, que resulta MENOR que parseFloat("4.9")=4.9
+// — eso rompía silenciosamente la detección de actualización al pasar de una
+// versión X.9 a X.10, o entre minors de distinta cantidad de dígitos (ej.
+// 4.7 vs 4.50). Comparar cada componente por separado no tiene ese problema,
+// sin importar cuántos dígitos tenga cada uno.
+function _versionIsNewer(a,b){
+  const pa=String(a).split('.').map(function(n){return parseInt(n,10)||0;});
+  const pb=String(b).split('.').map(function(n){return parseInt(n,10)||0;});
+  if(pa[0]!==pb[0]) return pa[0]>pb[0];
+  return (pa[1]||0)>(pb[1]||0);
+}
 let _autoUpdateTimer = null;
 function showUpdateBanner(newVer){
   // Nunca "actualizar" hacia una versión anterior (CDN sirviendo archivos viejos)
-  if(parseFloat(newVer) <= parseFloat(APP_VERSION)) return;
+  if(!_versionIsNewer(newVer, APP_VERSION)) return;
   // Tope de auto-recargas por sesión: ante cualquier inconsistencia de CDN el
   // banner queda en modo manual en vez de entrar en bucle de recargas
   const tries = +(sessionStorage.getItem("_updTries")||0);
@@ -4743,7 +4755,7 @@ function startListeners(){
     if(currentTab==="inventario") renderInventario();
     if(currentTab==="gestion") renderGestion();
     _maybeInitBackup();
-  });
+  },e=>{ console.error("[Listener supplies]",e); toast("⚠️ Error cargando insumos: "+(e.message||e)); });
 
   _unsubGN = _db.collection(DB_COL).doc("center_GN").onSnapshot(snap=>{
     if(snap.exists){
@@ -4759,7 +4771,7 @@ function startListeners(){
     if(!activeCenter)setTimeout(updateHomeStats,0);
     if(activeCenter==="GN") renderCurrentTab();
     _maybeInitBackup();
-  });
+  },e=>{ console.error("[Listener center_GN]",e); toast("⚠️ Error cargando datos de GN: "+(e.message||e)); });
 
   _unsubSolicitudes = _db.collection("insumos_cima").doc("solicitudes_log")
     .collection("items").onSnapshot(snap=>{
@@ -4791,7 +4803,7 @@ function startListeners(){
     if(!activeCenter)setTimeout(updateHomeStats,0);
     if(activeCenter==="Sarmiento") renderCurrentTab();
     _maybeInitBackup();
-  });
+  },e=>{ console.error("[Listener center_Sarmiento]",e); toast("⚠️ Error cargando datos de Sarmiento: "+(e.message||e)); });
 
   _unsubPrac = _db.collection(DB_COL).doc("practicas_config").onSnapshot(snap=>{
     if(snap.exists){
@@ -7516,7 +7528,16 @@ async function renderBackupAdmin(){
 // que todo se copió bien.
 async function migrateMovementsToSubcollection(){
   if(!isAdmin){toast("⚠️ Sin permisos");return;}
-  if(!_dataReady){toast("⚠️ Esperá a que carguen los datos");return;}
+  // No depende de _dataReady (exige que TAMBIÉN hayan cargado los listeners de
+  // ambos centros — algo que esta acción no necesita, y que si un listener
+  // queda trabado por una causa ajena, bloqueaba el botón para siempre sin
+  // ningún diagnóstico). Lo único que hace falta del estado en memoria es el
+  // catálogo (supplies/suppliers) para el respaldo — todo lo demás se lee
+  // fresco del servidor más abajo, así que es seguro igual.
+  if(!supplies.length){
+    toast("⚠️ Esperá a que cargue el catálogo de insumos e intentá de nuevo");
+    return;
+  }
   openConfirm(
     '🗄️ Migrar historial de movimientos',
     'Se hace un respaldo completo antes de empezar y no se borra ningún dato. No cierres la app ni registres movimientos mientras corre (puede tardar uno o dos minutos). ¿Confirmar?',
@@ -7525,14 +7546,22 @@ async function migrateMovementsToSubcollection(){
       if(btn){ btn.disabled=true; btn.textContent='Migrando…'; }
       try{
         toast('Generando respaldo previo a la migración…');
+        // Lectura fresca del servidor para el respaldo (no confiar en cs.GN/
+        // cs.Sarmiento en memoria, que pueden no haber cargado todavía).
+        const [gnSnapPre, sarmSnapPre]=await Promise.all([
+          _db.collection(DB_COL).doc('center_GN').get(),
+          _db.collection(DB_COL).doc('center_Sarmiento').get()
+        ]);
+        const gnDataPre=gnSnapPre.exists?gnSnapPre.data():{};
+        const sarmDataPre=sarmSnapPre.exists?sarmSnapPre.data():{};
         const preId='pre-migracion-movimientos-'+Date.now();
         await _db.collection(BACKUP_COL).doc(preId).set({
           supplies, suppliers,
-          center_GN: cs.GN||{}, center_Sarmiento: cs.Sarmiento||{},
+          center_GN: gnDataPre, center_Sarmiento: sarmDataPre,
           practicas_config: _pracConfig||null, practicas_mes: _pracMes||{},
           createdAt: new Date().toISOString(), createdBy: currentUser?.email||'?',
           appVersion: APP_VERSION,
-          counts:{ supplies: supplies.length, movsGN:(cs.GN?.movements||[]).length, movsSarm:(cs.Sarmiento?.movements||[]).length },
+          counts:{ supplies: supplies.length, movsGN:(gnDataPre.movements||[]).length, movsSarm:(sarmDataPre.movements||[]).length },
           note:'Respaldo automático previo a migrar movements a subcolección'
         });
 
