@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.14.009 -->
+<!-- v2026.07.14.010 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.14.009">
+<meta name="app-version" content="v2026.07.14.010">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1796,6 +1796,9 @@ var auditLog=[];
 var reclamos=[];
 var mejoras=[];
 var empresasRep=[];
+// Componentes que el equipo agrega al catálogo de sugerencias (CAT_COMPONENTES es fijo
+// en el código; esto permite sumar más sin tocar código), clave = id de modalidad (RM/TC/...).
+var customComponentes={};
 var _mejFiltro='todos';
 var _otViewMode='lista';
 var _auditFiltEnt='todos';
@@ -1818,7 +1821,7 @@ function auditEntry(action,entity,entityId,entityName,details){
 
 function saveData(){
   var now=new Date().toISOString();
-  try{localStorage.setItem("mt_v4",JSON.stringify(eqs));localStorage.setItem("mt_antenas",JSON.stringify(antenas));localStorage.setItem("mt_aires",JSON.stringify(aires));localStorage.setItem("mt_transductores",JSON.stringify(transductores));localStorage.setItem("mt_ordenes",JSON.stringify(ordenesTrabajo));localStorage.setItem("mt_repuestos",JSON.stringify(repuestos));localStorage.setItem("mt_pm_prog",JSON.stringify(pmProgramados));localStorage.setItem("mt_mejoras",JSON.stringify(mejoras));localStorage.setItem("mt_emp_rep",JSON.stringify(empresasRep));localStorage.setItem("mt_updatedAt",now);}catch(e){}
+  try{localStorage.setItem("mt_v4",JSON.stringify(eqs));localStorage.setItem("mt_antenas",JSON.stringify(antenas));localStorage.setItem("mt_aires",JSON.stringify(aires));localStorage.setItem("mt_transductores",JSON.stringify(transductores));localStorage.setItem("mt_ordenes",JSON.stringify(ordenesTrabajo));localStorage.setItem("mt_repuestos",JSON.stringify(repuestos));localStorage.setItem("mt_pm_prog",JSON.stringify(pmProgramados));localStorage.setItem("mt_mejoras",JSON.stringify(mejoras));localStorage.setItem("mt_emp_rep",JSON.stringify(empresasRep));localStorage.setItem("mt_custom_comp",JSON.stringify(customComponentes));localStorage.setItem("mt_updatedAt",now);}catch(e){}
   // Mark dirty before the 400ms debounce fires so the sync indicator is accurate
   // even when offline (_fbUser absent) — firestoreSave() would early-return without setting this
   if(typeof _fsDirty!=='undefined')_fsDirty=true;
@@ -2169,7 +2172,7 @@ function firestoreSave(){
 // (add/edit/delete antenna, etc.) where iOS may kill the PWA before the timer fires.
 function saveDataCritical(){
   var now=new Date().toISOString();
-  try{localStorage.setItem("mt_v4",JSON.stringify(eqs));localStorage.setItem("mt_antenas",JSON.stringify(antenas));localStorage.setItem("mt_aires",JSON.stringify(aires));localStorage.setItem("mt_transductores",JSON.stringify(transductores));localStorage.setItem("mt_ordenes",JSON.stringify(ordenesTrabajo));localStorage.setItem("mt_repuestos",JSON.stringify(repuestos));localStorage.setItem("mt_pm_prog",JSON.stringify(pmProgramados));localStorage.setItem("mt_mejoras",JSON.stringify(mejoras));localStorage.setItem("mt_emp_rep",JSON.stringify(empresasRep));localStorage.setItem("mt_updatedAt",now);}catch(e){}
+  try{localStorage.setItem("mt_v4",JSON.stringify(eqs));localStorage.setItem("mt_antenas",JSON.stringify(antenas));localStorage.setItem("mt_aires",JSON.stringify(aires));localStorage.setItem("mt_transductores",JSON.stringify(transductores));localStorage.setItem("mt_ordenes",JSON.stringify(ordenesTrabajo));localStorage.setItem("mt_repuestos",JSON.stringify(repuestos));localStorage.setItem("mt_pm_prog",JSON.stringify(pmProgramados));localStorage.setItem("mt_mejoras",JSON.stringify(mejoras));localStorage.setItem("mt_emp_rep",JSON.stringify(empresasRep));localStorage.setItem("mt_custom_comp",JSON.stringify(customComponentes));localStorage.setItem("mt_updatedAt",now);}catch(e){}
   if(!window._fbUser||!window._fbdb){if(typeof _fsDirty!=='undefined')_fsDirty=true;return;}
   if(_fsSaveTimer){clearTimeout(_fsSaveTimer);_fsSaveTimer=null;}
   _fsDirty=true;_fsFailed=false;
@@ -2239,7 +2242,7 @@ function _fsWrite(tryN){
   // el completo va en paralelo a los docs hist_* (fuente de verdad del historial).
   var _sp=window._histReady?_stripPayload():{eqs:eqs,antenas:antenas,ordenesTrabajo:ordenesTrabajo};
   if(window._histReady)_histShardSave();
-  var _payload={eqs:_sp.eqs,antenas:_sp.antenas,aires:aires,transductores:transductores,ordenesTrabajo:_sp.ordenesTrabajo,repuestos:repuestos,pmProgramados:pmProgramados,auditLog:auditLog,reclamos:reclamos,mejoras:mejoras,empresasRep:empresasRep,updatedAt:new Date().toISOString()};
+  var _payload={eqs:_sp.eqs,antenas:_sp.antenas,aires:aires,transductores:transductores,ordenesTrabajo:_sp.ordenesTrabajo,repuestos:repuestos,pmProgramados:pmProgramados,auditLog:auditLog,reclamos:reclamos,mejoras:mejoras,empresasRep:empresasRep,customComponentes:customComponentes,updatedAt:new Date().toISOString()};
   // Firestore limita cada documento a ~1MB. Aviso temprano al 70% para migrar a tiempo,
   // y si YA se pasó del límite duro no reintentamos en bucle — un doc de +950KB nunca
   // va a escribir con éxito, así que insistir cada pocos segundos solo gasta batería/datos
@@ -3009,7 +3012,7 @@ function setParteEstadoRapido(eqId,pid,nuevoEstado){
 }
 function _initComponentesEquipo(eqId){
   var eq=eqs.find(function(e){return e.id===eqId;});if(!eq)return;
-  var lista=CAT_COMPONENTES[eq.cat]||[];
+  var lista=_catComponentesFull(eq.cat);
   if(!lista.length)return showToast('No hay lista predefinida para este tipo de equipo','warn');
   var nombresExist=(eq.partes||[]).map(function(p){return (p.nombre||'').toLowerCase();});
   var nuevas=[];
@@ -5045,6 +5048,15 @@ var CAT_COMPONENTES={
     "Batería","Motor","Bomba","Válvula","Conector","Cable"
   ]
 };
+// Lista completa de componentes sugeridos de una modalidad: los fijos del código
+// (CAT_COMPONENTES) + los que el equipo fue sumando desde Ajustes (customComponentes).
+function _catComponentesFull(cat){
+  var base=CAT_COMPONENTES[cat]||CAT_COMPONENTES['OTR']||[];
+  var custom=(customComponentes&&customComponentes[cat])||[];
+  var out=base.slice();
+  custom.forEach(function(c){if(out.indexOf(c)===-1)out.push(c);});
+  return out;
+}
 function rmCompLabel(id){var c=RM_COMPONENTES.find(function(x){return x.id===id;});return c?c.label:"";}
 // Cuando una misma falla rompe 2 o 3 piezas a la vez, esto agrega filas extra de
 // "Componente / Nombre" en el modal de Nueva Rotura — cada una termina siendo su
@@ -5069,7 +5081,7 @@ function openModalParte(eqId,pt){
   // Build autocomplete list for component names
   var _catSuggestions=[];
   if(_eqObj){
-    var _baseSugs=(CAT_COMPONENTES[_eqObj.cat]||CAT_COMPONENTES['OTR']).slice();
+    var _baseSugs=_catComponentesFull(_eqObj.cat);
     // For RM: prepend linked antenas
     if(_eqObj.cat==='RM'&&(_eqObj.antenaIds||[]).length){
       var _antSugs=antenas.filter(function(a){return(_eqObj.antenaIds||[]).indexOf(a.id)!==-1;}).map(function(a){return a.nombre||a.tipo||'Antena';});
@@ -9256,7 +9268,7 @@ function _rDetalleComponentes(eq){
   h+='</div>';
   h+='<div style="padding:10px 14px;">';
   // Init button for RM
-  var catList=CAT_COMPONENTES[eq.cat]||[];
+  var catList=_catComponentesFull(eq.cat);
   var nombresExist=(eq.partes||[]).map(function(p){return (p.nombre||'').toLowerCase();});
   var faltantes=catList.filter(function(n){return nombresExist.indexOf(n.toLowerCase())===-1;});
   if(faltantes.length>0){
@@ -17038,12 +17050,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="1.12.0";
+var APP_DISPLAY_VERSION="1.13.0";
 var APP_BUILD="14/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'1.13.0',fecha:'14/07/2026',tipo:'minor',cambios:[
+    'Catálogo de componentes editable desde Ajustes por modalidad de equipo'
+  ]},
   {v:'1.12.0',fecha:'14/07/2026',tipo:'minor',cambios:[
     'Permite cargar varios componentes afectados en una misma falla'
   ]},
@@ -17327,6 +17342,62 @@ function openEmpresasRepModal(){
   };
   _renderEmpModal();
 }
+// Catálogo de componentes sugeridos al cargar una falla — antes había que pedir que
+// se agreguen por código (RF Cable, Blower Box, etc.); ahora se puede desde acá,
+// eligiendo modalidad de equipo y nombre del componente.
+function openCatalogoComponentesModal(){
+  var _catSel=CATS[0].id;
+  function _renderCatModal(){
+    var catOpts=CATS.map(function(c){return '<option value="'+c.id+'"'+(c.id===_catSel?' selected':'')+'>'+c.icon+' '+c.label+'</option>';}).join('');
+    var base=CAT_COMPONENTES[_catSel]||[];
+    var custom=(customComponentes[_catSel]||[]);
+    var baseHtml=base.map(function(n){
+      return '<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:9px;background:rgba(120,120,128,.06);margin-bottom:5px;">'+
+        '<span style="flex:1;font-size:.8rem;color:var(--text2);">'+esc(n)+'</span>'+
+        '<span style="font-size:.58rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;">Predefinido</span></div>';
+    }).join('');
+    var customHtml=custom.map(function(n,i){
+      return '<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:9px;background:rgba(0,113,227,.07);border:1px solid rgba(0,113,227,.15);margin-bottom:5px;">'+
+        '<span style="flex:1;font-size:.8rem;font-weight:600;color:var(--text);">'+esc(n)+'</span>'+
+        '<button onclick="_delCustomComponente(\''+_catSel+'\','+i+')" style="font-size:.68rem;min-height:30px;padding:5px 11px;border-radius:8px;border:1.5px solid rgba(255,59,48,.3);background:rgba(255,59,48,.12);color:#ef4444;font-weight:600;cursor:pointer;">Eliminar</button></div>';
+    }).join('');
+    var total=base.length+custom.length;
+    var h='<div class="modal-title">Catálogo de Componentes</div>'+
+      '<div style="font-size:.75rem;color:var(--text3);margin-bottom:14px;">Son las sugerencias que aparecen al cargar una falla de un equipo, por modalidad. Los predefinidos vienen con la app; lo que agregues acá se suma para todo el equipo, sin tocar código.</div>'+
+      '<div class="ff" style="margin-bottom:14px;"><div class="ff-label">Modalidad</div><select class="inp" id="cc-cat-sel" onchange="_catCompChangeSel(this.value)">'+catOpts+'</select></div>'+
+      '<div style="font-size:.66rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">'+total+' componente'+(total!==1?'s':'')+'</div>'+
+      '<div style="max-height:280px;overflow-y:auto;-webkit-overflow-scrolling:touch;margin-bottom:12px;">'+(customHtml+baseHtml||'<div style="text-align:center;padding:18px 0;font-size:.8rem;color:var(--text3);">Sin componentes para esta modalidad</div>')+'</div>'+
+      '<div style="border-top:1px solid var(--border);padding-top:12px;">'+
+        '<div style="font-size:.72rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Agregar componente</div>'+
+        '<div style="display:flex;gap:8px;">'+
+          '<input class="inp" id="new-custom-comp" placeholder="Ej: Blower Box, RF Cable..." style="flex:1;" onkeydown="if(event.key===\'Enter\'){event.preventDefault();_addCustomComponente();}">'+
+          '<button class="btn-primary" style="flex-shrink:0;padding:0 18px;" onclick="_addCustomComponente()">Agregar</button>'+
+        '</div>'+
+      '</div>';
+    openModal(h);
+  }
+  window._catCompChangeSel=function(v){_catSel=v;_renderCatModal();};
+  window._addCustomComponente=function(){
+    var nom=((document.getElementById('new-custom-comp')||{}).value||'').trim();
+    if(!nom){showToast('Ingresá el nombre del componente','warn');return;}
+    var base=CAT_COMPONENTES[_catSel]||[];
+    var custom=customComponentes[_catSel]||[];
+    if(base.concat(custom).some(function(c){return c.toLowerCase()===nom.toLowerCase();})){showToast('Ese componente ya está en la lista','warn');return;}
+    if(!customComponentes[_catSel])customComponentes[_catSel]=[];
+    customComponentes[_catSel].push(nom);
+    saveDataCritical();
+    _renderCatModal();
+    showToast('Componente agregado');
+  };
+  window._delCustomComponente=function(cat,i){
+    if(!customComponentes[cat])return;
+    customComponentes[cat].splice(i,1);
+    saveDataCritical();
+    _renderCatModal();
+    showToast('Componente eliminado','warn');
+  };
+  _renderCatModal();
+}
 function openAccessManager(){
   accessDocRef().get().then(function(doc){
     var emails=doc.exists?(doc.data().emails||[]):[];
@@ -17425,6 +17496,7 @@ function init(){
   try{var _cre=localStorage.getItem('mt_reclamos');if(_cre){var _cpre=JSON.parse(_cre);if(Array.isArray(_cpre))reclamos=_cpre;}}catch(e){}
   try{var _cmj=localStorage.getItem('mt_mejoras');if(_cmj){var _cpmj=JSON.parse(_cmj);if(Array.isArray(_cpmj))mejoras=_cpmj;}}catch(e){}
   try{var _cer=localStorage.getItem('mt_emp_rep');if(_cer){var _cper=JSON.parse(_cer);if(Array.isArray(_cper))empresasRep=_cper;}}catch(e){}
+  try{var _ccc=localStorage.getItem('mt_custom_comp');if(_ccc){var _cpcc=JSON.parse(_ccc);if(_cpcc&&typeof _cpcc==='object')customComponentes=_cpcc;}}catch(e){}
   render();
   // Deep-link: #EQ-xxx opens equipment directly
   try{
@@ -17494,6 +17566,7 @@ function init(){
             if(Array.isArray(d.reclamos))reclamos=d.reclamos;
             if(Array.isArray(d.mejoras))mejoras=d.mejoras;
             if(Array.isArray(d.empresasRep))empresasRep=d.empresasRep;
+            if(d.customComponentes&&typeof d.customComponentes==='object')customComponentes=d.customComponentes;
           }
         }
         window._applyDataGlobal=_applyData;
@@ -17509,6 +17582,7 @@ function init(){
           try{var sre=localStorage.getItem('mt_reclamos');if(sre){var pre=JSON.parse(sre);if(Array.isArray(pre))reclamos=pre;}}catch(e){}
           try{var smj=localStorage.getItem('mt_mejoras');if(smj){var pmj=JSON.parse(smj);if(Array.isArray(pmj))mejoras=pmj;}}catch(e){}
           try{var ser=localStorage.getItem('mt_emp_rep');if(ser){var per=JSON.parse(ser);if(Array.isArray(per))empresasRep=per;}}catch(e){}
+          try{var scc=localStorage.getItem('mt_custom_comp');if(scc){var pcc=JSON.parse(scc);if(pcc&&typeof pcc==='object')customComponentes=pcc;}}catch(e){}
         }
         function _finishLoad(){
           migrateEqs();
@@ -17903,6 +17977,9 @@ function rReporte(){
   </button>
   <button class="sb-sub-btn" onclick="closeSbAjustesMenu();openEmpresasRepModal()">
     <span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-4 0v2"/><path d="M8 7V5a2 2 0 00-4 0"/><line x1="12" y1="12" x2="12" y2="17"/><line x1="9.5" y1="14.5" x2="14.5" y2="14.5"/></svg></span>Empresas Representantes
+  </button>
+  <button class="sb-sub-btn" onclick="closeSbAjustesMenu();openCatalogoComponentesModal()">
+    <span class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></span>Catálogo de Componentes
   </button>
   <div id="sb-access-btn" style="display:none;">
     <button class="sb-sub-btn" onclick="closeSbAjustesMenu();openAccessManager()">

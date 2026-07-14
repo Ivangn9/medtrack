@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v1.13.0 — 14/07/2026 (minor)
+
+- Catálogo de componentes editable desde Ajustes por modalidad de equipo
+
 ## v1.12.0 — 14/07/2026 (minor)
 
 - Permite cargar varios componentes afectados en una misma falla
