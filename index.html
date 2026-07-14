@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.14.003 -->
+<!-- v2026.07.14.004 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.14.003">
+<meta name="app-version" content="v2026.07.14.004">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -2176,6 +2176,43 @@ function saveDataCritical(){
   _fsWrite(0);
 }
 // Write to Firestore with exponential-backoff retry on failure
+// Diagnóstico persistido del último error de sync — sobrevive recargas/cierres de la PWA,
+// así un fallo intermitente que el usuario nunca reporta con captura de consola queda
+// igual disponible para soporte (Ajustes > pie de página).
+function _persistSyncError(err){
+  try{
+    if(!err){localStorage.removeItem('mt_lastSyncErr');return;}
+    localStorage.setItem('mt_lastSyncErr',JSON.stringify({code:(err&&err.code)||'unknown',message:(err&&err.message)||String(err),ts:new Date().toISOString()}));
+  }catch(e){}
+  try{if(typeof updateSettingsUI==='function')updateSettingsUI();}catch(e){}
+}
+var _slowRetryTimer=null;
+// Tras agotar los reintentos rápidos, NUNCA nos rendimos del todo: seguimos probando
+// en segundo plano cada 45s indefinidamente. Los datos siempre están a salvo en
+// localStorage (saveData/saveDataCritical los escriben antes de tocar la red), así que
+// este reintento lento es puro "self-healing" — el usuario no tiene que notar el cartel
+// rojo ni tocarlo para que la app se recupere sola apenas la causa del fallo se resuelva.
+function _scheduleSlowRetry(){
+  if(_slowRetryTimer)return; // ya hay uno programado, no duplicar
+  _slowRetryTimer=setTimeout(function(){
+    _slowRetryTimer=null;
+    if(!window._fbUser||!window._fbdb)return;
+    if(!_fsFailed)return; // se resolvió por otra vía mientras tanto
+    if(typeof navigator!=='undefined'&&navigator.onLine===false){_scheduleSlowRetry();return;} // sin red, ni lo intentes — reprogramar
+    _fsDirty=true;_fsWrite(0);
+  },45000);
+}
+function _fsWriteRetryOrGiveUp(tryN,err){
+  _persistSyncError(err);
+  var t=(tryN||0)+1;
+  if(t<6){setTimeout(function(){_fsWrite(t);},Math.min(1000*Math.pow(2,t),20000));}
+  else{
+    _fsDirty=false;_fsFailed=true;
+    console.warn('Firestore: reintentos rápidos agotados, pasando a reintento en segundo plano cada 45s');
+    updateSyncIndicator();
+    _scheduleSlowRetry();
+  }
+}
 function _fsWrite(tryN){
   if(!window._fbUser||!window._fbdb){_fsWriting=false;return;}
   _fsWriting=true;
@@ -2188,22 +2225,33 @@ function _fsWrite(tryN){
     if(_fsWriteToken!==_writeToken||!_fsWriting)return; // ya resolvió por su cuenta
     console.warn('Firestore: sin respuesta en 15s, forzando reintento');
     _fsWriting=false;
-    var t2=(tryN||0)+1;
-    if(t2<6)_fsWrite(t2);
-    else{_fsDirty=false;_fsFailed=true;}
+    _fsWriteRetryOrGiveUp(tryN,{code:'timeout',message:'Sin respuesta del servidor en 15s'});
   },15000);
   // Con sharding activo el doc principal lleva solo historiales recientes;
   // el completo va en paralelo a los docs hist_* (fuente de verdad del historial).
   var _sp=window._histReady?_stripPayload():{eqs:eqs,antenas:antenas,ordenesTrabajo:ordenesTrabajo};
   if(window._histReady)_histShardSave();
   var _payload={eqs:_sp.eqs,antenas:_sp.antenas,aires:aires,transductores:transductores,ordenesTrabajo:_sp.ordenesTrabajo,repuestos:repuestos,pmProgramados:pmProgramados,auditLog:auditLog,reclamos:reclamos,mejoras:mejoras,empresasRep:empresasRep,updatedAt:new Date().toISOString()};
-  // Firestore limita cada documento a ~1MB. Aviso temprano al 70% para migrar a tiempo.
+  // Firestore limita cada documento a ~1MB. Aviso temprano al 70% para migrar a tiempo,
+  // y si YA se pasó del límite duro no reintentamos en bucle — un doc de +950KB nunca
+  // va a escribir con éxito, así que insistir cada pocos segundos solo gasta batería/datos
+  // y mantiene el cartel de error parpadeando sin necesidad. Se marca un fallo distinto
+  // y claro, sin loop de reintentos rápidos (el lento cada 45s sigue activo por si el
+  // tamaño baja con el sharding de historiales en la próxima vuelta).
   try{
     var _sz=JSON.stringify(_payload).length;
     if(_sz>700000&&!window._docSizeWarned){
       window._docSizeWarned=true;
       console.warn('Documento principal en '+Math.round(_sz/1024)+'KB de ~1MB');
       showToast('⚠️ Base de datos al '+Math.round(_sz/10000)+'% del límite — avisar a soporte','warn');
+    }
+    if(_sz>950000){
+      clearTimeout(_safeguard);_fsWriting=false;_fsDirty=false;_fsFailed=true;
+      console.error('Firestore: documento de '+Math.round(_sz/1024)+'KB supera el límite, no se reintenta en bucle rápido');
+      _persistSyncError({code:'doc-too-large',message:'Documento de '+Math.round(_sz/1024)+'KB supera el límite de 1MB de Firestore'});
+      updateSyncIndicator();
+      _scheduleSlowRetry();
+      return;
     }
   }catch(e){}
   // Antes de escribir, verificamos que ningún otro dispositivo haya guardado datos
@@ -2224,7 +2272,7 @@ function _fsWrite(tryN){
     }
     return orgDataRef().set(_payload,{merge:true});
   })
-    .then(function(){clearTimeout(_safeguard);_fsWriting=false;_fsDirty=false;_fsFailed=false;_publicMirrorSave();})
+    .then(function(){clearTimeout(_safeguard);_fsWriting=false;_fsDirty=false;_fsFailed=false;_persistSyncError(null);_publicMirrorSave();})
     .catch(function(e){
       clearTimeout(_safeguard);
       _fsWriting=false;
@@ -2236,15 +2284,13 @@ function _fsWrite(tryN){
           if(typeof _histMergedOnce!=='undefined'&&_histMergedOnce&&typeof _histApplyMerge==='function')_histApplyMerge();
           localStorage.setItem('mt_updatedAt',e.serverData.updatedAt||'');
         }catch(e2){}
-        _fsDirty=false;_fsFailed=false;
+        _fsDirty=false;_fsFailed=false;_persistSyncError(null);
         render();
         showToast('⚠️ Otro dispositivo guardó cambios justo ahora — se actualizó con lo más reciente. Volvé a hacer tu cambio.','warn');
         return;
       }
       console.warn("Firestore save (try "+(tryN+1)+"):",e);
-      var t=(tryN||0)+1;
-      if(t<6){setTimeout(function(){_fsWrite(t);},Math.min(1000*Math.pow(2,t),20000));}
-      else{_fsDirty=false;_fsFailed=true;console.warn('Firestore: reintentos agotados, datos en localStorage');}
+      _fsWriteRetryOrGiveUp(tryN,e);
     });
 }
 // Force-flush any pending save immediately (called when the app is backgrounded/closed —
@@ -2254,7 +2300,7 @@ function flushSaveNow(){
   if(_fsSaveTimer){clearTimeout(_fsSaveTimer);_fsSaveTimer=null;}
   if(_fsDirty)_fsWrite(0);
 }
-function retrySync(){_fsFailed=false;_fsDirty=true;reconcileFiles();flushSaveNow();updateSyncIndicator();}
+function retrySync(){if(_slowRetryTimer){clearTimeout(_slowRetryTimer);_slowRetryTimer=null;}_fsFailed=false;_fsDirty=true;reconcileFiles();flushSaveNow();updateSyncIndicator();}
 // Real-time cloud sync indicator in the header
 function _pendingUploadCount(){try{return Object.keys(JSON.parse(localStorage.getItem('mt_upq_v1')||'{}')).length;}catch(e){return 0;}}
 function updateSyncIndicator(){
@@ -3916,12 +3962,20 @@ function forzarSincronizacionArchivos(){
   try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(function(){});}catch(e){}
   document.addEventListener('visibilitychange',function(){
     if(document.visibilityState==='hidden'){flushSaveNow();reconcileFiles();}
-    else{reconcileFiles();}
+    else{reconcileFiles();_fsRetryIfFailed();}
   });
   window.addEventListener('pagehide',flushSaveNow);
   window.addEventListener('beforeunload',flushSaveNow);
-  window.addEventListener('online',function(){reconcileFiles();flushSaveNow();});
+  window.addEventListener('online',function(){reconcileFiles();flushSaveNow();_fsRetryIfFailed();});
 })();
+// flushSaveNow()/reconcileFiles() solo actúan si _fsDirty está en true, pero un guardado
+// que agotó sus reintentos deja _fsDirty=false a propósito (para no reintentar en loop
+// rápido sin parar) — así que al volver la conexión o reabrir la app hay que forzar el
+// reintento explícitamente, si no el cartel "Error" quedaba pintado para siempre hasta
+// que el usuario lo tocara a mano.
+function _fsRetryIfFailed(){
+  if(_fsFailed&&window._fbUser&&window._fbdb){_fsDirty=true;_fsWrite(0);}
+}
 
 function openPDFViewer(fileId,nombre){
   // Open the window SYNCHRONOUSLY (inside the user gesture) so popup blockers
@@ -11017,7 +11071,17 @@ function updateSettingsUI(){
   if(b){b.style.background=darkMode?"var(--accent)":"#e5e5ea";}if(d){d.style.left=darkMode?"23px":"3px";}if(l)l.textContent=fontScale+"%";
   if(vl)vl.textContent=(APP_DISPLAY_VERSION||APP_VERSION)||"";
   if(sf&&APP_VERSION){
-    sf.innerHTML='<div style="margin-bottom:3px;font-size:.64rem;">Última actualización: '+APP_BUILD+'</div>'+'<div>CIMA Investigaciones Avanzadas · CIMA Hub '+(APP_DISPLAY_VERSION||APP_VERSION)+'</div>';
+    var _syncErrHtml='';
+    try{
+      var _se=localStorage.getItem('mt_lastSyncErr');
+      if(_se){
+        var _seD=JSON.parse(_se);
+        var _seDate=new Date(_seD.ts);
+        var _seWhen=isNaN(_seDate.getTime())?_seD.ts:_seDate.toLocaleString('es-AR');
+        _syncErrHtml='<div style="margin-top:8px;padding:7px 10px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:8px;font-size:.6rem;color:var(--red);line-height:1.5;">⚠️ Último error de sync: <b>'+esc(_seD.code)+'</b> — '+esc(_seD.message)+'<br>'+_seWhen+'</div>';
+      }
+    }catch(e){}
+    sf.innerHTML='<div style="margin-bottom:3px;font-size:.64rem;">Última actualización: '+APP_BUILD+'</div>'+'<div>CIMA Investigaciones Avanzadas · CIMA Hub '+(APP_DISPLAY_VERSION||APP_VERSION)+'</div>'+_syncErrHtml;
   }
   var re=localStorage.getItem('cima_reminder')==='1';
   var rt=document.getElementById('reminder-toggle'),rd=document.getElementById('reminder-dot'),rs=document.getElementById('reminder-status');
@@ -16796,12 +16860,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="1.8.5";
+var APP_DISPLAY_VERSION="1.9.0";
 var APP_BUILD="14/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'1.9.0',fecha:'14/07/2026',tipo:'minor',cambios:[
+    'Sistema de guardado autorregenerativo: nunca más queda trabado en Error'
+  ]},
   {v:'1.8.5',fecha:'14/07/2026',tipo:'patch',cambios:[
     'Corrige ruta del logo Medrad tras recorte y renombre en GitHub'
   ]},

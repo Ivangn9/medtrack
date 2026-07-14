@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v1.9.0 — 14/07/2026 (minor)
+
+- Sistema de guardado autorregenerativo: nunca más queda trabado en Error
+
 ## v1.8.5 — 14/07/2026 (patch)
 
 - Corrige ruta del logo Medrad tras recorte y renombre en GitHub
