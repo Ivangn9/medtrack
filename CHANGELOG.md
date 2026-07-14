@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v1.8.5 — 14/07/2026 (patch)
+
+- Corrige ruta del logo Medrad tras recorte y renombre en GitHub
+
 ## v1.8.4 — 14/07/2026 (patch)
 
 - Agrega Medrad a la lista de marcas del formulario de equipo
