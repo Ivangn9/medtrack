@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.14.004 -->
+<!-- v2026.07.14.005 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.14.004">
+<meta name="app-version" content="v2026.07.14.005">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -2213,8 +2213,16 @@ function _fsWriteRetryOrGiveUp(tryN,err){
     _scheduleSlowRetry();
   }
 }
+var _fsPendingRewrite=false;
 function _fsWrite(tryN){
   if(!window._fbUser||!window._fbdb){_fsWriting=false;return;}
+  // Si ya hay una escritura en curso (get()+set() todavía sin resolver) y esto es un
+  // pedido NUEVO (no un reintento de la misma cadena — esos llegan con tryN>0), no
+  // arrancamos un segundo ciclo en paralelo: eso es lo que generaba el falso positivo
+  // "Otro dispositivo guardó cambios" cuando en realidad eran DOS guardados seguidos
+  // del MISMO dispositivo pisándose. Encolamos y el que ya está en vuelo dispara este
+  // pedido apenas termine, con los datos más frescos en memoria.
+  if(tryN===0&&_fsWriting){_fsPendingRewrite=true;return;}
   _fsWriting=true;
   // Red de seguridad: si la transacción de Firestore nunca resuelve (ni .then
   // ni .catch — puede pasar con conexiones inestables o el navegador en background
@@ -2272,7 +2280,17 @@ function _fsWrite(tryN){
     }
     return orgDataRef().set(_payload,{merge:true});
   })
-    .then(function(){clearTimeout(_safeguard);_fsWriting=false;_fsDirty=false;_fsFailed=false;_persistSyncError(null);_publicMirrorSave();})
+    .then(function(){
+      clearTimeout(_safeguard);_fsWriting=false;_fsDirty=false;_fsFailed=false;_persistSyncError(null);
+      // CLAVE: registrar acá el timestamp que quedó realmente confirmado en el servidor
+      // (no el de cuándo el usuario tocó "guardar"). Si no se hace esto, dos ediciones
+      // seguidas y rápidas del MISMO dispositivo (más rápidas que un ciclo debounce+red)
+      // dejan el "último visto" desactualizado, y la segunda escritura cree por error
+      // que "otro dispositivo" acaba de guardar cuando en realidad fue esta misma.
+      try{localStorage.setItem('mt_updatedAt',_payload.updatedAt);}catch(e){}
+      _publicMirrorSave();
+      if(_fsPendingRewrite){_fsPendingRewrite=false;_fsDirty=true;_fsWrite(0);}
+    })
     .catch(function(e){
       clearTimeout(_safeguard);
       _fsWriting=false;
@@ -16860,12 +16878,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="1.9.0";
+var APP_DISPLAY_VERSION="1.9.1";
 var APP_BUILD="14/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'1.9.1',fecha:'14/07/2026',tipo:'patch',cambios:[
+    'Corrige falso conflicto de guardado entre ediciones rápidas del mismo dispositivo'
+  ]},
   {v:'1.9.0',fecha:'14/07/2026',tipo:'minor',cambios:[
     'Sistema de guardado autorregenerativo: nunca más queda trabado en Error'
   ]},

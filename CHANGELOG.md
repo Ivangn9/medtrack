@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v1.9.1 — 14/07/2026 (patch)
+
+- Corrige falso conflicto de guardado entre ediciones rápidas del mismo dispositivo
+
 ## v1.9.0 — 14/07/2026 (minor)
 
 - Sistema de guardado autorregenerativo: nunca más queda trabado en Error
