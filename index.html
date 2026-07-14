@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.14.005 -->
+<!-- v2026.07.14.006 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.14.005">
+<meta name="app-version" content="v2026.07.14.006">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -2420,7 +2420,7 @@ function showToast(msg,tp){
 // ── Búsqueda global (⌘K / botón lupa) ──
 function openGlobalSearch(){
   var html='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;"><div class="modal-title">🔍 Buscar en todo</div><button class="modal-close" onclick="closeModal()">✕</button></div>'+
-    '<input class="inp" id="gs-input" type="search" placeholder="Equipo, OT, antena, repuesto, reclamo…" style="width:100%;padding:13px 16px;font-size:1rem;margin-bottom:12px;" oninput="_gsRun(this.value)" autocomplete="off">'+
+    '<input class="inp" id="gs-input" type="search" placeholder="Equipo, falla, rotura, OT, antena…" style="width:100%;padding:13px 16px;font-size:1rem;margin-bottom:12px;" oninput="_gsOnInput(this.value)" autocomplete="off">'+
     '<div id="gs-results" style="min-height:120px;"><div style="text-align:center;padding:30px 0;color:var(--text3);font-size:.8rem;">Escribí al menos 2 letras</div></div>';
   openModal(html);
   setTimeout(function(){var i=document.getElementById('gs-input');if(i)i.focus();},150);
@@ -2433,16 +2433,73 @@ function _gsItem(icon,tit,sub,onclick){
     (sub?'<div style="font-size:.66rem;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+sub+'</div>':'')+'</div>'+
     '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2.2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></div>';
 }
+// El buscador global corría la búsqueda completa (varios arrays, incluido ahora todo
+// el historial) en cada tecla — con el historial de años ya sumado eso se sentía como
+// que se trababa la app. _gsOnInput separa "el usuario tipeó" (instantáneo, no cuesta
+// nada) de "correr la búsqueda pesada" (se posterga 160ms hasta la pausa siguiente).
+var _gsTimer=null;
+function _gsOnInput(v){
+  var box=document.getElementById('gs-results');
+  if(box&&_gsNorm(v).trim().length<2){
+    box.innerHTML='<div style="text-align:center;padding:30px 0;color:var(--text3);font-size:.8rem;">Escribí al menos 2 letras</div>';
+  }
+  if(_gsTimer)clearTimeout(_gsTimer);
+  _gsTimer=setTimeout(function(){_gsTimer=null;_gsRun(v);},160);
+}
 function _gsRun(q){
   var box=document.getElementById('gs-results');if(!box)return;
   q=_gsNorm(q).trim();
   if(q.length<2){box.innerHTML='<div style="text-align:center;padding:30px 0;color:var(--text3);font-size:.8rem;">Escribí al menos 2 letras</div>';return;}
-  var out=[],lim=30;
+  var out=[],lim=40;
   function m(){for(var i=0;i<arguments.length;i++){if(_gsNorm(arguments[i]).indexOf(q)!==-1)return true;}return false;}
   eqs.forEach(function(e){if(out.length<lim&&m(e.nombre,e.serie,e.ubicacion,e.marca,e.modelo))out.push(_gsItem('🏥',esc(e.nombre||''),esc((e.ubicacion||'')+(e.serie?' · SID '+e.serie:'')),"goDetalle('"+e.id+"')"));});
+  // Fallas y reparaciones — incluye eventos de años anteriores, no solo el estado actual.
+  // eq.partes[] = fallas activas hoy; eq.historialMant[] = reparaciones/mantenimientos
+  // ya cerrados (el historial completo vive en memoria gracias al merge con los shards,
+  // así que buscar acá SÍ encuentra algo que se rompió hace años, aunque ya esté resuelto).
+  eqs.forEach(function(e){
+    if(e.baja)return;
+    (e.partes||[]).forEach(function(p){
+      if(out.length>=lim)return;
+      if(p.estado!=='roto'&&p.estado!=='pendiente')return;
+      if(!m(p.nombre,p.descripcion,p.notas))return;
+      var lbl=p.estado==='roto'?'🔴 Falla activa':'🟡 Pendiente';
+      out.push(_gsItem('🔧',esc(p.nombre||'Falla'),esc(e.nombre+' · '+lbl+(p.fechaRotura?' · '+fD(p.fechaRotura):'')),"goDetalle('"+e.id+"')"));
+    });
+    (e.historialMant||[]).forEach(function(h){
+      if(out.length>=lim)return;
+      if(h.tipo!=='reparacion'&&h.tipo!=='mantenimiento')return;
+      if(!m(h.nombre,h.notas))return;
+      var icon=h.tipo==='reparacion'?'✅':'🛠️';
+      var lbl=h.tipo==='reparacion'?'Reparado':'Mantenimiento';
+      out.push(_gsItem(icon,esc(h.nombre||lbl),esc(e.nombre+' · '+lbl+(h.fecha?' · '+fD(h.fecha):'')),"goDetalle('"+e.id+"')"));
+    });
+  });
+  antenas.forEach(function(a){
+    if(out.length>=lim)return;
+    var linkedEq=eqs.find(function(e){return!e.baja&&(e.antenaIds||[]).indexOf(a.id)!==-1;});
+    var eqNombre=linkedEq?linkedEq.nombre:(a.nombreOrigen||a.nombre||'Antena');
+    if(m(a.nombre,a.modelo,a.serie))out.push(_gsItem('📡',esc(a.nombre||a.modelo||''),'Antena RF',"goAntenaDetalle('"+a.id+"')"));
+    (a.roturas||[]).forEach(function(r){
+      if(out.length>=lim)return;
+      if(!m(r.queSeRompio,r.descripcion))return;
+      var reparada=r.estado==='reparado';
+      out.push(_gsItem(reparada?'✅':'🔴',esc(r.queSeRompio||'Falla de antena'),esc('📡 '+(a.nombre||'')+' · '+eqNombre+(r.fecha?' · '+fD(r.fecha):'')),linkedEq?"goDetalle('"+linkedEq.id+"')":"goAntenaDetalle('"+a.id+"')"));
+    });
+  });
+  transductores.forEach(function(t){
+    if(out.length>=lim)return;
+    var linkedEq=eqs.find(function(e){return!e.baja&&(e.transductorIds||[]).indexOf(t.id)!==-1;});
+    var eqNombre=linkedEq?linkedEq.nombre:(t.nombre||'Transductor');
+    if(m(t.nombre,t.modelo,t.serie))out.push(_gsItem('🔊',esc(t.nombre||t.modelo||''),'Transductor',"goTransductorDetalle('"+t.id+"')"));
+    (t.roturas||[]).forEach(function(r){
+      if(out.length>=lim)return;
+      if(!m(r.queSeRompio,r.descripcion))return;
+      var reparada=r.estado==='reparado';
+      out.push(_gsItem(reparada?'✅':'🔴',esc(r.queSeRompio||'Falla de transductor'),esc('🔌 '+(t.nombre||'')+' · '+eqNombre+(r.fecha?' · '+fD(r.fecha):'')),linkedEq?"goDetalle('"+linkedEq.id+"')":"goTransductorDetalle('"+t.id+"')"));
+    });
+  });
   ordenesTrabajo.forEach(function(o){if(out.length<lim&&m(o.titulo,o.descripcion,o.id)){var eqn=(eqs.find(function(e){return e.id===o.eqId;})||{}).nombre||'';out.push(_gsItem('📋',esc(o.titulo||o.id),esc(eqn+' · '+(o.estado||'')),"setView('ordenes')"));}});
-  antenas.forEach(function(a){if(out.length<lim&&m(a.nombre,a.modelo,a.serie))out.push(_gsItem('📡',esc(a.nombre||a.modelo||''),'Antena RF',"goAntenaDetalle('"+a.id+"')"));});
-  transductores.forEach(function(t){if(out.length<lim&&m(t.nombre,t.modelo,t.serie))out.push(_gsItem('🔊',esc(t.nombre||t.modelo||''),'Transductor',"goTransductorDetalle('"+t.id+"')"));});
   repuestos.forEach(function(r){if(out.length<lim&&m(r.nombre,r.codigo,r.proveedor))out.push(_gsItem('🔧',esc(r.nombre||''),esc('Repuesto · stock '+(r.cantidad!=null?r.cantidad:'—')),"setView('repuestos')"));});
   reclamos.forEach(function(rc){if(out.length<lim&&m(rc.titulo,rc.contacto,rc.descripcion))out.push(_gsItem('📣',esc(rc.titulo||''),esc('Reclamo · '+(rc.estado||'')),"setView('reclamos')"));});
   box.innerHTML=out.length?out.join(''):'<div style="text-align:center;padding:30px 0;color:var(--text3);font-size:.8rem;">Sin resultados para "'+esc(q)+'"</div>';
@@ -5995,14 +6052,37 @@ function applyDashFilter(key){_filtDash=key;filtCat="TODOS";_busqueda="";_filtMa
 function openListaSearch(){setView("lista");setTimeout(function(){var i=document.getElementById("busq-inp");if(i){i.focus();i.scrollIntoView({behavior:"smooth",block:"center"});}},120);}
 function clearDashFilter(){_filtDash=null;render();}
 function toggleDetalleSearch(){_detalleSearchOpen=!_detalleSearchOpen;if(!_detalleSearchOpen)_detalleQ="";render();if(_detalleSearchOpen){var i=document.getElementById('det-busq');if(i)i.focus();}}
-function setDetalleQ(v){var inp=document.getElementById('det-busq');var sel=inp?inp.selectionStart:null;_detalleQ=v;render();inp=document.getElementById('det-busq');if(inp){inp.focus();if(sel!==null)inp.setSelectionRange(sel,sel);}}
+// Los buscadores re-renderizaban TODA la vista actual en cada tecla (innerHTML del
+// árbol completo), lo que en listas grandes se sentía como que "se traba la app" y
+// comía caracteres mientras se escribía rápido. Ahora el estado (_detalleQ/_busqueda)
+// se actualiza al instante en cada tecla, pero el render pesado se posterga ~180ms
+// hasta que el usuario hace una pausa — el <input> nativo sigue respondiendo cada
+// tecla sin esperar a React-nada, y cuando el render finalmente llega ya tiene el
+// último valor tipeado, no uno viejo.
+var _detQTimer=null;
+function setDetalleQ(v){
+  _detalleQ=v;
+  if(_detQTimer)clearTimeout(_detQTimer);
+  _detQTimer=setTimeout(function(){
+    _detQTimer=null;
+    var inp=document.getElementById('det-busq');var sel=inp?inp.selectionStart:null;
+    render();
+    inp=document.getElementById('det-busq');if(inp){inp.focus();if(sel!==null)inp.setSelectionRange(sel,sel);}
+  },180);
+}
 function setDetalleTab(t){_detalleTab=t;_detalleQ='';_detalleSearchOpen=false;render();var el=document.getElementById('main-content');if(el)el.scrollTop=0;}
+var _busqTimer=null;
 function setBusqueda(v){
-  var inp=document.getElementById('busq-inp');
-  var sel=inp?inp.selectionStart:null;
-  _busqueda=v;render();
-  inp=document.getElementById('busq-inp');
-  if(inp){inp.focus();if(sel!==null)inp.setSelectionRange(sel,sel);}
+  _busqueda=v;
+  if(_busqTimer)clearTimeout(_busqTimer);
+  _busqTimer=setTimeout(function(){
+    _busqTimer=null;
+    var inp=document.getElementById('busq-inp');
+    var sel=inp?inp.selectionStart:null;
+    render();
+    inp=document.getElementById('busq-inp');
+    if(inp){inp.focus();if(sel!==null)inp.setSelectionRange(sel,sel);}
+  },180);
 }
 function rLista(){
   var h="";
@@ -16878,12 +16958,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="1.9.1";
+var APP_DISPLAY_VERSION="1.10.0";
 var APP_BUILD="14/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'1.10.0',fecha:'14/07/2026',tipo:'minor',cambios:[
+    'Buscador global encuentra fallas y reparaciones históricas; fin del freezing al tipear'
+  ]},
   {v:'1.9.1',fecha:'14/07/2026',tipo:'patch',cambios:[
     'Corrige falso conflicto de guardado entre ediciones rápidas del mismo dispositivo'
   ]},

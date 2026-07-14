@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v1.10.0 — 14/07/2026 (minor)
+
+- Buscador global encuentra fallas y reparaciones históricas; fin del freezing al tipear
+
 ## v1.9.1 — 14/07/2026 (patch)
 
 - Corrige falso conflicto de guardado entre ediciones rápidas del mismo dispositivo
