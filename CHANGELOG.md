@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v1.10.1 — 14/07/2026 (patch)
+
+- Agrega RF Cable y DC Cable a componentes de RM
+
 ## v1.10.0 — 14/07/2026 (minor)
 
 - Buscador global encuentra fallas y reparaciones históricas; fin del freezing al tipear

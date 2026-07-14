@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.14.006 -->
+<!-- v2026.07.14.007 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.14.006">
+<meta name="app-version" content="v2026.07.14.007">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -4877,7 +4877,7 @@ var CAT_COMPONENTES={
     "Gating Respiratorio","Gating PG","Gating Cardiaco",
     "Antena de cabeza","Antena de columna","Antena de cuerpo","Antena de rodilla","Antena de hombro",
     "Antena de mama (coil)","Antena phased array",
-    "Pines y conectores de bobinas","Cable y conector de bobina",
+    "Pines y conectores de bobinas","Cable y conector de bobina","RF Cable","DC Cable",
     // Sistema de enfriamiento (chiller)
     "Chiller de L\xedquido Rosa","Chiller de Agua",
     "Filtros primarios y secundarios del chiller","Bomba de circulaci\xf3n de agua",
@@ -16958,12 +16958,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="1.10.0";
+var APP_DISPLAY_VERSION="1.10.1";
 var APP_BUILD="14/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'1.10.1',fecha:'14/07/2026',tipo:'patch',cambios:[
+    'Agrega RF Cable y DC Cable a componentes de RM'
+  ]},
   {v:'1.10.0',fecha:'14/07/2026',tipo:'minor',cambios:[
     'Buscador global encuentra fallas y reparaciones históricas; fin del freezing al tipear'
   ]},
