@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v3.1.0 — 15/07/2026 (minor)
+
+- Registrar rotura de transductor ahora actualiza el estado del transductor
+
 ## v3.0.0 — 15/07/2026 (major)
 
 - Corrige backup horario roto (dependía de antenas) y falta de auditoría al crear equipos

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.15.002 -->
+<!-- v2026.07.15.003 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.15.002">
+<meta name="app-version" content="v2026.07.15.003">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -15352,6 +15352,8 @@ function submitEditTransductor(transductorId){
 }
 function openAddTransductorRoturaModal(transductorId){
   window._pendTrRotFotos=[];window._pendTrRotPresArr=null;
+  var _trForEstado=transductores.find(function(t){return t.id===transductorId;});
+  var _estadoActual=(_trForEstado&&_trForEstado.estado==='fuera_servicio')?'fuera_servicio':'con_fallas';
   openModal(
     '<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">'+
       '<div><div style="font-weight:800;font-size:1rem;">🔴 Registrar Rotura de Transductor</div></div>'+
@@ -15364,6 +15366,14 @@ function openAddTransductorRoturaModal(transductorId){
       '<div class="ff"><div class="ff-label">Qu\xe9 se rompi\xf3 *</div>'+
         '<input class="inp" id="trrot-que" placeholder="Ej: cable, cristales..." autocomplete="off">'+
       '</div>'+
+    '</div>'+
+    '<div class="ff"><div class="ff-label">Estado del transductor</div>'+
+      '<select class="inp" id="trrot-estado">'+
+        '<option value="operativo"'+(_estadoActual==='operativo'?' selected':'')+'>✅ Operativo</option>'+
+        '<option value="con_fallas"'+(_estadoActual==='con_fallas'?' selected':'')+'>⚠️ Con fallas</option>'+
+        '<option value="fuera_servicio"'+(_estadoActual==='fuera_servicio'?' selected':'')+'>🔴 Fuera de servicio</option>'+
+      '</select>'+
+      '<div style="font-size:.62rem;color:var(--text3);margin-top:4px;">Se actualiza también en la ficha del transductor.</div>'+
     '</div>'+
     '<div class="ff"><div class="ff-label">Descripci\xf3n</div>'+
       '<textarea class="inp" id="trrot-desc" rows="2" placeholder="Detalles adicionales..."></textarea>'+
@@ -15435,13 +15445,16 @@ function submitTransductorRotura(transductorId){
   var empresa=((document.getElementById('trrot-empresa')||{}).value||'').trim();
   var trPrecio=((document.getElementById('trrot-precio')||{}).value||'');
   var trPmon=((document.getElementById('trrot-pmon')||{}).value||'USD');
+  var trEstado=((document.getElementById('trrot-estado')||{}).value||'con_fallas');
   if(!fecha){alert('Ingres\xe1 la fecha');return;}
   if(!que){alert('Ingres\xe1 qu\xe9 se rompi\xf3');return;}
   var rotId='ROT-'+Date.now();
   var saveAndFinish=function(presRef,fotosArr){
     var estadoInit=fechaEnvio?'en_reparacion':'roto';
     var rot={id:rotId,fecha:fecha,queSeRompio:que,descripcion:desc,estado:estadoInit,fotos:fotosArr||[],presupuestosArreglo:presRef?[presRef]:[],fechaEnvio:fechaEnvio,empresa:empresa,precio:trPrecio,precioMoneda:trPrecio?trPmon:'USD',notasSeguimiento:[],creadoEn:new Date().toISOString()};
-    transductores=transductores.map(function(t){if(t.id===transductorId)return Object.assign({},t,{roturas:(t.roturas||[]).concat(rot)});return t;});
+    // El estado elegido acá (operativo/con fallas/fuera de servicio) se refleja también
+    // en la ficha del transductor — antes había que ir a "Editar Transductor" aparte.
+    transductores=transductores.map(function(t){if(t.id===transductorId)return Object.assign({},t,{roturas:(t.roturas||[]).concat(rot),estado:trEstado});return t;});
     saveDataCritical();closeModal();render();showToast('🔴 Rotura registrada','warn');
   };
   var pendFotos=(window._pendTrRotFotos||[]).filter(Boolean);window._pendTrRotFotos=[];
@@ -17120,12 +17133,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="3.0.0";
+var APP_DISPLAY_VERSION="3.1.0";
 var APP_BUILD="15/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'3.1.0',fecha:'15/07/2026',tipo:'minor',cambios:[
+    'Registrar rotura de transductor ahora actualiza el estado del transductor'
+  ]},
   {v:'3.0.0',fecha:'15/07/2026',tipo:'major',cambios:[
     'Corrige backup horario roto (dependía de antenas) y falta de auditoría al crear equipos'
   ]},
