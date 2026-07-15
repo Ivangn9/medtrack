@@ -2373,7 +2373,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "5.6";
+const APP_VERSION = "5.7";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -3428,11 +3428,38 @@ function _impRenderTabs(){
     if(btn){ btn.disabled=false; btn.innerHTML='<span class="btn-icon">💾</span> Aplicar cambios'; }
     if(msg) msg.textContent=`${willApply} insumo(s) se actualizarán al guardar.`;
     if(_impReadyTimer){ clearInterval(_impReadyTimer); _impReadyTimer=null; }
+    _impWaitPolls=0;
   }else{
     if(btn){ btn.disabled=true; btn.innerHTML='⏳ Cargando datos…'; }
-    if(msg) msg.textContent='Esperando a que carguen los insumos desde el servidor…';
+    // El listener en vivo puede quedar esperando la confirmación del SERVIDOR
+    // indefinidamente si la conexión está inestable (ver _markLoaded: un
+    // snapshot fromCache nunca habilita esto, a propósito). Sin salida manual,
+    // el usuario queda mirando el spinner sin saber si es un instante o para
+    // siempre. Tras ~8s de polling, se ofrece un reintento explícito que
+    // fuerza una lectura contra el servidor.
+    _impWaitPolls++;
+    if(msg){
+      msg.innerHTML = _impWaitPolls>=13
+        ? 'Tardando más de lo normal — revisá tu conexión. <button class="fmt-pill" style="margin-left:4px" onclick="_impForceReloadSupplies()">🔄 Reintentar</button>'
+        : 'Esperando a que carguen los insumos desde el servidor…';
+    }
     if(!_impReadyTimer) _impReadyTimer=setInterval(_impRenderTabs,600);
   }
+}
+let _impWaitPolls=0;
+let _impForceLoading=false;
+function _impForceReloadSupplies(){
+  if(_impForceLoading) return;
+  _impForceLoading=true;
+  const msg=document.getElementById('importApplyMsg');
+  if(msg) msg.textContent='Reintentando conexión con el servidor…';
+  _db.collection(DB_COL).doc("supplies").get({source:'server'})
+    .then(function(snap){ _applySuppliesSnapshot(snap); })
+    .catch(function(e){
+      console.warn('[Import] Reintento manual falló',e);
+      toast('⚠️ Seguís sin conexión con el servidor: '+(e.message||e));
+    })
+    .finally(function(){ _impForceLoading=false; _impWaitPolls=0; _impRenderTabs(); });
 }
 
 function _impOptions(selId){
@@ -4988,30 +5015,35 @@ function renderUserBar(){
 }
 
 // ─── Firestore listeners ──────────────────────────────────────────────────────
+// Compartida entre el listener en vivo y el reintento manual (_impForceReloadSupplies)
+// para que ambos caminos apliquen EXACTAMENTE la misma lógica de una sola fuente.
+function _applySuppliesSnapshot(snap){
+  if(snap.exists && snap.data().data){
+    supplies = snap.data().data;
+    suppliers = snap.data().suppliers || [];
+    // Ensure all catalog items exist
+    buildDefaultSupplies().forEach(def=>{
+      if(!supplies.find(s=>s.id===def.id)) supplies.push(def);
+    });
+  }
+  CENTERS.forEach(c=>{
+    if(!cs[c]) cs[c]={stock:{},movements:[],lotes:{}};
+    if(!cs[c].lotes) cs[c].lotes={};
+    supplies.forEach(s=>{if(cs[c].stock[s.id]===undefined)cs[c].stock[s.id]=0;});
+  });
+  _markLoaded('supplies', snap);
+  updateCenterStats();
+  if(currentTab==="inventario") renderInventario();
+  if(currentTab==="gestion") renderGestion();
+  _maybeInitBackup();
+}
 function startListeners(){
   // Defensa contra doble suscripción (re-login, reintentos de acceso):
   // siempre cancelar listeners previos antes de crear nuevos
   _stopListeners();
-  _unsubSupplies = _db.collection(DB_COL).doc("supplies").onSnapshot(snap=>{
-    if(snap.exists && snap.data().data){
-      supplies = snap.data().data;
-      suppliers = snap.data().suppliers || [];
-      // Ensure all catalog items exist
-      buildDefaultSupplies().forEach(def=>{
-        if(!supplies.find(s=>s.id===def.id)) supplies.push(def);
-      });
-    }
-    CENTERS.forEach(c=>{
-      if(!cs[c]) cs[c]={stock:{},movements:[],lotes:{}};
-      if(!cs[c].lotes) cs[c].lotes={};
-      supplies.forEach(s=>{if(cs[c].stock[s.id]===undefined)cs[c].stock[s.id]=0;});
-    });
-    _markLoaded('supplies', snap);
-    updateCenterStats();
-    if(currentTab==="inventario") renderInventario();
-    if(currentTab==="gestion") renderGestion();
-    _maybeInitBackup();
-  },e=>{ console.error("[Listener supplies]",e); toast("⚠️ Error cargando insumos: "+(e.message||e)); });
+  _unsubSupplies = _db.collection(DB_COL).doc("supplies").onSnapshot(
+    snap=>_applySuppliesSnapshot(snap),
+    e=>{ console.error("[Listener supplies]",e); toast("⚠️ Error cargando insumos: "+(e.message||e)); });
 
   _unsubGN = _db.collection(DB_COL).doc("center_GN").onSnapshot(snap=>{
     if(snap.exists){
