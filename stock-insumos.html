@@ -2373,7 +2373,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "5.7";
+const APP_VERSION = "5.8";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -2796,8 +2796,19 @@ function _warnWriteBlocked(){
 
 // ─── Persist queue ────────────────────────────────────────────────────────────
 // Serializes all writes so rapid successive calls don't race each other.
+// _persistQ (la cola compartida) SIEMPRE se auto-sana a un estado resuelto —
+// así una escritura fallida no traba las siguientes. Pero el PRÓPIO llamador
+// de _enqueue() sí tiene que enterarse de si SU escritura falló: devolver
+// _persistQ (ya "sanado") acá hacía que todo `await _enqueue(...)` resolviera
+// como éxito aunque el write real hubiera fallado — un caller con try/catch
+// (ej. applyImport) nunca veía el error, mostraba "✓ actualizado" y cerraba
+// el modal aunque Firestore hubiera rechazado el guardado.
 let _persistQ = Promise.resolve();
-function _enqueue(fn){ _persistQ = _persistQ.then(fn).catch(e=>console.warn('[Persist]',e)); return _persistQ; }
+function _enqueue(fn){
+  const result = _persistQ.then(fn);
+  _persistQ = result.catch(e=>console.warn('[Persist]',e));
+  return result;
+}
 
 // Si el centro ya está migrado a subcolección, cs[c].movements sigue poblado
 // EN MEMORIA (lo alimenta el listener de la subcolección, para que renderMovimientos
