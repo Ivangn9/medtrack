@@ -2374,7 +2374,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "5.9";
+const APP_VERSION = "6.0";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -3578,9 +3578,23 @@ async function applyImport(){
   todo.forEach(r=>{
     const s=supplies.find(x=>x.id===r.targetId); if(!s) return;
     s.name=r.b;
-    s.code=(r.c!=null?String(r.c).trim():_impGenCode(used));
+    // Si el Excel no trae código (r.c==null) y el insumo YA tiene uno, se
+    // conserva tal cual — antes acá SIEMPRE se generaba uno nuevo al azar,
+    // así que aplicar esta corrección dos veces (ej. reintentando tras un
+    // error) le barajaba el código a los ~84 insumos sin cambio de código
+    // en cada corrida, aunque ya tuvieran uno bien asignado de antes.
+    s.code=(r.c!=null?String(r.c).trim():(s.code||_impGenCode(used)));
     n++;
   });
+  // Aviso preventivo: mismo tipo de falla que tuvo el historial de movimientos
+  // antes de migrarlo a subcolección (V5.0) — un doc de Firestore no puede
+  // superar 1024KB. No bloquea el intento (podría entrar igual), pero deja
+  // el aviso ANTES de un error críptico si está cerca del límite.
+  let _impApproxKB=0;
+  try{ _impApproxKB=Math.round(JSON.stringify({data:supplies,suppliers}).length/1024); }catch(e){}
+  if(_impApproxKB>900){
+    toast(`⚠️ El catálogo pesa ~${_impApproxKB}KB, cerca del límite de 1024KB de Firestore por documento — el guardado podría fallar por tamaño.`);
+  }
   try{
     await _enqueue(()=>_db.collection(DB_COL).doc("supplies").set({data:supplies,suppliers}).catch(e=>{throw e;}));
     _auditLog('supply_bulk_correction',`Corrección masiva: ${n} insumo(s) (nombre/código)`,null,{count:n});
@@ -3589,7 +3603,18 @@ async function applyImport(){
     renderGestion();
     if(currentTab==='inventario') renderInventario();
   }catch(e){
-    toast('⚠️ Error al guardar: '+(e.message||e));
+    // Diagnóstico completo en consola (code, message, tamaño aproximado del
+    // payload) — si el problema es que el catálogo se acerca al límite de
+    // 1MB por documento de Firestore (mismo tipo de falla que tuvieron los
+    // movimientos antes de migrarlos a subcolección), esto lo deja bien
+    // visible en vez de un mensaje genérico.
+    let approxKB='?';
+    try{ approxKB=Math.round(JSON.stringify({data:supplies,suppliers}).length/1024); }catch(e2){}
+    console.error('[Corrección masiva] Error al guardar. code:',e.code,'message:',e.message,'· tamaño aprox. del catálogo:',approxKB+'KB (límite Firestore: 1024KB)',e);
+    const sizeHint=(e.code==='invalid-argument'||/exceeds|too large|maximum size/i.test(e.message||''))
+      ? ' — el catálogo podría estar superando el límite de tamaño de Firestore (revisá la consola para el detalle).'
+      : '';
+    toast('⚠️ Error al guardar: '+(e.message||e)+sizeHint);
   }finally{
     if(btn) btn.disabled=false;
   }
