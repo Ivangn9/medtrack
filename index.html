@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.15.001 -->
+<!-- v2026.07.15.002 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.15.001">
+<meta name="app-version" content="v2026.07.15.002">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -2357,6 +2357,16 @@ function updateSyncIndicator(){
 setInterval(updateSyncIndicator,1500);
 // Automatic daily snapshot to a separate backups collection, so the data is always
 // recoverable even if the main document is ever overwritten or corrupted.
+// Diagnóstico persistido de backups — antes una falla acá era 100% invisible (solo
+// console.warn, nadie mira eso). Ahora queda registrado el último error, visible en
+// Ajustes, igual que se hizo con los errores de sync.
+function _persistBackupError(err){
+  try{
+    if(!err){localStorage.removeItem('mt_lastBackupErr');return;}
+    localStorage.setItem('mt_lastBackupErr',JSON.stringify({code:(err&&err.code)||'unknown',message:(err&&err.message)||String(err),ts:new Date().toISOString()}));
+  }catch(e){}
+  try{if(typeof updateSettingsUI==='function')updateSettingsUI();}catch(e){}
+}
 function dailyBackup(){
   if(!window._fbUser||!window._fbdb)return;
   if(!eqs||!eqs.length)return; // never snapshot an empty/unloaded state
@@ -2366,15 +2376,19 @@ function dailyBackup(){
   try{
     window._fbdb.collection("orgs").doc("cima").collection("backups").doc(today)
       .set({eqs:eqs,antenas:antenas,aires:aires,transductores:transductores,savedAt:new Date().toISOString(),by:(window._fbUser.email||window._fbUser.uid||'')})
-      .then(function(){try{localStorage.setItem('mt_lastBackup',today);}catch(e){}})
-      .catch(function(e){console.warn('Daily backup:',e);});
-  }catch(e){}
+      .then(function(){try{localStorage.setItem('mt_lastBackup',today);}catch(e){}_persistBackupError(null);})
+      .catch(function(e){console.warn('Daily backup:',e);_persistBackupError(e);});
+  }catch(e){_persistBackupError(e);}
 }
 // Hourly backup — runs every 60 min, stores up to 24 hourly snapshots (keyed by date+hour).
 // Guards against data loss within the same day when the daily backup already ran.
 function hourlyBackup(){
   if(!window._fbUser||!window._fbdb)return;
-  if(!antenas||!antenas.length)return; // only if there are antennas to protect
+  // BUG real encontrado: esto chequeaba antenas.length en vez de eqs.length — una
+  // organización sin antenas cargadas (aunque tenga equipos, UPS, fallas, etc.) nunca
+  // corría el backup horario, ni una sola vez, sin ningún aviso. Ahora protege lo mismo
+  // que el backup diario: cualquier organización con equipos cargados.
+  if(!eqs||!eqs.length)return;
   var d=new Date();
   var key=d.toISOString().slice(0,13).replace('T','-h'); // e.g. "2026-06-24-h10"
   var lastH='';try{lastH=localStorage.getItem('mt_lastHourlyBackup')||'';}catch(e){}
@@ -2382,9 +2396,9 @@ function hourlyBackup(){
   try{
     window._fbdb.collection("orgs").doc("cima").collection("backups").doc(key)
       .set({eqs:eqs,antenas:antenas,aires:aires,transductores:transductores,savedAt:d.toISOString(),by:(window._fbUser.email||window._fbUser.uid||''),tipo:'hourly'})
-      .then(function(){try{localStorage.setItem('mt_lastHourlyBackup',key);}catch(e){}})
-      .catch(function(e){console.warn('Hourly backup:',e);});
-  }catch(e){}
+      .then(function(){try{localStorage.setItem('mt_lastHourlyBackup',key);}catch(e){}_persistBackupError(null);})
+      .catch(function(e){console.warn('Hourly backup:',e);_persistBackupError(e);});
+  }catch(e){_persistBackupError(e);}
 }
 // List available daily backups and let an owner restore one (with confirmation).
 function openRestoreBackup(){
@@ -2875,9 +2889,20 @@ function submitCambioBaterias(eqId){
   saveData();showToast('Cambio de baterías registrado');closeModal();render();
 }
 function saveEq(d){
-  if(eqs.find(function(e){return e.id===d.id;})){eqs=eqs.map(function(e){return e.id===d.id?Object.assign({},e,d):e;});showToast("Equipo actualizado");}
-  else{d.id="EQ-"+Date.now();d.partes=[];d.historialMant=[];eqs.push(d);showToast("Equipo agregado");}
-  saveData();closeModal();render();
+  // Antes NUNCA se registraba en Auditoría el alta ni la edición de un equipo —
+  // solo la baja. Eso hacía imposible confirmar desde Ajustes > Auditoría si un
+  // equipo cargado hoy realmente se guardó o no, justo el dato que más hace falta
+  // cuando algo parece haber desaparecido.
+  if(eqs.find(function(e){return e.id===d.id;})){
+    eqs=eqs.map(function(e){return e.id===d.id?Object.assign({},e,d):e;});
+    auditEntry('modificar','eq',d.id,d.nombre||d.id,'Equipo editado');
+    showToast("Equipo actualizado");
+  } else {
+    d.id="EQ-"+Date.now();d.partes=[];d.historialMant=[];eqs.push(d);
+    auditEntry('crear','eq',d.id,d.nombre||d.id,'Equipo agregado — '+(d.cat||''));
+    showToast("Equipo agregado");
+  }
+  saveDataCritical();closeModal();render();
 }
 function delEq(id){
   if(!confirm("¿Eliminar este equipo? Se limpiarán PMs programados, mejoras y vínculos asociados. Las OTs e historial quedan como registro."))return;
@@ -4063,10 +4088,17 @@ function forzarSincronizacionArchivos(){
   // todavía no llegaron a la nube) sin avisar, perdiéndolos para siempre.
   try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(function(){});}catch(e){}
   document.addEventListener('visibilitychange',function(){
-    if(document.visibilityState==='hidden'){flushSaveNow();reconcileFiles();}
+    if(document.visibilityState==='hidden'){
+      flushSaveNow();reconcileFiles();
+      // Último intento de backup antes de que iOS pueda matar la PWA — si ya corrió
+      // hoy/esta hora, dailyBackup/hourlyBackup no hacen nada (su propio guard evita
+      // duplicar), así que llamarlas acá es gratis y es la red de seguridad final para
+      // visitas cortas que cierran la app antes de que el timeout inicial llegue a correr.
+      try{dailyBackup();hourlyBackup();}catch(e){}
+    }
     else{reconcileFiles();_fsRetryIfFailed();}
   });
-  window.addEventListener('pagehide',flushSaveNow);
+  window.addEventListener('pagehide',function(){flushSaveNow();try{dailyBackup();hourlyBackup();}catch(e){}});
   window.addEventListener('beforeunload',flushSaveNow);
   window.addEventListener('online',function(){reconcileFiles();flushSaveNow();_fsRetryIfFailed();});
 })();
@@ -11239,7 +11271,22 @@ function updateSettingsUI(){
         _syncErrHtml='<div style="margin-top:8px;padding:7px 10px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:8px;font-size:.6rem;color:var(--red);line-height:1.5;">⚠️ Último error de sync: <b>'+esc(_seD.code)+'</b> — '+esc(_seD.message)+'<br>'+_seWhen+'</div>';
       }
     }catch(e){}
-    sf.innerHTML='<div style="margin-bottom:3px;font-size:.64rem;">Última actualización: '+APP_BUILD+'</div>'+'<div>CIMA Investigaciones Avanzadas · CIMA Hub '+(APP_DISPLAY_VERSION||APP_VERSION)+'</div>'+_syncErrHtml;
+    var _bkErrHtml='';
+    try{
+      var _be=localStorage.getItem('mt_lastBackupErr');
+      if(_be){
+        var _beD=JSON.parse(_be);
+        var _beDate=new Date(_beD.ts);
+        var _beWhen=isNaN(_beDate.getTime())?_beD.ts:_beDate.toLocaleString('es-AR');
+        _bkErrHtml='<div style="margin-top:8px;padding:7px 10px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:8px;font-size:.6rem;color:#b45309;line-height:1.5;">⚠️ Último error de backup: <b>'+esc(_beD.code)+'</b> — '+esc(_beD.message)+'<br>'+_beWhen+'</div>';
+      }
+    }catch(e){}
+    var _bkOkText='';
+    try{
+      var _lastBk=localStorage.getItem('mt_lastBackup')||'';
+      if(_lastBk&&!_be)_bkOkText='<div style="margin-top:6px;font-size:.6rem;color:var(--text3);">✅ Último backup diario confirmado: '+esc(_lastBk)+'</div>';
+    }catch(e){}
+    sf.innerHTML='<div style="margin-bottom:3px;font-size:.64rem;">Última actualización: '+APP_BUILD+'</div>'+'<div>CIMA Investigaciones Avanzadas · CIMA Hub '+(APP_DISPLAY_VERSION||APP_VERSION)+'</div>'+_syncErrHtml+_bkErrHtml+_bkOkText;
   }
   var re=localStorage.getItem('cima_reminder')==='1';
   var rt=document.getElementById('reminder-toggle'),rd=document.getElementById('reminder-dot'),rs=document.getElementById('reminder-status');
@@ -17073,12 +17120,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="2.0.0";
+var APP_DISPLAY_VERSION="3.0.0";
 var APP_BUILD="15/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'3.0.0',fecha:'15/07/2026',tipo:'major',cambios:[
+    'Corrige backup horario roto (dependía de antenas) y falta de auditoría al crear equipos'
+  ]},
   {v:'2.0.0',fecha:'15/07/2026',tipo:'major',cambios:[
     'Corrige causa raíz de pérdida de datos: guardado pendiente ya no se pisa con snapshots remotos'
   ]},
@@ -17636,8 +17686,13 @@ function init(){
           setInterval(checkForUpdates,60*1000);
           setTimeout(reconcileFiles,4000);              // upload any local-only files to the cloud
           setInterval(reconcileFiles,5*60*1000);        // keep retrying periodically
-          setTimeout(dailyBackup,6000);                 // daily recoverable snapshot
-          setTimeout(hourlyBackup,10000);               // hourly snapshot (protects within same day)
+          // Los delays eran de 6s/10s — en una PWA de celular, donde se abre para cargar
+          // algo puntual y se cierra enseguida, eso alcanzaba a no correr nunca. Se bajan
+          // a 1.5s/2.5s para que el backup tenga chances reales de terminar incluso en
+          // una visita corta; además hay un intento extra al ocultarse la app (ver el
+          // listener de visibilitychange más abajo), como red de seguridad final.
+          setTimeout(dailyBackup,1500);                 // daily recoverable snapshot
+          setTimeout(hourlyBackup,2500);                // hourly snapshot (protects within same day)
           setInterval(hourlyBackup,60*60*1000);         // repeat every hour
         }
         var _fsInitDone=false;

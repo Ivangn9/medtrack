@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v3.0.0 — 15/07/2026 (major)
+
+- Corrige backup horario roto (dependía de antenas) y falta de auditoría al crear equipos
+
 ## v2.0.0 — 15/07/2026 (major)
 
 - Corrige causa raíz de pérdida de datos: guardado pendiente ya no se pisa con snapshots remotos
