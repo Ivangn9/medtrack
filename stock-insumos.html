@@ -1955,6 +1955,7 @@
       <button class="fmt-pill active" id="impTabMatched" onclick="_impSwitchTab('matched')">✓ Coinciden</button>
       <button class="fmt-pill" id="impTabReview" onclick="_impSwitchTab('review')">⚠️ Revisar</button>
       <button class="fmt-pill" id="impTabSkip" onclick="_impSwitchTab('skip')">⊘ Omitidos</button>
+      <button class="fmt-pill" id="impTabConflict" style="display:none;background:rgba(255,59,48,.12);color:#c0271f;border-color:rgba(255,59,48,.3)" onclick="_impSwitchTab('conflict')">🚨 Conflictos</button>
     </div>
     <div id="importList" style="max-height:46vh;overflow-y:auto;margin-bottom:14px"></div>
     <div class="modal-footer" style="display:flex;gap:10px;align-items:center">
@@ -2373,7 +2374,7 @@
 
 <script>
 // ─── Version & Auto-Update ────────────────────────────────────────────────────
-const APP_VERSION = "5.8";
+const APP_VERSION = "5.9";
 
 (function initVersion(){
   const el = document.getElementById("versionBadge");
@@ -3421,12 +3422,33 @@ function closeImportModal(ev){
 function _impSwitchTab(t){ _impTab=t; _impRefresh(); }
 function _impRefresh(){ _impRenderTabs(); renderImportList(); }
 
+// Insumos del sistema a los que apuntan 2+ filas del Excel a la vez — aplicar
+// así pisaría una corrección con otra en silencio (queda la última que se
+// procese, se pierde la otra) sin que quede rastro de qué pasó. Se usa tanto
+// para bloquear "Aplicar cambios" como para la pestaña "🚨 Conflictos" que
+// permite ENCONTRARLOS en vez de solo avisar un número.
+function _impConflictIds(){
+  const seen=new Set(), dup=new Set();
+  _impRows.forEach(r=>{
+    if(r.status==='skip'||!r.targetId) return;
+    if(seen.has(r.targetId)) dup.add(r.targetId); else seen.add(r.targetId);
+  });
+  return dup;
+}
 function _impRenderTabs(){
   const c={matched:0,review:0,skip:0}; _impRows.forEach(r=>c[r.status]++);
   const set=(id,on,txt)=>{ const e=document.getElementById(id); if(e){ e.classList.toggle('active',on); e.textContent=txt; } };
   set('impTabMatched',_impTab==='matched',`✓ Coinciden (${c.matched})`);
   set('impTabReview',_impTab==='review',`⚠️ Revisar (${c.review})`);
   set('impTabSkip',_impTab==='skip',`⊘ Omitidos (${c.skip})`);
+  const conflictIds=_impConflictIds();
+  const conflictCount=_impRows.filter(r=>r.status!=='skip'&&r.targetId&&conflictIds.has(r.targetId)).length;
+  const tabConf=document.getElementById('impTabConflict');
+  if(tabConf){
+    tabConf.style.display=conflictCount>0?'inline-flex':'none';
+    tabConf.classList.toggle('active',_impTab==='conflict');
+    tabConf.textContent=`🚨 Conflictos (${conflictCount})`;
+  }
   const willApply=_impRows.filter(r=>r.status!=='skip'&&r.targetId).length;
   document.getElementById('importSummary').innerHTML=
     `Se aplicarán <b>${willApply}</b> de <b>${_impRows.length}</b> correcciones. `+
@@ -3481,28 +3503,39 @@ function _impOptions(selId){
 }
 function renderImportList(){
   const el=document.getElementById('importList');
-  const rows=_impRows.filter(r=>r.status===_impTab);
+  const conflictIds=_impConflictIds();
+  const rows=_impTab==='conflict'
+    ? _impRows.filter(r=>r.status!=='skip'&&r.targetId&&conflictIds.has(r.targetId))
+    : _impRows.filter(r=>r.status===_impTab);
   if(!rows.length){ el.innerHTML=`<div style="text-align:center;color:var(--text3);padding:28px">Nada acá 👌</div>`; return; }
   let head='';
   if(_impTab==='review'){
     const pend=rows.filter(r=>r.targetId).length;
     if(pend) head=`<div style="margin-bottom:10px"><button class="btn btn-primary" style="padding:7px 14px;font-size:.82rem" onclick="_impAcceptAllSuggestions()">✓ Aceptar las ${pend} sugerencias</button></div>`;
   }
+  if(_impTab==='conflict') head=`<div style="margin-bottom:10px;font-size:.78rem;color:var(--text3)">Cada insumo del sistema abajo tiene <b>más de una fila del Excel</b> apuntándole — dejá una sola sincronizada con él y omití (o reasigná) las demás.</div>`;
   el.innerHTML=head+rows.map(r=>{
     const tgt=supplies.find(s=>s.id===r.targetId);
     const codeTxt=r.c!=null?escHtml(r.c):'🎲 aleatorio (auto)';
+    const isConflict=r.targetId&&conflictIds.has(r.targetId);
+    const conflictBorder=isConflict?'border:1.5px solid rgba(255,59,48,.4);':'';
+    const conflictTag=isConflict?`<div style="font-size:.68rem;font-weight:800;color:#c0271f;background:rgba(255,59,48,.12);border:1px solid rgba(255,59,48,.25);border-radius:8px;padding:3px 8px;display:inline-block;margin-bottom:6px">🚨 Insumo repetido — otra fila del Excel también apunta acá</div>`:'';
     if(r.status==='matched'){
-      return `<div class="gc" style="padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px;justify-content:space-between">
-        <div style="min-width:0">
-          <div style="font-size:.9rem;font-weight:700;color:var(--text)">${escHtml(r.b)}</div>
-          <div style="font-size:.72rem;color:var(--text3)">era: ${escHtml(tgt?tgt.name:r.a)} · código: <b>${codeTxt}</b></div>
+      return `<div class="gc" style="padding:10px 14px;margin-bottom:8px;${conflictBorder}">
+        ${conflictTag}
+        <div style="display:flex;align-items:center;gap:10px;justify-content:space-between">
+          <div style="min-width:0">
+            <div style="font-size:.9rem;font-weight:700;color:var(--text)">${escHtml(r.b)}</div>
+            <div style="font-size:.72rem;color:var(--text3)">era: ${escHtml(tgt?tgt.name:r.a)} · código: <b>${codeTxt}</b></div>
+          </div>
+          <button class="fmt-pill" onclick="_impSetStatus(${r.i},'skip')">Omitir</button>
         </div>
-        <button class="fmt-pill" onclick="_impSetStatus(${r.i},'skip')">Omitir</button>
       </div>`;
     }
     if(r.status==='review'){
       const pct=Math.round((r.score||0)*100);
-      return `<div class="gc" style="padding:10px 14px;margin-bottom:8px">
+      return `<div class="gc" style="padding:10px 14px;margin-bottom:8px;${conflictBorder}">
+        ${conflictTag}
         <div style="font-size:.86rem;font-weight:700;color:var(--text);margin-bottom:2px">Excel: ${escHtml(r.a)} → ${escHtml(r.b)}</div>
         <div style="font-size:.72rem;color:var(--text3);margin-bottom:6px">No coincide exacto${r.targetId?` · parecido ${pct}%`:''}. Elegí con qué insumo sincronizar (código: <b>${codeTxt}</b>):</div>
         <select class="modal-input" style="margin-bottom:6px" onchange="_impSetTarget(${r.i},this.value)">${_impOptions(r.targetId)}</select>
@@ -3531,9 +3564,12 @@ async function applyImport(){
   if(!_loadedFlags.supplies){ toast('⚠️ Esperá a que carguen los insumos'); return; }
   const todo=_impRows.filter(r=>r.status!=='skip'&&r.targetId);
   if(!todo.length){ toast('No hay cambios para aplicar'); return; }
-  const seen=new Set(),conf=[];
-  todo.forEach(r=>{ if(seen.has(r.targetId)) conf.push(r); else seen.add(r.targetId); });
-  if(conf.length){ toast(`⚠️ ${conf.length} insumo(s) asignados a más de una fila — revisá antes de aplicar`); return; }
+  const conflictIds=_impConflictIds();
+  if(conflictIds.size){
+    toast(`⚠️ ${conflictIds.size} insumo(s) asignados a más de una fila — te llevo a "🚨 Conflictos" para corregirlo`);
+    _impTab='conflict'; _impRefresh();
+    return;
+  }
   const btn=document.getElementById('importApplyBtn'); if(btn) btn.disabled=true;
   const exceptIds=new Set(todo.map(r=>r.targetId));
   const used=_impUsedCodes(exceptIds);
