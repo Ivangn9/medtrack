@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.14.012 -->
+<!-- v2026.07.15.001 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.14.012">
+<meta name="app-version" content="v2026.07.15.001">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1821,7 +1821,13 @@ function auditEntry(action,entity,entityId,entityName,details){
 
 function saveData(){
   var now=new Date().toISOString();
-  try{localStorage.setItem("mt_v4",JSON.stringify(eqs));localStorage.setItem("mt_antenas",JSON.stringify(antenas));localStorage.setItem("mt_aires",JSON.stringify(aires));localStorage.setItem("mt_transductores",JSON.stringify(transductores));localStorage.setItem("mt_ordenes",JSON.stringify(ordenesTrabajo));localStorage.setItem("mt_repuestos",JSON.stringify(repuestos));localStorage.setItem("mt_pm_prog",JSON.stringify(pmProgramados));localStorage.setItem("mt_mejoras",JSON.stringify(mejoras));localStorage.setItem("mt_emp_rep",JSON.stringify(empresasRep));localStorage.setItem("mt_custom_comp",JSON.stringify(customComponentes));localStorage.setItem("mt_updatedAt",now);}catch(e){}
+  // mt_pendingSync: "hay un cambio local que todavía no se confirmó guardado en el
+  // servidor". Se prende ACÁ, antes de tocar la red, y solo se apaga dentro de
+  // _fsWrite cuando el set() realmente tuvo éxito. Sobrevive a que se cierre la app
+  // (iOS mata la PWA en el medio) — así, al reabrir, el arranque en frío sabe que
+  // tiene que priorizar este cambio en vez de confiar ciegamente en qué timestamp
+  // "parece" más nuevo (ver bloque FIRST SNAPSHOT del listener de Firestore).
+  try{localStorage.setItem("mt_v4",JSON.stringify(eqs));localStorage.setItem("mt_antenas",JSON.stringify(antenas));localStorage.setItem("mt_aires",JSON.stringify(aires));localStorage.setItem("mt_transductores",JSON.stringify(transductores));localStorage.setItem("mt_ordenes",JSON.stringify(ordenesTrabajo));localStorage.setItem("mt_repuestos",JSON.stringify(repuestos));localStorage.setItem("mt_pm_prog",JSON.stringify(pmProgramados));localStorage.setItem("mt_mejoras",JSON.stringify(mejoras));localStorage.setItem("mt_emp_rep",JSON.stringify(empresasRep));localStorage.setItem("mt_custom_comp",JSON.stringify(customComponentes));localStorage.setItem("mt_updatedAt",now);localStorage.setItem("mt_pendingSync","1");}catch(e){}
   // Mark dirty before the 400ms debounce fires so the sync indicator is accurate
   // even when offline (_fbUser absent) — firestoreSave() would early-return without setting this
   if(typeof _fsDirty!=='undefined')_fsDirty=true;
@@ -2104,8 +2110,12 @@ function _histTryMerge(){
   if(!c||c.he===null||c.ha===null||c.ho===null)return;
   if(_histMergedOnce){
     // Update en vivo de otro dispositivo: reaplicar desde el doc crudo + shards,
-    // solo si no hay cambios locales sin guardar (mismo guard que el listener principal)
-    if(_fsDirty||_fsWriting||_fsSaveTimer)return;
+    // solo si no hay cambios locales sin guardar (mismo guard que el listener principal).
+    // _fsFailed cuenta como "hay algo sin guardar": si el guardado agotó los reintentos
+    // rápidos y quedó esperando el reintento lento, ese cambio local TODAVÍA no llegó al
+    // servidor — sin este chequeo, una actualización de OTRO dispositivo que llegue en
+    // esa ventana pisaba en silencio el cambio local que seguía pendiente de subir.
+    if(_fsDirty||_fsWriting||_fsSaveTimer||_fsFailed)return;
     if(window._lastRawDoc&&window._applyDataGlobal){
       try{window._applyDataGlobal(JSON.parse(window._lastRawDoc));}catch(e){return;}
       _histApplyMerge();
@@ -2172,7 +2182,7 @@ function firestoreSave(){
 // (add/edit/delete antenna, etc.) where iOS may kill the PWA before the timer fires.
 function saveDataCritical(){
   var now=new Date().toISOString();
-  try{localStorage.setItem("mt_v4",JSON.stringify(eqs));localStorage.setItem("mt_antenas",JSON.stringify(antenas));localStorage.setItem("mt_aires",JSON.stringify(aires));localStorage.setItem("mt_transductores",JSON.stringify(transductores));localStorage.setItem("mt_ordenes",JSON.stringify(ordenesTrabajo));localStorage.setItem("mt_repuestos",JSON.stringify(repuestos));localStorage.setItem("mt_pm_prog",JSON.stringify(pmProgramados));localStorage.setItem("mt_mejoras",JSON.stringify(mejoras));localStorage.setItem("mt_emp_rep",JSON.stringify(empresasRep));localStorage.setItem("mt_custom_comp",JSON.stringify(customComponentes));localStorage.setItem("mt_updatedAt",now);}catch(e){}
+  try{localStorage.setItem("mt_v4",JSON.stringify(eqs));localStorage.setItem("mt_antenas",JSON.stringify(antenas));localStorage.setItem("mt_aires",JSON.stringify(aires));localStorage.setItem("mt_transductores",JSON.stringify(transductores));localStorage.setItem("mt_ordenes",JSON.stringify(ordenesTrabajo));localStorage.setItem("mt_repuestos",JSON.stringify(repuestos));localStorage.setItem("mt_pm_prog",JSON.stringify(pmProgramados));localStorage.setItem("mt_mejoras",JSON.stringify(mejoras));localStorage.setItem("mt_emp_rep",JSON.stringify(empresasRep));localStorage.setItem("mt_custom_comp",JSON.stringify(customComponentes));localStorage.setItem("mt_updatedAt",now);localStorage.setItem("mt_pendingSync","1");}catch(e){}
   if(!window._fbUser||!window._fbdb){if(typeof _fsDirty!=='undefined')_fsDirty=true;return;}
   if(_fsSaveTimer){clearTimeout(_fsSaveTimer);_fsSaveTimer=null;}
   _fsDirty=true;_fsFailed=false;
@@ -2290,7 +2300,7 @@ function _fsWrite(tryN){
       // seguidas y rápidas del MISMO dispositivo (más rápidas que un ciclo debounce+red)
       // dejan el "último visto" desactualizado, y la segunda escritura cree por error
       // que "otro dispositivo" acaba de guardar cuando en realidad fue esta misma.
-      try{localStorage.setItem('mt_updatedAt',_payload.updatedAt);}catch(e){}
+      try{localStorage.setItem('mt_updatedAt',_payload.updatedAt);localStorage.removeItem('mt_pendingSync');}catch(e){}
       _publicMirrorSave();
       if(_fsPendingRewrite){_fsPendingRewrite=false;_fsDirty=true;_fsWrite(0);}
     })
@@ -2304,6 +2314,9 @@ function _fsWrite(tryN){
           if(window._applyDataGlobal)window._applyDataGlobal(e.serverData);
           if(typeof _histMergedOnce!=='undefined'&&_histMergedOnce&&typeof _histApplyMerge==='function')_histApplyMerge();
           localStorage.setItem('mt_updatedAt',e.serverData.updatedAt||'');
+          // El cambio local se descartó y se reemplazó por la versión del servidor (por
+          // eso el toast pide rehacer el cambio) — en memoria ya no hay nada pendiente.
+          localStorage.removeItem('mt_pendingSync');
         }catch(e2){}
         _fsDirty=false;_fsFailed=false;_persistSyncError(null);
         render();
@@ -2654,7 +2667,7 @@ document.addEventListener('touchmove',function(e){
 document.addEventListener('touchend',function(){_ptrOn=false;},{passive:true});
 function _doPullRefresh(){
   if(!window._fbdb||!window._fbUser){render();return;}
-  if(_fsDirty||_fsWriting||_fsSaveTimer){showToast('Hay cambios guardándose…','warn');return;}
+  if(_fsDirty||_fsWriting||_fsSaveTimer||_fsFailed){showToast('Hay cambios guardándose…','warn');return;}
   showToast('🔄 Actualizando…');
   orgDataRef().get().then(function(doc){
     if(doc.exists&&window._applyDataGlobal){
@@ -17060,12 +17073,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="1.13.2";
-var APP_BUILD="14/07/26 h";
+var APP_DISPLAY_VERSION="2.0.0";
+var APP_BUILD="15/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'2.0.0',fecha:'15/07/2026',tipo:'major',cambios:[
+    'Corrige causa raíz de pérdida de datos: guardado pendiente ya no se pisa con snapshots remotos'
+  ]},
   {v:'1.13.2',fecha:'14/07/2026',tipo:'patch',cambios:[
     'Fallas: separa Historial de Roturas y Fallas (estaban anidados) y agrega anillo animado azul'
   ]},
@@ -17637,7 +17653,19 @@ function init(){
             if(_d&&Array.isArray(_d.eqs)&&_d.eqs.length>0){
               var fsAt=_d.updatedAt||'';
               var lsAt=localStorage.getItem('mt_updatedAt')||'';
-              if(lsAt&&lsAt>fsAt){
+              // mt_pendingSync marca "hay un cambio de ESTE dispositivo que nunca se
+              // confirmó guardado" (ver saveData/saveDataCritical). Si está prendida,
+              // priorizamos lo local SIEMPRE, sin importar qué timestamp parezca más
+              // nuevo — comparar timestamps acá era la causa real de la pérdida de datos:
+              // si el guardado de hoy quedó pegado (wifi inestable, PWA cerrada en el
+              // medio del reintento) y CUALQUIER otro dispositivo guardó algo después,
+              // el timestamp del servidor pasaba a ser "más nuevo" y el arranque en frío
+              // descartaba el cambio de hoy de la memoria sin ningún aviso. Con la marca,
+              // en vez de comparar fechas, cargamos lo local y dejamos que el mismo
+              // chequeo de conflicto de siempre (get-antes-de-set en _fsWrite) reconcilie
+              // con el servidor de forma segura, igual que cualquier otro guardado.
+              var pendiente=localStorage.getItem('mt_pendingSync')==='1';
+              if(pendiente||(lsAt&&lsAt>fsAt)){
                 _lsLoad();
                 firestoreSave();
               } else {
@@ -17668,8 +17696,14 @@ function init(){
             return;
           }
           // ── SUBSEQUENT SNAPSHOTS: real-time update from another device ──
-          // Skip if we have a local save in flight (our own write will come back here too)
-          if(_fsDirty||_fsWriting||_fsSaveTimer)return;
+          // Skip if we have a local save in flight (our own write will come back here too).
+          // _fsFailed también cuenta: un guardado que agotó los reintentos rápidos y está
+          // esperando el reintento lento de 45s TODAVÍA tiene un cambio local sin confirmar
+          // en el servidor. Sin este chequeo, cualquier guardado de OTRO dispositivo que
+          // llegara en esa ventana de espera pisaba en silencio el cambio de hoy que
+          // seguía pendiente de subir — sin ningún aviso, porque el indicador ya mostraba
+          // rojo por otro motivo. Este es el bug que causaba la pérdida de datos reportada.
+          if(_fsDirty||_fsWriting||_fsSaveTimer||_fsFailed)return;
           if(!_d||!Array.isArray(_d.eqs)||!_d.eqs.length)return;
           var _fsAt2=_d.updatedAt||'';
           var _lsAt2=localStorage.getItem('mt_updatedAt')||'';

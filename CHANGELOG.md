@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v2.0.0 — 15/07/2026 (major)
+
+- Corrige causa raíz de pérdida de datos: guardado pendiente ya no se pisa con snapshots remotos
+
 ## v1.13.2 — 14/07/2026 (patch)
 
 - Fallas: separa Historial de Roturas y Fallas (estaban anidados) y agrega anillo animado azul
