@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.15.003 -->
+<!-- v2026.07.16.001 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.15.003">
+<meta name="app-version" content="v2026.07.16.001">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -9971,7 +9971,7 @@ function rBajas(){
   bajas.forEach(function(eq){
     var ci=CATS.find(function(c){return c.id===eq.cat;})||{label:eq.cat,color:'#94a3b8'};
     var b=eq.baja;
-    var motivoLabel={'venta':'🤝 Venta','falla_irreparable':'💥 Falla irreparable','obsolescencia':'⏳ Obsolescencia','reemplazo':'🔄 Reemplazo','otro':'📝 Otro'}[b.motivo]||(b.motivo||'—');
+    var motivoLabel={'venta':'🤝 Venta','entrega_pago':'🔁 Entregado como forma de pago','falla_irreparable':'💥 Falla irreparable','obsolescencia':'⏳ Obsolescencia','reemplazo':'🔄 Reemplazo','otro':'📝 Otro'}[b.motivo]||(b.motivo||'—');
     h+='<div class="gc" style="padding:0;overflow:hidden;margin-bottom:10px;opacity:.9;">'+
       '<div style="padding:14px 16px;">'+
         '<div style="display:flex;align-items:flex-start;gap:10px;">'+
@@ -10006,6 +10006,7 @@ function openDarDeBajaModal(eqId){
     '<div class="ff"><div class="ff-label">Motivo</div>'+
       '<select class="inp" id="baja-motivo">'+
         '<option value="venta">🤝 Venta</option>'+
+        '<option value="entrega_pago">🔁 Entregado como forma de pago</option>'+
         '<option value="falla_irreparable">💥 Falla irreparable</option>'+
         '<option value="obsolescencia">⏳ Obsolescencia</option>'+
         '<option value="reemplazo">🔄 Reemplazo por nuevo equipo</option>'+
@@ -10022,11 +10023,25 @@ function submitDarDeBaja(eqId){
   var fecha=((document.getElementById('baja-fecha')||{}).value||'');
   var motivo=((document.getElementById('baja-motivo')||{}).value||'otro');
   var obs=((document.getElementById('baja-obs')||{}).value||'').trim();
+  var eqAntes=eqs.find(function(e){return e.id===eqId;});
+  var trIdsVinculados=(eqAntes&&eqAntes.transductorIds)||[];
   eqs=eqs.map(function(e){
     if(e.id!==eqId)return e;
-    return Object.assign({},e,{baja:{fecha:fecha,motivo:motivo,observacion:obs,creadoEn:new Date().toISOString()}});
+    // Los transductores vinculados se desvinculan acá abajo — no tiene sentido dejar
+    // el ecógrafo apuntando a transductores que ya se dieron de baja con él.
+    return Object.assign({},e,{baja:{fecha:fecha,motivo:motivo,observacion:obs,creadoEn:new Date().toISOString()},transductorIds:[]});
   });
-  saveDataCritical();closeModal();setView('bajas');showToast('Equipo dado de baja','warn');
+  // Dar de baja el equipo en cascada a sus transductores vinculados — sin esto quedaban
+  // "corrompidos": activos en el sistema, con estado operativo, pero apuntando a un
+  // ecógrafo que ya no existe más para la empresa (vendido/entregado como pago).
+  if(trIdsVinculados.length){
+    transductores=transductores.map(function(t){
+      if(trIdsVinculados.indexOf(t.id)===-1)return t;
+      return Object.assign({},t,{baja:true,estado:'fuera_servicio',fechaBaja:fecha,notasBaja:'Baja en cascada — equipo dado de baja: '+(eqAntes.nombre||eqId)});
+    });
+  }
+  auditEntry('baja','eq',eqId,(eqAntes&&eqAntes.nombre)||eqId,'Equipo dado de baja — '+motivo+(trIdsVinculados.length?' · '+trIdsVinculados.length+' transductor(es) dados de baja en cascada':''));
+  saveDataCritical();closeModal();setView('bajas');showToast('Equipo dado de baja'+(trIdsVinculados.length?' junto con '+trIdsVinculados.length+' transductor(es)':''),'warn');
 }
 function reactivarEquipo(eqId){
   if(!confirm('¿Reactivar este equipo? Volverá a aparecer en el panel y la lista.'))return;
@@ -12929,7 +12944,28 @@ function generateReport(){
     html+='<div class="section"><div class="section-title">4. Cuadro resumen</div>';
     html+='<table class="sum"><thead><tr><th>Equipo</th><th>Categoría</th><th>Centro</th><th>Estado</th><th>Mant.</th><th>Reparaciones</th><th>Fallas activas</th></tr></thead><tbody>'+sumRows+'</tbody></table>';
     html+='</div>';
-    html+='<div class="section"><div class="section-title">5. Conclusiones y recomendaciones</div><div class="narrative"><p>'+conclusionText+'</p></div></div>';
+    // Equipos dados de baja en el período — antes ni aparecían en el reporte, porque
+    // se excluyen de la lista de equipos seleccionables (correctamente, ya no están
+    // en servicio activo), pero eso los volvía invisibles también acá.
+    var bajasRango=eqs.filter(function(e){
+      if(!e.baja)return false;
+      var f=e.baja.fecha||'';
+      if(desde&&f&&f<desde)return false;
+      if(hasta&&f&&f>hasta)return false;
+      return true;
+    }).sort(function(a,b){return (b.baja.fecha||'')>(a.baja.fecha||'')?1:-1;});
+    if(bajasRango.length){
+      var _motivoLabelRep={'venta':'Venta','entrega_pago':'Entregado como forma de pago','falla_irreparable':'Falla irreparable','obsolescencia':'Obsolescencia','reemplazo':'Reemplazo','otro':'Otro'};
+      var bajasRows=bajasRango.map(function(e){
+        var ci2=catById(e.cat);
+        return '<tr><td><strong>'+esc(e.nombre)+'</strong></td><td>'+ci2.label+'</td><td>'+(e.baja.fecha?fD(e.baja.fecha):'—')+'</td><td>'+esc(_motivoLabelRep[e.baja.motivo]||e.baja.motivo||'—')+'</td><td>'+esc(e.baja.observacion||'—')+'</td></tr>';
+      }).join('');
+      html+='<div class="section"><div class="section-title">5. Equipos dados de baja</div>'+
+        '<p style="font-size:9.5pt;color:#475569;margin-bottom:10px;">'+bajasRango.length+' equipo'+(bajasRango.length!==1?'s dados':' dado')+' de baja '+(desde||hasta?'en el período informado':'registrados')+'.</p>'+
+        '<table class="sum" style="border:1px solid #dbeafe;"><thead><tr><th>Equipo</th><th>Categoría</th><th>Fecha de baja</th><th>Motivo</th><th>Observación</th></tr></thead><tbody>'+bajasRows+'</tbody></table>'+
+        '</div>';
+    }
+    html+='<div class="section"><div class="section-title">'+(bajasRango.length?'6':'5')+'. Conclusiones y recomendaciones</div><div class="narrative"><p>'+conclusionText+'</p></div></div>';
     html+='<div class="footer">';
     html+='<div class="footer-meta">CIMA Investigaciones Avanzadas · CIMA Hub · Generado: '+new Date().toLocaleString("es-AR")+'</div>';
     html+='<div class="sig-row">';
@@ -17133,12 +17169,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="3.1.0";
-var APP_BUILD="15/07/26 h";
+var APP_DISPLAY_VERSION="3.2.0";
+var APP_BUILD="16/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'3.2.0',fecha:'16/07/2026',tipo:'minor',cambios:[
+    'Baja de equipo en cascada a transductores + motivo entrega de pago + reporte gerencial'
+  ]},
   {v:'3.1.0',fecha:'15/07/2026',tipo:'minor',cambios:[
     'Registrar rotura de transductor ahora actualiza el estado del transductor'
   ]},

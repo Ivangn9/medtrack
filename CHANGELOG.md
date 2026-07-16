@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v3.2.0 — 16/07/2026 (minor)
+
+- Baja de equipo en cascada a transductores + motivo entrega de pago + reporte gerencial
+
 ## v3.1.0 — 15/07/2026 (minor)
 
 - Registrar rotura de transductor ahora actualiza el estado del transductor
