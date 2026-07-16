@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v3.3.1 — 16/07/2026 (patch)
+
+- Sync: más tolerancia al timeout inicial y mensaje que no alarma durante el reintento automático
+
 ## v3.3.0 — 16/07/2026 (minor)
 
 - Dar de baja permite destildar transductores y trasladarlos a otro ecógrafo

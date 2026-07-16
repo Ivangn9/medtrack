@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.16.002 -->
+<!-- v2026.07.16.003 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.16.002">
+<meta name="app-version" content="v2026.07.16.003">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -2240,14 +2240,20 @@ function _fsWrite(tryN){
   // Red de seguridad: si la transacción de Firestore nunca resuelve (ni .then
   // ni .catch — puede pasar con conexiones inestables o el navegador en background
   // largo rato), el indicador quedaba en "Guardando…" para siempre sin ningún
-  // error visible. Forzamos un reintento/fallo visible pasados 15s.
+  // error visible. Forzamos un reintento/fallo visible pasado este tiempo.
+  // 15s resultó demasiado corto en la práctica: cada guardado hace DOS viajes al
+  // servidor en secuencia (get() de chequeo de conflicto + set() real, no una sola
+  // operación), y la primera escritura de una sesión nueva paga además el costo de
+  // establecer la conexión con Firestore desde cero — en wifi de hospital eso suma
+  // más de 15s sin que nada esté realmente colgado, generando timeouts "falsos" que
+  // se autorresuelven solos unos segundos después pero mientras tanto asustan.
   var _writeToken=++_fsWriteToken;
   var _safeguard=setTimeout(function(){
     if(_fsWriteToken!==_writeToken||!_fsWriting)return; // ya resolvió por su cuenta
-    console.warn('Firestore: sin respuesta en 15s, forzando reintento');
+    console.warn('Firestore: sin respuesta en 25s, forzando reintento');
     _fsWriting=false;
-    _fsWriteRetryOrGiveUp(tryN,{code:'timeout',message:'Sin respuesta del servidor en 15s'});
-  },15000);
+    _fsWriteRetryOrGiveUp(tryN,{code:'timeout',message:'Sin respuesta del servidor en 25s'});
+  },25000);
   // Con sharding activo el doc principal lleva solo historiales recientes;
   // el completo va en paralelo a los docs hist_* (fuente de verdad del historial).
   var _sp=window._histReady?_stripPayload():{eqs:eqs,antenas:antenas,ordenesTrabajo:ordenesTrabajo};
@@ -2343,7 +2349,16 @@ function updateSyncIndicator(){
   var col,bg,label,pulse=false;
   if(!window._fbUser){col='#94a3b8';bg='rgba(148,163,184,.15)';label='Local';}
   else if(typeof navigator!=='undefined'&&navigator.onLine===false){col='#f59e0b';bg='rgba(245,158,11,.15)';label='Sin conexión';}
-  else if(_fsFailed){col='#ef4444';bg='rgba(239,68,68,.13)';label='Error — Tocar para reintentar';pulse=false;}
+  else if(_fsFailed){
+    // Este estado NO significa "hace falta que hagas algo" — el sistema ya está
+    // reintentando solo en segundo plano (cada 45s, indefinidamente, ver
+    // _scheduleSlowRetry). Antes decía "Error — Tocar para reintentar", que sonaba
+    // a que había que actuar YA o se perdía el dato — eso generaba que el usuario
+    // dejara la app abierta con miedo en vez de confiar en que se resuelve solo.
+    // Sigue siendo tocable para forzar un reintento inmediato, pero el color/mensaje
+    // ahora reflejan "reconectando", no "algo se rompió y depende de vos".
+    col='#f59e0b';bg='rgba(245,158,11,.15)';label='Reconectando… (tocar para reintentar ya)';pulse=true;
+  }
   else{
     var ups=_pendingUploadCount();
     var saving=_fsDirty||_fsWriting||_fsSaveTimer;
@@ -17226,12 +17241,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="3.3.0";
+var APP_DISPLAY_VERSION="3.3.1";
 var APP_BUILD="16/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'3.3.1',fecha:'16/07/2026',tipo:'patch',cambios:[
+    'Sync: más tolerancia al timeout inicial y mensaje que no alarma durante el reintento automático'
+  ]},
   {v:'3.3.0',fecha:'16/07/2026',tipo:'minor',cambios:[
     'Dar de baja permite destildar transductores y trasladarlos a otro ecógrafo'
   ]},
