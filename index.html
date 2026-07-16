@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.16.008 -->
+<!-- v2026.07.16.009 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.16.008">
+<meta name="app-version" content="v2026.07.16.009">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -17341,12 +17341,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="3.6.1";
+var APP_DISPLAY_VERSION="3.6.2";
 var APP_BUILD="16/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'3.6.2',fecha:'16/07/2026',tipo:'patch',cambios:[
+    'Fix: la migración de Bombas también se re-aplica al recibir datos en tiempo real de otro dispositivo, no solo al cargar la página'
+  ]},
   {v:'3.6.1',fecha:'16/07/2026',tipo:'patch',cambios:[
     'Fix: migración de Bombas a subcategorías ahora se autocorrige si un dispositivo desactualizado revierte la categoría, en vez de depender solo de un flag de \'ya migrado una vez\''
   ]},
@@ -18015,6 +18018,13 @@ function init(){
             _applyData(_d);
             if(_histMergedOnce)_histApplyMerge();
             try{localStorage.setItem('mt_updatedAt',_fsAt2);}catch(e){}
+            // Un dispositivo desactualizado (pestaña vieja, PWA con código cacheado) puede
+            // guardar datos con categorías/campos pre-migración en cualquier momento, y como
+            // el guardado reemplaza el array completo, esta rama los aplica tal cual llegan.
+            // Sin re-correr las migraciones acá, ese dato revertido queda pisando lo ya
+            // corregido en este dispositivo hasta el próximo reload completo — por eso
+            // "Bombas" volvía a desaparecer en tiempo real sin que nadie recargara la página.
+            if(migrateBombaSubcats())saveData();
             render();
             showToast('🔄 Datos actualizados por otro dispositivo');
           }

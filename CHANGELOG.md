@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v3.6.2 — 16/07/2026 (patch)
+
+- Fix: la migración de Bombas también se re-aplica al recibir datos en tiempo real de otro dispositivo, no solo al cargar la página
+
 ## v3.6.1 — 16/07/2026 (patch)
 
 - Fix: migración de Bombas a subcategorías ahora se autocorrige si un dispositivo desactualizado revierte la categoría, en vez de depender solo de un flag de 'ya migrado una vez'
