@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v3.4.0 — 16/07/2026 (minor)
+
+- Agrega subcategorías Bombas de Contraste y Bombas de Infusión
+
 ## v3.3.2 — 16/07/2026 (patch)
 
 - Oculta el menú Ejecutivo de la navegación
