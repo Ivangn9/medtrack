@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v3.3.0 — 16/07/2026 (minor)
+
+- Dar de baja permite destildar transductores y trasladarlos a otro ecógrafo
+
 ## v3.2.0 — 16/07/2026 (minor)
 
 - Baja de equipo en cascada a transductores + motivo entrega de pago + reporte gerencial
