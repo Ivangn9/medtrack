@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.16.006 -->
+<!-- v2026.07.16.007 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.16.006">
+<meta name="app-version" content="v2026.07.16.007">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -5621,6 +5621,7 @@ function _buildView(){
   var d=document.createElement("div");d.className="slide"+(_VIEW_TINTS[view]?' '+_VIEW_TINTS[view]:'')+(_VIEW_COLS[view]?' '+_VIEW_COLS[view]:'');
   if(view==="inicio")d.innerHTML=rInicio();
   else if(view==="dash")d.innerHTML=rDash();
+  else if(view==="bombas")d.innerHTML=rBombas();
   else if(view==="lista")d.innerHTML=rLista();
   else if(view==="alertas")d.innerHTML=rAlertas();
   else if(view==="detalle")d.innerHTML=rDetalle();
@@ -5775,6 +5776,10 @@ function rDash(){
 
   hL+='<div class="sec">Por Categoría</div><div class="g2cat">';
   var _catIdx=0;CATS.forEach(function(cat){
+    // Bombas de Contraste/Infusión no tienen su propia tarjeta acá — se agrupan bajo
+    // una única tarjeta "Bombas" (ver más abajo, misma imagen que tenía antes de
+    // separarlas) que al tocarla abre una pantalla con las dos, mismo estilo visual.
+    if(cat.id==='BOMBAC'||cat.id==='BOMBAI')return;
     var ces=eqs.filter(function(e){return e.cat===cat.id&&!e.baja&&_sedeMatch(e);});if(!ces.length)return;
     var fuera=ces.filter(function(e){return e.estado==="fuera-de-servicio";}).length;
     var urg=ces.filter(function(e){return!sinMant(e)&&(semafo(e)==="vencido"||semafo(e)==="urgente");}).length;
@@ -5798,6 +5803,34 @@ function rDash(){
       '</div>'+
     '</div></div>';
   });
+  // Tarjeta única "Bombas" — agrupa Bombas de Contraste + Infusión, con el mismo ícono
+  // de jeringas que ya tenía la categoría genérica antes de separarlas.
+  (function(){
+    var bombasColor='#f87171';
+    var ces=eqs.filter(function(e){return(e.cat==='BOMBAC'||e.cat==='BOMBAI')&&!e.baja&&_sedeMatch(e);});
+    if(!ces.length)return;
+    var fuera=ces.filter(function(e){return e.estado==="fuera-de-servicio";}).length;
+    var urg=ces.filter(function(e){return!sinMant(e)&&(semafo(e)==="vencido"||semafo(e)==="urgente");}).length;
+    var statusColor=fuera?"#ff3b30":urg?"#ff9500":"#34c759";
+    var statusLabel=fuera?'🚫 '+fuera+' fuera de servicio':urg?'⚠️ '+urg+' urgente'+(urg!==1?'s':''):'✅ Operativos';
+    var iconSvg=catSvgIcon('BOMBA',192)||'';
+    hL+='<div class="cring-wrap'+(fuera?' cring-alert':'')+'" style="--cc:'+bombasColor+';"><div class="cring-el"></div>'+
+    '<div class="gc tap" data-aos="zoom-in" data-aos-delay="'+Math.min(_catIdx++*60,360)+'" onclick="setView(\'bombas\');" style="padding:0;overflow:hidden;cursor:pointer;min-height:130px;">'+
+      '<div style="padding:16px 14px 14px;display:flex;flex-direction:column;justify-content:space-between;height:100%;position:relative;overflow:hidden;">'+
+        '<div style="position:absolute;right:-18px;top:50%;transform:translateY(-50%);width:210px;height:210px;display:flex;align-items:center;justify-content:center;opacity:.82;pointer-events:none;">'+iconSvg+'</div>'+
+        '<div style="display:flex;flex-direction:column;gap:0;z-index:1;">'+
+          '<div style="font-weight:900;font-size:2.6rem;color:'+bombasColor+';line-height:1;letter-spacing:-2px;">'+ces.length+'</div>'+
+          '<div style="font-size:.56rem;color:'+bombasColor+'aa;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-top:1px;">equipo'+(ces.length!==1?'s':'')+'</div>'+
+        '</div>'+
+        '<div style="z-index:1;">'+
+          '<div style="font-weight:800;font-size:1.05rem;letter-spacing:-.3px;color:var(--text);margin-bottom:7px;">Bombas</div>'+
+          '<div style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:20px;background:'+statusColor+'16;border:1px solid '+statusColor+'30;">'+
+            '<span style="font-size:.72rem;font-weight:600;color:'+statusColor+';">'+statusLabel+'</span>'+
+          '</div>'+
+        '</div>'+
+      '</div>'+
+    '</div></div>';
+  })();
   if(aires.length>0||true){
     var aireFallas=aires.filter(function(a){return a.estado==='falla'||a.estado==='fuera_servicio';}).length;
     var aireColor='#06b6d4';
@@ -5866,6 +5899,45 @@ function rDash(){
   }
 
   h+='<div class="det-2col"><div style="flex:6;min-width:0;">'+hL+'</div><div style="flex:4;min-width:0;">'+hR+'</div></div>';
+  return h;
+}
+
+// ── BOMBAS (subcategorías: Contraste / Infusión) ──
+// Pantalla intermedia entre el Panel y la lista de equipos — mismo estilo de tarjeta
+// que "Por Categoría", solo que acá son las dos subcategorías de Bombas.
+function rBombas(){
+  var h='';
+  h+='<div onclick="setView(\'dash\')" style="display:flex;align-items:center;gap:8px;padding:10px 14px;margin-bottom:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:var(--r-md);cursor:pointer;" ontouchstart="this.style.opacity=\'.7\'" ontouchend="this.style.opacity=\'1\'">'+
+    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.45)" stroke-width="2.2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>'+
+    '<span style="font-size:.8rem;font-weight:600;color:var(--text2);">Panel</span>'+
+  '</div>';
+  h+='<div class="sec">Bombas</div><div class="g2cat">';
+  var subs=CATS.filter(function(c){return c.id==='BOMBAC'||c.id==='BOMBAI';});
+  subs.forEach(function(cat,idx){
+    var ces=eqs.filter(function(e){return e.cat===cat.id&&!e.baja&&_sedeMatch(e);});
+    var fuera=ces.filter(function(e){return e.estado==="fuera-de-servicio";}).length;
+    var urg=ces.filter(function(e){return!sinMant(e)&&(semafo(e)==="vencido"||semafo(e)==="urgente");}).length;
+    var statusColor=fuera?"#ff3b30":urg?"#ff9500":"#34c759";
+    var statusLabel=!ces.length?'Sin equipos':fuera?'🚫 '+fuera+' fuera de servicio':urg?'⚠️ '+urg+' urgente'+(urg!==1?'s':''):'✅ Operativos';
+    var iconSvg=catSvgIcon(cat.id,192)||'';
+    h+='<div class="cring-wrap'+(fuera?' cring-alert':'')+'" style="--cc:'+cat.color+';"><div class="cring-el"></div>'+
+    '<div class="gc tap" data-aos="zoom-in" data-aos-delay="'+Math.min(idx*60,360)+'" onclick="filtCat=\''+cat.id+'\';setView(\'lista\');" style="padding:0;overflow:hidden;cursor:pointer;min-height:130px;">'+
+      '<div style="padding:16px 14px 14px;display:flex;flex-direction:column;justify-content:space-between;height:100%;position:relative;overflow:hidden;">'+
+        '<div style="position:absolute;right:-18px;top:50%;transform:translateY(-50%);width:210px;height:210px;display:flex;align-items:center;justify-content:center;opacity:.82;pointer-events:none;">'+iconSvg+'</div>'+
+        '<div style="display:flex;flex-direction:column;gap:0;z-index:1;">'+
+          '<div style="font-weight:900;font-size:2.6rem;color:'+cat.color+';line-height:1;letter-spacing:-2px;">'+ces.length+'</div>'+
+          '<div style="font-size:.56rem;color:'+cat.color+'aa;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-top:1px;">equipo'+(ces.length!==1?'s':'')+'</div>'+
+        '</div>'+
+        '<div style="z-index:1;">'+
+          '<div style="font-weight:800;font-size:1.05rem;letter-spacing:-.3px;color:var(--text);margin-bottom:7px;">'+cat.label+'</div>'+
+          '<div style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:20px;background:'+statusColor+'16;border:1px solid '+statusColor+'30;">'+
+            '<span style="font-size:.72rem;font-weight:600;color:'+statusColor+';">'+statusLabel+'</span>'+
+          '</div>'+
+        '</div>'+
+      '</div>'+
+    '</div></div>';
+  });
+  h+='</div>';
   return h;
 }
 
@@ -17265,12 +17337,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="3.5.0";
+var APP_DISPLAY_VERSION="3.6.0";
 var APP_BUILD="16/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'3.6.0',fecha:'16/07/2026',tipo:'minor',cambios:[
+    'Panel: Bombas vuelve a ser una sola tarjeta con drill-down a las subcategorías'
+  ]},
   {v:'3.5.0',fecha:'16/07/2026',tipo:'minor',cambios:[
     'Fotos reales de Bombas de Contraste/Infusión y migración de bombas existentes'
   ]},

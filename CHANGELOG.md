@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v3.6.0 — 16/07/2026 (minor)
+
+- Panel: Bombas vuelve a ser una sola tarjeta con drill-down a las subcategorías
+
 ## v3.5.0 — 16/07/2026 (minor)
 
 - Fotos reales de Bombas de Contraste/Infusión y migración de bombas existentes
