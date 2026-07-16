@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v3.5.0 — 16/07/2026 (minor)
+
+- Fotos reales de Bombas de Contraste/Infusión y migración de bombas existentes
+
 ## v3.4.0 — 16/07/2026 (minor)
 
 - Agrega subcategorías Bombas de Contraste y Bombas de Infusión
