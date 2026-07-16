@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v3.3.2 — 16/07/2026 (patch)
+
+- Oculta el menú Ejecutivo de la navegación
+
 ## v3.3.1 — 16/07/2026 (patch)
 
 - Sync: más tolerancia al timeout inicial y mensaje que no alarma durante el reintento automático
