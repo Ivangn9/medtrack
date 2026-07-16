@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v3.6.1 — 16/07/2026 (patch)
+
+- Fix: migración de Bombas a subcategorías ahora se autocorrige si un dispositivo desactualizado revierte la categoría, en vez de depender solo de un flag de 'ya migrado una vez'
+
 ## v3.6.0 — 16/07/2026 (minor)
 
 - Panel: Bombas vuelve a ser una sola tarjeta con drill-down a las subcategorías

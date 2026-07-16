@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.16.007 -->
+<!-- v2026.07.16.008 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.16.007">
+<meta name="app-version" content="v2026.07.16.008">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1715,12 +1715,16 @@ function migrateEcoData(){
 }
 // Las "Bombas" (BOMBA, categoría genérica) que ya existían pasan a "Bombas de
 // Contraste" (BOMBAC) — la subcategoría específica a la que corresponde lo que ya se
-// venía cargando ahí. Corre UNA sola vez (mismo patrón que migrateEcoData). Solo se
-// toca el campo .cat del equipo: nada de vínculos (UPS.equiposConectados, PMs, OTs,
-// historial, antenas/transductores) se ve afectado, porque todos esos referencian al
-// equipo por su .id, nunca por su categoría — no hay riesgo de romper interconexiones.
+// venía cargando ahí. Solo se toca el campo .cat del equipo: nada de vínculos
+// (UPS.equiposConectados, PMs, OTs, historial, antenas/transductores) se ve afectado,
+// porque todos esos referencian al equipo por su .id, nunca por su categoría — no hay
+// riesgo de romper interconexiones.
+// A propósito NO se gatea únicamente con un flag de "ya corrió una vez": el guardado en
+// Firestore reemplaza el array completo de equipos en cada save (sin merge por campo), así
+// que un dispositivo desactualizado puede revertir .cat a 'BOMBA' con un save posterior al
+// de la migración. Por eso re-escanea eqs en cada carga (barato, es un simple filter) y se
+// autocorrige si eso llega a pasar, en vez de confiar en que corrió una sola vez para siempre.
 function migrateBombaSubcats(){
-  if(localStorage.getItem('mt_bomba_v1')==='1')return false;
   var changed=false;
   eqs=eqs.map(function(e){
     if(e.cat!=='BOMBA')return e;
@@ -17337,12 +17341,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="3.6.0";
+var APP_DISPLAY_VERSION="3.6.1";
 var APP_BUILD="16/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'3.6.1',fecha:'16/07/2026',tipo:'patch',cambios:[
+    'Fix: migración de Bombas a subcategorías ahora se autocorrige si un dispositivo desactualizado revierte la categoría, en vez de depender solo de un flag de \'ya migrado una vez\''
+  ]},
   {v:'3.6.0',fecha:'16/07/2026',tipo:'minor',cambios:[
     'Panel: Bombas vuelve a ser una sola tarjeta con drill-down a las subcategorías'
   ]},
