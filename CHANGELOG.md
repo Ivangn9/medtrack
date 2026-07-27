@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v3.7.0 — 27/07/2026 (minor)
+
+- Vista pública de QR: se agrega el Calendario PM del equipo (fechas, horarios y alcance de los mantenimientos programados)
+
 ## v3.6.2 — 16/07/2026 (patch)
 
 - Fix: la migración de Bombas también se re-aplica al recibir datos en tiempo real de otro dispositivo, no solo al cargar la página

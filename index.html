@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.16.009 -->
+<!-- v2026.07.27.001 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.16.009">
+<meta name="app-version" content="v2026.07.27.001">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -2043,6 +2043,11 @@ function orgDataRef(){return window._fbdb.collection("orgs").doc("cima").collect
 // Espejo público para eq-public.html (QRs): SOLO campos no sensibles.
 // Sin técnicos, empresas, contratos, costos, notas ni auditoría.
 function _publicSnapshot(){
+  var pmByEq={};
+  (pmProgramados||[]).forEach(function(p){
+    if(!p.eqId)return;
+    (pmByEq[p.eqId]=pmByEq[p.eqId]||[]).push({fecha:p.fecha||'',horaInicio:p.horaInicio||'',horaFin:p.horaFin||'',notas:p.notas||'',realizado:!!p.realizado});
+  });
   return eqs.map(function(e){
     var mants=(e.historialMant||[]).filter(function(h){return h.tipo==='mantenimiento';}).map(function(h){return{tipo:'mantenimiento',fecha:h.fecha||''};});
     var incid=(e.historialMant||[]).filter(function(h){return h.tipo==='rotura'||h.tipo==='reparacion';}).map(function(h){return{tipo:h.tipo,fecha:h.fecha||''};});
@@ -2050,7 +2055,8 @@ function _publicSnapshot(){
       id:e.id,nombre:e.nombre||'',cat:e.cat||'',ubicacion:e.ubicacion||'',serie:e.serie||'',
       estado:e.estado||'operativo',proximoMant:e.proximoMant||'',frecuencia:e.frecuencia||'',
       partes:(e.partes||[]).map(function(p){return{nombre:p.nombre||'',estado:p.estado||'',fechaRotura:p.fechaRotura||''};}),
-      historialMant:mants.concat(incid)
+      historialMant:mants.concat(incid),
+      pm:pmByEq[e.id]||[]
     };
     if(e.cat==='RM'&&e.refrig){
       var rf=e.refrig;
@@ -17341,12 +17347,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="3.6.2";
-var APP_BUILD="16/07/26 h";
+var APP_DISPLAY_VERSION="3.7.0";
+var APP_BUILD="27/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'3.7.0',fecha:'27/07/2026',tipo:'minor',cambios:[
+    'Vista pública de QR: se agrega el Calendario PM del equipo (fechas, horarios y alcance de los mantenimientos programados)'
+  ]},
   {v:'3.6.2',fecha:'16/07/2026',tipo:'patch',cambios:[
     'Fix: la migración de Bombas también se re-aplica al recibir datos en tiempo real de otro dispositivo, no solo al cargar la página'
   ]},
