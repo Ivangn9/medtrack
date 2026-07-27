@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v3.8.0 — 27/07/2026 (minor)
+
+- Reportes PDF: fotos reales de fallas/roturas en Ficha de Equipo y Ficha de Antena (antes sin fotos o solo contador), y unifica Reporte General / Reporte de Antenas con el logo y diseño compartido del resto de los informes
+
 ## v3.7.0 — 27/07/2026 (minor)
 
 - Vista pública de QR: se agrega el Calendario PM del equipo (fechas, horarios y alcance de los mantenimientos programados)

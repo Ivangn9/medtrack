@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.27.001 -->
+<!-- v2026.07.27.002 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.27.001">
+<meta name="app-version" content="v2026.07.27.002">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -7753,6 +7753,17 @@ function generarPDFSemanal(){
 function generarPDFEquipo(eqId){
   var eq=eqs.find(function(e){return e.id===eqId;});
   if(!eq)return;
+  showToast('⏳ Generando PDF...');
+  var partesActivas=(eq.partes||[]).filter(function(p){return p.estado==='roto'||p.estado==='pendiente';});
+  var repH=(eq.historialMant||[]).filter(function(h){return h.tipo==='reparacion';}).sort(function(a,b){return a.fecha<b.fecha?1:-1;}).slice(0,10);
+  var imgIds=[];
+  partesActivas.forEach(function(p){(p.imagenes||[]).forEach(function(im){var id=im&&im.id?im.id:im;if(id&&imgIds.indexOf(id)===-1)imgIds.push(id);});});
+  repH.forEach(function(h){(h.imagenes||[]).forEach(function(im){var id=im&&im.id?im.id:im;if(id&&imgIds.indexOf(id)===-1)imgIds.push(id);});});
+  _loadForReport(imgIds,function(_unusedLogo,imgsMap){
+    _buildPDFEquipo(eq,eqId,partesActivas,repH,imgsMap);
+  });
+}
+function _buildPDFEquipo(eq,eqId,partesActivas,repH,imgsMap){
   var estLbl=eq.estado==='operativo'?'Operativo':eq.estado==='fuera-de-servicio'?'Fuera de servicio':'Mantenimiento';
   var estCol=eq.estado==='operativo'?'#16a34a':eq.estado==='fuera-de-servicio'?'#dc2626':'#d97706';
   var mtbfV=calcMTBF?calcMTBF(eq):null,mttrV=calcMTTR?calcMTTR(eq):null,availV=calcAvailability?calcAvailability(eq):null,riskV=calcRiskScore?calcRiskScore(eq):null,lcV=calcLifecycle?calcLifecycle(eq):null;
@@ -7775,6 +7786,29 @@ function generarPDFEquipo(eqId){
   ];
   if(lcV){mrows.push(['Vida útil',Math.round(lcV.agePct)+'% transcurrida ('+lcV.ageYrs.toFixed(1)+' años)']);mrows.push(['Zona lifecycle',lcV.zone==='ok'?'OK':lcV.zone==='atencion'?'Atención':'Reemplazo sugerido']);}
   c.push(_pdfKV(mrows));
+  if(partesActivas.length){
+    c.push(_pdfH('Fallas activas ('+partesActivas.length+')'));
+    partesActivas.forEach(function(p){
+      var esRoto=p.estado==='roto';
+      var es={color:esRoto?'#dc2626':'#d97706',label:esRoto?'Roto':'Pendiente'};
+      var rows=[['Fecha detectada',p.fechaRotura?fD(p.fechaRotura):'—']];
+      if(p.notas)rows.push(['Notas',p.notas]);
+      c.push(_pdfCard(p.nombre||'Falla',es,[_pdfKV(rows)],'#fff7ed','#fed7aa'));
+      var fa=_pdfFotosArr(p.imagenes,imgsMap);
+      if(fa.length){c.push({text:'Fotos · '+(p.nombre||'Falla')+' ('+fa.length+')',bold:true,fontSize:7.5,color:'#c2410c',margin:[0,2,0,2]});c=c.concat(_pdfGallery(fa,3,135));}
+    });
+  }
+  if(repH.length){
+    c.push(_pdfH('Reparaciones recientes ('+repH.length+')'));
+    repH.forEach(function(h){
+      var rows=[['Fecha',h.fecha?fD(h.fecha):'—']];
+      if(h.tecnico)rows.push(['Técnico',h.tecnico]);
+      if(h.notas)rows.push(['Notas',h.notas]);
+      c.push(_pdfCard(h.nombre||'Reparación',{label:'Reparado',color:'#16a34a'},[_pdfKV(rows)],'#f0fdf4','#bbf7d0'));
+      var fa=_pdfFotosArr(h.imagenes,imgsMap);
+      if(fa.length){c.push({text:'Fotos · '+(h.nombre||'Reparación')+' ('+fa.length+')',bold:true,fontSize:7.5,color:'#16a34a',margin:[0,2,0,2]});c=c.concat(_pdfGallery(fa,3,135));}
+    });
+  }
   var eqOTs=ordenesTrabajo.filter(function(o){return o.eqId===eqId;}).slice(0,8);
   if(eqOTs.length){
     c.push(_pdfH('Últimas órdenes de trabajo'));
@@ -11547,14 +11581,27 @@ var _reportCSS='@import url(%22https://fonts.googleapis.com/css2?family=Inter:it
 var _cimaB64='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB2aWV3Qm94PSIwIDAgMjEwIDI5NyIgd2lkdGg9IjIxMG1tIiBoZWlnaHQ9IjI5N21tIiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJ4TWlkWU1pZCBtZWV0Ij4KPGRlZnM+CjxsaW5lYXJHcmFkaWVudCBpZD0iaGwiIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIwIj4KIDxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iIzFhM2E2YiIvPgogPHN0b3Agb2Zmc2V0PSIwLjYiIHN0b3AtY29sb3I9IiMyNTYzZWIiLz4KIDxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzYwYTVmYSIvPgo8L2xpbmVhckdyYWRpZW50Pgo8L2RlZnM+CjwhLS0gcGFnZSBiYXNlIC0tPgo8cmVjdCB4PSIwIiB5PSIwIiB3aWR0aD0iMjEwIiBoZWlnaHQ9IjI5NyIgZmlsbD0iI2ZmZmZmZiIvPgo8IS0tIHRvcCBhY2NlbnQgYmFyIC0tPgo8cmVjdCB4PSIwIiB5PSIwIiB3aWR0aD0iMjEwIiBoZWlnaHQ9IjIuNCIgZmlsbD0idXJsKCNobCkiLz4KPCEtLSBsZWZ0IHZlcnRpY2FsIGFjY2VudCBsaW5lcyAtLT4KPHJlY3QgeD0iMTEiIHk9IjYiIHdpZHRoPSIwLjciIGhlaWdodD0iMjg1IiBmaWxsPSIjMWEzYTZiIiBvcGFjaXR5PSIwLjU1Ii8+CjxyZWN0IHg9IjEzIiB5PSI2IiB3aWR0aD0iMC4zNSIgaGVpZ2h0PSIyODUiIGZpbGw9IiMxYTNhNmIiIG9wYWNpdHk9IjAuMjgiLz4KPCEtLSBkZWNvcmF0aXZlIHRoaW4gYXJjcyB0b3AtcmlnaHQgY29ybmVyIC0tPgo8ZyBmaWxsPSJub25lIiBzdHJva2U9IiMxYTNhNmIiIG9wYWNpdHk9IjAuMTAiPgogPHBhdGggZD0iTTIxMCwxMiBBNjAsNjAgMCAwLDEgMTUwLDcyIiBzdHJva2Utd2lkdGg9IjAuNSIvPgogPHBhdGggZD0iTTIxMCwyNiBBNzgsNzggMCAwLDEgMTMyLDEwNCIgc3Ryb2tlLXdpZHRoPSIwLjQiLz4KIDxwYXRoIGQ9Ik0yMTAsNDQgQTk4LDk4IDAgMCwxIDExMiwxNDIiIHN0cm9rZS13aWR0aD0iMC4zNSIvPgo8L2c+CjwhLS0gaGVhZGVyIHVuZGVybGluZSAtLT4KPHJlY3QgeD0iMjAiIHk9IjI4IiB3aWR0aD0iMTcwIiBoZWlnaHQ9IjAuOSIgZmlsbD0idXJsKCNobCkiLz4KPCEtLSA9PT09PSBmYWludCBlcXVpcG1lbnQgbGluZS1hcnQgKHdhdGVybWFyaykgPT09PT0gLS0+CjxnIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzFhM2E2YiIgc3Ryb2tlLXdpZHRoPSIxLjEiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgb3BhY2l0eT0iMC4wNTUiPgogPCEtLSBSTSAvIHJlc29uYWRvciAoY2VudGVyLWxlZnQpIC0tPgogPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNDAsMTUwKSI+CiAgPHJlY3QgeD0iMCIgeT0iMCIgd2lkdGg9IjQ0IiBoZWlnaHQ9IjQ2IiByeD0iOCIvPgogIDxjaXJjbGUgY3g9IjIyIiBjeT0iMjMiIHI9IjE1Ii8+CiAgPGNpcmNsZSBjeD0iMjIiIGN5PSIyMyIgcj0iOCIvPgogIDxyZWN0IHg9Ii0yNiIgeT0iMzAiIHdpZHRoPSIzMCIgaGVpZ2h0PSI0IiByeD0iMS41Ii8+CiAgPGxpbmUgeDE9IjYiIHkxPSI0NiIgeDI9IjYiIHkyPSI1MCIvPgogIDxsaW5lIHgxPSIzOCIgeTE9IjQ2IiB4Mj0iMzgiIHkyPSI1MCIvPgogPC9nPgogPCEtLSBUQyBzY2FubmVyICh0b3AtcmlnaHQpIC0tPgogPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTUwLDcyKSI+CiAgPHJlY3QgeD0iMCIgeT0iMCIgd2lkdGg9IjM0IiBoZWlnaHQ9IjQwIiByeD0iNSIvPgogIDxjaXJjbGUgY3g9IjE3IiBjeT0iMjAiIHI9IjEyIi8+CiAgPGNpcmNsZSBjeD0iMTciIGN5PSIyMCIgcj0iNiIvPgogIDxsaW5lIHgxPSItMjAiIHkxPSIzNCIgeDI9IjE3IiB5Mj0iMzQiLz4KICA8cmVjdCB4PSItMjQiIHk9IjMyLjUiIHdpZHRoPSI1IiBoZWlnaHQ9IjMiIHJ4PSIxIi8+CiAgPGxpbmUgeDE9IjMiIHkxPSI0MCIgeDI9IjMiIHkyPSI0NCIvPgogIDxsaW5lIHgxPSIzMSIgeTE9IjQwIiB4Mj0iMzEiIHkyPSI0NCIvPgogPC9nPgogPCEtLSBSWCAoYm90dG9tLWxlZnQpIC0tPgogPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMzIsMjM2KSI+CiAgPGxpbmUgeDE9IjAiIHkxPSIwIiB4Mj0iMCIgeTI9IjM0Ii8+CiAgPGxpbmUgeDE9IjAiIHkxPSI2IiB4Mj0iMjYiIHkyPSI2Ii8+CiAgPHJlY3QgeD0iMjIiIHk9IjYiIHdpZHRoPSIxMCIgaGVpZ2h0PSI4IiByeD0iMS41Ii8+CiAgPGxpbmUgeDE9IjI3IiB5MT0iMTQiIHgyPSIyNyIgeTI9IjIwIi8+CiAgPHJlY3QgeD0iMTQiIHk9IjI0IiB3aWR0aD0iMzIiIGhlaWdodD0iMyIgcng9IjEuMiIvPgogIDxsaW5lIHgxPSIxOSIgeTE9IjI3IiB4Mj0iMTkiIHkyPSIzNCIvPgogIDxsaW5lIHgxPSI0MSIgeTE9IjI3IiB4Mj0iNDEiIHkyPSIzNCIvPgogPC9nPgogPCEtLSBFY29ncmFmbyAoYm90dG9tLXJpZ2h0KSAtLT4KIDxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDE0NiwyMDYpIj4KICA8cmVjdCB4PSI2IiB5PSIwIiB3aWR0aD0iMjYiIGhlaWdodD0iMTgiIHJ4PSIyLjUiLz4KICA8bGluZSB4MT0iMTkiIHkxPSIxOCIgeDI9IjE5IiB5Mj0iMjQiLz4KICA8cmVjdCB4PSIyIiB5PSIyNCIgd2lkdGg9IjM0IiBoZWlnaHQ9IjIyIiByeD0iMyIvPgogIDxsaW5lIHgxPSI2IiB5MT0iMzEiIHgyPSIzMiIgeTI9IjMxIi8+CiAgPGxpbmUgeDE9IjYiIHkxPSIzNiIgeDI9IjI2IiB5Mj0iMzYiLz4KICA8Y2lyY2xlIGN4PSI4IiBjeT0iNTAiIHI9IjMiLz4KICA8Y2lyY2xlIGN4PSIzMCIgY3k9IjUwIiByPSIzIi8+CiAgPHBhdGggZD0iTTQwLDkgcTcsMyA1LDEyIi8+CiA8L2c+CjwvZz4KPCEtLSBsYXJnZSBmYWludCB2ZXJ0aWNhbCBDSU1BIG1vbm9ncmFtIG9uIGZhciBsZWZ0IC0tPgo8dGV4dCB4PSI3LjUiIHk9IjE3MCIgdHJhbnNmb3JtPSJyb3RhdGUoLTkwIDcuNSwxNzApIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iR2VvcmdpYSxzZXJpZiIgZm9udC1zaXplPSIyMiIgZm9udC13ZWlnaHQ9IjkwMCIgZmlsbD0iIzFhM2E2YiIgb3BhY2l0eT0iMC4wNDUiIGxldHRlci1zcGFjaW5nPSI2Ij5DSU1BPC90ZXh0Pgo8IS0tIGZvb3RlciAtLT4KPHJlY3QgeD0iMjAiIHk9IjI4MyIgd2lkdGg9IjE3MCIgaGVpZ2h0PSIwLjYiIGZpbGw9IiMxYTNhNmIiIG9wYWNpdHk9IjAuNCIvPgo8dGV4dCB4PSIxMDUiIHk9IjI4OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkFyaWFsLEhlbHZldGljYSxzYW5zLXNlcmlmIiBmb250LXNpemU9IjIuNyIgbGV0dGVyLXNwYWNpbmc9IjEuMiIgZmlsbD0iIzFhM2E2YiIgb3BhY2l0eT0iMC40NSI+RElBR07Dk1NUSUNPIFBPUiBJTUFHRU4gwrcgSU5WRVNUSUdBQ0lPTkVTIEFWQU5aQURBUzwvdGV4dD4KPC9zdmc+';
 
 function exportAllPDF(){
-  var rows="";eqs.forEach(function(eq){var ci=catById(eq.cat);var rot=0;eq.partes.forEach(function(p){if(p.estado==="roto")rot++;});var _sv=catSvgIcon(eq.cat,28)||'';
-    rows+="<tr><td style='width:34px;padding:4px 6px;'>"+(_sv?'<div style="width:28px;height:28px;">'+_sv+'</div>':'')+"</td><td>"+esc(eq.nombre)+"</td><td>"+ci.label+"</td><td>"+esc(eq.ubicacion||"—")+"</td><td>"+eq.estado+"</td><td>"+eq.frecuencia+"</td><td>"+fD(eq.ultimoMant)+"</td><td>"+fD(eq.proximoMant)+"</td><td>"+eq.partes.length+"</td><td>"+rot+"</td><td>"+(eq.historialMant||[]).length+"</td></tr>";
+  var logoTag='<div class="cima-wordmark"><div class="cima-title">CIMA<sup class="cima-reg">®</sup></div><div class="cima-sub">Investigaciones Avanzadas</div></div>';
+  try{var imgs0=document.querySelectorAll('img');for(var ii0=0;ii0<imgs0.length;ii0++){if(imgs0[ii0].src&&imgs0[ii0].src.indexOf('logo.png')!==-1&&imgs0[ii0].complete&&imgs0[ii0].naturalWidth>0){var cv0=document.createElement('canvas');cv0.width=imgs0[ii0].naturalWidth;cv0.height=imgs0[ii0].naturalHeight;cv0.getContext('2d').drawImage(imgs0[ii0],0,0);logoTag='<img src="'+cv0.toDataURL('image/png')+'" style="height:80px;width:auto;display:block;">';break;}}}catch(e){}
+  var now0=new Date();
+  var fechaStr0=now0.toLocaleDateString('es-AR',{day:'2-digit',month:'long',year:'numeric'});
+  var horaStr0=now0.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
+  var rows="";eqs.forEach(function(eq){var ci=catById(eq.cat);var rot=0;eq.partes.forEach(function(p){if(p.estado==="roto")rot++;});var _sv=catSvgIcon(eq.cat,20)||'';
+    rows+="<tr><td style='width:26px;'>"+(_sv?'<div style="width:20px;height:20px;">'+_sv+'</div>':'')+"</td><td>"+esc(eq.nombre)+"</td><td>"+ci.label+"</td><td>"+esc(eq.ubicacion||"—")+"</td><td>"+eq.estado+"</td><td>"+eq.frecuencia+"</td><td>"+fD(eq.ultimoMant)+"</td><td>"+fD(eq.proximoMant)+"</td><td style='text-align:center;'>"+eq.partes.length+"</td><td style='text-align:center;'>"+rot+"</td><td style='text-align:center;'>"+(eq.historialMant||[]).length+"</td></tr>";
   });
-  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CIMA Reporte</title><style>'+_reportCSS+'</style></head><body>'+
-    '<div class="nav-bar"><button class="btn-print" onclick="window.print()">'+icn('printer',13)+' Imprimir</button></div>'+
-    '<div class="h"><div class="h1">CIMA — Reporte General</div><div class="h-sub">'+new Date().toLocaleString("es-AR")+' · '+eqs.length+' equipos</div></div>'+
-    '<div class="b"><h2>Equipos</h2><table><thead><tr><th></th><th>Equipo</th><th>Cat.</th><th>Ubic.</th><th>Estado</th><th>Frec.</th><th>Últ.Mant.</th><th>Próx.Mant.</th><th>Roturas</th><th>Rotas</th><th>Hist.</th></tr></thead><tbody>'+rows+'</tbody></table></div></body></html>';
-  toggleSettings();openHTMLViewer(html);
+  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width"><title>CIMA Reporte General</title><style>'+_reportCSS+'</style></head><body>'+
+    '<div class="nav-bar"><button class="btn-print" onclick="window.print()">'+icn('printer',13)+' Imprimir / Guardar PDF</button></div>'+
+    '<div class="page">'+
+      '<div class="logo-area">'+logoTag+'</div>'+
+      '<div class="informe-box">'+
+        '<div class="informe-title">REPORTE&nbsp; GENERAL&nbsp; DE&nbsp; EQUIPOS</div>'+
+        '<div class="informe-row"><span class="informe-label">FECHA:</span><span class="informe-value">'+fechaStr0+' · '+horaStr0+'</span></div>'+
+        '<div class="informe-row"><span class="informe-label">TOTAL:</span><span class="informe-value">'+eqs.length+' equipos</span></div>'+
+      '</div>'+
+      '<div class="section"><div class="section-title">Equipos</div><table class="sum"><thead><tr><th></th><th>Equipo</th><th>Cat.</th><th>Ubic.</th><th>Estado</th><th>Frec.</th><th>Últ.Mant.</th><th>Próx.Mant.</th><th>Roturas</th><th>Rotas</th><th>Hist.</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
+      '<div class="footer"><div class="footer-meta">CIMA Investigaciones Avanzadas · CIMA Hub '+APP_DISPLAY_VERSION+' · Generado: '+fechaStr0+' '+horaStr0+'</div></div>'+
+    '</div></body></html>';
+  toggleSettings();openHTMLViewer(html,'Reporte General de Equipos');
 }
 
 // ── Informe Técnico para Marcas ──────────────────────────────────────
@@ -15376,6 +15423,21 @@ function generateAntennasReport(){
   var assignedIds=eq.antenaIds||[];
   var assigned=antenas.filter(function(a){return assignedIds.indexOf(a.id)!==-1;});
   if(assigned.length===0){alert('No hay antenas asignadas a este equipo.');return;}
+  showToast('⏳ Generando reporte...');
+  var imgIds=[];
+  assigned.forEach(function(a){
+    (a.roturas||[]).forEach(function(r){
+      if(desde&&r.fecha<desde)return;if(hasta&&r.fecha>hasta)return;
+      (r.fotos||[]).forEach(function(fo){var id=fo&&fo.id?fo.id:fo;if(id&&typeof id==='string'&&imgIds.indexOf(id)===-1)imgIds.push(id);});
+    });
+  });
+  closeModal();
+  _loadForReport(imgIds,function(logoB64,imgsMap){
+    _buildAntennasReport(eq,assigned,desde,hasta,logoB64,imgsMap);
+  });
+}
+function _buildAntennasReport(eq,assigned,desde,hasta,logoB64,imgsMap){
+  var logoTag=logoB64?'<img src="'+logoB64+'" style="height:80px;width:auto;display:block;">':'<div class="cima-wordmark"><div class="cima-title">CIMA<sup class="cima-reg">®</sup></div><div class="cima-sub">Investigaciones Avanzadas</div></div>';
   var rowsHtml='';var totalRoturas=0;
   assigned.forEach(function(a){
     var rots=(a.roturas||[]).filter(function(r){if(desde&&r.fecha<desde)return false;if(hasta&&r.fecha>hasta)return false;return true;});
@@ -15384,28 +15446,38 @@ function generateAntennasReport(){
     rowsHtml+='<tr style="background:#eef2ff;"><td colspan="4" style="padding:8px 12px;font-weight:700;font-size:13px;color:#1e293b;border-bottom:1px solid #c7d2fe;">📡 '+esc(a.nombre)+(a.cantidadCanales?' · '+a.cantidadCanales+' canales':'')+' · Origen: '+esc(a.nombreOrigen||'—')+(a.fechaCompra?' · Compra: '+fmtD(a.fechaCompra):'')+'</td></tr>';
     if(rots.length===0&&hist.length===0){rowsHtml+='<tr><td colspan="4" style="padding:6px 12px;font-size:12px;color:#94a3b8;font-style:italic;">Sin eventos en el período</td></tr>';}
     else{
-      rots.forEach(function(r){rowsHtml+='<tr><td style="padding:6px 12px;font-size:12px;color:#dc2626;">'+fmtD(r.fecha)+' ⚠️</td><td style="padding:6px 12px;font-size:12px;">'+esc(r.queSeRompio||r.descripcion||'—')+'</td><td style="padding:6px 12px;font-size:12px;">'+esc(r.tecnico||'—')+'</td><td style="padding:6px 12px;font-size:12px;text-align:center;">Activa</td></tr>';});
+      rots.forEach(function(r){
+        rowsHtml+='<tr><td style="padding:6px 12px;font-size:12px;color:#dc2626;">'+fmtD(r.fecha)+' ⚠️</td><td style="padding:6px 12px;font-size:12px;">'+esc(r.queSeRompio||r.descripcion||'—')+'</td><td style="padding:6px 12px;font-size:12px;">'+esc(r.tecnico||'—')+'</td><td style="padding:6px 12px;font-size:12px;text-align:center;">Activa</td></tr>';
+        var fIds=(r.fotos||[]).map(function(fo){return fo&&fo.id?fo.id:fo;}).filter(function(fId){return fId&&imgsMap[fId];});
+        if(fIds.length){
+          rowsHtml+='<tr><td colspan="4" style="padding:4px 12px 10px;background:#fef2f2;"><div style="font-size:10.5px;font-weight:700;color:#b91c1c;margin-bottom:6px;">📷 Fotos de la falla ('+fIds.length+')</div><div style="display:flex;flex-wrap:wrap;gap:8px;">';
+          fIds.forEach(function(fId){rowsHtml+='<img src="'+imgsMap[fId]+'" style="width:150px;height:112px;object-fit:cover;border-radius:6px;border:1.5px solid #fca5a5;box-shadow:0 2px 6px rgba(0,0,0,.15);">';});
+          rowsHtml+='</div></td></tr>';
+        }
+      });
       hist.forEach(function(r){rowsHtml+='<tr><td style="padding:6px 12px;font-size:12px;color:#16a34a;">'+fmtD(r.fecha)+' ✓</td><td style="padding:6px 12px;font-size:12px;">'+esc(r.queSeRompio||r.descripcion||'—')+'</td><td style="padding:6px 12px;font-size:12px;">'+esc(r.tecnico||'—')+'</td><td style="padding:6px 12px;font-size:12px;text-align:center;">'+(r.presupuestoArregloPdf?'📄':'—')+' / '+(r.reporteArregloPdf?'📋':'—')+'</td></tr>';});
     }
   });
   var rangoTxt=desde||hasta?((desde?fmtD(desde):'inicio')+' → '+(hasta?fmtD(hasta):'hoy')):'Todo el historial';
-  var html='<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Reporte Antenas · '+esc(eq.nombre)+'</title>'+
-    '<style>body{font-family:Arial,sans-serif;margin:0;padding:20px;color:#1e293b;}'+
-    '.hdr{background:linear-gradient(135deg,#4f78e0,#6366f1);color:#fff;padding:20px 24px;border-radius:8px;margin-bottom:20px;}'+
-    '.hdr h1{margin:0;font-size:20px;}.hdr .sub{font-size:13px;opacity:.85;margin-top:4px;}'+
-    '.stats{display:flex;gap:12px;margin-bottom:20px;}'+
-    '.stat{flex:1;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px;text-align:center;}'+
-    '.stat-n{font-size:24px;font-weight:800;color:#4f78e0;}.stat-l{font-size:11px;color:#64748b;margin-top:2px;}'+
-    'table{width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;}'+
-    'thead th{background:#4f78e0;color:#fff;padding:10px 12px;font-size:12px;text-align:left;}'+
-    'tbody tr:nth-child(even){background:#f1f5f9;}'+
-    '@media print{button{display:none}}</style></head><body>'+
-    '<div class="hdr" style="display:flex;align-items:center;gap:18px;"><div style="width:64px;height:64px;flex-shrink:0;filter:brightness(1.3) saturate(.8);">'+(catSvgIcon('RM',64)||'')+'</div><div><h1 style="margin:0;font-size:20px;">📡 Reporte de Antenas RF</h1><div class="sub">'+esc(eq.nombre)+' · '+rangoTxt+' · Generado: '+new Date().toLocaleDateString('es-AR')+'</div></div></div>'+
-    '<div class="stats"><div class="stat"><div class="stat-n">'+assigned.length+'</div><div class="stat-l">Antenas</div></div>'+
-    '<div class="stat"><div class="stat-n">'+totalRoturas+'</div><div class="stat-l">Roturas en período</div></div></div>'+
-    '<table><thead><tr><th>Fecha</th><th>Descripción</th><th>Técnico</th><th>Docs</th></tr></thead><tbody>'+rowsHtml+'</tbody></table>'+
-    '</body></html>';
-  closeModal();
+  var html='<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width"><title>Reporte Antenas · '+esc(eq.nombre)+'</title><style>'+_reportCSS+'</style></head><body>'+
+    '<div class="nav-bar"><button class="btn-print" onclick="window.print()">'+icn('printer',13)+' Imprimir / Guardar PDF</button></div>'+
+    '<div class="page">'+
+      '<div class="logo-area">'+logoTag+'</div>'+
+      '<div class="informe-box">'+
+        '<div class="informe-title">REPORTE&nbsp; DE&nbsp; ANTENAS&nbsp; RF</div>'+
+        '<div class="informe-row"><span class="informe-label">EQUIPO:</span><span class="informe-value">'+esc(eq.nombre)+'</span></div>'+
+        '<div class="informe-row"><span class="informe-label">PERÍODO:</span><span class="informe-value">'+rangoTxt+'</span></div>'+
+        '<div class="informe-row"><span class="informe-label">GENERADO:</span><span class="informe-value">'+new Date().toLocaleDateString('es-AR')+'</span></div>'+
+      '</div>'+
+      '<div class="section"><div class="section-title">Resumen</div>'+
+        '<div style="display:flex;gap:12px;margin-bottom:6px;">'+
+          '<div style="flex:1;background:#f0f5fc;border:1.5px solid #dce8f5;border-radius:8px;padding:12px 16px;text-align:center;"><div style="font-size:26pt;font-weight:900;color:#1a3a6b;">'+assigned.length+'</div><div style="font-size:8pt;color:#64748b;text-transform:uppercase;letter-spacing:.05em;">Antenas</div></div>'+
+          '<div style="flex:1;background:#fef2f2;border:1.5px solid #fecaca;border-radius:8px;padding:12px 16px;text-align:center;"><div style="font-size:26pt;font-weight:900;color:#dc2626;">'+totalRoturas+'</div><div style="font-size:8pt;color:#b91c1c;text-transform:uppercase;letter-spacing:.05em;">Eventos en período</div></div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="section"><div class="section-title">Detalle por antena</div><table class="sum"><thead><tr><th>Fecha</th><th>Descripción</th><th>Técnico</th><th>Estado / Docs</th></tr></thead><tbody>'+rowsHtml+'</tbody></table></div>'+
+      '<div class="footer"><div class="footer-meta">CIMA Investigaciones Avanzadas · CIMA Hub '+APP_DISPLAY_VERSION+' · Generado: '+new Date().toLocaleDateString('es-AR')+'</div></div>'+
+    '</div></body></html>';
   openHTMLViewer(html,'Reporte Antenas · '+eq.nombre);
 }
 
@@ -17000,6 +17072,14 @@ function generarPDFEjecutivo(){
 function generarPDFAntena(antId){
   var ant=antenas.find(function(a){return a.id===antId;});
   if(!ant){showToast('Antena no encontrada','err');return;}
+  showToast('⏳ Generando PDF...');
+  var imgIds=[];
+  (ant.roturas||[]).forEach(function(r){(r.fotos||[]).forEach(function(fo){var id=fo&&fo.id?fo.id:fo;if(id&&typeof id==='string'&&imgIds.indexOf(id)===-1)imgIds.push(id);});});
+  _loadForReport(imgIds,function(_unusedLogo,imgsMap){
+    _buildPDFAntena(ant,antId,imgsMap);
+  });
+}
+function _buildPDFAntena(ant,antId,imgsMap){
   var linkedEq=eqs.find(function(e){return(e.antenaIds||[]).indexOf(antId)!==-1;});
   var antEst=ant.estado||'operativa';
   var antEstLabel=antEst==='fuera_servicio'?'FUERA DE SERVICIO':antEst==='con_fallas'?'CON FALLAS':antEst==='rota'?'ROTA':'OPERATIVA';
@@ -17035,12 +17115,13 @@ function generarPDFAntena(antId){
       ['Técnico / Resp.',r.tecnico||'—'],
       ['Empresa / Taller',r.empresa||'—'],
       ['Fecha de envío',r.fechaEnvio?fD(r.fechaEnvio):'No enviada aún'],
-      ['Presupuestos adjuntos',(((r.presupuestosArreglo||[]).length||(r.presupuestoArregloPdf?1:0))?String((r.presupuestosArreglo||[]).length||1)+' archivo(s)':'Sin presupuesto')],
-      ['Fotos de daño',(r.fotos||[]).length?String((r.fotos||[]).length)+' foto(s)':'Sin fotos']
+      ['Presupuestos adjuntos',(((r.presupuestosArreglo||[]).length||(r.presupuestoArregloPdf?1:0))?String((r.presupuestosArreglo||[]).length||1)+' archivo(s)':'Sin presupuesto')]
     ];
     var inner=[_pdfKV(rows)];
     if((r.notasSeguimiento||[]).length)inner.push(_pdfSegui(r.notasSeguimiento,'#b91c1c'));
     c.push(_pdfCard('Rotura '+(idx+1)+': '+_pdfDecode(r.queSeRompio||r.descripcion||'Sin descripción'),es,inner,'#fef2f2','#fecaca'));
+    var fa=_pdfFotosArr(r.fotos,imgsMap);
+    if(fa.length){c.push({text:'Fotos de la falla ('+fa.length+')',bold:true,fontSize:7.5,color:'#b91c1c',margin:[0,2,0,2]});c=c.concat(_pdfGallery(fa,3,135));}
   });
   var histAnt=ant.historialAntena||[];
   c.push(_pdfH('3. Historial de reparaciones ('+histAnt.length+')'));
@@ -17347,12 +17428,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="3.7.0";
+var APP_DISPLAY_VERSION="3.8.0";
 var APP_BUILD="27/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'3.8.0',fecha:'27/07/2026',tipo:'minor',cambios:[
+    'Reportes PDF: fotos reales de fallas/roturas en Ficha de Equipo y Ficha de Antena (antes sin fotos o solo contador), y unifica Reporte General / Reporte de Antenas con el logo y diseño compartido del resto de los informes'
+  ]},
   {v:'3.7.0',fecha:'27/07/2026',tipo:'minor',cambios:[
     'Vista pública de QR: se agrega el Calendario PM del equipo (fechas, horarios y alcance de los mantenimientos programados)'
   ]},
