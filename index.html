@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.27.002 -->
+<!-- v2026.07.28.001 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.27.002">
+<meta name="app-version" content="v2026.07.28.001">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -4284,6 +4284,23 @@ function _pdfDecode(s){
 }
 function _pdfPlain(html){return _pdfDecode(String(html||'').replace(/<[^>]+>/g,'')).replace(/\s+/g,' ').trim();}
 function _pdfIsImg(s){return typeof s==='string'&&s.indexOf('data:image/')===0;}
+// Ícono de categoría como nodo pdfmake — catSvgIcon() según la categoría devuelve
+// <svg> (dibujo vectorial) o <img src="data:image/..."> (foto real en base64,
+// la mayoría de las categorías desde que se cargaron fotos reales por equipo) o
+// <img src="icons/archivo.png"> (ruta relativa, ej. BOMBAC/BOMBAI) — pdfmake solo
+// puede incrustar los dos primeros de forma sincrónica; la ruta relativa se omite
+// en vez de romper el PDF.
+function _pdfCatIcon(catId,size){
+  size=size||40;
+  try{
+    var raw=catSvgIcon(catId,size);
+    if(!raw)return null;
+    if(raw.indexOf('<svg')===0)return {svg:raw,width:size};
+    var m=raw.match(/src="(data:image\/[^"]+)"/);
+    if(m)return {image:m[1],width:size};
+  }catch(e){}
+  return null;
+}
 function _pdfClone(s){var o={},k;for(k in s){if(s.hasOwnProperty(k))o[k]=s[k];}return o;}
 function _pdfBox(fill,border){
   return {hLineWidth:function(){return 0.6;},vLineWidth:function(){return 0.6;},hLineColor:function(){return border;},vLineColor:function(){return border;},paddingLeft:function(){return 0;},paddingRight:function(){return 0;},paddingTop:function(){return 0;},paddingBottom:function(){return 0;},fillColor:function(){return fill;}};
@@ -7768,13 +7785,14 @@ function _buildPDFEquipo(eq,eqId,partesActivas,repH,imgsMap){
   var estCol=eq.estado==='operativo'?'#16a34a':eq.estado==='fuera-de-servicio'?'#dc2626':'#d97706';
   var mtbfV=calcMTBF?calcMTBF(eq):null,mttrV=calcMTTR?calcMTTR(eq):null,availV=calcAvailability?calcAvailability(eq):null,riskV=calcRiskScore?calcRiskScore(eq):null,lcV=calcLifecycle?calcLifecycle(eq):null;
   var c=[];
-  c.push({columns:[
+  var catIco=_pdfCatIcon(eq.cat,40);
+  c.push({columns:(catIco?[{width:44,stack:[catIco],margin:[0,2,8,0]}]:[]).concat([
     {width:'*',stack:[
       {text:_pdfDecode(eq.nombre||'Equipo'),fontSize:16,bold:true,color:'#1a3a6b'},
       {text:_pdfDecode((eq.marca||'')+(eq.modelo?' · '+eq.modelo:'')+(eq.serie?' · S/N '+eq.serie:'')),fontSize:9,color:'#64748b',margin:[0,2,0,0]}
     ]},
     {width:'auto',text:' '+estLbl+' ',bold:true,color:'#ffffff',fontSize:9,background:estCol,margin:[0,3,0,0]}
-  ],margin:[0,0,0,12]});
+  ]),margin:[0,0,0,12]});
   c.push(_pdfH('Información general'));
   c.push(_pdfKV([['Sede',eq.sede||eq.ubicacion||'—'],['Ubicación',eq.ubicacion||'—'],['Categoría',eq.categoria||eq.cat||'—'],['F. instalación',eq.fechaInstalacion||eq.instalacion||'—'],['Proveedor',eq.proveedor||'—']]));
   c.push(_pdfH('Métricas de confiabilidad'));
@@ -17085,13 +17103,14 @@ function _buildPDFAntena(ant,antId,imgsMap){
   var antEstLabel=antEst==='fuera_servicio'?'FUERA DE SERVICIO':antEst==='con_fallas'?'CON FALLAS':antEst==='rota'?'ROTA':'OPERATIVA';
   var estCol=antEst==='operativa'?'#16a34a':(antEst==='con_fallas'||antEst==='rota')?'#dc2626':'#d97706';
   var c=[];
-  c.push({columns:[
+  var catIco=_pdfCatIcon(linkedEq?linkedEq.cat:'RM',40);
+  c.push({columns:(catIco?[{width:44,stack:[catIco],margin:[0,2,8,0]}]:[]).concat([
     {width:'*',stack:[
       {text:_pdfDecode(ant.nombre||'Antena sin nombre'),fontSize:16,bold:true,color:'#1a3a6b'},
       {text:_pdfDecode((ant.tipo||'')+(ant.nroSerie?'  ·  N° Serie: '+ant.nroSerie:'')),fontSize:9,color:'#64748b',margin:[0,2,0,0]}
     ]},
     {width:'auto',text:' '+antEstLabel+' ',bold:true,color:'#ffffff',fontSize:8,background:estCol,margin:[0,3,0,0]}
-  ],margin:[0,0,0,10]});
+  ]),margin:[0,0,0,10]});
   c.push(_pdfH('1. Información general'));
   c.push(_pdfKV([
     ['Tipo de antena',ant.tipo||'—'],
@@ -17428,12 +17447,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="3.8.0";
-var APP_BUILD="27/07/26 h";
+var APP_DISPLAY_VERSION="3.8.1";
+var APP_BUILD="28/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'3.8.1',fecha:'28/07/2026',tipo:'patch',cambios:[
+    'Fix: el ícono de categoría del equipo (RM, TC, ECO, etc.) no aparecía en Ficha de Equipo/Antena porque catSvgIcon() devuelve una foto real en base64 para la mayoría de las categorías, no un SVG vectorial — el generador de PDF asumía siempre SVG'
+  ]},
   {v:'3.8.0',fecha:'27/07/2026',tipo:'minor',cambios:[
     'Reportes PDF: fotos reales de fallas/roturas en Ficha de Equipo y Ficha de Antena (antes sin fotos o solo contador), y unifica Reporte General / Reporte de Antenas con el logo y diseño compartido del resto de los informes'
   ]},
