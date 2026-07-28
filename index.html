@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.28.001 -->
+<!-- v2026.07.28.002 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.28.001">
+<meta name="app-version" content="v2026.07.28.002">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -4218,6 +4218,7 @@ var _pendingPdfBlob=null;
 var _pendingPdfName='';
 var _reportData=null;
 function openHTMLViewer(htmlContent,title){
+  window._reportBusy=false; // el informe terminó de armarse: se puede volver a generar
   try{
     var overlay=document.getElementById('pdf-viewer-overlay');
     var reportDiv=document.getElementById('pdf-report-div');
@@ -4466,7 +4467,14 @@ function _pdfCard(titleText,estadoObj,inner,fill,border){
 function _pdfH(t){return {text:t,fontSize:12,bold:true,color:'#1a3a6b',margin:[0,12,0,6]};}
 function _pdfEqSection(d,imgsMap){
   var out=[],eq=d.eq,ci=d.ci;
-  out.push({table:{widths:['*'],body:[[{text:[{text:_pdfDecode(eq.nombre),bold:true,fontSize:11,color:'#0f2a52'},{text:'   '+ci.label+(eq.ubicacion?' — '+_pdfDecode(eq.ubicacion):''),fontSize:9,color:'#64748b'}],margin:[9,6,9,6]}]]},layout:_pdfBox('#eef4ff','#c7d7f5'),margin:[0,12,0,5],unbreakable:true});
+  // Encabezado del equipo con el ícono de su categoría. El ícono va en un columns a
+  // nivel de página (no dentro de la celda de la tabla): las imágenes dentro de una
+  // celda no renderizan bien en pdfmake — mismo motivo por el que la galería de fotos
+  // de más abajo también se emite a nivel de página.
+  var _hdrBox={table:{widths:['*'],body:[[{text:[{text:_pdfDecode(eq.nombre),bold:true,fontSize:11,color:'#0f2a52'},{text:'   '+ci.label+(eq.ubicacion?' — '+_pdfDecode(eq.ubicacion):''),fontSize:9,color:'#64748b'}],margin:[9,6,9,6]}]]},layout:_pdfBox('#eef4ff','#c7d7f5')};
+  var _catIco=_pdfCatIcon(eq.cat,26);
+  if(_catIco)out.push({columns:[{width:30,stack:[_catIco],margin:[0,3,4,0]},{width:'*',stack:[_hdrBox]}],margin:[0,12,0,5],unbreakable:true});
+  else out.push({table:_hdrBox.table,layout:_hdrBox.layout,margin:[0,12,0,5],unbreakable:true});
   out=out.concat(_narrToPdf(_narrativeEq(eq,d.mantH,d.repH,d.mejH,d.actH,d.mejP,d.trasladosH||[],d.cancelPMH||[])));
   // galería de imágenes de fallas (actH + repH)
   var gal=[];
@@ -4711,31 +4719,102 @@ function _genericHtmlPdfDoc(html,title){
     content:content
   };
 }
-// Convierte URLs https en imgsMap a base64 via crossOrigin img+canvas (para que pdfmake pueda incluirlas)
-// Si CORS no está configurado o la conversión falla, la URL https queda como estaba (HTML la muestra, PDF no)
+// Convierte una URL remota a base64 probando varias estrategias en orden.
+// MOTIVO: pdfmake solo puede incrustar data URIs — una URL https se descarta en
+// silencio (_pdfIsImg la rechaza). El visor HTML en cambio muestra la URL sin
+// problema, y por eso el síntoma era "las fotos se ven en pantalla pero
+// desaparecen del PDF exportado". Pasa cuando la foto se subió desde OTRO
+// dispositivo: en esta máquina no está en IndexedDB y se resuelve contra
+// Firebase Storage.
+// CLAVE — por qué fallaba antes: NO es un problema de CORS. El endpoint de
+// Firebase Storage (firebasestorage.googleapis.com) ya responde con
+// "Access-Control-Allow-Origin: *", tanto en GET como en el preflight. Lo que
+// pasa es que el visor en pantalla YA descargó esa misma URL con un <img>
+// común (sin crossOrigin), y Safari/WebKit reutiliza esa entrada de caché
+// —guardada SIN datos de CORS— cuando después se pide la misma URL con
+// crossOrigin='anonymous'. Resultado: la carga falla o el canvas queda
+// "tainted" y toDataURL tira SecurityError, que el catch se tragaba en
+// silencio. Por eso todos los caminos acá saltean la caché (cache:'reload' /
+// parámetro anti-caché) en vez de depender de configurar el bucket.
+// Se prueban 3 caminos porque cada uno falla por motivos distintos:
+//   1) fetch → blob: el más limpio, no ensucia ningún canvas.
+//   2) XHR → blob: algunos navegadores/proxies se llevan mejor con XHR que con fetch.
+//   3) img crossOrigin + canvas: último recurso.
+function _cacheBust(url){
+  try{return url+(url.indexOf('?')!==-1?'&':'?')+'_cb='+(new Date()).getTime();}catch(e){return url;}
+}
+function _urlToB64(url,cb){
+  var finished=false;
+  // Timeout duro: garantiza que cb corra exactamente una vez. Sin esto, un <img>
+  // que no dispara ni onload ni onerror dejaba el export colgado para siempre.
+  var guard=setTimeout(function(){fail();},30000);
+  function ok(b64){if(finished)return;finished=true;clearTimeout(guard);cb(b64&&b64.indexOf('data:image/')===0?b64:null);}
+  function fail(){if(finished)return;finished=true;clearTimeout(guard);cb(null);}
+  function blobToB64(blob,onFail){
+    try{
+      var rd=new FileReader();
+      rd.onload=function(e){ok(e.target.result);};
+      rd.onerror=function(){onFail();};
+      rd.readAsDataURL(blob);
+    }catch(e){onFail();}
+  }
+  function tryCanvas(){
+    try{
+      var im=new Image();
+      im.crossOrigin='anonymous';
+      im.onload=function(){
+        try{
+          var cv=document.createElement('canvas');
+          cv.width=im.naturalWidth;cv.height=im.naturalHeight;
+          cv.getContext('2d').drawImage(im,0,0);
+          ok(cv.toDataURL('image/jpeg',0.82));
+        }catch(e){fail();}
+      };
+      im.onerror=function(){fail();};
+      im.src=_cacheBust(url);
+    }catch(e){fail();}
+  }
+  function tryXhr(){
+    try{
+      var xh=new XMLHttpRequest();
+      xh.open('GET',_cacheBust(url),true);xh.responseType='blob';xh.timeout=25000;
+      xh.onload=function(){
+        if((xh.status===200||xh.status===0)&&xh.response)blobToB64(xh.response,tryCanvas);
+        else tryCanvas();
+      };
+      xh.onerror=function(){tryCanvas();};
+      xh.ontimeout=function(){tryCanvas();};
+      xh.send();
+    }catch(e){tryCanvas();}
+  }
+  if(typeof fetch==='function'){
+    try{
+      fetch(url,{mode:'cors',credentials:'omit',cache:'reload'})
+        .then(function(r){if(!r.ok)throw new Error('http '+r.status);return r.blob();})
+        .then(function(b){blobToB64(b,tryXhr);})
+        .catch(function(){tryXhr();});
+    }catch(e){tryXhr();}
+  }else tryXhr();
+}
+// Convierte todas las URLs https de imgsMap a base64 antes de armar el PDF.
+// Devuelve por callback cuántas quedaron sin convertir, para poder avisarle al
+// usuario en vez de entregarle un informe al que le faltan fotos en silencio.
 function _convertHttpsImgs(imgsMap,cb){
   var ids=Object.keys(imgsMap||{});
   var httpIds=[];
   ids.forEach(function(id){var v=imgsMap[id];if(v&&typeof v==='string'&&v.indexOf('http')===0)httpIds.push(id);});
-  if(!httpIds.length){cb();return;}
-  var pending=httpIds.length;
-  function done(){pending--;if(pending<=0)cb();}
+  if(!httpIds.length){cb(0);return;}
+  var pending=httpIds.length,failed=0,fired=false;
+  // cb tiene que correr exactamente una vez, pase lo que pase: si se queda
+  // colgado, el botón de exportar queda trabado en "Generando PDF..." sin salida.
+  function finish(){if(fired)return;fired=true;clearTimeout(allGuard);cb(failed);}
+  var allGuard=setTimeout(function(){failed=pending;finish();},45000);
+  function done(){pending--;if(pending<=0)finish();}
   httpIds.forEach(function(id){
-    var url=imgsMap[id];
-    var fi=new Image();
-    fi.crossOrigin='anonymous';
-    fi.onload=function(){
-      try{
-        var cv=document.createElement('canvas');
-        cv.width=fi.naturalWidth;cv.height=fi.naturalHeight;
-        cv.getContext('2d').drawImage(fi,0,0);
-        var b64=cv.toDataURL('image/jpeg',0.82);
-        if(b64&&b64.indexOf('data:image/')===0)imgsMap[id]=b64;
-      }catch(e){}
+    _urlToB64(imgsMap[id],function(b64){
+      if(b64)imgsMap[id]=b64;else failed++;
       done();
-    };
-    fi.onerror=function(){done();};
-    fi.src=url;
+    });
   });
 }
 function printReport(){
@@ -4748,7 +4827,12 @@ function printReport(){
     var pf=new File([_pendingPdfBlob],_pendingPdfName+'.pdf',{type:'application/pdf'});
     _pendingPdfBlob=null;
     if(btn){btn.disabled=true;btn.textContent='⏳ Compartiendo...';}
-    var onDone=function(){if(btn){btn.disabled=false;btn.textContent='📄 Exportar PDF';}};
+    // Al terminar NO se vuelve a "📄 Exportar PDF": en macOS navigator.share se
+    // resuelve apenas se MUESTRA la hoja de compartir (no cuando se entrega el
+    // archivo), así que el botón volvía a su estado inicial con la hoja todavía
+    // abierta. Parecía que no había pasado nada, el usuario tocaba otra vez y
+    // salía un segundo PDF idéntico. Ahora queda en un estado final explícito.
+    var onDone=function(){if(btn){btn.disabled=false;btn.textContent='✅ Exportado — tocar para exportar de nuevo';}};
     if(navigator.canShare&&navigator.canShare({files:[pf]})){
       navigator.share({title:_pendingPdfName,files:[pf]}).then(onDone).catch(function(e){onDone();if(e.name!=='AbortError')showToast('Error al compartir','err');});
     }else{
@@ -4778,7 +4862,12 @@ function printReport(){
   };
   // Intentar convertir URLs https a base64 antes de generar el PDF (para fotos que cargaron via Firebase Storage URL)
   if(_reportData&&_reportData.imgsMap){
-    _convertHttpsImgs(_reportData.imgsMap,_doPrintPdf);
+    _convertHttpsImgs(_reportData.imgsMap,function(failed){
+      // Si alguna foto no se pudo incrustar, avisarlo: antes se descartaba en
+      // silencio y el informe salía sin imágenes sin que nadie se enterara.
+      if(failed>0)showToast('⚠️ '+failed+' imagen'+(failed!==1?'es':'')+' no se pudo incrustar en el PDF (sin conexión al almacenamiento)','warn');
+      _doPrintPdf();
+    });
   } else {
     _doPrintPdf();
   }
@@ -7679,7 +7768,15 @@ function _pdfDoShare(){
   var b=window._pdfDelivBlob;if(!b)return;
   var f=new File([b],window._pdfDelivName,{type:'application/pdf'});
   if(navigator.canShare&&navigator.canShare({files:[f]})){
-    navigator.share({title:window._pdfDelivName,files:[f]}).then(function(){closeModal();}).catch(function(e){if(e.name!=='AbortError')_pdfDoDownload();});
+    // Al fallar el compartir NO se descarga automáticamente. En macOS la hoja de
+    // compartir suele rechazar la promesa DESPUÉS de haber entregado el archivo
+    // (se resuelve/rechaza al cerrarse la hoja, no al entregar), así que el
+    // fallback automático generaba un segundo PDF idéntico al ya compartido.
+    // El modal ya tiene un botón "Descargar" explícito: se deja que el usuario
+    // decida, y así nunca pueden salir dos archivos por una sola acción.
+    navigator.share({title:window._pdfDelivName,files:[f]})
+      .then(function(){closeModal();})
+      .catch(function(e){if(e.name!=='AbortError')showToast('No se pudo compartir — usá "Descargar"','warn');});
   }else{_pdfDoDownload();}
 }
 function _pdfDoDownload(){
@@ -12674,7 +12771,11 @@ function _loadForReport(imageIds, cb){
   var pending=1+imageIds.length;
   function done(){pending--;if(pending<=0)finish();}
   // Safety net: always generate report within 12s even if logo/images fail to load
-  var _safetyTimer=setTimeout(function(){finish();},20000);
+  // El tope tiene que escalar con la cantidad de fotos: las imágenes se guardan sin
+  // comprimir (una foto de iPhone son varios MB) y se bajan todas en paralelo, así
+  // que 20s fijos cortaban la carga por la mitad y el informe salía con imágenes
+  // faltantes sin ningún aviso.
+  var _safetyTimer=setTimeout(function(){finish();},Math.min(20000+5000*imageIds.length,90000));
   // Try to get logo from already-loaded <img> in the DOM first (avoids XHR issues on iOS PWA)
   function _tryLogoFromDOM(){
     try{
@@ -12717,7 +12818,7 @@ function _loadForReport(imageIds, cb){
         _storageGetUrl(id,function(url){
           if(!url){done();return;}
           var xhrImg=new XMLHttpRequest();
-          xhrImg.open('GET',url,true);xhrImg.responseType='blob';xhrImg.timeout=14000;
+          xhrImg.open('GET',url,true);xhrImg.responseType='blob';xhrImg.timeout=30000;
           xhrImg.onload=function(){
             if((xhrImg.status===200||xhrImg.status===0)&&xhrImg.response){
               var rdr=new FileReader();
@@ -12831,6 +12932,12 @@ function generateReport(){
   var _chks=document.querySelectorAll('.rep-eq-chk:checked');
   for(var _ci=0;_ci<_chks.length;_ci++){selIds.push(_chks[_ci].value);}
   if(!selIds.length){showToast('Seleccioná al menos un equipo','warn');return;}
+  // Guard de re-entrada: bajar las fotos puede tardar bastante y la pantalla no da
+  // señal de estar trabajando, así que era muy fácil tocar "Generar" dos veces y
+  // que se armaran DOS informes idénticos. Se libera al abrirse el visor.
+  if(window._reportBusy){showToast('El informe se está generando, esperá...','warn');return;}
+  window._reportBusy=true;
+  setTimeout(function(){window._reportBusy=false;},90000); // red de seguridad si algo falla
   showToast('⏳ Generando reporte...');
   var filtEqs=eqs.filter(function(e){return selIds.indexOf(e.id)!==-1;});
   var tm=0,tr=0,tmej=0,tact=0,hasData=false;
@@ -13220,7 +13327,7 @@ function generateReport(){
     openHTMLViewer(html,'Informe Equipos CIMA — '+mesAnio);
     // Stash datos estructurados DESPUÉS de openHTMLViewer (que resetea _reportData a null)
     _reportData={eqData:eqData,imgsMap:imgsMap||{},logo:logoB64||_logoSync,nro:nroInforme,para:paraInforme,periodoLabel:periodoLabel,mesAnio:mesAnio,fechaCreacion:fechaCreacion,tm:tm,tr:tr,tmej:tmej,tact:tact,hasData:hasData,sumData:sumData,introText:introText,resumenText:resumenText,conclusionText:conclusionText};
-    }catch(err){showToast('Error al generar: '+(err&&err.message?err.message:String(err)),'warn');console.error('generateReport error:',err);}
+    }catch(err){window._reportBusy=false;showToast('Error al generar: '+(err&&err.message?err.message:String(err)),'warn');console.error('generateReport error:',err);}
   }
   // If no images: build synchronously (avoids async/XHR issues on iOS PWA)
   if(!allImgIds.length){
@@ -17447,12 +17554,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="3.8.1";
+var APP_DISPLAY_VERSION="3.9.0";
 var APP_BUILD="28/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'3.9.0',fecha:'28/07/2026',tipo:'minor',cambios:[
+    'Reporte Gerencial: las fotos de fallas ya no desaparecen del PDF exportado, se agrega el icono de categoria por equipo, y se elimina la generacion de dos documentos identicos'
+  ]},
   {v:'3.8.1',fecha:'28/07/2026',tipo:'patch',cambios:[
     'Fix: el ícono de categoría del equipo (RM, TC, ECO, etc.) no aparecía en Ficha de Equipo/Antena porque catSvgIcon() devuelve una foto real en base64 para la mayoría de las categorías, no un SVG vectorial — el generador de PDF asumía siempre SVG'
   ]},

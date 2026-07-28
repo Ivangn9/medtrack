@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v3.9.0 — 28/07/2026 (minor)
+
+- Reporte Gerencial: las fotos de fallas ya no desaparecen del PDF exportado, se agrega el icono de categoria por equipo, y se elimina la generacion de dos documentos identicos
+
 ## v3.8.1 — 28/07/2026 (patch)
 
 - Fix: el ícono de categoría del equipo (RM, TC, ECO, etc.) no aparecía en Ficha de Equipo/Antena porque catSvgIcon() devuelve una foto real en base64 para la mayoría de las categorías, no un SVG vectorial — el generador de PDF asumía siempre SVG
