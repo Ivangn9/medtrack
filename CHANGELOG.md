@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v3.9.2 — 29/07/2026 (patch)
+
+- Fix de seguridad: escapa comillas simples en onclick (inyección de código vía nombres de archivo)
+
 ## v3.9.1 — 29/07/2026 (patch)
 
 - Fix de seguridad: control de acceso real en reglas de Firestore + autenticación en el proxy de IA
