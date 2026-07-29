@@ -22,6 +22,10 @@ rules_version = '2';
 // esté en config/access.emails, y se aplica a TODAS las rutas de MedTrack.
 // No se toca isTeam() en sí (lo siguen usando las rutas de Stock de Insumos,
 // que tienen su propio mecanismo de autorización aparte).
+// v5 — Mismo fix de seguridad aplicado a Stock de Insumos: isAuthorizedInsumos()
+// exige pertenecer a insumos_users (antes solo isTeam(), mismo hueco que
+// MedTrack). Confirmado con cuenta de prueba real antes del fix: se podía
+// leer el catálogo completo con precios sin estar autorizado.
 // ═══════════════════════════════════════════════════════════════
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -100,31 +104,47 @@ service cloud.firestore {
     }
 
     // ── Stock de Insumos ──
+    // FIX DE SEGURIDAD (2026-07-29, mismo hallazgo que MedTrack): insumos_users
+    // ya existe como colección keyed-por-email (chequeada del lado del cliente
+    // en _checkUserAccess()), pero antes NINGUNA regla exigía pertenecer a ella
+    // para acceder a insumos_cima/* — bastaba isTeam(). Cualquier cuenta de
+    // Google/email nueva podía leer/escribir todo el catálogo, precios,
+    // movimientos. Se agrega isAuthorizedInsumos(), que exige además que el
+    // doc insumos_users/<email en minúsculas> exista.
+    function isAuthorizedInsumos() {
+      return isTeam()
+        && exists(/databases/$(database)/documents/insumos_users/$(request.auth.token.email.lower()));
+    }
+
     // Catálogo: el formulario público "Pedido de Insumos" (login anónimo)
-    // necesita LEERLO para armar el pedido. Solo el equipo lo escribe.
+    // necesita LEERLO para armar el pedido — la lectura sigue abierta a
+    // cualquier autenticado a propósito. Solo el equipo AUTORIZADO lo escribe.
     match /insumos_cima/supplies {
       allow read: if request.auth != null;
-      allow write: if isTeam();
+      allow write: if isAuthorizedInsumos();
     }
 
     // Pedidos enviados desde el formulario público: cualquiera autenticado
     // (incluye anónimo) puede CREAR un pedido y LEER la lista (para el visor
     // de Pendientes/Entregados — transparencia global, ver commit del
-    // visor). Marcar como entregado o borrar sigue siendo solo del equipo.
+    // visor) — esto sigue abierto a propósito. Marcar como entregado o
+    // borrar sigue siendo solo del equipo AUTORIZADO.
     match /insumos_cima/solicitudes_log/items/{item} {
       allow create: if request.auth != null && isValidSolicitud(request.resource.data);
       allow read: if request.auth != null;
-      allow update, delete: if isTeam();
+      allow update, delete: if isAuthorizedInsumos();
     }
 
     // Resto de Stock de Insumos (center_GN, center_Sarmiento, push_tokens,
-    // practicas_config, practicas_mes, entregas, …): solo el equipo.
+    // practicas_config, practicas_mes, entregas, …): solo el equipo autorizado.
     match /insumos_cima/{doc=**} {
-      allow read, write: if isTeam();
+      allow read, write: if isAuthorizedInsumos();
     }
 
-    // Usuarios autorizados del Stock: el equipo lee (chequeo de acceso al
-    // iniciar sesión); solo el admin agrega o quita usuarios.
+    // Usuarios autorizados del Stock: cualquier cuenta del equipo puede LEER
+    // la lista (es el propio chequeo de acceso al iniciar sesión — no puede
+    // exigir isAuthorizedInsumos() acá, sería circular). Solo el admin
+    // agrega o quita usuarios (esto ya estaba bien, no se toca).
     match /insumos_users/{email} {
       allow read: if isTeam();
       allow write: if isAdmin();
@@ -132,13 +152,13 @@ service cloud.firestore {
 
     // Respaldos diarios del Stock
     match /cima_backups/{doc} {
-      allow read, write: if isTeam();
+      allow read, write: if isAuthorizedInsumos();
     }
 
     // Auditoría del Stock: solo se agrega, no se edita ni borra.
     match /cima_audit/{entry} {
-      allow read: if isTeam();
-      allow create: if isTeam();
+      allow read: if isAuthorizedInsumos();
+      allow create: if isAuthorizedInsumos();
       allow update, delete: if false;
     }
 
