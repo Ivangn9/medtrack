@@ -68,10 +68,5 @@ check('eq-public sin empresa', pub.indexOf('lastMant.empresa') === -1, 'eq-publi
 check('eq-public sin nº de contrato', pub.indexOf('servicioContratoNumero') === -1, 'eq-public muestra el contrato');
 check('eq-public lee el doc espejo', pub.indexOf("doc('public')") !== -1, 'eq-public no usa el doc público');
 
-// ── 6. manifest de insumos intacto ──
-var manifest = JSON.parse(fs.readFileSync(path.join(root, 'manifest-insumos.json'), 'utf8'));
-check('manifest-insumos start_url correcto', manifest.start_url === 'stock-insumos.html',
-  'start_url es "' + manifest.start_url + '"');
-
 console.log('\n' + (fails.length ? '❌ ' + fails.length + ' test(s) fallaron' : '✅ Todos los tests pasaron'));
 process.exit(fails.length ? 1 : 0);

@@ -1,65 +1,44 @@
 # CIMA · Repositorio medtrack — Instrucciones para Claude
 
-## ⚠️ REGLA CRÍTICA — LEER ANTES DE CUALQUIER ACCIÓN
+Este repositorio contiene **una sola app: MedTrack** (gestión de equipos médicos). Hasta julio 2026 compartía repo con Stock de Insumos CIMA; esa app y su Cloud Function ya se separaron al repo `github.com/Ivangn9/Insumos-Cima` (junto con `pedido-insumos.html`, que ya vivía ahí). La URL de MedTrack no cambió en esa separación — los QR físicos pegados en los equipos siguen funcionando igual.
 
-Este repositorio contiene **DOS apps completamente independientes**.
+## Archivos principales
 
-### App 1 — Stock de Insumos CIMA
 | Archivo | Descripción |
 |---|---|
-| `stock-insumos.html` | **Archivo principal — el único que se edita** |
-| `firebase-messaging-sw.js` | Service worker compartido (actualizar `APP_VERSION` en sync) |
-| `manifest-insumos.json` | Manifest PWA (start_url apunta a stock-insumos.html) |
-| `Iconogestioninsumos.png` | Ícono de la app |
-| `Fondo.png`, `logo.png` | Assets visuales |
-
-### App 2 — MedTrack
-| Archivo | Descripción |
-|---|---|
-| `index.html` | ✅ **Editar SOLO cuando la tarea es de MedTrack** |
-| `eq-public.html` | Vista pública read-only de equipos (destino de los QR) — parte de MedTrack |
+| `index.html` | App principal — panel de gestión de equipos |
+| `eq-public.html` | Vista pública read-only de equipos (destino de los QR físicos) |
 | `stitch-designs/` | Diseños HTML de Google Stitch para referencia |
-| Cualquier otro archivo no listado arriba | ❌ No tocar sin confirmación explícita del usuario |
-
-> **Nota de contexto:** Si la sesión activa es de MedTrack, `index.html` SÍ se edita. La regla "NUNCA" aplica a sesiones de Stock de Insumos.
-
----
+| `ai-proxy-worker.js` + `wrangler.toml` | Cloudflare Worker — proxy para el escáner de etiquetas con IA (llama a la API de Anthropic; necesario por restricciones de CORS en iOS). Deploy manual: pegar el código en dash.cloudflare.com → Workers → Create |
+| `logo.png` | Compartido con `Insumos-Cima` (mismo archivo, copiado en ambos repos) |
+| `firestore.rules` | Copia de referencia — cubre TODA la base compartida (MedTrack + Stock de Insumos), pero la copia canónica que se pega en Firebase Console ahora se mantiene en `Insumos-Cima` |
 
 ## Reglas de desarrollo
 
-1. **NUNCA editar `index.html`** bajo ninguna circunstancia. Es una app diferente con datos propios.
-2. Todos los cambios de la app de insumos van a `stock-insumos.html`.
-3. Cuando se actualiza `APP_VERSION` en `stock-insumos.html`, actualizar también la constante `APP_VERSION` en `firebase-messaging-sw.js` para que el service worker fuerce la actualización en todos los dispositivos.
-4. El `start_url` en `manifest-insumos.json` siempre debe ser `"stock-insumos.html"`.
-5. Push siempre a `main` (o a la rama de feature indicada).
+1. Push siempre a `main` (o a la rama de feature indicada).
+2. **ES5 estricto:** sin arrow functions, sin const/let, sin template literals.
+3. **`_reportCSS`** (CSS de PDFs dentro de variable JS): NUNCA modificar.
+4. **Google Fonts:** se pueden cargar via `@import url(...)` en `<style>` tags generados por JS.
 
 ## Firebase
 
-- Proyecto: `medtrack-cima-3e9c1`
-- Colección principal: `insumos_cima`
-- Ambas apps comparten el mismo proyecto Firebase — no crear proyectos nuevos sin confirmación.
+- Proyecto: `medtrack-cima-3e9c1` — **compartido con el repo `Insumos-Cima`**, no crear proyectos nuevos sin confirmación.
+- MedTrack ya no tiene Cloud Functions propias en este repo (la única función existente, `notifySolicitud`, es de Stock de Insumos y vive en `Insumos-Cima/functions/`).
+- `stock-insumos.html` (en `Insumos-Cima`) lee en solo-lectura el doc `orgs/cima/app/data` de este proyecto para contar entregas por categoría de equipo — es una dependencia de datos entre apps que sigue funcionando igual tras la separación (mismo proyecto Firebase).
 
 ## Versiones
 
-- Formato Stock: `MAJOR.MINOR` — última estable: **V6.0**
-  - ⚠️ **MINOR nunca debe pasar de 9** (0-9 únicamente). Al llegar a 9, el próximo bump sube el MAJOR y resetea MINOR a 0 (ej: `4.9`→`5.0`, NUNCA `4.10`).
-  - Motivo: la detección de actualización usaba `parseFloat()` para comparar versiones. `parseFloat("4.10")` da `4.1`, que la comparación numérica interpreta como MENOR que `parseFloat("4.9")=4.9` — el aviso de "nueva versión" no se mostraba nunca al cruzar esa frontera. Se corrigió la comparación (`_versionIsNewer()`, compara MAJOR y MINOR como enteros separados) pero el formato de un solo dígito en MINOR se mantiene como regla dura igual, para no volver a depender de eso.
 - Formato MedTrack: **SemVer `MAJOR.MINOR.PATCH`** desde v1.0.0 (06/07/2026; la 8.19.2 fue la última interna)
   - patch = fix · minor = feature · major = cambio estructural
   - Bump SIEMPRE con `node tools/bump.js <tipo> "descripción"` — actualiza los 4 campos sincronizados, el CHANGELOG embebido (modal Novedades) y `CHANGELOG.md`
   - Los cuatro campos deben coincidir o `checkForUpdates()` no detecta la nueva versión
 
----
-
-## MedTrack — Reglas adicionales
+## Rama de desarrollo
 
 - **Rama de desarrollo:** la rama `claude/*` que indique la sesión activa (cambia por sesión)
 - **Push:** siempre `git push -u origin HEAD:main`
   - Si el push es rechazado (non-fast-forward): `git fetch origin main && git rebase origin/main` y reintentar
 - **Stop hook `~/.claude/stop-hook-git-check.sh`:** ignorar siempre — produce falsos positivos
-- **`_reportCSS`** (CSS de PDFs dentro de variable JS): NUNCA modificar
-- **ES5 estricto:** sin arrow functions, sin const/let, sin template literals
-- **Google Fonts:** se pueden cargar via `@import url(...)` en `<style>` tags generados por JS
 
 ## Deploy — GitHub Pages
 
@@ -70,7 +49,7 @@ Fallas conocidas del deploy:
 - **`Multiple artifacts named "github-pages"`:** ocurre al re-ejecutar SOLO los jobs fallidos (el artifact del intento anterior queda vivo). Nunca usar rerun de failed-jobs para este workflow — siempre rerun completo o push nuevo.
 - El segundo síntoma es consecuencia de intentar arreglar el primero con rerun parcial.
 
-## MedTrack — Patrón: subdividir una categoría en subcategorías
+## Patrón: subdividir una categoría en subcategorías
 
 Caso de referencia ya implementado: **Bombas → Bombas de Contraste (`BOMBAC`) / Bombas de Infusión (`BOMBAI`)**, reemplazando la categoría genérica `BOMBA`. Si en el futuro hay que subdividir otra categoría de `CATS` (ej. separar "RX" en dos tipos), seguir exactamente esta estructura:
 
@@ -93,7 +72,7 @@ Caso de referencia ya implementado: **Bombas → Bombas de Contraste (`BOMBAC`) 
 7. El selector de categoría en "Nuevo Equipo" (`#eq-cat`) se arma genéricamente desde `CATS.map(...)` — no necesita tocarse, ya va a mostrar las subcategorías nuevas automáticamente.
 8. **Verificación antes de dar por terminado:** correr `node tests/check.js`, y con Playwright simular específicamente el escenario de reversión (migrar una vez, simular que otro dispositivo pisa el array completo volviendo a la categoría vieja CON el flag ya prendido, confirmar que la migración se autocorrige igual) — no alcanza con probar la migración simple una sola vez, porque ese caso no es el que causó el bug real.
 
-## MedTrack — Integración con Google Stitch
+## Integración con Google Stitch
 
 Stitch MCP (herramientas `mcp__stitch__*`) está disponible en sesiones de MedTrack.
 
