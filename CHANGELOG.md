@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v3.9.5 — 29/07/2026 (patch)
+
+- Fix: login con Google no funcionaba en PWA instalada (Mac/Safari) — usa signInWithRedirect en ese caso
+
 ## v3.9.4 — 29/07/2026 (patch)
 
 - Fix: el Asistente IA (chat) no mandaba el token de autenticación al proxy

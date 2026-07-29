@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.29.004 -->
+<!-- v2026.07.29.005 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.29.004">
+<meta name="app-version" content="v2026.07.29.005">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -17591,12 +17591,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="3.9.4";
+var APP_DISPLAY_VERSION="3.9.5";
 var APP_BUILD="29/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'3.9.5',fecha:'29/07/2026',tipo:'patch',cambios:[
+    'Fix: login con Google no funcionaba en PWA instalada (Mac/Safari) — usa signInWithRedirect en ese caso'
+  ]},
   {v:'3.9.4',fecha:'29/07/2026',tipo:'patch',cambios:[
     'Fix: el Asistente IA (chat) no mandaba el token de autenticación al proxy'
   ]},
@@ -17863,13 +17866,44 @@ if(window._fbdb){try{window._fbdb.enablePersistence({synchronizeTabs:true}).catc
 window._fbStorage=typeof firebase!=="undefined"?firebase.storage():null;
 window._fbUser=null;
 
+// Completa el login por redirect (PWA instalada) al volver de Google.
+// onAuthStateChanged también dispara solo con esto, pero acá se captura
+// cualquier error real (ej. dominio no autorizado) para mostrarlo.
+if(window._fbAuth){
+  window._fbAuth.getRedirectResult().catch(function(e){
+    var code=(e&&e.code)||'';
+    if(!code||code==='auth/no-auth-event')return;
+    showLoginError(code==='auth/unauthorized-domain'?'Dominio no autorizado en Firebase — avisale al administrador.':(e.message||code));
+  });
+}
+
+// PWA instalada (ícono en Dock/pantalla de inicio): signInWithPopup no
+// funciona bien ahí (el popup se abre y se cierra solo sin completar el
+// login, bug reportado 2026-07-29 en Mac/Safari) — se usa signInWithRedirect
+// en ese caso. El resultado se completa en _fbAuth.getRedirectResult() (ver
+// más abajo, cerca de donde se inicializa Firebase Auth).
+function _isStandalonePWA(){
+  return window.navigator.standalone===true || window.matchMedia('(display-mode: standalone)').matches;
+}
 function signInGoogle(){
   if(!window._fbAuth)return;
   var p=new firebase.auth.GoogleAuthProvider();
   p.addScope('profile');p.addScope('email');
+  if(_isStandalonePWA()){
+    window._fbAuth.signInWithRedirect(p).catch(function(e){showLoginError(e.message);});
+    return;
+  }
   window._fbAuth.signInWithPopup(p).then(function(r){
     if(r.user)r.user.reload().then(function(){window._fbUser=window._fbAuth.currentUser;renderHeader();rSidebar();});
-  }).catch(function(e){showLoginError(e.message);});
+  }).catch(function(e){
+    // Fallback: si el popup fue bloqueado/cancelado por el navegador (no por
+    // el usuario cerrándolo a propósito), reintentar con redirect.
+    if(e&&(e.code==='auth/popup-blocked'||e.code==='auth/cancelled-popup-request'||e.code==='auth/operation-not-supported-in-this-environment')){
+      window._fbAuth.signInWithRedirect(p).catch(function(e2){showLoginError(e2.message);});
+      return;
+    }
+    showLoginError(e.message);
+  });
 }
 function signInEmail(){
   var em=document.getElementById("login-email").value.trim();
