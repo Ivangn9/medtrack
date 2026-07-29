@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v3.9.3 — 29/07/2026 (patch)
+
+- Aviso al cargar notas de PM (se muestran en el QR público) y arregla fallback roto en eq-public.html
+
 ## v3.9.2 — 29/07/2026 (patch)
 
 - Fix de seguridad: escapa comillas simples en onclick (inyección de código vía nombres de archivo)

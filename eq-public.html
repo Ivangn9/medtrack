@@ -97,17 +97,19 @@ if (!eqId) {
   // Sign in anonymously — no UI, fully transparent to the user
   firebase.auth().signInAnonymously()
     .then(function() {
-      // Doc espejo con SOLO campos públicos; fallback al doc completo si aún no existe
-      return db.collection('orgs').doc('cima').collection('app').doc('public').get()
-        .then(function(pubDoc) {
-          if (pubDoc.exists && (pubDoc.data().eqs || []).length) return pubDoc;
-          return db.collection('orgs').doc('cima').collection('app').doc('data').get();
-        });
+      // Doc espejo con SOLO campos públicos. Antes había un fallback al doc
+      // completo ("data") cuando el espejo todavía no existía, pero un
+      // usuario anónimo NUNCA puede leer ese doc (firestore.rules lo exige
+      // isAuthorizedMedTrack()) — el fallback siempre fallaba y mostraba
+      // "Error de conexión" en vez de avisar que el espejo no está listo.
+      return db.collection('orgs').doc('cima').collection('app').doc('public').get();
     })
-    .then(function(doc) {
-      if (!doc.exists) { showError('Sin datos', 'No se encontraron equipos en el sistema.'); return; }
-      var data = doc.data();
-      var allEqs = data.eqs || [];
+    .then(function(pubDoc) {
+      if (!pubDoc.exists || !(pubDoc.data().eqs || []).length) {
+        showError('Sistema no disponible', 'La vista pública de equipos todavía no está lista. Contactá al equipo de mantenimiento.');
+        return;
+      }
+      var allEqs = pubDoc.data().eqs || [];
       var eq = null;
       for (var i = 0; i < allEqs.length; i++) {
         if (allEqs[i].id === eqId) { eq = allEqs[i]; break; }

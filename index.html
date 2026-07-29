@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.29.002 -->
+<!-- v2026.07.29.003 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.29.002">
+<meta name="app-version" content="v2026.07.29.003">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -7203,7 +7203,9 @@ function openModalProgramarPM(pmId,fechaDefault){
     '<div class="ff"><div class="ff-label">Hora fin</div><input class="inp" type="time" id="pmpr-hora-fin" value="'+(pm&&pm.horaFin?pm.horaFin:'12:00')+'"></div>'+
     '</div>'+
     '<div class="ff"><div class="ff-label">T\xe9cnico / Empresa</div><input class="inp" id="pmpr-tec" value="'+(pm?esc(pm.tecnico||''):'')+'" placeholder="Nombre del t\xe9cnico o empresa..."></div>'+
-    '<div class="ff"><div class="ff-label">Notas / Alcance del PM</div><textarea class="inp" id="pmpr-notas" rows="3" placeholder="Descripci\xf3n del mantenimiento, partes a revisar...">'+(pm?esc(pm.notas||''):'')+'</textarea></div>'+
+    '<div class="ff"><div class="ff-label">Notas / Alcance del PM</div><textarea class="inp" id="pmpr-notas" rows="3" placeholder="Descripci\xf3n del mantenimiento, partes a revisar...">'+(pm?esc(pm.notas||''):'')+'</textarea>'+
+      '<div style="font-size:.66rem;color:var(--orange);margin-top:4px;">⚠️ Este texto se muestra en la vista pública del código QR del equipo — no escribas nombres de empresas contratistas, costos ni datos internos acá.</div>'+
+    '</div>'+
     '<div style="margin-top:10px;"><label style="font-size:.72rem;color:var(--text2);font-weight:600;display:block;margin-bottom:6px;">Tareas del PM</label><div id="pm-pasos-list" style="margin-bottom:8px;">'+_renderPMPasos(pm?pm.pasos:[])+'</div><div style="display:flex;gap:8px;"><input class="inp" id="pm-paso-nuevo" type="text" placeholder="Agregar tarea..." style="flex:1;font-size:.8rem;"><button type="button" onclick="_addPMPaso();" style="background:var(--accent);color:#fff;border:none;border-radius:var(--r-md);padding:8px 14px;font-weight:700;cursor:pointer;font-size:.8rem;">+</button></div></div>'+
     '<button class="btn-primary" style="width:100%;padding:13px;margin-top:8px;" onclick="submitPMProgramado(\''+((pm&&pm.id)||'')+'\')">'+(pm?'Guardar cambios':'Programar PM')+'</button>'
   );
@@ -7307,7 +7309,9 @@ function togglePMRealizado(pmId){
       '<span style="color:var(--text3);margin-left:6px;">'+fD(pm.fecha)+'</span>'+
     '</div>'+
     '<div class="ff"><div class="ff-label">T\xe9cnico que lo realiz\xf3</div><input class="inp" id="pm-tec" placeholder="Nombre o empresa"></div>'+
-    '<div class="ff"><div class="ff-label">Notas / Trabajo realizado (opcional)</div><textarea class="inp" id="pm-notas" rows="2" placeholder="Ej: Se realizaron filtros y limpieza general..."></textarea></div>'+
+    '<div class="ff"><div class="ff-label">Notas / Trabajo realizado (opcional)</div><textarea class="inp" id="pm-notas" rows="2" placeholder="Ej: Se realizaron filtros y limpieza general..."></textarea>'+
+      '<div style="font-size:.66rem;color:var(--orange);margin-top:4px;">⚠️ Este texto se muestra en la vista pública del código QR del equipo — no escribas nombres de empresas contratistas, costos ni datos internos acá.</div>'+
+    '</div>'+
     '<div style="font-size:.68rem;color:var(--text3);margin-bottom:12px;padding:6px 10px;background:rgba(0,113,227,.06);border-radius:8px;">Se crear\xe1 una OT preventiva cerrada autom\xe1ticamente con estos datos.</div>'+
     '<button class="btn-primary" style="width:100%;padding:12px;" onclick="submitPMRealizado(\''+pmId+'\')">✅ Confirmar y generar OT</button>'
   );
@@ -17574,12 +17578,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="3.9.2";
+var APP_DISPLAY_VERSION="3.9.3";
 var APP_BUILD="29/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'3.9.3',fecha:'29/07/2026',tipo:'patch',cambios:[
+    'Aviso al cargar notas de PM (se muestran en el QR público) y arregla fallback roto en eq-public.html'
+  ]},
   {v:'3.9.2',fecha:'29/07/2026',tipo:'patch',cambios:[
     'Fix de seguridad: escapa comillas simples en onclick (inyección de código vía nombres de archivo)'
   ]},
