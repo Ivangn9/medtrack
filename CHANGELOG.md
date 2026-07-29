@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v3.9.4 — 29/07/2026 (patch)
+
+- Fix: el Asistente IA (chat) no mandaba el token de autenticación al proxy
+
 ## v3.9.3 — 29/07/2026 (patch)
 
 - Aviso al cargar notas de PM (se muestran en el QR público) y arregla fallback roto en eq-public.html

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.29.003 -->
+<!-- v2026.07.29.004 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.29.003">
+<meta name="app-version" content="v2026.07.29.004">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -13749,30 +13749,43 @@ function sendAIAssistantMsg(){
   var msgs=_aiChatHistory.slice();
   // Prepend context to first message for proxies that strip system field
   if(msgs.length===1){msgs=[{role:'user',content:sysPrompt+'\n\n---\n'+msgs[0].content}];}
-  fetch(proxyUrl,{method:'POST',mode:'cors',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:800,messages:msgs})
-  })
-  .then(function(r){
-    var status=r.status;var ok=r.ok;
-    return r.text().then(function(txt){
-      var data;try{data=JSON.parse(txt);}catch(e){data={error:{message:'Respuesta no válida del proxy: '+txt.slice(0,120)}};}
-      return{ok:ok,status:status,data:data};
+  // El Worker exige un ID token de Firebase (ver ai-proxy-worker.js) — este
+  // envío se había quedado sin el header Authorization cuando se agregó esa
+  // verificación en el escáner de etiquetas (bug encontrado 2026-07-29).
+  if(!window._fbUser){
+    var elNoUser=document.getElementById(loadId);if(elNoUser)elNoUser.parentNode.removeChild(elNoUser);
+    _appendAIMsg('err','Iniciá sesión de nuevo para usar el asistente',null);
+    return;
+  }
+  window._fbUser.getIdToken().then(function(idToken){
+    fetch(proxyUrl,{method:'POST',mode:'cors',headers:{'Content-Type':'application/json','Authorization':'Bearer '+idToken},
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:800,messages:msgs})
+    })
+    .then(function(r){
+      var status=r.status;var ok=r.ok;
+      return r.text().then(function(txt){
+        var data;try{data=JSON.parse(txt);}catch(e){data={error:{message:'Respuesta no válida del proxy: '+txt.slice(0,120)}};}
+        return{ok:ok,status:status,data:data};
+      });
+    })
+    .then(function(res){
+      var el=document.getElementById(loadId);if(el)el.parentNode.removeChild(el);
+      if(!res.ok){var em=((res.data||{}).error||{}).message||'Error desconocido';_appendAIMsg('err','Error '+res.status+': '+em,null);return;}
+      var text=(((res.data.content||[])[0])||{}).text||'';
+      if(!text){_appendAIMsg('err','La IA no devolvió respuesta. Intentá de nuevo.',null);return;}
+      _aiChatHistory.push({role:'assistant',content:text});
+      _appendAIMsg('bot',text,null);
+    })
+    .catch(function(err){
+      var el=document.getElementById(loadId);if(el)el.parentNode.removeChild(el);
+      var msg=err&&err.message?err.message:'Sin conexión';
+      if(msg.indexOf('fetch')!==-1||msg.indexOf('Load')!==-1||msg.indexOf('network')!==-1||msg.indexOf('Failed')!==-1){
+        msg='Sin conexión con la API. Verificá internet y la URL del proxy en Ajustes.';}
+      _appendAIMsg('err',msg,null);
     });
-  })
-  .then(function(res){
+  }).catch(function(){
     var el=document.getElementById(loadId);if(el)el.parentNode.removeChild(el);
-    if(!res.ok){var em=((res.data||{}).error||{}).message||'Error desconocido';_appendAIMsg('err','Error '+res.status+': '+em,null);return;}
-    var text=(((res.data.content||[])[0])||{}).text||'';
-    if(!text){_appendAIMsg('err','La IA no devolvió respuesta. Intentá de nuevo.',null);return;}
-    _aiChatHistory.push({role:'assistant',content:text});
-    _appendAIMsg('bot',text,null);
-  })
-  .catch(function(err){
-    var el=document.getElementById(loadId);if(el)el.parentNode.removeChild(el);
-    var msg=err&&err.message?err.message:'Sin conexión';
-    if(msg.indexOf('fetch')!==-1||msg.indexOf('Load')!==-1||msg.indexOf('network')!==-1||msg.indexOf('Failed')!==-1){
-      msg='Sin conexión con la API. Verificá internet y la URL del proxy en Ajustes.';}
-    _appendAIMsg('err',msg,null);
+    _appendAIMsg('err','No se pudo verificar tu sesión — volvé a iniciar sesión',null);
   });
 }
 
@@ -17578,12 +17591,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="3.9.3";
+var APP_DISPLAY_VERSION="3.9.4";
 var APP_BUILD="29/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'3.9.4',fecha:'29/07/2026',tipo:'patch',cambios:[
+    'Fix: el Asistente IA (chat) no mandaba el token de autenticación al proxy'
+  ]},
   {v:'3.9.3',fecha:'29/07/2026',tipo:'patch',cambios:[
     'Aviso al cargar notas de PM (se muestran en el QR público) y arregla fallback roto en eq-public.html'
   ]},
