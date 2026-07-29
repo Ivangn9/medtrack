@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v3.9.1 — 29/07/2026 (patch)
+
+- Fix de seguridad: control de acceso real en reglas de Firestore + autenticación en el proxy de IA
+
 ## v3.9.0 — 28/07/2026 (minor)
 
 - Reporte Gerencial: las fotos de fallas ya no desaparecen del PDF exportado, se agrega el icono de categoria por equipo, y se elimina la generacion de dos documentos identicos

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.28.002 -->
+<!-- v2026.07.29.001 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.28.002">
+<meta name="app-version" content="v2026.07.29.001">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -13461,40 +13461,52 @@ function _doScanLabel(prompt,onResult){
         canvas.getContext('2d').drawImage(img,0,0,w,h);
         var resized=canvas.toDataURL('image/jpeg',0.7);
         var rb64=resized.split(',')[1]||'';
-        fetch(proxyUrl,{
-          method:'POST',
-          mode:'cors',
-          headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:500,messages:[{role:'user',content:[
-            {type:'image',source:{type:'base64',media_type:'image/jpeg',data:rb64}},
-            {type:'text',text:prompt}
-          ]}]})
-        })
-        .then(function(r){
-          return r.json().then(function(d){return {ok:r.ok,status:r.status,data:d};});
-        })
-        .then(function(res){
-          if(!res.ok){
-            var errMsg=((res.data||{}).error||{}).message||'Error desconocido';
-            if(res.status===401)throw new Error('API Key inválida — verificá que la copiaste completa');
-            if(res.status===400)throw new Error('Error en la solicitud: '+errMsg);
-            throw new Error('Error '+res.status+': '+errMsg);
-          }
-          var text=(((res.data.content||[])[0])||{}).text||'';
-          var m=text.match(/\{[\s\S]*\}/);
-          if(!m)throw new Error('La IA no pudo leer la etiqueta — intentá con mejor iluminación');
-          onResult(JSON.parse(m[0]));
-          var sb=document.getElementById('scan-label-btn');
-          if(sb){sb.disabled=false;sb.innerHTML='📷 Escanear otra etiqueta';}
-        })
-        .catch(function(err){
-          console.error('AI scan:',err);
-          var msg=err.message||'';
-          if(!msg||msg.indexOf('fetch')!==-1||msg.indexOf('Load')!==-1||msg.indexOf('network')!==-1){
-            msg='Sin conexión con la API. Verificá que tenés internet y la API Key correcta.';}
+        // El Worker de Cloudflare ahora exige un ID token de Firebase válido
+        // (ver ai-proxy-worker.js) — sin esto, cualquiera que descubra la URL
+        // del proxy podía usarlo gratis a costa de la API key de Anthropic.
+        var _scanFail=function(msg){
           showToast(msg,'err');
           var sb=document.getElementById('scan-label-btn');
           if(sb){sb.disabled=false;sb.innerHTML='📷 Escanear etiqueta';}
+        };
+        if(!window._fbUser){_scanFail('Iniciá sesión de nuevo para usar el escáner');return;}
+        window._fbUser.getIdToken().then(function(idToken){
+          fetch(proxyUrl,{
+            method:'POST',
+            mode:'cors',
+            headers:{'Content-Type':'application/json','Authorization':'Bearer '+idToken},
+            body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:500,messages:[{role:'user',content:[
+              {type:'image',source:{type:'base64',media_type:'image/jpeg',data:rb64}},
+              {type:'text',text:prompt}
+            ]}]})
+          })
+          .then(function(r){
+            return r.json().then(function(d){return {ok:r.ok,status:r.status,data:d};});
+          })
+          .then(function(res){
+            if(!res.ok){
+              var errMsg=((res.data||{}).error||{}).message||'Error desconocido';
+              if(res.status===401)throw new Error('API Key inválida — verificá que la copiaste completa');
+              if(res.status===403)throw new Error('Sesión no autorizada para el proxy — volvé a iniciar sesión');
+              if(res.status===400)throw new Error('Error en la solicitud: '+errMsg);
+              throw new Error('Error '+res.status+': '+errMsg);
+            }
+            var text=(((res.data.content||[])[0])||{}).text||'';
+            var m=text.match(/\{[\s\S]*\}/);
+            if(!m)throw new Error('La IA no pudo leer la etiqueta — intentá con mejor iluminación');
+            onResult(JSON.parse(m[0]));
+            var sb=document.getElementById('scan-label-btn');
+            if(sb){sb.disabled=false;sb.innerHTML='📷 Escanear otra etiqueta';}
+          })
+          .catch(function(err){
+            console.error('AI scan:',err);
+            var msg=err.message||'';
+            if(!msg||msg.indexOf('fetch')!==-1||msg.indexOf('Load')!==-1||msg.indexOf('network')!==-1){
+              msg='Sin conexión con la API. Verificá que tenés internet y la API Key correcta.';}
+            _scanFail(msg);
+          });
+        }).catch(function(){
+          _scanFail('No se pudo verificar tu sesión — volvé a iniciar sesión');
         });
       };
       img.src=dataUrl;
@@ -17554,12 +17566,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="3.9.0";
-var APP_BUILD="28/07/26 h";
+var APP_DISPLAY_VERSION="3.9.1";
+var APP_BUILD="29/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'3.9.1',fecha:'29/07/2026',tipo:'patch',cambios:[
+    'Fix de seguridad: control de acceso real en reglas de Firestore + autenticación en el proxy de IA'
+  ]},
   {v:'3.9.0',fecha:'28/07/2026',tipo:'minor',cambios:[
     'Reporte Gerencial: las fotos de fallas ya no desaparecen del PDF exportado, se agrega el icono de categoria por equipo, y se elimina la generacion de dos documentos identicos'
   ]},
