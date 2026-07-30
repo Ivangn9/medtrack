@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.30.002 -->
+<!-- v2026.07.30.003 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.30.002">
+<meta name="app-version" content="v2026.07.30.003">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -175,6 +175,12 @@ body.modal-open #header{transform:scale(.985);filter:brightness(.90);}
   pointer-events:none;z-index:0;}
 .gc:active{transform:scale(.968);
   box-shadow:0 1px 4px rgba(0,0,0,.04),0 3px 12px rgba(0,0,0,.05),inset 0 1px 0 rgba(255,255,255,.85);}
+/* .gc-notap: para contenedores .gc que envuelven una LISTA de controles
+   propios (checkboxes, botones) en vez de ser ellos mismos el botón —
+   el scale de .gc:active en un contenedor grande puede hacer que el tap
+   sobre un checkbox de adentro no se registre bien en iOS Safari (bug
+   reportado 2026-07-30: "se hunde con la animación pero no hace clic real"). */
+.gc.gc-notap:active{transform:none!important;}
 /* chromatic refraction edge — subtle prism at bottom */
 .gc-chroma::after{
   background:linear-gradient(180deg,rgba(255,255,255,.82) 0%,rgba(255,255,255,.0) 50%),
@@ -648,6 +654,13 @@ body.dark .ig{box-shadow:0 2px 8px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255
   .gc,.gc.tap,#bb-inner,#header-inner,#sidebar,.sb-nav-btn{transition:none!important;}
   body.modal-open #main,body.modal-open #header{transform:none!important;filter:none!important;}
   [data-aos]{opacity:1!important;transform:none!important;transition:none!important;}
+  /* Reducir movimiento no es "sin feedback" — Apple recomienda reemplazar
+     slides/springs por un cross-fade corto, no un corte instantáneo. Los
+     fondos de modal/Ajustes/drawer solo cambian opacidad (sin transform),
+     así que no marean: les damos un fundido breve en vez de .01ms. */
+  .modal-bg,.modal-bg.closing,#settings-overlay.closing,#sidebar-backdrop{
+    animation-duration:.18s!important;
+  }
 }
 
 /* ── ACCESIBILIDAD: Mayor contraste (iOS "Aumentar contraste") ── */
@@ -17654,12 +17667,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="3.9.7";
+var APP_DISPLAY_VERSION="3.9.8";
 var APP_BUILD="30/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'3.9.8',fecha:'30/07/2026',tipo:'patch',cambios:[
+    'Fix: los checkboxes de la lista de equipos en Reporte Gerencial no registraban el clic (contenedor .gc con animación de tap pensada para tarjetas, no para listas)'
+  ]},
   {v:'3.9.7',fecha:'30/07/2026',tipo:'patch',cambios:[
     'Animaciones de salida simétricas para modal, Ajustes y drawer mobile (antes cerraban de golpe sin animación)'
   ]},
@@ -18720,7 +18736,7 @@ function rReporte(){
   h+='</div>';
   /* Right — equipos */
   h+='<div style="flex:7;min-width:0;">';
-  h+='<div class="gc" style="padding:0;margin-bottom:14px;overflow:hidden;">'+
+  h+='<div class="gc gc-notap" style="padding:0;margin-bottom:14px;overflow:hidden;">'+
     '<div style="padding:12px 16px;background:rgba(120,120,128,.05);border-bottom:1px solid rgba(120,120,128,.08);">'+
       '<div style="display:flex;align-items:center;gap:6px;margin-bottom:'+(usedCats.length>0?'8px':'0')+';">'+
         '<span style="font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);">Equipos</span>'+
