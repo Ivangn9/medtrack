@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.30.005 -->
+<!-- v2026.07.30.006 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -38,7 +38,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.30.005">
+<meta name="app-version" content="v2026.07.30.006">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -4356,7 +4356,11 @@ function _pdfDecode(s){
   return s;
 }
 function _pdfPlain(html){return _pdfDecode(String(html||'').replace(/<[^>]+>/g,'')).replace(/\s+/g,' ').trim();}
-function _pdfIsImg(s){return typeof s==='string'&&s.indexOf('data:image/')===0;}
+// pdfMake solo puede incrustar JPEG/PNG — antes cualquier "data:image/*" pasaba
+// (incluido HEIC de fotos de iPhone, que Safari puede mostrar en un <img> pero
+// pdfMake no entiende). Se filtra acá para que una foto no convertible quede
+// excluida limpiamente de la galería en vez de llegar rota al PDF.
+function _pdfIsImg(s){return typeof s==='string'&&/^data:image\/(jpe?g|png);base64,/i.test(s);}
 // Ícono de categoría como nodo pdfmake — catSvgIcon() según la categoría devuelve
 // <svg> (dibujo vectorial) o <img src="data:image/..."> (foto real en base64,
 // la mayoría de las categorías desde que se cargaron fotos reales por equipo) o
@@ -12843,17 +12847,26 @@ function _narrativeEq(eq,mantHist,repHist,mejHist,actToShow,mejPendToShow,trasla
 // de ~350KB reales (o toque el piso de calidad) — antes solo se tocaban
 // imágenes con dimensiones grandes; una captura de pantalla o PNG mal
 // comprimido pero de dimensiones chicas pasaba sin comprimir en absoluto.
+// Fotos sacadas con la cámara del iPhone/iPad suelen venir en HEIC — Safari
+// las puede MOSTRAR en un <img> (soporte nativo de Apple), pero pdfMake solo
+// entiende JPEG/PNG: si drawImage() falla en decodificarla para el canvas
+// (antes quedaba fuera del try/catch — un fallo ahí dejaba la callback sin
+// llamar nunca, y esa foto se perdía en silencio del reporte), o si Safari no
+// dispara onload para ese formato, cb(dataUrl) devuelve el HEIC crudo tal
+// cual: _pdfIsImg ahora rechaza explícitamente cualquier cosa que no sea
+// jpeg/png, así esa foto se excluye limpiamente de la galería del PDF en vez
+// de llegar rota a pdfMake sin que nadie se entere.
 function _resizeReportImg(dataUrl, cb){
   var TARGET_BYTES=350000, B64_FACTOR=1.37;
   try{
     var img=document.createElement('img');
     img.onload=function(){
-      var w=img.naturalWidth,h=img.naturalHeight,MAX=1100;
-      var s=Math.min(1,MAX/w,MAX/h);
-      var cv=document.createElement('canvas');
-      cv.width=Math.max(1,Math.round(w*s));cv.height=Math.max(1,Math.round(h*s));
-      cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
       try{
+        var w=img.naturalWidth,h=img.naturalHeight,MAX=1100;
+        var s=Math.min(1,MAX/w,MAX/h);
+        var cv=document.createElement('canvas');
+        cv.width=Math.max(1,Math.round(w*s));cv.height=Math.max(1,Math.round(h*s));
+        cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
         var q=0.82,out=cv.toDataURL('image/jpeg',q),tries=0;
         while(out.length>TARGET_BYTES*B64_FACTOR&&q>0.4&&tries<5){
           q-=0.12;out=cv.toDataURL('image/jpeg',q);tries++;
@@ -17680,12 +17693,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="3.9.10";
+var APP_DISPLAY_VERSION="3.9.11";
 var APP_BUILD="30/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'3.9.11',fecha:'30/07/2026',tipo:'patch',cambios:[
+    'Fix: fotos HEIC de iPhone no se incrustaban en el PDF del reporte (pdfMake solo soporta JPEG/PNG)'
+  ]},
   {v:'3.9.10',fecha:'30/07/2026',tipo:'patch',cambios:[
     'Reporte Gerencial: tarjetas/fotos ya no se cortan entre páginas, compresión automática de imágenes pesadas'
   ]},

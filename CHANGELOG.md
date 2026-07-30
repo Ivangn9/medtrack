@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v3.9.11 — 30/07/2026 (patch)
+
+- Fix: fotos HEIC de iPhone no se incrustaban en el PDF del reporte (pdfMake solo soporta JPEG/PNG)
+
 ## v3.9.10 — 30/07/2026 (patch)
 
 - Reporte Gerencial: tarjetas/fotos ya no se cortan entre páginas, compresión automática de imágenes pesadas
