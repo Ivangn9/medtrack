@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.30.004 -->
+<!-- v2026.07.30.005 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -38,7 +38,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.30.004">
+<meta name="app-version" content="v2026.07.30.005">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -4498,9 +4498,9 @@ function _pdfGallery(imgArr,perRow,imgW){
   for(i=0;i<imgArr.length;i++){
     if(!_pdfIsImg(imgArr[i].src))continue;
     cur.push({width:imgW+8,stack:[{image:imgArr[i].src,width:imgW},{text:imgArr[i].cap||'',fontSize:7,color:'#64748b',margin:[0,2,0,0]}]});
-    if(cur.length===perRow){rows.push({columns:cur,columnGap:8,margin:[0,4,0,4]});cur=[];}
+    if(cur.length===perRow){rows.push({columns:cur,columnGap:8,margin:[0,4,0,4],unbreakable:true});cur=[];}
   }
-  if(cur.length)rows.push({columns:cur,columnGap:8,margin:[0,4,0,4]});
+  if(cur.length)rows.push({columns:cur,columnGap:8,margin:[0,4,0,4],unbreakable:true});
   return rows;
 }
 function _pdfFotosArr(fotos,imgsMap){
@@ -4520,7 +4520,7 @@ function _pdfKV(rows){
       {text:rows[i][1],fontSize:8,color:'#1e293b',fillColor:f,margin:[5,2,5,2]}
     ]);
   }
-  return {table:{widths:[112,'*'],body:body},layout:'noBorders',margin:[0,2,0,2]};
+  return {table:{widths:[112,'*'],body:body},layout:'noBorders',margin:[0,2,0,2],unbreakable:true};
 }
 function _pdfSegui(notas,accent){
   var body=[[{text:'Seguimiento ('+notas.length+')',bold:true,fontSize:7.5,color:accent,margin:[5,3,5,2]}]];
@@ -4534,7 +4534,7 @@ function _pdfSegui(notas,accent){
 }
 function _pdfCard(titleText,estadoObj,inner,fill,border){
   var head={columns:[{text:_pdfDecode(titleText),bold:true,fontSize:9,color:'#1e293b'},{text:estadoObj?estadoObj.label:'',bold:true,fontSize:8,color:estadoObj?estadoObj.color:'#64748b',alignment:'right'}],margin:[0,0,0,4]};
-  return {table:{widths:['*'],body:[[{stack:[head].concat(inner),margin:[9,7,9,7]}]]},layout:_pdfBox(fill,border),margin:[0,3,0,6]};
+  return {table:{widths:['*'],body:[[{stack:[head].concat(inner),margin:[9,7,9,7]}]]},layout:_pdfBox(fill,border),margin:[0,3,0,6],unbreakable:true};
 }
 function _pdfH(t){return {text:t,fontSize:12,bold:true,color:'#1a3a6b',margin:[0,12,0,6]};}
 function _pdfEqSection(d,imgsMap){
@@ -12838,17 +12838,28 @@ function _narrativeEq(eq,mantHist,repHist,mejHist,actToShow,mejPendToShow,trasla
   return html;
 }
 
+// Redimensiona a máx. 1100px por lado (si hace falta) y SIEMPRE reencodea a
+// JPEG, bajando la calidad en pasos hasta que el resultado quede por debajo
+// de ~350KB reales (o toque el piso de calidad) — antes solo se tocaban
+// imágenes con dimensiones grandes; una captura de pantalla o PNG mal
+// comprimido pero de dimensiones chicas pasaba sin comprimir en absoluto.
 function _resizeReportImg(dataUrl, cb){
+  var TARGET_BYTES=350000, B64_FACTOR=1.37;
   try{
     var img=document.createElement('img');
     img.onload=function(){
       var w=img.naturalWidth,h=img.naturalHeight,MAX=1100;
-      if(w<=MAX&&h<=MAX){cb(dataUrl);return;}
-      var s=Math.min(MAX/w,MAX/h);
+      var s=Math.min(1,MAX/w,MAX/h);
       var cv=document.createElement('canvas');
-      cv.width=Math.round(w*s);cv.height=Math.round(h*s);
+      cv.width=Math.max(1,Math.round(w*s));cv.height=Math.max(1,Math.round(h*s));
       cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
-      try{cb(cv.toDataURL('image/jpeg',0.82));}catch(e){cb(dataUrl);}
+      try{
+        var q=0.82,out=cv.toDataURL('image/jpeg',q),tries=0;
+        while(out.length>TARGET_BYTES*B64_FACTOR&&q>0.4&&tries<5){
+          q-=0.12;out=cv.toDataURL('image/jpeg',q);tries++;
+        }
+        cb(out);
+      }catch(e){cb(dataUrl);}
     };
     img.onerror=function(){cb(dataUrl);};
     img.src=dataUrl;
@@ -17669,12 +17680,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="3.9.9";
+var APP_DISPLAY_VERSION="3.9.10";
 var APP_BUILD="30/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'3.9.10',fecha:'30/07/2026',tipo:'patch',cambios:[
+    'Reporte Gerencial: tarjetas/fotos ya no se cortan entre páginas, compresión automática de imágenes pesadas'
+  ]},
   {v:'3.9.9',fecha:'30/07/2026',tipo:'patch',cambios:[
     'Agrega manifest.json para instalar la app en Android/Windows (Mac/iPhone ya funcionaban)'
   ]},
