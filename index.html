@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.30.003 -->
+<!-- v2026.07.30.004 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -8,6 +8,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="CIMA Hub">
+<meta name="theme-color" content="#0071e3">
+<link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon-precomposed" sizes="180x180" href="icon.png">
 <link rel="apple-touch-icon-precomposed" sizes="167x167" href="icon.png">
 <link rel="apple-touch-icon-precomposed" sizes="152x152" href="icon.png">
@@ -36,7 +38,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.30.003">
+<meta name="app-version" content="v2026.07.30.004">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -17667,12 +17669,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="3.9.8";
+var APP_DISPLAY_VERSION="3.9.9";
 var APP_BUILD="30/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'3.9.9',fecha:'30/07/2026',tipo:'patch',cambios:[
+    'Agrega manifest.json para instalar la app en Android/Windows (Mac/iPhone ya funcionaban)'
+  ]},
   {v:'3.9.8',fecha:'30/07/2026',tipo:'patch',cambios:[
     'Fix: los checkboxes de la lista de equipos en Reporte Gerencial no registraban el clic (contenedor .gc con animación de tap pensada para tarjetas, no para listas)'
   ]},

@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v3.9.9 — 30/07/2026 (patch)
+
+- Agrega manifest.json para instalar la app en Android/Windows (Mac/iPhone ya funcionaban)
+
 ## v3.9.8 — 30/07/2026 (patch)
 
 - Fix: los checkboxes de la lista de equipos en Reporte Gerencial no registraban el clic (contenedor .gc con animación de tap pensada para tarjetas, no para listas)

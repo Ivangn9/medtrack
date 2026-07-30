@@ -1,0 +1,26 @@
+{
+  "name": "CIMA Hub — MedTrack",
+  "short_name": "CIMA Hub",
+  "description": "Gestión de equipos médicos — CIMA",
+  "start_url": "index.html",
+  "scope": ".",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0071e3",
+  "lang": "es",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": ["medical", "productivity", "business"]
+}
