@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v3.9.6 — 30/07/2026 (patch)
+
+- Agrega login alternativo por contraseña vinculada a la cuenta (para apps instaladas donde Google no completa el redirect)
+
 ## v3.9.5 — 29/07/2026 (patch)
 
 - Fix: login con Google no funcionaba en PWA instalada (Mac/Safari) — usa signInWithRedirect en ese caso
