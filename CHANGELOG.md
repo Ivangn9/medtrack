@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v3.9.7 — 30/07/2026 (patch)
+
+- Animaciones de salida simétricas para modal, Ajustes y drawer mobile (antes cerraban de golpe sin animación)
+
 ## v3.9.6 — 30/07/2026 (patch)
 
 - Agrega login alternativo por contraseña vinculada a la cuenta (para apps instaladas donde Google no completa el redirect)

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.30.001 -->
+<!-- v2026.07.30.002 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -36,7 +36,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.30.001">
+<meta name="app-version" content="v2026.07.30.002">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -547,6 +547,13 @@ body.dark .ig{box-shadow:0 2px 8px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255
 /* Modal animations (separate from view slide) */
 @keyframes modalSlideUp{from{transform:translateY(56px);opacity:.01}to{transform:translateY(0);opacity:1}}
 @keyframes modalFadeIn{from{opacity:0}to{opacity:1}}
+/* Salida simétrica: mismo camino que la entrada, en reversa (Apple HIG —
+   "si algo entra deslizándose, debe salir por el mismo camino"). Antes
+   .hidden{display:none} cortaba todo de golpe al cerrar, sin animación. */
+@keyframes modalSlideDown{from{transform:translateY(0);opacity:1}to{transform:translateY(56px);opacity:.01}}
+@keyframes fadeOutModal{from{opacity:1}to{opacity:0}}
+.modal-box.closing{animation:modalSlideDown .28s var(--ease-out) both!important;}
+.modal-bg.closing{animation:fadeOutModal .22s var(--ease-out) both!important;}
 .pulse{animation:pulse 2s infinite;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
 
@@ -554,6 +561,10 @@ body.dark .ig{box-shadow:0 2px 8px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255
 /* Settings panel — slide from right on open */
 .settings-panel{animation:settingsPanelIn .42s var(--spring);}
 @keyframes settingsPanelIn{from{opacity:.6;transform:translateX(32px)}to{opacity:1;transform:translateX(0)}}
+/* Salida simétrica — mismo camino (derecha) que la entrada, en reversa */
+@keyframes settingsPanelOut{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(32px)}}
+.settings-panel.closing{animation:settingsPanelOut .28s var(--ease-out) both!important;}
+#settings-overlay.closing{animation:fadeOutModal .22s var(--ease-out) both!important;}
 /* Settings items — cascade in from right */
 .settings-item{animation:settingsItemIn .38s var(--spring) both;}
 .settings-item:nth-child(1){animation-delay:.03s}
@@ -712,6 +723,14 @@ body.dark .btn-secondary{color:var(--accent);background:rgba(173,198,255,.14);bo
 @keyframes sidebarDrawerIn{
   from{transform:translateX(-100%);opacity:.85}
   to{transform:translateX(0);opacity:1}}
+/* Salida simétrica — mismo camino (izquierda) que la entrada, en reversa */
+@keyframes sidebarDrawerOut{
+  from{transform:translateX(0);opacity:1}
+  to{transform:translateX(-100%);opacity:.85}}
+@media(max-width:899px){
+  body.sb-closing #sidebar{animation:sidebarDrawerOut .28s var(--ease-out) both!important;}
+  body.sb-closing #sidebar-backdrop{animation:fadeOutModal .22s var(--ease-out) both!important;}
+}
 
 /* ── MOBILE DASHBOARD BREATHING ROOM ── */
 @media(max-width:480px){
@@ -2757,8 +2776,24 @@ window.addEventListener('scroll',function(){
   var c=sc>48;
   if(c!==window._hdrCompact){window._hdrCompact=c;document.body.classList.toggle('hdr-compact',c);}
 },{passive:true});
-function toggleMobileNav(){document.body.classList.toggle('sb-open');}
-function closeMobileNav(){document.body.classList.remove('sb-open');}
+var _sbCloseTimer=null;
+function toggleMobileNav(){
+  if(document.body.classList.contains('sb-open'))closeMobileNav();
+  else{
+    if(_sbCloseTimer){clearTimeout(_sbCloseTimer);_sbCloseTimer=null;}
+    document.body.classList.remove('sb-closing');
+    document.body.classList.add('sb-open');
+  }
+}
+function closeMobileNav(){
+  if(!document.body.classList.contains('sb-open'))return;
+  if(_sbCloseTimer)clearTimeout(_sbCloseTimer);
+  document.body.classList.add('sb-closing');
+  _sbCloseTimer=setTimeout(function(){
+    document.body.classList.remove('sb-open','sb-closing');
+    _sbCloseTimer=null;
+  },280);
+}
 function setView(v){
   closeMobileNav();
   _navTransition=true;
@@ -2808,7 +2843,10 @@ function goAntenaDetalle(antenaId,rmEquipId){
 // ═══════════════════════════════════════════
 //  MODAL
 // ═══════════════════════════════════════════
+var _modalCloseTimer=null;
 function openModal(h){var o=document.getElementById("modal-overlay"),b=document.getElementById("modal-box");
+  if(_modalCloseTimer){clearTimeout(_modalCloseTimer);_modalCloseTimer=null;} // reabrir cancela el cierre en curso
+  o.classList.remove('closing');b.classList.remove('closing');
   b.innerHTML='<div class="modal-handle"></div>'+h;o.classList.remove("hidden");o.classList.add("fade");
   // Parallax: la página retrocede detrás del sheet. Origin anclado al centro del
   // viewport (no del documento) para que el scale no desplace el contenido scrolleado.
@@ -2820,7 +2858,16 @@ function openModal(h){var o=document.getElementById("modal-overlay"),b=document.
   document.body.classList.add('modal-open');
   var _mi=b.querySelectorAll('input,textarea');
   for(var _ii=0;_ii<_mi.length;_ii++){var _t=_mi[_ii].type;if(_t!=='date'&&_t!=='number'&&_t!=='range'&&_t!=='checkbox'&&_t!=='radio'&&_t!=='color'){_mi[_ii].setAttribute('autocapitalize','off');_mi[_ii].setAttribute('autocorrect','off');_mi[_ii].setAttribute('spellcheck','false');}}}
-function closeModal(){document.getElementById("modal-overlay").classList.add("hidden");document.body.classList.remove('modal-open');}
+function closeModal(){
+  var o=document.getElementById("modal-overlay"),b=document.getElementById("modal-box");
+  o.classList.add('closing');b.classList.add('closing');
+  document.body.classList.remove('modal-open');
+  if(_modalCloseTimer)clearTimeout(_modalCloseTimer);
+  _modalCloseTimer=setTimeout(function(){
+    o.classList.add("hidden");o.classList.remove('closing','fade');b.classList.remove('closing');
+    _modalCloseTimer=null;
+  },280);
+}
 var _confirmCb=null;
 function _confirmModal(msg,cb){_confirmCb=cb;openModal('<div class="modal-hdr"><div class="modal-title">Confirmar</div><button class="modal-x" onclick="closeModal()">✕</button></div><div style="padding:4px 0 16px;font-size:.9rem;color:var(--text);">'+msg+'</div><div style="display:flex;gap:8px;"><button class="btn-secondary" style="flex:1;" onclick="closeModal()">Cancelar</button><button class="btn-danger" style="flex:1;" onclick="closeModal();if(window._confirmCb){var f=window._confirmCb;window._confirmCb=null;f();}">Eliminar</button></div>');}
 
@@ -11476,7 +11523,21 @@ function rTransductorDetalle(){
 // ═══════════════════════════════════════════
 //  SETTINGS
 // ═══════════════════════════════════════════
-function toggleSettings(){var o=document.getElementById("settings-overlay");o.classList.toggle("hidden");updateSettingsUI();}
+var _settingsCloseTimer=null;
+function toggleSettings(){
+  var o=document.getElementById("settings-overlay"),p=document.getElementById("settings-panel");
+  if(_settingsCloseTimer){clearTimeout(_settingsCloseTimer);_settingsCloseTimer=null;}
+  if(o.classList.contains("hidden")){
+    o.classList.remove('closing');if(p)p.classList.remove('closing');
+    o.classList.remove("hidden");updateSettingsUI();
+  } else {
+    o.classList.add('closing');if(p)p.classList.add('closing');
+    _settingsCloseTimer=setTimeout(function(){
+      o.classList.add("hidden");o.classList.remove('closing');if(p)p.classList.remove('closing');
+      _settingsCloseTimer=null;
+    },280);
+  }
+}
 // Sidebar popup menus: shared toggle/close/click-outside logic.
 var _sbMenus={
   eq:{menuId:"sb-equipos-menu",chevronId:"sb-eq-chevron",btnId:"sb-equipos-btn",beforeOpen:null,outside:null},
@@ -17593,12 +17654,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="3.9.6";
+var APP_DISPLAY_VERSION="3.9.7";
 var APP_BUILD="30/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'3.9.7',fecha:'30/07/2026',tipo:'patch',cambios:[
+    'Animaciones de salida simétricas para modal, Ajustes y drawer mobile (antes cerraban de golpe sin animación)'
+  ]},
   {v:'3.9.6',fecha:'30/07/2026',tipo:'patch',cambios:[
     'Agrega login alternativo por contraseña vinculada a la cuenta (para apps instaladas donde Google no completa el redirect)'
   ]},
