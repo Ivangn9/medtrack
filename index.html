@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.30.006 -->
+<!-- v2026.07.30.007 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -38,7 +38,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.30.006">
+<meta name="app-version" content="v2026.07.30.007">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -4509,6 +4509,26 @@ function _pdfGallery(imgArr,perRow,imgW){
 }
 function _pdfFotosArr(fotos,imgsMap){
   var arr=[];(fotos||[]).forEach(function(fo){var id=fo&&fo.id?fo.id:fo;if(id&&typeof id==='string'&&imgsMap[id]&&_pdfIsImg(imgsMap[id]))arr.push({src:imgsMap[id],cap:''});});return arr;
+}
+// Arma el HTML de una tira de fotos para la VISTA PREVIA del informe, usando el
+// mismo filtro _pdfIsImg que aplica el PDF (_pdfFotosArr) — antes la vista previa
+// mostraba cualquier valor presente en imgsMap sin este filtro, así que una foto
+// que el PDF descartaba (por no ser JPEG/PNG, o por no haberse podido descargar)
+// se veía bien en la vista previa y desaparecía sin aviso en el PDF exportado.
+// Ahora cada foto rechazada muestra un recuadro de aviso con el motivo, visible
+// sin necesidad de abrir la consola del navegador.
+function _pdfPhotoStrip(ids,imgsMap,w,h,border){
+  var out='';
+  (ids||[]).forEach(function(fId){
+    var v=fId&&imgsMap[fId];
+    if(v&&_pdfIsImg(v)){
+      out+='<img src="'+v+'" style="width:'+w+'px;height:'+h+'px;object-fit:cover;border-radius:6px;border:1.5px solid '+border+';box-shadow:0 2px 6px rgba(0,0,0,.15);">';
+    }else{
+      var why=!v?'no se pudo descargar':'formato no compatible con el PDF';
+      out+='<div style="width:'+w+'px;height:'+h+'px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:7pt;color:#92400e;background:#fffbeb;border:1.5px dashed #fbbf24;border-radius:6px;padding:4px;">⚠️ Foto no incluida en el PDF<br>('+why+')</div>';
+    }
+  });
+  return out;
 }
 function _pdfEstado(estado){
   var c={roto:'#dc2626',en_reparacion:'#d97706',reparado:'#16a34a'}[estado]||'#64748b';
@@ -13170,19 +13190,32 @@ function generateReport(){
   }catch(e){}
   function _buildReport(logoB64,imgsMap){
     try{
+    // Aviso visible (sin consola) si alguna foto adjunta no pudo incluirse en el
+    // PDF — antes esto pasaba en silencio y el usuario solo notaba que "faltaban
+    // fotos" sin ninguna pista de cuáles ni por qué.
+    if(allImgIds.length){
+      var _imgOk=0;allImgIds.forEach(function(id){if(imgsMap[id]&&_pdfIsImg(imgsMap[id]))_imgOk++;});
+      if(_imgOk<allImgIds.length)showToast('⚠️ '+(allImgIds.length-_imgOk)+' de '+allImgIds.length+' foto(s) no se pudieron incluir en el PDF — revisá los recuadros de aviso en la vista previa del informe','warn');
+    }
     var eqSections='';
     eqData.forEach(function(d){
       var eq=d.eq;var ci=d.ci;
       var narrativeHtml=_narrativeEq(eq,d.mantH,d.repH,d.mejH,d.actH,d.mejP,d.trasladosH||[],d.cancelPMH||[]);
       // Gather images for this equipment's faults
       var faultImgs=[];
-      d.actH.forEach(function(p){(p.imagenes||[]).forEach(function(im){if(im&&im.id&&imgsMap[im.id])faultImgs.push({src:imgsMap[im.id],nombre:im.nombre,falla:p.nombre});});});
-      d.repH.forEach(function(h){(h.imagenes||[]).forEach(function(im){if(im&&im.id&&imgsMap[im.id])faultImgs.push({src:imgsMap[im.id],nombre:im.nombre,falla:h.nombre});});});
+      d.actH.forEach(function(p){(p.imagenes||[]).forEach(function(im){if(im&&im.id)faultImgs.push({id:im.id,nombre:im.nombre,falla:p.nombre});});});
+      d.repH.forEach(function(h){(h.imagenes||[]).forEach(function(im){if(im&&im.id)faultImgs.push({id:im.id,nombre:im.nombre,falla:h.nombre});});});
       var imgsHtml='';
       if(faultImgs.length){
         imgsHtml='<div class="fault-imgs"><div class="sub-label">Imágenes registradas</div><div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;">';
         faultImgs.forEach(function(im){
-          imgsHtml+='<figure style="margin:0;text-align:center;"><img src="'+im.src+'" style="max-width:220px;max-height:160px;object-fit:cover;border-radius:6px;border:1px solid #e2e8f0;display:block;"><figcaption style="font-size:8pt;color:#64748b;margin-top:3px;">'+esc(im.falla)+'</figcaption></figure>';
+          var v=imgsMap[im.id];
+          if(v&&_pdfIsImg(v)){
+            imgsHtml+='<figure style="margin:0;text-align:center;"><img src="'+v+'" style="max-width:220px;max-height:160px;object-fit:cover;border-radius:6px;border:1px solid #e2e8f0;display:block;"><figcaption style="font-size:8pt;color:#64748b;margin-top:3px;">'+esc(im.falla)+'</figcaption></figure>';
+          }else{
+            var why=!v?'no se pudo descargar':'formato no compatible con el PDF';
+            imgsHtml+='<figure style="margin:0;text-align:center;"><div style="width:220px;height:160px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:8pt;color:#92400e;background:#fffbeb;border:1.5px dashed #fbbf24;border-radius:6px;padding:6px;">⚠️ Foto no incluida en el PDF<br>('+why+')</div><figcaption style="font-size:8pt;color:#64748b;margin-top:3px;">'+esc(im.falla)+'</figcaption></figure>';
+          }
         });
         imgsHtml+='</div></div>';
       }
@@ -13236,7 +13269,7 @@ function generateReport(){
               });
               antenaHtml+='</div>';
             }
-            if(rot.fotos&&rot.fotos.length){var _antFS=(rot.fotos||[]).map(function(fo){return fo&&fo.id?fo.id:fo;}).filter(function(fId){return fId&&imgsMap[fId];});if(_antFS.length){antenaHtml+='<div style="margin-top:8px;padding-top:6px;border-top:1px dashed #fca5a5;"><div style="font-size:7.5pt;font-weight:700;color:#b91c1c;margin-bottom:6px;">📷 Fotos de la falla ('+_antFS.length+')</div><div style="display:flex;flex-wrap:wrap;gap:8px;">';_antFS.forEach(function(fId){antenaHtml+='<img src="'+imgsMap[fId]+'" style="width:160px;height:120px;object-fit:cover;border-radius:6px;border:1.5px solid #fca5a5;box-shadow:0 2px 6px rgba(0,0,0,.15);">';});antenaHtml+='</div></div>';}}
+            if(rot.fotos&&rot.fotos.length){var _antFS=(rot.fotos||[]).map(function(fo){return fo&&fo.id?fo.id:fo;}).filter(function(fId){return fId;});if(_antFS.length){antenaHtml+='<div style="margin-top:8px;padding-top:6px;border-top:1px dashed #fca5a5;"><div style="font-size:7.5pt;font-weight:700;color:#b91c1c;margin-bottom:6px;">📷 Fotos de la falla ('+_antFS.length+')</div><div style="display:flex;flex-wrap:wrap;gap:8px;">'+_pdfPhotoStrip(_antFS,imgsMap,160,120,'#fca5a5')+'</div></div>';}}
             antenaHtml+='</div>';
           });
         }
@@ -13296,7 +13329,7 @@ function generateReport(){
             });
             tranRoturasHtml+='</div>';
           }
-          if(rot.fotos&&rot.fotos.length){var _trFS=(rot.fotos||[]).map(function(fo){return fo&&fo.id?fo.id:fo;}).filter(function(fId){return fId&&imgsMap[fId];});if(_trFS.length){tranRoturasHtml+='<div style="margin-top:8px;padding-top:6px;border-top:1px dashed #bae6fd;"><div style="font-size:7.5pt;font-weight:700;color:#0369a1;margin-bottom:6px;">📷 Fotos de la falla ('+_trFS.length+')</div><div style="display:flex;flex-wrap:wrap;gap:8px;">';_trFS.forEach(function(fId){tranRoturasHtml+='<img src="'+imgsMap[fId]+'" style="width:160px;height:120px;object-fit:cover;border-radius:6px;border:1.5px solid #bae6fd;box-shadow:0 2px 6px rgba(0,0,0,.15);">';});tranRoturasHtml+='</div></div>';}}
+          if(rot.fotos&&rot.fotos.length){var _trFS=(rot.fotos||[]).map(function(fo){return fo&&fo.id?fo.id:fo;}).filter(function(fId){return fId;});if(_trFS.length){tranRoturasHtml+='<div style="margin-top:8px;padding-top:6px;border-top:1px dashed #bae6fd;"><div style="font-size:7.5pt;font-weight:700;color:#0369a1;margin-bottom:6px;">📷 Fotos de la falla ('+_trFS.length+')</div><div style="display:flex;flex-wrap:wrap;gap:8px;">'+_pdfPhotoStrip(_trFS,imgsMap,160,120,'#bae6fd')+'</div></div>';}}
           tranRoturasHtml+='</div>';
         });
         if(d.tranHistorial&&d.tranHistorial.length){
@@ -13310,8 +13343,8 @@ function generateReport(){
             if(h.tecnico)tranRoturasHtml+=' \xb7 T\xe9c: <span style="color:#475569;">'+esc(h.tecnico)+'</span>';
             if(h.empresa)tranRoturasHtml+=' \xb7 '+esc(h.empresa);
             if(h.precio&&parseFloat(h.precio)>0)tranRoturasHtml+=' \xb7 💵 '+(h.precioMoneda||'USD')+' '+esc(h.precio);
-            var _thFS=(h.fotos||[]).map(function(fo){return fo&&fo.id?fo.id:fo;}).filter(function(fId){return fId&&imgsMap[fId];});
-            if(_thFS.length){tranRoturasHtml+='<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;">';_thFS.forEach(function(fId){tranRoturasHtml+='<img src="'+imgsMap[fId]+'" style="width:120px;height:90px;object-fit:cover;border-radius:5px;border:1px solid #bbf7d0;">';});tranRoturasHtml+='</div>';}
+            var _thFS=(h.fotos||[]).map(function(fo){return fo&&fo.id?fo.id:fo;}).filter(function(fId){return fId;});
+            if(_thFS.length){tranRoturasHtml+='<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;">'+_pdfPhotoStrip(_thFS,imgsMap,120,90,'#bbf7d0')+'</div>';}
             tranRoturasHtml+='</div>';
           });
         }
@@ -13329,8 +13362,8 @@ function generateReport(){
           if(h.tecnico)tranRoturasHtml+=' \xb7 T\xe9c: <span style="color:#475569;">'+esc(h.tecnico)+'</span>';
           if(h.empresa)tranRoturasHtml+=' \xb7 '+esc(h.empresa);
           if(h.precio&&parseFloat(h.precio)>0)tranRoturasHtml+=' \xb7 💵 '+(h.precioMoneda||'USD')+' '+esc(h.precio);
-          var _thFS2=(h.fotos||[]).map(function(fo){return fo&&fo.id?fo.id:fo;}).filter(function(fId){return fId&&imgsMap[fId];});
-          if(_thFS2.length){tranRoturasHtml+='<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;">';_thFS2.forEach(function(fId){tranRoturasHtml+='<img src="'+imgsMap[fId]+'" style="width:120px;height:90px;object-fit:cover;border-radius:5px;border:1px solid #bbf7d0;">';});tranRoturasHtml+='</div>';}
+          var _thFS2=(h.fotos||[]).map(function(fo){return fo&&fo.id?fo.id:fo;}).filter(function(fId){return fId;});
+          if(_thFS2.length){tranRoturasHtml+='<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;">'+_pdfPhotoStrip(_thFS2,imgsMap,120,90,'#bbf7d0')+'</div>';}
           tranRoturasHtml+='</div>';
         });
         tranRoturasHtml+='</div>';
@@ -13374,7 +13407,7 @@ function generateReport(){
             });
             fallasDirHtml+='</div>';
           }
-          if(falla.fotos&&falla.fotos.length){var _fdFS=(falla.fotos||[]).map(function(fo){return fo&&fo.id?fo.id:fo;}).filter(function(fId){return fId&&imgsMap[fId];});if(_fdFS.length){fallasDirHtml+='<div style="margin-top:8px;padding-top:6px;border-top:1px dashed #fed7aa;"><div style="font-size:7.5pt;font-weight:700;color:#c2410c;margin-bottom:6px;">📷 Fotos de la falla ('+_fdFS.length+')</div><div style="display:flex;flex-wrap:wrap;gap:8px;">';_fdFS.forEach(function(fId){fallasDirHtml+='<img src="'+imgsMap[fId]+'" style="width:160px;height:120px;object-fit:cover;border-radius:6px;border:1.5px solid #fed7aa;box-shadow:0 2px 6px rgba(0,0,0,.15);">';});fallasDirHtml+='</div></div>';}}
+          if(falla.fotos&&falla.fotos.length){var _fdFS=(falla.fotos||[]).map(function(fo){return fo&&fo.id?fo.id:fo;}).filter(function(fId){return fId;});if(_fdFS.length){fallasDirHtml+='<div style="margin-top:8px;padding-top:6px;border-top:1px dashed #fed7aa;"><div style="font-size:7.5pt;font-weight:700;color:#c2410c;margin-bottom:6px;">📷 Fotos de la falla ('+_fdFS.length+')</div><div style="display:flex;flex-wrap:wrap;gap:8px;">'+_pdfPhotoStrip(_fdFS,imgsMap,160,120,'#fed7aa')+'</div></div>';}}
           fallasDirHtml+='</div>';
         });
         fallasDirHtml+='</div>';
@@ -17693,12 +17726,18 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="3.9.11";
+var APP_DISPLAY_VERSION="3.10.0";
 var APP_BUILD="30/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'3.10.0',fecha:'30/07/2026',tipo:'patch',cambios:[
+    'Fix: la vista previa del informe gerencial ahora usa el mismo filtro que el PDF (_pdfIsImg) para las fotos de antenas/transductores/fallas — antes se veían bien en la vista previa pero se descartaban en silencio del PDF exportado',
+    'Cada foto que el PDF no puede incluir ahora muestra un recuadro de aviso visible con el motivo (no se pudo descargar / formato no compatible), directamente en la vista previa',
+    'Toast de resumen al generar el informe si alguna foto quedó fuera del PDF',
+    'Versionado: PATCH nunca supera 9 — al llegar a 10 se resetea a 0 y sube MINOR (ej. 3.9.9 -> 3.10.0), para que la numeración quede siempre correlativa'
+  ]},
   {v:'3.9.11',fecha:'30/07/2026',tipo:'patch',cambios:[
     'Fix: fotos HEIC de iPhone no se incrustaban en el PDF del reporte (pdfMake solo soporta JPEG/PNG)'
   ]},

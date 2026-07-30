@@ -1,5 +1,12 @@
 # Changelog — MedTrack
 
+## v3.10.0 — 30/07/2026 (patch)
+
+- Fix: la vista previa del informe gerencial ahora usa el mismo filtro que el PDF (_pdfIsImg) para las fotos de antenas/transductores/fallas — antes se veían bien en la vista previa pero se descartaban en silencio del PDF exportado
+- Cada foto que el PDF no puede incluir ahora muestra un recuadro de aviso visible con el motivo (no se pudo descargar / formato no compatible), directamente en la vista previa
+- Toast de resumen al generar el informe si alguna foto quedó fuera del PDF
+- Versionado: PATCH nunca supera 9 — al llegar a 10 se resetea a 0 y sube MINOR (ej. 3.9.9 -> 3.10.0), para que la numeración quede siempre correlativa
+
 ## v3.9.11 — 30/07/2026 (patch)
 
 - Fix: fotos HEIC de iPhone no se incrustaban en el PDF del reporte (pdfMake solo soporta JPEG/PNG)
