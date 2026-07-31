@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v3.10.4 — 31/07/2026 (patch)
+
+- Diagnóstico temporal (mejora): overlay de debug ahora apila resultados en vez de superponerlos, agrega padding-top computado del header
+
 ## v3.10.3 — 31/07/2026 (patch)
 
 - Diagnóstico temporal (gateado por #debugsafearea, invisible en uso normal): overlay para depurar por qué tauri-plugin-safe-area-insets-css no está aplicando el inset del notch
