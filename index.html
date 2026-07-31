@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.31.005 -->
+<!-- v2026.07.31.006 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.31.005">
+<meta name="app-version" content="v2026.07.31.006">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -329,7 +329,11 @@ body.modal-open #header{transform:scale(.985);filter:brightness(.90);}
 .tab.on{color:#fff;font-weight:700;background:var(--accent);box-shadow:0 2px 10px rgba(0,113,227,.35);}
 .tab-badge{background:var(--red);color:#fff;border-radius:10px;padding:1px 6px;font-size:.6rem;font-weight:700;margin-left:4px;vertical-align:middle;}
 
-#main{max-width:900px;margin:0 auto;padding:20px 16px calc(var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px)) + 90px);overscroll-behavior-y:contain;}
+/* padding-bottom cubre además la zona del FAB del Asistente IA (bottom:82px +
+   80px de alto ≈ 162px desde abajo) — si no, el contenido final de cualquier
+   vista queda permanentemente tapado por el botón flotante al hacer scroll
+   hasta el final, sin forma de despejarlo. */
+#main{max-width:900px;margin:0 auto;padding:20px 16px calc(var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px)) + 170px);overscroll-behavior-y:contain;}
 
 /* ── BUTTONS ── */
 .btn-primary{background:var(--accent);color:#fff;border-radius:var(--r-pill);padding:12px 22px;
@@ -923,6 +927,12 @@ body.glass-4.dark{
   #hdr-avatar{width:40px!important;height:40px!important;}
   #header-right button:first-child{width:42px!important;height:42px!important;}
 
+  /* La fila de sedes (Todas/Pedernera/CRS/GN) desborda en pantallas angostas y
+     el último chip queda cortado en el borde sin ningún indicio de que hay más
+     para deslizar. Se agrega un degradado en el borde derecho (solo en mobile,
+     donde sí desborda) para sugerir el scroll horizontal. */
+  .sede-bar{-webkit-mask-image:linear-gradient(90deg,#000 0,#000 88%,transparent 100%);mask-image:linear-gradient(90deg,#000 0,#000 88%,transparent 100%);}
+
   /* iPhone tab bar: icon stacked above label (iOS native style) */
   #bb-inner{
     padding:4px;gap:1px;}
@@ -938,7 +948,7 @@ body.glass-4.dark{
     width:42px;height:42px;font-size:1.1rem;flex-shrink:0;align-self:center;}
   #bottom-bar .tab-badge{margin-left:0;font-size:.55rem;padding:1px 5px;}
 
-  #main{padding:12px 10px calc(var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px)) + 90px);}
+  #main{padding:12px 10px calc(var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px)) + 170px);}
   .gc{border-radius:18px;}
   .stat-val{font-size:1.5rem;}
   .stat-lbl{font-size:.55rem;}
@@ -6476,7 +6486,7 @@ var _SEDES=[{id:"",lbl:"🏥 Todas"},{id:"Pedernera",lbl:"📍 Pedernera"},{id:"
 function _sedeMatch(e){return !_sedeActiva||((e.ubicacion||"").toUpperCase()===_sedeActiva.toUpperCase());}
 function setSede(s){_sedeActiva=s;_filtCentro=s;try{localStorage.setItem("mt_sede",s);}catch(e){}render();}
 function sedeBarHTML(){
-  var h='<div style="display:flex;gap:7px;overflow-x:auto;padding:2px 2px 10px;-webkit-overflow-scrolling:touch;">';
+  var h='<div class="sede-bar" style="display:flex;gap:7px;overflow-x:auto;padding:2px 2px 10px;-webkit-overflow-scrolling:touch;">';
   _SEDES.forEach(function(s){
     var on=_sedeActiva===s.id;
     h+='<button class="chip'+(on?" on":"")+'" onclick="setSede(\''+s.id+'\')"><span>'+s.lbl+'</span></button>';
@@ -17763,12 +17773,16 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="3.10.5";
+var APP_DISPLAY_VERSION="3.10.6";
 var APP_BUILD="31/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'3.10.6',fecha:'31/07/2026',tipo:'patch',cambios:[
+    'Ajustes de pulido Apple-style: el botón flotante del Asistente IA (80px) ya no queda tapando permanentemente el final del contenido en ninguna vista (padding-bottom del área scrolleable ahora cubre toda su zona de alcance)',
+    'La fila de sedes (Todas/Pedernera/CRS/GN) ahora muestra un degradado sutil en el borde derecho en mobile, sugiriendo que hay más chips para deslizar'
+  ]},
   {v:'3.10.5',fecha:'31/07/2026',tipo:'patch',cambios:[
     'Fix real: al calc() de safe-area-inset le faltaba un espacio antes del \'+\' (calc(var(...)+12px) en vez de calc(var(...) + 12px)) — WebKit invalida el calc() completo sin ese espacio, por eso el logo seguía tapado por el notch pese a que el valor del inset llegaba bien. Se saca también el overlay de diagnóstico temporal.'
   ]},

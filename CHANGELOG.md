@@ -1,5 +1,10 @@
 # Changelog — MedTrack
 
+## v3.10.6 — 31/07/2026 (patch)
+
+- Ajustes de pulido Apple-style: el botón flotante del Asistente IA (80px) ya no queda tapando permanentemente el final del contenido en ninguna vista (padding-bottom del área scrolleable ahora cubre toda su zona de alcance)
+- La fila de sedes (Todas/Pedernera/CRS/GN) ahora muestra un degradado sutil en el borde derecho en mobile, sugiriendo que hay más chips para deslizar
+
 ## v3.10.5 — 31/07/2026 (patch)
 
 - Fix real: al calc() de safe-area-inset le faltaba un espacio antes del '+' (calc(var(...)+12px) en vez de calc(var(...) + 12px)) — WebKit invalida el calc() completo sin ese espacio, por eso el logo seguía tapado por el notch pese a que el valor del inset llegaba bien. Se saca también el overlay de diagnóstico temporal.
