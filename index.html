@@ -1,10 +1,40 @@
 <!DOCTYPE html>
-<!-- v2026.07.31.001 -->
+<!-- v2026.07.31.002 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <script>window.onerror=function(msg,src,line,col,err){var d=document.getElementById('_err_overlay');if(!d){d=document.createElement('div');d.id='_err_overlay';d.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.85);color:#ff6b6b;padding:20px;font-family:monospace;font-size:13px;white-space:pre-wrap;overflow:auto;';document.body?document.body.appendChild(d):(document.addEventListener('DOMContentLoaded',function(){document.body.appendChild(d);}));}d.textContent+='ERROR: '+msg+'\nLinea: '+line+':'+col+'\nFuente: '+(src||'').split('/').pop()+'\n\n';return false;};</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover, shrink-to-fit=no">
+<script>
+// Puente para el plugin nativo tauri-plugin-safe-area-insets-css (app instalada
+// con Tauri en iOS/Android). WKWebView no siempre reporta bien env(safe-area-
+// inset-top/bottom) dentro de un WebView embebido en una app nativa (a diferencia
+// de Safari) — el logo llegó a renderizarse debajo del notch por esto. El plugin
+// nativo consulta el inset real del sistema y lo exponemos acá como variables CSS
+// (--safe-area-inset-top/bottom), que el CSS usa con var(...,env(...)) como
+// fallback — así en Safari/PWA/desktop (donde esta variable nunca se setea) el
+// comportamiento no cambia en nada.
+(function(){
+  function waitForTauri(tries){
+    if(window.__TAURI_INTERNALS__){_applySafeAreaInsets();return;}
+    if(tries>200)return; // ~10s tope, no es Tauri o tardó demasiado en inyectarse
+    setTimeout(function(){waitForTauri(tries+1);},50);
+  }
+  function _applySafeAreaInsets(){
+    try{
+      if(!window.__TAURI__||!window.__TAURI__.core||!window.__TAURI__.core.invoke)return;
+      var invoke=window.__TAURI__.core.invoke;
+      invoke('plugin:safe-area-insets-css|get_top_inset',{payload:{}}).then(function(r){
+        if(r&&r.inset!=null)document.documentElement.style.setProperty('--safe-area-inset-top',r.inset+'px');
+      }).catch(function(){});
+      invoke('plugin:safe-area-insets-css|get_bottom_inset',{payload:{}}).then(function(r){
+        if(r&&r.inset!=null)document.documentElement.style.setProperty('--safe-area-inset-bottom',r.inset+'px');
+      }).catch(function(){});
+    }catch(e){}
+  }
+  waitForTauri(0);
+})();
+</script>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="CIMA Hub">
@@ -38,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.31.001">
+<meta name="app-version" content="v2026.07.31.002">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -190,7 +220,7 @@ body.modal-open #header{transform:scale(.985);filter:brightness(.90);}
 
 /* ── LAYOUT ── */
 #app{position:relative;z-index:1;}
-#header{position:sticky;top:0;z-index:100;background:transparent;border-bottom:none;padding:calc(env(safe-area-inset-top,0px)+12px) 20px 28px;}
+#header{position:sticky;top:0;z-index:100;background:transparent;border-bottom:none;padding:calc(var(--safe-area-inset-top,env(safe-area-inset-top,0px))+12px) 20px 28px;}
 #header-inner{display:flex;align-items:center;justify-content:space-between;max-width:1040px;margin:0 auto;
   background:var(--gc-bg);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
   border:1px solid var(--gc-border);border-top-color:var(--gc-border-top);
@@ -208,7 +238,7 @@ body.modal-open #header{transform:scale(.985);filter:brightness(.90);}
 #bottom-bar{
   position:fixed;bottom:0;left:0;right:0;z-index:200;
   display:flex;align-items:center;
-  padding:0 12px calc(env(safe-area-inset-bottom,0px)+8px);
+  padding:0 12px calc(var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px))+8px);
   background:transparent;
   pointer-events:none;}
 #bb-inner{
@@ -299,7 +329,7 @@ body.modal-open #header{transform:scale(.985);filter:brightness(.90);}
 .tab.on{color:#fff;font-weight:700;background:var(--accent);box-shadow:0 2px 10px rgba(0,113,227,.35);}
 .tab-badge{background:var(--red);color:#fff;border-radius:10px;padding:1px 6px;font-size:.6rem;font-weight:700;margin-left:4px;vertical-align:middle;}
 
-#main{max-width:900px;margin:0 auto;padding:20px 16px calc(env(safe-area-inset-bottom,0px)+90px);overscroll-behavior-y:contain;}
+#main{max-width:900px;margin:0 auto;padding:20px 16px calc(var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px))+90px);overscroll-behavior-y:contain;}
 
 /* ── BUTTONS ── */
 .btn-primary{background:var(--accent);color:#fff;border-radius:var(--r-pill);padding:12px 22px;
@@ -481,14 +511,14 @@ body.dark .ig{box-shadow:0 2px 8px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255
 
 /* ── TOAST ── */
 /* ── AI FAB ── */
-#ai-fab{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px)+82px);right:10px;
+#ai-fab{position:fixed;bottom:calc(var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px))+82px);right:10px;
   width:80px;height:80px;border:none;cursor:pointer;padding:0;background:transparent;
   filter:drop-shadow(0 4px 14px rgba(0,0,0,.5)) drop-shadow(0 1px 4px rgba(0,0,0,.3));
   z-index:150;transition:transform .2s var(--spring),filter .2s var(--ease-out);}
 #ai-fab:active{transform:scale(.88);}
 #ai-fab img{width:80px;height:80px;object-fit:contain;display:block;}
 @media(min-width:900px){#ai-fab{right:20px;bottom:80px;}}
-#toast{position:fixed;top:calc(env(safe-area-inset-top,0px)+14px);left:50%;
+#toast{position:fixed;top:calc(var(--safe-area-inset-top,env(safe-area-inset-top,0px))+14px);left:50%;
   transform:translateX(-50%);z-index:9999;
   padding:11px 26px;border-radius:var(--r-pill);font-size:.84rem;font-weight:650;
   background:rgba(255,255,255,.72);
@@ -856,7 +886,7 @@ body.glass-4.dark{
 
 /* ── PDF VIEWER ── */
 #pdf-viewer-overlay{position:fixed;top:0;right:0;bottom:0;left:0;z-index:2000;background:#1a1a1a;display:flex;flex-direction:column;}
-#pdf-viewer-hdr{display:flex;align-items:center;gap:10px;padding:10px 16px;padding-top:calc(env(safe-area-inset-top,0px)+10px);background:#2c2c2e;flex-shrink:0;min-height:52px;}
+#pdf-viewer-hdr{display:flex;align-items:center;gap:10px;padding:10px 16px;padding-top:calc(var(--safe-area-inset-top,env(safe-area-inset-top,0px))+10px);background:#2c2c2e;flex-shrink:0;min-height:52px;}
 #pdf-viewer-title{flex:1;font-size:.82rem;font-weight:600;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 #pdf-viewer-body{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;align-items:center;background:transparent;}
 #pdf-report-div{width:100%;flex:1;overflow:auto;-webkit-overflow-scrolling:touch;}
@@ -877,7 +907,7 @@ body.glass-4.dark{
 }
 /* ── RESPONSIVE MOBILE ── */
 @media(max-width:480px){
-  #header{padding:calc(env(safe-area-inset-top,0px)+8px) 10px 14px;}
+  #header{padding:calc(var(--safe-area-inset-top,env(safe-area-inset-top,0px))+8px) 10px 14px;}
   /* El chip de "% Operativos" (hdr-equip-status) no entra en la misma fila que
      el logo y los botones de la derecha en pantallas angostas (ej. iPhone 13
      mini, 375pt) — antes quedaba cortado o empujaba los botones de búsqueda/
@@ -908,7 +938,7 @@ body.glass-4.dark{
     width:42px;height:42px;font-size:1.1rem;flex-shrink:0;align-self:center;}
   #bottom-bar .tab-badge{margin-left:0;font-size:.55rem;padding:1px 5px;}
 
-  #main{padding:12px 10px calc(env(safe-area-inset-bottom,0px)+90px);}
+  #main{padding:12px 10px calc(var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px))+90px);}
   .gc{border-radius:18px;}
   .stat-val{font-size:1.5rem;}
   .stat-lbl{font-size:.55rem;}
@@ -936,7 +966,7 @@ body.glass-4.dark{
   backdrop-filter:blur(20px);
   border-right:1px solid rgba(255,255,255,.60);
   flex-direction:column;overflow-y:auto;overflow-x:hidden;
-  padding:calc(env(safe-area-inset-top,0px)+12px) 0 calc(env(safe-area-inset-bottom,0px)+12px);
+  padding:calc(var(--safe-area-inset-top,env(safe-area-inset-top,0px))+12px) 0 calc(var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px))+12px);
   box-shadow:
     4px 0 32px rgba(0,0,0,.06),
     inset -1px 0 0 rgba(255,255,255,.55);}
@@ -952,7 +982,7 @@ body.glass-4.dark{
   #app{margin-left:280px;}
   #header{left:280px;}
   #bottom-bar{display:none!important;}
-  #main{padding-bottom:calc(env(safe-area-inset-bottom,0px)+60px);}
+  #main{padding-bottom:calc(var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px))+60px);}
 }
 body.dark #sidebar{
   background:rgba(12,12,22,.40);
@@ -1235,7 +1265,7 @@ body.dark .pill[style*="#ff9500"],body.dark .pill[style*="--orange"]{box-shadow:
 </div>
 
 <!-- SETTINGS OVERLAY -->
-<div id="update-banner" style="display:none;position:fixed;top:calc(env(safe-area-inset-top,0px)+56px);left:50%;transform:translateX(-50%);z-index:700;background:linear-gradient(135deg,#0071e3,#34c759);color:#fff;border-radius:50px;padding:10px 20px;font-size:.82rem;font-weight:700;box-shadow:0 4px 20px rgba(0,113,227,.4);cursor:pointer;white-space:nowrap;animation:slideUp .4s var(--spring);" onclick="doUpdate()">🔄 Nueva versión disponible — Toca para actualizar</div>
+<div id="update-banner" style="display:none;position:fixed;top:calc(var(--safe-area-inset-top,env(safe-area-inset-top,0px))+56px);left:50%;transform:translateX(-50%);z-index:700;background:linear-gradient(135deg,#0071e3,#34c759);color:#fff;border-radius:50px;padding:10px 20px;font-size:.82rem;font-weight:700;box-shadow:0 4px 20px rgba(0,113,227,.4);cursor:pointer;white-space:nowrap;animation:slideUp .4s var(--spring);" onclick="doUpdate()">🔄 Nueva versión disponible — Toca para actualizar</div>
 <div id="settings-overlay" class="hidden" onclick="if(event.target===this)toggleSettings();" style="position:fixed;inset:0;background:rgba(0,0,0,.28);z-index:600;display:flex;align-items:stretch;justify-content:flex-end;">
   <div class="settings-panel" id="settings-panel">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
@@ -2645,7 +2675,7 @@ function showUndoToast(msg,undoFn){
   var t=document.getElementById('undo-toast');
   if(!t){
     t=document.createElement('div');t.id='undo-toast';
-    t.style.cssText='position:fixed;bottom:calc(env(safe-area-inset-bottom,0px)+96px);left:50%;transform:translateX(-50%);z-index:9999;background:rgba(28,28,34,.96);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);color:#fff;border-radius:50px;padding:10px 10px 10px 18px;font-size:.82rem;font-weight:600;display:flex;align-items:center;gap:12px;box-shadow:0 6px 24px rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.12);white-space:nowrap;';
+    t.style.cssText='position:fixed;bottom:calc(var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px))+96px);left:50%;transform:translateX(-50%);z-index:9999;background:rgba(28,28,34,.96);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);color:#fff;border-radius:50px;padding:10px 10px 10px 18px;font-size:.82rem;font-weight:600;display:flex;align-items:center;gap:12px;box-shadow:0 6px 24px rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.12);white-space:nowrap;';
     document.body.appendChild(t);
   }
   t.innerHTML='<span>'+msg+'</span><button onclick="_doUndo()" style="background:rgba(173,198,255,.18);color:#adc6ff;border:1px solid rgba(173,198,255,.35);border-radius:50px;padding:7px 16px;font-weight:700;font-size:.78rem;cursor:pointer;">↩︎ Deshacer</button>';
@@ -11646,7 +11676,7 @@ function checkWeeklyReport(){
     var isMob=window.innerWidth<900;
     var banner=document.createElement('div');
     banner.id='weekly-report-banner';
-    banner.style.cssText='position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + '+(isMob?'82':'20')+'px);'+(isMob?'left:12px;right:12px;':'right:20px;left:auto;min-width:340px;max-width:420px;')+
+    banner.style.cssText='position:fixed;bottom:calc(var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px)) + '+(isMob?'82':'20')+'px);'+(isMob?'left:12px;right:12px;':'right:20px;left:auto;min-width:340px;max-width:420px;')+
       'background:linear-gradient(135deg,#1a2a4a,#0d1a35);border:1.5px solid rgba(173,198,255,.3);border-radius:16px;padding:12px 16px;display:flex;align-items:center;gap:12px;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,.4);';
     banner.innerHTML=
       '<div style="flex:1;min-width:0;"><div style="font-size:.8rem;font-weight:700;color:#adc6ff;white-space:nowrap;">Reporte Semanal</div>'+(isMob?'':'<div style="font-size:.68rem;color:rgba(255,255,255,.6);margin-top:1px;white-space:nowrap;">Nuevo reporte disponible</div>')+'</div>'+
@@ -17733,12 +17763,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="3.10.1";
+var APP_DISPLAY_VERSION="3.10.2";
 var APP_BUILD="31/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'3.10.2',fecha:'31/07/2026',tipo:'patch',cambios:[
+    'Fix: puente con tauri-plugin-safe-area-insets-css para que el logo/reloj no queden tapados por el notch en la app nativa de iOS — WKWebView embebido no siempre reporta bien env(safe-area-inset-top/bottom); ahora se usan variables CSS reales con fallback a env() para Safari/PWA/desktop (sin cambios ahí)'
+  ]},
   {v:'3.10.1',fecha:'31/07/2026',tipo:'patch',cambios:[
     'Fix: en pantallas angostas (iPhone 13 mini, 375pt) el chip de % Operativos empujaba los botones de búsqueda/perfil fuera de la pantalla — ahora baja a su propia fila en mobile, sin recortar nada'
   ]},
@@ -18378,7 +18411,7 @@ function init(){
     var badge=document.createElement("div");
     badge.id="demo-badge";
     badge.textContent="MODO DEMO";
-    badge.style.cssText="position:fixed;top:calc(env(safe-area-inset-top,0px)+8px);left:50%;transform:translateX(-50%);z-index:9000;background:rgba(255,149,0,.92);color:#fff;font-size:.65rem;font-weight:800;letter-spacing:.08em;padding:4px 12px;border-radius:20px;pointer-events:none;box-shadow:0 2px 10px rgba(255,149,0,.35);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);";
+    badge.style.cssText="position:fixed;top:calc(var(--safe-area-inset-top,env(safe-area-inset-top,0px))+8px);left:50%;transform:translateX(-50%);z-index:9000;background:rgba(255,149,0,.92);color:#fff;font-size:.65rem;font-weight:800;letter-spacing:.08em;padding:4px 12px;border-radius:20px;pointer-events:none;box-shadow:0 2px 10px rgba(255,149,0,.35);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);";
     document.body.appendChild(badge);
     render();
     return;

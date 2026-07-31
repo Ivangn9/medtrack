@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v3.10.2 — 31/07/2026 (patch)
+
+- Fix: puente con tauri-plugin-safe-area-insets-css para que el logo/reloj no queden tapados por el notch en la app nativa de iOS — WKWebView embebido no siempre reporta bien env(safe-area-inset-top/bottom); ahora se usan variables CSS reales con fallback a env() para Safari/PWA/desktop (sin cambios ahí)
+
 ## v3.10.1 — 31/07/2026 (patch)
 
 - Fix: en pantallas angostas (iPhone 13 mini, 375pt) el chip de % Operativos empujaba los botones de búsqueda/perfil fuera de la pantalla — ahora baja a su propia fila en mobile, sin recortar nada
