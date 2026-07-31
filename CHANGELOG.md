@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v3.10.1 — 31/07/2026 (patch)
+
+- Fix: en pantallas angostas (iPhone 13 mini, 375pt) el chip de % Operativos empujaba los botones de búsqueda/perfil fuera de la pantalla — ahora baja a su propia fila en mobile, sin recortar nada
+
 ## v3.10.0 — 30/07/2026 (patch)
 
 - Fix: la vista previa del informe gerencial ahora usa el mismo filtro que el PDF (_pdfIsImg) para las fotos de antenas/transductores/fallas — antes se veían bien en la vista previa pero se descartaban en silencio del PDF exportado
