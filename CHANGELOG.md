@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v3.10.3 — 31/07/2026 (patch)
+
+- Diagnóstico temporal (gateado por #debugsafearea, invisible en uso normal): overlay para depurar por qué tauri-plugin-safe-area-insets-css no está aplicando el inset del notch
+
 ## v3.10.2 — 31/07/2026 (patch)
 
 - Fix: puente con tauri-plugin-safe-area-insets-css para que el logo/reloj no queden tapados por el notch en la app nativa de iOS — WKWebView embebido no siempre reporta bien env(safe-area-inset-top/bottom); ahora se usan variables CSS reales con fallback a env() para Safari/PWA/desktop (sin cambios ahí)

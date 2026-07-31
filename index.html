@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.31.002 -->
+<!-- v2026.07.31.003 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -20,17 +20,28 @@
     if(tries>200)return; // ~10s tope, no es Tauri o tardó demasiado en inyectarse
     setTimeout(function(){waitForTauri(tries+1);},50);
   }
+  var _dbg=(location.hash||'').indexOf('debugsafearea')!==-1;
+  function _dbgShow(txt){
+    if(!_dbg)return;
+    var d=document.createElement('div');
+    d.style.cssText='position:fixed;top:0;left:0;right:0;z-index:999999;background:#000;color:#0f0;font-family:monospace;font-size:10px;padding:4px;white-space:pre-wrap;max-height:50vh;overflow:auto;';
+    d.textContent=txt;
+    document.body?document.body.appendChild(d):document.addEventListener('DOMContentLoaded',function(){document.body.appendChild(d);});
+  }
   function _applySafeAreaInsets(){
     try{
-      if(!window.__TAURI__||!window.__TAURI__.core||!window.__TAURI__.core.invoke)return;
+      var log='TAURI_INTERNALS: '+(!!window.__TAURI_INTERNALS__)+'\nTAURI: '+(!!window.__TAURI__)+'\nCORE: '+(!!(window.__TAURI__&&window.__TAURI__.core))+'\nINVOKE: '+(!!(window.__TAURI__&&window.__TAURI__.core&&window.__TAURI__.core.invoke));
+      if(!window.__TAURI__||!window.__TAURI__.core||!window.__TAURI__.core.invoke){_dbgShow(log+'\n--> NO INVOKE FN, abort');return;}
       var invoke=window.__TAURI__.core.invoke;
       invoke('plugin:safe-area-insets-css|get_top_inset',{payload:{}}).then(function(r){
         if(r&&r.inset!=null)document.documentElement.style.setProperty('--safe-area-inset-top',r.inset+'px');
-      }).catch(function(){});
+        _dbgShow(log+'\nTOP OK: '+JSON.stringify(r));
+      }).catch(function(e){_dbgShow(log+'\nTOP ERR: '+(e&&e.message?e.message:JSON.stringify(e)));});
       invoke('plugin:safe-area-insets-css|get_bottom_inset',{payload:{}}).then(function(r){
         if(r&&r.inset!=null)document.documentElement.style.setProperty('--safe-area-inset-bottom',r.inset+'px');
-      }).catch(function(){});
-    }catch(e){}
+        _dbgShow(log+'\nBOTTOM OK: '+JSON.stringify(r));
+      }).catch(function(e){_dbgShow(log+'\nBOTTOM ERR: '+(e&&e.message?e.message:JSON.stringify(e)));});
+    }catch(e){_dbgShow('EXCEPTION: '+(e&&e.message?e.message:String(e)));}
   }
   waitForTauri(0);
 })();
@@ -68,7 +79,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.31.002">
+<meta name="app-version" content="v2026.07.31.003">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -17763,12 +17774,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="3.10.2";
+var APP_DISPLAY_VERSION="3.10.3";
 var APP_BUILD="31/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'3.10.3',fecha:'31/07/2026',tipo:'patch',cambios:[
+    'Diagnóstico temporal (gateado por #debugsafearea, invisible en uso normal): overlay para depurar por qué tauri-plugin-safe-area-insets-css no está aplicando el inset del notch'
+  ]},
   {v:'3.10.2',fecha:'31/07/2026',tipo:'patch',cambios:[
     'Fix: puente con tauri-plugin-safe-area-insets-css para que el logo/reloj no queden tapados por el notch en la app nativa de iOS — WKWebView embebido no siempre reporta bien env(safe-area-inset-top/bottom); ahora se usan variables CSS reales con fallback a env() para Safari/PWA/desktop (sin cambios ahí)'
   ]},
