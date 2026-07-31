@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.31.006 -->
+<!-- v2026.07.31.007 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.31.006">
+<meta name="app-version" content="v2026.07.31.007">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -13596,7 +13596,14 @@ function transductorSvgIcon(size){
 // ─── AI LABEL SCANNER ───
 function _getAIKey(){try{return localStorage.getItem('mt_ai_key')||'';}catch(e){return '';}}
 function _setAIKey(k){try{localStorage.setItem('mt_ai_key',k||'');}catch(e){}}
-function _getAIProxy(){try{return localStorage.getItem('mt_ai_proxy')||'';}catch(e){return '';}}
+// Worker de Cloudflare fijo del proyecto — antes dependía de que cada dispositivo
+// lo configurara a mano en Ajustes, y localStorage no se comparte entre Safari/PWA
+// y la app nativa instalada con Tauri (cada una tiene su propio storage aislado),
+// así que en la app instalada el Asistente IA y el escáner por cámara quedaban sin
+// configurar y no funcionaban. Ajustes sigue permitiendo pisarlo si alguna vez hace
+// falta apuntar a otro Worker, pero ya no depende de que nadie lo configure primero.
+var AI_PROXY_DEFAULT='https://medtrack.ivangarcian.workers.dev';
+function _getAIProxy(){try{return localStorage.getItem('mt_ai_proxy')||AI_PROXY_DEFAULT;}catch(e){return AI_PROXY_DEFAULT;}}
 function _setAIProxy(u){try{localStorage.setItem('mt_ai_proxy',u||'');}catch(e){}}
 function openAIKeyModal(){
   openModal(
@@ -17773,12 +17780,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="3.10.6";
+var APP_DISPLAY_VERSION="3.10.7";
 var APP_BUILD="31/07/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'3.10.7',fecha:'31/07/2026',tipo:'patch',cambios:[
+    'Fix: Asistente IA y escáner con cámara no funcionaban en la app nativa instalada (Tauri) — el proxy de Cloudflare se guardaba en localStorage por dispositivo/app, que no se comparte entre Safari/PWA y la app instalada. Ahora la URL del Worker queda fija en el código como valor por defecto (Ajustes la puede seguir pisando si hiciera falta apuntar a otro Worker en el futuro).'
+  ]},
   {v:'3.10.6',fecha:'31/07/2026',tipo:'patch',cambios:[
     'Ajustes de pulido Apple-style: el botón flotante del Asistente IA (80px) ya no queda tapando permanentemente el final del contenido en ninguna vista (padding-bottom del área scrolleable ahora cubre toda su zona de alcance)',
     'La fila de sedes (Todas/Pedernera/CRS/GN) ahora muestra un degradado sutil en el borde derecho en mobile, sugiriendo que hay más chips para deslizar'

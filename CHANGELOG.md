@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v3.10.7 — 31/07/2026 (patch)
+
+- Fix: Asistente IA y escáner con cámara no funcionaban en la app nativa instalada (Tauri) — el proxy de Cloudflare se guardaba en localStorage por dispositivo/app, que no se comparte entre Safari/PWA y la app instalada. Ahora la URL del Worker queda fija en el código como valor por defecto (Ajustes la puede seguir pisando si hiciera falta apuntar a otro Worker en el futuro).
+
 ## v3.10.6 — 31/07/2026 (patch)
 
 - Ajustes de pulido Apple-style: el botón flotante del Asistente IA (80px) ya no queda tapando permanentemente el final del contenido en ninguna vista (padding-bottom del área scrolleable ahora cubre toda su zona de alcance)
