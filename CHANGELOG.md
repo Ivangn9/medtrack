@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v3.10.5 — 31/07/2026 (patch)
+
+- Fix real: al calc() de safe-area-inset le faltaba un espacio antes del '+' (calc(var(...)+12px) en vez de calc(var(...) + 12px)) — WebKit invalida el calc() completo sin ese espacio, por eso el logo seguía tapado por el notch pese a que el valor del inset llegaba bien. Se saca también el overlay de diagnóstico temporal.
+
 ## v3.10.4 — 31/07/2026 (patch)
 
 - Diagnóstico temporal (mejora): overlay de debug ahora apila resultados en vez de superponerlos, agrega padding-top computado del header
