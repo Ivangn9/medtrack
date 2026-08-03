@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v4.3.2 — 03/08/2026 (patch)
+
+- Fix: el botón 'Eliminar categoría' no avisaba de forma visible por qué no borraba (bloqueo por equipos/subcategorías solo se veía en un toast fácil de pasar por alto) — ahora el motivo se muestra directo en el formulario, antes de tocar nada
+
 ## v4.3.1 — 03/08/2026 (patch)
 
 - Fix: guardado que quedaba trabado reintentando para siempre (timeout repetido — síntoma de caché offline de Firestore inconsistente) ahora se autorepara sola, y hay un botón 'Reparar conexión con la nube' en Ajustes para forzarlo al instante
