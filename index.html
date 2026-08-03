@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.08.03.011 -->
+<!-- v2026.08.03.012 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.08.03.011">
+<meta name="app-version" content="v2026.08.03.012">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -18172,12 +18172,16 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="4.3.2";
+var APP_DISPLAY_VERSION="4.3.3";
 var APP_BUILD="03/08/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'4.3.3',fecha:'03/08/2026',tipo:'patch',cambios:[
+    'Fix: el botón \'Eliminar categoría\' no hacía nada — usaba el diálogo confirm() nativo del navegador, que puede quedar bloqueado en silencio tras varios clics seguidos (protección anti-spam del propio WebView); ahora usa el modal de confirmación propio de la app',
+    'Fix: crear un grupo nuevo de subcategorías usaba prompt() nativo (mismo riesgo, nunca antes usado en la app) — ahora es un campo de texto normal dentro del formulario'
+  ]},
   {v:'4.3.2',fecha:'03/08/2026',tipo:'patch',cambios:[
     'Fix: el botón \'Eliminar categoría\' no avisaba de forma visible por qué no borraba (bloqueo por equipos/subcategorías solo se veía en un toast fácil de pasar por alto) — ahora el motivo se muestra directo en el formulario, antes de tocar nada'
   ]},
@@ -18816,12 +18820,20 @@ function openCustomCatModal(editId){
         '<div id="cc-foto-preview" style="margin-bottom:8px;">'+(_ccFotoB64?'<img src="'+_ccFotoB64+'" style="width:64px;height:64px;object-fit:cover;border-radius:10px;border:1px solid var(--border);">':'')+'</div>'+
         '<input type="file" accept="image/*" id="cc-foto-input" onchange="_ccFotoChange(event)">'+
       '</div>'+
-      '<div class="ff" style="margin-bottom:10px;"><div class="ff-label">Subcategoría de</div><select class="inp" id="cc-parent">'+_groupOpts()+'</select></div>'+
+      '<div class="ff" style="margin-bottom:10px;"><div class="ff-label">Subcategoría de</div><select class="inp" id="cc-parent" onchange="_ccParentChange(this.value)">'+_groupOpts()+'</select>'+
+        '<div id="cc-newgroup-wrap" style="display:none;margin-top:8px;"><input class="inp" id="cc-newgroup-name" placeholder="Nombre del nuevo grupo, ej: Ecógrafos"></div>'+
+      '</div>'+
       '<label style="display:flex;align-items:center;gap:8px;font-size:.82rem;color:var(--text2);margin-bottom:16px;cursor:pointer;"><input type="checkbox" id="cc-sinmant" '+(editing&&editing.sinMant?'checked':'')+'> Sin mantenimiento programado</label>'+
       (editing?_deleteSectionHtml(editing):'')+
       '<button class="btn-primary" style="width:100%;" onclick="submitCustomCat(\''+(editing?editing.id:'')+'\')">'+(editing?'Guardar cambios':'Crear categoría')+'</button>';
     openModal(h);
+    var _ngw=document.getElementById('cc-newgroup-wrap');
+    if(_ngw)_ngw.style.display=(document.getElementById('cc-parent').value==='__new__')?'block':'none';
   }
+  window._ccParentChange=function(v){
+    var w=document.getElementById('cc-newgroup-wrap');
+    if(w)w.style.display=(v==='__new__')?'block':'none';
+  };
   window._ccFotoChange=function(ev){
     var file=ev.target.files&&ev.target.files[0];if(!file)return;
     var rdr=new FileReader();
@@ -18846,8 +18858,8 @@ function submitCustomCat(editId){
   var id=editId||('CC-'+Date.now());
   var parentId=null;
   if(parentSel==='__new__'){
-    var gName=(prompt('Nombre del nuevo grupo (ej: "Ecógrafos")')||'').trim();
-    if(!gName){showToast('Se canceló: falta el nombre del grupo','warn');return;}
+    var gName=((document.getElementById('cc-newgroup-name')||{}).value||'').trim();
+    if(!gName){showToast('Ingresá el nombre del nuevo grupo','warn');return;}
     var gId='CCG-'+Date.now();
     customCats.push({id:gId,label:gName,isGroup:true,color:color});
     parentId=gId;
@@ -18885,14 +18897,21 @@ function deleteCustomCat(id){
   if(inUse){showToast('No se puede eliminar: hay equipos cargados en esta categoría','err');return;}
   var hasChildren=(customCats||[]).some(function(c){return c.parentId===id;});
   if(hasChildren){showToast('No se puede eliminar: tiene subcategorías. Eliminalas o reasignalas primero.','err');return;}
-  if(!confirm('¿Eliminar la categoría "'+entry.label+'"? Esta acción no se puede deshacer.'))return;
-  customCats=customCats.filter(function(c){return c.id!==id;});
-  delete _PANEL_IMGS[id];
-  rebuildCats();
-  saveDataCritical();
-  closeModal();
-  render();
-  showToast('Categoría eliminada','warn');
+  // _confirmModal (propio de la app) en vez de confirm() nativo: el diálogo nativo del
+  // navegador/WebView puede quedar bloqueado en silencio si la página lo invocó varias
+  // veces seguidas (protección anti-spam del propio navegador) — ahí confirm() devuelve
+  // false al instante SIN mostrar nada, y el botón "no hace nada" sin ningún error. Este
+  // modal propio ya se usa en otros borrados de la app (delParte, roturas, etc.) y no
+  // depende de esa API del navegador.
+  _confirmModal('¿Eliminar la categoría "'+esc(entry.label)+'"? Esta acción no se puede deshacer.',function(){
+    customCats=customCats.filter(function(c){return c.id!==id;});
+    delete _PANEL_IMGS[id];
+    rebuildCats();
+    saveDataCritical();
+    closeModal();
+    render();
+    showToast('Categoría eliminada','warn');
+  });
 }
 // Punto de entrada discoverable para editar/borrar categorías custom ya creadas —
 // openCustomCatModal(editId) ya soportaba editar/borrar desde que se implementó, pero

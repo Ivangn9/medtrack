@@ -1,5 +1,10 @@
 # Changelog — MedTrack
 
+## v4.3.3 — 03/08/2026 (patch)
+
+- Fix: el botón 'Eliminar categoría' no hacía nada — usaba el diálogo confirm() nativo del navegador, que puede quedar bloqueado en silencio tras varios clics seguidos (protección anti-spam del propio WebView); ahora usa el modal de confirmación propio de la app
+- Fix: crear un grupo nuevo de subcategorías usaba prompt() nativo (mismo riesgo, nunca antes usado en la app) — ahora es un campo de texto normal dentro del formulario
+
 ## v4.3.2 — 03/08/2026 (patch)
 
 - Fix: el botón 'Eliminar categoría' no avisaba de forma visible por qué no borraba (bloqueo por equipos/subcategorías solo se veía en un toast fácil de pasar por alto) — ahora el motivo se muestra directo en el formulario, antes de tocar nada
