@@ -30,10 +30,10 @@ var MA = +m[1], MI = +m[2], PA = +m[3];
 if (tipo === 'major') { MA++; MI = 0; PA = 0; }
 else if (tipo === 'minor') { MI++; PA = 0; }
 else { PA++; }
-// PATCH nunca supera 9: al llegar a 10 se resetea a 0 y sube MINOR en su
-// lugar (ej. 3.9.9 → 3.10.0, no 3.9.10). Esto es solo para PATCH — MINOR
-// sí puede ser de dos dígitos sin problema (ya pasó, ej. la vieja 8.19.2).
+// Cada campo (MINOR/PATCH) funciona como un odómetro: nunca supera 9, y al
+// pasarse "lleva" al campo superior (ej. 3.9.9 → 4.0.0, no 3.10.0 ni 3.9.10).
 if (PA > 9) { PA = 0; MI++; }
+if (MI > 9) { MI = 0; MA++; PA = 0; }
 var nueva = MA + '.' + MI + '.' + PA;
 
 // ── fechas ──

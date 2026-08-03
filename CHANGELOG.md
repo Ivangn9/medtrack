@@ -1,6 +1,6 @@
 # Changelog — MedTrack
 
-## v3.11.0 — 03/08/2026 (patch)
+## v4.0.0 — 03/08/2026 (patch)
 
 - Panel: el anillo de alerta de categorías con equipos fuera de servicio ahora sí se distingue (giraba idéntico a una categoría sana pese a tener la clase .cring-alert aplicada) — ahora gira más rápido y en rojo de alerta
 - Estado de RM: las animaciones del dibujo (ventiladores, burbujas de helio, LEDs) ahora respetan 'reducir movimiento' del sistema — antes solo las animaciones CSS lo respetaban, no las SMIL del SVG
