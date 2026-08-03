@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v4.3.1 — 03/08/2026 (patch)
+
+- Fix: guardado que quedaba trabado reintentando para siempre (timeout repetido — síntoma de caché offline de Firestore inconsistente) ahora se autorepara sola, y hay un botón 'Reparar conexión con la nube' en Ajustes para forzarlo al instante
+
 ## v4.3.0 — 03/08/2026 (minor)
 
 - Categorías personalizadas: la foto ahora preserva transparencia (antes salía con fondo negro por la compresión a JPEG)

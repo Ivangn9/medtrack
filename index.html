@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.08.03.009 -->
+<!-- v2026.08.03.010 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.08.03.009">
+<meta name="app-version" content="v2026.08.03.010">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -2427,6 +2427,19 @@ function _fsWriteRetryOrGiveUp(tryN,err){
   else{
     _fsDirty=false;_fsFailed=true;
     console.warn('Firestore: reintentos rápidos agotados, pasando a reintento en segundo plano cada 45s');
+    // Timeouts repetidos (no otro tipo de error) son la firma típica de una caché de
+    // persistencia offline trabada (ver el fix en el arranque, antes de
+    // enablePersistence()). Tras 2 ciclos completos agotados por timeout, programamos
+    // la limpieza para el próximo arranque y avisamos con una acción concreta — antes
+    // el usuario solo veía "reconectando" para siempre, sin ninguna salida real.
+    if(err&&err.code==='timeout'){
+      var _streak=(parseInt(localStorage.getItem('mt_timeout_streak')||'0',10)||0)+1;
+      try{localStorage.setItem('mt_timeout_streak',String(_streak));}catch(e){}
+      if(_streak>=2){
+        try{localStorage.setItem('mt_needs_persistence_reset','1');}catch(e){}
+        showToast('⚠️ La conexión con la nube quedó trabada — cerrá del todo la app (o recargá la página) para que se repare sola','err');
+      }
+    }
     updateSyncIndicator();
     _scheduleSlowRetry();
   }
@@ -2511,7 +2524,7 @@ function _fsWrite(tryN){
       // seguidas y rápidas del MISMO dispositivo (más rápidas que un ciclo debounce+red)
       // dejan el "último visto" desactualizado, y la segunda escritura cree por error
       // que "otro dispositivo" acaba de guardar cuando en realidad fue esta misma.
-      try{localStorage.setItem('mt_updatedAt',_payload.updatedAt);localStorage.removeItem('mt_pendingSync');}catch(e){}
+      try{localStorage.setItem('mt_updatedAt',_payload.updatedAt);localStorage.removeItem('mt_pendingSync');localStorage.removeItem('mt_timeout_streak');}catch(e){}
       _publicMirrorSave();
       if(_fsPendingRewrite){_fsPendingRewrite=false;_fsDirty=true;_fsWrite(0);}
     })
@@ -2546,6 +2559,17 @@ function flushSaveNow(){
   if(_fsDirty)_fsWrite(0);
 }
 function retrySync(){if(_slowRetryTimer){clearTimeout(_slowRetryTimer);_slowRetryTimer=null;}_fsFailed=false;_fsDirty=true;reconcileFiles();flushSaveNow();updateSyncIndicator();}
+// Reparación manual de la caché de persistencia offline de Firestore (ver el fix en
+// el arranque, junto a firebase.firestore()). Todo lo que haya cargado en ESTE
+// dispositivo ya está guardado en localStorage antes que nada, así que recargar acá
+// nunca pierde datos — a lo sumo el guardado a la nube queda pendiente y se reintenta
+// solo apenas la caché se repare.
+function repairCloudConnection(){
+  if(!confirm('Esto va a reiniciar la conexión con la nube (recarga la app). Los datos que ya cargaste en este dispositivo están guardados y no se pierden. ¿Continuar?'))return;
+  try{localStorage.setItem('mt_needs_persistence_reset','1');}catch(e){}
+  showToast('Reparando conexión…');
+  setTimeout(function(){location.reload();},500);
+}
 // Real-time cloud sync indicator in the header
 function _pendingUploadCount(){try{return Object.keys(JSON.parse(localStorage.getItem('mt_upq_v1')||'{}')).length;}catch(e){return 0;}}
 function updateSyncIndicator(){
@@ -12068,7 +12092,9 @@ function updateSettingsUI(){
         var _seD=JSON.parse(_se);
         var _seDate=new Date(_seD.ts);
         var _seWhen=isNaN(_seDate.getTime())?_seD.ts:_seDate.toLocaleString('es-AR');
-        _syncErrHtml='<div style="margin-top:8px;padding:7px 10px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:8px;font-size:.6rem;color:var(--red);line-height:1.5;">⚠️ Último error de sync: <b>'+esc(_seD.code)+'</b> — '+esc(_seD.message)+'<br>'+_seWhen+'</div>';
+        _syncErrHtml='<div style="margin-top:8px;padding:7px 10px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:8px;font-size:.6rem;color:var(--red);line-height:1.5;">⚠️ Último error de sync: <b>'+esc(_seD.code)+'</b> — '+esc(_seD.message)+'<br>'+_seWhen+
+          (_seD.code==='timeout'?'<button onclick="repairCloudConnection()" style="margin-top:6px;width:100%;font-size:.62rem;font-weight:700;min-height:30px;border-radius:7px;border:1.5px solid rgba(239,68,68,.35);background:rgba(239,68,68,.12);color:var(--red);cursor:pointer;">🔧 Reparar conexión con la nube</button>':'')+
+        '</div>';
       }
     }catch(e){}
     var _bkErrHtml='';
@@ -18146,12 +18172,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="4.3.0";
+var APP_DISPLAY_VERSION="4.3.1";
 var APP_BUILD="03/08/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'4.3.1',fecha:'03/08/2026',tipo:'patch',cambios:[
+    'Fix: guardado que quedaba trabado reintentando para siempre (timeout repetido — síntoma de caché offline de Firestore inconsistente) ahora se autorepara sola, y hay un botón \'Reparar conexión con la nube\' en Ajustes para forzarlo al instante'
+  ]},
   {v:'4.3.0',fecha:'03/08/2026',tipo:'minor',cambios:[
     'Categorías personalizadas: la foto ahora preserva transparencia (antes salía con fondo negro por la compresión a JPEG)',
     'Categorías personalizadas: las categorías nuevas aparecen en el Panel apenas se crean, sin esperar a cargar el primer equipo',
@@ -18497,6 +18526,26 @@ var firebaseConfig={apiKey:"AIzaSyDpzlN1gaJUH6XGAWv5GRW_suk7zcqKeJE",authDomain:
 if(typeof firebase!=="undefined"&&!firebase.apps.length){firebase.initializeApp(firebaseConfig);}
 window._fbAuth=typeof firebase!=="undefined"?firebase.auth():null;
 window._fbdb=typeof firebase!=="undefined"?firebase.firestore():null;
+// Autorreparación de la caché de persistencia offline: un guardado que queda
+// "colgado" (timeout repetido, sin error real de Firestore) es la firma típica de
+// que la caché offline (IndexedDB) quedó en un estado inconsistente — por ejemplo si
+// la app se cerró de golpe a mitad de una escritura, o quedaron dos instancias
+// abiertas compitiendo por la misma caché (synchronizeTabs). clearPersistence() SOLO
+// funciona si se llama antes de cualquier otra operación de Firestore en esta sesión
+// — por eso va acá arriba de todo, antes de enablePersistence() y de cualquier
+// get/set/onSnapshot. El flag lo prende _fsWriteRetryOrGiveUp() tras timeouts
+// repetidos, o el botón manual "Reparar conexión con la nube" en Ajustes.
+if(window._fbdb&&localStorage.getItem('mt_needs_persistence_reset')==='1'){
+  try{
+    window._fbdb.clearPersistence().then(function(){
+      console.warn('Firestore: caché de persistencia limpiada (timeouts repetidos o reparación manual)');
+    }).catch(function(e){
+      console.warn('Firestore: no se pudo limpiar la persistencia:',e&&e.code);
+    }).then(function(){
+      try{localStorage.removeItem('mt_needs_persistence_reset');localStorage.removeItem('mt_timeout_streak');}catch(e2){}
+    });
+  }catch(e){try{localStorage.removeItem('mt_needs_persistence_reset');}catch(e2){}}
+}
 // Persistencia offline: los cambios hechos sin conexión quedan en IndexedDB y se
 // sincronizan solos al reconectar, aunque se cierre la PWA en el medio.
 if(window._fbdb){try{window._fbdb.enablePersistence({synchronizeTabs:true}).catch(function(e){console.warn('Persistencia offline no disponible:',e.code);});}catch(e){}}
