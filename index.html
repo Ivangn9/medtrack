@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.08.03.013 -->
+<!-- v2026.08.03.014 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.08.03.013">
+<meta name="app-version" content="v2026.08.03.014">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -4283,10 +4283,10 @@ function _storageSaveB64(id,nombre,dataUrl,cb,_try){
 // Get a download URL from Firebase Storage for a file ID
 function _storageGetUrl(id,cb){
   try{
-    if(!window._fbStorage||!window._fbUser){cb(null);return;}
+    if(!window._fbStorage||!window._fbUser){cb(null,'no-auth');return;}
     var ref=window._fbStorage.ref('orgs/cima/files/'+id);
-    ref.getDownloadURL().then(function(url){cb(url);}).catch(function(){cb(null);});
-  }catch(e){cb(null);}
+    ref.getDownloadURL().then(function(url){cb(url);}).catch(function(e){cb(null,e&&e.code);});
+  }catch(e){cb(null,e&&e.code);}
 }
 
 // Walk the entire data model and collect every file reference {id->nombre}.
@@ -4327,24 +4327,47 @@ function _loadCustomCatPhotos(){
 function _loadOneCatPhoto(catId,fotoId,tryN){
   if(_PANEL_IMGS[catId])return; // ya se resolvió por otra vía mientras tanto
   dbGet(fotoId,function(rec){
-    if(rec&&rec.data){_PANEL_IMGS[catId]=rec.data;render();return;}
-    _storageGetUrl(fotoId,function(url){
+    if(rec&&rec.data){_PANEL_IMGS[catId]=rec.data;_clearCatPhotoErr(catId);render();return;}
+    _storageGetUrl(fotoId,function(url,errCode){
       if(!url){
-        if(tryN<6)setTimeout(function(){_loadOneCatPhoto(catId,fotoId,tryN+1);},Math.min(3000*Math.pow(1.6,tryN),15000));
+        if(tryN<6){setTimeout(function(){_loadOneCatPhoto(catId,fotoId,tryN+1);},Math.min(3000*Math.pow(1.6,tryN),15000));return;}
+        // Se agotaron los reintentos: la foto nunca llegó a estar disponible en la nube
+        // (no solo "todavía no", sino que no va a aparecer sola) — se guarda el motivo
+        // exacto para poder diagnosticarlo desde "Categorías Personalizadas" en Ajustes,
+        // en vez de perder la foto en silencio para siempre sin ninguna pista de por qué.
+        _setCatPhotoErr(catId,errCode||'unknown');
         return;
       }
       var xhr=new XMLHttpRequest();xhr.open('GET',url,true);xhr.responseType='blob';xhr.timeout=20000;
       xhr.onload=function(){
         if((xhr.status===200||xhr.status===0)&&xhr.response){
           var rdr=new FileReader();
-          rdr.onload=function(e){_PANEL_IMGS[catId]=e.target.result;render();};
+          rdr.onload=function(e){_PANEL_IMGS[catId]=e.target.result;_clearCatPhotoErr(catId);render();};
           rdr.readAsDataURL(xhr.response);
-        }
+        }else{_setCatPhotoErr(catId,'http-'+xhr.status);}
       };
-      xhr.onerror=function(){};xhr.ontimeout=function(){};
+      xhr.onerror=function(){_setCatPhotoErr(catId,'network-error');};
+      xhr.ontimeout=function(){_setCatPhotoErr(catId,'timeout');};
       xhr.send();
     });
   });
+}
+function _setCatPhotoErr(catId,code){
+  try{var m=JSON.parse(localStorage.getItem('mt_cat_photo_err')||'{}');m[catId]=code;localStorage.setItem('mt_cat_photo_err',JSON.stringify(m));}catch(e){}
+}
+function _clearCatPhotoErr(catId){
+  try{var m=JSON.parse(localStorage.getItem('mt_cat_photo_err')||'{}');delete m[catId];localStorage.setItem('mt_cat_photo_err',JSON.stringify(m));}catch(e){}
+}
+function _getCatPhotoErr(catId){
+  try{var m=JSON.parse(localStorage.getItem('mt_cat_photo_err')||'{}');return m[catId]||null;}catch(e){return null;}
+}
+function retryCatPhoto(catId){
+  var c=(customCats||[]).find(function(x){return x.id===catId;});
+  if(!c||!c.fotoId){showToast('Esta categoría no tiene foto para reintentar','warn');return;}
+  _clearCatPhotoErr(catId);
+  showToast('Reintentando descargar la foto…');
+  _loadOneCatPhoto(catId,c.fotoId,0);
+  setTimeout(function(){openCustomCatsManagerModal();},1200);
 }
 
 // Reconcile local files with Firebase Storage. Ensures every file that exists in
@@ -18186,12 +18209,16 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="4.3.4";
+var APP_DISPLAY_VERSION="4.3.5";
 var APP_BUILD="03/08/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'4.3.5',fecha:'03/08/2026',tipo:'patch',cambios:[
+    'Fix: la foto de categoría se guardaba con un formato de ID distinto al resto de la app (IMG-CAT- en vez de IMG-<timestamp>-<random>), probablemente rechazado por las reglas de seguridad de Storage — ahora usa el mismo formato, y volver a subir la foto de una categoría ya creada genera un ID nuevo y correcto',
+    'Diagnóstico: \'Categorías Personalizadas\' en Ajustes ahora muestra si la foto de una categoría no pudo descargarse en este dispositivo (con el código de error) y un botón para reintentar'
+  ]},
   {v:'4.3.4',fecha:'03/08/2026',tipo:'patch',cambios:[
     'Fix: la foto de una categoría personalizada no aparecía en otros dispositivos (ej. creada en Mac, no se veía en iPhone) — era una carrera de tiempos: el otro dispositivo la buscaba una sola vez apenas veía la categoría nueva, antes de que terminara de subirse a la nube; ahora reintenta durante un rato en vez de perderla en silencio'
   ]},
@@ -18800,6 +18827,7 @@ function openCatalogoComponentesModal(preselectCatId){
 // una URL https:// se vería bien en pantalla pero desaparecería del informe exportado
 // sin ningún aviso.
 var _ccFotoB64=null;
+var _ccFotoChanged=false; // true solo si el usuario eligió un archivo nuevo en ESTA apertura del modal
 // Muestra el motivo del bloqueo ANTES de que el usuario toque el botón — antes el
 // bloqueo solo se veía como un toast tras el clic, fácil de no notar (el botón se
 // veía igual de "activo" estuviera o no bloqueado), lo que se sentía como "toco
@@ -18818,6 +18846,7 @@ function _deleteSectionHtml(editing){
 function openCustomCatModal(editId){
   var editing=editId?(customCats||[]).find(function(c){return c.id===editId&&!c.isGroup;}):null;
   _ccFotoB64=editing?(_PANEL_IMGS[editing.id]||null):null;
+  _ccFotoChanged=false;
   function _groupOpts(){
     var groups=(customCats||[]).filter(function(c){return c.isGroup&&c.id!==editId;});
     var opts='<option value="">— Ninguna —</option>';
@@ -18857,6 +18886,7 @@ function openCustomCatModal(editId){
     rdr.onload=function(e){
       _resizeCatIconImg(e.target.result,function(resized){
         _ccFotoB64=resized;
+        _ccFotoChanged=true;
         var prev=document.getElementById('cc-foto-preview');
         if(prev)prev.innerHTML='<img src="'+resized+'" style="width:64px;height:64px;object-fit:contain;border-radius:10px;border:1px solid var(--border);">';
       });
@@ -18889,7 +18919,14 @@ function submitCustomCat(editId){
   if(idx!==-1)customCats[idx]=entry;else customCats.push(entry);
   if(_ccFotoB64){
     _PANEL_IMGS[id]=_ccFotoB64; // ya es base64 → funciona en pantalla y en el PDF exportado
-    var fotoId=prevFotoId||('IMG-CAT-'+Date.now());
+    // Mismo formato de id que usa el resto de la app para fotos de equipos/informes
+    // (IMG-<timestamp>-<random>) — el formato distinto que tenía antes ("IMG-CAT-",
+    // sin el sufijo random) podía no matchear una regla de seguridad de Storage que
+    // valide el patrón exacto del id, rechazando la subida/lectura en silencio para
+    // ESTE archivo puntual, sin afectar a ningún otro tipo de foto de la app. Si el
+    // usuario eligió un archivo nuevo (_ccFotoChanged), se genera un id fresco en vez
+    // de reusar uno viejo que pueda haber quedado con el formato roto.
+    var fotoId=(prevFotoId&&!_ccFotoChanged)?prevFotoId:('IMG-'+Date.now()+'-'+Math.random().toString(36).slice(2,6));
     entry.fotoId=fotoId;
     dbSave(fotoId,label+' (categoría)',_ccFotoB64,function(){});
   }
@@ -18947,7 +18984,19 @@ function openCustomCatsManagerModal(){
     var thumb=_PANEL_IMGS[c.id]?
       '<img src="'+_PANEL_IMGS[c.id]+'" style="width:34px;height:34px;object-fit:contain;border-radius:8px;flex-shrink:0;">':
       '<div style="width:34px;height:34px;border-radius:8px;background:'+c.color+'22;display:flex;align-items:center;justify-content:center;font-size:1.05rem;flex-shrink:0;">'+(c.icon||'🔧')+'</div>';
-    return '<div style="display:flex;align-items:center;gap:9px;padding:8px 9px;border-radius:10px;background:rgba(120,120,128,.06);margin-bottom:6px;">'+
+    // Si la categoría tiene foto asignada (fotoId) pero todavía no se resolvió en ESTE
+    // dispositivo, mostrar el motivo exacto en vez de que la foto "desaparezca" sin
+    // ninguna pista — esto es lo que permite diagnosticar si el problema es que la
+    // subida real nunca llegó a la nube (ej. object-not-found) o algo distinto.
+    var fotoWarn='';
+    if(c.fotoId&&!_PANEL_IMGS[c.id]){
+      var _err=_getCatPhotoErr(c.id);
+      fotoWarn='<div style="width:100%;margin-top:6px;padding:6px 9px;border-radius:8px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);font-size:.62rem;color:#b45309;display:flex;align-items:center;gap:6px;">'+
+        '<span style="flex:1;">📷 Foto no disponible en este dispositivo'+(_err?' (código: '+esc(_err)+')':' — buscándola…')+'</span>'+
+        '<button onclick="retryCatPhoto(\''+c.id+'\')" style="font-size:.6rem;min-height:26px;padding:4px 8px;border-radius:6px;border:1.5px solid rgba(245,158,11,.35);background:rgba(245,158,11,.14);color:#b45309;font-weight:700;cursor:pointer;white-space:nowrap;">Reintentar</button>'+
+      '</div>';
+    }
+    return '<div style="display:flex;align-items:center;flex-wrap:wrap;gap:9px;padding:8px 9px;border-radius:10px;background:rgba(120,120,128,.06);margin-bottom:6px;">'+
       thumb+
       '<div style="flex:1;min-width:0;">'+
         '<div style="font-weight:600;font-size:.82rem;">'+esc(c.label)+'</div>'+
@@ -18955,6 +19004,7 @@ function openCustomCatsManagerModal(){
       '</div>'+
       '<button onclick="closeModal();openCatalogoComponentesModal(\''+c.id+'\')" style="font-size:.64rem;min-height:30px;padding:6px 9px;border-radius:8px;border:1.5px solid rgba(173,198,255,.35);background:rgba(173,198,255,.10);color:var(--accent);font-weight:600;cursor:pointer;white-space:nowrap;">Componentes</button>'+
       '<button onclick="openCustomCatModal(\''+c.id+'\')" style="font-size:.64rem;min-height:30px;padding:6px 9px;border-radius:8px;border:1.5px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:var(--text2);font-weight:600;cursor:pointer;white-space:nowrap;">Editar</button>'+
+      fotoWarn+
     '</div>';
   }).join('');
   var h='<div class="modal-title">Categorías Personalizadas</div>'+

@@ -1,5 +1,10 @@
 # Changelog — MedTrack
 
+## v4.3.5 — 03/08/2026 (patch)
+
+- Fix: la foto de categoría se guardaba con un formato de ID distinto al resto de la app (IMG-CAT- en vez de IMG-<timestamp>-<random>), probablemente rechazado por las reglas de seguridad de Storage — ahora usa el mismo formato, y volver a subir la foto de una categoría ya creada genera un ID nuevo y correcto
+- Diagnóstico: 'Categorías Personalizadas' en Ajustes ahora muestra si la foto de una categoría no pudo descargarse en este dispositivo (con el código de error) y un botón para reintentar
+
 ## v4.3.4 — 03/08/2026 (patch)
 
 - Fix: la foto de una categoría personalizada no aparecía en otros dispositivos (ej. creada en Mac, no se veía en iPhone) — era una carrera de tiempos: el otro dispositivo la buscaba una sola vez apenas veía la categoría nueva, antes de que terminara de subirse a la nube; ahora reintenta durante un rato en vez de perderla en silencio
