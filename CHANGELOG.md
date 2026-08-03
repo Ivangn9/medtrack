@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v3.10.9 — 03/08/2026 (patch)
+
+- Pantalla de arranque: el anillo del logo Gantry se arma arco por arco (mismos 3 tonos del ícono real), en vez del logo ancho de CIMA con fade simple — termina en el logo real de la marca, no en una versión genérica
+
 ## v3.10.8 — 03/08/2026 (patch)
 
 - Ícono de la app reemplazado: nuevo diseño Gantry (anillo de gantry de resonador, sin la sobrecarga del ícono genérico anterior) — se ve en la instalación PWA de Android/Windows/Mac/iPhone
