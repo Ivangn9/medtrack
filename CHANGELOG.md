@@ -1,5 +1,10 @@
 # Changelog — MedTrack
 
+## v4.0.1 — 03/08/2026 (patch)
+
+- iOS: el header ahora colapsa de verdad al hacer scroll (logo, avatar, badge de alertas se achican; el chip de % Operativos/versión se oculta) — antes solo se reducía un poco el padding y todo seguía mostrándose igual
+- Chip de % Operativos/versión reducido de tamaño en iPhone incluso sin scrollear, para que el header no quede tan largo
+
 ## v4.0.0 — 03/08/2026 (patch)
 
 - Panel: el anillo de alerta de categorías con equipos fuera de servicio ahora sí se distingue (giraba idéntico a una categoría sana pese a tener la clase .cring-alert aplicada) — ahora gira más rápido y en rojo de alerta

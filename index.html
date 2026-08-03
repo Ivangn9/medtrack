@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.08.03.003 -->
+<!-- v2026.08.03.004 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.08.03.003">
+<meta name="app-version" content="v2026.08.03.004">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -176,8 +176,21 @@ body.dark #bg-grain{opacity:.22;}
 .segctl button.on{background:var(--accent);color:#fff;box-shadow:0 2px 8px rgba(0,113,227,.3),inset 0 1px 0 rgba(255,255,255,.25);}
 
 /* ── HEADER COMPACTO AL SCROLLEAR (large-title collapse) ── */
+/* Antes esta regla solo achicaba el padding — logo, avatar, badge de alertas
+   y el chip de "% Operativos" seguían con su tamaño completo mientras se
+   scrolleaba, así que el header prácticamente no cambiaba. Ahora sí colapsa
+   de verdad: logo/avatar/badge se achican y el chip de operatividad se
+   oculta (es información secundaria, no hace falta mientras se navega una
+   lista) — mismo criterio que el "large title → compact title" de iOS. */
 #header-inner{transition:padding .34s var(--ease-out),min-height .34s var(--ease-out);}
 body.hdr-compact #header-inner{padding:9px 16px 9px 22px;min-height:60px;}
+#logo-img,#hdr-avatar,#header-right button:first-child,#badge-critico{transition:width .3s var(--ease-out),height .3s var(--ease-out);}
+body.hdr-compact #logo-img{height:30px!important;}
+body.hdr-compact #hdr-avatar{width:34px!important;height:34px!important;font-size:.82rem!important;}
+body.hdr-compact #header-right button:first-child{width:38px!important;height:38px!important;}
+body.hdr-compact #header-right button:first-child svg{width:18px!important;height:18px!important;}
+body.hdr-compact #badge-critico{width:22px!important;height:22px!important;font-size:.6rem!important;}
+body.hdr-compact #sync-indicator,body.hdr-compact #hdr-equip-status{display:none!important;}
 
 /* ── PARALLAX DE MODALES (la página retrocede como sheet de iOS) ── */
 #main,#header{transition:transform .42s var(--spring),filter .42s var(--ease-out),opacity .3s;}
@@ -932,7 +945,11 @@ body.glass-4.dark{
   #header-inner{padding:12px 10px 12px 16px;min-height:64px;border-radius:22px;flex-wrap:wrap;row-gap:8px;}
   #header-left{order:1;}
   #header-right{order:2;}
-  #hdr-equip-status{order:3;flex-basis:100%;justify-content:center;}
+  /* Achicado en iPhone: el chip quedaba largo (anillo de 28px + textos +
+     versión) para lo secundaria que es esa info. _renderHdrStatus() emite
+     el SVG y los tamaños de fuente ya reducidos cuando innerWidth<=480, acá
+     solo se ajusta el padding del contenedor (que sí es fijo en el HTML). */
+  #hdr-equip-status{order:3;flex-basis:100%;justify-content:center;padding:4px 10px!important;gap:6px!important;}
   #header-left img{height:38px!important;}
   #header-left{gap:9px;}
   .hdr-time{display:none;}
@@ -17839,12 +17856,16 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="4.0.0";
+var APP_DISPLAY_VERSION="4.0.1";
 var APP_BUILD="03/08/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'4.0.1',fecha:'03/08/2026',tipo:'patch',cambios:[
+    'iOS: el header ahora colapsa de verdad al hacer scroll (logo, avatar, badge de alertas se achican; el chip de % Operativos/versión se oculta) — antes solo se reducía un poco el padding y todo seguía mostrándose igual',
+    'Chip de % Operativos/versión reducido de tamaño en iPhone incluso sin scrollear, para que el header no quede tan largo'
+  ]},
   {v:'4.0.0',fecha:'03/08/2026',tipo:'patch',cambios:[
     'Panel: el anillo de alerta de categorías con equipos fuera de servicio ahora sí se distingue (giraba idéntico a una categoría sana pese a tener la clase .cring-alert aplicada) — ahora gira más rápido y en rojo de alerta',
     'Estado de RM: las animaciones del dibujo (ventiladores, burbujas de helio, LEDs) ahora respetan \'reducir movimiento\' del sistema — antes solo las animaciones CSS lo respetaban, no las SMIL del SVG',
@@ -18850,14 +18871,20 @@ function _renderHdrStatus(){
   var clr=issues===0?'#34c759':issues<=2?'#ff9500':'#ff3b30';
   var r=11;var cx=14;var cy=14;var circ=2*Math.PI*r;
   var arc=((total-Math.min(issues,total))/total)*circ;
-  var svg='<svg width="28" height="28" viewBox="0 0 28 28" style="flex-shrink:0;">'+
+  // En iPhone (<=480px) el chip quedaba largo para lo secundaria que es esta
+  // info — mismo viewBox (la geometría del anillo no cambia), solo se reduce
+  // el tamaño de render del SVG y las fuentes de reposo (sin scroll).
+  var _sm=window.innerWidth<=480;
+  var svgSz=_sm?22:28;
+  var svg='<svg width="'+svgSz+'" height="'+svgSz+'" viewBox="0 0 28 28" style="flex-shrink:0;">'+
     '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="rgba(0,0,0,.08)" stroke-width="3.5"/>'+
     (issues>0?'<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="#ff3b30" stroke-width="3.5" stroke-dasharray="'+circ+'" stroke-dashoffset="0" stroke-linecap="round" transform="rotate(-90 '+cx+' '+cy+')"/>':'<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="#34c759" stroke-width="3.5"/>')+
     (issues>0&&issues<total?'<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="#34c759" stroke-width="3.5" stroke-dasharray="'+arc+' '+circ+'" stroke-dashoffset="0" stroke-linecap="round" transform="rotate(-90 '+cx+' '+cy+')"/>':'')+
     '</svg>';
-  var label=issues===0?'<div style="font-size:.72rem;font-weight:800;color:#34c759;line-height:1.1;letter-spacing:-.3px;">100%</div><div style="font-size:.52rem;font-weight:600;color:rgba(52,199,89,.7);white-space:nowrap;">Operativos</div>':
-    '<div style="font-size:.72rem;font-weight:800;color:'+clr+';line-height:1.1;letter-spacing:-.3px;">'+pct+'%</div><div style="font-size:.52rem;font-weight:600;color:'+clr+'99;white-space:nowrap;">'+issues+' fuera srv</div>';
-  var verBadge='<div onclick="openChangelogModal()" style="font-size:.52rem;font-weight:700;color:var(--text3);font-family:monospace;padding:2px 7px;border-radius:6px;background:rgba(0,0,0,.05);border:1px solid rgba(0,0,0,.06);white-space:nowrap;cursor:pointer;">v'+(APP_DISPLAY_VERSION||APP_VERSION||'')+'</div>';
+  var pctFs=_sm?'.62rem':'.72rem',lblFs=_sm?'.46rem':'.52rem';
+  var label=issues===0?'<div style="font-size:'+pctFs+';font-weight:800;color:#34c759;line-height:1.1;letter-spacing:-.3px;">100%</div><div style="font-size:'+lblFs+';font-weight:600;color:rgba(52,199,89,.7);white-space:nowrap;">Operativos</div>':
+    '<div style="font-size:'+pctFs+';font-weight:800;color:'+clr+';line-height:1.1;letter-spacing:-.3px;">'+pct+'%</div><div style="font-size:'+lblFs+';font-weight:600;color:'+clr+'99;white-space:nowrap;">'+issues+' fuera srv</div>';
+  var verBadge='<div onclick="openChangelogModal()" style="font-size:'+lblFs+';font-weight:700;color:var(--text3);font-family:monospace;padding:'+(_sm?'1px 5px':'2px 7px')+';border-radius:6px;background:rgba(0,0,0,.05);border:1px solid rgba(0,0,0,.06);white-space:nowrap;cursor:pointer;">v'+(APP_DISPLAY_VERSION||APP_VERSION||'')+'</div>';
   el.innerHTML=svg+'<div>'+label+'</div>'+verBadge;
 }
 
