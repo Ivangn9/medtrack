@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.08.03.004 -->
+<!-- v2026.08.03.005 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.08.03.004">
+<meta name="app-version" content="v2026.08.03.005">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -5971,7 +5971,39 @@ function _mountView(m,d){
   // Kick off counter animations for numeric stat values
   requestAnimationFrame(function(){_runCounters(m);});
 }
+// Diagnóstico TEMPORAL de rendimiento (gateado por #debugperf en la URL —
+// invisible en cualquier uso normal). Reporte del usuario: "la app se siente
+// lenta en general y al tocar botones/abrir pantallas". Como no hay forma de
+// perfilar en vivo el iPhone real desde acá, este overlay muestra en pantalla
+// cuánto tarda cada render() (que reconstruye todo el HTML de la vista activa
+// como string y lo remonta — no es una actualización incremental) y cuánto
+// tardó la carga inicial, para diagnosticar con datos reales en vez de
+// adivinar. Se va a sacar en cuanto se identifique la causa.
+var _perfDbgOn=(location.hash||'').indexOf('debugperf')!==-1;
+var _perfBox=null,_perfTimes=[];
+function _perfShow(line){
+  if(!_perfDbgOn)return;
+  if(!_perfBox){
+    _perfBox=document.createElement('div');
+    _perfBox.style.cssText='position:fixed;bottom:0;left:0;right:0;z-index:999999;background:rgba(0,0,0,.88);color:#0f0;font-family:monospace;font-size:10px;padding:6px;white-space:pre-wrap;max-height:40vh;overflow:auto;pointer-events:none;';
+    (document.body||document.documentElement).appendChild(_perfBox);
+  }
+  var l=document.createElement('div');l.textContent=line;
+  _perfBox.appendChild(l);
+  while(_perfBox.childNodes.length>14)_perfBox.removeChild(_perfBox.firstChild);
+}
+if(_perfDbgOn){
+  window.addEventListener('load',function(){
+    try{
+      var nav=performance.getEntriesByType('navigation')[0];
+      if(nav){
+        _perfShow('CARGA — DOM:'+Math.round(nav.domContentLoadedEventEnd)+'ms · load:'+Math.round(nav.loadEventEnd)+'ms · TTFB:'+Math.round(nav.responseStart)+'ms');
+      }
+    }catch(e){}
+  });
+}
 function render(){
+  var _t0=_perfDbgOn?performance.now():0;
   try{
     renderHeader();rSidebar();
     var m=document.getElementById("main");if(!m)return;
@@ -5985,15 +6017,23 @@ function render(){
         setTimeout(function(){
           if(view!==_snapView){return;} // view changed again while waiting
           try{
+            var _td0=_perfDbgOn?performance.now():0;
             renderHeader();rSidebar();
             var m2=document.getElementById("main");if(!m2)return;
             _mountView(m2,_buildView());
+            if(_perfDbgOn)_perfShow('render("'+_snapView+'") [delayed] '+Math.round(performance.now()-_td0)+'ms · nodos main:'+m2.querySelectorAll('*').length);
           }catch(e){console.error("Render(delayed):",e);}
         },130);
         return;
       }
     }
     _mountView(m,_buildView());
+    if(_perfDbgOn){
+      var dt=performance.now()-_t0;
+      _perfTimes.push(dt);if(_perfTimes.length>20)_perfTimes.shift();
+      var avg=_perfTimes.reduce(function(a,b){return a+b;},0)/_perfTimes.length;
+      _perfShow('render("'+view+'") '+Math.round(dt)+'ms · prom('+_perfTimes.length+'):'+Math.round(avg)+'ms · nodos main:'+m.querySelectorAll('*').length);
+    }
   }catch(err){
     var m2=document.getElementById("main");
     if(m2)m2.innerHTML='<div style="padding:20px;color:var(--red);font-size:.85rem;">Error: '+err.message+'</div>';
@@ -17856,12 +17896,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="4.0.1";
+var APP_DISPLAY_VERSION="4.0.2";
 var APP_BUILD="03/08/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'4.0.2',fecha:'03/08/2026',tipo:'patch',cambios:[
+    'Diagnóstico temporal (gateado por #debugperf, invisible en uso normal): overlay midiendo duración de render() y tiempo de carga inicial, para investigar el reporte de lentitud general en iPhone con datos reales en vez de adivinar'
+  ]},
   {v:'4.0.1',fecha:'03/08/2026',tipo:'patch',cambios:[
     'iOS: el header ahora colapsa de verdad al hacer scroll (logo, avatar, badge de alertas se achican; el chip de % Operativos/versión se oculta) — antes solo se reducía un poco el padding y todo seguía mostrándose igual',
     'Chip de % Operativos/versión reducido de tamaño en iPhone incluso sin scrollear, para que el header no quede tan largo'

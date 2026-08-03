@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v4.0.2 — 03/08/2026 (patch)
+
+- Diagnóstico temporal (gateado por #debugperf, invisible en uso normal): overlay midiendo duración de render() y tiempo de carga inicial, para investigar el reporte de lentitud general en iPhone con datos reales en vez de adivinar
+
 ## v4.0.1 — 03/08/2026 (patch)
 
 - iOS: el header ahora colapsa de verdad al hacer scroll (logo, avatar, badge de alertas se achican; el chip de % Operativos/versión se oculta) — antes solo se reducía un poco el padding y todo seguía mostrándose igual
