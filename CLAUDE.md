@@ -72,6 +72,18 @@ Caso de referencia ya implementado: **Bombas → Bombas de Contraste (`BOMBAC`) 
 7. El selector de categoría en "Nuevo Equipo" (`#eq-cat`) se arma genéricamente desde `CATS.map(...)` — no necesita tocarse, ya va a mostrar las subcategorías nuevas automáticamente.
 8. **Verificación antes de dar por terminado:** correr `node tests/check.js`, y con Playwright simular específicamente el escenario de reversión (migrar una vez, simular que otro dispositivo pisa el array completo volviendo a la categoría vieja CON el flag ya prendido, confirmar que la migración se autocorrige igual) — no alcanza con probar la migración simple una sola vez, porque ese caso no es el que causó el bug real.
 
+## Patrón: categorías custom (creadas desde el Panel)
+
+Además de las 12 categorías hardcodeadas (ahora en `CATS_BUILTIN`, ~línea 1549), el usuario puede crear categorías nuevas desde el botón "+ Nueva categoría" del Panel (`rDash()`), con subcategorías, foto propia, e impacto completo en el sistema (PDF, vencimientos, catálogo de componentes). Si en el futuro hay que tocar esto:
+
+1. **`customCats`** (~línea 1572): array `[{id,label,icon,color,parentId,sinMant,fotoId,isGroup}]`, sincronizado con Firestore igual que `customComponentes` (mismos 6 puntos: `saveData()`, `saveDataCritical()`, payload de Firestore, arranque en frío, `_applyData(d)`, `_lsLoad()`). `id` de categoría normal = `"CC-"+Date.now()`; `id` de grupo virtual (`isGroup:true`) = `"CCG-"+Date.now()`.
+2. **`CATS`** (~línea 1571) ya NO es un array fijo — se reconstruye con `rebuildCats()` (`CATS=CATS_BUILTIN.concat(customCats sin isGroup)`) cada vez que `customCats` cambia (crear/editar/borrar categoría, o al restaurar datos). **Siempre llamar `rebuildCats()` después de tocar `customCats` directamente.**
+3. Un `isGroup:true` en `customCats` es un "padre virtual" — igual que "Bombas" (ver patrón de subcategorías arriba), nunca entra a `CATS`, no puede tener equipos propios, solo agrupa visualmente a las categorías con `parentId` apuntando a su `id`.
+4. **Foto de categoría**: SIEMPRE se resuelve a base64 antes de asignarse a `_PANEL_IMGS[catId]` (ver `openCustomCatModal`/`submitCustomCat`, ~línea 18660, y `_loadCustomCatPhotos()`, ~línea 4282). Nunca asignar ahí una URL `https://` de Storage — `_pdfCatIcon()` solo puede embeber `data:image/...` en el informe PDF exportado; una URL se vería bien en pantalla pero desaparecería del PDF sin avisar.
+5. **Panel** (`rDash()`): categorías con `parentId` no tienen tarjeta propia en el grid principal (`if(cat.parentId)return;`); se agrupan en una tarjeta combinada por grupo (IIFE después de la de Bombas) que lleva a `rCatGroup()` (drill-down, mismo estilo que `rBombas()`), enganchado en `_buildView()` como `view==="catgroup"`.
+6. **Borrado** (`deleteCustomCat`): bloqueado si hay equipos activos en esa categoría o si tiene subcategorías colgando — nunca borra en cascada ni reasigna equipos automáticamente.
+7. Todo lo demás (selector de categoría en "Nuevo Equipo", `openCatalogoComponentesModal`, `openEditMantConfigModal`, vencimientos/`getAlertas()`, `sinMant()`) ya funciona genéricamente desde `CATS`/`customCats` sin necesitar tocarlo — solo agregar a `CATS` (vía `rebuildCats()`) es suficiente para que una categoría nueva participe de todo el sistema.
+
 ## Integración con Google Stitch
 
 Stitch MCP (herramientas `mcp__stitch__*`) está disponible en sesiones de MedTrack.

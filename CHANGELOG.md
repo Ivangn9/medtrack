@@ -1,5 +1,10 @@
 # Changelog — MedTrack
 
+## v4.2.0 — 03/08/2026 (minor)
+
+- Categorías personalizadas: crear categorías nuevas desde el Panel, con subcategorías agrupadas, foto propia (funciona también en el PDF exportado, no solo en pantalla), y control de vencimientos de mantenimiento igual que el resto de las categorías
+- Catálogo de componentes sugeridos y configuración de mantenimiento ya funcionan automáticamente para las categorías nuevas, sin pasos extra
+
 ## v4.1.0 — 03/08/2026 (minor)
 
 - Aires Acondicionados: ahora tienen frecuencia de service y fecha de próximo vencimiento (igual que el resto de los equipos) — antes no había forma de controlar cada cuánto tiempo correspondía el service

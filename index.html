@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.08.03.007 -->
+<!-- v2026.08.03.008 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.08.03.007">
+<meta name="app-version" content="v2026.08.03.008">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1546,7 +1546,7 @@ body.dark .pill[style*="#ff9500"],body.dark .pill[style*="--orange"]{box-shadow:
 // ═══════════════════════════════════════════
 //  CATEGORIES
 // ═══════════════════════════════════════════
-var CATS=[
+var CATS_BUILTIN=[
   {id:"RM",label:"Resonadores",icon:"🧲",color:"#818cf8"},
   {id:"TC",label:"Tomógrafos",icon:"☢️",color:"#38bdf8"},
   {id:"MG",label:"Mamógrafos",icon:"🩻",color:"#f472b6"},
@@ -1561,8 +1561,28 @@ var CATS=[
   ,{id:"UPS",label:"UPS",icon:"🔋",color:"#f59e0b"}
 ];
 var CATS_SIN_MANT=["DM","AW","OD","DES"];
+// Categorías creadas por el usuario desde el Panel — sincronizadas con Firestore
+// igual que customComponentes (misma sección más abajo). isGroup:true marca una
+// entrada "padre virtual" para agrupar subcategorías (no es una categoría real,
+// no puede tener equipos propios — igual rol que cumple "Bombas" hoy sin ser una
+// entrada real de CATS).
+var customCats=[];
+var selCatGroupParent=null;
+var CATS=CATS_BUILTIN.slice();
+// Reconstruye CATS = builtin + custom cada vez que customCats cambia (carga desde
+// Firestore, alta/edición/baja de una categoría). Ninguno de los usos de CATS en
+// el archivo lo muta directamente, así que reasignar la variable es seguro.
+function rebuildCats(){
+  CATS=CATS_BUILTIN.concat((customCats||[]).filter(function(c){return !c.isGroup;}).map(function(c){
+    return {id:c.id,label:c.label,icon:c.icon||"🔧",color:c.color||"#64748b",parentId:c.parentId||null};
+  }));
+}
 function catById(id){return CATS.find(function(c){return c.id===id;})||{icon:"🔧",color:"#64748b",label:id};}
-function sinMant(eq){return CATS_SIN_MANT.indexOf(eq.cat)!==-1||eq.frecuencia==="ninguna";}
+function sinMant(eq){
+  if(CATS_SIN_MANT.indexOf(eq.cat)!==-1||eq.frecuencia==="ninguna")return true;
+  var cc=(customCats||[]).find(function(c){return c.id===eq.cat;});
+  return !!(cc&&cc.sinMant);
+}
 
 // ═══════════════════════════════════════════
 //  HELPERS
@@ -1606,7 +1626,7 @@ _PANEL_IMGS.BOMBAI='icons/Bomba%20de%20infusion.png';
 function catSvgIcon(catId,size){
   var s=size||36;var r=Math.round(s*.3);
   var cols={RM:["#818cf8","#c4b5fd"],TC:["#38bdf8","#7dd3fc"],MG:["#f472b6","#f9a8d4"],RX:["#fb923c","#fdba74"],DM:["#34d399","#6ee7b7"],AW:["#a78bfa","#c4b5fd"],BOMBA:["#f87171","#fca5a5"],BOMBAC:["#f87171","#fca5a5"],BOMBAI:["#fb7185","#fda4af"],OD:["#2dd4bf","#5eead4"],UPS:["#f59e0b","#fcd34d"]};
-  var c=cols[catId]||["#94a3b8","#cbd5e1"];
+  var c=cols[catId]||(function(){var _cc=catById(catId);return(_cc&&_cc.color)?[_cc.color,_cc.color]:["#94a3b8","#cbd5e1"];})();
   if(typeof _PANEL_IMGS!=="undefined"&&_PANEL_IMGS[catId]){return '<img src="'+_PANEL_IMGS[catId]+'" width="'+s+'" height="'+s+'" style="border-radius:'+r+'px;object-fit:contain;display:block;" alt="'+catId+'">';}
   if(catId==='UPS'&&typeof _UPS_ILLUS!=='undefined'){return '<svg width="'+s+'" height="'+s+'" viewBox="0 0 600 700" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" style="border-radius:'+r+'px;overflow:hidden;display:block;">'+_UPS_ILLUS+'</svg>';}
   if(typeof _CAT_ILLUS!=="undefined"&&_CAT_ILLUS[catId]){return '<svg width="'+s+'" height="'+s+'" viewBox="0 0 800 480" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" style="border-radius:'+r+'px;overflow:hidden;display:block;">'+_CAT_ILLUS[catId]+'</svg>';}
@@ -2006,7 +2026,7 @@ function saveData(){
   // (iOS mata la PWA en el medio) — así, al reabrir, el arranque en frío sabe que
   // tiene que priorizar este cambio en vez de confiar ciegamente en qué timestamp
   // "parece" más nuevo (ver bloque FIRST SNAPSHOT del listener de Firestore).
-  try{localStorage.setItem("mt_v4",JSON.stringify(eqs));localStorage.setItem("mt_antenas",JSON.stringify(antenas));localStorage.setItem("mt_aires",JSON.stringify(aires));localStorage.setItem("mt_transductores",JSON.stringify(transductores));localStorage.setItem("mt_ordenes",JSON.stringify(ordenesTrabajo));localStorage.setItem("mt_repuestos",JSON.stringify(repuestos));localStorage.setItem("mt_pm_prog",JSON.stringify(pmProgramados));localStorage.setItem("mt_mejoras",JSON.stringify(mejoras));localStorage.setItem("mt_emp_rep",JSON.stringify(empresasRep));localStorage.setItem("mt_custom_comp",JSON.stringify(customComponentes));localStorage.setItem("mt_updatedAt",now);localStorage.setItem("mt_pendingSync","1");}catch(e){}
+  try{localStorage.setItem("mt_v4",JSON.stringify(eqs));localStorage.setItem("mt_antenas",JSON.stringify(antenas));localStorage.setItem("mt_aires",JSON.stringify(aires));localStorage.setItem("mt_transductores",JSON.stringify(transductores));localStorage.setItem("mt_ordenes",JSON.stringify(ordenesTrabajo));localStorage.setItem("mt_repuestos",JSON.stringify(repuestos));localStorage.setItem("mt_pm_prog",JSON.stringify(pmProgramados));localStorage.setItem("mt_mejoras",JSON.stringify(mejoras));localStorage.setItem("mt_emp_rep",JSON.stringify(empresasRep));localStorage.setItem("mt_custom_comp",JSON.stringify(customComponentes));localStorage.setItem("mt_custom_cats",JSON.stringify(customCats));localStorage.setItem("mt_updatedAt",now);localStorage.setItem("mt_pendingSync","1");}catch(e){}
   // Mark dirty before the 400ms debounce fires so the sync indicator is accurate
   // even when offline (_fbUser absent) — firestoreSave() would early-return without setting this
   if(typeof _fsDirty!=='undefined')_fsDirty=true;
@@ -2367,7 +2387,7 @@ function firestoreSave(){
 // (add/edit/delete antenna, etc.) where iOS may kill the PWA before the timer fires.
 function saveDataCritical(){
   var now=new Date().toISOString();
-  try{localStorage.setItem("mt_v4",JSON.stringify(eqs));localStorage.setItem("mt_antenas",JSON.stringify(antenas));localStorage.setItem("mt_aires",JSON.stringify(aires));localStorage.setItem("mt_transductores",JSON.stringify(transductores));localStorage.setItem("mt_ordenes",JSON.stringify(ordenesTrabajo));localStorage.setItem("mt_repuestos",JSON.stringify(repuestos));localStorage.setItem("mt_pm_prog",JSON.stringify(pmProgramados));localStorage.setItem("mt_mejoras",JSON.stringify(mejoras));localStorage.setItem("mt_emp_rep",JSON.stringify(empresasRep));localStorage.setItem("mt_custom_comp",JSON.stringify(customComponentes));localStorage.setItem("mt_updatedAt",now);localStorage.setItem("mt_pendingSync","1");}catch(e){}
+  try{localStorage.setItem("mt_v4",JSON.stringify(eqs));localStorage.setItem("mt_antenas",JSON.stringify(antenas));localStorage.setItem("mt_aires",JSON.stringify(aires));localStorage.setItem("mt_transductores",JSON.stringify(transductores));localStorage.setItem("mt_ordenes",JSON.stringify(ordenesTrabajo));localStorage.setItem("mt_repuestos",JSON.stringify(repuestos));localStorage.setItem("mt_pm_prog",JSON.stringify(pmProgramados));localStorage.setItem("mt_mejoras",JSON.stringify(mejoras));localStorage.setItem("mt_emp_rep",JSON.stringify(empresasRep));localStorage.setItem("mt_custom_comp",JSON.stringify(customComponentes));localStorage.setItem("mt_custom_cats",JSON.stringify(customCats));localStorage.setItem("mt_updatedAt",now);localStorage.setItem("mt_pendingSync","1");}catch(e){}
   if(!window._fbUser||!window._fbdb){if(typeof _fsDirty!=='undefined')_fsDirty=true;return;}
   if(_fsSaveTimer){clearTimeout(_fsSaveTimer);_fsSaveTimer=null;}
   _fsDirty=true;_fsFailed=false;
@@ -2443,7 +2463,7 @@ function _fsWrite(tryN){
   // el completo va en paralelo a los docs hist_* (fuente de verdad del historial).
   var _sp=window._histReady?_stripPayload():{eqs:eqs,antenas:antenas,ordenesTrabajo:ordenesTrabajo};
   if(window._histReady)_histShardSave();
-  var _payload={eqs:_sp.eqs,antenas:_sp.antenas,aires:aires,transductores:transductores,ordenesTrabajo:_sp.ordenesTrabajo,repuestos:repuestos,pmProgramados:pmProgramados,auditLog:auditLog,reclamos:reclamos,mejoras:mejoras,empresasRep:empresasRep,customComponentes:customComponentes,updatedAt:new Date().toISOString()};
+  var _payload={eqs:_sp.eqs,antenas:_sp.antenas,aires:aires,transductores:transductores,ordenesTrabajo:_sp.ordenesTrabajo,repuestos:repuestos,pmProgramados:pmProgramados,auditLog:auditLog,reclamos:reclamos,mejoras:mejoras,empresasRep:empresasRep,customComponentes:customComponentes,customCats:customCats,updatedAt:new Date().toISOString()};
   // Firestore limita cada documento a ~1MB. Aviso temprano al 70% para migrar a tiempo,
   // y si YA se pasó del límite duro no reintentamos en bucle — un doc de +950KB nunca
   // va a escribir con éxito, así que insistir cada pocos segundos solo gasta batería/datos
@@ -4257,7 +4277,36 @@ function _collectFileRefs(){
     else{for(var k in o){if(o.hasOwnProperty(k)){var v=o[k];if(v&&typeof v==='object')walk(v);}}}
   }
   try{walk(eqs);walk(antenas);walk(aires);walk(transductores);}catch(e){}
+  // fotoId de categorías custom: no es un objeto anidado con .id tipo "IMG-xxx" (es
+  // un string suelto en customCats[i].fotoId), así que el walk() genérico no lo agarra.
+  try{(customCats||[]).forEach(function(c){if(c.fotoId)refs[c.fotoId]=c.label||c.id;});}catch(e){}
   return refs;
+}
+// Restaura _PANEL_IMGS[catId] para categorías custom con foto: primero desde IndexedDB
+// local (dbGet), y si no está (otro dispositivo que nunca la descargó) desde Firebase
+// Storage, SIEMPRE convirtiendo a base64 antes de asignarla — nunca la URL https://
+// directo, porque _pdfCatIcon() no puede embeberla en el PDF exportado (ver nota en
+// openCustomCatModal).
+function _loadCustomCatPhotos(){
+  (customCats||[]).forEach(function(c){
+    if(!c.fotoId||_PANEL_IMGS[c.id])return;
+    dbGet(c.fotoId,function(rec){
+      if(rec&&rec.data){_PANEL_IMGS[c.id]=rec.data;render();return;}
+      _storageGetUrl(c.fotoId,function(url){
+        if(!url)return;
+        var xhr=new XMLHttpRequest();xhr.open('GET',url,true);xhr.responseType='blob';xhr.timeout=20000;
+        xhr.onload=function(){
+          if((xhr.status===200||xhr.status===0)&&xhr.response){
+            var rdr=new FileReader();
+            rdr.onload=function(e){_PANEL_IMGS[c.id]=e.target.result;render();};
+            rdr.readAsDataURL(xhr.response);
+          }
+        };
+        xhr.onerror=function(){};xhr.ontimeout=function(){};
+        xhr.send();
+      });
+    });
+  });
 }
 
 // Reconcile local files with Firebase Storage. Ensures every file that exists in
@@ -5952,6 +6001,7 @@ function _buildView(){
   if(view==="inicio")d.innerHTML=rInicio();
   else if(view==="dash")d.innerHTML=rDash();
   else if(view==="bombas")d.innerHTML=rBombas();
+  else if(view==="catgroup")d.innerHTML=rCatGroup();
   else if(view==="lista")d.innerHTML=rLista();
   else if(view==="alertas")d.innerHTML=rAlertas();
   else if(view==="detalle")d.innerHTML=rDetalle();
@@ -6164,12 +6214,18 @@ function rDash(){
   // 2-col: LEFT = categorias, RIGHT = mantenimientos + defectuosos
   var hL='',hR='';
 
-  hL+='<div class="sec">Por Categoría</div><div class="g2cat">';
+  hL+='<div class="sec" style="display:flex;align-items:center;justify-content:space-between;gap:8px;">'+
+    '<span>Por Categoría</span>'+
+    '<button onclick="openCustomCatModal()" style="font-size:.66rem;font-weight:700;padding:5px 12px;border-radius:20px;border:1px solid rgba(0,113,227,.3);background:rgba(0,113,227,.12);color:#0071e3;cursor:pointer;white-space:nowrap;">+ Nueva categoría</button>'+
+  '</div><div class="g2cat">';
   var _catIdx=0;CATS.forEach(function(cat){
     // Bombas de Contraste/Infusión no tienen su propia tarjeta acá — se agrupan bajo
     // una única tarjeta "Bombas" (ver más abajo, misma imagen que tenía antes de
     // separarlas) que al tocarla abre una pantalla con las dos, mismo estilo visual.
     if(cat.id==='BOMBAC'||cat.id==='BOMBAI')return;
+    // Categorías custom que son subcategoría de un grupo no tienen tarjeta propia acá —
+    // se agrupan más abajo en una tarjeta combinada por parentId (ver IIFE después de Bombas).
+    if(cat.parentId)return;
     var ces=eqs.filter(function(e){return e.cat===cat.id&&!e.baja&&_sedeMatch(e);});if(!ces.length)return;
     var fuera=ces.filter(function(e){return e.estado==="fuera-de-servicio";}).length;
     var urg=ces.filter(function(e){return!sinMant(e)&&(semafo(e)==="vencido"||semafo(e)==="urgente");}).length;
@@ -6220,6 +6276,39 @@ function rDash(){
         '</div>'+
       '</div>'+
     '</div></div>';
+  })();
+  // Grupos de subcategorías custom (mismo patrón visual que "Bombas", genérico para
+  // cualquier categoría creada desde el Panel con "Subcategoría de → + Crear nuevo grupo").
+  (function(){
+    var groups=(customCats||[]).filter(function(c){return c.isGroup;});
+    groups.forEach(function(g){
+      var members=(customCats||[]).filter(function(c){return!c.isGroup&&c.parentId===g.id;}).map(function(c){return c.id;});
+      if(!members.length)return;
+      var ces=eqs.filter(function(e){return members.indexOf(e.cat)!==-1&&!e.baja&&_sedeMatch(e);});
+      if(!ces.length)return;
+      var fuera=ces.filter(function(e){return e.estado==="fuera-de-servicio";}).length;
+      var urg=ces.filter(function(e){return!sinMant(e)&&(semafo(e)==="vencido"||semafo(e)==="urgente");}).length;
+      var statusColor=fuera?"#ff3b30":urg?"#ff9500":"#34c759";
+      var statusLabel=fuera?'🚫 '+fuera+' fuera de servicio':urg?'⚠️ '+urg+' urgente'+(urg!==1?'s':''):'✅ Operativos';
+      var gColor=g.color||"#64748b";
+      var iconSvg=catSvgIcon(g.id,192)||'';
+      hL+='<div class="cring-wrap'+(fuera?' cring-alert':'')+'" style="--cc:'+gColor+';"><div class="cring-el"></div>'+
+      '<div class="gc tap" data-aos="zoom-in" data-aos-delay="'+Math.min(_catIdx++*60,360)+'" onclick="selCatGroupParent=\''+g.id+'\';setView(\'catgroup\');" style="padding:0;overflow:hidden;cursor:pointer;min-height:130px;">'+
+        '<div style="padding:16px 14px 14px;display:flex;flex-direction:column;justify-content:space-between;height:100%;position:relative;overflow:hidden;">'+
+          '<div style="position:absolute;right:-18px;top:50%;transform:translateY(-50%);width:210px;height:210px;display:flex;align-items:center;justify-content:center;opacity:.82;pointer-events:none;">'+iconSvg+'</div>'+
+          '<div style="display:flex;flex-direction:column;gap:0;z-index:1;">'+
+            '<div style="font-weight:900;font-size:2.6rem;color:'+gColor+';line-height:1;letter-spacing:-2px;">'+ces.length+'</div>'+
+            '<div style="font-size:.56rem;color:'+gColor+'aa;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-top:1px;">equipo'+(ces.length!==1?'s':'')+'</div>'+
+          '</div>'+
+          '<div style="z-index:1;">'+
+            '<div style="font-weight:800;font-size:1.05rem;letter-spacing:-.3px;color:var(--text);margin-bottom:7px;">'+esc(g.label)+'</div>'+
+            '<div style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:20px;background:'+statusColor+'16;border:1px solid '+statusColor+'30;">'+
+              '<span style="font-size:.72rem;font-weight:600;color:'+statusColor+';">'+statusLabel+'</span>'+
+            '</div>'+
+          '</div>'+
+        '</div>'+
+      '</div></div>';
+    });
   })();
   if(aires.length>0||true){
     var aireFallas=aires.filter(function(a){return a.estado==='falla'||a.estado==='fuera_servicio';}).length;
@@ -6326,6 +6415,46 @@ function rBombas(){
         '</div>'+
         '<div style="z-index:1;">'+
           '<div style="font-weight:800;font-size:1.05rem;letter-spacing:-.3px;color:var(--text);margin-bottom:7px;">'+cat.label+'</div>'+
+          '<div style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:20px;background:'+statusColor+'16;border:1px solid '+statusColor+'30;">'+
+            '<span style="font-size:.72rem;font-weight:600;color:'+statusColor+';">'+statusLabel+'</span>'+
+          '</div>'+
+        '</div>'+
+      '</div>'+
+    '</div></div>';
+  });
+  h+='</div>';
+  return h;
+}
+
+// ── GRUPO DE SUBCATEGORÍAS CUSTOM ── (genérico, mismo patrón que rBombas() pero para
+// cualquier grupo creado desde el Panel vía "Subcategoría de → + Crear nuevo grupo").
+function rCatGroup(){
+  var g=(customCats||[]).find(function(c){return c.id===selCatGroupParent;});
+  if(!g)return'<div style="padding:22px;text-align:center;color:var(--label2);">Grupo no encontrado</div>';
+  var h='';
+  h+='<div onclick="setView(\'dash\')" style="display:flex;align-items:center;gap:8px;padding:10px 14px;margin-bottom:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:var(--r-md);cursor:pointer;" ontouchstart="this.style.opacity=\'.7\'" ontouchend="this.style.opacity=\'1\'">'+
+    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.45)" stroke-width="2.2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>'+
+    '<span style="font-size:.8rem;font-weight:600;color:var(--text2);">Panel</span>'+
+  '</div>';
+  h+='<div class="sec">'+esc(g.label)+'</div><div class="g2cat">';
+  var subs=CATS.filter(function(c){return c.parentId===g.id;});
+  subs.forEach(function(cat,idx){
+    var ces=eqs.filter(function(e){return e.cat===cat.id&&!e.baja&&_sedeMatch(e);});
+    var fuera=ces.filter(function(e){return e.estado==="fuera-de-servicio";}).length;
+    var urg=ces.filter(function(e){return!sinMant(e)&&(semafo(e)==="vencido"||semafo(e)==="urgente");}).length;
+    var statusColor=fuera?"#ff3b30":urg?"#ff9500":"#34c759";
+    var statusLabel=!ces.length?'Sin equipos':fuera?'🚫 '+fuera+' fuera de servicio':urg?'⚠️ '+urg+' urgente'+(urg!==1?'s':''):'✅ Operativos';
+    var iconSvg=catSvgIcon(cat.id,192)||'';
+    h+='<div class="cring-wrap'+(fuera?' cring-alert':'')+'" style="--cc:'+cat.color+';"><div class="cring-el"></div>'+
+    '<div class="gc tap" data-aos="zoom-in" data-aos-delay="'+Math.min(idx*60,360)+'" onclick="filtCat=\''+cat.id+'\';setView(\'lista\');" style="padding:0;overflow:hidden;cursor:pointer;min-height:130px;">'+
+      '<div style="padding:16px 14px 14px;display:flex;flex-direction:column;justify-content:space-between;height:100%;position:relative;overflow:hidden;">'+
+        '<div style="position:absolute;right:-18px;top:50%;transform:translateY(-50%);width:210px;height:210px;display:flex;align-items:center;justify-content:center;opacity:.82;pointer-events:none;">'+iconSvg+'</div>'+
+        '<div style="display:flex;flex-direction:column;gap:0;z-index:1;">'+
+          '<div style="font-weight:900;font-size:2.6rem;color:'+cat.color+';line-height:1;letter-spacing:-2px;">'+ces.length+'</div>'+
+          '<div style="font-size:.56rem;color:'+cat.color+'aa;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-top:1px;">equipo'+(ces.length!==1?'s':'')+'</div>'+
+        '</div>'+
+        '<div style="z-index:1;">'+
+          '<div style="font-weight:800;font-size:1.05rem;letter-spacing:-.3px;color:var(--text);margin-bottom:7px;">'+esc(cat.label)+'</div>'+
           '<div style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:20px;background:'+statusColor+'16;border:1px solid '+statusColor+'30;">'+
             '<span style="font-size:.72rem;font-weight:600;color:'+statusColor+';">'+statusLabel+'</span>'+
           '</div>'+
@@ -17991,12 +18120,16 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="4.1.0";
+var APP_DISPLAY_VERSION="4.2.0";
 var APP_BUILD="03/08/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'4.2.0',fecha:'03/08/2026',tipo:'minor',cambios:[
+    'Categorías personalizadas: crear categorías nuevas desde el Panel, con subcategorías agrupadas, foto propia (funciona también en el PDF exportado, no solo en pantalla), y control de vencimientos de mantenimiento igual que el resto de las categorías',
+    'Catálogo de componentes sugeridos y configuración de mantenimiento ya funcionan automáticamente para las categorías nuevas, sin pasos extra'
+  ]},
   {v:'4.1.0',fecha:'03/08/2026',tipo:'minor',cambios:[
     'Aires Acondicionados: ahora tienen frecuencia de service y fecha de próximo vencimiento (igual que el resto de los equipos) — antes no había forma de controlar cada cuánto tiempo correspondía el service',
     'Aires con service vencido/próximo a vencer o con falla ahora aparecen en Alertas, con navegación directa al detalle del aire',
@@ -18557,6 +18690,104 @@ function openCatalogoComponentesModal(){
   };
   _renderCatModal();
 }
+// ── Categorías personalizadas (creadas desde el Panel) ──
+// La foto de una categoría SIEMPRE se resuelve a base64 antes de asignarse a
+// _PANEL_IMGS — _pdfCatIcon() solo puede embeber "data:image/..." en el PDF, así que
+// una URL https:// se vería bien en pantalla pero desaparecería del informe exportado
+// sin ningún aviso.
+var _ccFotoB64=null;
+function openCustomCatModal(editId){
+  var editing=editId?(customCats||[]).find(function(c){return c.id===editId&&!c.isGroup;}):null;
+  _ccFotoB64=editing?(_PANEL_IMGS[editing.id]||null):null;
+  function _groupOpts(){
+    var groups=(customCats||[]).filter(function(c){return c.isGroup&&c.id!==editId;});
+    var opts='<option value="">— Ninguna —</option>';
+    groups.forEach(function(g){opts+='<option value="'+g.id+'"'+((editing&&editing.parentId===g.id)?' selected':'')+'>'+esc(g.label)+'</option>';});
+    opts+='<option value="__new__">+ Crear nuevo grupo…</option>';
+    return opts;
+  }
+  function _render(){
+    var h='<div class="modal-title">'+(editing?'Editar categoría':'Nueva categoría')+'</div>'+
+      '<div style="font-size:.75rem;color:var(--text3);margin-bottom:14px;">Aparece en el Panel junto a las categorías existentes, con vencimientos, informes PDF y catálogo de componentes ya funcionando igual que las demás.</div>'+
+      '<div class="ff" style="margin-bottom:10px;"><div class="ff-label">Nombre</div><input class="inp" id="cc-label" placeholder="Ej: Ecógrafos portátiles" value="'+(editing?esc(editing.label):'')+'"></div>'+
+      '<div style="display:flex;gap:10px;margin-bottom:10px;">'+
+        '<div class="ff" style="flex:1;"><div class="ff-label">Emoji (si no hay foto)</div><input class="inp" id="cc-icon" maxlength="4" placeholder="🔧" value="'+(editing?esc(editing.icon||''):'')+'"></div>'+
+        '<div class="ff" style="width:90px;"><div class="ff-label">Color</div><input class="inp" type="color" id="cc-color" value="'+(editing&&editing.color?editing.color:'#64748b')+'" style="height:40px;padding:2px;"></div>'+
+      '</div>'+
+      '<div class="ff" style="margin-bottom:10px;"><div class="ff-label">Foto de la categoría <span style="opacity:.6;">(opcional)</span></div>'+
+        '<div id="cc-foto-preview" style="margin-bottom:8px;">'+(_ccFotoB64?'<img src="'+_ccFotoB64+'" style="width:64px;height:64px;object-fit:cover;border-radius:10px;border:1px solid var(--border);">':'')+'</div>'+
+        '<input type="file" accept="image/*" id="cc-foto-input" onchange="_ccFotoChange(event)">'+
+      '</div>'+
+      '<div class="ff" style="margin-bottom:10px;"><div class="ff-label">Subcategoría de</div><select class="inp" id="cc-parent">'+_groupOpts()+'</select></div>'+
+      '<label style="display:flex;align-items:center;gap:8px;font-size:.82rem;color:var(--text2);margin-bottom:16px;cursor:pointer;"><input type="checkbox" id="cc-sinmant" '+(editing&&editing.sinMant?'checked':'')+'> Sin mantenimiento programado</label>'+
+      (editing?'<button style="width:100%;margin-bottom:8px;font-size:.78rem;min-height:38px;border-radius:10px;border:1.5px solid rgba(255,59,48,.3);background:rgba(255,59,48,.1);color:#ef4444;font-weight:600;cursor:pointer;" onclick="deleteCustomCat(\''+editing.id+'\')">Eliminar categoría</button>':'')+
+      '<button class="btn-primary" style="width:100%;" onclick="submitCustomCat(\''+(editing?editing.id:'')+'\')">'+(editing?'Guardar cambios':'Crear categoría')+'</button>';
+    openModal(h);
+  }
+  window._ccFotoChange=function(ev){
+    var file=ev.target.files&&ev.target.files[0];if(!file)return;
+    var rdr=new FileReader();
+    rdr.onload=function(e){
+      _resizeReportImg(e.target.result,function(resized){
+        _ccFotoB64=resized;
+        var prev=document.getElementById('cc-foto-preview');
+        if(prev)prev.innerHTML='<img src="'+resized+'" style="width:64px;height:64px;object-fit:cover;border-radius:10px;border:1px solid var(--border);">';
+      });
+    };
+    rdr.readAsDataURL(file);
+  };
+  _render();
+}
+function submitCustomCat(editId){
+  var label=((document.getElementById('cc-label')||{}).value||'').trim();
+  if(!label){showToast('Ingresá el nombre de la categoría','warn');return;}
+  var icon=((document.getElementById('cc-icon')||{}).value||'').trim()||'🔧';
+  var color=((document.getElementById('cc-color')||{}).value||'').trim()||'#64748b';
+  var parentSel=((document.getElementById('cc-parent')||{}).value||'');
+  var sinMantChk=!!(document.getElementById('cc-sinmant')||{}).checked;
+  var id=editId||('CC-'+Date.now());
+  var parentId=null;
+  if(parentSel==='__new__'){
+    var gName=(prompt('Nombre del nuevo grupo (ej: "Ecógrafos")')||'').trim();
+    if(!gName){showToast('Se canceló: falta el nombre del grupo','warn');return;}
+    var gId='CCG-'+Date.now();
+    customCats.push({id:gId,label:gName,isGroup:true,color:color});
+    parentId=gId;
+  } else if(parentSel){
+    parentId=parentSel;
+  }
+  var idx=customCats.findIndex(function(c){return c.id===id;});
+  var prevFotoId=idx!==-1?customCats[idx].fotoId:null;
+  var entry={id:id,label:label,icon:icon,color:color,parentId:parentId,sinMant:sinMantChk,fotoId:prevFotoId};
+  if(idx!==-1)customCats[idx]=entry;else customCats.push(entry);
+  if(_ccFotoB64){
+    _PANEL_IMGS[id]=_ccFotoB64; // ya es base64 → funciona en pantalla y en el PDF exportado
+    var fotoId=prevFotoId||('IMG-CAT-'+Date.now());
+    entry.fotoId=fotoId;
+    dbSave(fotoId,label+' (categoría)',_ccFotoB64,function(){});
+  }
+  rebuildCats();
+  saveDataCritical();
+  closeModal();
+  render();
+  showToast(editId?'Categoría actualizada':'Categoría creada');
+}
+function deleteCustomCat(id){
+  var entry=(customCats||[]).find(function(c){return c.id===id;});
+  if(!entry)return;
+  var inUse=eqs.some(function(e){return e.cat===id&&!e.baja;});
+  if(inUse){showToast('No se puede eliminar: hay equipos cargados en esta categoría','err');return;}
+  var hasChildren=(customCats||[]).some(function(c){return c.parentId===id;});
+  if(hasChildren){showToast('No se puede eliminar: tiene subcategorías. Eliminalas o reasignalas primero.','err');return;}
+  if(!confirm('¿Eliminar la categoría "'+entry.label+'"? Esta acción no se puede deshacer.'))return;
+  customCats=customCats.filter(function(c){return c.id!==id;});
+  delete _PANEL_IMGS[id];
+  rebuildCats();
+  saveDataCritical();
+  closeModal();
+  render();
+  showToast('Categoría eliminada','warn');
+}
 function openAccessManager(){
   accessDocRef().get().then(function(doc){
     var emails=doc.exists?(doc.data().emails||[]):[];
@@ -18656,6 +18887,9 @@ function init(){
   try{var _cmj=localStorage.getItem('mt_mejoras');if(_cmj){var _cpmj=JSON.parse(_cmj);if(Array.isArray(_cpmj))mejoras=_cpmj;}}catch(e){}
   try{var _cer=localStorage.getItem('mt_emp_rep');if(_cer){var _cper=JSON.parse(_cer);if(Array.isArray(_cper))empresasRep=_cper;}}catch(e){}
   try{var _ccc=localStorage.getItem('mt_custom_comp');if(_ccc){var _cpcc=JSON.parse(_ccc);if(_cpcc&&typeof _cpcc==='object')customComponentes=_cpcc;}}catch(e){}
+  try{var _ccats=localStorage.getItem('mt_custom_cats');if(_ccats){var _cpcats=JSON.parse(_ccats);if(Array.isArray(_cpcats))customCats=_cpcats;}}catch(e){}
+  rebuildCats();
+  _loadCustomCatPhotos();
   render();
   // Deep-link: #EQ-xxx opens equipment directly
   try{
@@ -18726,6 +18960,9 @@ function init(){
             if(Array.isArray(d.mejoras))mejoras=d.mejoras;
             if(Array.isArray(d.empresasRep))empresasRep=d.empresasRep;
             if(d.customComponentes&&typeof d.customComponentes==='object')customComponentes=d.customComponentes;
+            if(Array.isArray(d.customCats))customCats=d.customCats;
+            rebuildCats();
+            _loadCustomCatPhotos();
           }
         }
         window._applyDataGlobal=_applyData;
@@ -18742,6 +18979,9 @@ function init(){
           try{var smj=localStorage.getItem('mt_mejoras');if(smj){var pmj=JSON.parse(smj);if(Array.isArray(pmj))mejoras=pmj;}}catch(e){}
           try{var ser=localStorage.getItem('mt_emp_rep');if(ser){var per=JSON.parse(ser);if(Array.isArray(per))empresasRep=per;}}catch(e){}
           try{var scc=localStorage.getItem('mt_custom_comp');if(scc){var pcc=JSON.parse(scc);if(pcc&&typeof pcc==='object')customComponentes=pcc;}}catch(e){}
+          try{var scats=localStorage.getItem('mt_custom_cats');if(scats){var pcats=JSON.parse(scats);if(Array.isArray(pcats))customCats=pcats;}}catch(e){}
+          rebuildCats();
+          _loadCustomCatPhotos();
         }
         function _finishLoad(){
           migrateEqs();
