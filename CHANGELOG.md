@@ -1,5 +1,11 @@
 # Changelog — MedTrack
 
+## v4.3.0 — 03/08/2026 (minor)
+
+- Categorías personalizadas: la foto ahora preserva transparencia (antes salía con fondo negro por la compresión a JPEG)
+- Categorías personalizadas: las categorías nuevas aparecen en el Panel apenas se crean, sin esperar a cargar el primer equipo
+- Categorías personalizadas: nueva sección en Ajustes para editar, borrar (solo si no tiene equipos) y configurar componentes de las categorías creadas
+
 ## v4.2.0 — 03/08/2026 (minor)
 
 - Categorías personalizadas: crear categorías nuevas desde el Panel, con subcategorías agrupadas, foto propia (funciona también en el PDF exportado, no solo en pantalla), y control de vencimientos de mantenimiento igual que el resto de las categorías
