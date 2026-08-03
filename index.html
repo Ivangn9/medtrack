@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.07.31.007 -->
+<!-- v2026.08.03.001 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.07.31.007">
+<meta name="app-version" content="v2026.08.03.001">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -17780,12 +17780,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="3.10.7";
-var APP_BUILD="31/07/26 h";
+var APP_DISPLAY_VERSION="3.10.8";
+var APP_BUILD="03/08/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'3.10.8',fecha:'03/08/2026',tipo:'patch',cambios:[
+    'Ícono de la app reemplazado: nuevo diseño Gantry (anillo de gantry de resonador, sin la sobrecarga del ícono genérico anterior) — se ve en la instalación PWA de Android/Windows/Mac/iPhone'
+  ]},
   {v:'3.10.7',fecha:'31/07/2026',tipo:'patch',cambios:[
     'Fix: Asistente IA y escáner con cámara no funcionaban en la app nativa instalada (Tauri) — el proxy de Cloudflare se guardaba en localStorage por dispositivo/app, que no se comparte entre Safari/PWA y la app instalada. Ahora la URL del Worker queda fija en el código como valor por defecto (Ajustes la puede seguir pisando si hiciera falta apuntar a otro Worker en el futuro).'
   ]},

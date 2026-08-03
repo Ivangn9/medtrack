@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v3.10.8 — 03/08/2026 (patch)
+
+- Ícono de la app reemplazado: nuevo diseño Gantry (anillo de gantry de resonador, sin la sobrecarga del ícono genérico anterior) — se ve en la instalación PWA de Android/Windows/Mac/iPhone
+
 ## v3.10.7 — 31/07/2026 (patch)
 
 - Fix: Asistente IA y escáner con cámara no funcionaban en la app nativa instalada (Tauri) — el proxy de Cloudflare se guardaba en localStorage por dispositivo/app, que no se comparte entre Safari/PWA y la app instalada. Ahora la URL del Worker queda fija en el código como valor por defecto (Ajustes la puede seguir pisando si hiciera falta apuntar a otro Worker en el futuro).
