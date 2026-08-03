@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.08.03.006 -->
+<!-- v2026.08.03.007 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.08.03.006">
+<meta name="app-version" content="v2026.08.03.007">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3039,6 +3039,17 @@ function getAlertas(){
     var minimo=parseFloat(r.stockMinimo);if(isNaN(minimo))minimo=0;
     if(cant<=0)a.push({k:'rep'+r.id+'out',niv:'critico',tit:r.nombre,desc:'📦 Repuesto SIN STOCK',eid:''});
     else if(minimo>0&&cant<=minimo)a.push({k:'rep'+r.id+'low',niv:'advertencia',tit:r.nombre,desc:'📦 Stock bajo: '+cant+' (mín '+minimo+')',eid:''});
+  });
+  // Aires acondicionados — antes no tenían fecha de vencimiento de mantenimiento
+  // ni participaban de este sistema de alertas en absoluto. (Variable del loop
+  // renombrada a "au" a propósito: "a" ya es el array acumulador de alertas de
+  // toda la función — usar el mismo nombre acá lo pisaba silenciosamente.)
+  aires.filter(_sedeMatch).forEach(function(au){
+    if(au.estado==='fuera_servicio')a.push({k:au.id+'afs',niv:'critico',tit:au.nombre,desc:'❄️ Aire fuera de servicio',eid:au.id,tipo:'aire'});
+    else if(au.estado==='falla')a.push({k:au.id+'afa',niv:'advertencia',tit:au.nombre,desc:'❄️ Aire con falla',eid:au.id,tipo:'aire'});
+    var _sfa=semafoAire(au);
+    if(_sfa==='vencido')a.push({k:au.id+'asv',niv:'critico',tit:au.nombre,desc:'❄️ Service VENCIDO — '+fD(au.proximoMant),eid:au.id,tipo:'aire'});
+    else if(_sfa==='urgente')a.push({k:au.id+'asu',niv:'advertencia',tit:au.nombre,desc:'❄️ Service en '+diasH(au.proximoMant)+' días',eid:au.id,tipo:'aire'});
   });
   activeEqs.forEach(function(e){
     if(e.cat!=='RM')return;
@@ -6212,11 +6223,17 @@ function rDash(){
   })();
   if(aires.length>0||true){
     var aireFallas=aires.filter(function(a){return a.estado==='falla'||a.estado==='fuera_servicio';}).length;
+    // Antes solo se contaban fallas de estado — el vencimiento de service
+    // (agregado junto con frecuencia/proximoMant) no impactaba en absoluto
+    // esta tarjeta, así que un aire con el service vencido se veía "verde".
+    var aireVencidos=aires.filter(function(au){return semafoAire(au)==='vencido';}).length;
+    var aireUrgentes=aires.filter(function(au){return semafoAire(au)==='urgente';}).length;
+    var aireCrit=aireFallas+aireVencidos;
     var aireColor='#06b6d4';
-    var aireStatus=aireFallas>0?'⚠️ '+aireFallas+' con falla':'✅ Operativos';
-    var aireStatusColor=aireFallas>0?'#f59e0b':'#34c759';
+    var aireStatus=aireCrit>0?'🚫 '+aireCrit+' con falla/vencido':aireUrgentes>0?'⚠️ '+aireUrgentes+' service próximo':'✅ Operativos';
+    var aireStatusColor=aireCrit>0?'#ff3b30':aireUrgentes>0?'#f59e0b':'#34c759';
     var aireSvg=(typeof _PANEL_IMGS!=='undefined'&&_PANEL_IMGS['AIRES'])?'<img src="'+_PANEL_IMGS['AIRES']+'" width="200" height="200" style="object-fit:contain;display:block;" alt="AIRES">':'<svg viewBox="'+_AIRE_VB+'" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" width="200" height="200">'+_AIRE_ILLUS+'</svg>';
-    hL+='<div class="cring-wrap" style="--cc:'+aireColor+';"><div class="cring-el"></div>'+
+    hL+='<div class="cring-wrap'+(aireCrit>0?' cring-alert':'')+'" style="--cc:'+aireColor+';"><div class="cring-el"></div>'+
     '<div class="gc tap" onclick="setView(\'aires\');" style="padding:0;overflow:hidden;cursor:pointer;min-height:130px;">'+
       '<div style="padding:16px 14px 14px;display:flex;flex-direction:column;justify-content:space-between;height:100%;position:relative;overflow:hidden;">'+
         '<div style="position:absolute;right:-18px;top:50%;transform:translateY(-50%);width:210px;height:210px;display:flex;align-items:center;justify-content:center;opacity:.82;pointer-events:none;">'+aireSvg+'</div>'+
@@ -9423,15 +9440,19 @@ function rAlertas(){
     var sub=list.filter(function(a){return a.niv===g[0];});if(!sub.length)return'';
     var out='<div class="sec" style="color:'+g[2]+';">'+g[1]+' ('+sub.length+')</div>';
     sub.forEach(function(a){
-      var eq=eqs.find(function(e){return e.id===a.eid;})||{};
-      var cat=catById(eq.cat);var catColor=cat.color||"#64748b";var nivColor=g[2];
+      var isAire=a.tipo==='aire';
+      var eq=isAire?{}:(eqs.find(function(e){return e.id===a.eid;})||{});
+      var cat=isAire?{label:'Aire Acond.',icon:'❄️'}:catById(eq.cat);
+      var catColor=isAire?'#06b6d4':(cat.color||"#64748b");var nivColor=g[2];
+      var goFn=isAire?'goAireDetalle':'goDetalle';
+      var icoHtml=isAire?('<svg width="30" height="30" viewBox="'+_AIRE_VB+'" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" style="display:block;">'+_AIRE_ILLUS+'</svg>'):(catSvgIcon(eq.cat,30)||'<span style="font-size:1.2rem;">'+cat.icon+'</span>');
       var ageBadge=_alertAgeBadge(a.k,a.niv);
       out+='<div class="gc" style="border-left:4px solid '+nivColor+';padding:13px 14px;margin-bottom:8px;">'+
         '<div style="display:flex;align-items:center;gap:12px;">'+
-        '<div onclick="goDetalle(\''+a.eid+'\')" style="width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:'+catColor+'18;border:1px solid '+catColor+'30;box-shadow:0 2px 8px rgba(0,0,0,.06),inset 0 1px 0 rgba(255,255,255,.8);cursor:pointer;">'+
-        (catSvgIcon(eq.cat,30)||'<span style="font-size:1.2rem;">'+cat.icon+'</span>')+
+        '<div onclick="'+goFn+'(\''+a.eid+'\')" style="width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:'+catColor+'18;border:1px solid '+catColor+'30;box-shadow:0 2px 8px rgba(0,0,0,.06),inset 0 1px 0 rgba(255,255,255,.8);cursor:pointer;overflow:hidden;">'+
+        icoHtml+
         '</div>'+
-        '<div style="flex:1;min-width:0;cursor:pointer;" onclick="goDetalle(\''+a.eid+'\')">'+
+        '<div style="flex:1;min-width:0;cursor:pointer;" onclick="'+goFn+'(\''+a.eid+'\')">'+
         '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px;">'+
         '<span style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:.6rem;font-weight:700;background:'+nivColor+'18;color:'+nivColor+';">'+g[1].split(' ')[0]+'</span>'+
         '<span style="font-size:.62rem;font-weight:600;color:'+catColor+';background:'+catColor+'14;padding:2px 8px;border-radius:20px;">'+cat.label+'</span>'+
@@ -17169,12 +17190,16 @@ function rAires(){
       var stColor=a.estado==='operativo'?'var(--green)':a.estado==='falla'?'var(--orange)':'var(--red)';
       var stLabel=a.estado==='operativo'?'✅ Operativo':a.estado==='falla'?'⚠️ Con falla':'🔴 Fuera de servicio';
       var lastSvc=a.ultimoService?'Últ. service: '+fD(a.ultimoService):'Sin service registrado';
-      h+='<div class="gc tap" onclick="goAireDetalle(\''+a.id+'\')" style="padding:14px 16px;margin-bottom:8px;cursor:pointer;border-left:3px solid '+aC+';display:flex;align-items:center;gap:12px;">'+
+      var _sfa=semafoAire(a);
+      var _venColor={vencido:'var(--red)',urgente:'var(--orange)',proximo:'var(--accent)',ok:'var(--green)',sinmant:'var(--text3)'}[_sfa];
+      var _venLabel=_sfa==='vencido'?'🔴 Service VENCIDO — '+fD(a.proximoMant):_sfa==='urgente'?'⚠️ Service en '+diasH(a.proximoMant)+'d':_sfa==='proximo'?'Service: '+fD(a.proximoMant):_sfa==='ok'?'✅ Al día — próx. '+fD(a.proximoMant):'Sin frecuencia configurada';
+      h+='<div class="gc tap" onclick="goAireDetalle(\''+a.id+'\')" style="padding:14px 16px;margin-bottom:8px;cursor:pointer;border-left:3px solid '+(_sfa==='vencido'||_sfa==='urgente'?_venColor:aC)+';display:flex;align-items:center;gap:12px;">'+
         '<div style="width:42px;height:42px;border-radius:12px;overflow:hidden;flex-shrink:0;"><svg width="42" height="42" viewBox="'+_AIRE_VB+'" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" style="display:block;">'+_AIRE_ILLUS+'</svg></div>'+
         '<div style="flex:1;min-width:0;">'+
           '<div style="font-weight:700;font-size:.92rem;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(a.nombre)+'</div>'+
           '<div style="font-size:.72rem;color:var(--text3);margin-top:2px;">'+(a.modelo?'📦 '+esc(a.modelo):'')+((a.modelo&&a.ubicacion)?' · ':'')+( a.ubicacion?'📍 '+esc(a.ubicacion):'')+'</div>'+
           '<div style="font-size:.68rem;color:var(--text3);margin-top:2px;">'+lastSvc+'</div>'+
+          '<div style="font-size:.68rem;font-weight:600;color:'+_venColor+';margin-top:2px;">'+_venLabel+'</div>'+
         '</div>'+
         '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0;">'+
           '<span style="font-size:.65rem;font-weight:700;padding:3px 9px;border-radius:20px;background:'+stColor+'18;color:'+stColor+';">'+stLabel+'</span>'+
@@ -17204,6 +17229,15 @@ function rAireDetalle(){
       '<span style="font-size:.72rem;font-weight:700;padding:5px 12px;border-radius:20px;background:'+stColor+'18;color:'+stColor+';">'+stLabel+'</span>'+
     '</div>'+
   '</div>';
+  // Banner de vencimiento — solo si hay algo que avisar (vencido/urgente)
+  var _sfaD=semafoAire(a);
+  if(_sfaD==='vencido'||_sfaD==='urgente'){
+    var _vcol=_sfaD==='vencido'?'var(--red)':'var(--orange)';
+    var _vtxt=_sfaD==='vencido'?'🔴 Service vencido — '+fD(a.proximoMant):'⚠️ Service vence en '+diasH(a.proximoMant)+' días — '+fD(a.proximoMant);
+    h+='<div class="gc" style="padding:11px 14px;margin-bottom:12px;border-left:4px solid '+_vcol+';">'+
+      '<div style="font-size:.82rem;font-weight:700;color:'+_vcol+';">'+_vtxt+'</div>'+
+    '</div>';
+  }
   // Info grid
   h+='<div class="gc" style="padding:14px 16px;margin-bottom:12px;">'+
     '<div class="det-grid">'+
@@ -17213,7 +17247,9 @@ function rAireDetalle(){
       (a.equipoCat?'<div class="ibox"><div class="ibox-l">Equipo asociado</div><div class="ibox-v">'+esc(a.equipoCat)+'</div></div>':'')+
       (a.instalador?'<div class="ibox"><div class="ibox-l">Instalador</div><div class="ibox-v">'+esc(a.instalador)+'</div></div>':'')+
       (a.fechaInstalacion?'<div class="ibox"><div class="ibox-l">Fecha instalación</div><div class="ibox-v">'+fD(a.fechaInstalacion)+'</div></div>':'')+
+      '<div class="ibox"><div class="ibox-l">Frecuencia de service</div><div class="ibox-v">'+(_AIRE_FREC_LBL[a.frecuencia]||'Sin configurar')+'</div></div>'+
       (a.ultimoService?'<div class="ibox"><div class="ibox-l">Último service</div><div class="ibox-v" style="color:'+aC+';">'+fD(a.ultimoService)+'</div></div>':'')+
+      (a.proximoMant?'<div class="ibox"><div class="ibox-l">Próximo service</div><div class="ibox-v" style="color:'+({vencido:'var(--red)',urgente:'var(--orange)',proximo:'var(--accent)',ok:'var(--green)'}[_sfaD]||aC)+';">'+fD(a.proximoMant)+'</div></div>':'')+
     '</div>'+
     (a.notas?'<div style="font-size:.78rem;color:var(--text2);margin-top:8px;padding-top:8px;border-top:1px solid rgba(120,120,128,.12);">'+esc(a.notas)+'</div>':'')+
   '</div>';
@@ -17282,6 +17318,23 @@ function rAireDetalle(){
   return h;
 }
 
+// Opciones de frecuencia de service — mismas etiquetas/valores que usa el
+// resto de los equipos (fm()/calcP()), para que Aires participe del mismo
+// sistema de vencimientos en vez de quedar aparte sin control de fechas.
+var _AIRE_FREC_LBL={trimestral:'Trimestral',semestral:'Semestral',anual:'Anual',mensual:'Mensual',ninguna:'Sin service programado'};
+function _aireFrecOpts(sel){
+  return ['trimestral','semestral','anual','mensual','ninguna'].map(function(v){
+    return '<option value="'+v+'"'+(sel===v?' selected':'')+'>'+_AIRE_FREC_LBL[v]+'</option>';
+  }).join('');
+}
+// Estado de vencimiento de un aire — mismo criterio que semafo() para equipos
+// (vencido <0 días, urgente <=20, próximo <=90), pero leyendo los campos
+// propios de aires (frecuencia/proximoMant) en vez de los de eqs.
+function semafoAire(a){
+  if(!a.frecuencia||a.frecuencia==='ninguna'||!a.proximoMant)return'sinmant';
+  var d=diasH(a.proximoMant);
+  if(d<0)return'vencido';if(d<=20)return'urgente';if(d<=90)return'proximo';return'ok';
+}
 function openAddAire(){
   openModal(
     '<div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;"><span style="font-size:1.4rem;">❄️</span><span style="font-size:.85rem;font-weight:700;color:#06b6d4;">Agregar Aire Acondicionado</span></div>'+
@@ -17292,6 +17345,7 @@ function openAddAire(){
     '<div class="ff"><div class="ff-label">Modelo</div><input class="inp" id="ai-mod" placeholder="Modelo del equipo"></div>'+
     '<div class="ff"><div class="ff-label">Instalador / Empresa</div><input class="inp" id="ai-inst" placeholder="Quién lo instaló"></div>'+
     '<div class="ff"><div class="ff-label">Fecha de instalación</div><input class="inp" id="ai-finst" type="date"></div>'+
+    '<div class="ff"><div class="ff-label">Frecuencia de service</div><select class="inp" id="ai-frec">'+_aireFrecOpts('semestral')+'</select></div>'+
     '<div class="ff"><div class="ff-label">Fecha último service</div><input class="inp" id="ai-fsvc" type="date"></div>'+
     '<div class="ff"><div class="ff-label">Notas</div><textarea class="inp" id="ai-notas" rows="2"></textarea></div>'+
     '<button class="btn-grad" style="background:linear-gradient(135deg,#06b6d4,#0891b2);color:#fff;" onclick="submitAddAire()">Guardar</button>'
@@ -17301,6 +17355,8 @@ function openAddAire(){
 function submitAddAire(){
   var nom=(document.getElementById('ai-nom')||{}).value||'';
   if(!nom.trim()){alert('Nombre obligatorio');return;}
+  var frec=((document.getElementById('ai-frec')||{}).value||'semestral').trim();
+  var fsvc=((document.getElementById('ai-fsvc')||{}).value||'').trim();
   var a={
     id:'AIRE-'+Date.now(),
     nombre:nom.trim(),
@@ -17310,7 +17366,9 @@ function submitAddAire(){
     modelo:((document.getElementById('ai-mod')||{}).value||'').trim(),
     instalador:((document.getElementById('ai-inst')||{}).value||'').trim(),
     fechaInstalacion:((document.getElementById('ai-finst')||{}).value||'').trim(),
-    ultimoService:((document.getElementById('ai-fsvc')||{}).value||'').trim(),
+    frecuencia:frec,
+    ultimoService:fsvc,
+    proximoMant:(fsvc&&frec!=='ninguna')?calcP(fsvc,frec):'',
     estado:'operativo',
     notas:((document.getElementById('ai-notas')||{}).value||'').trim(),
     historial:[],
@@ -17331,6 +17389,7 @@ function openEditAire(id){
     '<div class="ff"><div class="ff-label">Modelo</div><input class="inp" id="ai-mod" value="'+esc(a.modelo||'')+'"></div>'+
     '<div class="ff"><div class="ff-label">Instalador / Empresa</div><input class="inp" id="ai-inst" value="'+esc(a.instalador||'')+'"></div>'+
     '<div class="ff"><div class="ff-label">Fecha de instalación</div><input class="inp" id="ai-finst" type="date" value="'+esc(a.fechaInstalacion||'')+'"></div>'+
+    '<div class="ff"><div class="ff-label">Frecuencia de service</div><select class="inp" id="ai-frec">'+_aireFrecOpts(a.frecuencia||'semestral')+'</select></div>'+
     '<div class="ff"><div class="ff-label">Fecha último service</div><input class="inp" id="ai-fsvc" type="date" value="'+esc(a.ultimoService||'')+'"></div>'+
     '<div class="ff"><div class="ff-label">Notas</div><textarea class="inp" id="ai-notas" rows="2">'+esc(a.notas||'')+'</textarea></div>'+
     '<button class="btn-grad" style="background:linear-gradient(135deg,#06b6d4,#0891b2);color:#fff;" onclick="submitEditAire(\''+id+'\')">Guardar cambios</button>'
@@ -17340,6 +17399,8 @@ function openEditAire(id){
 function submitEditAire(id){
   var nom=(document.getElementById('ai-nom')||{}).value||'';
   if(!nom.trim()){alert('Nombre obligatorio');return;}
+  var frec=((document.getElementById('ai-frec')||{}).value||'semestral').trim();
+  var fsvc=((document.getElementById('ai-fsvc')||{}).value||'').trim();
   aires=aires.map(function(a){
     if(a.id!==id)return a;
     return Object.assign({},a,{
@@ -17350,7 +17411,9 @@ function submitEditAire(id){
       modelo:((document.getElementById('ai-mod')||{}).value||'').trim(),
       instalador:((document.getElementById('ai-inst')||{}).value||'').trim(),
       fechaInstalacion:((document.getElementById('ai-finst')||{}).value||'').trim(),
-      ultimoService:((document.getElementById('ai-fsvc')||{}).value||'').trim(),
+      frecuencia:frec,
+      ultimoService:fsvc,
+      proximoMant:(fsvc&&frec!=='ninguna')?calcP(fsvc,frec):'',
       notas:((document.getElementById('ai-notas')||{}).value||'').trim()
     });
   });
@@ -17381,7 +17444,12 @@ function submitServiceAire(id){
   var entry={id:'AS-'+Date.now(),fecha:fecha,descripcion:desc,tecnico:tec,notas:notas,registradoEn:new Date().toISOString()};
   aires=aires.map(function(a){
     if(a.id!==id)return a;
-    return Object.assign({},a,{ultimoService:fecha,historial:(a.historial||[]).concat(entry)});
+    var frec=a.frecuencia||'semestral';
+    return Object.assign({},a,{
+      ultimoService:fecha,
+      proximoMant:frec!=='ninguna'?calcP(fecha,frec):'',
+      historial:(a.historial||[]).concat(entry)
+    });
   });
   saveData();closeModal();showToast('✅ Service registrado','');render();
 }
@@ -17923,12 +17991,18 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="4.0.3";
+var APP_DISPLAY_VERSION="4.1.0";
 var APP_BUILD="03/08/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'4.1.0',fecha:'03/08/2026',tipo:'minor',cambios:[
+    'Aires Acondicionados: ahora tienen frecuencia de service y fecha de próximo vencimiento (igual que el resto de los equipos) — antes no había forma de controlar cada cuánto tiempo correspondía el service',
+    'Aires con service vencido/próximo a vencer o con falla ahora aparecen en Alertas, con navegación directa al detalle del aire',
+    'La tarjeta de Aires en el Panel ahora refleja fallas Y vencimientos de service (antes solo fallas), y el anillo de alerta se activa cuando corresponde',
+    'Detalle de un aire: muestra frecuencia configurada y próximo vencimiento, con aviso destacado si está vencido o próximo'
+  ]},
   {v:'4.0.3',fecha:'03/08/2026',tipo:'patch',cambios:[
     'Rendimiento: el anillo animado de las tarjetas de categoría (Panel) ahora se pausa cuando la tarjeta no está visible en pantalla — antes todas animaban a la vez sin importar cuántas hubiera, sumando costo de GPU real en equipos con GPU más chica (mismo tipo de problema que ya se había corregido antes con el grano de ruido feTurbulence)'
   ]},

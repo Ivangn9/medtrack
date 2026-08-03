@@ -1,5 +1,12 @@
 # Changelog — MedTrack
 
+## v4.1.0 — 03/08/2026 (minor)
+
+- Aires Acondicionados: ahora tienen frecuencia de service y fecha de próximo vencimiento (igual que el resto de los equipos) — antes no había forma de controlar cada cuánto tiempo correspondía el service
+- Aires con service vencido/próximo a vencer o con falla ahora aparecen en Alertas, con navegación directa al detalle del aire
+- La tarjeta de Aires en el Panel ahora refleja fallas Y vencimientos de service (antes solo fallas), y el anillo de alerta se activa cuando corresponde
+- Detalle de un aire: muestra frecuencia configurada y próximo vencimiento, con aviso destacado si está vencido o próximo
+
 ## v4.0.3 — 03/08/2026 (patch)
 
 - Rendimiento: el anillo animado de las tarjetas de categoría (Panel) ahora se pausa cuando la tarjeta no está visible en pantalla — antes todas animaban a la vez sin importar cuántas hubiera, sumando costo de GPU real en equipos con GPU más chica (mismo tipo de problema que ya se había corregido antes con el grano de ruido feTurbulence)
