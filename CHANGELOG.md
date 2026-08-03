@@ -1,5 +1,11 @@
 # Changelog — MedTrack
 
+## v3.11.0 — 03/08/2026 (patch)
+
+- Panel: el anillo de alerta de categorías con equipos fuera de servicio ahora sí se distingue (giraba idéntico a una categoría sana pese a tener la clase .cring-alert aplicada) — ahora gira más rápido y en rojo de alerta
+- Estado de RM: las animaciones del dibujo (ventiladores, burbujas de helio, LEDs) ahora respetan 'reducir movimiento' del sistema — antes solo las animaciones CSS lo respetaban, no las SMIL del SVG
+- Esquema UPS: los equipos fuera de servicio colgados de una UPS ahora tienen un pulso de alerta sutil en el borde, para detectarlos sin tener que leer cada tarjeta
+
 ## v3.10.9 — 03/08/2026 (patch)
 
 - Pantalla de arranque: el anillo del logo Gantry se arma arco por arco (mismos 3 tonos del ícono real), en vez del logo ancho de CIMA con fade simple — termina en el logo real de la marca, no en una versión genérica

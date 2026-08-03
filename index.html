@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.08.03.002 -->
+<!-- v2026.08.03.003 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.08.03.002">
+<meta name="app-version" content="v2026.08.03.003">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -402,6 +402,19 @@ textarea.inp{resize:vertical;}
 .cring-el{position:absolute;inset:0;border-radius:inherit;overflow:hidden;padding:2px;-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:destination-out;mask-composite:exclude;pointer-events:none;z-index:2;}
 .cring-el::before{content:'';position:absolute;inset:-110%;width:320%;height:320%;background:conic-gradient(from 0deg,transparent 0deg,var(--cc,#818cf8) 48deg,transparent 96deg);transform-origin:center;animation:cring-spin 5s linear infinite;will-change:transform;}
 @keyframes cring-spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+/* La clase .cring-alert ya se aplicaba (JS) a categorías con equipos fuera de
+   servicio, pero no tenía ningún estilo propio — el anillo se veía idéntico a
+   una categoría sin problemas, solo con su color de categoría de siempre. El
+   punto de esta animación es comunicar estado a simple vista (igual que ya
+   hace la velocidad de giro de ventiladores en Estado de RM): acá el anillo
+   pasa a rojo de alerta, gira más rápido y el arco es más ancho, para que una
+   categoría con equipos caídos se distinga sin tener que leer el texto.
+   El @media(prefers-reduced-motion:reduce) global ya cubre esto (fuerza
+   animation-duration:.01ms!important), no hace falta repetirlo acá. */
+.cring-alert .cring-el::before{
+  background:conic-gradient(from 0deg,transparent 0deg,var(--red) 70deg,transparent 140deg);
+  animation-duration:2.1s;
+}
 .cring-wrap>.gc{position:relative;z-index:1;}
 @media(max-width:480px){.g3{grid-template-columns:repeat(2,1fr);}.g2{grid-template-columns:1fr 1fr;}.g2cat{grid-template-columns:1fr 1fr;}}
 
@@ -6720,6 +6733,13 @@ function rUpsSchema(){
     '@keyframes upsGlowL{0%,100%{box-shadow:0 6px 24px rgba(0,0,0,.1),0 0 0 1.5px rgba(245,158,11,.25)}50%{box-shadow:0 10px 36px rgba(245,158,11,.18),0 0 0 2px rgba(245,158,11,.55),0 0 32px rgba(245,158,11,.1)}}'+
     '@keyframes sBlink{0%,100%{opacity:1}50%{opacity:.35}}'+
     '@keyframes tSweep{0%{background-position:0 0}100%{background-position:300% 0}}'+
+    /* Un equipo "fuera de servicio" colgado de la UPS quedaba como una tarjeta
+       más en el scroll horizontal, sin ninguna forma de detectarlo de un
+       vistazo salvo leyendo el pill "F.S." de cada una. Se le agrega un
+       pulso sutil al borde — mismo criterio que el anillo de alerta del
+       Panel: el estado crítico se nota por movimiento, no solo por color. */
+    '@keyframes upsAlertPulse{0%,100%{box-shadow:0 2px 8px rgba(0,0,0,.06),0 0 0 1px rgba(220,38,38,.18)}50%{box-shadow:0 2px 8px rgba(0,0,0,.06),0 0 0 2px rgba(220,38,38,.5)}}'+
+    '.ups-node-alert{animation:upsAlertPulse 2.1s ease-in-out infinite;}'+
     '.ups-ctap{cursor:pointer;-webkit-tap-highlight-color:transparent;transition:opacity .15s;}'+
     '.ups-ctap:active{opacity:.88;}'+
     '.ups-etap{cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .15s,box-shadow .15s,transform .1s;}'+
@@ -6875,7 +6895,7 @@ function rUpsSchema(){
         h+='</div>'; // T
 
         // Card de equipo — fondo blanco
-        h+='<div class="ups-etap" onclick="goDetalle(\''+e.id+'\')" style="width:100%;border-radius:14px;overflow:hidden;background:#f9fafb;border:1px solid '+cat.color+'30;box-shadow:0 2px 8px rgba(0,0,0,.06),0 0 0 1px '+cat.color+'12;">';
+        h+='<div class="ups-etap'+(e.estado==='fuera-de-servicio'?' ups-node-alert':'')+'" onclick="goDetalle(\''+e.id+'\')" style="width:100%;border-radius:14px;overflow:hidden;background:#f9fafb;border:1px solid '+cat.color+'30;'+(e.estado==='fuera-de-servicio'?'':'box-shadow:0 2px 8px rgba(0,0,0,.06),0 0 0 1px '+cat.color+'12;')+'">';
 
         // Franja de categoría
         h+='<div style="height:3px;background:linear-gradient(90deg,'+cat.color+','+cat.color+'66);"></div>';
@@ -10850,6 +10870,14 @@ function rEstadoRM(){
   return h;
 }
 // ── Escena 2.5D SVG del resonador — ilustración realista con luces de estado ──
+// La escena usa <animate>/<animateTransform> (SMIL) para los ventiladores que
+// giran, las burbujas de helio, los LEDs que titilan y el flujo en las
+// cañerías — la regla global @media(prefers-reduced-motion:reduce) fuerza
+// animation-duration:.01ms a las animaciones CSS, pero SMIL es un sistema de
+// animación completamente distinto y esa regla no lo toca en absoluto. Sin
+// este chequeo, alguien con "Reducir movimiento" activado en su dispositivo
+// seguía viendo toda la escena en movimiento constante.
+function _rmMotionOK(){try{return !window.matchMedia||!window.matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){return true;}}
 function rmSceneSVG(eq){
   function col(id){return rmNivelColor(rmCompEstado(eq,id).nivel);}
   var cHead=col('coldhead');
@@ -11097,6 +11125,14 @@ function rmSceneSVG(eq){
   s+='<text x="223" y="219" fill="rgba(90,115,145,.75)" font-size="7.5" font-family="system-ui,sans-serif" text-anchor="middle" font-weight="700" letter-spacing=".5">'+esc((eqMarca||eqName)).substring(0,14).toUpperCase()+'</text>';
 
   s+='</svg>';
+  // Si el usuario prefiere reducir movimiento, se quitan todas las animaciones
+  // SMIL de un solo saque — cada elemento queda en su estado/posición base
+  // (ej. ventilador quieto en su ángulo inicial, LED en su opacidad de reposo,
+  // burbuja de helio quieta cerca del fondo), sin necesidad de tocar cada uno
+  // de los ~15 <animate>/<animateTransform> de la función por separado.
+  if(!_rmMotionOK()){
+    s=s.replace(/<animate[^>]*\/>/g,'').replace(/<animateTransform[^>]*\/>/g,'');
+  }
   return s;
 }
 function rAntenas(){
@@ -17803,12 +17839,17 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="3.10.9";
+var APP_DISPLAY_VERSION="3.11.0";
 var APP_BUILD="03/08/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'3.11.0',fecha:'03/08/2026',tipo:'patch',cambios:[
+    'Panel: el anillo de alerta de categorías con equipos fuera de servicio ahora sí se distingue (giraba idéntico a una categoría sana pese a tener la clase .cring-alert aplicada) — ahora gira más rápido y en rojo de alerta',
+    'Estado de RM: las animaciones del dibujo (ventiladores, burbujas de helio, LEDs) ahora respetan \'reducir movimiento\' del sistema — antes solo las animaciones CSS lo respetaban, no las SMIL del SVG',
+    'Esquema UPS: los equipos fuera de servicio colgados de una UPS ahora tienen un pulso de alerta sutil en el borde, para detectarlos sin tener que leer cada tarjeta'
+  ]},
   {v:'3.10.9',fecha:'03/08/2026',tipo:'patch',cambios:[
     'Pantalla de arranque: el anillo del logo Gantry se arma arco por arco (mismos 3 tonos del ícono real), en vez del logo ancho de CIMA con fade simple — termina en el logo real de la marca, no en una versión genérica'
   ]},
