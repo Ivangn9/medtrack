@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v4.0.3 — 03/08/2026 (patch)
+
+- Rendimiento: el anillo animado de las tarjetas de categoría (Panel) ahora se pausa cuando la tarjeta no está visible en pantalla — antes todas animaban a la vez sin importar cuántas hubiera, sumando costo de GPU real en equipos con GPU más chica (mismo tipo de problema que ya se había corregido antes con el grano de ruido feTurbulence)
+
 ## v4.0.2 — 03/08/2026 (patch)
 
 - Diagnóstico temporal (gateado por #debugperf, invisible en uso normal): overlay midiendo duración de render() y tiempo de carga inicial, para investigar el reporte de lentitud general en iPhone con datos reales en vez de adivinar

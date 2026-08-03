@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.08.03.005 -->
+<!-- v2026.08.03.006 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.08.03.005">
+<meta name="app-version" content="v2026.08.03.006">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -415,6 +415,13 @@ textarea.inp{resize:vertical;}
 .cring-el{position:absolute;inset:0;border-radius:inherit;overflow:hidden;padding:2px;-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:destination-out;mask-composite:exclude;pointer-events:none;z-index:2;}
 .cring-el::before{content:'';position:absolute;inset:-110%;width:320%;height:320%;background:conic-gradient(from 0deg,transparent 0deg,var(--cc,#818cf8) 48deg,transparent 96deg);transform-origin:center;animation:cring-spin 5s linear infinite;will-change:transform;}
 @keyframes cring-spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+/* Cada tarjeta de categoría del Panel ya tiene su propio blur pesado (.gc,
+   14px) — sumarle un anillo animado infinito (GPU-compositado) por tarjeta,
+   TODAS a la vez incluso las que no se ven en pantalla, es un costo real en
+   equipos con GPU más chica (ver el comentario de arriba sobre feTurbulence:
+   ya hubo un problema parecido antes). _observeCringWraps() pausa el anillo
+   de las tarjetas fuera de la vista — el efecto sigue igual donde importa. */
+.cring-paused .cring-el::before{animation-play-state:paused;}
 /* La clase .cring-alert ya se aplicaba (JS) a categorías con equipos fuera de
    servicio, pero no tenía ningún estilo propio — el anillo se veía idéntico a
    una categoría sin problemas, solo con su color de categoría de siempre. El
@@ -5970,6 +5977,26 @@ function _mountView(m,d){
   if(typeof AOS!=="undefined")requestAnimationFrame(function(){requestAnimationFrame(function(){AOS.refresh();});});
   // Kick off counter animations for numeric stat values
   requestAnimationFrame(function(){_runCounters(m);});
+  _observeCringWraps(m);
+}
+// Pausa el anillo animado (cring-spin) de las tarjetas de categoría que no
+// están visibles en pantalla — en vistas con muchas categorías (Panel), antes
+// TODAS animaban a la vez sin importar si estaban fuera de la vista, sumando
+// costo de GPU innecesario en equipos con GPU más chica (iPhone mini, etc).
+// Se recrea el observer en cada render porque _mountView reemplaza el DOM
+// completo — los nodos viejos observados ya no existen.
+var _cringObserver=null;
+function _observeCringWraps(m){
+  try{
+    if(typeof IntersectionObserver==='undefined')return;
+    if(_cringObserver)_cringObserver.disconnect();
+    var wraps=m.querySelectorAll('.cring-wrap');
+    if(!wraps.length)return;
+    _cringObserver=new IntersectionObserver(function(entries){
+      entries.forEach(function(en){en.target.classList.toggle('cring-paused',!en.isIntersecting);});
+    },{root:null,rootMargin:'200px 0px',threshold:0});
+    for(var i=0;i<wraps.length;i++)_cringObserver.observe(wraps[i]);
+  }catch(e){}
 }
 // Diagnóstico TEMPORAL de rendimiento (gateado por #debugperf en la URL —
 // invisible en cualquier uso normal). Reporte del usuario: "la app se siente
@@ -17896,12 +17923,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="4.0.2";
+var APP_DISPLAY_VERSION="4.0.3";
 var APP_BUILD="03/08/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'4.0.3',fecha:'03/08/2026',tipo:'patch',cambios:[
+    'Rendimiento: el anillo animado de las tarjetas de categoría (Panel) ahora se pausa cuando la tarjeta no está visible en pantalla — antes todas animaban a la vez sin importar cuántas hubiera, sumando costo de GPU real en equipos con GPU más chica (mismo tipo de problema que ya se había corregido antes con el grano de ruido feTurbulence)'
+  ]},
   {v:'4.0.2',fecha:'03/08/2026',tipo:'patch',cambios:[
     'Diagnóstico temporal (gateado por #debugperf, invisible en uso normal): overlay midiendo duración de render() y tiempo de carga inicial, para investigar el reporte de lentitud general en iPhone con datos reales en vez de adivinar'
   ]},
