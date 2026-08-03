@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.08.03.014 -->
+<!-- v2026.08.03.015 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.08.03.014">
+<meta name="app-version" content="v2026.08.03.015">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -4344,13 +4344,35 @@ function _loadOneCatPhoto(catId,fotoId,tryN){
           var rdr=new FileReader();
           rdr.onload=function(e){_PANEL_IMGS[catId]=e.target.result;_clearCatPhotoErr(catId);render();};
           rdr.readAsDataURL(xhr.response);
-        }else{_setCatPhotoErr(catId,'http-'+xhr.status);}
+        }else{_fallbackImgLoad(catId,url,'http-'+xhr.status);}
       };
-      xhr.onerror=function(){_setCatPhotoErr(catId,'network-error');};
-      xhr.ontimeout=function(){_setCatPhotoErr(catId,'timeout');};
+      xhr.onerror=function(){_fallbackImgLoad(catId,url,'network-error');};
+      xhr.ontimeout=function(){_fallbackImgLoad(catId,url,'timeout');};
       xhr.send();
     });
   });
+}
+// El fetch por XHR a una URL de Firebase Storage puede fallar por CORS/red según el
+// entorno (confirmado: WKWebView de Tauri en iPhone lo devuelve como "network-error"
+// aunque el archivo exista y los permisos estén bien) — mismo patrón ya resuelto antes
+// en _loadForReport() para fotos de informes. Fallback 1: <img crossOrigin> + canvas
+// (todavía consigue base64, sirve para PDF). Fallback 2, si el canvas también falla
+// (ej. bucket sin CORS habilitado para <img>): usar la URL cruda directo — se ve en
+// pantalla igual, aunque no se pueda embeber en un PDF generado desde ESTE dispositivo
+// (ver la nota de _pdfCatIcon() en openCustomCatModal).
+function _fallbackImgLoad(catId,url,errCode){
+  var img=new Image();img.crossOrigin='anonymous';
+  img.onload=function(){
+    try{
+      var cv=document.createElement('canvas');cv.width=img.naturalWidth;cv.height=img.naturalHeight;
+      cv.getContext('2d').drawImage(img,0,0);
+      var b64=cv.toDataURL('image/png');
+      if(b64&&b64.indexOf('data:image/')===0){_PANEL_IMGS[catId]=b64;_clearCatPhotoErr(catId);render();return;}
+    }catch(e){}
+    _PANEL_IMGS[catId]=url;_clearCatPhotoErr(catId);render();
+  };
+  img.onerror=function(){_setCatPhotoErr(catId,errCode);};
+  img.src=url;
 }
 function _setCatPhotoErr(catId,code){
   try{var m=JSON.parse(localStorage.getItem('mt_cat_photo_err')||'{}');m[catId]=code;localStorage.setItem('mt_cat_photo_err',JSON.stringify(m));}catch(e){}
@@ -18209,12 +18231,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="4.3.5";
+var APP_DISPLAY_VERSION="4.3.6";
 var APP_BUILD="03/08/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'4.3.6',fecha:'03/08/2026',tipo:'patch',cambios:[
+    'Fix: la foto de una categoría personalizada no llegaba a otros dispositivos con código \'network-error\' — el fetch por XHR a Firebase Storage puede fallar por CORS/red en ciertos entornos (confirmado en la app nativa de iPhone) aunque el archivo exista; ahora cae a un método alternativo (imagen + canvas, o la URL directa como último recurso) en vez de perder la foto en silencio'
+  ]},
   {v:'4.3.5',fecha:'03/08/2026',tipo:'patch',cambios:[
     'Fix: la foto de categoría se guardaba con un formato de ID distinto al resto de la app (IMG-CAT- en vez de IMG-<timestamp>-<random>), probablemente rechazado por las reglas de seguridad de Storage — ahora usa el mismo formato, y volver a subir la foto de una categoría ya creada genera un ID nuevo y correcto',
     'Diagnóstico: \'Categorías Personalizadas\' en Ajustes ahora muestra si la foto de una categoría no pudo descargarse en este dispositivo (con el código de error) y un botón para reintentar'

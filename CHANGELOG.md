@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v4.3.6 — 03/08/2026 (patch)
+
+- Fix: la foto de una categoría personalizada no llegaba a otros dispositivos con código 'network-error' — el fetch por XHR a Firebase Storage puede fallar por CORS/red en ciertos entornos (confirmado en la app nativa de iPhone) aunque el archivo exista; ahora cae a un método alternativo (imagen + canvas, o la URL directa como último recurso) en vez de perder la foto en silencio
+
 ## v4.3.5 — 03/08/2026 (patch)
 
 - Fix: la foto de categoría se guardaba con un formato de ID distinto al resto de la app (IMG-CAT- en vez de IMG-<timestamp>-<random>), probablemente rechazado por las reglas de seguridad de Storage — ahora usa el mismo formato, y volver a subir la foto de una categoría ya creada genera un ID nuevo y correcto
