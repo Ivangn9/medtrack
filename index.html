@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.08.03.012 -->
+<!-- v2026.08.03.013 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.08.03.012">
+<meta name="app-version" content="v2026.08.03.013">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -4314,21 +4314,35 @@ function _collectFileRefs(){
 function _loadCustomCatPhotos(){
   (customCats||[]).forEach(function(c){
     if(!c.fotoId||_PANEL_IMGS[c.id])return;
-    dbGet(c.fotoId,function(rec){
-      if(rec&&rec.data){_PANEL_IMGS[c.id]=rec.data;render();return;}
-      _storageGetUrl(c.fotoId,function(url){
-        if(!url)return;
-        var xhr=new XMLHttpRequest();xhr.open('GET',url,true);xhr.responseType='blob';xhr.timeout=20000;
-        xhr.onload=function(){
-          if((xhr.status===200||xhr.status===0)&&xhr.response){
-            var rdr=new FileReader();
-            rdr.onload=function(e){_PANEL_IMGS[c.id]=e.target.result;render();};
-            rdr.readAsDataURL(xhr.response);
-          }
-        };
-        xhr.onerror=function(){};xhr.ontimeout=function(){};
-        xhr.send();
-      });
+    _loadOneCatPhoto(c.id,c.fotoId,0);
+  });
+}
+// Separado de _loadCustomCatPhotos() para poder reintentar: cuando la categoría se
+// creó recién en OTRO dispositivo, el doc de Firestore (con el fotoId) llega acá casi
+// al instante por el listener en tiempo real, pero la foto en sí sube a Firebase
+// Storage en segundo plano y puede tardar unos segundos más — sin reintentos, el
+// primer intento de descarga fallaba con 404 (el archivo todavía no existía en
+// Storage) y la foto quedaba perdida en silencio para siempre en ese dispositivo,
+// hasta el próximo reinicio completo de la app.
+function _loadOneCatPhoto(catId,fotoId,tryN){
+  if(_PANEL_IMGS[catId])return; // ya se resolvió por otra vía mientras tanto
+  dbGet(fotoId,function(rec){
+    if(rec&&rec.data){_PANEL_IMGS[catId]=rec.data;render();return;}
+    _storageGetUrl(fotoId,function(url){
+      if(!url){
+        if(tryN<6)setTimeout(function(){_loadOneCatPhoto(catId,fotoId,tryN+1);},Math.min(3000*Math.pow(1.6,tryN),15000));
+        return;
+      }
+      var xhr=new XMLHttpRequest();xhr.open('GET',url,true);xhr.responseType='blob';xhr.timeout=20000;
+      xhr.onload=function(){
+        if((xhr.status===200||xhr.status===0)&&xhr.response){
+          var rdr=new FileReader();
+          rdr.onload=function(e){_PANEL_IMGS[catId]=e.target.result;render();};
+          rdr.readAsDataURL(xhr.response);
+        }
+      };
+      xhr.onerror=function(){};xhr.ontimeout=function(){};
+      xhr.send();
     });
   });
 }
@@ -18172,12 +18186,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="4.3.3";
+var APP_DISPLAY_VERSION="4.3.4";
 var APP_BUILD="03/08/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'4.3.4',fecha:'03/08/2026',tipo:'patch',cambios:[
+    'Fix: la foto de una categoría personalizada no aparecía en otros dispositivos (ej. creada en Mac, no se veía en iPhone) — era una carrera de tiempos: el otro dispositivo la buscaba una sola vez apenas veía la categoría nueva, antes de que terminara de subirse a la nube; ahora reintenta durante un rato en vez de perderla en silencio'
+  ]},
   {v:'4.3.3',fecha:'03/08/2026',tipo:'patch',cambios:[
     'Fix: el botón \'Eliminar categoría\' no hacía nada — usaba el diálogo confirm() nativo del navegador, que puede quedar bloqueado en silencio tras varios clics seguidos (protección anti-spam del propio WebView); ahora usa el modal de confirmación propio de la app',
     'Fix: crear un grupo nuevo de subcategorías usaba prompt() nativo (mismo riesgo, nunca antes usado en la app) — ahora es un campo de texto normal dentro del formulario'
