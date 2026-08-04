@@ -1,5 +1,21 @@
 # Changelog — MedTrack
 
+## v4.4.1 — 04/08/2026 (patch)
+
+- Pulido: transiciones CSS explícitas en vez de transition:all en 15 sitios (mejor rendimiento, menos repintados)
+- Reducir movimiento del sistema ya no corta el feedback de color en tabs/pills, solo el movimiento
+- Cierre de modales/panel/sidebar bajo reducir-movimiento ahora usa fade corto en vez de deslizamiento
+- Los submenús flotantes del sidebar ahora nacen desde el botón que los abre, no desde el centro
+- Toast y submenús flotantes ahora cierran con una transición de salida breve en vez de golpe seco
+- Feedback táctil (:active) agregado a filas .tap que no lo tenían
+- Curvas de animación duplicadas del splash consolidadas al token --spring existente
+- Duraciones de animaciones de alta frecuencia (tarjetas, navegación, listas, ajustes) recortadas a <300ms
+- Contraste de texto de advertencia (#b45309) corregido en modo oscuro en 8 pantallas
+- Toast ahora respeta max-width en mensajes largos en vez de desbordar
+- Cantidad y stock mínimo de repuestos ahora se clampean a >=0 al guardar, igual que al ajustar stock
+- Crear una categoría con un grupo nuevo cuyo nombre ya existe reutiliza el grupo en vez de duplicarlo
+- z-index de los submenús flotantes bajado por debajo del de los modales, evita solapamientos raros
+
 ## v4.4.0 — 04/08/2026 (patch)
 
 - Fix medio: el Informe Gerencial en PDF ahora incluye garantía, contrato de servicio, seguro, R.U.GE.PRE.SA, parches/batería de desfibrilador y estado de chiller/helio de RM cuando están vencidos o próximos a vencer — antes podían faltar en el PDF pese a estar en rojo en la app
