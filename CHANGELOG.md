@@ -1,5 +1,13 @@
 # Changelog — MedTrack
 
+## v4.3.9 — 04/08/2026 (patch)
+
+- Fix alto: timeout de resguardo en checkAccess() (podía trabar el login de toda la app), en el primer snapshot de Firestore tras el login, y de forma central en _storageGetUrl()/_storageSaveB64() (protege visor de PDF, galerías de fotos, subida de archivos y todos los demás llamadores)
+- Fix alto: 28 usos de confirm()/prompt() nativo reemplazados por el modal de confirmación propio de la app en toda la app (equipos, OTs, repuestos, reclamos, mejoras, documentos, antenas, transductores, presupuestos, reportes, restaurar backup, etc.) — el diálogo nativo puede quedar bloqueado en silencio tras varios usos seguidos
+- Fix alto: las migraciones (Bombas, mejoras) ya se re-ejecutan también cuando este dispositivo detecta que guardó con datos atrasados, no solo en la sincronización en tiempo real de otro dispositivo
+- Fix alto: los vencimientos de mantenimiento comparaban fecha UTC contra hora local — en Argentina (UTC-3) podían marcar "vencido" hasta 3 horas antes de tiempo, en todas las categorías
+- Fix alto: un equipo con mantenimiento requerido pero sin fecha de vencimiento configurada ya no queda mostrado como operativo (verde) para siempre
+
 ## v4.3.8 — 04/08/2026 (patch)
 
 - Fix crítico: borrar un equipo o transductor "semilla" y recargar la app entera lo hacía reaparecer con datos de fábrica (las migraciones reinsertaban cualquier id faltante sin importar el motivo) — ahora solo siembran datos en una instalación realmente vacía, nunca reinsertan un ítem borrado a propósito

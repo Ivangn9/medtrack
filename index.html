@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.08.04.002 -->
+<!-- v2026.08.04.003 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.08.04.002">
+<meta name="app-version" content="v2026.08.04.003">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1591,10 +1591,33 @@ function today(){return new Date().toISOString().split("T")[0];}
 function addM(s,n){if(!s)return"";var d=new Date(s);d.setMonth(d.getMonth()+n);return d.toISOString().split("T")[0];}
 function fm(f){return{semestral:6,anual:12,trimestral:3,mensual:1}[f]||12;}
 function calcP(d,f){return addM(d,fm(f));}
-function diasH(s){if(!s)return 9999;return Math.ceil((new Date(s)-new Date())/864e5);}
+function diasH(s){
+  if(!s)return 9999;
+  // new Date("YYYY-MM-DD") se interpreta como medianoche UTC, no local — en Argentina
+  // (UTC-3) eso adelantaba el corte de "vencido" casi 3 horas antes de tiempo real,
+  // en TODAS las categorías (RM, TC, aires, seguro, contratos, etc). Se arma la fecha
+  // objetivo y la de "hoy" con el constructor local (año,mes,día) y se comparan
+  // medianoche-a-medianoche, para que el conteo de días sea un entero limpio que
+  // cambia una sola vez por día, en vez de ir corriendo con las horas.
+  var p=s.split("-");
+  if(p.length<3||isNaN(+p[0])||isNaN(+p[1])||isNaN(+p[2]))return Math.ceil((new Date(s)-new Date())/864e5);
+  var target=new Date(+p[0],+p[1]-1,+p[2]);
+  var now=new Date();
+  var today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  return Math.round((target-today)/864e5);
+}
 function fD(s){if(!s)return"—";var p=s.split("-");if(p.length<3)return s;return p[2]+"/"+p[1]+"/"+p[0];}
 var fmtD=fD;
-function semafo(eq){if(sinMant(eq))return"sinmant";var d=diasH(eq.proximoMant);if(d<0)return"vencido";if(d<=20)return"urgente";if(d<=90)return"proximo";return"ok";}
+function semafo(eq){
+  if(sinMant(eq))return"sinmant";
+  // Un equipo que SÍ requiere mantenimiento pero nunca tuvo "próximo vencimiento"
+  // calculado (creado sin fecha de último mantenimiento, o con la frecuencia recién
+  // configurada sin esa fecha) quedaba en "ok" (verde) para siempre, sin ningún aviso —
+  // diasH("") devuelve 9999, cayendo en el "return ok" de abajo. Se trata como vencido
+  // para que no pase desapercibido, en vez de mostrarse idéntico a un equipo al día.
+  if(!eq.proximoMant)return"vencido";
+  var d=diasH(eq.proximoMant);if(d<0)return"vencido";if(d<=20)return"urgente";if(d<=90)return"proximo";return"ok";
+}
 function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
 // esc() no escapa la comilla simple: sirve para texto/atributos HTML con
 // comillas dobles, pero NO alcanza cuando el valor queda embebido dentro de
@@ -2556,8 +2579,10 @@ function _fsWrite(tryN){
           // dispositivo tenía una versión vieja del código. Sin esto, este segundo camino
           // (conflicto detectado al intentar guardar, no al recibir un push en tiempo
           // real) podía reintroducir el mismo bug de "Bombas desaparecen" ya arreglado en
-          // el otro camino.
-          if(migrateBombaSubcats())saveData();
+          // el otro camino — y lo mismo con ítems ya migrados a "mejoras" reapareciendo
+          // duplicados como falla.
+          var _mB=migrateBombaSubcats(),_mM=_migrarMejorasDeEqs(),_mO=_migrarMejorasAOTs();
+          if(_mB||_mM>0||_mO>0)saveData();
         }catch(e2){}
         _fsDirty=false;_fsFailed=false;_persistSyncError(null);
         render();
@@ -2582,10 +2607,14 @@ function retrySync(){if(_slowRetryTimer){clearTimeout(_slowRetryTimer);_slowRetr
 // nunca pierde datos — a lo sumo el guardado a la nube queda pendiente y se reintenta
 // solo apenas la caché se repare.
 function repairCloudConnection(){
-  if(!confirm('Esto va a reiniciar la conexión con la nube (recarga la app). Los datos que ya cargaste en este dispositivo están guardados y no se pierden. ¿Continuar?'))return;
-  try{localStorage.setItem('mt_needs_persistence_reset','1');}catch(e){}
-  showToast('Reparando conexión…');
-  setTimeout(function(){location.reload();},500);
+  // _confirmModal en vez de confirm() nativo — ver nota en deleteCustomCat. Irónico que
+  // justo este botón (pensado para resolver colgadas del WebView) dependiera del mismo
+  // diálogo nativo que puede quedar bloqueado en silencio.
+  _confirmModal('Esto va a reiniciar la conexión con la nube (recarga la app). Los datos que ya cargaste en este dispositivo están guardados y no se pierden. ¿Continuar?',function(){
+    try{localStorage.setItem('mt_needs_persistence_reset','1');}catch(e){}
+    showToast('Reparando conexión…');
+    setTimeout(function(){location.reload();},500);
+  });
 }
 // Real-time cloud sync indicator in the header
 function _pendingUploadCount(){try{return Object.keys(JSON.parse(localStorage.getItem('mt_upq_v1')||'{}')).length;}catch(e){return 0;}}
@@ -2681,21 +2710,24 @@ function openRestoreBackup(){
   }).catch(function(e){console.warn(e);showToast('Error al cargar copias','err');});
 }
 function doRestoreBackup(fecha){
-  if(!confirm('¿Restaurar la copia del '+fecha+'?\n\nSe reemplazarán todos los datos actuales por los de esa fecha. Esta acción se sincroniza a todos los dispositivos.'))return;
-  window._fbdb.collection("orgs").doc("cima").collection("backups").doc(fecha).get().then(function(doc){
-    if(!doc.exists){showToast('Copia no encontrada','err');return;}
-    var d=doc.data()||{};
-    if(!Array.isArray(d.eqs)||!d.eqs.length){showToast('La copia está vacía','warn');return;}
-    // Snapshot the current state first so a mistaken restore is itself recoverable
-    try{window._fbdb.collection("orgs").doc("cima").collection("backups").doc('pre-restore-'+new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')).set({eqs:eqs,antenas:antenas,aires:aires,transductores:transductores,savedAt:new Date().toISOString(),by:(window._fbUser.email||'')});}catch(e){}
-    eqs=d.eqs;
-    antenas=Array.isArray(d.antenas)?d.antenas:[];
-    aires=Array.isArray(d.aires)?d.aires:[];
-    transductores=Array.isArray(d.transductores)?d.transductores:[];
-    saveData();
-    closeModal();render();
-    showToast('✅ Datos restaurados al '+fecha);
-  }).catch(function(e){console.warn(e);showToast('Error al restaurar','err');});
+  // _confirmModal en vez de confirm() nativo — ver nota en deleteCustomCat/openCustomCatModal:
+  // el diálogo nativo puede quedar bloqueado en silencio tras varios usos seguidos.
+  _confirmModal('¿Restaurar la copia del '+fecha+'? Se reemplazarán todos los datos actuales por los de esa fecha. Esta acción se sincroniza a todos los dispositivos.',function(){
+    window._fbdb.collection("orgs").doc("cima").collection("backups").doc(fecha).get().then(function(doc){
+      if(!doc.exists){showToast('Copia no encontrada','err');return;}
+      var d=doc.data()||{};
+      if(!Array.isArray(d.eqs)||!d.eqs.length){showToast('La copia está vacía','warn');return;}
+      // Snapshot the current state first so a mistaken restore is itself recoverable
+      try{window._fbdb.collection("orgs").doc("cima").collection("backups").doc('pre-restore-'+new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')).set({eqs:eqs,antenas:antenas,aires:aires,transductores:transductores,savedAt:new Date().toISOString(),by:(window._fbUser.email||'')});}catch(e){}
+      eqs=d.eqs;
+      antenas=Array.isArray(d.antenas)?d.antenas:[];
+      aires=Array.isArray(d.aires)?d.aires:[];
+      transductores=Array.isArray(d.transductores)?d.transductores:[];
+      saveData();
+      closeModal();render();
+      showToast('✅ Datos restaurados al '+fecha);
+    }).catch(function(e){console.warn(e);showToast('Error al restaurar','err');});
+  });
 }
 
 // ═══════════════════════════════════════════
@@ -3052,7 +3084,19 @@ function closeModal(){
   },280);
 }
 var _confirmCb=null;
-function _confirmModal(msg,cb){_confirmCb=cb;openModal('<div class="modal-hdr"><div class="modal-title">Confirmar</div><button class="modal-x" onclick="closeModal()">✕</button></div><div style="padding:4px 0 16px;font-size:.9rem;color:var(--text);">'+msg+'</div><div style="display:flex;gap:8px;"><button class="btn-secondary" style="flex:1;" onclick="closeModal()">Cancelar</button><button class="btn-danger" style="flex:1;" onclick="closeModal();if(window._confirmCb){var f=window._confirmCb;window._confirmCb=null;f();}">Eliminar</button></div>');}
+var _confirmCancelCb=null;
+// onCancel/btnLabel son opcionales — los ~25 call sites existentes que solo pasan
+// (msg,cb) siguen funcionando exactamente igual (botón "Eliminar", cancelar no hace
+// nada extra). Se agregaron para poder migrar flujos tipo "¿Sobrescribir?" que
+// necesitan seguir un loop distinto según la respuesta, no solo actuar en confirmar.
+function _confirmModal(msg,cb,onCancel,btnLabel){
+  _confirmCb=cb;_confirmCancelCb=onCancel||null;
+  openModal('<div class="modal-hdr"><div class="modal-title">Confirmar</div><button class="modal-x" onclick="_confirmModalCancel()">✕</button></div><div style="padding:4px 0 16px;font-size:.9rem;color:var(--text);">'+msg+'</div><div style="display:flex;gap:8px;"><button class="btn-secondary" style="flex:1;" onclick="_confirmModalCancel()">Cancelar</button><button class="btn-danger" style="flex:1;" onclick="closeModal();if(window._confirmCb){var f=window._confirmCb;window._confirmCb=null;window._confirmCancelCb=null;f();}">'+(btnLabel||'Eliminar')+'</button></div>');
+}
+function _confirmModalCancel(){
+  closeModal();
+  if(window._confirmCancelCb){var f=window._confirmCancelCb;window._confirmCb=null;window._confirmCancelCb=null;f();}
+}
 
 
 // ═══════════════════════════════════════════
@@ -3205,25 +3249,27 @@ function saveEq(d){
   saveDataCritical();closeModal();render();
 }
 function delEq(id){
-  if(!confirm("¿Eliminar este equipo? Se limpiarán PMs programados, mejoras y vínculos asociados. Las OTs e historial quedan como registro."))return;
-  var eq=eqs.find(function(e){return e.id===id;})||{};
-  var nombre=eq.nombre||id;
-  // Snapshot completo de los arrays afectados para poder deshacer
-  var _snap=JSON.stringify({eqs:eqs,pmProgramados:pmProgramados,mejoras:mejoras,antenas:antenas,transductores:transductores,aires:aires});
-  eqs=eqs.filter(function(e){return e.id!==id;});
-  pmProgramados=pmProgramados.filter(function(p){return p.eqId!==id;});
-  mejoras=mejoras.filter(function(m){return m.eqId!==id;});
-  eqs.forEach(function(u){if(u.cat==='UPS')u.equiposConectados=(u.equiposConectados||[]).filter(function(x){return x!==id;});});
-  antenas.forEach(function(a){if((a.eqIds||[]).indexOf(id)!==-1)a.eqIds=a.eqIds.filter(function(x){return x!==id;});});
-  transductores.forEach(function(t){if((t.eqIds||[]).indexOf(id)!==-1)t.eqIds=t.eqIds.filter(function(x){return x!==id;});});
-  aires.forEach(function(a){a.equiposServidos=(a.equiposServidos||[]).filter(function(x){return x!==id;});});
-  auditEntry('eliminar','eq',id,nombre,'Equipo eliminado — PMs y vínculos limpiados');
-  saveDataCritical();goBack();
-  showUndoToast('Equipo "'+nombre+'" eliminado',function(){
-    var s=JSON.parse(_snap);
-    eqs=s.eqs;pmProgramados=s.pmProgramados;mejoras=s.mejoras;antenas=s.antenas;transductores=s.transductores;aires=s.aires;
-    auditEntry('restaurar','eq',id,nombre,'Eliminación deshecha');
-    saveDataCritical();render();showToast('Equipo restaurado ✅');
+  // _confirmModal en vez de confirm() nativo — ver nota en deleteCustomCat.
+  _confirmModal("¿Eliminar este equipo? Se limpiarán PMs programados, mejoras y vínculos asociados. Las OTs e historial quedan como registro.",function(){
+    var eq=eqs.find(function(e){return e.id===id;})||{};
+    var nombre=eq.nombre||id;
+    // Snapshot completo de los arrays afectados para poder deshacer
+    var _snap=JSON.stringify({eqs:eqs,pmProgramados:pmProgramados,mejoras:mejoras,antenas:antenas,transductores:transductores,aires:aires});
+    eqs=eqs.filter(function(e){return e.id!==id;});
+    pmProgramados=pmProgramados.filter(function(p){return p.eqId!==id;});
+    mejoras=mejoras.filter(function(m){return m.eqId!==id;});
+    eqs.forEach(function(u){if(u.cat==='UPS')u.equiposConectados=(u.equiposConectados||[]).filter(function(x){return x!==id;});});
+    antenas.forEach(function(a){if((a.eqIds||[]).indexOf(id)!==-1)a.eqIds=a.eqIds.filter(function(x){return x!==id;});});
+    transductores.forEach(function(t){if((t.eqIds||[]).indexOf(id)!==-1)t.eqIds=t.eqIds.filter(function(x){return x!==id;});});
+    aires.forEach(function(a){a.equiposServidos=(a.equiposServidos||[]).filter(function(x){return x!==id;});});
+    auditEntry('eliminar','eq',id,nombre,'Equipo eliminado — PMs y vínculos limpiados');
+    saveDataCritical();goBack();
+    showUndoToast('Equipo "'+nombre+'" eliminado',function(){
+      var s=JSON.parse(_snap);
+      eqs=s.eqs;pmProgramados=s.pmProgramados;mejoras=s.mejoras;antenas=s.antenas;transductores=s.transductores;aires=s.aires;
+      auditEntry('restaurar','eq',id,nombre,'Eliminación deshecha');
+      saveDataCritical();render();showToast('Equipo restaurado ✅');
+    });
   });
 }
 function saveParte(eqId,pt){
@@ -3546,10 +3592,12 @@ function renderHistPendingFiles(tipo){
 }
 function removeHistPending(tipo,i){if(tipo==='presupuesto'){_pendingHistPresupuestos.splice(i,1);}else{_pendingHistReportes.splice(i,1);}renderHistPendingFiles(tipo);}
 function removeHistFile(fid){
-  if(!confirm('¿Eliminar este PDF? Esta acción no se puede deshacer.'))return;
-  _deletedHistFiles.push(fid);
-  var row=document.getElementById('hf-row-'+fid);
-  if(row)row.style.display='none';
+  // _confirmModal en vez de confirm() nativo — ver nota en deleteCustomCat.
+  _confirmModal('¿Eliminar este PDF? Esta acción no se puede deshacer.',function(){
+    _deletedHistFiles.push(fid);
+    var row=document.getElementById('hf-row-'+fid);
+    if(row)row.style.display='none';
+  });
 }
 function submitHist(eqId,hid){
   var fecha=document.getElementById("eh-fecha").value;
@@ -4156,9 +4204,9 @@ function fs2ImportBackup(file,onProgress,onDone){
         };
         if(existing.ok){
           // Ya existe un archivo con este ID en el store nuevo — nunca se
-          // sobrescribe sin confirmación explícita del usuario.
-          if(confirm('El archivo "'+(existing.nombre||f.id)+'" ya existe. ¿Sobrescribir con la versión del backup?')){doSave();}
-          else{skipped++;done++;onProgress&&onProgress(done,files.length);next(i+1);}
+          // sobrescribe sin confirmación explícita del usuario. _confirmModal en vez
+          // de confirm() nativo — ver nota en deleteCustomCat.
+          _confirmModal('El archivo "'+esc(existing.nombre||f.id)+'" ya existe. ¿Sobrescribir con la versión del backup?',function(){doSave();},function(){skipped++;done++;onProgress&&onProgress(done,files.length);next(i+1);},'Sobrescribir');
         }else{doSave();}
       });
     }
@@ -4274,7 +4322,7 @@ function openFileStoreV2Modal(){
         '<input type="file" accept=".json" style="display:none;" onchange="if(this.files[0])fs2ImportBackup(this.files[0],function(d,t){showToast(\'Restaurando \'+d+\'/\'+t+\'…\');},function(r){showToast(r.ok?(\'✅ Restaurados: \'+r.restored+\' · Omitidos: \'+r.skipped+\' · Fallidos: \'+r.failed.length):(\'Error: \'+r.error),r.ok?\'\':\'err\');openFileStoreV2Modal();});">'+
       '</label>';
       h+='<button onclick="migrateFilesToV2(function(d,t){showToast(\'Migrando \'+d+\'/\'+t+\'…\');},function(r){showToast(\'✅ Migración: \'+r.migrated+\' nuevos, \'+r.skipped+\' ya estaban, \'+r.failed.length+\' fallidos\');openFileStoreV2Modal();})" style="width:100%;margin-bottom:8px;padding:11px;border-radius:var(--r-pill);background:rgba(0,113,227,.1);border:1.5px solid rgba(0,113,227,.25);color:var(--accent);font-weight:600;font-size:.84rem;cursor:pointer;">🔄 Reintentar migración pendiente</button>';
-      h+='<button '+(puedePurgar?'onclick="if(confirm(\'Se van a borrar '+oldFiles.length+' archivo(s) del store viejo — ya están verificados en el nuevo. ¿Continuar?\'))purgeOldFileStore(function(r){showToast(r.ok?(\'✅ \'+r.purged+\' archivo(s) purgados\'):(\'Error: \'+r.error),r.ok?\'\':\'err\');openFileStoreV2Modal();});"':'disabled')+' style="width:100%;padding:11px;border-radius:var(--r-pill);background:'+(puedePurgar?'rgba(255,59,48,.1)':'rgba(120,120,128,.06)')+';border:1.5px solid '+(puedePurgar?'rgba(255,59,48,.25)':'rgba(120,120,128,.12)')+';color:'+(puedePurgar?'var(--red)':'var(--text3)')+';font-weight:600;font-size:.84rem;cursor:'+(puedePurgar?'pointer':'not-allowed')+';">🗑️ Purgar store viejo'+(puedePurgar?'':' (esperando que migre todo)')+'</button>';
+      h+='<button '+(puedePurgar?'onclick="_confirmModal(\'Se van a borrar '+oldFiles.length+' archivo(s) del store viejo — ya están verificados en el nuevo. ¿Continuar?\',function(){purgeOldFileStore(function(r){showToast(r.ok?(\'✅ \'+r.purged+\' archivo(s) purgados\'):(\'Error: \'+r.error),r.ok?\'\':\'err\');openFileStoreV2Modal();});})"':'disabled')+' style="width:100%;padding:11px;border-radius:var(--r-pill);background:'+(puedePurgar?'rgba(255,59,48,.1)':'rgba(120,120,128,.06)')+';border:1.5px solid '+(puedePurgar?'rgba(255,59,48,.25)':'rgba(120,120,128,.12)')+';color:'+(puedePurgar?'var(--red)':'var(--text3)')+';font-weight:600;font-size:.84rem;cursor:'+(puedePurgar?'pointer':'not-allowed')+';">🗑️ Purgar store viejo'+(puedePurgar?'':' (esperando que migre todo)')+'</button>';
       openModal(h);
     });
   });
@@ -4302,12 +4350,24 @@ function _storageSaveB64(id,nombre,dataUrl,cb,_try){
     for(var i=0;i<bytes.length;i++)ia[i]=bytes.charCodeAt(i);
     var blob=new Blob([ab],{type:mime});
     var ref=window._fbStorage.ref('orgs/cima/files/'+id);
-    ref.put(blob,{contentType:mime,customMetadata:{nombre:nombre||''}}).then(function(){
-      _upqDel(id);cb&&cb(true);
-    }).catch(function(e){
+    var _settled=false;
+    function _retryOrGiveUp(e){
+      if(_settled)return;_settled=true;
       var t=(_try||0)+1;
       if(t<4){setTimeout(function(){_storageSaveB64(id,nombre,dataUrl,cb,t);},Math.min(1500*t,8000));}
       else{console.warn('Storage upload failed (kept in queue):',id,e);cb&&cb(false);}
+    }
+    // Resguardo: ref.put() puede no resolver NI rechazar nunca en este WebView (mismo
+    // patrón de timeout ya confirmado varias veces esta semana) — sin esto, la subida
+    // quedaba colgada para siempre y el aviso "se guardó local pero no subió a la nube"
+    // (ver dbSave) nunca llegaba a mostrarse.
+    var _guard=setTimeout(function(){_retryOrGiveUp({code:'timeout'});},30000);
+    ref.put(blob,{contentType:mime,customMetadata:{nombre:nombre||''}}).then(function(){
+      if(_settled)return;_settled=true;clearTimeout(_guard);
+      _upqDel(id);cb&&cb(true);
+    }).catch(function(e){
+      clearTimeout(_guard);
+      _retryOrGiveUp(e);
     });
   }catch(e){console.warn('_storageSaveB64 error:',e);cb&&cb(false);}
 }
@@ -4317,7 +4377,22 @@ function _storageGetUrl(id,cb){
   try{
     if(!window._fbStorage||!window._fbUser){cb(null,'no-auth');return;}
     var ref=window._fbStorage.ref('orgs/cima/files/'+id);
-    ref.getDownloadURL().then(function(url){cb(url);}).catch(function(e){cb(null,e&&e.code);});
+    // Resguardo central: getDownloadURL() puede no resolver NI rechazar nunca en este
+    // WebView (mismo patrón confirmado varias veces esta semana) — sin esto, cualquiera
+    // de los muchos llamadores de esta función (visor de PDF, galerías de fotos,
+    // reconcileFiles, informes) quedaba esperando para siempre sin ningún error visible.
+    var _settled=false;
+    var _guard=setTimeout(function(){
+      if(_settled)return;_settled=true;
+      cb(null,'timeout');
+    },15000);
+    ref.getDownloadURL().then(function(url){
+      if(_settled)return;_settled=true;clearTimeout(_guard);
+      cb(url);
+    }).catch(function(e){
+      if(_settled)return;_settled=true;clearTimeout(_guard);
+      cb(null,e&&e.code);
+    });
   }catch(e){cb(null,e&&e.code);}
 }
 
@@ -5402,33 +5477,39 @@ function openOTImagesModal(imagenes, titulo){
   });
 }
 function delHistFileDirect(eqId,hid,fileId){
-  if(!confirm('¿Eliminar este PDF? Esta acción no se puede deshacer.'))return;
-  dbDel(fileId);
-  eqs=eqs.map(function(e){
-    if(e.id!==eqId)return e;
-    return Object.assign({},e,{historialMant:(e.historialMant||[]).map(function(h){
-      if(h.id!==hid)return h;
-      return Object.assign({},h,{archivos:(h.archivos||[]).filter(function(a){return a.id!==fileId;})});
-    })});
+  // _confirmModal en vez de confirm() nativo — ver nota en deleteCustomCat.
+  _confirmModal('¿Eliminar este PDF? Esta acción no se puede deshacer.',function(){
+    dbDel(fileId);
+    eqs=eqs.map(function(e){
+      if(e.id!==eqId)return e;
+      return Object.assign({},e,{historialMant:(e.historialMant||[]).map(function(h){
+        if(h.id!==hid)return h;
+        return Object.assign({},h,{archivos:(h.archivos||[]).filter(function(a){return a.id!==fileId;})});
+      })});
+    });
+    saveData();closeModal();render();showToast('PDF eliminado','warn');
   });
-  saveData();closeModal();render();showToast('PDF eliminado','warn');
 }
 function delParteFileDirect(eqId,parteId,fileId){
-  if(!confirm('¿Eliminar este PDF? Esta acción no se puede deshacer.'))return;
-  dbDel(fileId);
-  eqs=eqs.map(function(e){
-    if(e.id!==eqId)return e;
-    return Object.assign({},e,{partes:e.partes.map(function(p){
-      if(p.id!==parteId)return p;
-      return Object.assign({},p,{archivos:(p.archivos||[]).filter(function(a){return a.id!==fileId;})});
-    })});
+  // _confirmModal en vez de confirm() nativo — ver nota en deleteCustomCat.
+  _confirmModal('¿Eliminar este PDF? Esta acción no se puede deshacer.',function(){
+    dbDel(fileId);
+    eqs=eqs.map(function(e){
+      if(e.id!==eqId)return e;
+      return Object.assign({},e,{partes:e.partes.map(function(p){
+        if(p.id!==parteId)return p;
+        return Object.assign({},p,{archivos:(p.archivos||[]).filter(function(a){return a.id!==fileId;})});
+      })});
+    });
+    saveData();render();showToast('PDF eliminado','warn');
   });
-  saveData();render();showToast('PDF eliminado','warn');
 }
 function removeParteFile(fid){
-  if(!confirm('¿Eliminar este PDF? Esta acción no se puede deshacer.'))return;
-  _deletedParteFiles.push(fid);
-  var row=document.getElementById('pt-file-row-'+fid);if(row)row.style.display='none';
+  // _confirmModal en vez de confirm() nativo — ver nota en deleteCustomCat.
+  _confirmModal('¿Eliminar este PDF? Esta acción no se puede deshacer.',function(){
+    _deletedParteFiles.push(fid);
+    var row=document.getElementById('pt-file-row-'+fid);if(row)row.style.display='none';
+  });
 }
 function attachPDF(tipo){
   var input=document.createElement('input');input.type='file';input.accept='application/pdf';input.multiple=true;
@@ -6120,6 +6201,12 @@ function submitEditMantConfig(eqId){
     var upd=Object.assign({},e,{frecuencia:frec,tecnico:tec});
     if(frec==="ninguna"){upd.proximoMant="";}
     else if(ultimo){upd.ultimoMant=ultimo;upd.proximoMant=calcP(ultimo,frec);}
+    else if(e.ultimoMant){
+      // No se cargó una fecha nueva de "último mantenimiento", pero el equipo ya tenía
+      // una — recalcular el vencimiento con la frecuencia nueva en vez de dejar el
+      // valor viejo (calculado con la frecuencia anterior) sin actualizar.
+      upd.proximoMant=calcP(e.ultimoMant,frec);
+    }
     return upd;
   });
   saveData();closeModal();render();showToast('✅ Mantenimiento actualizado','');
@@ -8290,17 +8377,19 @@ function submitCerrarOT(otId){
   });
 }
 function deleteOT(otId){
-  if(!confirm('Eliminar esta OT?'))return;
-  var otObj=ordenesTrabajo.find(function(o){return o.id===otId;});
-  var otTit=(otObj||{}).titulo;
-  var _snapOT=otObj?JSON.stringify(otObj):null;
-  ordenesTrabajo=ordenesTrabajo.filter(function(o){return o.id!==otId;});
-  saveData();render();
-  auditEntry('eliminar','ot',otId,otTit||otId,'OT eliminada');
-  showUndoToast('OT eliminada',function(){
-    if(_snapOT)ordenesTrabajo.push(JSON.parse(_snapOT));
-    auditEntry('restaurar','ot',otId,otTit||otId,'Eliminación deshecha');
-    saveData();render();showToast('OT restaurada ✅');
+  // _confirmModal en vez de confirm() nativo — ver nota en deleteCustomCat.
+  _confirmModal('¿Eliminar esta OT?',function(){
+    var otObj=ordenesTrabajo.find(function(o){return o.id===otId;});
+    var otTit=(otObj||{}).titulo;
+    var _snapOT=otObj?JSON.stringify(otObj):null;
+    ordenesTrabajo=ordenesTrabajo.filter(function(o){return o.id!==otId;});
+    saveData();render();
+    auditEntry('eliminar','ot',otId,otTit||otId,'OT eliminada');
+    showUndoToast('OT eliminada',function(){
+      if(_snapOT)ordenesTrabajo.push(JSON.parse(_snapOT));
+      auditEntry('restaurar','ot',otId,otTit||otId,'Eliminación deshecha');
+      saveData();render();showToast('OT restaurada ✅');
+    });
   });
 }
 function otFromFalla(eqId5,parteId){
@@ -8601,11 +8690,13 @@ function submitRepuesto(repId){
   saveData();closeModal();render();
 }
 function deleteRepuesto(repId){
-  if(!confirm('Eliminar este repuesto?'))return;
-  var repNom=(repuestos.find(function(r){return r.id===repId;})||{}).nombre;
-  repuestos=repuestos.filter(function(r){return r.id!==repId;});
-  saveData();showToast('Repuesto eliminado','warn');render();
-  auditEntry('eliminar','repuesto',repId,repNom||repId,'Repuesto eliminado');
+  // _confirmModal en vez de confirm() nativo — ver nota en deleteCustomCat.
+  _confirmModal('¿Eliminar este repuesto?',function(){
+    var repNom=(repuestos.find(function(r){return r.id===repId;})||{}).nombre;
+    repuestos=repuestos.filter(function(r){return r.id!==repId;});
+    saveData();showToast('Repuesto eliminado','warn');render();
+    auditEntry('eliminar','repuesto',repId,repNom||repId,'Repuesto eliminado');
+  });
 }
 function ajustarStock(repId,delta){
   var repRef=null;
@@ -8925,13 +9016,15 @@ function _delSeguimiento(rcId,sgId){
 }
 
 function _deleteReclamo(rcId){
-  if(!confirm('Eliminar este reclamo y todo su historial de seguimientos?'))return;
-  var rc=reclamos.find(function(r){return r.id===rcId;})||{};
-  reclamos=reclamos.filter(function(r){return r.id!==rcId;});
-  auditEntry('eliminar','reclamo',rcId,rc.titulo||rcId,'Reclamo eliminado');
-  _saveReclamos();
-  _updateReclamosBadge();
-  render();showToast('Reclamo eliminado','warn');
+  // _confirmModal en vez de confirm() nativo — ver nota en deleteCustomCat.
+  _confirmModal('¿Eliminar este reclamo y todo su historial de seguimientos?',function(){
+    var rc=reclamos.find(function(r){return r.id===rcId;})||{};
+    reclamos=reclamos.filter(function(r){return r.id!==rcId;});
+    auditEntry('eliminar','reclamo',rcId,rc.titulo||rcId,'Reclamo eliminado');
+    _saveReclamos();
+    _updateReclamosBadge();
+    render();showToast('Reclamo eliminado','warn');
+  });
 }
 
 function _updateReclamosBadge(){
@@ -9109,10 +9202,12 @@ function completarMejoraGlobal(mejId){
 }
 
 function delMejora(mejId){
-  if(!confirm('Eliminar esta mejora?'))return;
-  mejoras=mejoras.filter(function(m){return m.id!==mejId;});
-  _saveMejoras();render();
-  showToast('Mejora eliminada','warn');
+  // _confirmModal en vez de confirm() nativo — ver nota en deleteCustomCat.
+  _confirmModal('¿Eliminar esta mejora?',function(){
+    mejoras=mejoras.filter(function(m){return m.id!==mejId;});
+    _saveMejoras();render();
+    showToast('Mejora eliminada','warn');
+  });
 }
 
 
@@ -9152,7 +9247,7 @@ function rAuditoria(){
   var h='';
   h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;">';
   h+='<h2 style="font-size:1.1rem;font-weight:700;color:var(--text);margin:0;">Auditoría</h2>';
-  h+='<button onclick="if(confirm(\'¿Limpiar el log de auditoría?\')){auditLog=[];try{localStorage.removeItem(\'mt_audit\');}catch(e){}render();}" style="font-size:.74rem;font-weight:600;color:var(--text3);background:rgba(120,120,128,.08);border:1px solid rgba(120,120,128,.15);border-radius:10px;min-height:34px;cursor:pointer;padding:7px 12px;">Limpiar log</button>';
+  h+='<button onclick="_confirmModal(\'¿Limpiar el log de auditoría?\',function(){auditLog=[];saveData();try{localStorage.removeItem(\'mt_audit\');}catch(e){}render();})" style="font-size:.74rem;font-weight:600;color:var(--text3);background:rgba(120,120,128,.08);border:1px solid rgba(120,120,128,.15);border-radius:10px;min-height:34px;cursor:pointer;padding:7px 12px;">Limpiar log</button>';
   h+='</div>';
   h+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;">'+fBtns+'</div>';
   h+='<div class="gc" style="padding:0 16px;">'+rows+'</div>';
@@ -9933,13 +10028,15 @@ function submitDocs(eqId){
   });
 }
 function delDoc(eqId,fileId){
-  if(!confirm('¿Eliminar este documento? Esta acción no se puede deshacer.'))return;
-  dbDel(fileId);
-  eqs=eqs.map(function(e){
-    if(e.id!==eqId)return e;
-    return Object.assign({},e,{documentos:(e.documentos||[]).filter(function(d){return d.id!==fileId;})});
+  // _confirmModal en vez de confirm() nativo — ver nota en deleteCustomCat.
+  _confirmModal('¿Eliminar este documento? Esta acción no se puede deshacer.',function(){
+    dbDel(fileId);
+    eqs=eqs.map(function(e){
+      if(e.id!==eqId)return e;
+      return Object.assign({},e,{documentos:(e.documentos||[]).filter(function(d){return d.id!==fileId;})});
+    });
+    saveData();render();showToast('Documento eliminado','warn');
   });
-  saveData();render();showToast('Documento eliminado','warn');
 }
 function openAdminModal(eqId){
   var eq=eqs.find(function(e){return e.id===eqId;});if(!eq)return;
@@ -10954,12 +11051,14 @@ function submitDarDeBaja(eqId){
   saveDataCritical();closeModal();setView('bajas');showToast('Equipo dado de baja'+detalleTr,'warn');
 }
 function reactivarEquipo(eqId){
-  if(!confirm('¿Reactivar este equipo? Volverá a aparecer en el panel y la lista.'))return;
-  eqs=eqs.map(function(e){
-    if(e.id!==eqId)return e;
-    var r=Object.assign({},e);delete r.baja;return r;
+  // _confirmModal en vez de confirm() nativo — ver nota en deleteCustomCat.
+  _confirmModal('¿Reactivar este equipo? Volverá a aparecer en el panel y la lista.',function(){
+    eqs=eqs.map(function(e){
+      if(e.id!==eqId)return e;
+      var r=Object.assign({},e);delete r.baja;return r;
+    });
+    saveData();render();showToast('✅ Equipo reactivado','');
   });
-  saveData();render();showToast('✅ Equipo reactivado','');
 }
 
 // ══════════════════════════════════════════════
@@ -11846,7 +11945,7 @@ function rAntenaDetalle(){
   /* delete antenna */
   h+='<button onclick="openMoverAntenaModal(\''+ant.id+'\')" style="width:100%;padding:11px;border-radius:var(--r-pill);background:rgba(79,120,224,.08);border:1.5px solid rgba(79,120,224,.20);color:#4f78e0;font-weight:600;font-size:.78rem;cursor:pointer;margin-bottom:8px;">🔄 Mover a otro equipo</button>';
   if(selAntenaEqId){
-    h+='<button onclick="if(confirm(\'¿Quitar esta antena del equipo?\'))removeAntennaFromEq(\''+ant.id+'\',\''+selAntenaEqId+'\');" style="width:100%;padding:11px;border-radius:var(--r-pill);background:rgba(255,59,48,.08);border:1.5px solid rgba(255,59,48,.18);color:var(--red);font-weight:600;font-size:.78rem;cursor:pointer;">Quitar del equipo</button>';
+    h+='<button onclick="_confirmModal(\'¿Quitar esta antena del equipo?\',function(){removeAntennaFromEq(\''+ant.id+'\',\''+selAntenaEqId+'\');})" style="width:100%;padding:11px;border-radius:var(--r-pill);background:rgba(255,59,48,.08);border:1.5px solid rgba(255,59,48,.18);color:var(--red);font-weight:600;font-size:.78rem;cursor:pointer;">Quitar del equipo</button>';
   }
   h+='<button onclick="deleteAntena(\''+ant.id+'\')" style="width:100%;padding:11px;border-radius:var(--r-pill);background:rgba(255,59,48,.05);border:1px dashed rgba(255,59,48,.25);color:rgba(255,59,48,.7);font-weight:600;font-size:.72rem;cursor:pointer;margin-top:8px;">🗑 Eliminar antena permanentemente</button>';
   return h;
@@ -12051,7 +12150,7 @@ function rTransductorDetalle(){
   '</div>';
   if(selTransdEqId){
     h+='<button onclick="openTrasladoTransductorModal(\''+tr.id+'\',\''+selTransdEqId+'\')" style="width:100%;padding:11px;border-radius:var(--r-pill);background:rgba(14,165,233,.08);border:1.5px solid rgba(14,165,233,.30);color:#0ea5e9;font-weight:600;font-size:.78rem;cursor:pointer;margin-top:8px;">🔄 Trasladar a otro ecógrafo</button>';
-    h+='<button onclick="if(confirm(\'¿Quitar este transductor del equipo?\'))removeTransductorFromEq(\''+tr.id+'\',\''+selTransdEqId+'\');" style="width:100%;padding:11px;border-radius:var(--r-pill);background:rgba(255,59,48,.08);border:1.5px solid rgba(255,59,48,.18);color:var(--red);font-weight:600;font-size:.78rem;cursor:pointer;margin-top:8px;">Quitar del equipo</button>';
+    h+='<button onclick="_confirmModal(\'¿Quitar este transductor del equipo?\',function(){removeTransductorFromEq(\''+tr.id+'\',\''+selTransdEqId+'\');})" style="width:100%;padding:11px;border-radius:var(--r-pill);background:rgba(255,59,48,.08);border:1.5px solid rgba(255,59,48,.18);color:var(--red);font-weight:600;font-size:.78rem;cursor:pointer;margin-top:8px;">Quitar del equipo</button>';
   }
   h+='<button onclick="darBajaTransductor(\''+tr.id+'\')" style="width:100%;padding:11px;border-radius:var(--r-pill);background:rgba(255,149,0,.08);border:1.5px solid rgba(255,149,0,.25);color:#ff9500;font-weight:600;font-size:.78rem;cursor:pointer;margin-top:8px;">🔴 Dar de baja</button>';
   h+='<button onclick="deleteTransductor(\''+tr.id+'\')" style="width:100%;padding:11px;border-radius:var(--r-pill);background:rgba(255,59,48,.05);border:1px dashed rgba(255,59,48,.25);color:rgba(255,59,48,.7);font-weight:600;font-size:.72rem;cursor:pointer;margin-top:8px;">🗑 Eliminar transductor permanentemente</button>';
@@ -12296,7 +12395,8 @@ function importBackup(ev){
       var d=JSON.parse(e.target.result);
       if(d.equipos&&Array.isArray(d.equipos)&&d.equipos.length>0){
         var nPDF=(d.archivos||[]).length;
-        if(confirm("¿Restaurar "+d.equipos.length+" equipos y "+nPDF+" PDF"+(nPDF!==1?"s":"")+"?\nEsto reemplaza los datos actuales.")){
+        // _confirmModal en vez de confirm() nativo — ver nota en deleteCustomCat.
+        _confirmModal("¿Restaurar "+d.equipos.length+" equipos y "+nPDF+" PDF"+(nPDF!==1?"s":"")+"? Esto reemplaza los datos actuales.",function(){
           eqs=d.equipos;
           var _archs=(d.archivos||[]).filter(function(a){return a.id&&a.nombre&&a.data;});
           // Esperar a que los PDFs/fotos del backup terminen de guardarse en IndexedDB
@@ -12305,7 +12405,7 @@ function importBackup(ev){
             saveData();
             showToast("✅ Restaurado ("+eqs.length+" equipos, "+nPDF+" PDFs)");toggleSettings();render();
           });
-        }
+        },null,'Restaurar');
       } else {alert("Formato inválido.");}
     }catch(err){alert("Error: "+err.message);}
   };
@@ -14112,7 +14212,8 @@ function openAIKeyModal(){
 function _doScanLabel(prompt,onResult){
   var proxyUrl=_getAIProxy();
   if(!proxyUrl){
-    if(confirm('Para escanear etiquetas necesitás configurar el proxy de Cloudflare.\n¿Abrir configuración?')){openAIKeyModal();}
+    // _confirmModal en vez de confirm() nativo — ver nota en deleteCustomCat.
+    _confirmModal('Para escanear etiquetas necesitás configurar el proxy de Cloudflare. ¿Abrir configuración?',function(){openAIKeyModal();},null,'Abrir configuración');
     return;
   }
   var inp=document.createElement('input');
@@ -14408,7 +14509,7 @@ function sendAIAssistantMsg(){
   var msg=(inp.value||'').trim();
   if(!msg)return;
   var proxyUrl=_getAIProxy();
-  if(!proxyUrl){if(confirm('Para usar el asistente IA necesitás configurar el proxy de Cloudflare.\n¿Abrir configuración?')){openAIKeyModal();}return;}
+  if(!proxyUrl){_confirmModal('Para usar el asistente IA necesitás configurar el proxy de Cloudflare. ¿Abrir configuración?',function(){openAIKeyModal();},null,'Abrir configuración');return;}
   var eq=_aiChatEqId?eqs.filter(function(e){return e.id===_aiChatEqId;})[0]:null;
   inp.value='';
   _appendAIMsg('user',msg,null);
@@ -14621,20 +14722,24 @@ function submitMoverAntena(antenaId){
   render();
 }
 function deleteAntena(antenaId){
-  if(!confirm('¿Eliminar esta antena permanentemente? Se quitará de todos los equipos vinculados.'))return;
-  var a=antenas.find(function(x){return x.id===antenaId;})||{};
-  antenas=antenas.filter(function(x){return x.id!==antenaId;});
-  eqs=eqs.map(function(e){return Object.assign({},e,{antenaIds:(e.antenaIds||[]).filter(function(id){return id!==antenaId;})});});
-  auditEntry('eliminar','eq',antenaId,a.nombre||antenaId,'Antena eliminada y desvinculada de todos los equipos');
-  saveDataCritical();showToast('Antena eliminada','warn');render();
+  // _confirmModal en vez de confirm() nativo — ver nota en deleteCustomCat.
+  _confirmModal('¿Eliminar esta antena permanentemente? Se quitará de todos los equipos vinculados.',function(){
+    var a=antenas.find(function(x){return x.id===antenaId;})||{};
+    antenas=antenas.filter(function(x){return x.id!==antenaId;});
+    eqs=eqs.map(function(e){return Object.assign({},e,{antenaIds:(e.antenaIds||[]).filter(function(id){return id!==antenaId;})});});
+    auditEntry('eliminar','eq',antenaId,a.nombre||antenaId,'Antena eliminada y desvinculada de todos los equipos');
+    saveDataCritical();showToast('Antena eliminada','warn');render();
+  });
 }
 function deleteTransductor(transductorId){
-  if(!confirm('¿Eliminar este transductor permanentemente? Se quitará de todos los equipos vinculados.'))return;
-  var t=transductores.find(function(x){return x.id===transductorId;})||{};
-  transductores=transductores.filter(function(x){return x.id!==transductorId;});
-  eqs=eqs.map(function(e){return Object.assign({},e,{transductorIds:(e.transductorIds||[]).filter(function(id){return id!==transductorId;})});});
-  auditEntry('eliminar','eq',transductorId,t.nombre||transductorId,'Transductor eliminado y desvinculado de todos los equipos');
-  saveData();showToast('Transductor eliminado','warn');render();
+  // _confirmModal en vez de confirm() nativo — ver nota en deleteCustomCat.
+  _confirmModal('¿Eliminar este transductor permanentemente? Se quitará de todos los equipos vinculados.',function(){
+    var t=transductores.find(function(x){return x.id===transductorId;})||{};
+    transductores=transductores.filter(function(x){return x.id!==transductorId;});
+    eqs=eqs.map(function(e){return Object.assign({},e,{transductorIds:(e.transductorIds||[]).filter(function(id){return id!==transductorId;})});});
+    auditEntry('eliminar','eq',transductorId,t.nombre||transductorId,'Transductor eliminado y desvinculado de todos los equipos');
+    saveData();showToast('Transductor eliminado','warn');render();
+  });
 }
 
 // ─── REFRIGERACIÓN (RM) ───
@@ -15018,13 +15123,15 @@ function submitLecturaSala(eqId){
   closeModal();showToast('✅ Lectura registrada','');
 }
 function deleteLecturaSala(eqId,lecId){
-  if(!confirm('¿Eliminar esta lectura?'))return;
-  eqs=eqs.map(function(e){
-    if(e.id!==eqId)return e;
-    var rf=_refrigData(e);
-    return Object.assign({},e,{refrig:Object.assign({},rf,{lecturas:(rf.lecturas||[]).filter(function(l){return l.id!==lecId;})})});
+  // _confirmModal en vez de confirm() nativo — ver nota en deleteCustomCat.
+  _confirmModal('¿Eliminar esta lectura?',function(){
+    eqs=eqs.map(function(e){
+      if(e.id!==eqId)return e;
+      var rf=_refrigData(e);
+      return Object.assign({},e,{refrig:Object.assign({},rf,{lecturas:(rf.lecturas||[]).filter(function(l){return l.id!==lecId;})})});
+    });
+    saveDataCritical();showToast('Lectura eliminada','warn');render();
   });
-  saveDataCritical();showToast('Lectura eliminada','warn');render();
 }
 function _fmtFechaHora(ts){
   var d=new Date(ts);
@@ -15445,9 +15552,11 @@ function uploadAntenaPresupuestoCompra(antenaId,file){
   reader.readAsDataURL(file);
 }
 function deleteAntenaPresupuestoCompra(antenaId){
-  if(!confirm('¿Eliminar el presupuesto de compra?'))return;
-  antenas=antenas.map(function(a){if(a.id===antenaId)return Object.assign({},a,{presupuestoCompraPdf:null});return a;});
-  saveData();showToast('Presupuesto eliminado','warn');render();
+  // _confirmModal en vez de confirm() nativo — ver nota en deleteCustomCat.
+  _confirmModal('¿Eliminar el presupuesto de compra?',function(){
+    antenas=antenas.map(function(a){if(a.id===antenaId)return Object.assign({},a,{presupuestoCompraPdf:null});return a;});
+    saveData();showToast('Presupuesto eliminado','warn');render();
+  });
 }
 function uploadAntenaReporte(antenaId,file){
   if(!file)return;
@@ -15469,9 +15578,11 @@ function uploadAntenaReporte(antenaId,file){
   reader.readAsDataURL(file);
 }
 function deleteAntenaReporte(antenaId,pdfId){
-  if(!confirm('¿Eliminar este reporte?'))return;
-  antenas=antenas.map(function(a){if(a.id===antenaId)return Object.assign({},a,{reportesPdfs:(a.reportesPdfs||[]).filter(function(p){return p.id!==pdfId;})});return a;});
-  saveData();showToast('Reporte eliminado','warn');render();
+  // _confirmModal en vez de confirm() nativo — ver nota en deleteCustomCat.
+  _confirmModal('¿Eliminar este reporte?',function(){
+    antenas=antenas.map(function(a){if(a.id===antenaId)return Object.assign({},a,{reportesPdfs:(a.reportesPdfs||[]).filter(function(p){return p.id!==pdfId;})});return a;});
+    saveData();showToast('Reporte eliminado','warn');render();
+  });
 }
 
 // ─── ROTURA V2 (with queSeRompio + estado workflow) ───
@@ -15876,9 +15987,11 @@ function submitMarkReparada(antenaId,roturaId){
 }
 
 function deleteHistorialAntena(antenaId,histId){
-  if(!confirm('¿Eliminar este registro del historial?'))return;
-  antenas=antenas.map(function(a){if(a.id===antenaId)return Object.assign({},a,{historialAntena:(a.historialAntena||[]).filter(function(h){return h.id!==histId;})});return a;});
-  saveData();showToast('Registro eliminado','warn');render();
+  // _confirmModal en vez de confirm() nativo — ver nota en deleteCustomCat.
+  _confirmModal('¿Eliminar este registro del historial?',function(){
+    antenas=antenas.map(function(a){if(a.id===antenaId)return Object.assign({},a,{historialAntena:(a.historialAntena||[]).filter(function(h){return h.id!==histId;})});return a;});
+    saveData();showToast('Registro eliminado','warn');render();
+  });
 }
 
 function markTransductorReparado(trId,rotId){
@@ -15964,18 +16077,20 @@ function submitMarkTransductorReparado(trId,rotId){
 }
 
 function darBajaTransductor(trId){
-  if(!confirm('\xbfDar de baja este transductor? Quedar\xe1 en la secci\xf3n de equipos dados de baja y se desvincular\xe1 del ec\xf3grafo asignado.'))return;
-  transductores=transductores.map(function(t){
-    if(t.id!==trId)return t;
-    return Object.assign({},t,{baja:true,estado:'fuera_servicio',fechaBaja:new Date().toISOString().split('T')[0]});
+  // _confirmModal en vez de confirm() nativo — ver nota en deleteCustomCat.
+  _confirmModal('\xbfDar de baja este transductor? Quedar\xe1 en la secci\xf3n de equipos dados de baja y se desvincular\xe1 del ec\xf3grafo asignado.',function(){
+    transductores=transductores.map(function(t){
+      if(t.id!==trId)return t;
+      return Object.assign({},t,{baja:true,estado:'fuera_servicio',fechaBaja:new Date().toISOString().split('T')[0]});
+    });
+    eqs=eqs.map(function(e){
+      return Object.assign({},e,{transductorIds:(e.transductorIds||[]).filter(function(id){return id!==trId;})});
+    });
+    saveDataCritical();
+    showToast('🔴 Transductor dado de baja','warn');
+    selTransdId=null;selTransdEqId=null;
+    render();
   });
-  eqs=eqs.map(function(e){
-    return Object.assign({},e,{transductorIds:(e.transductorIds||[]).filter(function(id){return id!==trId;})});
-  });
-  saveDataCritical();
-  showToast('🔴 Transductor dado de baja','warn');
-  selTransdId=null;selTransdEqId=null;
-  render();
 }
 
 function openEditAntennaModal(antenaId){
@@ -17030,9 +17145,11 @@ function openFotosFallaDirecta(eqId,fallaId){
   });
 }
 function deleteFallaDirecta(eqId,fallaId){
-  if(!confirm('\xbfEliminar esta falla?'))return;
-  eqs=eqs.map(function(e){if(e.id===eqId)return Object.assign({},e,{fallasDirectas:(e.fallasDirectas||[]).filter(function(f){return f.id!==fallaId;})});return e;});
-  saveData();render();showToast('Falla eliminada','warn');
+  // _confirmModal en vez de confirm() nativo — ver nota en deleteCustomCat.
+  _confirmModal('\xbfEliminar esta falla?',function(){
+    eqs=eqs.map(function(e){if(e.id===eqId)return Object.assign({},e,{fallasDirectas:(e.fallasDirectas||[]).filter(function(f){return f.id!==fallaId;})});return e;});
+    saveData();render();showToast('Falla eliminada','warn');
+  });
 }
 // ─── AGREGAR FOTOS A ROTURAS/FALLAS EXISTENTES ───
 function _addAgrFotos(files){
@@ -17813,18 +17930,22 @@ function desvincularAireEquipo(aireId,eqId){
 }
 
 function deleteAire(id){
-  if(!confirm('¿Eliminar esta unidad?'))return;
-  aires=aires.filter(function(a){return a.id!==id;});
-  saveData();showToast('Eliminado','warn');setView('aires');
+  // _confirmModal en vez de confirm() nativo — ver nota en deleteCustomCat.
+  _confirmModal('¿Eliminar esta unidad?',function(){
+    aires=aires.filter(function(a){return a.id!==id;});
+    saveData();showToast('Eliminado','warn');setView('aires');
+  });
 }
 
 function deleteAireHistEntry(aireId,entryId){
-  if(!confirm('¿Eliminar este registro?'))return;
-  aires=aires.map(function(a){
-    if(a.id!==aireId)return a;
-    return Object.assign({},a,{historial:(a.historial||[]).filter(function(h){return h.id!==entryId;})});
+  // _confirmModal en vez de confirm() nativo — ver nota en deleteCustomCat.
+  _confirmModal('¿Eliminar este registro?',function(){
+    aires=aires.map(function(a){
+      if(a.id!==aireId)return a;
+      return Object.assign({},a,{historial:(a.historial||[]).filter(function(h){return h.id!==entryId;})});
+    });
+    saveData();showToast('Registro eliminado','warn');render();
   });
-  saveData();showToast('Registro eliminado','warn');render();
 }
 
 function _pdfTableNode(headers,rows,opts){
@@ -18312,12 +18433,19 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="4.3.8";
+var APP_DISPLAY_VERSION="4.3.9";
 var APP_BUILD="04/08/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'4.3.9',fecha:'04/08/2026',tipo:'patch',cambios:[
+    'Fix alto: timeout de resguardo en checkAccess() (podía trabar el login de toda la app), en el primer snapshot de Firestore tras el login, y de forma central en _storageGetUrl()/_storageSaveB64() (protege visor de PDF, galerías de fotos, subida de archivos y todos los demás llamadores)',
+    'Fix alto: 28 usos de confirm()/prompt() nativo reemplazados por el modal de confirmación propio de la app en toda la app (equipos, OTs, repuestos, reclamos, mejoras, documentos, antenas, transductores, presupuestos, reportes, restaurar backup, etc.) — el diálogo nativo puede quedar bloqueado en silencio tras varios usos seguidos',
+    'Fix alto: las migraciones (Bombas, mejoras) ya se re-ejecutan también cuando este dispositivo detecta que guardó con datos atrasados, no solo en la sincronización en tiempo real de otro dispositivo',
+    'Fix alto: los vencimientos de mantenimiento comparaban fecha UTC contra hora local — en Argentina (UTC-3) podían marcar "vencido" hasta 3 horas antes de tiempo, en todas las categorías',
+    'Fix alto: un equipo con mantenimiento requerido pero sin fecha de vencimiento configurada ya no queda mostrado como operativo (verde) para siempre'
+  ]},
   {v:'4.3.8',fecha:'04/08/2026',tipo:'patch',cambios:[
     'Fix crítico: borrar un equipo o transductor "semilla" y recargar la app entera lo hacía reaparecer con datos de fábrica (las migraciones reinsertaban cualquier id faltante sin importar el motivo) — ahora solo siembran datos en una instalación realmente vacía, nunca reinsertan un ítem borrado a propósito',
     'Fix crítico: un guardado con datos locales atrasados (conflicto detectado al intentar guardar) aplicaba los datos del servidor sin volver a correr las migraciones — mismo bug de "Bombas desaparecen" ya arreglado en el otro camino de sincronización, ahora cubierto acá también',
@@ -18813,7 +18941,13 @@ function sendPasswordReset(){
     showLoginError(e.code==='auth/invalid-email'?'Email inválido':(e.message||e.code));
   });
 }
-function doSignOut(){if(!confirm("¿Cerrar sesión?"))return;if(window._fbAuth)window._fbAuth.signOut();var so=document.getElementById("settings-overlay");if(so&&!so.classList.contains("hidden"))toggleSettings();}
+function doSignOut(){
+  // _confirmModal en vez de confirm() nativo — ver nota en deleteCustomCat.
+  _confirmModal("¿Cerrar sesión?",function(){
+    if(window._fbAuth)window._fbAuth.signOut();
+    var so=document.getElementById("settings-overlay");if(so&&!so.classList.contains("hidden"))toggleSettings();
+  });
+}
 function showLoginError(msg){var el=document.getElementById("login-error");if(el){el.textContent=msg;el.style.display="block";}}
 
 // ── ACCESS CONTROL ──
@@ -18821,24 +18955,37 @@ var _accessOwner="";
 var _accessEmails=[];
 function accessDocRef(){return window._fbdb.collection("config").doc("access");}
 function checkAccess(user,onOk,onDeny){
+  // Sin este resguardo, si accessDocRef().get() nunca resuelve ni rechaza (mismo patrón
+  // de timeout ya confirmado varias veces esta semana en llamadas de Firestore/Storage
+  // dentro de este WebView), toda la app quedaba trabada en la pantalla de carga para
+  // siempre, sin ningún error visible — es el primer paso del arranque, así que un
+  // colgado acá bloquea absolutamente todo lo demás.
+  var _settled=false;
+  var _guard=setTimeout(function(){
+    if(_settled)return;_settled=true;
+    console.warn('checkAccess: sin respuesta en 15s, dejando entrar (fail open)');
+    onOk(false);
+  },15000);
+  function _onOk(isOwner){if(_settled)return;_settled=true;clearTimeout(_guard);onOk(isOwner);}
+  function _onDeny(){if(_settled)return;_settled=true;clearTimeout(_guard);onDeny();}
   accessDocRef().get().then(function(doc){
     if(!doc.exists){
       // First user ever → becomes owner
       var initial={owner:user.email,emails:[user.email],createdAt:new Date().toISOString()};
       accessDocRef().set(initial).then(function(){
-        _accessOwner=user.email;_accessEmails=[user.email];onOk(true);
-      }).catch(function(){onOk(true);});
+        _accessOwner=user.email;_accessEmails=[user.email];_onOk(true);
+      }).catch(function(){_onOk(true);});
     } else {
       var d=doc.data();
       _accessOwner=d.owner||"";
       _accessEmails=d.emails||[];
       var allowed=_accessEmails.map(function(e){return e.toLowerCase();}).indexOf(user.email.toLowerCase())>=0;
-      if(allowed){onOk(user.email.toLowerCase()===_accessOwner.toLowerCase());}
-      else{onDeny();}
+      if(allowed){_onOk(user.email.toLowerCase()===_accessOwner.toLowerCase());}
+      else{_onDeny();}
     }
   }).catch(function(){
     // Firestore error → allow in (fail open so owner isn't locked out)
-    onOk(false);
+    _onOk(false);
   });
 }
 function openEmpresasRepModal(){
@@ -19185,11 +19332,13 @@ function addAccessEmail(){
   }).catch(function(e){showToast("Error: "+e.message,"warn");});
 }
 function removeAccessEmail(em){
-  if(!confirm("¿Quitar acceso a "+em+"?"))return;
-  _accessEmails=_accessEmails.filter(function(e){return e.toLowerCase()!==em.toLowerCase();});
-  accessDocRef().update({emails:_accessEmails}).then(function(){
-    showToast("Acceso removido","warn");renderAccessModal(_accessEmails);
-  }).catch(function(e){showToast("Error: "+e.message,"warn");});
+  // _confirmModal en vez de confirm() nativo — ver nota en deleteCustomCat.
+  _confirmModal("¿Quitar acceso a "+esc(em)+"?",function(){
+    _accessEmails=_accessEmails.filter(function(e){return e.toLowerCase()!==em.toLowerCase();});
+    accessDocRef().update({emails:_accessEmails}).then(function(){
+      showToast("Acceso removido","warn");renderAccessModal(_accessEmails);
+    }).catch(function(e){showToast("Error: "+e.message,"warn");});
+  });
 }
 function toggleLoginMode(){
   var m=document.getElementById("login-mode"),btn=document.getElementById("login-submit-btn"),tog=document.getElementById("login-toggle");
@@ -19362,6 +19511,17 @@ function init(){
         // onSnapshot keeps every device in real-time sync — prevents concurrent writes
         // from stale in-memory state from overwriting another device's fresh data.
         if(window._fsUnsub)try{window._fsUnsub();}catch(e){}
+        // Resguardo: si el primer snapshot no llega NI como éxito NI como error (mismo
+        // patrón de timeout ya confirmado esta semana en otras llamadas de Firestore
+        // dentro de este WebView), la carga inicial de datos quedaba trabada para
+        // siempre tras un login exitoso. Mismo fallback que ya existe para el error
+        // explícito del listener (más abajo): cargar lo que haya en localStorage.
+        setTimeout(function(){
+          if(_fsInitDone)return;
+          _fsInitDone=true;
+          console.warn('Firestore: primer snapshot sin respuesta en 20s, usando localStorage');
+          eqs=JSON.parse(JSON.stringify(EQ0));_lsLoad();_finishLoad();
+        },20000);
         window._fsUnsub=orgDataRef().onSnapshot(function(orgDoc){
           var _d=orgDoc.exists?orgDoc.data():null;
           if(!_fsInitDone){
@@ -19434,8 +19594,11 @@ function init(){
             // el guardado reemplaza el array completo, esta rama los aplica tal cual llegan.
             // Sin re-correr las migraciones acá, ese dato revertido queda pisando lo ya
             // corregido en este dispositivo hasta el próximo reload completo — por eso
-            // "Bombas" volvía a desaparecer en tiempo real sin que nadie recargara la página.
-            if(migrateBombaSubcats())saveData();
+            // "Bombas" volvía a desaparecer en tiempo real sin que nadie recargara la
+            // página, y un ítem ya migrado a "mejoras" en otro dispositivo podía
+            // reaparecer duplicado como falla.
+            var _mB2=migrateBombaSubcats(),_mM2=_migrarMejorasDeEqs(),_mO2=_migrarMejorasAOTs();
+            if(_mB2||_mM2>0||_mO2>0)saveData();
             render();
             showToast('🔄 Datos actualizados por otro dispositivo');
           }
