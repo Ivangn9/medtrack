@@ -1,5 +1,12 @@
 # Changelog — MedTrack
 
+## v4.3.8 — 04/08/2026 (patch)
+
+- Fix crítico: borrar un equipo o transductor "semilla" y recargar la app entera lo hacía reaparecer con datos de fábrica (las migraciones reinsertaban cualquier id faltante sin importar el motivo) — ahora solo siembran datos en una instalación realmente vacía, nunca reinsertan un ítem borrado a propósito
+- Fix crítico: un guardado con datos locales atrasados (conflicto detectado al intentar guardar) aplicaba los datos del servidor sin volver a correr las migraciones — mismo bug de "Bombas desaparecen" ya arreglado en el otro camino de sincronización, ahora cubierto acá también
+- Fix crítico: el historial de mantenimiento (shards) se escribía a la nube sin esperar a confirmar que el guardado principal no estaba atrasado — dos dispositivos guardando casi al mismo tiempo podían pisarse el historial
+- Fix crítico: subir una foto/PDF podía quedar referenciado en la nube antes de garantizar que se guardó en el dispositivo — si la app se cerraba de golpe en el medio, el archivo se perdía para siempre sin aviso (10 puntos del código corregidos)
+
 ## v4.3.7 — 04/08/2026 (patch)
 
 - Fix: la foto de categoría podía quedar 'cargando' para siempre sin terminar nunca (ni error ni éxito) — el método de respaldo (imagen+canvas) no tenía límite de tiempo y podía colgarse en ciertos WebViews; ahora la foto se muestra apenas se consigue el link (sin depender de ese paso) y la mejora a base64 corre en paralelo sin bloquear nada, con topes de tiempo en cada paso
