@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.08.03.015 -->
+<!-- v2026.08.04.001 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.08.03.015">
+<meta name="app-version" content="v2026.08.04.001">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -4328,7 +4328,19 @@ function _loadOneCatPhoto(catId,fotoId,tryN){
   if(_PANEL_IMGS[catId])return; // ya se resolvió por otra vía mientras tanto
   dbGet(fotoId,function(rec){
     if(rec&&rec.data){_PANEL_IMGS[catId]=rec.data;_clearCatPhotoErr(catId);render();return;}
+    // _storageGetUrl() depende de una llamada de red del SDK de Firebase que, en teoría,
+    // podría no resolver nunca (ni éxito ni error) — sin este resguardo, un solo intento
+    // colgado deja el reintento entero trabado para siempre, porque el siguiente intento
+    // solo se agenda DENTRO del callback. Con el guard, si no contesta en 12s se lo trata
+    // como fallido y se sigue con el ciclo de reintentos normal.
+    var _settled=false;
+    var _guard=setTimeout(function(){
+      if(_settled)return;_settled=true;
+      if(tryN<6){setTimeout(function(){_loadOneCatPhoto(catId,fotoId,tryN+1);},Math.min(3000*Math.pow(1.6,tryN),15000));}
+      else _setCatPhotoErr(catId,'no-response');
+    },12000);
     _storageGetUrl(fotoId,function(url,errCode){
+      if(_settled)return;_settled=true;clearTimeout(_guard);
       if(!url){
         if(tryN<6){setTimeout(function(){_loadOneCatPhoto(catId,fotoId,tryN+1);},Math.min(3000*Math.pow(1.6,tryN),15000));return;}
         // Se agotaron los reintentos: la foto nunca llegó a estar disponible en la nube
@@ -4360,18 +4372,30 @@ function _loadOneCatPhoto(catId,fotoId,tryN){
 // (ej. bucket sin CORS habilitado para <img>): usar la URL cruda directo — se ve en
 // pantalla igual, aunque no se pueda embeber en un PDF generado desde ESTE dispositivo
 // (ver la nota de _pdfCatIcon() en openCustomCatModal).
-function _fallbackImgLoad(catId,url,errCode){
+function _fallbackImgLoad(catId,url){
+  // Fallback inmediato, sin esperar nada: un <img> normal puede MOSTRAR una imagen
+  // cross-origin sin necesitar CORS (CORS solo hace falta para LEER sus píxeles vía
+  // canvas) — se asigna la URL cruda ya mismo para que la foto aparezca sin que el
+  // usuario quede esperando. En paralelo, se intenta "mejorarla" a base64 (necesario
+  // para que se vea también en un PDF exportado desde ESTE dispositivo, ver la nota de
+  // _pdfCatIcon() en openCustomCatModal) — pero ese intento nunca bloquea nada: si el
+  // <img crossOrigin> no dispara ni onload ni onerror (pasa en algunos WebViews, a
+  // diferencia de XHR que sí tiene .timeout confiable), un timeout manual lo abandona
+  // en silencio en vez de dejar la carga trabada para siempre.
+  _PANEL_IMGS[catId]=url;_clearCatPhotoErr(catId);render();
+  var settled=false;
   var img=new Image();img.crossOrigin='anonymous';
+  var _to=setTimeout(function(){settled=true;},9000);
   img.onload=function(){
+    if(settled)return;settled=true;clearTimeout(_to);
     try{
       var cv=document.createElement('canvas');cv.width=img.naturalWidth;cv.height=img.naturalHeight;
       cv.getContext('2d').drawImage(img,0,0);
       var b64=cv.toDataURL('image/png');
-      if(b64&&b64.indexOf('data:image/')===0){_PANEL_IMGS[catId]=b64;_clearCatPhotoErr(catId);render();return;}
+      if(b64&&b64.indexOf('data:image/')===0){_PANEL_IMGS[catId]=b64;render();}
     }catch(e){}
-    _PANEL_IMGS[catId]=url;_clearCatPhotoErr(catId);render();
   };
-  img.onerror=function(){_setCatPhotoErr(catId,errCode);};
+  img.onerror=function(){settled=true;clearTimeout(_to);};
   img.src=url;
 }
 function _setCatPhotoErr(catId,code){
@@ -4387,9 +4411,12 @@ function retryCatPhoto(catId){
   var c=(customCats||[]).find(function(x){return x.id===catId;});
   if(!c||!c.fotoId){showToast('Esta categoría no tiene foto para reintentar','warn');return;}
   _clearCatPhotoErr(catId);
-  showToast('Reintentando descargar la foto…');
+  showToast('Reintentando descargar la foto… puede tardar hasta 15s');
   _loadOneCatPhoto(catId,c.fotoId,0);
-  setTimeout(function(){openCustomCatsManagerModal();},1200);
+  // 15s (no 1.2s) porque ahora hay una espera con guard de hasta 12s antes de que se
+  // resuelva el primer intento — reabrir el modal antes de tiempo mostraba el mismo
+  // cartel de "buscándola…" sin reflejar que en realidad seguía en curso.
+  setTimeout(function(){openCustomCatsManagerModal();},15000);
 }
 
 // Reconcile local files with Firebase Storage. Ensures every file that exists in
@@ -18231,12 +18258,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="4.3.6";
-var APP_BUILD="03/08/26 h";
+var APP_DISPLAY_VERSION="4.3.7";
+var APP_BUILD="04/08/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'4.3.7',fecha:'04/08/2026',tipo:'patch',cambios:[
+    'Fix: la foto de categoría podía quedar \'cargando\' para siempre sin terminar nunca (ni error ni éxito) — el método de respaldo (imagen+canvas) no tenía límite de tiempo y podía colgarse en ciertos WebViews; ahora la foto se muestra apenas se consigue el link (sin depender de ese paso) y la mejora a base64 corre en paralelo sin bloquear nada, con topes de tiempo en cada paso'
+  ]},
   {v:'4.3.6',fecha:'03/08/2026',tipo:'patch',cambios:[
     'Fix: la foto de una categoría personalizada no llegaba a otros dispositivos con código \'network-error\' — el fetch por XHR a Firebase Storage puede fallar por CORS/red en ciertos entornos (confirmado en la app nativa de iPhone) aunque el archivo exista; ahora cae a un método alternativo (imagen + canvas, o la URL directa como último recurso) en vez de perder la foto en silencio'
   ]},

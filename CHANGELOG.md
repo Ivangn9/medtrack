@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v4.3.7 — 04/08/2026 (patch)
+
+- Fix: la foto de categoría podía quedar 'cargando' para siempre sin terminar nunca (ni error ni éxito) — el método de respaldo (imagen+canvas) no tenía límite de tiempo y podía colgarse en ciertos WebViews; ahora la foto se muestra apenas se consigue el link (sin depender de ese paso) y la mejora a base64 corre en paralelo sin bloquear nada, con topes de tiempo en cada paso
+
 ## v4.3.6 — 03/08/2026 (patch)
 
 - Fix: la foto de una categoría personalizada no llegaba a otros dispositivos con código 'network-error' — el fetch por XHR a Firebase Storage puede fallar por CORS/red en ciertos entornos (confirmado en la app nativa de iPhone) aunque el archivo exista; ahora cae a un método alternativo (imagen + canvas, o la URL directa como último recurso) en vez de perder la foto en silencio
