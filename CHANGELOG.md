@@ -1,5 +1,13 @@
 # Changelog — MedTrack
 
+## v4.4.0 — 04/08/2026 (patch)
+
+- Fix medio: el Informe Gerencial en PDF ahora incluye garantía, contrato de servicio, seguro, R.U.GE.PRE.SA, parches/batería de desfibrilador y estado de chiller/helio de RM cuando están vencidos o próximos a vencer — antes podían faltar en el PDF pese a estar en rojo en la app
+- Fix medio: una OT reabierta ya no muestra 'Cerrada: fecha vieja', y el editor genérico de OT ya no permite pasar a 'Cerrada' sin pasar por el flujo real de cierre (resolución + firma)
+- Fix medio: mantenimiento mensual/trimestral registrado en día 29-31 ya no salta el próximo vencimiento a principios del mes siguiente cuando cruza un mes corto
+- Fix medio: los grupos de categorías personalizadas (creados con + Crear nuevo grupo) ahora se pueden editar y borrar desde Ajustes → Categorías Personalizadas
+- Fix medio: flecha 'Volver' invisible en modo claro en varias pantallas, botón + Nueva categoría no seguía el modo oscuro, nombre de categoría sin límite de caracteres, animaciones del Esquema UPS sin pausarse fuera de pantalla, buscador ⌘K con animación completa de modal, y contador animado del Panel sin respetar reducir movimiento
+
 ## v4.3.9 — 04/08/2026 (patch)
 
 - Fix alto: timeout de resguardo en checkAccess() (podía trabar el login de toda la app), en el primer snapshot de Firestore tras el login, y de forma central en _storageGetUrl()/_storageSaveB64() (protege visor de PDF, galerías de fotos, subida de archivos y todos los demás llamadores)
