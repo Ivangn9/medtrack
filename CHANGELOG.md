@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v4.5.0 — 05/08/2026 (minor)
+
+- Jaula de Faraday para salas de RM: diagrama esquemático interactivo con 7 partes (suelo, pines de puerta, ventana, puerta de jaula, luces, cielo raso, enchufe), 4 niveles de deterioro por parte, foto vigente por parte, y sección nueva en el Informe Gerencial (PDF) con diagrama, color, texto y foto de estado
+
 ## v4.4.1 — 04/08/2026 (patch)
 
 - Pulido: transiciones CSS explícitas en vez de transition:all en 15 sitios (mejor rendimiento, menos repintados)

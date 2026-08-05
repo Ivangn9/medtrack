@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.08.04.005 -->
+<!-- v2026.08.05.001 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.08.04.005">
+<meta name="app-version" content="v2026.08.05.001">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -93,7 +93,7 @@
   --blur-heavy:saturate(360%) contrast(110%) brightness(112%) blur(44px);
   --r-sm:14px; --r-md:18px; --r-lg:22px; --r-xl:28px; --r-pill:50px;
   --accent:#0071e3; --accent2:#0058b0;
-  --red:#ff3b30; --orange:#ff9500; --green:#34c759; --purple:#af52de;
+  --red:#ff3b30; --orange:#ff9500; --green:#34c759; --purple:#af52de; --yellow:#ffcc00;
   --warn-text:#b45309;
   --bg:#e8eef6;
   --text:#1c1c1e; --text2:#3a3a3c; --text3:#5e5e62;
@@ -860,6 +860,9 @@ body.dark .btn-secondary{color:var(--accent);background:rgba(173,198,255,.14);bo
 .hidden{display:none!important;}
 .tap{cursor:pointer;}
 .tap:active{transform:scale(.968);}
+.jaula-part{cursor:pointer;transition:opacity .12s ease;}
+.jaula-part:hover{opacity:.82;}
+.jaula-part:active{opacity:.6;}
 
 /* ── SETTINGS ── */
 .settings-panel{
@@ -2067,7 +2070,7 @@ var _pendingGEParams=null;
     window._pendingGEParams=o;
   }
 })();
-var eqs=[],view="inicio",selId=null,selAntenaEqId=null,selAntenaId=null,selTransdEqId=null,selTransdId=null,filtCat="TODOS",toastTimer=null,darkMode=false,fontScale=100,glassMode=3;
+var eqs=[],view="inicio",selId=null,selAntenaEqId=null,selAntenaId=null,selTransdEqId=null,selTransdId=null,selJaulaEqId=null,filtCat="TODOS",toastTimer=null,darkMode=false,fontScale=100,glassMode=3;
 var _navTransition=false; // true cuando la navegación cambia de vista (activa la salida animada)
 var ordenesTrabajo=[];
 var repuestos=[];
@@ -3097,6 +3100,7 @@ function goBack(){
   _navTransition=true;
   if(view==="antenaDetalle"){view="antenas";render();}
   else if(view==="antenas"){selId=selAntenaEqId;view="detalle";_detalleQ="";_detalleSearchOpen=false;render();}
+  else if(view==="jaula"){selId=selJaulaEqId;view="detalle";_detalleQ="";_detalleSearchOpen=false;render();}
   else if(view==="aireDetalle"){view="aires";document.getElementById("back-btn").classList.remove("hidden");render();}
   else if(view==="aires"){setView("dash");}
   else if(view==="transductorDetalle"){view="transductores";render();}
@@ -3105,6 +3109,7 @@ function goBack(){
   else setView("lista");
 }
 function goAntenas(rmEquipId){_navTransition=true;selAntenaEqId=rmEquipId;view="antenas";document.getElementById("back-btn").classList.remove("hidden");render();}
+function goJaula(eqId){_navTransition=true;selJaulaEqId=eqId;view="jaula";document.getElementById("back-btn").classList.remove("hidden");render();}
 function goTransductores(ecoEquipId){_navTransition=true;selTransdEqId=ecoEquipId;view="transductores";document.getElementById("back-btn").classList.remove("hidden");render();}
 function goTransductorDetalle(transductorId,ecoEquipId){
   _navTransition=true;
@@ -4595,6 +4600,82 @@ function retryCatPhoto(catId){
   // resuelva el primer intento — reabrir el modal antes de tiempo mostraba el mismo
   // cartel de "buscándola…" sin reflejar que en realidad seguía en curso.
   setTimeout(function(){openCustomCatsManagerModal();},15000);
+}
+// Calco exacto de _loadCustomCatPhotos/_loadOneCatPhoto/_fallbackImgLoad para las fotos
+// de partes de la Jaula de Faraday — a diferencia de las fotos de categoría (keyeadas
+// por catId, 1 foto fija por categoría), acá cada fotoId ya es único globalmente (1 por
+// equipo RM × parte), así que sirve como su propia clave de cache en _JAULA_IMGS.
+function _loadJaulaPhotos(){
+  eqs.filter(function(e){return e.cat==='RM'&&!e.baja;}).forEach(function(eq){
+    var jd=_jaulaData(eq);
+    JAULA_PARTES.forEach(function(p){
+      var fotoId=jd[p.id].fotoId;
+      if(!fotoId||_JAULA_IMGS[fotoId])return;
+      _loadOneJaulaPhoto(fotoId,0);
+    });
+  });
+}
+function _loadOneJaulaPhoto(fotoId,tryN){
+  if(_JAULA_IMGS[fotoId])return;
+  dbGet(fotoId,function(rec){
+    if(rec&&rec.data){_JAULA_IMGS[fotoId]=rec.data;_clearJaulaPhotoErr(fotoId);render();return;}
+    var _settled=false;
+    var _guard=setTimeout(function(){
+      if(_settled)return;_settled=true;
+      if(tryN<6){setTimeout(function(){_loadOneJaulaPhoto(fotoId,tryN+1);},Math.min(3000*Math.pow(1.6,tryN),15000));}
+      else _setJaulaPhotoErr(fotoId,'no-response');
+    },12000);
+    _storageGetUrl(fotoId,function(url,errCode){
+      if(_settled)return;_settled=true;clearTimeout(_guard);
+      if(!url){
+        if(tryN<6){setTimeout(function(){_loadOneJaulaPhoto(fotoId,tryN+1);},Math.min(3000*Math.pow(1.6,tryN),15000));return;}
+        _setJaulaPhotoErr(fotoId,errCode||'unknown');
+        return;
+      }
+      var xhr=new XMLHttpRequest();xhr.open('GET',url,true);xhr.responseType='blob';xhr.timeout=20000;
+      xhr.onload=function(){
+        if((xhr.status===200||xhr.status===0)&&xhr.response){
+          var rdr=new FileReader();
+          rdr.onload=function(e){_JAULA_IMGS[fotoId]=e.target.result;_clearJaulaPhotoErr(fotoId);render();};
+          rdr.readAsDataURL(xhr.response);
+        }else{_fallbackJaulaImgLoad(fotoId,url);}
+      };
+      xhr.onerror=function(){_fallbackJaulaImgLoad(fotoId,url);};
+      xhr.ontimeout=function(){_fallbackJaulaImgLoad(fotoId,url);};
+      xhr.send();
+    });
+  });
+}
+function _fallbackJaulaImgLoad(fotoId,url){
+  _JAULA_IMGS[fotoId]=url;_clearJaulaPhotoErr(fotoId);render();
+  var settled=false;
+  var img=new Image();img.crossOrigin='anonymous';
+  var _to=setTimeout(function(){settled=true;},9000);
+  img.onload=function(){
+    if(settled)return;settled=true;clearTimeout(_to);
+    try{
+      var cv=document.createElement('canvas');cv.width=img.naturalWidth;cv.height=img.naturalHeight;
+      cv.getContext('2d').drawImage(img,0,0);
+      var b64=cv.toDataURL('image/png');
+      if(b64&&b64.indexOf('data:image/')===0){_JAULA_IMGS[fotoId]=b64;render();}
+    }catch(e){}
+  };
+  img.onerror=function(){settled=true;clearTimeout(_to);};
+  img.src=url;
+}
+function _setJaulaPhotoErr(fotoId,code){
+  try{var m=JSON.parse(localStorage.getItem('mt_jaula_photo_err')||'{}');m[fotoId]=code;localStorage.setItem('mt_jaula_photo_err',JSON.stringify(m));}catch(e){}
+}
+function _clearJaulaPhotoErr(fotoId){
+  try{var m=JSON.parse(localStorage.getItem('mt_jaula_photo_err')||'{}');delete m[fotoId];localStorage.setItem('mt_jaula_photo_err',JSON.stringify(m));}catch(e){}
+}
+function _getJaulaPhotoErr(fotoId){
+  try{var m=JSON.parse(localStorage.getItem('mt_jaula_photo_err')||'{}');return m[fotoId]||null;}catch(e){return null;}
+}
+function retryJaulaPhoto(fotoId){
+  _clearJaulaPhotoErr(fotoId);
+  showToast('Reintentando descargar la foto… puede tardar hasta 15s');
+  _loadOneJaulaPhoto(fotoId,0);
 }
 
 // Reconcile local files with Firebase Storage. Ensures every file that exists in
@@ -6307,6 +6388,7 @@ function _buildView(){
   else if(view==="alertas")d.innerHTML=rAlertas();
   else if(view==="detalle")d.innerHTML=rDetalle();
   else if(view==="antenas")d.innerHTML=rAntenas();
+  else if(view==="jaula")d.innerHTML=rJaula();
   else if(view==="antenaDetalle")d.innerHTML=rAntenaDetalle();
   else if(view==="aires")d.innerHTML=rAires();
   else if(view==="aireDetalle")d.innerHTML=rAireDetalle();
@@ -10991,6 +11073,8 @@ function rDetalle(){
     var _antCnt=(eq.antenaIds||[]).length;
     var _antRot=antenas.filter(function(a){return(eq.antenaIds||[]).indexOf(a.id)!==-1;}).reduce(function(s,a){return s+(a.roturas||[]).filter(function(r){return r.estado!=='reparado';}).length;},0);
     hR+='<div class="cring-wrap" style="--cc:rgba(79,120,224,.9);margin-bottom:8px;"><div class="cring-el"></div><div class="gc tap" onclick="goAntenas(\''+eq.id+'\')" style="padding:0;overflow:hidden;cursor:pointer;" ontouchstart="this.style.transform=\'scale(.98)\'" ontouchend="this.style.transform=\'\'"><div style="padding:12px 14px;display:flex;align-items:center;gap:11px;">'+antenaSvgIcon(18)+'<div style="flex:1;min-width:0;"><div style="font-size:.84rem;font-weight:700;color:var(--text);">Antenas RF</div><div style="font-size:.67rem;color:var(--text3);margin-top:1px;">'+_antCnt+' antena'+(_antCnt!==1?'s':'')+(_antRot===0?' · todas OK':' · '+_antRot+' rotura'+(_antRot!==1?'s':'')+' activa'+(_antRot!==1?'s':''))+'</div></div>'+(_antRot>0?'<span style="font-size:.68rem;font-weight:700;min-width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+_antRot+'</span>':'')+'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(79,120,224,.45)" stroke-width="2.2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></div></div></div>';
+    var _jPeor=_jaulaPeorNivel(eq);
+    hR+='<div class="cring-wrap" style="--cc:rgba(255,159,10,.9);margin-bottom:8px;"><div class="cring-el"></div><div class="gc tap" onclick="goJaula(\''+eq.id+'\')" style="padding:0;overflow:hidden;cursor:pointer;" ontouchstart="this.style.transform=\'scale(.98)\'" ontouchend="this.style.transform=\'\'"><div style="padding:12px 14px;display:flex;align-items:center;gap:11px;"><span style="font-size:1.1rem;line-height:1;">🔒</span><div style="flex:1;min-width:0;"><div style="font-size:.84rem;font-weight:700;color:var(--text);">Jaula de Faraday</div><div style="font-size:.67rem;color:'+CJ[_jPeor]+';margin-top:1px;font-weight:600;">'+CJ_LABEL[_jPeor]+'</div></div><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,159,10,.45)" stroke-width="2.2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></div></div></div>';
   }
 
   return '<div class="det-2col"><div style="flex:6;min-width:0;">'+h+'</div><div style="flex:4;min-width:0;">'+hR+'</div></div>';
@@ -11726,6 +11810,145 @@ function rmSceneSVG(eq){
     s=s.replace(/<animate[^>]*\/>/g,'').replace(/<animateTransform[^>]*\/>/g,'');
   }
   return s;
+}
+// Diagrama esquemático de la Jaula de Faraday de la sala de un equipo RM.
+// A diferencia de rmSceneSVG, es deliberadamente "PDF-safe": solo rect/circle/
+// line/text con fill/stroke sólidos, sin <filter>, sin gradientes y sin
+// <animate> — así el mismo string sirve tanto en pantalla como embebido
+// directo (sin rasterizar) en el Informe Gerencial vía {svg:...} (pdfMake).
+// Por el mismo motivo los colores van en hex literal, nunca var(--...): las
+// custom properties CSS no se resuelven dentro del PDF.
+function jaulaSceneSVG(eq){
+  var jd=_jaulaData(eq);
+  function col(id){return CJ[jd[id].nivel];}
+  var s='<svg viewBox="0 0 600 370" style="width:100%;height:auto;display:block;" xmlns="http://www.w3.org/2000/svg">';
+  s+='<rect x="30" y="20" width="540" height="330" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="6 4" rx="4"/>';
+  // Cielo Raso (banda superior) + Luces (3 focos empotrados, comparten una sola parte clickeable)
+  s+='<g class="jaula-part" onclick="openModalJaulaParte(\''+eq.id+'\',\'cielo\')">'+
+       '<rect x="32" y="22" width="536" height="53" fill="'+col('cielo')+'" fill-opacity="0.85"/>'+
+       '<text x="300" y="68" text-anchor="middle" font-size="12" font-weight="700" fill="#1e293b">Cielo Raso</text>'+
+     '</g>';
+  s+='<g class="jaula-part" onclick="openModalJaulaParte(\''+eq.id+'\',\'luces\')">'+
+       [150,300,450].map(function(cx){return '<circle cx="'+cx+'" cy="46" r="8" fill="'+col('luces')+'" stroke="#fff" stroke-width="1.5"/>';}).join('')+
+       '<text x="300" y="35" text-anchor="middle" font-size="9.5" fill="#475569">Luces</text>'+
+     '</g>';
+  // Suelo de la Sala (banda inferior)
+  s+='<g class="jaula-part" onclick="openModalJaulaParte(\''+eq.id+'\',\'suelo\')">'+
+       '<rect x="32" y="305" width="536" height="43" fill="'+col('suelo')+'" fill-opacity="0.85"/>'+
+       '<text x="300" y="331" text-anchor="middle" font-size="12" font-weight="700" fill="#1e293b">Suelo de la Sala</text>'+
+     '</g>';
+  // Pines de Puerta: marco punteado (finger-stock) alrededor del hueco — pintado
+  // ANTES que la hoja de la puerta para no tapar su click, solo su borde queda expuesto.
+  s+='<g class="jaula-part" onclick="openModalJaulaParte(\''+eq.id+'\',\'pines\')">'+
+       '<rect x="70" y="100" width="90" height="180" fill="'+col('pines')+'" fill-opacity="0.3" stroke="'+col('pines')+'" stroke-width="3" stroke-dasharray="5 4"/>'+
+     '</g>';
+  s+='<text x="115" y="92" text-anchor="middle" font-size="9.5" fill="#475569">Pines de Puerta</text>';
+  // Puerta de Jaula (hoja, sobre los pines)
+  s+='<g class="jaula-part" onclick="openModalJaulaParte(\''+eq.id+'\',\'puerta\')">'+
+       '<rect x="80" y="110" width="70" height="160" rx="2" fill="'+col('puerta')+'" stroke="#1e293b" stroke-opacity="0.2" stroke-width="1.5"/>'+
+       '<circle cx="140" cy="190" r="3" fill="#1e293b" fill-opacity="0.4"/>'+
+     '</g>';
+  s+='<text x="115" y="295" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1e293b">Puerta de Jaula</text>';
+  // Ventana (vidrio con malla blindada, hachurado decorativo)
+  s+='<g class="jaula-part" onclick="openModalJaulaParte(\''+eq.id+'\',\'ventana\')">'+
+       '<rect x="430" y="135" width="80" height="110" rx="2" fill="'+col('ventana')+'" fill-opacity="0.82" stroke="#1e293b" stroke-opacity="0.2" stroke-width="1.5"/>'+
+       [0,1,2,3].map(function(i){var xo=440+i*20;return '<line x1="'+xo+'" y1="145" x2="'+(xo+16)+'" y2="235" stroke="#fff" stroke-opacity="0.3" stroke-width="1"/>';}).join('')+
+     '</g>';
+  s+='<text x="470" y="262" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1e293b">Ventana</text>';
+  // Enchufe (con filtro de línea RF, bajo, en el piso de la sala)
+  s+='<g class="jaula-part" onclick="openModalJaulaParte(\''+eq.id+'\',\'enchufe\')">'+
+       '<rect x="285" y="272" width="30" height="22" rx="3" fill="'+col('enchufe')+'" stroke="#1e293b" stroke-opacity="0.25" stroke-width="1.2"/>'+
+       '<line x1="295" y1="276" x2="295" y2="284" stroke="#1e293b" stroke-opacity="0.4" stroke-width="1.5"/>'+
+       '<line x1="305" y1="276" x2="305" y2="284" stroke="#1e293b" stroke-opacity="0.4" stroke-width="1.5"/>'+
+     '</g>';
+  s+='<text x="300" y="264" text-anchor="middle" font-size="9.5" fill="#475569">Enchufe</text>';
+  s+='</svg>';
+  return s;
+}
+function rJaula(){
+  var eq=eqs.find(function(e){return e.id===selJaulaEqId;});if(!eq)return'';
+  var jd=_jaulaData(eq);
+  var h='<div class="gc" style="padding:0;margin-bottom:12px;overflow:hidden;border-left:4px solid rgba(255,159,10,.6);background:linear-gradient(135deg,rgba(255,159,10,.07) 0%,rgba(255,204,0,.04) 100%);">'+
+    '<div style="background:linear-gradient(90deg,rgba(255,159,10,.13),rgba(255,204,0,.07));padding:9px 16px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(255,159,10,.12);">'+
+      '<span style="font-size:1rem;">🔒</span><span style="font-size:.72rem;font-weight:700;color:rgba(255,159,10,.95);text-transform:uppercase;letter-spacing:.06em;">Jaula de Faraday</span>'+
+    '</div>'+
+    '<div style="padding:16px;">'+
+      '<div style="font-weight:800;font-size:1.1rem;letter-spacing:-.3px;margin-bottom:12px;">'+esc(eq.nombre)+'</div>'+
+      jaulaSceneSVG(eq)+
+    '</div>'+
+  '</div>';
+  h+='<div class="g2cat">';
+  JAULA_PARTES.forEach(function(p){
+    var d=jd[p.id];
+    h+='<div class="gc tap" onclick="openModalJaulaParte(\''+eq.id+'\',\''+p.id+'\')" style="padding:12px;">'+
+      '<div style="font-size:.8rem;font-weight:700;color:var(--text);margin-bottom:6px;">'+esc(p.label)+'</div>'+
+      '<span class="pill" style="background:'+CJ[d.nivel]+'22;color:'+CJ[d.nivel]+';">'+CJ_LABEL[d.nivel]+'</span>'+
+      (d.fotoId&&_JAULA_IMGS[d.fotoId]?'<img src="'+_JAULA_IMGS[d.fotoId]+'" style="width:100%;height:70px;object-fit:cover;border-radius:8px;margin-top:8px;">':'')+
+      (d.notas?'<div style="font-size:.68rem;color:var(--text3);margin-top:6px;line-height:1.4;">'+esc(d.notas)+'</div>':'')+
+    '</div>';
+  });
+  h+='</div>';
+  return h;
+}
+var _jpFotoB64=null;
+var _jpFotoChanged=false; // true solo si el usuario eligió un archivo nuevo en ESTA apertura del modal
+function openModalJaulaParte(eqId,parteId){
+  var eq=eqs.find(function(e){return e.id===eqId;});if(!eq)return;
+  var parte=JAULA_PARTES.find(function(p){return p.id===parteId;});if(!parte)return;
+  var d=_jaulaData(eq)[parteId];
+  _jpFotoB64=d.fotoId?(_JAULA_IMGS[d.fotoId]||null):null;
+  _jpFotoChanged=false;
+  var nivBtns=['optimo','leve','moderado','grave'].map(function(n){
+    var a=d.nivel===n;
+    return '<button type="button" data-jniv="'+n+'" onclick="_jpSetNivel(\''+n+'\')" style="flex:1;padding:10px 4px;border-radius:var(--r-sm);font-size:.68rem;font-weight:700;border:none;cursor:pointer;background:'+(a?CJ[n]+'26':'rgba(120,120,128,.08)')+';color:'+(a?CJ[n]:'var(--text3)')+';">'+CJ_LABEL[n]+'</button>';
+  }).join('');
+  var h='<div class="modal-title">'+esc(parte.label)+'</div>'+
+    '<div style="font-size:.75rem;color:var(--text3);margin-bottom:14px;">'+esc(eq.nombre)+'</div>'+
+    '<input type="hidden" id="jp-niv" value="'+d.nivel+'">'+
+    '<div class="ff" style="margin-bottom:12px;"><div class="ff-label">Nivel de deterioro</div><div style="display:flex;gap:6px;">'+nivBtns+'</div></div>'+
+    '<div class="ff" style="margin-bottom:12px;"><div class="ff-label">Notas</div><textarea class="inp" id="jp-notas" rows="3" placeholder="Detalle del estado observado...">'+esc(d.notas)+'</textarea></div>'+
+    '<div class="ff" style="margin-bottom:14px;"><div class="ff-label">Foto vigente <span style="opacity:.6;">(opcional)</span></div>'+
+      '<div id="jp-foto-preview" style="margin-bottom:8px;">'+(_jpFotoB64?'<img src="'+_jpFotoB64+'" style="width:84px;height:84px;object-fit:cover;border-radius:10px;border:1px solid var(--border);">':'')+'</div>'+
+      '<input type="file" accept="image/*" id="jp-foto-input" onchange="_jpFotoChange(event)">'+
+    '</div>'+
+    '<button class="btn-primary" style="width:100%;" onclick="submitJaulaParte(\''+eqId+'\',\''+parteId+'\')">Guardar</button>';
+  openModal(h);
+  window._jpSetNivel=function(n){
+    document.getElementById('jp-niv').value=n;
+    ['optimo','leve','moderado','grave'].forEach(function(s){
+      var btn=document.querySelector('[data-jniv="'+s+'"]');if(!btn)return;
+      var a=s===n;
+      btn.style.background=a?CJ[s]+"26":"rgba(120,120,128,.08)";
+      btn.style.color=a?CJ[s]:"var(--text3)";
+    });
+  };
+  window._jpFotoChange=function(ev){
+    var file=ev.target.files&&ev.target.files[0];if(!file)return;
+    var rdr=new FileReader();
+    rdr.onload=function(e){
+      _resizeReportImg(e.target.result,function(resized){
+        _jpFotoB64=resized;_jpFotoChanged=true;
+        var prev=document.getElementById('jp-foto-preview');
+        if(prev)prev.innerHTML='<img src="'+resized+'" style="width:84px;height:84px;object-fit:cover;border-radius:10px;border:1px solid var(--border);">';
+      });
+    };
+    rdr.readAsDataURL(file);
+  };
+}
+function submitJaulaParte(eqId,parteId){
+  var eq=eqs.find(function(e){return e.id===eqId;});if(!eq)return;
+  var update={nivel:((document.getElementById('jp-niv')||{}).value)||'optimo',
+              notas:((document.getElementById('jp-notas')||{}).value||'').trim()};
+  function _finish(){closeModal();_saveJaulaParte(eqId,parteId,update);showToast('Parte actualizada');}
+  if(_jpFotoB64&&_jpFotoChanged){
+    var parte=JAULA_PARTES.find(function(p){return p.id===parteId;});
+    var fotoId='IMG-'+Date.now()+'-'+Math.random().toString(36).slice(2,6);
+    update.fotoId=fotoId;
+    _JAULA_IMGS[fotoId]=_jpFotoB64;
+    dbSave(fotoId,(parte?parte.label:parteId)+' — '+(eq.nombre||eqId),_jpFotoB64,function(){_finish();});
+  }else{
+    _finish();
+  }
 }
 function rAntenas(){
   var eq=eqs.find(function(e){return e.id===selAntenaEqId;});if(!eq)return'';
@@ -14938,6 +15161,42 @@ function _saveRefrig(eqId,rfUpdate,histEntry,lecturaEntry){
   });
   saveData();render();
 }
+// ─── JAULA DE FARADAY (RM) ───
+var JAULA_PARTES=[
+  {id:'suelo',   label:'Suelo de la Sala'},
+  {id:'pines',   label:'Pines de Puerta'},
+  {id:'ventana', label:'Ventana'},
+  {id:'puerta',  label:'Puerta de Jaula'},
+  {id:'luces',   label:'Luces'},
+  {id:'cielo',   label:'Cielo Raso'},
+  {id:'enchufe', label:'Enchufe'}
+];
+var CJ={optimo:'#34c759',leve:'#ffcc00',moderado:'#ff9500',grave:'#ff3b30'};
+var CJ_LABEL={optimo:'Óptimo',leve:'Leve',moderado:'Moderado',grave:'Grave'};
+var _JAULA_IMGS={}; // cache fotoId→base64, poblado por _loadJaulaPhotos()
+function _jaulaData(eq){
+  var j=eq.jaula||{};
+  var out={};
+  JAULA_PARTES.forEach(function(p){
+    var d=j[p.id]||{};
+    out[p.id]={nivel:d.nivel||'optimo',notas:d.notas||'',fotoId:d.fotoId||null,actualizadoEn:d.actualizadoEn||null};
+  });
+  return out;
+}
+function _saveJaulaParte(eqId,parteId,update){
+  eqs=eqs.map(function(e){
+    if(e.id!==eqId)return e;
+    var j=_jaulaData(e);
+    j[parteId]=Object.assign({},j[parteId],update,{actualizadoEn:new Date().toISOString()});
+    return Object.assign({},e,{jaula:j});
+  });
+  saveData();render();
+}
+function _jaulaPeorNivel(eq){
+  var jd=_jaulaData(eq),order={optimo:0,leve:1,moderado:2,grave:3},peor='optimo';
+  JAULA_PARTES.forEach(function(p){if(order[jd[p.id].nivel]>order[peor])peor=jd[p.id].nivel;});
+  return peor;
+}
 function setChillerEstado(eqId,estado){
   var labels={operativo:'✅ Operativo',service:'🔧 Service',rotura:'🔴 Rotura'};
   var entry={id:'RH-'+Date.now(),fecha:today(),tipo:'chiller',descripcion:'Chiller: '+labels[estado],valor:estado,tecnico:'',notas:'',registradoEn:new Date().toISOString()};
@@ -18134,6 +18393,15 @@ function _pdfTableNode(headers,rows,opts){
   return {table:{headerRows:1,widths:widths,body:body},layout:{hLineWidth:function(){return 0.4;},vLineWidth:function(){return 0;},hLineColor:function(){return '#e2e8f0';}},margin:[0,2,0,10]};
 }
 function generarPDFEjecutivo(){
+  showToast('⏳ Generando PDF...');
+  var imgIds=[];
+  eqs.filter(function(e){return e.cat==='RM'&&!e.baja;}).forEach(function(eq){
+    var jd=_jaulaData(eq);
+    JAULA_PARTES.forEach(function(p){if(jd[p.id].fotoId&&imgIds.indexOf(jd[p.id].fotoId)===-1)imgIds.push(jd[p.id].fotoId);});
+  });
+  _loadForReport(imgIds,function(_unusedLogo,imgsMap){_buildPDFEjecutivo(imgsMap);});
+}
+function _buildPDFEjecutivo(imgsMap){
   try{
     var todayStr=today();
     var fd=new Date();var fds=fd.getDate()+'/'+(fd.getMonth()+1)+'/'+fd.getFullYear()+' '+fd.getHours()+':'+String(fd.getMinutes()).padStart(2,'0');
@@ -18232,6 +18500,32 @@ function generarPDFEjecutivo(){
           var titulo=_pdfDecode((efd.eq.nombre||'')+' — '+(pF.nombre||'Falla'))+(pF.fechaRotura?'  ·  Detectada: '+_fmtFechaCort(pF.fechaRotura):'');
           c.push(_pdfCard(titulo,null,inner,'#fff7ed','#fed7aa'));
         });
+      });
+    }
+    // Jaulas de Faraday — Salas de RM. El svg del diagrama y la galería de fotos van
+    // a nivel de página vía columns/stack, NUNCA dentro de una celda de tabla/_pdfCard
+    // (ver el comentario de _pdfEqSection: las imágenes dentro de una celda no
+    // renderizan bien en pdfmake — mismo motivo por el que acá tampoco se usa _pdfCard).
+    var rmEqsActivos=eqs.filter(function(e){return e.cat==='RM'&&!e.baja;});
+    if(rmEqsActivos.length){
+      c.push(_pdfH('Jaulas de Faraday — Salas de RM'));
+      rmEqsActivos.forEach(function(eqR){
+        var jd=_jaulaData(eqR),peor=_jaulaPeorNivel(eqR);
+        c.push({columns:[
+          {text:_pdfDecode(eqR.nombre||eqR.id),bold:true,fontSize:10,color:'#1e293b'},
+          {text:CJ_LABEL[peor],bold:true,fontSize:9,color:CJ[peor],alignment:'right'}
+        ],margin:[0,10,0,4],unbreakable:true});
+        var svgIco={svg:jaulaSceneSVG(eqR).replace(/ onclick="[^"]*"/g,''),width:200};
+        var tabla=_pdfTableNode(['Parte','Nivel','Notas'],
+          JAULA_PARTES.map(function(p){return [p.label,CJ_LABEL[jd[p.id].nivel],_pdfDecode(jd[p.id].notas||'—')];}),
+          {widths:['auto','auto','*']});
+        c.push({columns:[{width:210,stack:[svgIco]},{width:'*',stack:[tabla]}],columnGap:10,margin:[0,0,0,4]});
+        var fotosArr=[];
+        JAULA_PARTES.forEach(function(p){
+          var fid=jd[p.id].fotoId;
+          if(fid&&_pdfIsImg(imgsMap[fid]))fotosArr.push({src:imgsMap[fid],cap:p.label});
+        });
+        if(fotosArr.length)c=c.concat(_pdfGallery(fotosArr,3,110));
       });
     }
     _pdfDeliver(_pdfStdDoc('CIMA — Vista Ejecutiva',c),'CIMA-Vista-Ejecutiva-'+todayStr+'.pdf');
@@ -18601,12 +18895,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="4.4.1";
-var APP_BUILD="04/08/26 h";
+var APP_DISPLAY_VERSION="4.5.0";
+var APP_BUILD="05/08/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'4.5.0',fecha:'05/08/2026',tipo:'minor',cambios:[
+    'Jaula de Faraday para salas de RM: diagrama esquemático interactivo con 7 partes (suelo, pines de puerta, ventana, puerta de jaula, luces, cielo raso, enchufe), 4 niveles de deterioro por parte, foto vigente por parte, y sección nueva en el Informe Gerencial (PDF) con diagrama, color, texto y foto de estado'
+  ]},
   {v:'4.4.1',fecha:'04/08/2026',tipo:'patch',cambios:[
     'Pulido: transiciones CSS explícitas en vez de transition:all en 15 sitios (mejor rendimiento, menos repintados)',
     'Reducir movimiento del sistema ya no corta el feedback de color en tabs/pills, solo el movimiento',
@@ -19626,6 +19923,7 @@ function init(){
   try{var _ccats=localStorage.getItem('mt_custom_cats');if(_ccats){var _cpcats=JSON.parse(_ccats);if(Array.isArray(_cpcats))customCats=_cpcats;}}catch(e){}
   rebuildCats();
   _loadCustomCatPhotos();
+  _loadJaulaPhotos();
   render();
   // Deep-link: #EQ-xxx opens equipment directly
   try{
@@ -19699,6 +19997,7 @@ function init(){
             if(Array.isArray(d.customCats))customCats=d.customCats;
             rebuildCats();
             _loadCustomCatPhotos();
+            _loadJaulaPhotos();
           }
         }
         window._applyDataGlobal=_applyData;
@@ -19718,6 +20017,7 @@ function init(){
           try{var scats=localStorage.getItem('mt_custom_cats');if(scats){var pcats=JSON.parse(scats);if(Array.isArray(pcats))customCats=pcats;}}catch(e){}
           rebuildCats();
           _loadCustomCatPhotos();
+          _loadJaulaPhotos();
         }
         function _finishLoad(){
           migrateEqs();
