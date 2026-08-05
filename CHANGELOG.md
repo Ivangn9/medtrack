@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v4.5.3 — 05/08/2026 (patch)
+
+- Jaula de Faraday: vuelve el diagrama esquemático con colores por parte (no la imagen como ilustración); la imagen subida ahora se usa como ícono de la tarjeta de acceso en la ficha del equipo, reemplazando el candado; tarjetas de Antenas RF y Jaula de Faraday agrandadas
+
 ## v4.5.2 — 05/08/2026 (patch)
 
 - Jaula de Faraday: reemplazado el diagrama esquemático dibujado en código por la ilustración real provista, en pantalla y en ambos PDFs (Vista Ejecutiva y Reporte Gerencial); agregadas las marcas Braun y Patrick con sus logos
