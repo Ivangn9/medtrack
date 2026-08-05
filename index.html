@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.08.05.002 -->
+<!-- v2026.08.05.003 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.08.05.002">
+<meta name="app-version" content="v2026.08.05.003">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -860,9 +860,6 @@ body.dark .btn-secondary{color:var(--accent);background:rgba(173,198,255,.14);bo
 .hidden{display:none!important;}
 .tap{cursor:pointer;}
 .tap:active{transform:scale(.968);}
-.jaula-part{cursor:pointer;transition:opacity .12s ease;}
-.jaula-part:hover{opacity:.82;}
-.jaula-part:active{opacity:.6;}
 
 /* ── SETTINGS ── */
 .settings-panel{
@@ -1540,6 +1537,7 @@ body.dark .pill[style*="#ff9500"],body.dark .pill[style*="--orange"]{box-shadow:
         </svg>
       </button>
       <img src="logo.png" alt="CIMA" id="logo-img" style="height:68px;width:auto;object-fit:contain;">
+      <img src="icons/JauladeFaraday.png" alt="" id="jaula-illus-img" style="display:none;">
       <div style="display:flex;flex-direction:column;gap:3px;">
         <div class="hdr-time" id="logo-time"></div>
         <div id="sync-indicator" onclick="retrySync();" class="clr-tap" style="display:inline-flex;align-items:center;gap:5px;font-size:.62rem;font-weight:700;padding:2px 9px;border-radius:50px;width:fit-content;cursor:pointer;user-select:none;transition:background .2s,color .2s;">
@@ -3780,7 +3778,7 @@ function _upsFilter(inp){
 function openModalEq(eq){
   var n=!eq;var f=eq||{nombre:"",cat:"RM",ubicacion:"",instalacion:"",serie:"",tecnico:"",contrato:"",marca:"",estado:"operativo",frecuencia:"semestral",ultimoMant:today(),proximoMant:calcP(today(),"semestral"),notas:"",garantia:false,garantiaHasta:"",tieneServicio:false};
   var catOpts=CATS.map(function(c){return'<option value="'+c.id+'"'+(f.cat===c.id?' selected':'')+'>'+c.label+'</option>';}).join("");
-  var MARCAS=["","GE","Siemens","Philips","Nihon Kohden","Planmeca","Carestream","AGFA","Bayer","Medrad","Eaton","Samsung","ABB","TRV","Otra"];
+  var MARCAS=["","GE","Siemens","Philips","Nihon Kohden","Planmeca","Carestream","AGFA","Bayer","Medrad","Eaton","Samsung","ABB","TRV","Braun","Patrick","Otra"];
   var marcaOpts=MARCAS.map(function(x){return'<option value="'+x+'"'+(f.marca===x?' selected':'')+'>'+( x||"— Sin marca —")+'</option>';}).join("");
   var fOpts=["semestral","anual","trimestral","mensual","ninguna"].map(function(x){return'<option'+(f.frecuencia===x?' selected':'')+'>'+x+'</option>';}).join("");
   var eOpts=["operativo","con-rotura","fuera-de-servicio"].map(function(x){var sel=f.estado===x||(f.estado==='advertencia'&&x==='con-rotura');return'<option'+(sel?' selected':'')+'>'+x+'</option>';}).join("");
@@ -5099,8 +5097,8 @@ function _pdfCard(titleText,estadoObj,inner,fill,border){
 function _pdfH(t){return {text:t,fontSize:12,bold:true,color:'#1a3a6b',margin:[0,12,0,6]};}
 // Nodos pdfmake para el estado de la jaula de Faraday de UN equipo RM — reusado tanto
 // por _buildPDFEjecutivo (Vista Ejecutiva) como por _buildPdfDoc (Reporte Gerencial).
-// El svg del diagrama y la galería de fotos van a nivel de página vía columns/stack,
-// NUNCA dentro de una celda de tabla/_pdfCard (ver el comentario de _pdfEqSection: las
+// La ilustración y la galería de fotos van a nivel de página vía columns/stack, NUNCA
+// dentro de una celda de tabla/_pdfCard (ver el comentario de _pdfEqSection: las
 // imágenes dentro de una celda no renderizan bien en pdfmake).
 function _pdfJaulaEqNodes(eqR,imgsMap){
   var jd=_jaulaData(eqR),peor=_jaulaPeorNivel(eqR);
@@ -5109,11 +5107,15 @@ function _pdfJaulaEqNodes(eqR,imgsMap){
     {text:_pdfDecode(eqR.nombre||eqR.id),bold:true,fontSize:10,color:'#1e293b'},
     {text:CJ_LABEL[peor],bold:true,fontSize:9,color:CJ[peor],alignment:'right'}
   ],margin:[0,10,0,4],unbreakable:true});
-  var svgIco={svg:jaulaSceneSVG(eqR).replace(/ onclick="[^"]*"/g,''),width:200};
   var tabla=_pdfTableNode(['Parte','Nivel','Notas'],
     JAULA_PARTES.map(function(p){return [p.label,CJ_LABEL[jd[p.id].nivel],_pdfDecode(jd[p.id].notas||'—')];}),
     {widths:['auto','auto','*']});
-  out.push({columns:[{width:210,stack:[svgIco]},{width:'*',stack:[tabla]}],columnGap:10,margin:[0,0,0,4]});
+  var illus=_jaulaIllusB64();
+  // Si la ilustración todavía no resolvió a base64 (raro: el <img> del header no
+  // terminó de cargar antes de generar el PDF), se muestra solo la tabla en vez de
+  // dejar un hueco — nunca bloquea el resto del reporte.
+  if(illus)out.push({columns:[{width:170,stack:[{image:illus,width:170}]},{width:'*',stack:[tabla]}],columnGap:10,margin:[0,0,0,4]});
+  else out.push(tabla);
   var fotosArr=[];
   JAULA_PARTES.forEach(function(p){
     var fid=jd[p.id].fotoId;
@@ -11844,59 +11846,24 @@ function rmSceneSVG(eq){
   }
   return s;
 }
-// Diagrama esquemático de la Jaula de Faraday de la sala de un equipo RM.
-// A diferencia de rmSceneSVG, es deliberadamente "PDF-safe": solo rect/circle/
-// line/text con fill/stroke sólidos, sin <filter>, sin gradientes y sin
-// <animate> — así el mismo string sirve tanto en pantalla como embebido
-// directo (sin rasterizar) en el Informe Gerencial vía {svg:...} (pdfMake).
-// Por el mismo motivo los colores van en hex literal, nunca var(--...): las
-// custom properties CSS no se resuelven dentro del PDF.
-function jaulaSceneSVG(eq){
-  var jd=_jaulaData(eq);
-  function col(id){return CJ[jd[id].nivel];}
-  var s='<svg viewBox="0 0 600 370" style="width:100%;height:auto;display:block;" xmlns="http://www.w3.org/2000/svg">';
-  s+='<rect x="30" y="20" width="540" height="330" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="6 4" rx="4"/>';
-  // Cielo Raso (banda superior) + Luces (3 focos empotrados, comparten una sola parte clickeable)
-  s+='<g class="jaula-part" onclick="openModalJaulaParte(\''+eq.id+'\',\'cielo\')">'+
-       '<rect x="32" y="22" width="536" height="53" fill="'+col('cielo')+'" fill-opacity="0.85"/>'+
-       '<text x="300" y="68" text-anchor="middle" font-size="12" font-weight="700" fill="#1e293b">Cielo Raso</text>'+
-     '</g>';
-  s+='<g class="jaula-part" onclick="openModalJaulaParte(\''+eq.id+'\',\'luces\')">'+
-       [150,300,450].map(function(cx){return '<circle cx="'+cx+'" cy="46" r="8" fill="'+col('luces')+'" stroke="#fff" stroke-width="1.5"/>';}).join('')+
-       '<text x="300" y="35" text-anchor="middle" font-size="9.5" fill="#475569">Luces</text>'+
-     '</g>';
-  // Suelo de la Sala (banda inferior)
-  s+='<g class="jaula-part" onclick="openModalJaulaParte(\''+eq.id+'\',\'suelo\')">'+
-       '<rect x="32" y="305" width="536" height="43" fill="'+col('suelo')+'" fill-opacity="0.85"/>'+
-       '<text x="300" y="331" text-anchor="middle" font-size="12" font-weight="700" fill="#1e293b">Suelo de la Sala</text>'+
-     '</g>';
-  // Pines de Puerta: marco punteado (finger-stock) alrededor del hueco — pintado
-  // ANTES que la hoja de la puerta para no tapar su click, solo su borde queda expuesto.
-  s+='<g class="jaula-part" onclick="openModalJaulaParte(\''+eq.id+'\',\'pines\')">'+
-       '<rect x="70" y="100" width="90" height="180" fill="'+col('pines')+'" fill-opacity="0.3" stroke="'+col('pines')+'" stroke-width="3" stroke-dasharray="5 4"/>'+
-     '</g>';
-  s+='<text x="115" y="92" text-anchor="middle" font-size="9.5" fill="#475569">Pines de Puerta</text>';
-  // Puerta de Jaula (hoja, sobre los pines)
-  s+='<g class="jaula-part" onclick="openModalJaulaParte(\''+eq.id+'\',\'puerta\')">'+
-       '<rect x="80" y="110" width="70" height="160" rx="2" fill="'+col('puerta')+'" stroke="#1e293b" stroke-opacity="0.2" stroke-width="1.5"/>'+
-       '<circle cx="140" cy="190" r="3" fill="#1e293b" fill-opacity="0.4"/>'+
-     '</g>';
-  s+='<text x="115" y="295" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1e293b">Puerta de Jaula</text>';
-  // Ventana (vidrio con malla blindada, hachurado decorativo)
-  s+='<g class="jaula-part" onclick="openModalJaulaParte(\''+eq.id+'\',\'ventana\')">'+
-       '<rect x="430" y="135" width="80" height="110" rx="2" fill="'+col('ventana')+'" fill-opacity="0.82" stroke="#1e293b" stroke-opacity="0.2" stroke-width="1.5"/>'+
-       [0,1,2,3].map(function(i){var xo=440+i*20;return '<line x1="'+xo+'" y1="145" x2="'+(xo+16)+'" y2="235" stroke="#fff" stroke-opacity="0.3" stroke-width="1"/>';}).join('')+
-     '</g>';
-  s+='<text x="470" y="262" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1e293b">Ventana</text>';
-  // Enchufe (con filtro de línea RF, bajo, en el piso de la sala)
-  s+='<g class="jaula-part" onclick="openModalJaulaParte(\''+eq.id+'\',\'enchufe\')">'+
-       '<rect x="285" y="272" width="30" height="22" rx="3" fill="'+col('enchufe')+'" stroke="#1e293b" stroke-opacity="0.25" stroke-width="1.2"/>'+
-       '<line x1="295" y1="276" x2="295" y2="284" stroke="#1e293b" stroke-opacity="0.4" stroke-width="1.5"/>'+
-       '<line x1="305" y1="276" x2="305" y2="284" stroke="#1e293b" stroke-opacity="0.4" stroke-width="1.5"/>'+
-     '</g>';
-  s+='<text x="300" y="264" text-anchor="middle" font-size="9.5" fill="#475569">Enchufe</text>';
-  s+='</svg>';
-  return s;
+// Ilustración real de la Jaula de Faraday (icons/JauladeFaraday.png), provista por
+// el usuario — reemplaza el diagrama esquemático dibujado en código que había antes.
+// _jaulaIllusB64() la resuelve a base64 de forma síncrona leyendo el <img> oculto que
+// ya está precargado en el header (#jaula-illus-img) — mismo truco ya usado para el
+// logo de CIMA en los reportes (evita tener que hacer XHR/fetch async para un asset
+// que ya viaja bundleado con la app, mismo origen, sin problemas de CORS).
+var _jaulaIllusB64Cache=null;
+function _jaulaIllusB64(){
+  if(_jaulaIllusB64Cache)return _jaulaIllusB64Cache;
+  try{
+    var img=document.getElementById('jaula-illus-img');
+    if(img&&img.complete&&img.naturalWidth>0){
+      var cv=document.createElement('canvas');cv.width=img.naturalWidth;cv.height=img.naturalHeight;
+      cv.getContext('2d').drawImage(img,0,0);
+      _jaulaIllusB64Cache=cv.toDataURL('image/png');
+    }
+  }catch(e){}
+  return _jaulaIllusB64Cache;
 }
 function rJaula(){
   var eq=eqs.find(function(e){return e.id===selJaulaEqId;});if(!eq)return'';
@@ -11907,7 +11874,7 @@ function rJaula(){
     '</div>'+
     '<div style="padding:16px;">'+
       '<div style="font-weight:800;font-size:1.1rem;letter-spacing:-.3px;margin-bottom:12px;">'+esc(eq.nombre)+'</div>'+
-      jaulaSceneSVG(eq)+
+      '<img src="icons/JauladeFaraday.png" alt="Jaula de Faraday" style="width:100%;max-width:340px;display:block;margin:0 auto;">'+
     '</div>'+
   '</div>';
   h+='<div class="g2cat">';
@@ -14478,7 +14445,6 @@ function generateReport(){
     if(filtEqsRM.length){
       filtEqsRM.forEach(function(eqR){
         var jdR=_jaulaData(eqR),peorR=_jaulaPeorNivel(eqR);
-        var svgSafe=jaulaSceneSVG(eqR).replace(/ onclick="[^"]*"/g,'');
         var filasHtml=JAULA_PARTES.map(function(p){
           var dd=jdR[p.id];
           return '<tr><td>'+esc(p.label)+'</td><td><span style="font-weight:700;color:'+CJ[dd.nivel]+';">'+CJ_LABEL[dd.nivel]+'</span></td><td>'+esc(dd.notas||'—')+'</td></tr>';
@@ -14500,7 +14466,7 @@ function generateReport(){
             '<span style="margin-left:auto;font-size:9pt;font-weight:700;color:'+CJ[peorR]+';background:'+CJ[peorR]+'18;padding:3px 10px;border-radius:20px;">'+CJ_LABEL[peorR]+'</span>'+
           '</div>'+
           '<div style="padding:12px;display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;">'+
-            '<div style="width:220px;flex-shrink:0;">'+svgSafe+'</div>'+
+            '<div style="width:220px;flex-shrink:0;"><img src="icons/JauladeFaraday.png" alt="Jaula de Faraday" style="width:100%;height:auto;display:block;"></div>'+
             '<div style="flex:1;min-width:240px;">'+
               '<table class="sum" style="width:100%;"><thead><tr><th>Parte</th><th>Nivel</th><th>Notas</th></tr></thead><tbody>'+filasHtml+'</tbody></table>'+
             '</div>'+
@@ -18962,12 +18928,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="4.5.1";
+var APP_DISPLAY_VERSION="4.5.2";
 var APP_BUILD="05/08/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'4.5.2',fecha:'05/08/2026',tipo:'patch',cambios:[
+    'Jaula de Faraday: reemplazado el diagrama esquemático dibujado en código por la ilustración real provista, en pantalla y en ambos PDFs (Vista Ejecutiva y Reporte Gerencial); agregadas las marcas Braun y Patrick con sus logos'
+  ]},
   {v:'4.5.1',fecha:'05/08/2026',tipo:'patch',cambios:[
     'Fix: el estado de las Jaulas de Faraday (RM) ahora aparece en el Reporte Gerencial real (generateReport/_buildPdfDoc), no solo en Vista Ejecutiva — sección nueva con diagrama, color, texto y foto por parte, en el HTML/impresión y en el PDF nativo exportable/compartible'
   ]},

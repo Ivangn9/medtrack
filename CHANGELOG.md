@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v4.5.2 — 05/08/2026 (patch)
+
+- Jaula de Faraday: reemplazado el diagrama esquemático dibujado en código por la ilustración real provista, en pantalla y en ambos PDFs (Vista Ejecutiva y Reporte Gerencial); agregadas las marcas Braun y Patrick con sus logos
+
 ## v4.5.1 — 05/08/2026 (patch)
 
 - Fix: el estado de las Jaulas de Faraday (RM) ahora aparece en el Reporte Gerencial real (generateReport/_buildPdfDoc), no solo en Vista Ejecutiva — sección nueva con diagrama, color, texto y foto por parte, en el HTML/impresión y en el PDF nativo exportable/compartible
