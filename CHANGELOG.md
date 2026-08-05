@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v4.5.4 — 05/08/2026 (patch)
+
+- Jaula de Faraday: reemplazado el último candado restante (header de la vista) por la imagen nueva; tarjetas de Antenas RF y Jaula de Faraday en la ficha del equipo agrandadas de forma más notoria
+
 ## v4.5.3 — 05/08/2026 (patch)
 
 - Jaula de Faraday: vuelve el diagrama esquemático con colores por parte (no la imagen como ilustración); la imagen subida ahora se usa como ícono de la tarjeta de acceso en la ficha del equipo, reemplazando el candado; tarjetas de Antenas RF y Jaula de Faraday agrandadas

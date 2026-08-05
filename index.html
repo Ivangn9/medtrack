@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.08.05.004 -->
+<!-- v2026.08.05.005 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.08.05.004">
+<meta name="app-version" content="v2026.08.05.005">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -11106,9 +11106,9 @@ function rDetalle(){
   if(eq.cat==='RM'){
     var _antCnt=(eq.antenaIds||[]).length;
     var _antRot=antenas.filter(function(a){return(eq.antenaIds||[]).indexOf(a.id)!==-1;}).reduce(function(s,a){return s+(a.roturas||[]).filter(function(r){return r.estado!=='reparado';}).length;},0);
-    hR+='<div class="cring-wrap" style="--cc:rgba(79,120,224,.9);margin-bottom:10px;"><div class="cring-el"></div><div class="gc tap" onclick="goAntenas(\''+eq.id+'\')" style="padding:0;overflow:hidden;cursor:pointer;" ontouchstart="this.style.transform=\'scale(.98)\'" ontouchend="this.style.transform=\'\'"><div style="padding:16px;display:flex;align-items:center;gap:14px;">'+antenaSvgIcon(32)+'<div style="flex:1;min-width:0;"><div style="font-size:.98rem;font-weight:700;color:var(--text);">Antenas RF</div><div style="font-size:.76rem;color:var(--text3);margin-top:2px;">'+_antCnt+' antena'+(_antCnt!==1?'s':'')+(_antRot===0?' · todas OK':' · '+_antRot+' rotura'+(_antRot!==1?'s':'')+' activa'+(_antRot!==1?'s':''))+'</div></div>'+(_antRot>0?'<span style="font-size:.76rem;font-weight:700;min-width:24px;height:24px;border-radius:50%;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+_antRot+'</span>':'')+'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(79,120,224,.45)" stroke-width="2.2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></div></div></div>';
+    hR+='<div class="cring-wrap" style="--cc:rgba(79,120,224,.9);margin-bottom:12px;"><div class="cring-el"></div><div class="gc tap" onclick="goAntenas(\''+eq.id+'\')" style="padding:0;overflow:hidden;cursor:pointer;" ontouchstart="this.style.transform=\'scale(.98)\'" ontouchend="this.style.transform=\'\'"><div style="padding:22px;display:flex;align-items:center;gap:18px;">'+antenaSvgIcon(48)+'<div style="flex:1;min-width:0;"><div style="font-size:1.15rem;font-weight:700;color:var(--text);">Antenas RF</div><div style="font-size:.85rem;color:var(--text3);margin-top:3px;">'+_antCnt+' antena'+(_antCnt!==1?'s':'')+(_antRot===0?' · todas OK':' · '+_antRot+' rotura'+(_antRot!==1?'s':'')+' activa'+(_antRot!==1?'s':''))+'</div></div>'+(_antRot>0?'<span style="font-size:.85rem;font-weight:700;min-width:28px;height:28px;border-radius:50%;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+_antRot+'</span>':'')+'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(79,120,224,.45)" stroke-width="2.2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></div></div></div>';
     var _jPeor=_jaulaPeorNivel(eq);
-    hR+='<div class="cring-wrap" style="--cc:rgba(255,159,10,.9);margin-bottom:10px;"><div class="cring-el"></div><div class="gc tap" onclick="goJaula(\''+eq.id+'\')" style="padding:0;overflow:hidden;cursor:pointer;" ontouchstart="this.style.transform=\'scale(.98)\'" ontouchend="this.style.transform=\'\'"><div style="padding:16px;display:flex;align-items:center;gap:14px;"><img src="icons/JauladeFaraday.png" alt="" style="width:32px;height:32px;object-fit:contain;flex-shrink:0;"><div style="flex:1;min-width:0;"><div style="font-size:.98rem;font-weight:700;color:var(--text);">Jaula de Faraday</div><div style="font-size:.76rem;color:'+CJ[_jPeor]+';margin-top:2px;font-weight:600;">'+CJ_LABEL[_jPeor]+'</div></div><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,159,10,.45)" stroke-width="2.2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></div></div></div>';
+    hR+='<div class="cring-wrap" style="--cc:rgba(255,159,10,.9);margin-bottom:12px;"><div class="cring-el"></div><div class="gc tap" onclick="goJaula(\''+eq.id+'\')" style="padding:0;overflow:hidden;cursor:pointer;" ontouchstart="this.style.transform=\'scale(.98)\'" ontouchend="this.style.transform=\'\'"><div style="padding:22px;display:flex;align-items:center;gap:18px;"><img src="icons/JauladeFaraday.png" alt="" style="width:48px;height:48px;object-fit:contain;flex-shrink:0;"><div style="flex:1;min-width:0;"><div style="font-size:1.15rem;font-weight:700;color:var(--text);">Jaula de Faraday</div><div style="font-size:.85rem;color:'+CJ[_jPeor]+';margin-top:3px;font-weight:600;">'+CJ_LABEL[_jPeor]+'</div></div><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,159,10,.45)" stroke-width="2.2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></div></div></div>';
   }
 
   return '<div class="det-2col"><div style="flex:6;min-width:0;">'+h+'</div><div style="flex:4;min-width:0;">'+hR+'</div></div>';
@@ -11904,7 +11904,7 @@ function rJaula(){
   var jd=_jaulaData(eq);
   var h='<div class="gc" style="padding:0;margin-bottom:12px;overflow:hidden;border-left:4px solid rgba(255,159,10,.6);background:linear-gradient(135deg,rgba(255,159,10,.07) 0%,rgba(255,204,0,.04) 100%);">'+
     '<div style="background:linear-gradient(90deg,rgba(255,159,10,.13),rgba(255,204,0,.07));padding:9px 16px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(255,159,10,.12);">'+
-      '<span style="font-size:1rem;">🔒</span><span style="font-size:.72rem;font-weight:700;color:rgba(255,159,10,.95);text-transform:uppercase;letter-spacing:.06em;">Jaula de Faraday</span>'+
+      '<img src="icons/JauladeFaraday.png" alt="" style="width:14px;height:14px;object-fit:contain;"><span style="font-size:.72rem;font-weight:700;color:rgba(255,159,10,.95);text-transform:uppercase;letter-spacing:.06em;">Jaula de Faraday</span>'+
     '</div>'+
     '<div style="padding:16px;">'+
       '<div style="font-weight:800;font-size:1.1rem;letter-spacing:-.3px;margin-bottom:12px;">'+esc(eq.nombre)+'</div>'+
@@ -18963,12 +18963,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="4.5.3";
+var APP_DISPLAY_VERSION="4.5.4";
 var APP_BUILD="05/08/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'4.5.4',fecha:'05/08/2026',tipo:'patch',cambios:[
+    'Jaula de Faraday: reemplazado el último candado restante (header de la vista) por la imagen nueva; tarjetas de Antenas RF y Jaula de Faraday en la ficha del equipo agrandadas de forma más notoria'
+  ]},
   {v:'4.5.3',fecha:'05/08/2026',tipo:'patch',cambios:[
     'Jaula de Faraday: vuelve el diagrama esquemático con colores por parte (no la imagen como ilustración); la imagen subida ahora se usa como ícono de la tarjeta de acceso en la ficha del equipo, reemplazando el candado; tarjetas de Antenas RF y Jaula de Faraday agrandadas'
   ]},
