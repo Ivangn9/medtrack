@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.08.05.010 -->
+<!-- v2026.08.05.011 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.08.05.010">
+<meta name="app-version" content="v2026.08.05.011">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3524,6 +3524,22 @@ function confirmarMejora(eqId,pid){
   saveData();closeModal();showToast("✅ Mejora completada y registrada en historial");render();
 }
 function delParte(eqId,pid){_confirmModal('¿Eliminar esta falla/rotura?',function(){eqs=eqs.map(function(e){return e.id!==eqId?e:Object.assign({},e,{partes:e.partes.filter(function(x){return x.id!==pid;})});});saveData();showToast('Eliminada','warn');render();});}
+// Guard de click robusto para las filas de Historial/Roturas y Fallas — en la
+// app de Mac, un click con trackpad que tiene el mínimo arrastre incidental
+// hace que el motor cancele el evento "click" nativo (confirmado con video:
+// el navegador lo interpreta como gesto de selección/drag, no como tap, y el
+// botón se queda solo con su feedback visual de presión sin ejecutar nada).
+// En vez de depender de "click", medimos nosotros la distancia real entre
+// mousedown y mouseup — si fue mínima, es un tap real y ejecutamos la acción
+// directo, sin importar cómo el motor haya clasificado el gesto por dentro.
+var _cgStart=null;
+function _cgDown(e){_cgStart={x:e.clientX,y:e.clientY};}
+function _cgUp(e,fn){
+  var s=_cgStart;_cgStart=null;
+  if(!s)return;
+  if(Math.abs(e.clientX-s.x)>8||Math.abs(e.clientY-s.y)>8)return; // arrastre real, no un click
+  fn();
+}
 function delHist(eqId,hid){
   var eq=eqs.find(function(e){return e.id===eqId;});if(!eq)return;
   var hh=(eq.historialMant||[]).find(function(h){return h.id===hid;});if(!hh)return;
@@ -10560,10 +10576,10 @@ function _rDetalleComponentes(eq){
       if(p.estado==='pendiente'&&p.fechaRotura)h+='<div style="font-size:.62rem;color:#ff9500;margin-top:1px;">Detectado: '+_fmtFechaCort(p.fechaRotura)+'</div>';
       h+='</div>';
       h+='<div style="display:flex;gap:6px;flex-shrink:0;">';
-      if(p.estado!=='ok')h+='<button onclick="registrarFallaComponente(\''+eq.id+'\',\''+p.id+'\',\'ok\')" style="min-width:34px;min-height:34px;padding:6px 10px;border-radius:14px;font-size:.68rem;font-weight:700;border:1.5px solid rgba(52,199,89,.4);background:rgba(52,199,89,.12);color:#30d158;cursor:pointer;">✅</button>';
-      if(p.estado!=='pendiente')h+='<button onclick="registrarFallaComponente(\''+eq.id+'\',\''+p.id+'\',\'pendiente\')" style="min-width:34px;min-height:34px;padding:6px 10px;border-radius:14px;font-size:.68rem;font-weight:700;border:1.5px solid rgba(255,149,0,.4);background:rgba(255,149,0,.12);color:#ff9500;cursor:pointer;">⚠️</button>';
-      if(p.estado!=='roto')h+='<button onclick="registrarFallaComponente(\''+eq.id+'\',\''+p.id+'\',\'roto\')" style="min-width:34px;min-height:34px;padding:6px 10px;border-radius:14px;font-size:.68rem;font-weight:700;border:1.5px solid rgba(255,59,48,.4);background:rgba(255,59,48,.12);color:#ff3b30;cursor:pointer;">🔴</button>';
-      h+='<button onclick="openModalParteById(\''+eq.id+'\',\''+p.id+'\')" style="min-width:34px;min-height:34px;padding:6px 10px;border-radius:14px;font-size:.7rem;font-weight:700;border:1.5px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:var(--text2);cursor:pointer;">'+icn('edit',14)+'</button>';
+      if(p.estado!=='ok')h+='<button onmousedown="_cgDown(event)" onmouseup="_cgUp(event,function(){registrarFallaComponente(\''+eq.id+'\',\''+p.id+'\',\'ok\')})" style="min-width:34px;min-height:34px;padding:6px 10px;border-radius:14px;font-size:.68rem;font-weight:700;border:1.5px solid rgba(52,199,89,.4);background:rgba(52,199,89,.12);color:#30d158;cursor:pointer;">✅</button>';
+      if(p.estado!=='pendiente')h+='<button onmousedown="_cgDown(event)" onmouseup="_cgUp(event,function(){registrarFallaComponente(\''+eq.id+'\',\''+p.id+'\',\'pendiente\')})" style="min-width:34px;min-height:34px;padding:6px 10px;border-radius:14px;font-size:.68rem;font-weight:700;border:1.5px solid rgba(255,149,0,.4);background:rgba(255,149,0,.12);color:#ff9500;cursor:pointer;">⚠️</button>';
+      if(p.estado!=='roto')h+='<button onmousedown="_cgDown(event)" onmouseup="_cgUp(event,function(){registrarFallaComponente(\''+eq.id+'\',\''+p.id+'\',\'roto\')})" style="min-width:34px;min-height:34px;padding:6px 10px;border-radius:14px;font-size:.68rem;font-weight:700;border:1.5px solid rgba(255,59,48,.4);background:rgba(255,59,48,.12);color:#ff3b30;cursor:pointer;">🔴</button>';
+      h+='<button onmousedown="_cgDown(event)" onmouseup="_cgUp(event,function(){openModalParteById(\''+eq.id+'\',\''+p.id+'\')})" style="min-width:34px;min-height:34px;padding:6px 10px;border-radius:14px;font-size:.7rem;font-weight:700;border:1.5px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:var(--text2);cursor:pointer;user-select:none;-webkit-user-select:none;">'+icn('edit',14)+'</button>';
       h+='</div></div>';
     }
   }
@@ -10820,9 +10836,9 @@ function _rDetalleFallas(eq){
         (hh.notas?'<div style="font-size:.72rem;color:var(--text2);margin-top:4px;background:rgba(0,0,0,.03);padding:4px 8px;border-radius:7px;">'+esc(hh.notas)+'</div>':'')+
         (hh.firma?'<div style="margin-top:6px;border:1px solid rgba(0,0,0,.08);border-radius:6px;overflow:hidden;"><img src="'+hh.firma+'" style="width:100%;max-height:60px;object-fit:contain;display:block;background:#fff;" alt="Firma"></div>':'')+'</div>'+
         '<div style="display:flex;flex-direction:column;gap:7px;align-items:stretch;flex-shrink:0;min-width:104px;">'+
-        (hasPdf?(hh.archivos).map(function(af){return'<button type="button" onclick="openPDFViewer(\''+af.id+'\',\''+escJs(af.nombre)+'\')" style="display:flex;align-items:center;justify-content:center;gap:6px;min-height:38px;padding:8px 12px;background:rgba(0,113,227,.13);border:1.5px solid rgba(0,113,227,.28);color:var(--accent);border-radius:12px;font-size:.72rem;font-weight:700;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.65),0 1px 3px rgba(0,113,227,.12);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">📄 '+esc(af.nombre.length>14?af.nombre.slice(0,12)+'…':af.nombre)+'</button>';}).join(''):'<button type="button" onclick="openHistDetail(\''+eq.id+'\',\''+hh.id+'\')" style="display:flex;align-items:center;justify-content:center;gap:6px;min-height:38px;padding:8px 12px;background:rgba(0,113,227,.13);border:1.5px solid rgba(0,113,227,.28);color:var(--accent);border-radius:12px;font-size:.76rem;font-weight:700;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.65),0 1px 3px rgba(0,113,227,.12);">'+icn('search',14)+' Ver</button>')+
-        '<button type="button" onclick="openEditHist(\''+eq.id+'\',\''+hh.id+'\')" style="display:flex;align-items:center;justify-content:center;gap:6px;min-height:38px;padding:8px 12px;background:rgba(52,199,89,.13);border:1.5px solid rgba(52,199,89,.28);color:var(--green);border-radius:12px;font-size:.76rem;font-weight:700;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.65),0 1px 3px rgba(52,199,89,.12);">'+icn('edit',14)+' Editar</button>'+
-        '<button type="button" onclick="delHist(\''+eq.id+'\',\''+hh.id+'\')" style="display:flex;align-items:center;justify-content:center;gap:6px;min-height:38px;padding:8px 12px;background:rgba(255,59,48,.11);border:1.5px solid rgba(255,59,48,.25);color:var(--red);border-radius:12px;font-size:.76rem;font-weight:700;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 1px 3px rgba(255,59,48,.10);">'+icn('trash',14)+' Eliminar</button>'+
+        (hasPdf?(hh.archivos).map(function(af){return'<button type="button" onmousedown="_cgDown(event)" onmouseup="_cgUp(event,function(){openPDFViewer(\''+af.id+'\',\''+escJs(af.nombre)+'\')})" style="display:flex;align-items:center;justify-content:center;gap:6px;min-height:38px;padding:8px 12px;background:rgba(0,113,227,.13);border:1.5px solid rgba(0,113,227,.28);color:var(--accent);border-radius:12px;font-size:.72rem;font-weight:700;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.65),0 1px 3px rgba(0,113,227,.12);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;user-select:none;-webkit-user-select:none;">📄 '+esc(af.nombre.length>14?af.nombre.slice(0,12)+'…':af.nombre)+'</button>';}).join(''):'<button type="button" onmousedown="_cgDown(event)" onmouseup="_cgUp(event,function(){openHistDetail(\''+eq.id+'\',\''+hh.id+'\')})" style="display:flex;align-items:center;justify-content:center;gap:6px;min-height:38px;padding:8px 12px;background:rgba(0,113,227,.13);border:1.5px solid rgba(0,113,227,.28);color:var(--accent);border-radius:12px;font-size:.76rem;font-weight:700;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.65),0 1px 3px rgba(0,113,227,.12);user-select:none;-webkit-user-select:none;">'+icn('search',14)+' Ver</button>')+
+        '<button type="button" onmousedown="_cgDown(event)" onmouseup="_cgUp(event,function(){openEditHist(\''+eq.id+'\',\''+hh.id+'\')})" style="display:flex;align-items:center;justify-content:center;gap:6px;min-height:38px;padding:8px 12px;background:rgba(52,199,89,.13);border:1.5px solid rgba(52,199,89,.28);color:var(--green);border-radius:12px;font-size:.76rem;font-weight:700;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.65),0 1px 3px rgba(52,199,89,.12);user-select:none;-webkit-user-select:none;">'+icn('edit',14)+' Editar</button>'+
+        '<button type="button" onmousedown="_cgDown(event)" onmouseup="_cgUp(event,function(){delHist(\''+eq.id+'\',\''+hh.id+'\')})" style="display:flex;align-items:center;justify-content:center;gap:6px;min-height:38px;padding:8px 12px;background:rgba(255,59,48,.11);border:1.5px solid rgba(255,59,48,.25);color:var(--red);border-radius:12px;font-size:.76rem;font-weight:700;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 1px 3px rgba(255,59,48,.10);user-select:none;-webkit-user-select:none;">'+icn('trash',14)+' Eliminar</button>'+
         '</div></div></div></div>';
     });
     h+='</div>';
@@ -19020,12 +19036,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="4.7.3";
+var APP_DISPLAY_VERSION="4.7.4";
 var APP_BUILD="05/08/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'4.7.4',fecha:'05/08/2026',tipo:'patch',cambios:[
+    'Fix robusto: los botones de Historial y Roturas y Fallas ahora detectan el click ellos mismos (distancia real entre mousedown y mouseup) en vez de depender del evento click nativo, que el motor de la app de Mac puede cancelar con el mínimo arrastre del trackpad'
+  ]},
   {v:'4.7.3',fecha:'05/08/2026',tipo:'patch',cambios:[
     'Fix real (confirmado con video): los botones Ver/Editar/Eliminar del historial y de roturas y fallas no respondían porque el click con trackpad seleccionaba el texto de la fila en vez de presionar el botón — agregado user-select:none a esas filas'
   ]},

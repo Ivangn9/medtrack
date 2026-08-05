@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v4.7.4 — 05/08/2026 (patch)
+
+- Fix robusto: los botones de Historial y Roturas y Fallas ahora detectan el click ellos mismos (distancia real entre mousedown y mouseup) en vez de depender del evento click nativo, que el motor de la app de Mac puede cancelar con el mínimo arrastre del trackpad
+
 ## v4.7.3 — 05/08/2026 (patch)
 
 - Fix real (confirmado con video): los botones Ver/Editar/Eliminar del historial y de roturas y fallas no respondían porque el click con trackpad seleccionaba el texto de la fila en vez de presionar el botón — agregado user-select:none a esas filas
