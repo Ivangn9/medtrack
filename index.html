@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.08.05.006 -->
+<!-- v2026.08.05.007 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.08.05.006">
+<meta name="app-version" content="v2026.08.05.007">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3780,7 +3780,7 @@ function _upsFilter(inp){
 function openModalEq(eq){
   var n=!eq;var f=eq||{nombre:"",cat:"RM",ubicacion:"",instalacion:"",serie:"",tecnico:"",contrato:"",marca:"",estado:"operativo",frecuencia:"semestral",ultimoMant:today(),proximoMant:calcP(today(),"semestral"),notas:"",garantia:false,garantiaHasta:"",tieneServicio:false};
   var catOpts=CATS.map(function(c){return'<option value="'+c.id+'"'+(f.cat===c.id?' selected':'')+'>'+c.label+'</option>';}).join("");
-  var MARCAS=["","GE","Siemens","Philips","Nihon Kohden","Planmeca","Carestream","AGFA","Bayer","Medrad","Eaton","Samsung","ABB","TRV","Braun","Patrick","Otra"];
+  var MARCAS=["","GE","Siemens","Philips","Nihon Kohden","Planmeca","Carestream","AGFA","Bayer","Medrad","Eaton","Samsung","ABB","TRV","Braun","Patrick","Inelro","Otra"];
   var marcaOpts=MARCAS.map(function(x){return'<option value="'+x+'"'+(f.marca===x?' selected':'')+'>'+( x||"— Sin marca —")+'</option>';}).join("");
   var fOpts=["semestral","anual","bianual","trimestral","mensual","ninguna"].map(function(x){return'<option'+(f.frecuencia===x?' selected':'')+'>'+x+'</option>';}).join("");
   var eOpts=["operativo","con-rotura","fuera-de-servicio"].map(function(x){var sel=f.estado===x||(f.estado==='advertencia'&&x==='con-rotura');return'<option'+(sel?' selected':'')+'>'+x+'</option>';}).join("");
@@ -6159,7 +6159,7 @@ function openQRModal(eqId){
     '</div>'+
     '<div style="display:flex;gap:8px;">'+
       '<button onclick="downloadQRCard(\''+eqId+'\')" style="flex:1;padding:12px;border-radius:var(--r-md);background:rgba(0,113,227,.1);border:1.5px solid rgba(0,113,227,.2);color:var(--accent);font-weight:700;font-size:.8rem;cursor:pointer;">⬇️ Descargar PNG</button>'+
-      '<button onclick="printQRCard()" style="padding:12px 16px;border-radius:var(--r-md);background:rgba(52,199,89,.1);border:1.5px solid rgba(52,199,89,.2);color:var(--green);font-weight:700;font-size:.8rem;cursor:pointer;">'+icn('printer',13)+' Imprimir</button>'+
+      '<button onclick="printQRCard(\''+eqId+'\')" style="padding:12px 16px;border-radius:var(--r-md);background:rgba(52,199,89,.1);border:1.5px solid rgba(52,199,89,.2);color:var(--green);font-weight:700;font-size:.8rem;cursor:pointer;">'+icn('printer',13)+' Imprimir</button>'+
     '</div>'
   );
   setTimeout(function(){_loadQRLib(url);},50);
@@ -6193,11 +6193,75 @@ function downloadQRCard(eqId){
     var a=document.createElement('a');a.download='qr-'+eqId+'.png';a.href=canvas.toDataURL('image/png');a.click();
   }
 }
-function printQRCard(){
-  var card=document.getElementById('qr-card');if(!card)return;
-  var w=window.open('','_blank','width=400,height=500');
-  w.document.write('<html><head><title>QR Equipo</title><style>body{margin:0;display:flex;justify-content:center;align-items:center;min-height:100vh;background:#fff;font-family:-apple-system,sans-serif;}@media print{body{margin:0;}}</style></head><body>'+card.outerHTML+'<script>window.onload=function(){window.print();window.close();}<\/script></body></html>');
-  w.document.close();
+// Antes esto abría una ventana emergente (window.open) con document.write y
+// window.print() — bloqueado sin aviso claro en el WebView de la app de Mac
+// (y en general frágil en cualquier WebView embebido, iOS PWA incluido). Ahora
+// genera un PDF real con pdfMake y lo comparte/descarga con el mismo mecanismo
+// ya probado en printReport() — sin depender de ventanas emergentes ni de
+// window.print() en absoluto.
+function printQRCard(eqId){
+  var eq=eqs.find(function(e){return e.id===eqId;});if(!eq)return;
+  var canvas=document.querySelector('#qr-box canvas');
+  if(!canvas){showToast('Esperá que cargue el QR','warn');return;}
+  var ci=catById(eq.cat);
+  var dd=_buildQRPdfDoc([{nombre:eq.nombre,catLabel:ci.label||eq.cat,ubicacion:eq.ubicacion,serie:eq.serie,qrDataUrl:canvas.toDataURL('image/png')}]);
+  _pdfDeliverShare(dd,'QR-'+eq.id);
+}
+// Genera el pdfMake doc de una o varias tarjetas QR, 3 por fila (mismo criterio
+// visual que la grilla de impresión vieja). Cada tarjeta va como columns/stack a
+// nivel de página — nunca dentro de una tabla, mismo motivo documentado en
+// _pdfJaulaEqNodes: las imágenes dentro de una celda no renderizan bien en pdfmake.
+function _buildQRPdfDoc(items){
+  var logo=_reportLogoB64();
+  var c=[{text:'Códigos QR — Equipos CIMA',fontSize:14,bold:true,color:'#1a3a6b',margin:[0,0,0,10]}];
+  for(var i=0;i<items.length;i+=3){
+    var row=items.slice(i,i+3).map(function(it){
+      var stack=[];
+      if(it.qrDataUrl)stack.push({image:it.qrDataUrl,width:90,alignment:'center'});
+      else stack.push({text:'QR no disponible',fontSize:7,color:'#dc2626',alignment:'center',margin:[0,30,0,30]});
+      stack.push({text:_pdfDecode(it.nombre||''),bold:true,fontSize:8,color:'#1a3a6b',alignment:'center',margin:[0,4,0,1]});
+      stack.push({text:_pdfDecode(it.catLabel||'')+(it.ubicacion?' · '+_pdfDecode(it.ubicacion):''),fontSize:6.5,color:'#64748b',alignment:'center'});
+      if(it.serie)stack.push({text:'SID: '+_pdfDecode(it.serie),fontSize:5.5,color:'#94a3b8',alignment:'center'});
+      return {width:'33%',stack:stack,margin:[4,4,4,14]};
+    });
+    while(row.length<3)row.push({width:'33%',text:''});
+    c.push({columns:row,unbreakable:true});
+  }
+  return {
+    pageSize:'A4',
+    pageMargins:[36,logo?92:50,36,40],
+    defaultStyle:{fontSize:9,color:'#1e293b'},
+    info:{title:'QR Equipos CIMA'},
+    header:_pdfHeader({logo:logo}),
+    footer:function(cp,pc){return {columns:[{text:'CIMA Investigaciones Avanzadas · CIMA Hub',fontSize:7,color:'#94a3b8'},{text:'Página '+cp+' de '+pc,alignment:'right',fontSize:7,color:'#94a3b8'}],margin:[36,14,36,0]};},
+    content:c
+  };
+}
+// Genera el blob del PDF y lo entrega en un solo toque — comparte (hoja nativa,
+// que en macOS/iOS incluye Imprimir) o descarga si no hay Web Share API. Mismo
+// patrón exacto que la segunda pulsación de printReport(), sin necesitar dos
+// toques acá porque no hace falta previsualizar antes de compartir.
+function _pdfDeliverShare(dd,filename){
+  if(!window.pdfMake){showToast('Cargando generador, intentá en unos segundos','');return;}
+  window.pdfMake.createPdf(dd).getBlob(function(blob){
+    var pf=new File([blob],filename+'.pdf',{type:'application/pdf'});
+    if(navigator.canShare&&navigator.canShare({files:[pf]})){
+      navigator.share({title:filename,files:[pf]}).catch(function(e){if(e.name!=='AbortError')showToast('Error al compartir','err');});
+    }else{
+      var pu=URL.createObjectURL(pf);
+      var pa=document.createElement('a');pa.href=pu;pa.download=filename+'.pdf';
+      document.body.appendChild(pa);pa.click();
+      setTimeout(function(){pa.parentNode.removeChild(pa);URL.revokeObjectURL(pu);},1000);
+    }
+  });
+}
+function _ensureQRLib(cb){
+  if(typeof QRCode!=='undefined'){cb();return;}
+  var s=document.createElement('script');
+  s.src='https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+  s.onload=cb;
+  s.onerror=function(){showToast('Sin conexión para generar los QR','err');};
+  document.head.appendChild(s);
 }
 function openPrintQRModal(){
   closeSbAjustesMenu();
@@ -6230,6 +6294,10 @@ function openPrintQRModal(){
     '</div>'
   );
 }
+// Igual que printQRCard(): antes armaba un documento HTML con su propio <script>
+// generador de QR y lo abría en una ventana emergente — bloqueado sin aviso claro
+// en el WebView de la app de Mac. Ahora los QR se generan en la página principal
+// (offscreen, con la misma librería QRCode) y se entregan como un solo PDF real.
 function _doPrintQR(){
   var chks=document.querySelectorAll('.qr-print-chk:checked');
   var ids=[];
@@ -6237,65 +6305,26 @@ function _doPrintQR(){
   if(!ids.length){showToast('Seleccioná al menos un equipo','warn');return;}
   closeModal();
   var selectedEqs=ids.map(function(id){return eqs.find(function(e){return e.id===id;});}).filter(Boolean);
-  var baseUrl='https://ivangn9.github.io/medtrack/eq-public.html?id=';
-  var logoUrl=window.location.origin+window.location.pathname.replace('index.html','')+'logo.png';
-  // Build cards HTML
-  var cardsHtml='';
-  selectedEqs.forEach(function(eq,idx){
-    var ci=catById(eq.cat);
-    var url=baseUrl+eq.id;
-    cardsHtml+='<div class="qr-card" id="qrc-'+idx+'">'+
-      '<div class="qr-logo-row"><img src="'+logoUrl+'" alt="CIMA" class="qr-logo" onerror="this.style.display=\'none\'"></div>'+
-      '<div class="qr-box" id="qrbox-'+idx+'" data-url="'+url+'"></div>'+
-      '<div class="qr-name">'+eq.nombre.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div>'+
-      '<div class="qr-sub">'+ci.label+(eq.ubicacion?' · '+eq.ubicacion:'')+'</div>'+
-      (eq.serie?'<div class="qr-serie">SID: '+eq.serie+'</div>':'')+
-      '<div class="qr-footer">Escanear para estado en tiempo real</div>'+
-    '</div>';
+  showToast('⏳ Generando QR...');
+  _ensureQRLib(function(){
+    var baseUrl='https://ivangn9.github.io/medtrack/eq-public.html?id=';
+    var items=selectedEqs.map(function(eq){
+      var ci=catById(eq.cat);
+      var tmp=document.createElement('div');
+      tmp.style.position='fixed';tmp.style.left='-9999px';tmp.style.top='0';
+      document.body.appendChild(tmp);
+      var qrDataUrl='';
+      try{
+        new QRCode(tmp,{text:baseUrl+eq.id,width:200,height:200,colorDark:'#1a3a6b',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
+        var c=tmp.querySelector('canvas');
+        if(c)qrDataUrl=c.toDataURL('image/png');
+      }catch(e){}
+      document.body.removeChild(tmp);
+      return {nombre:eq.nombre,catLabel:ci.label||eq.cat,ubicacion:eq.ubicacion,serie:eq.serie,qrDataUrl:qrDataUrl};
+    });
+    var dd=_buildQRPdfDoc(items);
+    _pdfDeliverShare(dd,'QR-Equipos-CIMA');
   });
-  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>QR Equipos CIMA</title>'+
-    '<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/script>'+
-    '<style>'+
-      '*{box-sizing:border-box;margin:0;padding:0;}'+
-      'body{background:#fff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;}'+
-      '@media screen{body{padding:20px;background:#f0f2f5;}}'+
-      '.qr-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10mm;padding:10mm;}'+
-      '.qr-card{background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:10px 10px 8px;display:flex;flex-direction:column;align-items:center;break-inside:avoid;box-shadow:0 2px 8px rgba(0,0,0,.07);}'+
-      '.qr-logo-row{width:100%;display:flex;justify-content:center;margin-bottom:6px;}'+
-      '.qr-logo{height:26px;width:auto;object-fit:contain;}'+
-      '.qr-box{margin:6px 0;}'+
-      '.qr-box canvas,.qr-box img{display:block;}'+
-      '.qr-name{font-size:8pt;font-weight:800;color:#1a3a6b;text-align:center;margin-top:4px;line-height:1.3;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}'+
-      '.qr-sub{font-size:6.5pt;color:#64748b;text-align:center;margin-top:2px;font-weight:600;}'+
-      '.qr-serie{font-size:5.5pt;color:#94a3b8;text-align:center;margin-top:2px;font-family:monospace;}'+
-      '.qr-footer{font-size:5.5pt;color:#94a3b8;text-align:center;margin-top:4px;border-top:1px dashed #cbd5e1;padding-top:5px;width:100%;}'+
-      '@media print{'+
-        '@page{size:A4 portrait;margin:8mm;}'+
-        'body{background:#fff;padding:0;}'+
-        '.qr-grid{gap:6mm;padding:0;}'+
-        '.qr-card{box-shadow:none;border:1.5px solid #d1d9e0;}'+
-      '}'+
-    '</style>'+
-    '</head><body>'+
-    '<div class="qr-grid">'+cardsHtml+'</div>'+
-    '<script>'+
-    'window.onload=function(){'+
-      'var boxes=document.querySelectorAll(".qr-box");'+
-      'var pending=boxes.length;'+
-      'function tryPrint(){pending--;if(pending<=0){setTimeout(function(){window.print();},400);}}'+
-      'for(var i=0;i<boxes.length;i++){'+
-        '(function(box){'+
-          'try{new QRCode(box,{text:box.getAttribute("data-url"),width:130,height:130,colorDark:"#1a3a6b",colorLight:"#ffffff",correctLevel:QRCode.CorrectLevel.M});tryPrint();}'+
-          'catch(e){box.textContent="Error QR";tryPrint();}'+
-        '})(boxes[i]);'+
-      '}'+
-    '};'+
-    '<\/script>'+
-    '</body></html>';
-  var w=window.open('','_blank','width=900,height=700');
-  if(!w){showToast('Permitir ventanas emergentes para imprimir','warn');return;}
-  w.document.write(html);
-  w.document.close();
 }
 function openModalMant(eqId){
   var eq=eqs.find(function(e){return e.id===eqId;});var ci=catById(eq.cat);var td=today();var px=calcP(td,eq.frecuencia);
@@ -18963,12 +18992,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="4.6.0";
+var APP_DISPLAY_VERSION="4.7.0";
 var APP_BUILD="05/08/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'4.7.0',fecha:'05/08/2026',tipo:'minor',cambios:[
+    'Impresión de QR (individual y masiva) ahora genera un PDF real en vez de depender de ventanas emergentes, que la app de Mac bloqueaba sin aviso claro; logo de Braun actualizado y agregada la marca Inelro con su logo'
+  ]},
   {v:'4.6.0',fecha:'05/08/2026',tipo:'minor',cambios:[
     'Frecuencia de mantenimiento bianual (cada 2 años) agregada como opción; nueva sede Sarmiento agregada junto a Pedernera, CRS y GN en todos los filtros, selectores y reportes'
   ]},

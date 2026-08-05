@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v4.7.0 — 05/08/2026 (minor)
+
+- Impresión de QR (individual y masiva) ahora genera un PDF real en vez de depender de ventanas emergentes, que la app de Mac bloqueaba sin aviso claro; logo de Braun actualizado y agregada la marca Inelro con su logo
+
 ## v4.6.0 — 05/08/2026 (minor)
 
 - Frecuencia de mantenimiento bianual (cada 2 años) agregada como opción; nueva sede Sarmiento agregada junto a Pedernera, CRS y GN en todos los filtros, selectores y reportes
