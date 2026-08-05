@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.08.05.009 -->
+<!-- v2026.08.05.010 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.08.05.009">
+<meta name="app-version" content="v2026.08.05.010">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -10552,7 +10552,7 @@ function _rDetalleComponentes(eq){
       var p=todasPartes[i];
       var stClr=p.estado==='roto'?'#ff3b30':p.estado==='pendiente'?'#ff9500':p.estado==='mejora'?'#bf5af2':'#30d158';
       var stIcon=p.estado==='roto'?'🔴':p.estado==='pendiente'?'⚠️':p.estado==='mejora'?'🎨':'✅';
-      h+='<div style="display:flex;align-items:center;gap:10px;padding:8px 6px;border-bottom:1px solid rgba(255,255,255,.04);">';
+      h+='<div style="display:flex;align-items:center;gap:10px;padding:8px 6px;border-bottom:1px solid rgba(255,255,255,.04);user-select:none;-webkit-user-select:none;">';
       h+='<div style="width:8px;height:8px;border-radius:50%;background:'+stClr+';flex-shrink:0;box-shadow:0 0 0 2px '+stClr+'22;"></div>';
       h+='<div style="flex:1;min-width:0;">';
       h+='<div style="font-size:.8rem;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(p.nombre)+'</div>';
@@ -10805,7 +10805,7 @@ function _rDetalleFallas(eq){
       var hasPdf=(hh.archivos&&hh.archivos.length>0);
       h+='<div style="position:relative;margin-bottom:10px;">';
       h+='<div style="position:absolute;left:-16px;top:10px;width:10px;height:10px;border-radius:50%;background:'+c+';box-shadow:0 0 0 3px '+dotBg+';"></div>';
-      h+='<div style="background:rgba(255,255,255,.95);border:1px solid rgba(120,120,128,.12);border-radius:14px;padding:11px 13px;box-shadow:0 1px 4px rgba(0,0,0,.04);">'+
+      h+='<div style="background:rgba(255,255,255,.95);border:1px solid rgba(120,120,128,.12);border-radius:14px;padding:11px 13px;box-shadow:0 1px 4px rgba(0,0,0,.04);user-select:none;-webkit-user-select:none;">'+
         '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;"><div style="flex:1;">'+
         '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">'+
         '<span style="display:inline-block;padding:2px 8px;border-radius:20px;font-size:.62rem;font-weight:700;background:'+dotBg+';color:'+c+';">'+label+'</span>'+
@@ -19020,12 +19020,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="4.7.2";
+var APP_DISPLAY_VERSION="4.7.3";
 var APP_BUILD="05/08/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'4.7.3',fecha:'05/08/2026',tipo:'patch',cambios:[
+    'Fix real (confirmado con video): los botones Ver/Editar/Eliminar del historial y de roturas y fallas no respondían porque el click con trackpad seleccionaba el texto de la fila en vez de presionar el botón — agregado user-select:none a esas filas'
+  ]},
   {v:'4.7.2',fecha:'05/08/2026',tipo:'patch',cambios:[
     'Posible fix: botones Ver/Editar/Eliminar del historial de roturas y fallas no respondían al click en la app de Mac (funcionaban bien en iPhone) — sacado el backdrop-filter, la única propiedad que los diferenciaba de la mayoría de los botones que sí funcionan'
   ]},

@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v4.7.3 — 05/08/2026 (patch)
+
+- Fix real (confirmado con video): los botones Ver/Editar/Eliminar del historial y de roturas y fallas no respondían porque el click con trackpad seleccionaba el texto de la fila en vez de presionar el botón — agregado user-select:none a esas filas
+
 ## v4.7.2 — 05/08/2026 (patch)
 
 - Posible fix: botones Ver/Editar/Eliminar del historial de roturas y fallas no respondían al click en la app de Mac (funcionaban bien en iPhone) — sacado el backdrop-filter, la única propiedad que los diferenciaba de la mayoría de los botones que sí funcionan
