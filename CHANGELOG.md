@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v4.7.1 — 05/08/2026 (patch)
+
+- Fix: el generador de PDF (pdfMake) ahora se carga automáticamente cuando hace falta en vez de solo avisar 'Cargando generador' y quedar trabado — afectaba sobre todo a la impresión de QR, que nunca disparaba la precarga
+
 ## v4.7.0 — 05/08/2026 (minor)
 
 - Impresión de QR (individual y masiva) ahora genera un PDF real en vez de depender de ventanas emergentes, que la app de Mac bloqueaba sin aviso claro; logo de Braun actualizado y agregada la marca Inelro con su logo
