@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.08.05.001 -->
+<!-- v2026.08.05.002 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.08.05.001">
+<meta name="app-version" content="v2026.08.05.002">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -5097,6 +5097,31 @@ function _pdfCard(titleText,estadoObj,inner,fill,border){
   return {table:{widths:['*'],body:[[{stack:[head].concat(inner),margin:[9,7,9,7]}]]},layout:_pdfBox(fill,border),margin:[0,3,0,6],unbreakable:true};
 }
 function _pdfH(t){return {text:t,fontSize:12,bold:true,color:'#1a3a6b',margin:[0,12,0,6]};}
+// Nodos pdfmake para el estado de la jaula de Faraday de UN equipo RM — reusado tanto
+// por _buildPDFEjecutivo (Vista Ejecutiva) como por _buildPdfDoc (Reporte Gerencial).
+// El svg del diagrama y la galería de fotos van a nivel de página vía columns/stack,
+// NUNCA dentro de una celda de tabla/_pdfCard (ver el comentario de _pdfEqSection: las
+// imágenes dentro de una celda no renderizan bien en pdfmake).
+function _pdfJaulaEqNodes(eqR,imgsMap){
+  var jd=_jaulaData(eqR),peor=_jaulaPeorNivel(eqR);
+  var out=[];
+  out.push({columns:[
+    {text:_pdfDecode(eqR.nombre||eqR.id),bold:true,fontSize:10,color:'#1e293b'},
+    {text:CJ_LABEL[peor],bold:true,fontSize:9,color:CJ[peor],alignment:'right'}
+  ],margin:[0,10,0,4],unbreakable:true});
+  var svgIco={svg:jaulaSceneSVG(eqR).replace(/ onclick="[^"]*"/g,''),width:200};
+  var tabla=_pdfTableNode(['Parte','Nivel','Notas'],
+    JAULA_PARTES.map(function(p){return [p.label,CJ_LABEL[jd[p.id].nivel],_pdfDecode(jd[p.id].notas||'—')];}),
+    {widths:['auto','auto','*']});
+  out.push({columns:[{width:210,stack:[svgIco]},{width:'*',stack:[tabla]}],columnGap:10,margin:[0,0,0,4]});
+  var fotosArr=[];
+  JAULA_PARTES.forEach(function(p){
+    var fid=jd[p.id].fotoId;
+    if(fid&&_pdfIsImg(imgsMap[fid]))fotosArr.push({src:imgsMap[fid],cap:p.label});
+  });
+  if(fotosArr.length)out=out.concat(_pdfGallery(fotosArr,3,110));
+  return out;
+}
 function _pdfEqSection(d,imgsMap){
   var out=[],eq=d.eq,ci=d.ci;
   // Encabezado del equipo con el ícono de su categoría. El ícono va en un columns a
@@ -5314,9 +5339,17 @@ function _buildPdfDoc(){
   content=content.concat(_pdfStatsSection());
   content.push(_pdfH('3. Detalle por equipo'));
   for(i=0;i<R.eqData.length;i++){content=content.concat(_pdfEqSection(R.eqData[i],R.imgsMap||{}));}
-  content.push(_pdfH('4. Cuadro resumen'));
+  var _secN=3;
+  if(R.jaulaEqs&&R.jaulaEqs.length){
+    _secN++;
+    content.push(_pdfH(_secN+'. Estado de Jaulas de Faraday (Salas de RM)'));
+    for(i=0;i<R.jaulaEqs.length;i++){content=content.concat(_pdfJaulaEqNodes(R.jaulaEqs[i],R.imgsMap||{}));}
+  }
+  _secN++;
+  content.push(_pdfH(_secN+'. Cuadro resumen'));
   content.push(_pdfSumTable(R.sumData||[]));
-  content.push(_pdfH('5. Conclusiones y recomendaciones'));
+  _secN++;
+  content.push(_pdfH(_secN+'. Conclusiones y recomendaciones'));
   content.push({text:_pdfPlain(R.conclusionText),margin:[0,0,0,10],lineHeight:1.2,alignment:'justify'});
   content.push({text:'_______________________________',margin:[0,28,0,0],color:'#64748b'});
   content.push({text:'Lic. García Núñez Iván',bold:true,fontSize:9,margin:[0,4,0,0]});
@@ -14093,6 +14126,7 @@ function generateReport(){
   setTimeout(function(){window._reportBusy=false;},90000); // red de seguridad si algo falla
   showToast('⏳ Generando reporte...');
   var filtEqs=eqs.filter(function(e){return selIds.indexOf(e.id)!==-1;});
+  var filtEqsRM=filtEqs.filter(function(e){return e.cat==='RM';});
   var tm=0,tr=0,tmej=0,tact=0,hasData=false;
   var inclMant=tipo==='todo'||tipo==='mant';
   var inclRep=tipo==='todo'||tipo==='rep';
@@ -14192,6 +14226,10 @@ function generateReport(){
     d.tranRoturas.forEach(function(tr){(tr.rot.fotos||[]).forEach(function(fo){var fId=fo&&fo.id?fo.id:fo;if(fId&&typeof fId==='string'&&allImgIds.indexOf(fId)===-1)allImgIds.push(fId);});});
     (d.tranHistorial||[]).forEach(function(th){(th.hist.fotos||[]).forEach(function(fo){var fId=fo&&fo.id?fo.id:fo;if(fId&&typeof fId==='string'&&allImgIds.indexOf(fId)===-1)allImgIds.push(fId);});});
     d.fallasDir.forEach(function(f){(f.fotos||[]).forEach(function(fo){var fId=fo&&fo.id?fo.id:fo;if(fId&&typeof fId==='string'&&allImgIds.indexOf(fId)===-1)allImgIds.push(fId);});});
+  });
+  filtEqsRM.forEach(function(eqR){
+    var jdR=_jaulaData(eqR);
+    JAULA_PARTES.forEach(function(p){if(jdR[p.id].fotoId&&allImgIds.indexOf(jdR[p.id].fotoId)===-1)allImgIds.push(jdR[p.id].fotoId);});
   });
   // Get logo synchronously from already-loaded DOM image
   var _logoSync=null;
@@ -14433,6 +14471,44 @@ function generateReport(){
       }
       eqSections+='<div class="narrative">'+narrativeHtml+'</div>'+imgsHtml+antenaHtml+tranRoturasHtml+fallasDirHtml+'</div>';
     });
+    // Estado de Jaulas de Faraday — una por cada equipo RM seleccionado (siempre
+    // existe, no depende de que haya actividad en el período, a diferencia de
+    // eqSections que solo incluye equipos con eventos registrados).
+    var jaulaSectionHtml='';
+    if(filtEqsRM.length){
+      filtEqsRM.forEach(function(eqR){
+        var jdR=_jaulaData(eqR),peorR=_jaulaPeorNivel(eqR);
+        var svgSafe=jaulaSceneSVG(eqR).replace(/ onclick="[^"]*"/g,'');
+        var filasHtml=JAULA_PARTES.map(function(p){
+          var dd=jdR[p.id];
+          return '<tr><td>'+esc(p.label)+'</td><td><span style="font-weight:700;color:'+CJ[dd.nivel]+';">'+CJ_LABEL[dd.nivel]+'</span></td><td>'+esc(dd.notas||'—')+'</td></tr>';
+        }).join('');
+        var conFoto=JAULA_PARTES.filter(function(p){return jdR[p.id].fotoId;});
+        var fotosHtml='';
+        if(conFoto.length){
+          fotosHtml='<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">'+conFoto.map(function(p){
+            var v=imgsMap[jdR[p.id].fotoId];
+            if(v&&_pdfIsImg(v)){
+              return '<figure style="margin:0;text-align:center;"><img src="'+v+'" style="width:150px;height:110px;object-fit:cover;border-radius:6px;border:1px solid #e2e8f0;display:block;"><figcaption style="font-size:8pt;color:#64748b;margin-top:3px;">'+esc(p.label)+'</figcaption></figure>';
+            }
+            var why=!v?'no se pudo descargar':'formato no compatible con el PDF';
+            return '<figure style="margin:0;text-align:center;"><div style="width:150px;height:110px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:7.5pt;color:#92400e;background:#fffbeb;border:1.5px dashed #fbbf24;border-radius:6px;padding:5px;">⚠️ Foto no incluida<br>('+why+')</div><figcaption style="font-size:8pt;color:#64748b;margin-top:3px;">'+esc(p.label)+'</figcaption></figure>';
+          }).join('')+'</div>';
+        }
+        jaulaSectionHtml+='<div class="eq-block" style="page-break-inside:avoid;">'+
+          '<div class="eq-title" style="display:flex;align-items:center;gap:10px;padding:10px 12px;">🔒 '+esc(eqR.nombre)+
+            '<span style="margin-left:auto;font-size:9pt;font-weight:700;color:'+CJ[peorR]+';background:'+CJ[peorR]+'18;padding:3px 10px;border-radius:20px;">'+CJ_LABEL[peorR]+'</span>'+
+          '</div>'+
+          '<div style="padding:12px;display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;">'+
+            '<div style="width:220px;flex-shrink:0;">'+svgSafe+'</div>'+
+            '<div style="flex:1;min-width:240px;">'+
+              '<table class="sum" style="width:100%;"><thead><tr><th>Parte</th><th>Nivel</th><th>Notas</th></tr></thead><tbody>'+filasHtml+'</tbody></table>'+
+            '</div>'+
+          '</div>'+
+          (fotosHtml?'<div style="padding:0 12px 12px;">'+fotosHtml+'</div>':'')+
+        '</div>';
+      });
+    }
     var periodoLabel=(desde||hasta)?((desde?fD(desde):'inicio')+' al '+(hasta?fD(hasta):'presente')):'Período general';
     var nowDate=new Date();
     var fechaCreacion=nowDate.toLocaleDateString('es-AR',{day:'2-digit',month:'long',year:'numeric'});
@@ -14457,7 +14533,16 @@ function generateReport(){
     html+='<div class="section"><div class="section-title">1. Objeto</div><div class="narrative"><p>'+introText+'</p></div></div>';
     html+='<div class="section"><div class="section-title">2. Resumen ejecutivo</div><div class="narrative"><p>'+resumenText+'</p></div></div>';
     html+='<div class="section"><div class="section-title">3. Detalle por equipo</div>'+eqSections+'</div>';
-    html+='<div class="section"><div class="section-title">4. Cuadro resumen</div>';
+    // Numeración dinámica desde acá: la sección de Jaulas de Faraday solo aparece si
+    // hay equipos RM seleccionados, y "Equipos dados de baja" solo si hubo bajas en el
+    // período — el resto de las secciones se corren según cuáles de estas dos existan.
+    var _secN=3;
+    if(filtEqsRM.length){
+      _secN++;
+      html+='<div class="section"><div class="section-title">'+_secN+'. Estado de Jaulas de Faraday (Salas de RM)</div>'+jaulaSectionHtml+'</div>';
+    }
+    _secN++;
+    html+='<div class="section"><div class="section-title">'+_secN+'. Cuadro resumen</div>';
     html+='<table class="sum"><thead><tr><th>Equipo</th><th>Categoría</th><th>Centro</th><th>Estado</th><th>Mant.</th><th>Reparaciones</th><th>Fallas activas</th></tr></thead><tbody>'+sumRows+'</tbody></table>';
     html+='</div>';
     // Equipos dados de baja en el período — antes ni aparecían en el reporte, porque
@@ -14471,17 +14556,19 @@ function generateReport(){
       return true;
     }).sort(function(a,b){return (b.baja.fecha||'')>(a.baja.fecha||'')?1:-1;});
     if(bajasRango.length){
+      _secN++;
       var _motivoLabelRep={'venta':'Venta','entrega_pago':'Entregado como forma de pago','falla_irreparable':'Falla irreparable','obsolescencia':'Obsolescencia','reemplazo':'Reemplazo','otro':'Otro'};
       var bajasRows=bajasRango.map(function(e){
         var ci2=catById(e.cat);
         return '<tr><td><strong>'+esc(e.nombre)+'</strong></td><td>'+ci2.label+'</td><td>'+(e.baja.fecha?fD(e.baja.fecha):'—')+'</td><td>'+esc(_motivoLabelRep[e.baja.motivo]||e.baja.motivo||'—')+'</td><td>'+esc(e.baja.observacion||'—')+'</td></tr>';
       }).join('');
-      html+='<div class="section"><div class="section-title">5. Equipos dados de baja</div>'+
+      html+='<div class="section"><div class="section-title">'+_secN+'. Equipos dados de baja</div>'+
         '<p style="font-size:9.5pt;color:#475569;margin-bottom:10px;">'+bajasRango.length+' equipo'+(bajasRango.length!==1?'s dados':' dado')+' de baja '+(desde||hasta?'en el período informado':'registrados')+'.</p>'+
         '<table class="sum" style="border:1px solid #dbeafe;"><thead><tr><th>Equipo</th><th>Categoría</th><th>Fecha de baja</th><th>Motivo</th><th>Observación</th></tr></thead><tbody>'+bajasRows+'</tbody></table>'+
         '</div>';
     }
-    html+='<div class="section"><div class="section-title">'+(bajasRango.length?'6':'5')+'. Conclusiones y recomendaciones</div><div class="narrative"><p>'+conclusionText+'</p></div></div>';
+    _secN++;
+    html+='<div class="section"><div class="section-title">'+_secN+'. Conclusiones y recomendaciones</div><div class="narrative"><p>'+conclusionText+'</p></div></div>';
     html+='<div class="footer">';
     html+='<div class="footer-meta">CIMA Investigaciones Avanzadas · CIMA Hub · Generado: '+new Date().toLocaleString("es-AR")+'</div>';
     html+='<div class="sig-row">';
@@ -14492,7 +14579,7 @@ function generateReport(){
     html+='</body></html>';
     openHTMLViewer(html,'Informe Equipos CIMA — '+mesAnio);
     // Stash datos estructurados DESPUÉS de openHTMLViewer (que resetea _reportData a null)
-    _reportData={eqData:eqData,imgsMap:imgsMap||{},logo:logoB64||_logoSync,nro:nroInforme,para:paraInforme,periodoLabel:periodoLabel,mesAnio:mesAnio,fechaCreacion:fechaCreacion,tm:tm,tr:tr,tmej:tmej,tact:tact,hasData:hasData,sumData:sumData,introText:introText,resumenText:resumenText,conclusionText:conclusionText};
+    _reportData={eqData:eqData,imgsMap:imgsMap||{},logo:logoB64||_logoSync,nro:nroInforme,para:paraInforme,periodoLabel:periodoLabel,mesAnio:mesAnio,fechaCreacion:fechaCreacion,tm:tm,tr:tr,tmej:tmej,tact:tact,hasData:hasData,sumData:sumData,introText:introText,resumenText:resumenText,conclusionText:conclusionText,jaulaEqs:filtEqsRM};
     }catch(err){window._reportBusy=false;showToast('Error al generar: '+(err&&err.message?err.message:String(err)),'warn');console.error('generateReport error:',err);}
   }
   // If no images: build synchronously (avoids async/XHR issues on iOS PWA)
@@ -18502,31 +18589,11 @@ function _buildPDFEjecutivo(imgsMap){
         });
       });
     }
-    // Jaulas de Faraday — Salas de RM. El svg del diagrama y la galería de fotos van
-    // a nivel de página vía columns/stack, NUNCA dentro de una celda de tabla/_pdfCard
-    // (ver el comentario de _pdfEqSection: las imágenes dentro de una celda no
-    // renderizan bien en pdfmake — mismo motivo por el que acá tampoco se usa _pdfCard).
+    // Jaulas de Faraday — Salas de RM (nodos reusados vía _pdfJaulaEqNodes).
     var rmEqsActivos=eqs.filter(function(e){return e.cat==='RM'&&!e.baja;});
     if(rmEqsActivos.length){
       c.push(_pdfH('Jaulas de Faraday — Salas de RM'));
-      rmEqsActivos.forEach(function(eqR){
-        var jd=_jaulaData(eqR),peor=_jaulaPeorNivel(eqR);
-        c.push({columns:[
-          {text:_pdfDecode(eqR.nombre||eqR.id),bold:true,fontSize:10,color:'#1e293b'},
-          {text:CJ_LABEL[peor],bold:true,fontSize:9,color:CJ[peor],alignment:'right'}
-        ],margin:[0,10,0,4],unbreakable:true});
-        var svgIco={svg:jaulaSceneSVG(eqR).replace(/ onclick="[^"]*"/g,''),width:200};
-        var tabla=_pdfTableNode(['Parte','Nivel','Notas'],
-          JAULA_PARTES.map(function(p){return [p.label,CJ_LABEL[jd[p.id].nivel],_pdfDecode(jd[p.id].notas||'—')];}),
-          {widths:['auto','auto','*']});
-        c.push({columns:[{width:210,stack:[svgIco]},{width:'*',stack:[tabla]}],columnGap:10,margin:[0,0,0,4]});
-        var fotosArr=[];
-        JAULA_PARTES.forEach(function(p){
-          var fid=jd[p.id].fotoId;
-          if(fid&&_pdfIsImg(imgsMap[fid]))fotosArr.push({src:imgsMap[fid],cap:p.label});
-        });
-        if(fotosArr.length)c=c.concat(_pdfGallery(fotosArr,3,110));
-      });
+      rmEqsActivos.forEach(function(eqR){c=c.concat(_pdfJaulaEqNodes(eqR,imgsMap));});
     }
     _pdfDeliver(_pdfStdDoc('CIMA — Vista Ejecutiva',c),'CIMA-Vista-Ejecutiva-'+todayStr+'.pdf');
   }catch(e){showToast('Error al generar PDF: '+(e.message||e),'err');}
@@ -18895,12 +18962,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="4.5.0";
+var APP_DISPLAY_VERSION="4.5.1";
 var APP_BUILD="05/08/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'4.5.1',fecha:'05/08/2026',tipo:'patch',cambios:[
+    'Fix: el estado de las Jaulas de Faraday (RM) ahora aparece en el Reporte Gerencial real (generateReport/_buildPdfDoc), no solo en Vista Ejecutiva — sección nueva con diagrama, color, texto y foto por parte, en el HTML/impresión y en el PDF nativo exportable/compartible'
+  ]},
   {v:'4.5.0',fecha:'05/08/2026',tipo:'minor',cambios:[
     'Jaula de Faraday para salas de RM: diagrama esquemático interactivo con 7 partes (suelo, pines de puerta, ventana, puerta de jaula, luces, cielo raso, enchufe), 4 niveles de deterioro por parte, foto vigente por parte, y sección nueva en el Informe Gerencial (PDF) con diagrama, color, texto y foto de estado'
   ]},

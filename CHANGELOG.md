@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v4.5.1 — 05/08/2026 (patch)
+
+- Fix: el estado de las Jaulas de Faraday (RM) ahora aparece en el Reporte Gerencial real (generateReport/_buildPdfDoc), no solo en Vista Ejecutiva — sección nueva con diagrama, color, texto y foto por parte, en el HTML/impresión y en el PDF nativo exportable/compartible
+
 ## v4.5.0 — 05/08/2026 (minor)
 
 - Jaula de Faraday para salas de RM: diagrama esquemático interactivo con 7 partes (suelo, pines de puerta, ventana, puerta de jaula, luces, cielo raso, enchufe), 4 niveles de deterioro por parte, foto vigente por parte, y sección nueva en el Informe Gerencial (PDF) con diagrama, color, texto y foto de estado
