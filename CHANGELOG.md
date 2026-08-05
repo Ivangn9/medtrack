@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v4.6.0 — 05/08/2026 (minor)
+
+- Frecuencia de mantenimiento bianual (cada 2 años) agregada como opción; nueva sede Sarmiento agregada junto a Pedernera, CRS y GN en todos los filtros, selectores y reportes
+
 ## v4.5.4 — 05/08/2026 (patch)
 
 - Jaula de Faraday: reemplazado el último candado restante (header de la vista) por la imagen nueva; tarjetas de Antenas RF y Jaula de Faraday en la ficha del equipo agrandadas de forma más notoria
