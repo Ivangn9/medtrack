@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v4.7.2 — 05/08/2026 (patch)
+
+- Posible fix: botones Ver/Editar/Eliminar del historial de roturas y fallas no respondían al click en la app de Mac (funcionaban bien en iPhone) — sacado el backdrop-filter, la única propiedad que los diferenciaba de la mayoría de los botones que sí funcionan
+
 ## v4.7.1 — 05/08/2026 (patch)
 
 - Fix: el generador de PDF (pdfMake) ahora se carga automáticamente cuando hace falta en vez de solo avisar 'Cargando generador' y quedar trabado — afectaba sobre todo a la impresión de QR, que nunca disparaba la precarga
