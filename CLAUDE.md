@@ -12,6 +12,7 @@ Este repositorio contiene **una sola app: MedTrack** (gestión de equipos médic
 | `ai-proxy-worker.js` + `wrangler.toml` | Cloudflare Worker — proxy para el escáner de etiquetas con IA (llama a la API de Anthropic; necesario por restricciones de CORS en iOS). Deploy manual: pegar el código en dash.cloudflare.com → Workers → Create |
 | `logo.png` | Compartido con `Insumos-Cima` (mismo archivo, copiado en ambos repos) |
 | `firestore.rules` | Copia de referencia — cubre TODA la base compartida (MedTrack + Stock de Insumos), pero la copia canónica que se pega en Firebase Console ahora se mantiene en `Insumos-Cima` |
+| `storage.rules` | Copia de referencia de las reglas de Firebase Storage (fotos/PDFs) — agregada 2026-08-06 tras auditoría de confiabilidad de datos. Hay que pegarla manualmente en Firebase Console → Storage → Rules; el deploy de GitHub Pages no la aplica |
 
 ## Reglas de desarrollo
 

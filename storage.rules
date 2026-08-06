@@ -1,0 +1,33 @@
+rules_version = '2';
+// ═══════════════════════════════════════════════════════════════
+// Reglas de seguridad — Firebase Storage — proyecto medtrack-cima-3e9c1
+// ⚠️ Este archivo es REFERENCIA: hay que pegarlo en
+// Firebase Console → Storage → Rules → Publicar.
+// El deploy de GitHub Pages NO aplica estas reglas.
+//
+// v1 (histórico, YA NO USAR) — solo exigía "cualquier sesión autenticada":
+//   allow read, write: if request.auth != null;
+// Esto incluye sesiones ANÓNIMAS — eq-public.html (la página pública de los
+// QR físicos) hace signInAnonymously() automáticamente al abrirse, así que
+// cualquiera que escaneara un QR quedaba con lectura Y ESCRITURA completas
+// sobre TODAS las fotos/PDFs de orgs/cima/files/*, no solo las del equipo
+// escaneado. Confirmado además que eq-public.html nunca lee archivos de
+// Storage (ni fotos ni PDFs) — no había ningún motivo legítimo para que el
+// acceso público llegara hasta acá. Mismo hueco de fondo que el fix de
+// Firestore v4 (isAuthorizedMedTrack(), auditoría 2026-07-29), nunca
+// replicado en Storage hasta ahora.
+//
+// v2 — Exige la MISMA lista de acceso que ya usa Firestore
+// (config/access.emails), vía firestore.get() cruzando a la otra base.
+// Sin sesión anónima, sin auto-registro con cuenta ajena a la lista.
+// ═══════════════════════════════════════════════════════════════
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /orgs/cima/files/{fileId} {
+      allow read, write: if request.auth != null
+        && request.auth.token.firebase.sign_in_provider != 'anonymous'
+        && request.auth.token.email.lower() in
+             firestore.get(/databases/(default)/documents/config/access).data.emails;
+    }
+  }
+}
