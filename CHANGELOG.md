@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v4.9.0 — 06/08/2026 (minor)
+
+- Nueva opción 'Sin costo' al registrar/editar una parte o falla — oculta el campo de precio y aprobación de presupuesto, y aparece como 'Reparación sin costo' en el Reporte Gerencial (activas e historial) y en la ficha del equipo
+
 ## v4.8.0 — 06/08/2026 (minor)
 
 - Fix crítico de pérdida de datos: al chocar dos guardados casi simultáneos de distintos dispositivos, el que perdía la carrera antes descartaba TODO su cambio local (ej. PMs recién programados) — ahora se fusiona por id en vez de reemplazar, y se re-guarda automático sin depender de que el usuario note un aviso

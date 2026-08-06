@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.08.06.001 -->
+<!-- v2026.08.06.002 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.08.06.001">
+<meta name="app-version" content="v2026.08.06.002">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3419,7 +3419,7 @@ function saveParte(eqId,pt){
     var ex=_ep.find(function(x){return x.id===pt.id;});
     var hist=(e.historialMant||[]).slice();
     if(ex&&ex.estado!=="ok"&&pt.estado==="ok"&&pt.fechaArreglo){
-      hist.push({id:"HP-"+Date.now(),fecha:pt.fechaArreglo,tipo:"reparacion",nombre:pt.nombre,marca:pt.marca||"",nroSerie:pt.nroSerie||"",fechaRotura:pt.fechaRotura||"",notas:pt.notas||"",registradoEn:new Date().toISOString()});
+      hist.push({id:"HP-"+Date.now(),fecha:pt.fechaArreglo,tipo:"reparacion",nombre:pt.nombre,marca:pt.marca||"",nroSerie:pt.nroSerie||"",fechaRotura:pt.fechaRotura||"",notas:pt.notas||"",sinCosto:pt.sinCosto||false,precio:pt.precio||"",registradoEn:new Date().toISOString()});
     }
     var partes=ex?_ep.map(function(x){return x.id===pt.id?pt:x;}):(function(){pt.id="PT-"+Date.now();return _ep.concat(pt);}());
     return Object.assign({},e,{partes:partes,historialMant:hist});
@@ -3469,7 +3469,7 @@ function confirmarReparacion(eqId,pid){
   if(!pt)return;
   eqs=eqs.map(function(e){
     if(e.id!==eqId)return e;
-    var hist=(e.historialMant||[]).concat({id:"HP-"+Date.now(),fecha:fecha,tipo:"reparacion",nombre:pt.nombre,marca:pt.marca||"",nroSerie:pt.nroSerie||"",fechaRotura:pt.fechaRotura||"",notas:notas||pt.notas||"",precio:pt.precio||"",tecnico:tecnico,archivos:pt.archivos||[],registradoEn:new Date().toISOString(),_parteOriginal:Object.assign({},pt)});
+    var hist=(e.historialMant||[]).concat({id:"HP-"+Date.now(),fecha:fecha,tipo:"reparacion",nombre:pt.nombre,marca:pt.marca||"",nroSerie:pt.nroSerie||"",fechaRotura:pt.fechaRotura||"",notas:notas||pt.notas||"",sinCosto:pt.sinCosto||false,precio:pt.precio||"",tecnico:tecnico,archivos:pt.archivos||[],registradoEn:new Date().toISOString(),_parteOriginal:Object.assign({},pt)});
     var partes=e.partes.filter(function(x){return x.id!==pid;});
     return Object.assign({},e,{partes:partes,historialMant:hist});
   });
@@ -6122,6 +6122,11 @@ function openModalParte(eqId,pt){
       '<div class="ff"><div class="ff-label">Canal de Reclamo</div><div style="display:flex;gap:5px;flex-wrap:wrap;">'+canalBtnsHTML('pt-canal',f.canalReclamo||'')+'</div><input type="hidden" id="pt-canal" value="'+(f.canalReclamo||'')+'"></div>'+
       '<div class="ff"><div class="ff-label">Ingeniero que reparó</div><input class="inp" id="pt-tec" value="'+esc(f.tecnicoReparacion||'')+'" placeholder="Nombre del ingeniero..."></div>'+
       '<div class="ff"><div class="ff-label">Costo</div>'+
+        '<label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;margin-bottom:8px;padding:9px 14px;border-radius:12px;background:'+(f.sinCosto?'rgba(52,199,89,.12)':'rgba(120,120,128,.07)')+';border:1px solid '+(f.sinCosto?'rgba(52,199,89,.3)':'rgba(120,120,128,.15)')+';">'+
+          '<input type="checkbox" id="pt-sincosto" onchange="toggleSinCosto(this)" '+(f.sinCosto?'checked':'')+' style="width:16px;height:16px;accent-color:var(--green);cursor:pointer;">'+
+          '<span style="font-size:.82rem;font-weight:600;color:'+(f.sinCosto?'var(--green)':'var(--text3)')+';">'+(f.sinCosto?'✅ Sin costo':'Reparación sin costo')+'</span>'+
+        '</label>'+
+      '<div id="pt-costo-wrap" style="display:'+(f.sinCosto?'none':'block')+';">'+
       '<div style="display:flex;gap:8px;">'+
         '<select class="inp" id="pt-pcM" style="width:84px;flex-shrink:0;" onchange="_kpiUpdateHint(this)">'+
           '<option value="USD"'+((!f.precioMoneda||f.precioMoneda==="USD")?" selected":"")+'>USD</option>'+
@@ -6131,7 +6136,8 @@ function openModalParte(eqId,pt){
       '</div>'+
       '<div id="pt-pc-hint" style="font-size:.63rem;color:var(--text3);margin-top:3px;min-height:14px;"></div>'+
       '</div>'+
-      '<div class="ff"><div class="ff-label">Aprobación de Presupuesto</div>'+
+      '</div>'+
+      '<div class="ff" id="pt-pres-wrap" style="display:'+(f.sinCosto?'none':'block')+';"><div class="ff-label">Aprobación de Presupuesto</div>'+
         '<label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;padding:9px 14px;border-radius:12px;background:'+(f.presupuestoAprobado?'rgba(52,199,89,.12)':'rgba(120,120,128,.07)')+';border:1px solid '+(f.presupuestoAprobado?'rgba(52,199,89,.3)':'rgba(120,120,128,.15)')+';">'+
           '<input type="checkbox" id="pt-pres-ok" onchange="togglePresAprobado(this)" '+(f.presupuestoAprobado?'checked':'')+' style="width:16px;height:16px;accent-color:var(--green);cursor:pointer;">'+
           '<span style="font-size:.82rem;font-weight:600;color:'+(f.presupuestoAprobado?'var(--green)':'var(--text3)')+';">'+(f.presupuestoAprobado?'✅ Aprobado':'Presupuesto aprobado')+'</span>'+
@@ -6185,6 +6191,22 @@ function togglePresAprobado(cb){
     var sp=lbl.querySelector("span");if(sp){sp.textContent="Presupuesto aprobado";sp.style.color="var(--text3)";}
   }
 }
+function toggleSinCosto(cb){
+  var costoWrap=document.getElementById("pt-costo-wrap");
+  var presWrap=document.getElementById("pt-pres-wrap");
+  var lbl=cb.parentElement;
+  if(cb.checked){
+    if(costoWrap)costoWrap.style.display="none";
+    if(presWrap)presWrap.style.display="none";
+    lbl.style.background="rgba(52,199,89,.12)";lbl.style.borderColor="rgba(52,199,89,.3)";
+    var sp=lbl.querySelector("span");if(sp){sp.textContent="✅ Sin costo";sp.style.color="var(--green)";}
+  }else{
+    if(costoWrap)costoWrap.style.display="block";
+    if(presWrap)presWrap.style.display="block";
+    lbl.style.background="rgba(120,120,128,.07)";lbl.style.borderColor="rgba(120,120,128,.15)";
+    var sp=lbl.querySelector("span");if(sp){sp.textContent="Reparación sin costo";sp.style.color="var(--text3)";}
+  }
+}
 function setPtEst(e){
   document.getElementById("pt-es").value=e;
   ["ok","pendiente","roto","mejora"].forEach(function(s){
@@ -6210,9 +6232,10 @@ function submitPt(eqId,ptId){
   var newRepRefs=_pendingReportes.map(function(f){return{id:f.id,nombre:f.nombre,size:f.size,tipo:'reporte'};});
   var esEl=document.getElementById("pt-es");var esMej=esEl&&esEl.value==="mejora";
   var presOkEl=document.getElementById("pt-pres-ok");var presFechaEl=document.getElementById("pt-pres-fecha");
+  var sinCostoEl=document.getElementById("pt-sincosto");
   var compEl=document.getElementById("pt-comp");
   var newImgRefs=_pendingParteImages.map(function(f){return{id:f.id,nombre:f.nombre};});
-  var _baseFields={descripcion:document.getElementById("pt-d").value,estado:esEl?esEl.value:"roto",componenteRM:compEl?compEl.value:"",fechaRotura:esMej?"":document.getElementById("pt-fr").value,fechaArreglo:esMej?"":document.getElementById("pt-fa").value,canalReclamo:esMej?"":(document.getElementById("pt-canal")||{value:""}).value||"",tecnicoReparacion:esMej?"":(document.getElementById("pt-tec")||{value:""}).value||"",asignadoA:esMej?(document.getElementById("pt-asig")||{}).value||"":"",fechaMejora:esMej?(document.getElementById("pt-fmej")||{}).value||"":"",marca:document.getElementById("pt-mk").value,nroSerie:document.getElementById("pt-sn").value,notas:document.getElementById("pt-nt").value,precio:esMej?"":(document.getElementById("pt-pc")||{}).value||"",precioMoneda:esMej?'USD':((document.getElementById("pt-pcM")||{}).value||'USD'),presupuestoAprobado:esMej?false:!!(presOkEl&&presOkEl.checked),fechaAprobacion:esMej?"":(presFechaEl&&presOkEl&&presOkEl.checked?presFechaEl.value:""),archivos:archivosExist.concat(newPresRefs).concat(newRepRefs),imagenes:imgsExist.concat(newImgRefs)};
+  var _baseFields={descripcion:document.getElementById("pt-d").value,estado:esEl?esEl.value:"roto",componenteRM:compEl?compEl.value:"",fechaRotura:esMej?"":document.getElementById("pt-fr").value,fechaArreglo:esMej?"":document.getElementById("pt-fa").value,canalReclamo:esMej?"":(document.getElementById("pt-canal")||{value:""}).value||"",tecnicoReparacion:esMej?"":(document.getElementById("pt-tec")||{value:""}).value||"",asignadoA:esMej?(document.getElementById("pt-asig")||{}).value||"":"",fechaMejora:esMej?(document.getElementById("pt-fmej")||{}).value||"":"",marca:document.getElementById("pt-mk").value,nroSerie:document.getElementById("pt-sn").value,notas:document.getElementById("pt-nt").value,sinCosto:esMej?false:!!(sinCostoEl&&sinCostoEl.checked),precio:esMej?"":(sinCostoEl&&sinCostoEl.checked?"":(document.getElementById("pt-pc")||{}).value||""),precioMoneda:esMej?'USD':((document.getElementById("pt-pcM")||{}).value||'USD'),presupuestoAprobado:esMej?false:!!(presOkEl&&presOkEl.checked),fechaAprobacion:esMej?"":(presFechaEl&&presOkEl&&presOkEl.checked?presFechaEl.value:""),archivos:archivosExist.concat(newPresRefs).concat(newRepRefs),imagenes:imgsExist.concat(newImgRefs)};
   var extraNombres=[];
   if(!ptId)document.querySelectorAll('.pt-n-extra').forEach(function(inp){var v=inp.value.trim();if(v)extraNombres.push(v);});
   // Esperar a que los 3 tipos de archivo pendientes (presupuestos/reportes/fotos)
@@ -10794,8 +10817,9 @@ function _rDetalleFallas(eq){
       (p.nroSerie?'<div class="ibox"><div class="ibox-l">N° Serie</div><div class="ibox-v">'+esc(p.nroSerie)+'</div></div>':'')+
       (p.canalReclamo?'<div class="ibox"><div class="ibox-l">Canal</div><div class="ibox-v">'+canalLabel(p.canalReclamo)+'</div></div>':'')+
       (p.tecnicoReparacion?'<div class="ibox"><div class="ibox-l">Reparó</div><div class="ibox-v" style="color:var(--accent);">👷 '+esc(p.tecnicoReparacion)+'</div></div>':'')+
-      (p.precio?'<div class="ibox"><div class="ibox-l">Precio</div><div class="ibox-v" style="color:var(--green);">$'+esc(p.precio)+'</div></div>':'')+
-      (p.presupuestoAprobado!==undefined?'<div class="ibox" style="grid-column:1/-1;"><div class="ibox-l">Presupuesto</div><div class="ibox-v">'+
+      (p.sinCosto?'<div class="ibox" style="grid-column:1/-1;"><div class="ibox-l">Costo</div><div class="ibox-v"><span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:50px;font-size:.72rem;font-weight:700;background:rgba(52,199,89,.12);color:var(--green);">✅ Sin costo</span></div></div>':'')+
+      (!p.sinCosto&&p.precio?'<div class="ibox"><div class="ibox-l">Precio</div><div class="ibox-v" style="color:var(--green);">$'+esc(p.precio)+'</div></div>':'')+
+      (!p.sinCosto&&p.presupuestoAprobado!==undefined?'<div class="ibox" style="grid-column:1/-1;"><div class="ibox-l">Presupuesto</div><div class="ibox-v">'+
         (p.presupuestoAprobado?'<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:50px;font-size:.72rem;font-weight:700;background:rgba(52,199,89,.12);color:var(--green);">✅ Aprobado'+(p.fechaAprobacion?' · '+fD(p.fechaAprobacion):'')+'</span>':'<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:50px;font-size:.72rem;font-weight:700;background:rgba(255,149,0,.10);color:var(--orange);">⏳ Pendiente</span>')+
       '</div></div>':'')+
       '</div>'+
@@ -13874,7 +13898,8 @@ function _narrativeEq(eq,mantHist,repHist,mejHist,actToShow,mejPendToShow,trasla
       if(h.fecha)html+=', reparada el <strong>'+fD(h.fecha)+'</strong>';
       if(h.tecnico)html+=' por Ing. <strong>'+esc(h.tecnico)+'</strong>';
       if(h.canalReclamo)html+='<br><span class="list-note">Canal de reclamo: <strong>'+canalLabel(h.canalReclamo)+'</strong></span>';
-      if(h.presupuestoAprobado)html+='<br><span class="list-note sok">Presupuesto aprobado por gerencia'+(h.fechaAprobacion?' el '+fD(h.fechaAprobacion):'')+' — Costo: <strong>$'+esc(h.precio||'—')+'</strong></span>';
+      if(h.sinCosto)html+='<br><span class="list-note sok">✅ Reparación sin costo</span>';
+      else if(h.presupuestoAprobado)html+='<br><span class="list-note sok">Presupuesto aprobado por gerencia'+(h.fechaAprobacion?' el '+fD(h.fechaAprobacion):'')+' — Costo: <strong>$'+esc(h.precio||'—')+'</strong></span>';
       else if(h.precio)html+='<br><span class="list-note swarn">Presupuesto pendiente de aprobación: <strong>$'+esc(h.precio)+'</strong></span>';
       if(h.notas&&!(h.precio&&!h.presupuestoAprobado))html+='<br><span class="list-note">'+esc(h.notas)+'</span>';
       html+='</li>';
@@ -13901,7 +13926,8 @@ function _narrativeEq(eq,mantHist,repHist,mejHist,actToShow,mejPendToShow,trasla
       if(p.fechaRotura)html+=', detectada el '+fD(p.fechaRotura);
       html+='. <span class="'+(p.estado==='roto'?'sbad':'swarn')+'">'+(p.estado==='roto'?'Requiere intervención técnica urgente':'Pendiente de evaluación y resolución')+'</span>';
       if(p.canalReclamo)html+='<br><span class="list-note">Canal de reclamo: <strong>'+canalLabel(p.canalReclamo)+'</strong></span>';
-      if(p.presupuestoAprobado)html+='<br><span class="list-note sok">Presupuesto aprobado'+(p.fechaAprobacion?' el '+fD(p.fechaAprobacion):'')+' — Valor: <strong>$'+esc(p.precio||'—')+'</strong></span>';
+      if(p.sinCosto)html+='<br><span class="list-note sok">✅ Reparación sin costo</span>';
+      else if(p.presupuestoAprobado)html+='<br><span class="list-note sok">Presupuesto aprobado'+(p.fechaAprobacion?' el '+fD(p.fechaAprobacion):'')+' — Valor: <strong>$'+esc(p.precio||'—')+'</strong></span>';
       else if(p.precio)html+='<br><span class="list-note swarn">Presupuesto presentado a gerencia: <strong>$'+esc(p.precio)+'</strong> — pendiente aprobación</span>';
       else html+='<br><span class="list-note swarn">Presupuesto pendiente de cotización</span>';
       if(p.notas)html+='<br><span class="list-note">'+esc(p.notas)+'</span>';
@@ -19100,12 +19126,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="4.8.0";
+var APP_DISPLAY_VERSION="4.9.0";
 var APP_BUILD="06/08/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'4.9.0',fecha:'06/08/2026',tipo:'minor',cambios:[
+    'Nueva opción \'Sin costo\' al registrar/editar una parte o falla — oculta el campo de precio y aprobación de presupuesto, y aparece como \'Reparación sin costo\' en el Reporte Gerencial (activas e historial) y en la ficha del equipo'
+  ]},
   {v:'4.8.0',fecha:'06/08/2026',tipo:'minor',cambios:[
     'Fix crítico de pérdida de datos: al chocar dos guardados casi simultáneos de distintos dispositivos, el que perdía la carrera antes descartaba TODO su cambio local (ej. PMs recién programados) — ahora se fusiona por id en vez de reemplazar, y se re-guarda automático sin depender de que el usuario note un aviso'
   ]},
