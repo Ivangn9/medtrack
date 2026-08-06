@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.08.06.003 -->
+<!-- v2026.08.06.004 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.08.06.003">
+<meta name="app-version" content="v2026.08.06.004">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -5667,11 +5667,11 @@ function attachParteImage(){
   var inp=document.createElement('input');inp.type='file';inp.accept='image/*';inp.multiple=true;
   inp.onchange=function(){
     Array.from(inp.files).forEach(function(file){
-      var reader=new FileReader();
-      reader.onload=function(e){
-        var obj={id:'IMG-'+Date.now()+'-'+Math.random().toString(36).slice(2,6),nombre:file.name,size:file.size,data:e.target.result};
+      _readAndResizeFoto(file,function(resized){
+        if(!resized)return;
+        var obj={id:'IMG-'+Date.now()+'-'+Math.random().toString(36).slice(2,6),nombre:file.name,size:resized.length,data:resized};
         _pendingParteImages.push(obj);_renderParteImages();
-      };reader.readAsDataURL(file);
+      });
     });
   };inp.click();
 }
@@ -5688,11 +5688,11 @@ function attachRotImage(){
   var inp=document.createElement('input');inp.type='file';inp.accept='image/*';inp.multiple=true;
   inp.onchange=function(){
     Array.from(inp.files).forEach(function(file){
-      var reader=new FileReader();
-      reader.onload=function(e){
-        var obj={id:'IMG-'+Date.now()+'-'+Math.random().toString(36).slice(2,6),nombre:file.name,size:file.size,data:e.target.result};
+      _readAndResizeFoto(file,function(resized){
+        if(!resized)return;
+        var obj={id:'IMG-'+Date.now()+'-'+Math.random().toString(36).slice(2,6),nombre:file.name,size:resized.length,data:resized};
         _pendingRotImages.push(obj);_renderRotImages();
-      };reader.readAsDataURL(file);
+      });
     });
   };inp.click();
 }
@@ -5711,11 +5711,11 @@ function attachOTImage(){
   inp.onchange=function(){
     var files=Array.prototype.slice.call(inp.files);
     files.forEach(function(file){
-      var reader=new FileReader();
-      reader.onload=function(e){
-        var obj={id:'IMG-'+Date.now()+'-'+Math.random().toString(36).slice(2,6),nombre:file.name,size:file.size,data:e.target.result};
+      _readAndResizeFoto(file,function(resized){
+        if(!resized)return;
+        var obj={id:'IMG-'+Date.now()+'-'+Math.random().toString(36).slice(2,6),nombre:file.name,size:resized.length,data:resized};
         _pendingOTImages.push(obj);_renderOTImages();
-      };reader.readAsDataURL(file);
+      });
     });
   };inp.click();
 }
@@ -5734,11 +5734,11 @@ function attachOTCloseImage(){
   inp.onchange=function(){
     var files=Array.prototype.slice.call(inp.files);
     files.forEach(function(file){
-      var reader=new FileReader();
-      reader.onload=function(e){
-        var obj={id:'IMG-'+Date.now()+'-'+Math.random().toString(36).slice(2,6),nombre:file.name,size:file.size,data:e.target.result};
+      _readAndResizeFoto(file,function(resized){
+        if(!resized)return;
+        var obj={id:'IMG-'+Date.now()+'-'+Math.random().toString(36).slice(2,6),nombre:file.name,size:resized.length,data:resized};
         _pendingOTCloseImages.push(obj);_renderOTCloseImages();
-      };reader.readAsDataURL(file);
+      });
     });
   };inp.click();
 }
@@ -14114,6 +14114,23 @@ function _resizeReportImg(dataUrl, cb){
     img.src=dataUrl;
   }catch(e){cb(dataUrl);}
 }
+// Tope defensivo sobre el archivo ORIGINAL (antes de leer/redimensionar) — protege
+// contra selecciones anómalas (video elegido por error, foto RAW gigante), no contra
+// fotos de cámara normales (unos pocos MB). _resizeReportImg igual reduce cualquier
+// foto que pase este filtro a ~350-480KB antes de que llegue a dbSave/_storageSaveB64,
+// que es lo que evita el pico de memoria real al subir.
+var MT_MAX_FOTO_BYTES=20*1024*1024;
+function _readAndResizeFoto(file,cb){
+  if(!file){cb(null);return;}
+  if(file.size>MT_MAX_FOTO_BYTES){
+    showToast('⚠️ "'+file.name+'" pesa demasiado (>20MB) y se salteó','warn');
+    cb(null);return;
+  }
+  var reader=new FileReader();
+  reader.onerror=function(){showToast('⚠️ No se pudo leer "'+file.name+'"','warn');cb(null);};
+  reader.onload=function(e){_resizeReportImg(e.target.result,function(resized){cb(resized);});};
+  reader.readAsDataURL(file);
+}
 function _loadForReport(imageIds, cb){
   var logoB64=null;var imgsMap={};
   var _finished=false;
@@ -16397,9 +16414,10 @@ function submitAddRoturaV2(antenaId){
     }
     var f=pendFotos[idx];
     var fid2='F-'+Date.now()+idx+'-'+Math.random().toString(36).slice(2);
-    var rdr2=new FileReader();
-    rdr2.onload=function(e2){dbSave(fid2,f.name,e2.target.result,function(ok){if(ok)uploadedFotos.push({id:fid2,nombre:f.name,tipo:f.type,tam:f.size});uploadNextFoto(idx+1);});};
-    rdr2.readAsDataURL(f);
+    _readAndResizeFoto(f,function(resized){
+      if(!resized){uploadNextFoto(idx+1);return;}
+      dbSave(fid2,f.name,resized,function(ok){if(ok)uploadedFotos.push({id:fid2,nombre:f.name,tipo:f.type,tam:resized.length});uploadNextFoto(idx+1);});
+    });
   }
   uploadNextFoto(0);
 }
@@ -17382,9 +17400,10 @@ function submitTransductorRotura(transductorId){
     }
     var f=pendFotos[idx];
     var fid2='F-'+Date.now()+idx+'-'+Math.random().toString(36).slice(2);
-    var rdr2=new FileReader();
-    rdr2.onload=function(e2){dbSave(fid2,f.name,e2.target.result,function(ok){if(ok)uploadedFotos.push({id:fid2,nombre:f.name,tipo:f.type,tam:f.size});uploadNextFoto(idx+1);});};
-    rdr2.readAsDataURL(f);
+    _readAndResizeFoto(f,function(resized){
+      if(!resized){uploadNextFoto(idx+1);return;}
+      dbSave(fid2,f.name,resized,function(ok){if(ok)uploadedFotos.push({id:fid2,nombre:f.name,tipo:f.type,tam:resized.length});uploadNextFoto(idx+1);});
+    });
   }
   uploadNextFoto(0);
 }
@@ -17678,9 +17697,10 @@ function submitFallaDirecta(eqId){
     }
     var f=pendFotos[idx];
     var fid2='F-'+Date.now()+idx+'-'+Math.random().toString(36).slice(2);
-    var rdr2=new FileReader();
-    rdr2.onload=function(e2){dbSave(fid2,f.name,e2.target.result,function(ok){if(ok)uploadedFotos.push({id:fid2,nombre:f.name,tipo:f.type,tam:f.size});uploadNextFoto(idx+1);});};
-    rdr2.readAsDataURL(f);
+    _readAndResizeFoto(f,function(resized){
+      if(!resized){uploadNextFoto(idx+1);return;}
+      dbSave(fid2,f.name,resized,function(ok){if(ok)uploadedFotos.push({id:fid2,nombre:f.name,tipo:f.type,tam:resized.length});uploadNextFoto(idx+1);});
+    });
   }
   uploadNextFoto(0);
 }
@@ -17898,9 +17918,10 @@ function submitAgregarFotosAntenaRotura(antId,rotId){
     }
     var f=pendFotos[idx];
     var fid='F-'+Date.now()+idx+'-'+Math.random().toString(36).slice(2);
-    var rdr=new FileReader();
-    rdr.onload=function(e2){dbSave(fid,f.name,e2.target.result,function(ok){if(ok)uploadedFotos.push({id:fid,nombre:f.name,tipo:f.type,tam:f.size});uploadNext(idx+1);});};
-    rdr.readAsDataURL(f);
+    _readAndResizeFoto(f,function(resized){
+      if(!resized){uploadNext(idx+1);return;}
+      dbSave(fid,f.name,resized,function(ok){if(ok)uploadedFotos.push({id:fid,nombre:f.name,tipo:f.type,tam:resized.length});uploadNext(idx+1);});
+    });
   }
   uploadNext(0);
 }
@@ -17928,9 +17949,10 @@ function submitAgregarFotosTransductorRotura(transId,rotId){
     }
     var f=pendFotos[idx];
     var fid='F-'+Date.now()+idx+'-'+Math.random().toString(36).slice(2);
-    var rdr=new FileReader();
-    rdr.onload=function(e2){dbSave(fid,f.name,e2.target.result,function(ok){if(ok)uploadedFotos.push({id:fid,nombre:f.name,tipo:f.type,tam:f.size});uploadNext(idx+1);});};
-    rdr.readAsDataURL(f);
+    _readAndResizeFoto(f,function(resized){
+      if(!resized){uploadNext(idx+1);return;}
+      dbSave(fid,f.name,resized,function(ok){if(ok)uploadedFotos.push({id:fid,nombre:f.name,tipo:f.type,tam:resized.length});uploadNext(idx+1);});
+    });
   }
   uploadNext(0);
 }
@@ -17958,9 +17980,10 @@ function submitAgregarFotosFallaDirecta(eqId,fallaId){
     }
     var f=pendFotos[idx];
     var fid='F-'+Date.now()+idx+'-'+Math.random().toString(36).slice(2);
-    var rdr=new FileReader();
-    rdr.onload=function(e2){dbSave(fid,f.name,e2.target.result,function(ok){if(ok)uploadedFotos.push({id:fid,nombre:f.name,tipo:f.type,tam:f.size});uploadNext(idx+1);});};
-    rdr.readAsDataURL(f);
+    _readAndResizeFoto(f,function(resized){
+      if(!resized){uploadNext(idx+1);return;}
+      dbSave(fid,f.name,resized,function(ok){if(ok)uploadedFotos.push({id:fid,nombre:f.name,tipo:f.type,tam:resized.length});uploadNext(idx+1);});
+    });
   }
   uploadNext(0);
 }
@@ -19126,12 +19149,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="4.9.1";
+var APP_DISPLAY_VERSION="5.0.0";
 var APP_BUILD="06/08/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'5.0.0',fecha:'06/08/2026',tipo:'minor',cambios:[
+    'Fase 1 de confiabilidad de datos: fotos de fallas/reparaciones se comprimen antes de subir (evita saturar memoria) + tope de tamaño de 20MB'
+  ]},
   {v:'4.9.1',fecha:'06/08/2026',tipo:'patch',cambios:[
     'Fix real (con precedente en el código): las tarjetas de Roturas y Fallas e Historial encogían al 96.8% con cualquier click adentro (.gc:active), corriendo el botón real de abajo del cursor antes de soltar — por eso siempre terminaba activando el primer botón o ninguno. Se agrega .gc-notap, la misma clase ya creada en julio para este bug exacto en iOS'
   ]},
