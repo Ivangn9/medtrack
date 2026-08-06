@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.08.06.004 -->
+<!-- v2026.08.06.005 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.08.06.004">
+<meta name="app-version" content="v2026.08.06.005">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -2704,7 +2704,20 @@ function _fsWrite(tryN){
           // no-op vacío: como mínimo hay que devolverle al servidor los
           // registros locales que todavía no tenía).
           saveData();
-        }catch(e2){}
+        }catch(e2){
+          // Si la fusión (o el re-guardado posterior) falla acá, NO hay que reportar
+          // éxito: el estado local todavía puede no incluir lo que el servidor tenía,
+          // o lo que este dispositivo tenía puede no haberse vuelto a guardar. Antes
+          // este catch quedaba vacío — el toast de "se combinó automáticamente" y
+          // _fsDirty=false se disparaban igual aunque la fusión hubiera reventado a
+          // mitad de camino, dejando un guardado roto marcado como exitoso. Se trata
+          // igual que cualquier otro fallo de escritura: se loguea y se reintenta con
+          // el mismo mecanismo de backoff (_fsWriteRetryOrGiveUp), en vez de darlo
+          // por resuelto.
+          console.warn('Firestore: la fusión del conflicto de guardado falló, no se pudo confirmar',e2);
+          _fsWriteRetryOrGiveUp(tryN,e2);
+          return;
+        }
         _fsDirty=false;_fsFailed=false;_persistSyncError(null);
         render();
         showToast('⚠️ Otro dispositivo guardó cambios justo ahora — tu cambio se combinó automáticamente, no hace falta rehacerlo.','warn');
@@ -3765,7 +3778,9 @@ function submitHist(eqId,hid){
   var _delFiles=_deletedHistFiles;
   // Esperar a que los archivos pendientes terminen de guardarse en IndexedDB antes de
   // persistir la referencia — ver _dbSaveAll.
-  _dbSaveAll(_pendingHistPresupuestos.concat(_pendingHistReportes),function(){
+  _dbSaveAll(_pendingHistPresupuestos.concat(_pendingHistReportes),function(failed){
+    newPresRefs=newPresRefs.filter(function(r){return failed.indexOf(r.id)===-1;});
+    newRepRefs=newRepRefs.filter(function(r){return failed.indexOf(r.id)===-1;});
     _delFiles.forEach(function(fid){dbDel(fid);});
     eqs=eqs.map(function(e){
       if(e.id!==eqId)return e;
@@ -4137,10 +4152,23 @@ function dbSave(id,nombre,data,cb){
 // seguido), la referencia quedaba viajando a la nube apuntando a un archivo que nunca
 // llegó a guardarse en ningún lado, sin ningún aviso.
 function _dbSaveAll(files,cb){
-  if(!files||!files.length){cb&&cb();return;}
+  if(!files||!files.length){cb&&cb([]);return;}
   var pending=files.length;
-  function done(){if(--pending<=0)cb&&cb();}
-  files.forEach(function(f){dbSave(f.id,f.nombre,f.data,function(){done();});});
+  // IDs que NO llegaron a guardarse en IndexedDB (dbSave llamó a su callback con
+  // ok=false). Antes esto se ignoraba del todo: quien llama a _dbSaveAll persistía
+  // igual la referencia (id+nombre) del archivo en el equipo/parte/rotura, aunque el
+  // archivo en sí nunca hubiera quedado guardado en ningún lado — una "referencia
+  // fantasma" que recién se nota cuando alguien intenta abrirla después. Ahora se
+  // junta la lista de fallidos y se le pasa a quien llamó, para que decida no
+  // adjuntar esas referencias.
+  var failed=[];
+  function done(){
+    if(--pending<=0){
+      if(failed.length)showToast('⚠️ '+failed.length+' archivo(s) no se pudieron guardar y no se van a adjuntar','err');
+      cb&&cb(failed);
+    }
+  }
+  files.forEach(function(f){dbSave(f.id,f.nombre,f.data,function(ok){if(!ok)failed.push(f.id);done();});});
 }
 function dbGet(id,cb){_openIDB(function(d){if(!d){cb(null);return;}var r=d.transaction('files','readonly').objectStore('files').get(id);r.onsuccess=function(){cb(r.result||null);};r.onerror=function(){cb(null);};});}
 function dbDel(id){_upqDel(id);_openIDB(function(d){if(!d)return;d.transaction('files','readwrite').objectStore('files').delete(id);});}
@@ -6240,7 +6268,11 @@ function submitPt(eqId,ptId){
   if(!ptId)document.querySelectorAll('.pt-n-extra').forEach(function(inp){var v=inp.value.trim();if(v)extraNombres.push(v);});
   // Esperar a que los 3 tipos de archivo pendientes (presupuestos/reportes/fotos)
   // terminen de guardarse en IndexedDB antes de persistir la referencia — ver _dbSaveAll.
-  _dbSaveAll(_pendingPresupuestos.concat(_pendingReportes).concat(_pendingParteImages),function(){
+  _dbSaveAll(_pendingPresupuestos.concat(_pendingReportes).concat(_pendingParteImages),function(failed){
+    if(failed.length){
+      _baseFields.archivos=_baseFields.archivos.filter(function(a){return failed.indexOf(a.id)===-1;});
+      _baseFields.imagenes=_baseFields.imagenes.filter(function(im){return failed.indexOf(im.id)===-1;});
+    }
     if(extraNombres.length)saveParteMultiple(eqId,_baseFields,[n].concat(extraNombres));
     else saveParte(eqId,Object.assign({id:ptId||"",nombre:n},_baseFields));
     _deletedParteImages.forEach(function(id){dbDel(id);});
@@ -8623,8 +8655,8 @@ function submitOT(otId){
   _pendingOTImages=[];
   // Esperar a que las fotos pendientes terminen de guardarse en IndexedDB antes de
   // persistir la referencia — ver _dbSaveAll.
-  _dbSaveAll(_pendingOTImgs,function(){
-    var newImgRefs=_pendingOTImgs.map(function(f){return{id:f.id,nombre:f.nombre};});
+  _dbSaveAll(_pendingOTImgs,function(failed){
+    var newImgRefs=_pendingOTImgs.filter(function(f){return failed.indexOf(f.id)===-1;}).map(function(f){return{id:f.id,nombre:f.nombre};});
     if(otId){
       ordenesTrabajo=ordenesTrabajo.map(function(o){
         if(o.id!==otId)return o;
@@ -8731,8 +8763,8 @@ function submitCerrarOT(otId){
   var now=new Date().toISOString();
   // Esperar a que las fotos de cierre terminen de guardarse en IndexedDB antes de
   // persistir la referencia — ver _dbSaveAll.
-  _dbSaveAll(_pendingClose,function(){
-    var newCloseRefs=_pendingClose.map(function(f){return{id:f.id,nombre:f.nombre};});
+  _dbSaveAll(_pendingClose,function(failed){
+    var newCloseRefs=_pendingClose.filter(function(f){return failed.indexOf(f.id)===-1;}).map(function(f){return{id:f.id,nombre:f.nombre};});
     ordenesTrabajo=ordenesTrabajo.map(function(o){
       if(o.id!==otId)return o;
       return Object.assign({},o,{estado:'cerrada',resolucion:resolucion,firma:firmaData,fechaCierre:today(),fechaCierreISO:now,imagenesClose:(o.imagenesClose||[]).concat(newCloseRefs),gastosCierre:gastosCierre,monedaGastos:monedaGastos,reclamoCierre:reclamoCierre});
@@ -10395,7 +10427,8 @@ function submitDocs(eqId){
   _pendingDocs=[];
   // Esperar a que los documentos terminen de guardarse en IndexedDB antes de persistir
   // la referencia — ver _dbSaveAll.
-  _dbSaveAll(_pendingD,function(){
+  _dbSaveAll(_pendingD,function(failed){
+    if(failed.length)refs=refs.filter(function(r){return failed.indexOf(r.id)===-1;});
     eqs=eqs.map(function(e){
       if(e.id!==eqId)return e;
       return Object.assign({},e,{documentos:(e.documentos||[]).concat(refs)});
@@ -18278,7 +18311,8 @@ function submitRotura(){
 
   // Esperar a que las fotos terminen de guardarse en IndexedDB antes de persistir la
   // referencia — ver _dbSaveAll.
-  _dbSaveAll(_pendingRot,function(){
+  _dbSaveAll(_pendingRot,function(failed){
+    if(failed.length)parte.imagenes=parte.imagenes.filter(function(im){return failed.indexOf(im.id)===-1;});
     // Add parte to the selected equipment
     eqs=eqs.map(function(e){
       if(e.id!==eqId)return e;
@@ -19149,12 +19183,16 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="5.0.0";
+var APP_DISPLAY_VERSION="5.1.0";
 var APP_BUILD="06/08/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'5.1.0',fecha:'06/08/2026',tipo:'minor',cambios:[
+    'Fase 2 de confiabilidad de datos: el merge de guardado concurrente ya no reporta éxito falso si falla a mitad de camino (reintenta en vez de tragarse el error)',
+    '_dbSaveAll ahora revisa si cada archivo realmente se guardó y no adjunta referencias a los que fallaron'
+  ]},
   {v:'5.0.0',fecha:'06/08/2026',tipo:'minor',cambios:[
     'Fase 1 de confiabilidad de datos: fotos de fallas/reparaciones se comprimen antes de subir (evita saturar memoria) + tope de tamaño de 20MB'
   ]},

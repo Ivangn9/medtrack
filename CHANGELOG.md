@@ -1,5 +1,10 @@
 # Changelog — MedTrack
 
+## v5.1.0 — 06/08/2026 (minor)
+
+- Fase 2 de confiabilidad de datos: el merge de guardado concurrente ya no reporta éxito falso si falla a mitad de camino (reintenta en vez de tragarse el error)
+- _dbSaveAll ahora revisa si cada archivo realmente se guardó y no adjunta referencias a los que fallaron
+
 ## v5.0.0 — 06/08/2026 (minor)
 
 - Fase 1 de confiabilidad de datos: fotos de fallas/reparaciones se comprimen antes de subir (evita saturar memoria) + tope de tamaño de 20MB
