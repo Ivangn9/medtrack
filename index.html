@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.08.06.002 -->
+<!-- v2026.08.06.003 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.08.06.002">
+<meta name="app-version" content="v2026.08.06.003">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -10768,7 +10768,7 @@ function _rDetalleFallas(eq){
     '<span style="font-size:.8rem;font-weight:600;color:var(--text2);">'+esc(eq.nombre)+'</span>'+
     '<span style="font-size:.7rem;color:var(--text3);margin-left:auto;">Equipo</span>'+
   '</div>';
-  h+='<div class="cring-wrap" style="--cc:rgba(255,59,48,.9);margin-bottom:12px;"><div class="cring-el"></div><div class="gc" style="padding:0;overflow:hidden;background:linear-gradient(135deg,rgba(255,59,48,.08) 0%,rgba(255,69,58,.04) 100%);">';
+  h+='<div class="cring-wrap" style="--cc:rgba(255,59,48,.9);margin-bottom:12px;"><div class="cring-el"></div><div class="gc gc-notap" style="padding:0;overflow:hidden;background:linear-gradient(135deg,rgba(255,59,48,.08) 0%,rgba(255,69,58,.04) 100%);">';
   h+='<div style="background:linear-gradient(90deg,rgba(255,59,48,.12),rgba(255,69,58,.07));padding:9px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(255,59,48,.10);">';
   h+='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(220,38,38,.9)" stroke-width="2.2" stroke-linecap="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>';
   h+='<span style="font-size:.72rem;font-weight:700;color:rgba(220,38,38,.9);text-transform:uppercase;letter-spacing:.06em;flex:1;">Roturas y Fallas</span>';
@@ -10889,7 +10889,7 @@ function _rDetalleFallas(eq){
   // Historial ahora tiene su propio anillo animado (mismo efecto que Roturas y Fallas,
   // pero en azul) y un margen superior extra para que las dos secciones se vean
   // claramente separadas, no como si fueran una sola.
-  h+='<div class="cring-wrap" style="--cc:rgba(0,113,227,.9);margin-top:22px;margin-bottom:12px;"><div class="cring-el"></div><div class="gc" style="padding:0;overflow:hidden;border-left:4px solid rgba(0,113,227,.45);background:linear-gradient(135deg,rgba(0,113,227,.08) 0%,rgba(0,130,255,.04) 100%);">';
+  h+='<div class="cring-wrap" style="--cc:rgba(0,113,227,.9);margin-top:22px;margin-bottom:12px;"><div class="cring-el"></div><div class="gc gc-notap" style="padding:0;overflow:hidden;border-left:4px solid rgba(0,113,227,.45);background:linear-gradient(135deg,rgba(0,113,227,.08) 0%,rgba(0,130,255,.04) 100%);">';
   h+='<div style="background:linear-gradient(90deg,rgba(0,113,227,.12),rgba(0,130,255,.07));padding:9px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(0,113,227,.10);">';
   h+='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(0,113,227,.9)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
   h+='<span style="font-size:.72rem;font-weight:700;color:rgba(0,113,227,.9);text-transform:uppercase;letter-spacing:.06em;flex:1;">Historial</span>';
@@ -19126,12 +19126,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="4.9.0";
+var APP_DISPLAY_VERSION="4.9.1";
 var APP_BUILD="06/08/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'4.9.1',fecha:'06/08/2026',tipo:'patch',cambios:[
+    'Fix real (con precedente en el código): las tarjetas de Roturas y Fallas e Historial encogían al 96.8% con cualquier click adentro (.gc:active), corriendo el botón real de abajo del cursor antes de soltar — por eso siempre terminaba activando el primer botón o ninguno. Se agrega .gc-notap, la misma clase ya creada en julio para este bug exacto en iOS'
+  ]},
   {v:'4.9.0',fecha:'06/08/2026',tipo:'minor',cambios:[
     'Nueva opción \'Sin costo\' al registrar/editar una parte o falla — oculta el campo de precio y aprobación de presupuesto, y aparece como \'Reparación sin costo\' en el Reporte Gerencial (activas e historial) y en la ficha del equipo'
   ]},

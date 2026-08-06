@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v4.9.1 — 06/08/2026 (patch)
+
+- Fix real (con precedente en el código): las tarjetas de Roturas y Fallas e Historial encogían al 96.8% con cualquier click adentro (.gc:active), corriendo el botón real de abajo del cursor antes de soltar — por eso siempre terminaba activando el primer botón o ninguno. Se agrega .gc-notap, la misma clase ya creada en julio para este bug exacto en iOS
+
 ## v4.9.0 — 06/08/2026 (minor)
 
 - Nueva opción 'Sin costo' al registrar/editar una parte o falla — oculta el campo de precio y aprobación de presupuesto, y aparece como 'Reparación sin costo' en el Reporte Gerencial (activas e historial) y en la ficha del equipo
