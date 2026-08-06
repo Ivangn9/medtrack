@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.08.06.005 -->
+<!-- v2026.08.06.006 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.08.06.005">
+<meta name="app-version" content="v2026.08.06.006">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3738,6 +3738,7 @@ function attachHistPDF(tipo){
   input.onchange=function(){
     Array.from(input.files).forEach(function(file){
       var reader=new FileReader();
+      reader.onerror=function(){showToast('⚠️ No se pudo leer "'+file.name+'"','err');};
       reader.onload=function(e){
         var obj={id:'F-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),nombre:file.name,size:file.size,data:e.target.result};
         if(tipo==='presupuesto'){_pendingHistPresupuestos.push(obj);}else{_pendingHistReportes.push(obj);}
@@ -4142,7 +4143,20 @@ function dbSave(id,nombre,data,cb){
         if(!ok)showToast('⚠️ "'+(nombre||'Archivo')+'" se guardó en este dispositivo pero no subió a la nube — no cierres la app todavía, o hacé Ajustes → Sincronizar archivos más tarde','warn');
       });
     };
-    tx.onerror=function(){_upqDel(id);cb&&cb(false);};
+    tx.onerror=function(ev){
+      _upqDel(id);
+      // Antes esto fallaba en total silencio: cb(false) sin ningún aviso al usuario,
+      // sin importar la causa. El caso más común y más fácil de explicar es el
+      // dispositivo quedándose sin espacio (QuotaExceededError) — se distingue acá
+      // para dar un mensaje accionable ("liberá espacio") en vez de uno genérico.
+      var errName=(tx.error&&tx.error.name)||(ev&&ev.target&&ev.target.error&&ev.target.error.name)||'';
+      if(errName==='QuotaExceededError'){
+        showToast('⚠️ No hay espacio suficiente en este dispositivo para guardar "'+(nombre||'el archivo')+'" — liberá espacio o borrá fotos/PDFs viejos','err');
+      }else{
+        showToast('⚠️ No se pudo guardar "'+(nombre||'el archivo')+'" en este dispositivo'+(errName?' ('+errName+')':''),'err');
+      }
+      cb&&cb(false);
+    };
   });
 }
 // Espera a que TODOS los dbSave() de una tanda de archivos terminen (éxito o falla)
@@ -5837,6 +5851,7 @@ function attachPDF(tipo){
   input.onchange=function(){
     Array.from(input.files).forEach(function(file){
       var reader=new FileReader();
+      reader.onerror=function(){showToast('⚠️ No se pudo leer "'+file.name+'"','err');};
       reader.onload=function(e){
         var obj={id:'F-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),nombre:file.name,size:file.size,data:e.target.result};
         if(tipo==='presupuesto'){_pendingPresupuestos.push(obj);}else{_pendingReportes.push(obj);}
@@ -6538,6 +6553,7 @@ function submitMant(eqId){
   if(!pdf){regMant(eqId,f,notas,tecnico,null,orden,empresa,firma);return;}
   var fid='F-'+Date.now()+'-'+Math.random().toString(36).slice(2);
   var reader=new FileReader();
+  reader.onerror=function(){showToast('⚠️ No se pudo leer "'+pdf.name+'"','err');regMant(eqId,f,notas,tecnico,null,orden,empresa,firma);};
   reader.onload=function(e){
     dbSave(fid,pdf.name,e.target.result,function(ok){
       regMant(eqId,f,notas,tecnico,ok?{id:fid,nombre:pdf.name,tipo:pdf.type,tam:pdf.size}:null,orden,empresa,firma);
@@ -10400,6 +10416,7 @@ function attachDocPDF(){
   input.onchange=function(){
     Array.from(input.files).forEach(function(file){
       var reader=new FileReader();
+      reader.onerror=function(){showToast('⚠️ No se pudo leer "'+file.name+'"','err');};
       reader.onload=function(e){
         _pendingDocs.push({id:'F-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),nombre:file.name,size:file.size,tipo:tipo,fecha:fecha,data:e.target.result});
         renderDocPending();
@@ -12153,6 +12170,7 @@ function openModalJaulaParte(eqId,parteId){
   window._jpFotoChange=function(ev){
     var file=ev.target.files&&ev.target.files[0];if(!file)return;
     var rdr=new FileReader();
+    rdr.onerror=function(){showToast('⚠️ No se pudo leer "'+file.name+'"','err');};
     rdr.onload=function(e){
       _resizeReportImg(e.target.result,function(resized){
         _jpFotoB64=resized;_jpFotoChanged=true;
@@ -12957,6 +12975,7 @@ function _doExportBackup(archivos){
 }
 function importBackup(ev){
   var f=ev.target.files[0];if(!f)return;var r=new FileReader();
+  r.onerror=function(){alert('No se pudo leer el archivo de backup.');};
   r.onload=function(e){
     try{
       var d=JSON.parse(e.target.result);
@@ -14919,6 +14938,12 @@ function _doScanLabel(prompt,onResult){
     if(sb){sb.disabled=true;sb.innerHTML='⏳ Analizando…';}
     showToast('📷 Analizando etiqueta con IA…','');
     var reader=new FileReader();
+    reader.onerror=function(){
+      document.body.removeChild(inp);
+      showToast('⚠️ No se pudo leer la foto','err');
+      var sb2=document.getElementById('scan-label-btn');
+      if(sb2){sb2.disabled=false;sb2.innerHTML='📷 Escanear etiqueta';}
+    };
     reader.onload=function(ev){
       var dataUrl=ev.target.result;
       var parts=dataUrl.split(',');var b64=parts[1]||'';
@@ -16267,6 +16292,7 @@ function uploadAntenaPresupuestoCompra(antenaId,file){
   if(!file)return;
   var fid='F-'+Date.now()+'-'+Math.random().toString(36).slice(2);
   var reader=new FileReader();
+  reader.onerror=function(){showToast('⚠️ No se pudo leer "'+file.name+'"','err');};
   reader.onload=function(e){
     dbSave(fid,file.name,e.target.result,function(ok){
       if(!ok){showToast('Error al guardar PDF','err');return;}
@@ -16290,6 +16316,7 @@ function uploadAntenaReporte(antenaId,file){
   if(!file)return;
   var fid='F-'+Date.now()+'-'+Math.random().toString(36).slice(2);
   var reader=new FileReader();
+  reader.onerror=function(){showToast('⚠️ No se pudo leer "'+file.name+'"','err');};
   reader.onload=function(e){
     dbSave(fid,file.name,e.target.result,function(ok){
       if(!ok){showToast('Error al guardar PDF','err');return;}
@@ -16441,6 +16468,7 @@ function submitAddRoturaV2(antenaId){
       if(!presPend){saveAndFinish(null,uploadedFotos);return;}
       var fid='F-'+Date.now()+'-'+Math.random().toString(36).slice(2);
       var rdr=new FileReader();
+      rdr.onerror=function(){showToast('⚠️ No se pudo leer "'+presPend.name+'"','err');saveAndFinish(null,uploadedFotos);};
       rdr.onload=function(e2){dbSave(fid,presPend.name,e2.target.result,function(ok){saveAndFinish(ok?{id:fid,nombre:presPend.name,tipo:presPend.type,tam:presPend.size}:null,uploadedFotos);});};
       rdr.readAsDataURL(presPend);
       return;
@@ -16563,6 +16591,7 @@ function submitSeguimientoRotura(antenaId,roturaId){
   if(!presPend){saveAndFinish(null);return;}
   var fid='F-'+Date.now()+'-'+Math.random().toString(36).slice(2);
   var rdr=new FileReader();
+  rdr.onerror=function(){showToast('⚠️ No se pudo leer "'+presPend.name+'"','err');saveAndFinish(null);};
   rdr.onload=function(e){dbSave(fid,presPend.name,e.target.result,function(ok){saveAndFinish(ok?{id:fid,nombre:presPend.name,tipo:presPend.type,tam:presPend.size}:null);});};
   rdr.readAsDataURL(presPend);
 }
@@ -16711,6 +16740,7 @@ function submitMarkReparada(antenaId,roturaId){
   if(!repPend){saveAndFinish(null);return;}
   var fid='F-'+Date.now()+'-'+Math.random().toString(36).slice(2);
   var reader=new FileReader();
+  reader.onerror=function(){showToast('⚠️ No se pudo leer "'+repPend.name+'"','err');saveAndFinish(null);};
   reader.onload=function(e){dbSave(fid,repPend.name,e.target.result,function(ok){saveAndFinish(ok?{id:fid,nombre:repPend.name,tipo:repPend.type,tam:repPend.size}:null);});};
   reader.readAsDataURL(repPend);
 }
@@ -16968,6 +16998,7 @@ function submitEditRotura(antenaId,roturaId){
   if(!presPend){saveAndFinish(undefined);return;}
   var fid='F-'+Date.now()+'-'+Math.random().toString(36).slice(2);
   var reader=new FileReader();
+  reader.onerror=function(){showToast('⚠️ No se pudo leer "'+presPend.name+'"','err');saveAndFinish(rot.presupuestoArregloPdf);};
   reader.onload=function(e){dbSave(fid,presPend.name,e.target.result,function(ok){saveAndFinish(ok?{id:fid,nombre:presPend.name,tipo:presPend.type,tam:presPend.size}:rot.presupuestoArregloPdf);});};
   reader.readAsDataURL(presPend);
 }
@@ -17040,6 +17071,7 @@ function submitEditHistorial(antenaId,histId){
   if(!repPend){saveAndFinish(undefined);return;}
   var fid='F-'+Date.now()+'-'+Math.random().toString(36).slice(2);
   var reader=new FileReader();
+  reader.onerror=function(){showToast('⚠️ No se pudo leer "'+repPend.name+'"','err');saveAndFinish(hh.reporteArregloPdf);};
   reader.onload=function(e){dbSave(fid,repPend.name,e.target.result,function(ok){saveAndFinish(ok?{id:fid,nombre:repPend.name,tipo:repPend.type,tam:repPend.size}:hh.reporteArregloPdf);});};
   reader.readAsDataURL(repPend);
 }
@@ -17427,6 +17459,7 @@ function submitTransductorRotura(transductorId){
       if(!presPend){saveAndFinish(null,uploadedFotos);return;}
       var fid='F-'+Date.now()+'-'+Math.random().toString(36).slice(2);
       var rdr=new FileReader();
+      rdr.onerror=function(){showToast('⚠️ No se pudo leer "'+presPend.name+'"','err');saveAndFinish(null,uploadedFotos);};
       rdr.onload=function(e2){dbSave(fid,presPend.name,e2.target.result,function(ok){saveAndFinish(ok?{id:fid,nombre:presPend.name,tipo:presPend.type,tam:presPend.size}:null,uploadedFotos);});};
       rdr.readAsDataURL(presPend);
       return;
@@ -17541,6 +17574,7 @@ function submitSeguimientoTransductorRotura(transId,rotId){
   if(!presPend){saveAndFinish(null);return;}
   var fid='F-'+Date.now()+'-'+Math.random().toString(36).slice(2);
   var rdr=new FileReader();
+  rdr.onerror=function(){showToast('⚠️ No se pudo leer "'+presPend.name+'"','err');saveAndFinish(null);};
   rdr.onload=function(e){dbSave(fid,presPend.name,e.target.result,function(ok){saveAndFinish(ok?{id:fid,nombre:presPend.name,tipo:presPend.type,tam:presPend.size}:null);});};
   rdr.readAsDataURL(presPend);
 }
@@ -17724,6 +17758,7 @@ function submitFallaDirecta(eqId){
       if(!presPend){saveAndFinish(null,uploadedFotos);return;}
       var fid='F-'+Date.now()+'-'+Math.random().toString(36).slice(2);
       var rdr=new FileReader();
+      rdr.onerror=function(){showToast('⚠️ No se pudo leer "'+presPend.name+'"','err');saveAndFinish(null,uploadedFotos);};
       rdr.onload=function(e2){dbSave(fid,presPend.name,e2.target.result,function(ok){saveAndFinish(ok?{id:fid,nombre:presPend.name,tipo:presPend.type,tam:presPend.size}:null,uploadedFotos);});};
       rdr.readAsDataURL(presPend);
       return;
@@ -17825,6 +17860,7 @@ function submitSeguimientoFallaDirecta(eqId,fallaId){
   if(!presPend){saveAndFinish(null);return;}
   var fid='F-'+Date.now()+'-'+Math.random().toString(36).slice(2);
   var rdr=new FileReader();
+  rdr.onerror=function(){showToast('⚠️ No se pudo leer "'+presPend.name+'"','err');saveAndFinish(null);};
   rdr.onload=function(e){dbSave(fid,presPend.name,e.target.result,function(ok){saveAndFinish(ok?{id:fid,nombre:presPend.name,tipo:presPend.type,tam:presPend.size}:null);});};
   rdr.readAsDataURL(presPend);
 }
@@ -18104,6 +18140,7 @@ function submitEditTransductorRotura(){
   if(!presPend){saveAndFinish(undefined);return;}
   var fid='TR-PRES-'+Date.now()+'-'+Math.random().toString(36).slice(2);
   var reader=new FileReader();
+  reader.onerror=function(){showToast('⚠️ No se pudo leer "'+presPend.name+'"','err');saveAndFinish(rot.presupuestosArreglo);};
   reader.onload=function(e){dbSave(fid,presPend.name,e.target.result,function(ok){saveAndFinish(ok?[{id:fid,nombre:presPend.name}]:rot.presupuestosArreglo);});};
   reader.readAsDataURL(presPend);
 }
@@ -18178,6 +18215,7 @@ function submitEditFallaDirecta(){
   if(!presPend){saveAndFinish(undefined);return;}
   var fid='FD-PRES-'+Date.now()+'-'+Math.random().toString(36).slice(2);
   var reader=new FileReader();
+  reader.onerror=function(){showToast('⚠️ No se pudo leer "'+presPend.name+'"','err');saveAndFinish(falla.presupuestosArreglo);};
   reader.onload=function(e){dbSave(fid,presPend.name,e.target.result,function(ok){saveAndFinish(ok?[{id:fid,nombre:presPend.name}]:falla.presupuestosArreglo);});};
   reader.readAsDataURL(presPend);
 }
@@ -19183,12 +19221,16 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="5.1.0";
+var APP_DISPLAY_VERSION="5.2.0";
 var APP_BUILD="06/08/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'5.2.0',fecha:'06/08/2026',tipo:'minor',cambios:[
+    'Fase 3 de confiabilidad de datos: la falta de espacio (QuotaExceededError) ahora avisa con un mensaje claro en vez de fallar en silencio',
+    'Los ~20 puntos de lectura de archivos (fotos y PDF) ahora manejan errores de lectura sin colgar el guardado'
+  ]},
   {v:'5.1.0',fecha:'06/08/2026',tipo:'minor',cambios:[
     'Fase 2 de confiabilidad de datos: el merge de guardado concurrente ya no reporta éxito falso si falla a mitad de camino (reintenta en vez de tragarse el error)',
     '_dbSaveAll ahora revisa si cada archivo realmente se guardó y no adjunta referencias a los que fallaron'
@@ -19966,6 +20008,7 @@ function openCustomCatModal(editId){
   window._ccFotoChange=function(ev){
     var file=ev.target.files&&ev.target.files[0];if(!file)return;
     var rdr=new FileReader();
+    rdr.onerror=function(){showToast('⚠️ No se pudo leer "'+file.name+'"','err');};
     rdr.onload=function(e){
       _resizeCatIconImg(e.target.result,function(resized){
         _ccFotoB64=resized;

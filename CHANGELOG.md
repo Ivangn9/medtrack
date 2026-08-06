@@ -1,5 +1,10 @@
 # Changelog — MedTrack
 
+## v5.2.0 — 06/08/2026 (minor)
+
+- Fase 3 de confiabilidad de datos: la falta de espacio (QuotaExceededError) ahora avisa con un mensaje claro en vez de fallar en silencio
+- Los ~20 puntos de lectura de archivos (fotos y PDF) ahora manejan errores de lectura sin colgar el guardado
+
 ## v5.1.0 — 06/08/2026 (minor)
 
 - Fase 2 de confiabilidad de datos: el merge de guardado concurrente ya no reporta éxito falso si falla a mitad de camino (reintenta en vez de tragarse el error)
