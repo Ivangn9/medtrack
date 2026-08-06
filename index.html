@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.08.06.006 -->
+<!-- v2026.08.06.007 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.08.06.006">
+<meta name="app-version" content="v2026.08.06.007">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -2799,7 +2799,14 @@ function dailyBackup(){
   if(last===today)return;
   try{
     window._fbdb.collection("orgs").doc("cima").collection("backups").doc(today)
-      .set({eqs:eqs,antenas:antenas,aires:aires,transductores:transductores,savedAt:new Date().toISOString(),by:(window._fbUser.email||window._fbUser.uid||'')})
+      .set({eqs:eqs,antenas:antenas,aires:aires,transductores:transductores,
+        // Antes solo se respaldaban estos 4 arreglos — el resto de los datos de
+        // primer nivel (órdenes de trabajo, repuestos, PMs programados, auditoría,
+        // reclamos, mejoras, empresas de reparación, componentes/categorías custom)
+        // no tenían ningún respaldo periódico. Si algún día hiciera falta restaurar,
+        // esos datos simplemente no estarían en ninguna copia.
+        ordenesTrabajo:ordenesTrabajo,repuestos:repuestos,pmProgramados:pmProgramados,auditLog:auditLog,reclamos:reclamos,mejoras:mejoras,empresasRep:empresasRep,customComponentes:customComponentes,customCats:customCats,
+        savedAt:new Date().toISOString(),by:(window._fbUser.email||window._fbUser.uid||'')})
       .then(function(){try{localStorage.setItem('mt_lastBackup',today);}catch(e){}_persistBackupError(null);})
       .catch(function(e){console.warn('Daily backup:',e);_persistBackupError(e);});
   }catch(e){_persistBackupError(e);}
@@ -2819,7 +2826,9 @@ function hourlyBackup(){
   if(lastH===key)return;
   try{
     window._fbdb.collection("orgs").doc("cima").collection("backups").doc(key)
-      .set({eqs:eqs,antenas:antenas,aires:aires,transductores:transductores,savedAt:d.toISOString(),by:(window._fbUser.email||window._fbUser.uid||''),tipo:'hourly'})
+      .set({eqs:eqs,antenas:antenas,aires:aires,transductores:transductores,
+        ordenesTrabajo:ordenesTrabajo,repuestos:repuestos,pmProgramados:pmProgramados,auditLog:auditLog,reclamos:reclamos,mejoras:mejoras,empresasRep:empresasRep,customComponentes:customComponentes,customCats:customCats,
+        savedAt:d.toISOString(),by:(window._fbUser.email||window._fbUser.uid||''),tipo:'hourly'})
       .then(function(){try{localStorage.setItem('mt_lastHourlyBackup',key);}catch(e){}_persistBackupError(null);})
       .catch(function(e){console.warn('Hourly backup:',e);_persistBackupError(e);});
   }catch(e){_persistBackupError(e);}
@@ -2852,11 +2861,26 @@ function doRestoreBackup(fecha){
       var d=doc.data()||{};
       if(!Array.isArray(d.eqs)||!d.eqs.length){showToast('La copia está vacía','warn');return;}
       // Snapshot the current state first so a mistaken restore is itself recoverable
-      try{window._fbdb.collection("orgs").doc("cima").collection("backups").doc('pre-restore-'+new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')).set({eqs:eqs,antenas:antenas,aires:aires,transductores:transductores,savedAt:new Date().toISOString(),by:(window._fbUser.email||'')});}catch(e){}
+      try{window._fbdb.collection("orgs").doc("cima").collection("backups").doc('pre-restore-'+new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')).set({eqs:eqs,antenas:antenas,aires:aires,transductores:transductores,ordenesTrabajo:ordenesTrabajo,repuestos:repuestos,pmProgramados:pmProgramados,auditLog:auditLog,reclamos:reclamos,mejoras:mejoras,empresasRep:empresasRep,customComponentes:customComponentes,customCats:customCats,savedAt:new Date().toISOString(),by:(window._fbUser.email||'')});}catch(e){}
       eqs=d.eqs;
       antenas=Array.isArray(d.antenas)?d.antenas:[];
       aires=Array.isArray(d.aires)?d.aires:[];
       transductores=Array.isArray(d.transductores)?d.transductores:[];
+      // Estos 9 campos se empezaron a respaldar recién ahora — una copia vieja (de
+      // antes de este fix) simplemente no los tiene. A diferencia de los 4 de arriba
+      // (siempre presentes en toda copia hecha hasta hoy), si no vienen en el doc NO
+      // se pisan con [] — dejarlos vacíos borraría en el acto órdenes de trabajo,
+      // repuestos, etc. que nunca llegaron a esa copia vieja, aunque el usuario solo
+      // quería recuperar equipos.
+      if(Array.isArray(d.ordenesTrabajo))ordenesTrabajo=d.ordenesTrabajo;
+      if(Array.isArray(d.repuestos))repuestos=d.repuestos;
+      if(Array.isArray(d.pmProgramados))pmProgramados=d.pmProgramados;
+      if(Array.isArray(d.auditLog))auditLog=d.auditLog;
+      if(Array.isArray(d.reclamos))reclamos=d.reclamos;
+      if(Array.isArray(d.mejoras))mejoras=d.mejoras;
+      if(Array.isArray(d.empresasRep))empresasRep=d.empresasRep;
+      if(d.customComponentes&&typeof d.customComponentes==='object')customComponentes=d.customComponentes;
+      if(Array.isArray(d.customCats)){customCats=d.customCats;rebuildCats();}
       saveData();
       closeModal();render();
       showToast('✅ Datos restaurados al '+fecha);
@@ -19221,12 +19245,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="5.2.0";
+var APP_DISPLAY_VERSION="5.3.0";
 var APP_BUILD="06/08/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'5.3.0',fecha:'06/08/2026',tipo:'minor',cambios:[
+    'Fase 4 (parte 1) de confiabilidad de datos: los backups diario y horario ahora respaldan los 13 tipos de datos (antes solo 4: equipos, antenas, aires, transductores) — restaurar una copia vieja no borra los datos que esa copia nunca tuvo'
+  ]},
   {v:'5.2.0',fecha:'06/08/2026',tipo:'minor',cambios:[
     'Fase 3 de confiabilidad de datos: la falta de espacio (QuotaExceededError) ahora avisa con un mensaje claro en vez de fallar en silencio',
     'Los ~20 puntos de lectura de archivos (fotos y PDF) ahora manejan errores de lectura sin colgar el guardado'

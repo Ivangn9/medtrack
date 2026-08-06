@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v5.3.0 — 06/08/2026 (minor)
+
+- Fase 4 (parte 1) de confiabilidad de datos: los backups diario y horario ahora respaldan los 13 tipos de datos (antes solo 4: equipos, antenas, aires, transductores) — restaurar una copia vieja no borra los datos que esa copia nunca tuvo
+
 ## v5.2.0 — 06/08/2026 (minor)
 
 - Fase 3 de confiabilidad de datos: la falta de espacio (QuotaExceededError) ahora avisa con un mensaje claro en vez de fallar en silencio
