@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v4.8.0 — 06/08/2026 (minor)
+
+- Fix crítico de pérdida de datos: al chocar dos guardados casi simultáneos de distintos dispositivos, el que perdía la carrera antes descartaba TODO su cambio local (ej. PMs recién programados) — ahora se fusiona por id en vez de reemplazar, y se re-guarda automático sin depender de que el usuario note un aviso
+
 ## v4.7.4 — 05/08/2026 (patch)
 
 - Fix robusto: los botones de Historial y Roturas y Fallas ahora detectan el click ellos mismos (distancia real entre mousedown y mouseup) en vez de depender del evento click nativo, que el motor de la app de Mac puede cancelar con el mínimo arrastre del trackpad

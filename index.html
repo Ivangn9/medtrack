@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.08.05.011 -->
+<!-- v2026.08.06.001 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.08.05.011">
+<meta name="app-version" content="v2026.08.06.001">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -2529,6 +2529,55 @@ function _fsWriteRetryOrGiveUp(tryN,err){
   }
 }
 var _fsPendingRewrite=false;
+// Fusiona dos arrays por clave (unión) — nunca pierde un elemento que exista
+// en uno solo de los dos lados. Si la misma clave existe en ambos, gana la
+// versión LOCAL (se asume la edición más reciente de ESTE dispositivo). Se
+// usa al resolver un conflicto de guardado concurrente (ver _fsWrite), para
+// no descartar en silencio los registros que este dispositivo acaba de
+// crear/editar y que el servidor todavía no tiene — mismo problema de fondo
+// documentado en CLAUDE.md para "las bombas desaparecen" (el guardado
+// reemplaza el array entero sin fusionar), aplicado acá al camino normal de
+// escritura, no a una migración.
+function _mergeByKey(localArr,serverArr,keyFn){
+  if(!Array.isArray(serverArr))return localArr||[];
+  if(!Array.isArray(localArr))return serverArr;
+  var byKey={},order=[];
+  serverArr.forEach(function(item){
+    if(!item)return;var k=keyFn(item);if(k===undefined||k===null)return;
+    if(!(k in byKey))order.push(k);
+    byKey[k]=item;
+  });
+  localArr.forEach(function(item){
+    if(!item)return;var k=keyFn(item);if(k===undefined||k===null)return;
+    if(!(k in byKey))order.push(k);
+    byKey[k]=item; // local pisa server si la clave coincide
+  });
+  return order.map(function(k){return byKey[k];});
+}
+function _mergeConflictData(serverData){
+  var byId=function(x){return x&&x.id;};
+  var merged=Object.assign({},serverData);
+  merged.eqs=_mergeByKey(eqs,serverData.eqs,byId);
+  merged.pmProgramados=_mergeByKey(pmProgramados,serverData.pmProgramados,byId);
+  merged.ordenesTrabajo=_mergeByKey(ordenesTrabajo,serverData.ordenesTrabajo,byId);
+  merged.reclamos=_mergeByKey(reclamos,serverData.reclamos,byId);
+  merged.mejoras=_mergeByKey(mejoras,serverData.mejoras,byId);
+  merged.antenas=_mergeByKey(antenas,serverData.antenas,byId);
+  merged.transductores=_mergeByKey(transductores,serverData.transductores,byId);
+  merged.aires=_mergeByKey(aires,serverData.aires,byId);
+  merged.repuestos=_mergeByKey(repuestos,serverData.repuestos,byId);
+  merged.customCats=_mergeByKey(customCats,serverData.customCats,byId);
+  merged.empresasRep=_mergeByKey(empresasRep,serverData.empresasRep,function(x){return x&&x.nombre;});
+  // auditLog es un log de solo-agregar, más nuevo primero — tras fusionar por
+  // id hay que reordenar por fecha (la unión no preserva el orden cronológico)
+  // y volver a aplicar el mismo tope de 500 que usa auditEntry().
+  merged.auditLog=_mergeByKey(auditLog,serverData.auditLog,byId)
+    .sort(function(a,b){return (b&&b.ts||'')>(a&&a.ts||'')?1:-1;}).slice(0,500);
+  // customComponentes queda sin fusionar (objeto {catId:[nombres]}, no un array
+  // con id) — se mantiene la versión del servidor, igual que antes. Es un
+  // catálogo de sugerencias de baja frecuencia de edición, riesgo bajo.
+  return merged;
+}
 function _fsWrite(tryN){
   if(!window._fbUser||!window._fbdb){_fsWriting=false;return;}
   // Si ya hay una escritura en curso (get()+set() todavía sin resolver) y esto es un
@@ -2622,15 +2671,25 @@ function _fsWrite(tryN){
       clearTimeout(_safeguard);
       _fsWriting=false;
       if(e&&e.code==='stale-write'){
-        // Otro dispositivo guardó primero: cargamos su versión (no perdemos su cambio)
-        // y avisamos para que el usuario rehaga el suyo sobre los datos frescos.
+        // Otro dispositivo guardó primero. ANTES esto descartaba el cambio local
+        // entero (cargaba la versión del servidor tal cual, sin fusionar) y le
+        // pedía al usuario que "rehaga su cambio" — si no notaba el toast a
+        // tiempo, lo que había creado/editado en ESTE dispositivo (ej. un PM
+        // recién programado) se perdía en silencio para siempre, sin volver a
+        // guardarse nunca. Mismo problema de fondo que "las bombas desaparecen"
+        // (CLAUDE.md), aplicado acá al camino normal de guardado concurrente en
+        // vez de a una migración. Ahora _mergeConflictData() fusiona por id: se
+        // quedan TANTO los registros que el servidor tiene y este dispositivo
+        // no, COMO los que este dispositivo tiene y el servidor no — nunca se
+        // pierde un alta nueva de ningún lado. Guardar el MISMO registro desde
+        // dos dispositivos a la vez (edición del mismo id) sigue sin poder
+        // resolverse campo a campo, pero eso es un caso mucho más raro que
+        // perder altas nuevas, que es lo que se reportó.
         try{
-          if(window._applyDataGlobal)window._applyDataGlobal(e.serverData);
+          var _merged=_mergeConflictData(e.serverData);
+          if(window._applyDataGlobal)window._applyDataGlobal(_merged);
           if(typeof _histMergedOnce!=='undefined'&&_histMergedOnce&&typeof _histApplyMerge==='function')_histApplyMerge();
           localStorage.setItem('mt_updatedAt',e.serverData.updatedAt||'');
-          // El cambio local se descartó y se reemplazó por la versión del servidor (por
-          // eso el toast pide rehacer el cambio) — en memoria ya no hay nada pendiente.
-          localStorage.removeItem('mt_pendingSync');
           // Mismo patrón que la rama "SUBSEQUENT SNAPSHOTS" del listener onSnapshot: tras
           // aplicar datos de OTRO dispositivo, re-correr las migraciones por si ese
           // dispositivo tenía una versión vieja del código. Sin esto, este segundo camino
@@ -2638,12 +2697,17 @@ function _fsWrite(tryN){
           // real) podía reintroducir el mismo bug de "Bombas desaparecen" ya arreglado en
           // el otro camino — y lo mismo con ítems ya migrados a "mejoras" reapareciendo
           // duplicados como falla.
-          var _mB=migrateBombaSubcats(),_mM=_migrarMejorasDeEqs(),_mO=_migrarMejorasAOTs();
-          if(_mB||_mM>0||_mO>0)saveData();
+          migrateBombaSubcats();_migrarMejorasDeEqs();_migrarMejorasAOTs();
+          // A diferencia de antes, siempre volvemos a guardar acá — el estado en
+          // memoria después de la fusión es una UNIÓN de lo local y lo del
+          // servidor, así que persistirlo es exactamente lo correcto (nunca un
+          // no-op vacío: como mínimo hay que devolverle al servidor los
+          // registros locales que todavía no tenía).
+          saveData();
         }catch(e2){}
         _fsDirty=false;_fsFailed=false;_persistSyncError(null);
         render();
-        showToast('⚠️ Otro dispositivo guardó cambios justo ahora — se actualizó con lo más reciente. Volvé a hacer tu cambio.','warn');
+        showToast('⚠️ Otro dispositivo guardó cambios justo ahora — tu cambio se combinó automáticamente, no hace falta rehacerlo.','warn');
         return;
       }
       console.warn("Firestore save (try "+(tryN+1)+"):",e);
@@ -19036,12 +19100,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="4.7.4";
-var APP_BUILD="05/08/26 h";
+var APP_DISPLAY_VERSION="4.8.0";
+var APP_BUILD="06/08/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'4.8.0',fecha:'06/08/2026',tipo:'minor',cambios:[
+    'Fix crítico de pérdida de datos: al chocar dos guardados casi simultáneos de distintos dispositivos, el que perdía la carrera antes descartaba TODO su cambio local (ej. PMs recién programados) — ahora se fusiona por id en vez de reemplazar, y se re-guarda automático sin depender de que el usuario note un aviso'
+  ]},
   {v:'4.7.4',fecha:'05/08/2026',tipo:'patch',cambios:[
     'Fix robusto: los botones de Historial y Roturas y Fallas ahora detectan el click ellos mismos (distancia real entre mousedown y mouseup) en vez de depender del evento click nativo, que el motor de la app de Mac puede cancelar con el mínimo arrastre del trackpad'
   ]},
