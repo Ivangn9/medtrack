@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v5.3.1 — 08/08/2026 (patch)
+
+- Mensaje más claro al configurar contraseña con sesión de Firebase vencida (auth/user-token-expired)
+
 ## v5.3.0 — 06/08/2026 (minor)
 
 - Fase 4 (parte 1) de confiabilidad de datos: los backups diario y horario ahora respaldan los 13 tipos de datos (antes solo 4: equipos, antenas, aires, transductores) — restaurar una copia vieja no borra los datos que esa copia nunca tuvo
