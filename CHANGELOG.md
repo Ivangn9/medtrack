@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v5.5.1 — 10/08/2026 (patch)
+
+- Corrige el cálculo de riesgo de pérdida de helio: ahora siempre analiza la tendencia real de los últimos 90 días, sin diluirse con el rango de fecha que el gráfico tenga seleccionado
+
 ## v5.5.0 — 10/08/2026 (minor)
 
 - Calendario PM: programar mantenimientos de varios días con hora de inicio y fin en formato 24h

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.08.10.003 -->
+<!-- v2026.08.10.004 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.08.10.003">
+<meta name="app-version" content="v2026.08.10.004">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -16120,6 +16120,24 @@ function _refrigHelioChart(rf,eqId){
     return t>=rangeStart&&t<=rangeEnd;
   }).map(function(r){return{t:new Date(r.fecha+'T12:00:00').getTime(),gas:r.helioGasPresion!=null?parseFloat(r.helioGasPresion):null,liq:r.helioLiqPorc!=null?parseFloat(r.helioLiqPorc):null,liqP:r.helioLiqPresion!=null?parseFloat(r.helioLiqPresion):null};});
   lecturas.sort(function(a,b){return a.t-b.t;});
+  // Lecturas SIN filtrar por el rango del gráfico — el riesgo de pérdida siempre se calcula
+  // sobre la tendencia reciente real (últimos 90 días), nunca sobre el botón 1M/3M/6M/1A/2A
+  // que el usuario tenga elegido para mirar el gráfico. Si se usara el rango visible, una
+  // lectura vieja (ej. de hace un año, después de una recarga) podía diluir o hasta invertir
+  // una caída real y reciente, mostrando "sin riesgo" cuando en realidad la había.
+  var allLecturas=(rf.lecturas||[]).filter(function(r){return !!r.fecha;})
+    .map(function(r){return{t:new Date(r.fecha+'T12:00:00').getTime(),gas:r.helioGasPresion!=null?parseFloat(r.helioGasPresion):null,liq:r.helioLiqPorc!=null?parseFloat(r.helioLiqPorc):null,liqP:r.helioLiqPresion!=null?parseFloat(r.helioLiqPresion):null};});
+  allLecturas.sort(function(a,b){return a.t-b.t;});
+  var RECENT_RISK_DAYS=90;
+  function recentTrendPts(pts){
+    if(pts.length<2)return pts;
+    var lastP=pts[pts.length-1];
+    var cutoff=lastP.t-RECENT_RISK_DAYS*86400000;
+    for(var ri=0;ri<pts.length-1;ri++){
+      if(pts[ri].t>=cutoff)return [pts[ri],lastP];
+    }
+    return [pts[pts.length-2],lastP]; // sin lecturas en los últimos 90 días: usar las dos últimas disponibles
+  }
 
   // ── Alarm thresholds ──
   var LIQ_PORC_MIN=70;var LIQ_PORC_WARN=40;var LIQ_PORC_CRIT=20;
@@ -16184,8 +16202,10 @@ function _refrigHelioChart(rf,eqId){
   var liqPtsRaw=lecturas.filter(function(r){return r.liq!=null;}).map(function(r){return{t:r.t,v:r.liq};});
   var gasPtsRaw=lecturas.filter(function(r){return r.gas!=null;}).map(function(r){return{t:r.t,v:r.gas};});
   var liqPresPtsRaw=lecturas.filter(function(r){return r.liqP!=null;}).map(function(r){return{t:r.t,v:r.liqP};});
-  var liqRisk=riesgoCalc(liqPtsRaw,1.5,4,isNaN(curLiqPorc)?null:curLiqPorc,LIQ_PORC_CRIT,LIQ_PORC_WARN);
-  var gasRisk=riesgoCalc(gasPtsRaw,0.05,0.15,isNaN(curGas)?null:curGas,GAS_MIN,GAS_MIN+0.05);
+  var liqPtsAllRaw=allLecturas.filter(function(r){return r.liq!=null;}).map(function(r){return{t:r.t,v:r.liq};});
+  var gasPtsAllRaw=allLecturas.filter(function(r){return r.gas!=null;}).map(function(r){return{t:r.t,v:r.gas};});
+  var liqRisk=riesgoCalc(recentTrendPts(liqPtsAllRaw),1.5,4,isNaN(curLiqPorc)?null:curLiqPorc,LIQ_PORC_CRIT,LIQ_PORC_WARN);
+  var gasRisk=riesgoCalc(recentTrendPts(gasPtsAllRaw),0.05,0.15,isNaN(curGas)?null:curGas,GAS_MIN,GAS_MIN+0.05);
 
   // ── Chart A: Helio Líquido (% left, presión right) ──
   var WA=560;var HA=165;var pLA=40;var pRA=44;var pTA=20;var pBA=30;
@@ -16348,7 +16368,7 @@ function _refrigHelioChart(rf,eqId){
   h2+='<div style="border-radius:8px;background:rgba(99,179,237,.03);border:1px solid rgba(99,179,237,.1);padding:8px 4px 4px;overflow:hidden;">'+sB+'</div>';
   h2+=riskCardHTML(gasRisk,'MPa');
   h2+='</div>';
-  h2+='<div style="font-size:.56rem;color:var(--text3);opacity:.75;margin-top:10px;text-align:center;">Estimación basada en tus propias lecturas registradas — no reemplaza el diagnóstico del service técnico.</div>';
+  h2+='<div style="font-size:.56rem;color:var(--text3);opacity:.75;margin-top:10px;text-align:center;">Estimación basada en tus propias lecturas registradas — no reemplaza el diagnóstico del service técnico. El riesgo de pérdida siempre analiza la tendencia de los últimos 90 días, sin importar qué rango del gráfico estés mirando.</div>';
   h2+='</div>';
   return h2;
 }
@@ -19298,12 +19318,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="5.5.0";
+var APP_DISPLAY_VERSION="5.5.1";
 var APP_BUILD="10/08/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'5.5.1',fecha:'10/08/2026',tipo:'patch',cambios:[
+    'Corrige el cálculo de riesgo de pérdida de helio: ahora siempre analiza la tendencia real de los últimos 90 días, sin diluirse con el rango de fecha que el gráfico tenga seleccionado'
+  ]},
   {v:'5.5.0',fecha:'10/08/2026',tipo:'minor',cambios:[
     'Calendario PM: programar mantenimientos de varios días con hora de inicio y fin en formato 24h'
   ]},
