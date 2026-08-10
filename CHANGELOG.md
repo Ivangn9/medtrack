@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v5.5.2 — 10/08/2026 (patch)
+
+- Corrige el riesgo de helio gaseoso: mide la racha de baja desde la última recarga (no una ventana fija) y ajusta los umbrales de alerta a la realidad de un magneto zero boil-off
+
 ## v5.5.1 — 10/08/2026 (patch)
 
 - Corrige el cálculo de riesgo de pérdida de helio: ahora siempre analiza la tendencia real de los últimos 90 días, sin diluirse con el rango de fecha que el gráfico tenga seleccionado
