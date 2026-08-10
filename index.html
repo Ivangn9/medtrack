@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.08.10.001 -->
+<!-- v2026.08.10.002 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.08.10.001">
+<meta name="app-version" content="v2026.08.10.002">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -2117,9 +2117,7 @@ function saveData(){
 var _kpiUsdRate=null;
 var _kpiUsdRateTS=0;
 var _kpiUsdRateSrc='oficial';
-var _refrigChartYear={};
-var _refrigChartMonth={};
-var _refrigChartMode={};
+var _refrigChartRange={};
 function _kpiUpdateHint(sel){
   if(!sel)return;
   var isARS=sel.value==='ARS';
@@ -15828,13 +15826,8 @@ function _processGEUrlUpdate(){
   setTimeout(function(){goDetalle(eqId);},400);
 }
 
-function setRefrigChartNav(eqId,year,month){
-  _refrigChartYear[eqId]=parseInt(year,10);
-  if(month!==null&&month!==undefined)_refrigChartMonth[eqId]=parseInt(month,10);
-  render();
-}
-function setRefrigChartMode(eqId,mode){
-  _refrigChartMode[eqId]=mode;
+function setRefrigChartRange(eqId,range){
+  _refrigChartRange[eqId]=range;
   render();
 }
 
@@ -16048,56 +16041,26 @@ function _rLecturasSalaSection(eq,rf){
   '</div></div>';
 }
 function _refrigHelioChart(rf,eqId){
-  var nowD=new Date();
-  var nowY=nowD.getFullYear();
-  var nowM=nowD.getMonth();
-  var mode=_refrigChartMode[eqId]||'anual';
-  var year=_refrigChartYear[eqId]||nowY;
-  var month=(_refrigChartMonth[eqId]!=null?_refrigChartMonth[eqId]:nowM);
+  var RANGE_DEFS={'1m':{days:30,label:'1M'},'3m':{days:90,label:'3M'},'6m':{days:180,label:'6M'},'1a':{days:365,label:'1A'},'2a':{days:730,label:'2A'}};
+  var range=_refrigChartRange[eqId]||'1a';
+  if(!RANGE_DEFS[range])range='1a';
   var mNames=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-  var lecturas=(rf.lecturas||[]).slice();
-  lecturas.sort(function(a,b){return(a.fecha||'')<(b.fecha||'')?-1:1;});
-  var xLabels=[];var gasArr=[];var liqArr=[];var liqPresArr=[];
-  if(mode==='anual'){
-    var baseDate=new Date(nowY,nowM,1);
-    for(var ai=11;ai>=0;ai--){
-      var md=new Date(baseDate.getFullYear(),baseDate.getMonth()-ai+(year-nowY)*12,1);
-      xLabels.push(mNames[md.getMonth()]+(md.getFullYear()!==nowY?' \''+String(md.getFullYear()).slice(2):''));
-      var mk=md.getFullYear()+'-'+(md.getMonth()<9?'0':'')+(md.getMonth()+1);
-      var lastGas=null;var lastLiq=null;var lastLiqP=null;
-      lecturas.forEach(function(r){
-        if(!r.fecha)return;
-        if(r.fecha.slice(0,7)!==mk)return;
-        if(r.helioGasPresion!=null)lastGas=parseFloat(r.helioGasPresion);
-        if(r.helioLiqPorc!=null)lastLiq=parseFloat(r.helioLiqPorc);
-        if(r.helioLiqPresion!=null)lastLiqP=parseFloat(r.helioLiqPresion);
-      });
-      gasArr.push(lastGas);liqArr.push(lastLiq);liqPresArr.push(lastLiqP);
-    }
-  } else {
-    var daysInM=new Date(year,month+1,0).getDate();
-    for(var di=1;di<=daysInM;di++)xLabels.push(di);
-    gasArr=new Array(daysInM).fill(null);
-    liqArr=new Array(daysInM).fill(null);
-    liqPresArr=new Array(daysInM).fill(null);
-    lecturas.forEach(function(r){
-      if(!r.fecha)return;
-      var dt=new Date(r.fecha+'T12:00:00');
-      if(dt.getFullYear()!==year||dt.getMonth()!==month)return;
-      var day=dt.getDate()-1;
-      if(r.helioGasPresion!=null)gasArr[day]=parseFloat(r.helioGasPresion);
-      if(r.helioLiqPorc!=null)liqArr[day]=parseFloat(r.helioLiqPorc);
-      if(r.helioLiqPresion!=null)liqPresArr[day]=parseFloat(r.helioLiqPresion);
-    });
-  }
-  var n=xLabels.length;
-  var xStep=mode==='mensual'?Math.ceil(n/10):1;
-  var curIdx=mode==='anual'&&year===nowY?11:(mode==='mensual'&&year===nowY&&month===nowM?(nowD.getDate()-1):-1);
+  var rangeEnd=Date.now();
+  var rangeStart=rangeEnd-RANGE_DEFS[range].days*86400000;
+  var rangeMs=rangeEnd-rangeStart;
+  function fracOf(t){return rangeMs>0?Math.max(0,Math.min(1,(t-rangeStart)/rangeMs)):0;}
+  function fmtTick(t){var d=new Date(t);return(range==='1m'||range==='3m')?(d.getDate()+' '+mNames[d.getMonth()]):(mNames[d.getMonth()]+' \''+String(d.getFullYear()).slice(2));}
   var fg='rgba(255,255,255,.42)';var gridC='rgba(255,255,255,.05)';
-  function xpOf(i,pL2,plotW2){return pL2+(n>1?i/(n-1)*plotW2:plotW2/2);}
+
+  var lecturas=(rf.lecturas||[]).filter(function(r){
+    if(!r.fecha)return false;
+    var t=new Date(r.fecha+'T12:00:00').getTime();
+    return t>=rangeStart&&t<=rangeEnd;
+  }).map(function(r){return{t:new Date(r.fecha+'T12:00:00').getTime(),gas:r.helioGasPresion!=null?parseFloat(r.helioGasPresion):null,liq:r.helioLiqPorc!=null?parseFloat(r.helioLiqPorc):null,liqP:r.helioLiqPresion!=null?parseFloat(r.helioLiqPresion):null};});
+  lecturas.sort(function(a,b){return a.t-b.t;});
 
   // ── Alarm thresholds ──
-  var LIQ_PORC_MIN=70;
+  var LIQ_PORC_MIN=70;var LIQ_PORC_WARN=40;var LIQ_PORC_CRIT=20;
   var LIQ_PRES_MIN=0.9;var LIQ_PRES_MAX=2.0;
   var GAS_MIN=2.0;var GAS_MAX=2.3;
 
@@ -16114,14 +16077,62 @@ function _refrigHelioChart(rf,eqId){
   if(!isNaN(curGas)&&curGas>GAS_MAX)gasAlarms+=alarmBadge('Presión alta '+curGas+' MPa','#fb923c');
   if(!isNaN(curGas)&&curGas<GAS_MIN)gasAlarms+=alarmBadge('Presión baja '+curGas+' MPa','#f87171');
 
-  // ── Chart A: Helio Líquido (% left, bar right) ──
+  // ── Riesgo de pérdida / evaporación: compara la primera y la última lectura
+  // del período elegido y proyecta cuándo llegaría al umbral crítico si sigue
+  // a ese ritmo. Es una estimación a partir de tus propias lecturas — no un
+  // cálculo certificado por el fabricante.
+  function riesgoCalc(pts,rateLowMax,rateModMax,curVal,critVal,warnVal){
+    if(pts.length<2)return null;
+    var first=pts[0],last=pts[pts.length-1];
+    var deltaAbs=first.v-last.v;
+    var deltaPct=first.v?(deltaAbs/first.v*100):null;
+    var days=Math.max(1,(last.t-first.t)/86400000);
+    var tasaMensual=deltaAbs/days*30;
+    var riesgo='ok',label='Sin pérdida en el período',color='#34d399';
+    if(tasaMensual>0){
+      if(tasaMensual<rateLowMax){riesgo='bajo';label='Riesgo bajo';color='#34d399';}
+      else if(tasaMensual<rateModMax){riesgo='moderado';label='Riesgo moderado';color='#fb923c';}
+      else{riesgo='alto';label='Riesgo alto';color='#f87171';}
+    }
+    // El riesgo final es el peor entre "qué tan rápido cae" y "qué tan cerca está del umbral" —
+    // un descenso lento pero ya pegado al mínimo es tan urgente como uno rápido.
+    var order={ok:0,bajo:1,moderado:2,alto:3};
+    if(curVal!=null&&!isNaN(curVal)){
+      var proxRiesgo='ok',proxLabel='',proxColor='';
+      if(curVal<critVal){proxRiesgo='alto';proxLabel='Riesgo alto — nivel crítico';proxColor='#f87171';}
+      else if(curVal<warnVal){proxRiesgo='moderado';proxLabel='Riesgo moderado — cerca del umbral';proxColor='#fb923c';}
+      if(order[proxRiesgo]>order[riesgo]){riesgo=proxRiesgo;label=proxLabel;color=proxColor;}
+    }
+    var proyeccionDias=null;
+    if(tasaMensual>0&&curVal!=null&&!isNaN(curVal)&&curVal>critVal)proyeccionDias=Math.round((curVal-critVal)/(tasaMensual/30));
+    return{deltaAbs:deltaAbs,deltaPct:deltaPct,tasaMensual:tasaMensual,riesgo:riesgo,label:label,color:color,proyeccionDias:proyeccionDias,days:Math.round(days)};
+  }
+  function riskCardHTML(r,unit){
+    if(!r)return'<div style="font-size:.62rem;color:var(--text3);margin-top:6px;">📊 Hacen falta al menos 2 lecturas en este período para calcular la tendencia</div>';
+    var arrow=r.deltaAbs>0.001?'↓':(r.deltaAbs<-0.001?'↑':'→');
+    var deltaTxt=(r.deltaAbs>0.001?'-':(r.deltaAbs<-0.001?'+':'±'))+Math.abs(r.deltaAbs).toFixed(2)+' '+unit+(r.deltaPct!=null?' ('+(r.deltaAbs>0.001?'-':'+')+Math.abs(r.deltaPct).toFixed(1)+'%)':'');
+    var tasaTxt=r.tasaMensual>0.001?('~'+r.tasaMensual.toFixed(2)+' '+unit+'/mes'):'estable';
+    var proyTxt=r.proyeccionDias?(' · nivel crítico en ~'+(r.proyeccionDias>60?Math.round(r.proyeccionDias/30)+' meses':r.proyeccionDias+' días')+' (estimado)'):'';
+    return'<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:6px;padding:7px 10px;border-radius:10px;background:'+r.color+'14;border:1px solid '+r.color+'40;">'+
+      '<span style="font-size:.7rem;font-weight:800;color:'+r.color+';">'+arrow+' '+deltaTxt+'</span>'+
+      '<span style="font-size:.6rem;color:var(--text3);">en '+r.days+' días · '+tasaTxt+proyTxt+'</span>'+
+      '<span style="margin-left:auto;font-size:.6rem;font-weight:700;padding:2px 8px;border-radius:20px;background:'+r.color+'25;color:'+r.color+';white-space:nowrap;">'+r.label+'</span>'+
+    '</div>';
+  }
+  var liqPtsRaw=lecturas.filter(function(r){return r.liq!=null;}).map(function(r){return{t:r.t,v:r.liq};});
+  var gasPtsRaw=lecturas.filter(function(r){return r.gas!=null;}).map(function(r){return{t:r.t,v:r.gas};});
+  var liqPresPtsRaw=lecturas.filter(function(r){return r.liqP!=null;}).map(function(r){return{t:r.t,v:r.liqP};});
+  var liqRisk=riesgoCalc(liqPtsRaw,1.5,4,isNaN(curLiqPorc)?null:curLiqPorc,LIQ_PORC_CRIT,LIQ_PORC_WARN);
+  var gasRisk=riesgoCalc(gasPtsRaw,0.05,0.15,isNaN(curGas)?null:curGas,GAS_MIN,GAS_MIN+0.05);
+
+  // ── Chart A: Helio Líquido (% left, presión right) ──
   var WA=560;var HA=165;var pLA=40;var pRA=44;var pTA=20;var pBA=30;
   var plotWA=WA-pLA-pRA;var plotHA=HA-pTA-pBA;
-  var liqPresVals=liqPresArr.filter(function(v){return v!=null;});
+  var liqPresVals=liqPresPtsRaw.map(function(p){return p.v;});
   var liqPresTop=liqPresVals.length?Math.max(Math.ceil(Math.max.apply(null,liqPresVals)*1.25),LIQ_PRES_MAX*1.3):3.0;
   function liqPorcYp(v){return pTA+plotHA-(v/100)*plotHA;}
   function liqPresYp(v){return pTA+plotHA-(v/liqPresTop)*plotHA;}
-  function xpA(i){return xpOf(i,pLA,plotWA);}
+  function xpA(t){return pLA+fracOf(t)*plotWA;}
   var sA='<svg width="100%" viewBox="0 0 '+WA+' '+HA+'" xmlns="http://www.w3.org/2000/svg" style="display:block;">';
   // Alarm zone: below 70% (red tint)
   var y70=liqPorcYp(LIQ_PORC_MIN);
@@ -16149,17 +16160,14 @@ function _refrigHelioChart(rf,eqId){
   sA+='<line x1="'+pLA+'" y1="'+(pTA+plotHA)+'" x2="'+(WA-pRA)+'" y2="'+(pTA+plotHA)+'" stroke="rgba(255,255,255,.08)" stroke-width="1"/>';
   sA+='<text x="'+(pLA-2)+'" y="'+(pTA-6)+'" text-anchor="end" fill="rgba(8,145,178,.7)" font-size="7.5" font-family="system-ui,sans-serif" font-weight="700">%</text>';
   sA+='<text x="'+(WA-pRA+2)+'" y="'+(pTA-6)+'" text-anchor="start" fill="rgba(52,211,153,.7)" font-size="7.5" font-family="system-ui,sans-serif" font-weight="700">PSI</text>';
-  // X labels
-  for(var xiA=0;xiA<n;xiA++){
-    if(xiA%xStep===0){
-      var isNowA=(mode==='anual'&&year===nowY&&xiA===11)||(mode==='mensual'&&year===nowY&&month===nowM&&xiA===(nowD.getDate()-1));
-      sA+='<text x="'+xpA(xiA).toFixed(1)+'" y="'+(pTA+plotHA+12)+'" text-anchor="middle" fill="'+(isNowA?'#38bdf8':fg)+'" font-size="8" font-family="system-ui,sans-serif" font-weight="'+(isNowA?700:400)+'">'+xLabels[xiA]+'</text>';
-    }
+  // X ticks (por fecha real, 5 marcas parejas en el período)
+  for(var tkA=0;tkA<=4;tkA++){
+    var ttA=rangeStart+rangeMs*(tkA/4);var txA=pLA+(tkA/4)*plotWA;
+    sA+='<text x="'+txA.toFixed(1)+'" y="'+(pTA+plotHA+12)+'" text-anchor="middle" fill="'+fg+'" font-size="8" font-family="system-ui,sans-serif">'+fmtTick(ttA)+'</text>';
   }
-  if(curIdx>=0&&curIdx<n)sA+='<line x1="'+xpA(curIdx).toFixed(1)+'" y1="'+pTA+'" x2="'+xpA(curIdx).toFixed(1)+'" y2="'+(pTA+plotHA)+'" stroke="rgba(56,189,248,.3)" stroke-width="1.5" stroke-dasharray="3,3"/>';
   // Build point sets
-  var liqPts=[];for(var li=0;li<n;li++){if(liqArr[li]!=null)liqPts.push({x:xpA(li),y:liqPorcYp(liqArr[li]),v:liqArr[li]});}
-  var liqPresPts=[];for(var lpi=0;lpi<n;lpi++){if(liqPresArr[lpi]!=null)liqPresPts.push({x:xpA(lpi),y:liqPresYp(liqPresArr[lpi]),v:liqPresArr[lpi]});}
+  var liqPts=liqPtsRaw.map(function(p){return{x:xpA(p.t),y:liqPorcYp(p.v),v:p.v};});
+  var liqPresPts=liqPresPtsRaw.map(function(p){return{x:xpA(p.t),y:liqPresYp(p.v),v:p.v};});
   // Draw % area+line
   if(liqPts.length>1){
     var la='M '+liqPts[0].x.toFixed(1)+' '+(pTA+plotHA)+' L '+liqPts[0].x.toFixed(1)+' '+liqPts[0].y.toFixed(1);
@@ -16193,10 +16201,10 @@ function _refrigHelioChart(rf,eqId){
   // ── Chart B: Helio Gaseoso (MPa) ──
   var WB=560;var HB=155;var pLB=46;var pRB=20;var pTB=20;var pBB=30;
   var plotWB=WB-pLB-pRB;var plotHB=HB-pTB-pBB;
-  var gasVals=gasArr.filter(function(v){return v!=null;});
-  var gasTop=gasVals.length?Math.max(Math.max.apply(null,gasVals)*1.25,GAS_MAX*1.3):3.0;
+  var gasValsArr=gasPtsRaw.map(function(p){return p.v;});
+  var gasTop=gasValsArr.length?Math.max(Math.max.apply(null,gasValsArr)*1.25,GAS_MAX*1.3):3.0;
   function gasYp2(v){return pTB+plotHB-(v/gasTop)*plotHB;}
-  function xpB(i){return xpOf(i,pLB,plotWB);}
+  function xpB(t){return pLB+fracOf(t)*plotWB;}
   var sB='<svg width="100%" viewBox="0 0 '+WB+' '+HB+'" xmlns="http://www.w3.org/2000/svg" style="display:block;">';
   // Optimal band 2.0–2.3 (green)
   var yG20=gasYp2(GAS_MIN);var yG23=gasYp2(GAS_MAX);
@@ -16221,16 +16229,13 @@ function _refrigHelioChart(rf,eqId){
   sB+='<line x1="'+pLB+'" y1="'+pTB+'" x2="'+pLB+'" y2="'+(pTB+plotHB)+'" stroke="rgba(99,179,237,.2)" stroke-width="1"/>';
   sB+='<line x1="'+pLB+'" y1="'+(pTB+plotHB)+'" x2="'+(WB-pRB)+'" y2="'+(pTB+plotHB)+'" stroke="rgba(255,255,255,.08)" stroke-width="1"/>';
   sB+='<text x="'+(pLB-2)+'" y="'+(pTB-6)+'" text-anchor="end" fill="rgba(99,179,237,.7)" font-size="7.5" font-family="system-ui,sans-serif" font-weight="700">MPa</text>';
-  // X labels
-  for(var xiB=0;xiB<n;xiB++){
-    if(xiB%xStep===0){
-      var isNowB=(mode==='anual'&&year===nowY&&xiB===11)||(mode==='mensual'&&year===nowY&&month===nowM&&xiB===(nowD.getDate()-1));
-      sB+='<text x="'+xpB(xiB).toFixed(1)+'" y="'+(pTB+plotHB+12)+'" text-anchor="middle" fill="'+(isNowB?'#38bdf8':fg)+'" font-size="8" font-family="system-ui,sans-serif" font-weight="'+(isNowB?700:400)+'">'+xLabels[xiB]+'</text>';
-    }
+  // X ticks
+  for(var tkB=0;tkB<=4;tkB++){
+    var ttB=rangeStart+rangeMs*(tkB/4);var txB=pLB+(tkB/4)*plotWB;
+    sB+='<text x="'+txB.toFixed(1)+'" y="'+(pTB+plotHB+12)+'" text-anchor="middle" fill="'+fg+'" font-size="8" font-family="system-ui,sans-serif">'+fmtTick(ttB)+'</text>';
   }
-  if(curIdx>=0&&curIdx<n)sB+='<line x1="'+xpB(curIdx).toFixed(1)+'" y1="'+pTB+'" x2="'+xpB(curIdx).toFixed(1)+'" y2="'+(pTB+plotHB)+'" stroke="rgba(56,189,248,.3)" stroke-width="1.5" stroke-dasharray="3,3"/>';
   // Gas points
-  var gasPts2=[];for(var gi2=0;gi2<n;gi2++){if(gasArr[gi2]!=null)gasPts2.push({x:xpB(gi2),y:gasYp2(gasArr[gi2]),v:gasArr[gi2]});}
+  var gasPts2=gasPtsRaw.map(function(p){return{x:xpB(p.t),y:gasYp2(p.v),v:p.v};});
   if(gasPts2.length>1){
     var ga='M '+gasPts2[0].x.toFixed(1)+' '+(pTB+plotHB)+' L '+gasPts2[0].x.toFixed(1)+' '+gasPts2[0].y.toFixed(1);
     for(var gpi=1;gpi<gasPts2.length;gpi++)ga+=' L '+gasPts2[gpi].x.toFixed(1)+' '+gasPts2[gpi].y.toFixed(1);
@@ -16247,32 +16252,16 @@ function _refrigHelioChart(rf,eqId){
   if(gasPts2.length===0)sB+='<text x="'+(WB/2)+'" y="'+(HB/2+4)+'" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="11" font-family="system-ui,sans-serif">Sin lecturas para este período</text>';
   sB+='</svg>';
 
-  // Navigation
-  var btnSt='background:none;border:1px solid rgba(99,179,237,.3);border-radius:5px;color:#63b3ed;cursor:pointer;padding:2px 10px;font-size:.82rem;line-height:1.5;';
-  var navLabel='';var prevArgs='';var nextArgs='';
-  if(mode==='anual'){
-    navLabel=String(year);
-    prevArgs='\''+eqId+'\','+(year-1)+',null';
-    nextArgs='\''+eqId+'\','+(year+1)+',null';
-  } else {
-    navLabel=mNames[month]+' '+year;
-    var pm=month-1<0?11:month-1;var pmy=month-1<0?year-1:year;
-    var nm=month+1>11?0:month+1;var nmy=month+1>11?year+1:year;
-    prevArgs='\''+eqId+'\','+pmy+','+pm;
-    nextArgs='\''+eqId+'\','+nmy+','+nm;
-  }
+  // Selector de rango
   var h2='<div style="margin-top:16px;border-top:1px solid rgba(99,179,237,.15);padding-top:12px;">';
-  h2+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px;">';
+  h2+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:6px;">';
   h2+='<span style="font-size:.68rem;font-weight:700;color:#0891b2;text-transform:uppercase;letter-spacing:.05em;">📈 Helio — Tendencia</span>';
-  h2+='<div style="display:flex;gap:3px;">';
-  h2+='<button onclick="setRefrigChartMode(\''+eqId+'\',\'anual\')" style="min-height:32px;padding:7px 13px;border-radius:var(--r-pill);font-size:.72rem;font-weight:700;cursor:pointer;border:1.5px solid rgba(99,179,237,'+(mode==='anual'?.5:.25)+');'+(mode==='anual'?'background:rgba(8,145,178,.18);color:#63b3ed;':'background:rgba(255,255,255,.05);color:var(--text3);')+'">Anual</button>';
-  h2+='<button onclick="setRefrigChartMode(\''+eqId+'\',\'mensual\')" style="min-height:32px;padding:7px 13px;border-radius:var(--r-pill);font-size:.72rem;font-weight:700;cursor:pointer;border:1.5px solid rgba(99,179,237,'+(mode==='mensual'?.5:.25)+');'+(mode==='mensual'?'background:rgba(8,145,178,.18);color:#63b3ed;':'background:rgba(255,255,255,.05);color:var(--text3);')+'">Mensual</button>';
+  h2+='<div style="display:flex;gap:3px;flex-wrap:wrap;">';
+  ['1m','3m','6m','1a','2a'].forEach(function(rk){
+    var act=range===rk;
+    h2+='<button onclick="setRefrigChartRange(\''+eqId+'\',\''+rk+'\')" style="min-height:30px;padding:6px 11px;border-radius:var(--r-pill);font-size:.7rem;font-weight:700;cursor:pointer;border:1.5px solid rgba(99,179,237,'+(act?.5:.25)+');'+(act?'background:rgba(8,145,178,.18);color:#63b3ed;':'background:rgba(255,255,255,.05);color:var(--text3);')+'">'+RANGE_DEFS[rk].label+'</button>';
+  });
   h2+='</div></div>';
-  h2+='<div style="display:flex;align-items:center;justify-content:flex-end;gap:6px;margin-bottom:12px;">';
-  h2+='<button onclick="setRefrigChartNav('+prevArgs+')" style="'+btnSt+'">‹</button>';
-  h2+='<span style="font-size:.78rem;font-weight:700;color:var(--text2);min-width:80px;text-align:center;">'+navLabel+'</span>';
-  h2+='<button onclick="setRefrigChartNav('+nextArgs+')" style="'+btnSt+'">›</button>';
-  h2+='</div>';
   // Chart A
   h2+='<div style="margin-bottom:14px;">';
   h2+='<div style="display:flex;align-items:center;flex-wrap:wrap;gap:5px;margin-bottom:6px;">';
@@ -16284,7 +16273,9 @@ function _refrigHelioChart(rf,eqId){
   h2+='<div style="display:flex;gap:16px;margin-top:5px;justify-content:center;">';
   h2+='<div style="display:flex;align-items:center;gap:5px;font-size:.65rem;color:rgba(255,255,255,.45);"><svg width="20" height="9" viewBox="0 0 20 9"><line x1="0" y1="4.5" x2="20" y2="4.5" stroke="#0891b2" stroke-width="2.2"/><circle cx="10" cy="4.5" r="3" fill="#0ea5e9"/></svg>Nivel %</div>';
   h2+='<div style="display:flex;align-items:center;gap:5px;font-size:.65rem;color:rgba(255,255,255,.45);"><svg width="20" height="9" viewBox="0 0 20 9"><line x1="0" y1="4.5" x2="5" y2="4.5" stroke="#34d399" stroke-width="2" stroke-dasharray="4,3"/><line x1="7" y1="4.5" x2="13" y2="4.5" stroke="#34d399" stroke-width="2" stroke-dasharray="4,3"/><line x1="15" y1="4.5" x2="20" y2="4.5" stroke="#34d399" stroke-width="2" stroke-dasharray="4,3"/><circle cx="10" cy="4.5" r="3" fill="#34d399"/></svg>Presión PSI</div>';
-  h2+='</div></div>';
+  h2+='</div>';
+  h2+=riskCardHTML(liqRisk,'%');
+  h2+='</div>';
   // Chart B
   h2+='<div>';
   h2+='<div style="display:flex;align-items:center;flex-wrap:wrap;gap:5px;margin-bottom:6px;">';
@@ -16293,7 +16284,9 @@ function _refrigHelioChart(rf,eqId){
   h2+=gasAlarms;
   h2+='</div>';
   h2+='<div style="border-radius:8px;background:rgba(99,179,237,.03);border:1px solid rgba(99,179,237,.1);padding:8px 4px 4px;overflow:hidden;">'+sB+'</div>';
+  h2+=riskCardHTML(gasRisk,'MPa');
   h2+='</div>';
+  h2+='<div style="font-size:.56rem;color:var(--text3);opacity:.75;margin-top:10px;text-align:center;">Estimación basada en tus propias lecturas registradas — no reemplaza el diagnóstico del service técnico.</div>';
   h2+='</div>';
   return h2;
 }
@@ -19243,12 +19236,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="5.3.2";
+var APP_DISPLAY_VERSION="5.4.0";
 var APP_BUILD="10/08/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'5.4.0',fecha:'10/08/2026',tipo:'minor',cambios:[
+    'Gráfico de Helio: selector de rango (1M/3M/6M/1A/2A), gráficos separados líquido/gaseoso con línea de tiempo real, y cálculo de riesgo de pérdida/evaporación con proyección a nivel crítico'
+  ]},
   {v:'5.3.2',fecha:'10/08/2026',tipo:'patch',cambios:[
     'Corrige vidrio-sobre-vidrio (Liquid Glass) en header y modales: back-btn, botón de búsqueda, estado de equipos, tarjetas .gc anidadas y filtros del panel de reportes ya no duplican el blur — menos carga de GPU, más nítido en iPhone'
   ]},

@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v5.4.0 — 10/08/2026 (minor)
+
+- Gráfico de Helio: selector de rango (1M/3M/6M/1A/2A), gráficos separados líquido/gaseoso con línea de tiempo real, y cálculo de riesgo de pérdida/evaporación con proyección a nivel crítico
+
 ## v5.3.2 — 10/08/2026 (patch)
 
 - Corrige vidrio-sobre-vidrio (Liquid Glass) en header y modales: back-btn, botón de búsqueda, estado de equipos, tarjetas .gc anidadas y filtros del panel de reportes ya no duplican el blur — menos carga de GPU, más nítido en iPhone
