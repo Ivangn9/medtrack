@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v5.3.2 — 10/08/2026 (patch)
+
+- Corrige vidrio-sobre-vidrio (Liquid Glass) en header y modales: back-btn, botón de búsqueda, estado de equipos, tarjetas .gc anidadas y filtros del panel de reportes ya no duplican el blur — menos carga de GPU, más nítido en iPhone
+
 ## v5.3.1 — 08/08/2026 (patch)
 
 - Mensaje más claro al configurar contraseña con sesión de Firebase vencida (auth/user-token-expired)
