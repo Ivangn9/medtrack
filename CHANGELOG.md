@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v5.5.0 — 10/08/2026 (minor)
+
+- Calendario PM: programar mantenimientos de varios días con hora de inicio y fin en formato 24h
+
 ## v5.4.0 — 10/08/2026 (minor)
 
 - Gráfico de Helio: selector de rango (1M/3M/6M/1A/2A), gráficos separados líquido/gaseoso con línea de tiempo real, y cálculo de riesgo de pérdida/evaporación con proyección a nivel crítico
