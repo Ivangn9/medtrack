@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v5.6.0 — 10/08/2026 (minor)
+
+- Helio Líquido: separa Nivel % y Presión en dos gráficos independientes (como Gaseoso) y corrige los umbrales reales — nivel crítico 65%, presión 0.8–1.5
+
 ## v5.5.2 — 10/08/2026 (patch)
 
 - Corrige el riesgo de helio gaseoso: mide la racha de baja desde la última recarga (no una ventana fija) y ajusta los umbrales de alerta a la realidad de un magneto zero boil-off
