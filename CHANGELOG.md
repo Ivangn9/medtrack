@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v5.6.1 — 24/08/2026 (patch)
+
+- Corrige fallas de antena que reaparecían tras marcarlas como reparadas desde el botón genérico
+
 ## v5.6.0 — 10/08/2026 (minor)
 
 - Helio Líquido: separa Nivel % y Presión en dos gráficos independientes (como Gaseoso) y corrige los umbrales reales — nivel crítico 65%, presión 0.8–1.5

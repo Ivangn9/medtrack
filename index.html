@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.08.10.006 -->
+<!-- v2026.08.24.001 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.08.10.006">
+<meta name="app-version" content="v2026.08.24.001">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3500,6 +3500,21 @@ function confirmarReparacion(eqId,pid){
   if(!eq)return;
   var pt=eq.partes.find(function(p){return p.id===pid;});
   if(!pt)return;
+  // Si la parte es el espejo de una rotura de antena (creado en submitAddRoturaV2), este
+  // botón genérico también tiene que cerrar la rotura real en antenas[] — si no, la falla
+  // sigue "roto" ahí y _rDetalleFallas/getAlertas/rAntenas la vuelven a mostrar activa
+  // aunque el historial del equipo ya la haya registrado como reparada.
+  if(pt._antenaRoturaId&&pt._antenaId){
+    var ant=antenas.find(function(a){return a.id===pt._antenaId;});
+    var rot=ant?(ant.roturas||[]).find(function(r){return r.id===pt._antenaRoturaId;}):null;
+    if(ant&&rot){
+      var histEntryAnt={id:'HA-'+Date.now(),fecha:fecha,fechaRotura:rot.fecha,queSeRompio:rot.queSeRompio,descripcion:rot.descripcion,tecnico:tecnico||rot.tecnico,empresa:rot.empresa||'',fechaEnvio:rot.fechaEnvio||'',fotos:rot.fotos||[],presupuestosArreglo:rot.presupuestosArreglo||[],notasSeguimiento:rot.notasSeguimiento||[],presupuestoArregloPdf:rot.presupuestoArregloPdf||null,reporteArregloPdf:null,precio:pt.precio||'',precioMoneda:pt.precioMoneda||'USD',registradoEn:new Date().toISOString()};
+      antenas=antenas.map(function(a){
+        if(a.id!==pt._antenaId)return a;
+        return Object.assign({},a,{roturas:(a.roturas||[]).filter(function(r){return r.id!==pt._antenaRoturaId;}),historialAntena:(a.historialAntena||[]).concat(histEntryAnt)});
+      });
+    }
+  }
   eqs=eqs.map(function(e){
     if(e.id!==eqId)return e;
     var hist=(e.historialMant||[]).concat({id:"HP-"+Date.now(),fecha:fecha,tipo:"reparacion",nombre:pt.nombre,marca:pt.marca||"",nroSerie:pt.nroSerie||"",fechaRotura:pt.fechaRotura||"",notas:notas||pt.notas||"",sinCosto:pt.sinCosto||false,precio:pt.precio||"",tecnico:tecnico,archivos:pt.archivos||[],registradoEn:new Date().toISOString(),_parteOriginal:Object.assign({},pt)});
@@ -19351,12 +19366,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="5.6.0";
-var APP_BUILD="10/08/26 h";
+var APP_DISPLAY_VERSION="5.6.1";
+var APP_BUILD="24/08/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'5.6.1',fecha:'24/08/2026',tipo:'patch',cambios:[
+    'Corrige fallas de antena que reaparecían tras marcarlas como reparadas desde el botón genérico'
+  ]},
   {v:'5.6.0',fecha:'10/08/2026',tipo:'minor',cambios:[
     'Helio Líquido: separa Nivel % y Presión en dos gráficos independientes (como Gaseoso) y corrige los umbrales reales — nivel crítico 65%, presión 0.8–1.5'
   ]},
