@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v5.7.0 — 24/08/2026 (minor)
+
+- Sincroniza por completo las roturas espejadas: reparar desde cualquier lado (partes, antena, transductor o falla directa) cierra los demás y las ediciones ya no rompen el vínculo
+
 ## v5.6.1 — 24/08/2026 (patch)
 
 - Corrige fallas de antena que reaparecían tras marcarlas como reparadas desde el botón genérico

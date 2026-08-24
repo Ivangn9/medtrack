@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.08.24.001 -->
+<!-- v2026.08.24.002 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.08.24.001">
+<meta name="app-version" content="v2026.08.24.002">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3454,9 +3454,32 @@ function saveParte(eqId,pt){
     if(ex&&ex.estado!=="ok"&&pt.estado==="ok"&&pt.fechaArreglo){
       hist.push({id:"HP-"+Date.now(),fecha:pt.fechaArreglo,tipo:"reparacion",nombre:pt.nombre,marca:pt.marca||"",nroSerie:pt.nroSerie||"",fechaRotura:pt.fechaRotura||"",notas:pt.notas||"",sinCosto:pt.sinCosto||false,precio:pt.precio||"",registradoEn:new Date().toISOString()});
     }
-    var partes=ex?_ep.map(function(x){return x.id===pt.id?pt:x;}):(function(){pt.id="PT-"+Date.now();return _ep.concat(pt);}());
+    // Merge en vez de reemplazo: preserva campos internos que el formulario genérico no conoce
+    // (_antenaRoturaId/_antenaId, seguimientos) — si no, la primera edición de una parte
+    // espejada rompe para siempre su sincronización con la antena/transductor de origen.
+    var ptMerged=ex?Object.assign({},ex,pt):pt;
+    var partes=ex?_ep.map(function(x){return x.id===pt.id?ptMerged:x;}):(function(){pt.id="PT-"+Date.now();return _ep.concat(pt);}());
     return Object.assign({},e,{partes:partes,historialMant:hist});
   });
+  // Si esta parte es el espejo de una rotura de antena y el modal genérico la dejó en "ok",
+  // hay que cerrar también la rotura real (y su posible Falla Directa asociada) — mismo
+  // criterio que confirmarReparacion, para que no reaparezca en Roturas y Fallas.
+  if(pt.estado==='ok'){
+    var eqAfter=eqs.find(function(e){return e.id===eqId;});
+    var ptAfter=eqAfter?eqAfter.partes.find(function(x){return x.id===pt.id;}):null;
+    if(ptAfter&&ptAfter._antenaRoturaId&&ptAfter._antenaId){
+      var ant=antenas.find(function(a){return a.id===ptAfter._antenaId;});
+      var rot=ant?(ant.roturas||[]).find(function(r){return r.id===ptAfter._antenaRoturaId;}):null;
+      if(ant&&rot){
+        var histEntryAnt={id:'HA-'+Date.now(),fecha:pt.fechaArreglo||today(),fechaRotura:rot.fecha,queSeRompio:rot.queSeRompio,descripcion:rot.descripcion,tecnico:pt.tecnicoReparacion||rot.tecnico||'',empresa:rot.empresa||'',fechaEnvio:rot.fechaEnvio||'',fotos:rot.fotos||[],presupuestosArreglo:rot.presupuestosArreglo||[],notasSeguimiento:rot.notasSeguimiento||[],precio:pt.precio||'',precioMoneda:pt.precioMoneda||'USD',registradoEn:new Date().toISOString()};
+        antenas=antenas.map(function(a){
+          if(a.id!==ptAfter._antenaId)return a;
+          return Object.assign({},a,{roturas:(a.roturas||[]).filter(function(r){return r.id!==ptAfter._antenaRoturaId;}),historialAntena:(a.historialAntena||[]).concat(histEntryAnt)});
+        });
+        if(rot._fallaDirectaId&&rot._eqId)_cerrarFallaDirectaMirror(rot._fallaDirectaId,rot._eqId);
+      }
+    }
+  }
   saveData();showToast("Parte guardada");closeModal();render();
 }
 // Una misma falla que rompió 2 o 3 componentes a la vez: crea UNA parte por cada
@@ -3513,6 +3536,9 @@ function confirmarReparacion(eqId,pid){
         if(a.id!==pt._antenaId)return a;
         return Object.assign({},a,{roturas:(a.roturas||[]).filter(function(r){return r.id!==pt._antenaRoturaId;}),historialAntena:(a.historialAntena||[]).concat(histEntryAnt)});
       });
+      // La rotura de antena puede a su vez ser el espejo de una Falla Directa cargada desde
+      // el equipo (submitFallaDirecta) — cerrar también esa tercera copia.
+      if(rot._fallaDirectaId&&rot._eqId)_cerrarFallaDirectaMirror(rot._fallaDirectaId,rot._eqId);
     }
   }
   eqs=eqs.map(function(e){
@@ -3522,6 +3548,47 @@ function confirmarReparacion(eqId,pid){
     return Object.assign({},e,{partes:partes,historialMant:hist});
   });
   saveData();closeModal();showToast("✅ Reparación registrada en historial");render();
+}
+// ─── Sincronización de roturas espejadas ───
+// Una misma falla puede vivir hasta en 3 lugares a la vez: la rotura real en
+// antenas[]/transductores[], su espejo en eq.partes (creado por submitAddRoturaV2) y/o su
+// espejo en eq.fallasDirectas (creado por submitFallaDirecta cuando se elige un componente
+// vinculado). Repararla desde CUALQUIERA de esos lugares tiene que cerrar los demás — si no,
+// la falla "reaparece" en Roturas y Fallas aunque el historial ya la muestre resuelta.
+function _cerrarFallaDirectaMirror(fallaDirectaId,eqId){
+  if(!fallaDirectaId||!eqId)return;
+  eqs=eqs.map(function(e){
+    if(e.id!==eqId)return e;
+    return Object.assign({},e,{fallasDirectas:(e.fallasDirectas||[]).map(function(f){
+      return f.id===fallaDirectaId&&f.estado!=='reparado'?Object.assign({},f,{estado:'reparado'}):f;
+    })});
+  });
+}
+function _cerrarRoturaMirrorDeFallaDirecta(eqId,compId,compTipo,fallaDirectaId,fecha,tecnico){
+  if(!compId||!compTipo||!fallaDirectaId)return;
+  if(compTipo==='antena'){
+    var ant=antenas.find(function(a){return a.id===compId;});
+    var rot=ant?(ant.roturas||[]).find(function(r){return r._fallaDirectaId===fallaDirectaId;}):null;
+    if(!ant||!rot)return;
+    var histA={id:'HA-'+Date.now(),fecha:fecha,fechaRotura:rot.fecha,queSeRompio:rot.queSeRompio,descripcion:rot.descripcion,tecnico:tecnico||rot.tecnico||'',empresa:rot.empresa||'',fechaEnvio:rot.fechaEnvio||'',fotos:rot.fotos||[],presupuestosArreglo:rot.presupuestosArreglo||[],notasSeguimiento:rot.notasSeguimiento||[],registradoEn:new Date().toISOString()};
+    antenas=antenas.map(function(a){
+      if(a.id!==compId)return a;
+      return Object.assign({},a,{roturas:(a.roturas||[]).filter(function(r){return r._fallaDirectaId!==fallaDirectaId;}),historialAntena:(a.historialAntena||[]).concat(histA)});
+    });
+    var histEqA={id:'HAE-'+Date.now(),fecha:fecha,tipo:'reparacion',nombre:'[Antena] '+ant.nombre+' — '+(rot.queSeRompio||''),descripcion:rot.descripcion||'',fechaRotura:rot.fecha,tecnico:tecnico||rot.tecnico||'',notas:'',archivos:[],registradoEn:new Date().toISOString()};
+    eqs=eqs.map(function(e){if(e.id!==eqId)return e;return Object.assign({},e,{historialMant:(e.historialMant||[]).concat(histEqA)});});
+  } else if(compTipo==='transductor'){
+    var tr=transductores.find(function(t){return t.id===compId;});
+    var rot2=tr?(tr.roturas||[]).find(function(r){return r._fallaDirectaId===fallaDirectaId;}):null;
+    if(!tr||!rot2)return;
+    var histT={id:'HTR-'+Date.now(),tipo:'reparacion',fecha:fecha,fechaRotura:rot2.fecha,queSeRompio:rot2.queSeRompio,descripcion:rot2.descripcion,tecnico:tecnico||rot2.tecnico||'',empresa:rot2.empresa||'',fotos:rot2.fotos||[],presupuestosArreglo:rot2.presupuestosArreglo||[],notasSeguimiento:rot2.notasSeguimiento||[],registradoEn:new Date().toISOString()};
+    transductores=transductores.map(function(t){
+      if(t.id!==compId)return t;
+      return Object.assign({},t,{roturas:(t.roturas||[]).filter(function(r){return r._fallaDirectaId!==fallaDirectaId;}),historialTransductor:(t.historialTransductor||[]).concat(histT)});
+    });
+    var histEqT={id:'HTE-'+Date.now(),fecha:fecha,tipo:'reparacion',nombre:'[Transductor] '+(tr.nombre||tr.modelo||tr.id)+' — '+(rot2.queSeRompio||''),descripcion:rot2.descripcion||'',fechaRotura:rot2.fecha,tecnico:tecnico||rot2.tecnico||'',notas:'',archivos:[],registradoEn:new Date().toISOString()};
+    eqs=eqs.map(function(e){if(e.id!==eqId)return e;return Object.assign({},e,{historialMant:(e.historialMant||[]).concat(histEqT)});});
+  }
 }
 function openModalParteById(eqId,ptId){
   var eq=eqs.find(function(e){return e.id===eqId;});if(!eq)return;
@@ -16877,6 +16944,9 @@ function submitMarkReparada(antenaId,roturaId){
         });
       });
     }
+    // La rotura puede a su vez ser el espejo de una Falla Directa cargada desde el equipo
+    // (submitFallaDirecta) — cerrar también esa copia, si no queda "roto" ahí para siempre.
+    if(rot._fallaDirectaId&&rot._eqId)_cerrarFallaDirectaMirror(rot._fallaDirectaId,rot._eqId);
     saveData();closeModal();
     showToast(linkedEq?'✅ Reparación registrada · historial actualizado en '+linkedEq.nombre:'✅ Reparación registrada en historial de antena','');
     render();
@@ -16975,6 +17045,9 @@ function submitMarkTransductorReparado(trId,rotId){
       return Object.assign({},e,{historialMant:(e.historialMant||[]).concat(histEqEntry)});
     });
   }
+  // La rotura puede a su vez ser el espejo de una Falla Directa cargada desde el equipo
+  // (submitFallaDirecta) — cerrar también esa copia, si no queda "roto" ahí para siempre.
+  if(rot._fallaDirectaId&&rot._eqId)_cerrarFallaDirectaMirror(rot._fallaDirectaId,rot._eqId);
   saveData();closeModal();
   showToast(linkedEq?'✅ Reparaci\xf3n registrada \xb7 historial actualizado en '+linkedEq.nombre:'✅ Reparaci\xf3n registrada','');
   render();
@@ -17706,6 +17779,7 @@ function submitSeguimientoTransductorRotura(transId,rotId){
     }
     var nuevosPres=(rot.presupuestosArreglo||[]).slice();
     if(presRef)nuevosPres=nuevosPres.concat(presRef);
+    var eraReparado=rot.estado==='reparado';
     transductores=transductores.map(function(tx){
       if(tx.id!==transId)return tx;
       return Object.assign({},tx,{roturas:(tx.roturas||[]).map(function(r){
@@ -17713,6 +17787,9 @@ function submitSeguimientoTransductorRotura(transId,rotId){
         return Object.assign({},r,{fechaEnvio:fechaEnvio,empresa:empresa,estado:nuevoEstado||r.estado,notasSeguimiento:nuevasNotas,presupuestosArreglo:nuevosPres});
       })});
     });
+    // Este desplegable de "Estado" también puede pasar a Reparado — si la rotura es el espejo
+    // de una Falla Directa cargada desde el equipo, hay que cerrar esa copia también.
+    if(nuevoEstado==='reparado'&&!eraReparado&&rot._fallaDirectaId&&rot._eqId)_cerrarFallaDirectaMirror(rot._fallaDirectaId,rot._eqId);
     saveDataCritical();closeModal();showToast('📋 Seguimiento actualizado','');render();
   };
   var presPend=window._pendTrSegPres;window._pendTrSegPres=null;
@@ -17992,6 +18069,7 @@ function submitSeguimientoFallaDirecta(eqId,fallaId){
     }
     var nuevosPres=(falla.presupuestosArreglo||[]).slice();
     if(presRef)nuevosPres=nuevosPres.concat(presRef);
+    var eraReparada=falla.estado==='reparado';
     eqs=eqs.map(function(ex){
       if(ex.id!==eqId)return ex;
       return Object.assign({},ex,{fallasDirectas:(ex.fallasDirectas||[]).map(function(f){
@@ -17999,6 +18077,11 @@ function submitSeguimientoFallaDirecta(eqId,fallaId){
         return Object.assign({},f,{fechaEnvio:fechaEnvio,empresa:empresa,estado:nuevoEstado||f.estado,notasSeguimiento:nuevasNotas,presupuestosArreglo:nuevosPres});
       })});
     });
+    // Si esta Falla Directa creó una rotura espejo en la antena/transductor vinculado
+    // (submitFallaDirecta), marcarla Reparado acá también tiene que cerrar esa rotura real.
+    if(nuevoEstado==='reparado'&&!eraReparada&&falla._componenteId&&falla._componenteTipo){
+      _cerrarRoturaMirrorDeFallaDirecta(eqId,falla._componenteId,falla._componenteTipo,fallaId,today(),'');
+    }
     saveDataCritical();closeModal();showToast('📋 Seguimiento actualizado','');render();
   };
   var presPend=window._pendFdSegPres;window._pendFdSegPres=null;
@@ -18010,10 +18093,16 @@ function submitSeguimientoFallaDirecta(eqId,fallaId){
   rdr.readAsDataURL(presPend);
 }
 function setEstadoFallaDirecta(eqId,fallaId,estado){
+  var eq=eqs.find(function(e){return e.id===eqId;});
+  var falla=eq?(eq.fallasDirectas||[]).find(function(f){return f.id===fallaId;}):null;
+  var eraReparada=falla&&falla.estado==='reparado';
   eqs=eqs.map(function(e){
     if(e.id!==eqId)return e;
     return Object.assign({},e,{fallasDirectas:(e.fallasDirectas||[]).map(function(f){return f.id===fallaId?Object.assign({},f,{estado:estado}):f;})});
   });
+  if(estado==='reparado'&&!eraReparada&&falla&&falla._componenteId&&falla._componenteTipo){
+    _cerrarRoturaMirrorDeFallaDirecta(eqId,falla._componenteId,falla._componenteTipo,fallaId,today(),'');
+  }
   saveData();render();
 }
 function openFotosFallaDirecta(eqId,fallaId){
@@ -19366,12 +19455,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="5.6.1";
+var APP_DISPLAY_VERSION="5.7.0";
 var APP_BUILD="24/08/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'5.7.0',fecha:'24/08/2026',tipo:'minor',cambios:[
+    'Sincroniza por completo las roturas espejadas: reparar desde cualquier lado (partes, antena, transductor o falla directa) cierra los demás y las ediciones ya no rompen el vínculo'
+  ]},
   {v:'5.6.1',fecha:'24/08/2026',tipo:'patch',cambios:[
     'Corrige fallas de antena que reaparecían tras marcarlas como reparadas desde el botón genérico'
   ]},
