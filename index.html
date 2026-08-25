@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.08.24.002 -->
+<!-- v2026.08.25.001 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.08.24.002">
+<meta name="app-version" content="v2026.08.25.001">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1987,6 +1987,25 @@ function migrateBombaSubcats(){
   localStorage.setItem('mt_bomba_v1','1');
   return changed;
 }
+// Convierte transductores/antenas dados de baja con el shape viejo (baja:true booleano +
+// fechaBaja/notasBaja sueltos, de darBajaTransductor y del cascadeo de submitDarDeBaja) al
+// shape nuevo {fecha,motivo,observacion,ubicacion,creadoEn} — el mismo que ya usa eq.baja,
+// así rBajas() los puede listar con el mismo código. Mismo criterio de no gatear con flag
+// que migrateBombaSubcats: re-escanea en cada carga, barato y se autocorrige solo.
+function migrateBajaComponentes(){
+  var changed=false;
+  transductores=transductores.map(function(t){
+    if(t.baja!==true)return t;
+    changed=true;
+    return Object.assign({},t,{baja:{fecha:t.fechaBaja||today(),motivo:'otro',observacion:t.notasBaja||'',ubicacion:'',creadoEn:new Date().toISOString()}});
+  });
+  antenas=antenas.map(function(a){
+    if(a.baja!==true)return a;
+    changed=true;
+    return Object.assign({},a,{baja:{fecha:a.fechaBaja||today(),motivo:'otro',observacion:a.notasBaja||'',ubicacion:'',creadoEn:new Date().toISOString()}});
+  });
+  return changed;
+}
 
 function _migrarMejorasDeEqs(){
   var count=0;
@@ -2693,7 +2712,7 @@ function _fsWrite(tryN){
           // real) podía reintroducir el mismo bug de "Bombas desaparecen" ya arreglado en
           // el otro camino — y lo mismo con ítems ya migrados a "mejoras" reapareciendo
           // duplicados como falla.
-          migrateBombaSubcats();_migrarMejorasDeEqs();_migrarMejorasAOTs();
+          migrateBombaSubcats();migrateBajaComponentes();_migrarMejorasDeEqs();_migrarMejorasAOTs();
           // A diferencia de antes, siempre volvemos a guardar acá — el estado en
           // memoria después de la fusión es una UNIÓN de lo local y lo del
           // servidor, así que persistirlo es exactamente lo correcto (nunca un
@@ -11490,52 +11509,73 @@ function rDetalle(){
 }
 
 // ── ANTENAS VIEW ──
+function _bajaMotivoLabel(motivo){
+  return {'venta':'🤝 Venta','entrega_pago':'🔁 Entregado como forma de pago','falla_irreparable':'💥 Falla irreparable','obsolescencia':'⏳ Obsolescencia','reemplazo':'🔄 Reemplazo','otro':'📝 Otro'}[motivo]||(motivo||'—');
+}
+function _bajaRowHTML(nombre,chipsHtml,b,verDetalleOnclick,reactivarOnclick){
+  var motivoLabel=_bajaMotivoLabel(b.motivo);
+  return '<div class="gc" style="padding:0;overflow:hidden;margin-bottom:10px;opacity:.9;">'+
+    '<div style="padding:14px 16px;">'+
+      '<div style="display:flex;align-items:flex-start;gap:10px;">'+
+        '<div style="flex:1;min-width:0;">'+
+          '<div style="font-weight:700;font-size:.92rem;color:var(--text);">'+esc(nombre)+'</div>'+
+          '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:5px;">'+
+            chipsHtml+
+            '<span style="font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(120,120,128,.12);color:var(--text2);">'+motivoLabel+'</span>'+
+          '</div>'+
+          (b.fecha?'<div style="font-size:.68rem;color:var(--text3);margin-top:5px;">Baja: '+fD(b.fecha)+'</div>':'')+
+          (b.ubicacion?'<div style="font-size:.68rem;color:var(--text3);margin-top:2px;">📍 Guardado en: '+esc(b.ubicacion)+'</div>':'')+
+          (b.observacion?'<div style="font-size:.75rem;color:var(--text2);margin-top:7px;padding:8px 10px;background:rgba(120,120,128,.07);border-radius:var(--r-md);border-left:3px solid rgba(120,120,128,.25);">'+esc(b.observacion)+'</div>':'')+
+        '</div>'+
+      '</div>'+
+      '<div style="display:flex;gap:8px;margin-top:12px;">'+
+        '<button onclick="'+reactivarOnclick+'" style="flex:1;padding:9px;border-radius:var(--r-pill);background:rgba(52,199,89,.10);border:1.5px solid rgba(52,199,89,.25);color:var(--green);font-weight:700;font-size:.78rem;cursor:pointer;">↩ Reactivar</button>'+
+        '<button onclick="'+verDetalleOnclick+'" style="padding:9px 14px;border-radius:var(--r-pill);background:rgba(120,120,128,.08);border:1.5px solid rgba(120,120,128,.18);color:var(--text2);font-weight:600;font-size:.78rem;cursor:pointer;">Ver detalle</button>'+
+      '</div>'+
+    '</div>'+
+  '</div>';
+}
 function rBajas(){
-  var bajas=eqs.filter(function(e){return!!e.baja;}).sort(function(a,b){
-    return (b.baja.fecha||'') > (a.baja.fecha||'') ? 1 : -1;
+  var items=[];
+  eqs.filter(function(e){return!!e.baja;}).forEach(function(e){
+    items.push({fecha:e.baja.fecha,html:function(){
+      var ci=CATS.find(function(c){return c.id===e.cat;})||{label:e.cat,color:'#94a3b8'};
+      var chips='<span style="font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:20px;background:'+ci.color+'18;color:'+ci.color+';">'+ci.label+'</span>'+
+        (e.ubicacion?'<span style="font-size:.65rem;padding:2px 8px;border-radius:20px;background:rgba(120,120,128,.10);color:var(--text3);">'+esc(e.ubicacion)+'</span>':'');
+      return _bajaRowHTML(e.nombre,chips,e.baja,"goDetalle('"+e.id+"')","reactivarEquipo('"+e.id+"')");
+    }});
   });
+  transductores.filter(function(t){return!!t.baja;}).forEach(function(t){
+    items.push({fecha:t.baja.fecha,html:function(){
+      var chips='<span style="font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(14,165,233,.15);color:#0ea5e9;">🔌 Transductor</span>';
+      return _bajaRowHTML(t.nombre||t.modelo||t.id,chips,t.baja,"selTransdEqId=null;goTransductorDetalle('"+t.id+"')","reactivarComp('transductor','"+t.id+"')");
+    }});
+  });
+  antenas.filter(function(a){return!!a.baja;}).forEach(function(a){
+    items.push({fecha:a.baja.fecha,html:function(){
+      var chips='<span style="font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(79,120,224,.15);color:#4f78e0;">📡 Antena</span>';
+      return _bajaRowHTML(a.nombre,chips,a.baja,"selAntenaEqId=null;goAntenaDetalle('"+a.id+"')","reactivarComp('antena','"+a.id+"')");
+    }});
+  });
+  items.sort(function(a,b){return (b.fecha||'')>(a.fecha||'')?1:-1;});
   var h='';
   h+='<div class="gc" style="padding:0;margin-bottom:14px;overflow:hidden;border-left:4px solid rgba(120,120,128,.5);background:linear-gradient(135deg,rgba(120,120,128,.07) 0%,transparent 100%);">'+
     '<div style="background:linear-gradient(90deg,rgba(120,120,128,.12),rgba(120,120,128,.05));padding:9px 16px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(120,120,128,.10);">'+
       '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(120,120,128,.9)" stroke-width="2" stroke-linecap="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>'+
-      '<span style="font-size:.72rem;font-weight:700;color:rgba(120,120,128,.9);text-transform:uppercase;letter-spacing:.06em;">Equipos dados de baja</span>'+
-      '<span style="margin-left:auto;font-size:.72rem;font-weight:700;color:var(--text3);">'+bajas.length+' equipo'+(bajas.length!==1?'s':'')+'</span>'+
+      '<span style="font-size:.72rem;font-weight:700;color:rgba(120,120,128,.9);text-transform:uppercase;letter-spacing:.06em;">Dados de baja</span>'+
+      '<span style="margin-left:auto;font-size:.72rem;font-weight:700;color:var(--text3);">'+items.length+' elemento'+(items.length!==1?'s':'')+'</span>'+
     '</div>'+
-    '<div style="padding:14px 16px;font-size:.75rem;color:var(--text3);">Estos equipos fueron retirados del servicio activo y no aparecen en el panel ni en la lista.</div>'+
+    '<div style="padding:14px 16px;font-size:.75rem;color:var(--text3);">Equipos, transductores y antenas retirados del servicio activo — no aparecen en el panel ni en sus listas.</div>'+
   '</div>';
-  if(bajas.length===0){
+  if(items.length===0){
     h+='<div class="gc" style="padding:40px 20px;text-align:center;">'+
       '<div style="font-size:2.5rem;opacity:.25;margin-bottom:12px;">🗃️</div>'+
-      '<div style="font-weight:600;font-size:.9rem;color:var(--text2);">Sin equipos dados de baja</div>'+
-      '<div style="font-size:.75rem;color:var(--text3);margin-top:4px;">Cuando des de baja un equipo aparecerá aquí</div>'+
+      '<div style="font-weight:600;font-size:.9rem;color:var(--text2);">Sin bajas registradas</div>'+
+      '<div style="font-size:.75rem;color:var(--text3);margin-top:4px;">Cuando des de baja un equipo, transductor o antena aparecerá aquí</div>'+
     '</div>';
     return h;
   }
-  bajas.forEach(function(eq){
-    var ci=CATS.find(function(c){return c.id===eq.cat;})||{label:eq.cat,color:'#94a3b8'};
-    var b=eq.baja;
-    var motivoLabel={'venta':'🤝 Venta','entrega_pago':'🔁 Entregado como forma de pago','falla_irreparable':'💥 Falla irreparable','obsolescencia':'⏳ Obsolescencia','reemplazo':'🔄 Reemplazo','otro':'📝 Otro'}[b.motivo]||(b.motivo||'—');
-    h+='<div class="gc" style="padding:0;overflow:hidden;margin-bottom:10px;opacity:.9;">'+
-      '<div style="padding:14px 16px;">'+
-        '<div style="display:flex;align-items:flex-start;gap:10px;">'+
-          '<div style="flex:1;min-width:0;">'+
-            '<div style="font-weight:700;font-size:.92rem;color:var(--text);">'+esc(eq.nombre)+'</div>'+
-            '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:5px;">'+
-              '<span style="font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:20px;background:'+ci.color+'18;color:'+ci.color+';">'+ci.label+'</span>'+
-              (eq.ubicacion?'<span style="font-size:.65rem;padding:2px 8px;border-radius:20px;background:rgba(120,120,128,.10);color:var(--text3);">'+esc(eq.ubicacion)+'</span>':'')+
-              '<span style="font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(120,120,128,.12);color:var(--text2);">'+motivoLabel+'</span>'+
-            '</div>'+
-            (b.fecha?'<div style="font-size:.68rem;color:var(--text3);margin-top:5px;">Baja: '+fD(b.fecha)+'</div>':'')+
-            (b.observacion?'<div style="font-size:.75rem;color:var(--text2);margin-top:7px;padding:8px 10px;background:rgba(120,120,128,.07);border-radius:var(--r-md);border-left:3px solid rgba(120,120,128,.25);">'+esc(b.observacion)+'</div>':'')+
-          '</div>'+
-        '</div>'+
-        '<div style="display:flex;gap:8px;margin-top:12px;">'+
-          '<button onclick="reactivarEquipo(\''+eq.id+'\')" style="flex:1;padding:9px;border-radius:var(--r-pill);background:rgba(52,199,89,.10);border:1.5px solid rgba(52,199,89,.25);color:var(--green);font-weight:700;font-size:.78rem;cursor:pointer;">↩ Reactivar equipo</button>'+
-          '<button onclick="goDetalle(\''+eq.id+'\')" style="padding:9px 14px;border-radius:var(--r-pill);background:rgba(120,120,128,.08);border:1.5px solid rgba(120,120,128,.18);color:var(--text2);font-weight:600;font-size:.78rem;cursor:pointer;">Ver detalle</button>'+
-        '</div>'+
-      '</div>'+
-    '</div>';
-  });
+  items.forEach(function(it){h+=it.html();});
   return h;
 }
 function _toggleBajaTrDest(trId){
@@ -11626,7 +11666,7 @@ function submitDarDeBaja(eqId){
       // Dar de baja el equipo en cascada a sus transductores vinculados — sin esto
       // quedaban "corrompidos": activos en el sistema, con estado operativo, pero
       // apuntando a un ecógrafo que ya no existe más para la empresa.
-      return Object.assign({},t,{baja:true,estado:'fuera_servicio',fechaBaja:fecha,notasBaja:'Baja en cascada — equipo dado de baja: '+(eqAntes.nombre||eqId)});
+      return Object.assign({},t,{baja:{fecha:fecha,motivo:motivo,observacion:'Baja en cascada — equipo dado de baja: '+(eqAntes.nombre||eqId),ubicacion:'',creadoEn:new Date().toISOString()},estado:'fuera_servicio'});
     }
     var tt=trTraslados.filter(function(x){return x.trId===t.id;})[0];
     if(tt){
@@ -11651,6 +11691,80 @@ function reactivarEquipo(eqId){
       var r=Object.assign({},e);delete r.baja;return r;
     });
     saveData();render();showToast('✅ Equipo reactivado','');
+  });
+}
+
+// Dar de baja transductor/antena — reemplaza los 2 botones viejos ("Dar de baja" sin
+// motivo y "Eliminar permanentemente", que borraba el historial para siempre) por uno
+// solo, con el mismo modelo de motivo+observación que ya usa la baja de equipos, más
+// un campo de ubicación para cuando el componente se queda guardado en la empresa en
+// vez de venderse. El historial de reparaciones/roturas nunca se toca — el componente
+// sigue existiendo, solo se desvincula de todos los equipos y pasa a "Bajas".
+function openDarDeBajaCompModal(tipo,compId){
+  var arr=tipo==='antena'?antenas:transductores;
+  var comp=arr.find(function(x){return x.id===compId;});
+  if(!comp)return;
+  var nombreTipo=tipo==='antena'?'antena':'transductor';
+  openModal(
+    '<div style="font-weight:800;font-size:1.05rem;margin-bottom:4px;">Dar de baja '+nombreTipo+'</div>'+
+    '<div style="font-size:.75rem;color:var(--text3);margin-bottom:16px;">'+esc(comp.nombre||comp.modelo||comp.id)+'</div>'+
+    '<div class="ff"><div class="ff-label">Fecha de baja</div>'+
+      '<input class="inp" id="cbaja-fecha" type="date" value="'+today()+'">'+
+    '</div>'+
+    '<div class="ff"><div class="ff-label">Motivo</div>'+
+      '<select class="inp" id="cbaja-motivo" onchange="_toggleCbajaUbicacion(this.value)">'+
+        '<option value="venta">🤝 Venta</option>'+
+        '<option value="entrega_pago">🔁 Entregado como forma de pago</option>'+
+        '<option value="falla_irreparable">💥 Rotura / falla irreparable</option>'+
+        '<option value="obsolescencia">⏳ Obsolescencia</option>'+
+        '<option value="reemplazo">🔄 Reemplazo</option>'+
+        '<option value="otro">📝 Otro</option>'+
+      '</select>'+
+    '</div>'+
+    '<div class="ff" id="cbaja-ubic-wrap"><div class="ff-label">¿Dónde queda guardado?</div>'+
+      '<input class="inp" id="cbaja-ubicacion" placeholder="Ej: depósito central, sala de archivo...">'+
+    '</div>'+
+    '<div class="ff"><div class="ff-label">Observación</div>'+
+      '<textarea class="inp" id="cbaja-obs" rows="3" placeholder="Detalles adicionales..."></textarea>'+
+    '</div>'+
+    '<button onclick="submitDarDeBajaComp(\''+tipo+'\',\''+compId+'\')" style="width:100%;padding:13px;border-radius:var(--r-pill);background:linear-gradient(135deg,#ef4444,#dc2626);border:none;color:#fff;font-weight:700;font-size:.88rem;cursor:pointer;margin-top:4px;box-shadow:0 2px 10px rgba(220,38,38,.35);">Confirmar baja</button>'
+  );
+}
+function _toggleCbajaUbicacion(motivo){
+  var wrap=document.getElementById('cbaja-ubic-wrap');
+  if(wrap)wrap.style.display=(motivo==='venta')?'none':'block';
+}
+function submitDarDeBajaComp(tipo,compId){
+  var fecha=((document.getElementById('cbaja-fecha')||{}).value||today());
+  var motivo=((document.getElementById('cbaja-motivo')||{}).value||'otro');
+  var ubicacion=((document.getElementById('cbaja-ubicacion')||{}).value||'').trim();
+  var obs=((document.getElementById('cbaja-obs')||{}).value||'').trim();
+  var bajaObj={fecha:fecha,motivo:motivo,observacion:obs,ubicacion:ubicacion,creadoEn:new Date().toISOString()};
+  if(tipo==='antena'){
+    var ant=antenas.find(function(a){return a.id===compId;});
+    antenas=antenas.map(function(a){return a.id===compId?Object.assign({},a,{baja:bajaObj,estado:'fuera_servicio'}):a;});
+    eqs=eqs.map(function(e){return Object.assign({},e,{antenaIds:(e.antenaIds||[]).filter(function(id){return id!==compId;})});});
+    auditEntry('baja','eq',compId,(ant&&ant.nombre)||compId,'Antena dada de baja — '+motivo);
+    selAntenaId=null;selAntenaEqId=null;
+  } else {
+    var tr=transductores.find(function(t){return t.id===compId;});
+    transductores=transductores.map(function(t){return t.id===compId?Object.assign({},t,{baja:bajaObj,estado:'fuera_servicio'}):t;});
+    eqs=eqs.map(function(e){return Object.assign({},e,{transductorIds:(e.transductorIds||[]).filter(function(id){return id!==compId;})});});
+    auditEntry('baja','eq',compId,(tr&&tr.nombre)||compId,'Transductor dado de baja — '+motivo);
+    selTransdId=null;selTransdEqId=null;
+  }
+  saveDataCritical();closeModal();setView('bajas');
+  showToast(tipo==='antena'?'🔴 Antena dada de baja':'🔴 Transductor dado de baja','warn');
+}
+function reactivarComp(tipo,compId){
+  var msg=tipo==='antena'?'¿Reactivar esta antena? Va a quedar disponible para vincularla a un equipo de nuevo.':'¿Reactivar este transductor? Va a quedar disponible para vincularlo a un equipo de nuevo.';
+  _confirmModal(msg,function(){
+    if(tipo==='antena'){
+      antenas=antenas.map(function(a){if(a.id!==compId)return a;var r=Object.assign({},a);delete r.baja;return r;});
+    } else {
+      transductores=transductores.map(function(t){if(t.id!==compId)return t;var r=Object.assign({},t);delete r.baja;return r;});
+    }
+    saveDataCritical();render();showToast(tipo==='antena'?'✅ Antena reactivada':'✅ Transductor reactivado','');
   });
 }
 
@@ -12680,7 +12794,7 @@ function rAntenaDetalle(){
   if(selAntenaEqId){
     h+='<button onclick="_confirmModal(\'¿Quitar esta antena del equipo?\',function(){removeAntennaFromEq(\''+ant.id+'\',\''+selAntenaEqId+'\');})" style="width:100%;padding:11px;border-radius:var(--r-pill);background:rgba(255,59,48,.08);border:1.5px solid rgba(255,59,48,.18);color:var(--red);font-weight:600;font-size:.78rem;cursor:pointer;">Quitar del equipo</button>';
   }
-  h+='<button onclick="deleteAntena(\''+ant.id+'\')" style="width:100%;padding:11px;border-radius:var(--r-pill);background:rgba(255,59,48,.05);border:1px dashed rgba(255,59,48,.25);color:rgba(255,59,48,.7);font-weight:600;font-size:.72rem;cursor:pointer;margin-top:8px;">🗑 Eliminar antena permanentemente</button>';
+  h+='<button onclick="openDarDeBajaCompModal(\'antena\',\''+ant.id+'\')" style="width:100%;padding:11px;border-radius:var(--r-pill);background:rgba(255,59,48,.08);border:1.5px solid rgba(255,59,48,.25);color:var(--red);font-weight:600;font-size:.78rem;cursor:pointer;margin-top:8px;">🔴 Dar de baja</button>';
   return h;
 }
 
@@ -12885,8 +12999,7 @@ function rTransductorDetalle(){
     h+='<button onclick="openTrasladoTransductorModal(\''+tr.id+'\',\''+selTransdEqId+'\')" style="width:100%;padding:11px;border-radius:var(--r-pill);background:rgba(14,165,233,.08);border:1.5px solid rgba(14,165,233,.30);color:#0ea5e9;font-weight:600;font-size:.78rem;cursor:pointer;margin-top:8px;">🔄 Trasladar a otro ecógrafo</button>';
     h+='<button onclick="_confirmModal(\'¿Quitar este transductor del equipo?\',function(){removeTransductorFromEq(\''+tr.id+'\',\''+selTransdEqId+'\');})" style="width:100%;padding:11px;border-radius:var(--r-pill);background:rgba(255,59,48,.08);border:1.5px solid rgba(255,59,48,.18);color:var(--red);font-weight:600;font-size:.78rem;cursor:pointer;margin-top:8px;">Quitar del equipo</button>';
   }
-  h+='<button onclick="darBajaTransductor(\''+tr.id+'\')" style="width:100%;padding:11px;border-radius:var(--r-pill);background:rgba(255,149,0,.08);border:1.5px solid rgba(255,149,0,.25);color:#ff9500;font-weight:600;font-size:.78rem;cursor:pointer;margin-top:8px;">🔴 Dar de baja</button>';
-  h+='<button onclick="deleteTransductor(\''+tr.id+'\')" style="width:100%;padding:11px;border-radius:var(--r-pill);background:rgba(255,59,48,.05);border:1px dashed rgba(255,59,48,.25);color:rgba(255,59,48,.7);font-weight:600;font-size:.72rem;cursor:pointer;margin-top:8px;">🗑 Eliminar transductor permanentemente</button>';
+  h+='<button onclick="openDarDeBajaCompModal(\'transductor\',\''+tr.id+'\')" style="width:100%;padding:11px;border-radius:var(--r-pill);background:rgba(255,59,48,.08);border:1.5px solid rgba(255,59,48,.25);color:var(--red);font-weight:600;font-size:.78rem;cursor:pointer;margin-top:8px;">🔴 Dar de baja</button>';
   return h;
 }
 
@@ -15612,16 +15725,6 @@ function deleteAntena(antenaId){
     saveDataCritical();showToast('Antena eliminada','warn');render();
   });
 }
-function deleteTransductor(transductorId){
-  // _confirmModal en vez de confirm() nativo — ver nota en deleteCustomCat.
-  _confirmModal('¿Eliminar este transductor permanentemente? Se quitará de todos los equipos vinculados.',function(){
-    var t=transductores.find(function(x){return x.id===transductorId;})||{};
-    transductores=transductores.filter(function(x){return x.id!==transductorId;});
-    eqs=eqs.map(function(e){return Object.assign({},e,{transductorIds:(e.transductorIds||[]).filter(function(id){return id!==transductorId;})});});
-    auditEntry('eliminar','eq',transductorId,t.nombre||transductorId,'Transductor eliminado y desvinculado de todos los equipos');
-    saveData();showToast('Transductor eliminado','warn');render();
-  });
-}
 
 // ─── REFRIGERACIÓN (RM) ───
 function _refrigData(eq){
@@ -17051,23 +17154,6 @@ function submitMarkTransductorReparado(trId,rotId){
   saveData();closeModal();
   showToast(linkedEq?'✅ Reparaci\xf3n registrada \xb7 historial actualizado en '+linkedEq.nombre:'✅ Reparaci\xf3n registrada','');
   render();
-}
-
-function darBajaTransductor(trId){
-  // _confirmModal en vez de confirm() nativo — ver nota en deleteCustomCat.
-  _confirmModal('\xbfDar de baja este transductor? Quedar\xe1 en la secci\xf3n de equipos dados de baja y se desvincular\xe1 del ec\xf3grafo asignado.',function(){
-    transductores=transductores.map(function(t){
-      if(t.id!==trId)return t;
-      return Object.assign({},t,{baja:true,estado:'fuera_servicio',fechaBaja:new Date().toISOString().split('T')[0]});
-    });
-    eqs=eqs.map(function(e){
-      return Object.assign({},e,{transductorIds:(e.transductorIds||[]).filter(function(id){return id!==trId;})});
-    });
-    saveDataCritical();
-    showToast('🔴 Transductor dado de baja','warn');
-    selTransdId=null;selTransdEqId=null;
-    render();
-  });
 }
 
 function openEditAntennaModal(antenaId){
@@ -19455,12 +19541,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="5.7.0";
-var APP_BUILD="24/08/26 h";
+var APP_DISPLAY_VERSION="5.8.0";
+var APP_BUILD="25/08/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'5.8.0',fecha:'25/08/2026',tipo:'minor',cambios:[
+    'Unifica \'Dar de baja\' de transductores y antenas: un solo botón con motivo y ubicación de guardado, se listan en Bajas y preservan todo su historial'
+  ]},
   {v:'5.7.0',fecha:'24/08/2026',tipo:'minor',cambios:[
     'Sincroniza por completo las roturas espejadas: reparar desde cualquier lado (partes, antena, transductor o falla directa) cierra los demás y las ediciones ya no rompen el vínculo'
   ]},
@@ -20666,9 +20755,10 @@ function init(){
           migrateEcoData();
           migrateTransductores();
           var _bombaChanged=migrateBombaSubcats();
+          var _bajaCompChanged=migrateBajaComponentes();
           var _mejCount=_migrarMejorasDeEqs();
           var _mejOTCount=_migrarMejorasAOTs();
-          if(_ecoChanged||_bombaChanged||_mejCount>0||_mejOTCount>0){saveData();}
+          if(_ecoChanged||_bombaChanged||_bajaCompChanged||_mejCount>0||_mejOTCount>0){saveData();}
           render();
           if(window._pendingGEParams)setTimeout(_processGEUrlUpdate,600);
           _startTickers();
@@ -20743,7 +20833,7 @@ function init(){
                   } else {
                     _lsLoad();
                   }
-                  migrateEqs();migrateEcoData();migrateTransductores();migrateBombaSubcats();
+                  migrateEqs();migrateEcoData();migrateTransductores();migrateBombaSubcats();migrateBajaComponentes();
                   firestoreSave();
                   render();
                   _startTickers();
@@ -20780,8 +20870,8 @@ function init(){
             // "Bombas" volvía a desaparecer en tiempo real sin que nadie recargara la
             // página, y un ítem ya migrado a "mejoras" en otro dispositivo podía
             // reaparecer duplicado como falla.
-            var _mB2=migrateBombaSubcats(),_mM2=_migrarMejorasDeEqs(),_mO2=_migrarMejorasAOTs();
-            if(_mB2||_mM2>0||_mO2>0)saveData();
+            var _mB2=migrateBombaSubcats(),_mBC2=migrateBajaComponentes(),_mM2=_migrarMejorasDeEqs(),_mO2=_migrarMejorasAOTs();
+            if(_mB2||_mBC2||_mM2>0||_mO2>0)saveData();
             render();
             showToast('🔄 Datos actualizados por otro dispositivo');
           }
@@ -20805,7 +20895,8 @@ function init(){
     var _ecoChgOffline=localStorage.getItem('mt_eco_v1')!=='1';
     migrateEcoData();migrateTransductores();
     var _bombaChgOffline=migrateBombaSubcats();
-    if(_ecoChgOffline||_bombaChgOffline){saveData();}
+    var _bajaCompChgOffline=migrateBajaComponentes();
+    if(_ecoChgOffline||_bombaChgOffline||_bajaCompChgOffline){saveData();}
     setTimeout(function(){render();},50);
     setTimeout(checkForUpdates,3000);
     setInterval(checkForUpdates,60*1000);

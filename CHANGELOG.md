@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v5.8.0 — 25/08/2026 (minor)
+
+- Unifica 'Dar de baja' de transductores y antenas: un solo botón con motivo y ubicación de guardado, se listan en Bajas y preservan todo su historial
+
 ## v5.7.0 — 24/08/2026 (minor)
 
 - Sincroniza por completo las roturas espejadas: reparar desde cualquier lado (partes, antena, transductor o falla directa) cierra los demás y las ediciones ya no rompen el vínculo
