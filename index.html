@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.08.25.001 -->
+<!-- v2026.08.26.001 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.08.25.001">
+<meta name="app-version" content="v2026.08.26.001">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -2544,16 +2544,49 @@ function _fsWriteRetryOrGiveUp(tryN,err){
   }
 }
 var _fsPendingRewrite=false;
+// Última foto conocida de los datos tal como quedaron confirmados (ya sea por un
+// guardado propio exitoso o por un snapshot recibido de otro dispositivo) — ver
+// _captureSyncBaseline() y _dirtyIdsVs(). Sirve para distinguir, dentro de un mismo
+// array, QUÉ registros tocó realmente ESTE dispositivo desde la última sync
+// confirmada, en vez de asumir que "local" significa lo mismo para el array entero.
+window._syncBaseline=null;
+function _captureSyncBaseline(){
+  try{
+    window._syncBaseline=JSON.parse(JSON.stringify({eqs:eqs,antenas:antenas,transductores:transductores,aires:aires,pmProgramados:pmProgramados,ordenesTrabajo:ordenesTrabajo,reclamos:reclamos,mejoras:mejoras,repuestos:repuestos,customCats:customCats,empresasRep:empresasRep}));
+  }catch(e){window._syncBaseline=null;}
+}
+// Compara el array actual contra la última foto confirmada y devuelve el set de
+// claves que ESTE dispositivo modificó desde entonces (o agregó/no tenía). Si no hay
+// foto base todavía (arranque muy temprano, antes del primer _captureSyncBaseline),
+// devuelve null — señal de "no lo sabemos", para que _mergeByKey caiga al
+// comportamiento anterior (gana local) en vez de asumir que nada cambió.
+function _dirtyIdsVs(currentArr,baseArr,keyFn){
+  if(!Array.isArray(baseArr))return null;
+  var baseMap={};
+  baseArr.forEach(function(b){if(!b)return;var k=keyFn(b);if(k!=null)baseMap[k]=b;});
+  var dirty={};
+  (currentArr||[]).forEach(function(c){
+    if(!c)return;var k=keyFn(c);if(k==null)return;
+    var b=baseMap[k];
+    if(!b||JSON.stringify(b)!==JSON.stringify(c))dirty[k]=1;
+  });
+  return dirty;
+}
 // Fusiona dos arrays por clave (unión) — nunca pierde un elemento que exista
-// en uno solo de los dos lados. Si la misma clave existe en ambos, gana la
-// versión LOCAL (se asume la edición más reciente de ESTE dispositivo). Se
-// usa al resolver un conflicto de guardado concurrente (ver _fsWrite), para
-// no descartar en silencio los registros que este dispositivo acaba de
-// crear/editar y que el servidor todavía no tiene — mismo problema de fondo
-// documentado en CLAUDE.md para "las bombas desaparecen" (el guardado
-// reemplaza el array entero sin fusionar), aplicado acá al camino normal de
-// escritura, no a una migración.
-function _mergeByKey(localArr,serverArr,keyFn){
+// en uno solo de los dos lados. Si la misma clave existe en ambos, ANTES ganaba
+// siempre la versión LOCAL asumiendo que era "la edición más reciente de ESTE
+// dispositivo" — pero esa clave puede coincidir simplemente porque el registro
+// existe en los dos lados sin que ESTE dispositivo lo haya tocado (ej. una pestaña
+// vieja con una foto entera de "eqs" desactualizada, que guarda por cualquier otro
+// motivo). En ese caso "local gana" resucitaba en el array completo cualquier
+// registro que otro dispositivo ya hubiera actualizado mientras tanto — por
+// ejemplo, una falla recién marcada "Reparado" volvía a aparecer como rota porque
+// la pestaña vieja todavía tenía la parte activa en memoria. Con dirtyIds (ver
+// _captureSyncBaseline/_dirtyIdsVs) solo gana lo local en la clave que ESTE
+// dispositivo realmente modificó desde la última sync confirmada; para el resto,
+// gana el servidor (que sabemos más nuevo — por eso se llegó a este merge). Si no
+// hay foto base (dirtyIds===null), se mantiene el comportamiento anterior.
+function _mergeByKey(localArr,serverArr,keyFn,dirtyIds){
   if(!Array.isArray(serverArr))return localArr||[];
   if(!Array.isArray(localArr))return serverArr;
   var byKey={},order=[];
@@ -2564,29 +2597,33 @@ function _mergeByKey(localArr,serverArr,keyFn){
   });
   localArr.forEach(function(item){
     if(!item)return;var k=keyFn(item);if(k===undefined||k===null)return;
-    if(!(k in byKey))order.push(k);
-    byKey[k]=item; // local pisa server si la clave coincide
+    if(!(k in byKey)){order.push(k);byKey[k]=item;return;}
+    if(dirtyIds===null||dirtyIds===undefined||dirtyIds[k])byKey[k]=item; // local pisa server solo si lo tocamos (o no sabemos)
   });
   return order.map(function(k){return byKey[k];});
 }
 function _mergeConflictData(serverData){
   var byId=function(x){return x&&x.id;};
+  var byNombre=function(x){return x&&x.nombre;};
+  var base=window._syncBaseline;
   var merged=Object.assign({},serverData);
-  merged.eqs=_mergeByKey(eqs,serverData.eqs,byId);
-  merged.pmProgramados=_mergeByKey(pmProgramados,serverData.pmProgramados,byId);
-  merged.ordenesTrabajo=_mergeByKey(ordenesTrabajo,serverData.ordenesTrabajo,byId);
-  merged.reclamos=_mergeByKey(reclamos,serverData.reclamos,byId);
-  merged.mejoras=_mergeByKey(mejoras,serverData.mejoras,byId);
-  merged.antenas=_mergeByKey(antenas,serverData.antenas,byId);
-  merged.transductores=_mergeByKey(transductores,serverData.transductores,byId);
-  merged.aires=_mergeByKey(aires,serverData.aires,byId);
-  merged.repuestos=_mergeByKey(repuestos,serverData.repuestos,byId);
-  merged.customCats=_mergeByKey(customCats,serverData.customCats,byId);
-  merged.empresasRep=_mergeByKey(empresasRep,serverData.empresasRep,function(x){return x&&x.nombre;});
+  merged.eqs=_mergeByKey(eqs,serverData.eqs,byId,_dirtyIdsVs(eqs,base&&base.eqs,byId));
+  merged.pmProgramados=_mergeByKey(pmProgramados,serverData.pmProgramados,byId,_dirtyIdsVs(pmProgramados,base&&base.pmProgramados,byId));
+  merged.ordenesTrabajo=_mergeByKey(ordenesTrabajo,serverData.ordenesTrabajo,byId,_dirtyIdsVs(ordenesTrabajo,base&&base.ordenesTrabajo,byId));
+  merged.reclamos=_mergeByKey(reclamos,serverData.reclamos,byId,_dirtyIdsVs(reclamos,base&&base.reclamos,byId));
+  merged.mejoras=_mergeByKey(mejoras,serverData.mejoras,byId,_dirtyIdsVs(mejoras,base&&base.mejoras,byId));
+  merged.antenas=_mergeByKey(antenas,serverData.antenas,byId,_dirtyIdsVs(antenas,base&&base.antenas,byId));
+  merged.transductores=_mergeByKey(transductores,serverData.transductores,byId,_dirtyIdsVs(transductores,base&&base.transductores,byId));
+  merged.aires=_mergeByKey(aires,serverData.aires,byId,_dirtyIdsVs(aires,base&&base.aires,byId));
+  merged.repuestos=_mergeByKey(repuestos,serverData.repuestos,byId,_dirtyIdsVs(repuestos,base&&base.repuestos,byId));
+  merged.customCats=_mergeByKey(customCats,serverData.customCats,byId,_dirtyIdsVs(customCats,base&&base.customCats,byId));
+  merged.empresasRep=_mergeByKey(empresasRep,serverData.empresasRep,byNombre,_dirtyIdsVs(empresasRep,base&&base.empresasRep,byNombre));
   // auditLog es un log de solo-agregar, más nuevo primero — tras fusionar por
   // id hay que reordenar por fecha (la unión no preserva el orden cronológico)
-  // y volver a aplicar el mismo tope de 500 que usa auditEntry().
-  merged.auditLog=_mergeByKey(auditLog,serverData.auditLog,byId)
+  // y volver a aplicar el mismo tope de 500 que usa auditEntry(). Sin dirtyIds
+  // (null): mantiene el comportamiento anterior, gana local en toda colisión —
+  // no debería haber colisiones reales acá de todos modos (es solo-agregar).
+  merged.auditLog=_mergeByKey(auditLog,serverData.auditLog,byId,null)
     .sort(function(a,b){return (b&&b.ts||'')>(a&&a.ts||'')?1:-1;}).slice(0,500);
   // customComponentes queda sin fusionar (objeto {catId:[nombres]}, no un array
   // con id) — se mantiene la versión del servidor, igual que antes. Es un
@@ -2666,6 +2703,12 @@ function _fsWrite(tryN){
   })
     .then(function(){
       clearTimeout(_safeguard);_fsWriting=false;_fsDirty=false;_fsFailed=false;_persistSyncError(null);
+      // Esta escritura quedó confirmada en el servidor con el estado ACTUAL en
+      // memoria (no _payload, que puede traer historialMant recortado por
+      // _stripPayload solo para el tamaño del documento) — esta es la nueva foto
+      // de referencia para saber, en el próximo conflicto, qué tocó este
+      // dispositivo desde acá (ver _dirtyIdsVs).
+      _captureSyncBaseline();
       // _histShardSave() se corre ACÁ, no antes del chequeo de staleness de arriba —
       // los shards de historial son "fuente de verdad" y no tienen su propio
       // get-antes-de-set, así que si este dispositivo tenía datos atrasados (detectado
@@ -19541,12 +19584,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="5.8.0";
-var APP_BUILD="25/08/26 h";
+var APP_DISPLAY_VERSION="5.9.0";
+var APP_BUILD="26/08/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'5.9.0',fecha:'26/08/2026',tipo:'minor',cambios:[
+    'Corrige fallas que reaparecían tras marcarse como reparadas: el guardado ya no revive registros que otro dispositivo actualizó mientras este tenía una copia vieja en memoria'
+  ]},
   {v:'5.8.0',fecha:'25/08/2026',tipo:'minor',cambios:[
     'Unifica \'Dar de baja\' de transductores y antenas: un solo botón con motivo y ubicación de guardado, se listan en Bajas y preservan todo su historial'
   ]},
@@ -20759,6 +20805,11 @@ function init(){
           var _mejCount=_migrarMejorasDeEqs();
           var _mejOTCount=_migrarMejorasAOTs();
           if(_ecoChanged||_bombaChanged||_bajaCompChanged||_mejCount>0||_mejOTCount>0){saveData();}
+          // Foto de referencia para el merge de conflictos (ver _dirtyIdsVs) — si
+          // arriba se llamó a saveData(), esa escritura va a volver a capturarla
+          // apenas confirme en el servidor; esto cubre igual el caso común (nada
+          // que migrar) donde ese saveData() nunca se dispara.
+          _captureSyncBaseline();
           render();
           if(window._pendingGEParams)setTimeout(_processGEUrlUpdate,600);
           _startTickers();
@@ -20834,6 +20885,7 @@ function init(){
                     _lsLoad();
                   }
                   migrateEqs();migrateEcoData();migrateTransductores();migrateBombaSubcats();migrateBajaComponentes();
+                  _captureSyncBaseline();
                   firestoreSave();
                   render();
                   _startTickers();
@@ -20871,6 +20923,11 @@ function init(){
             // página, y un ítem ya migrado a "mejoras" en otro dispositivo podía
             // reaparecer duplicado como falla.
             var _mB2=migrateBombaSubcats(),_mBC2=migrateBajaComponentes(),_mM2=_migrarMejorasDeEqs(),_mO2=_migrarMejorasAOTs();
+            // Referencia actualizada al estado recién adoptado de este snapshot — si
+            // además hubo migración, el saveData() de abajo la vuelve a capturar
+            // apenas confirme, pero conviene tenerla ya lista para cualquier
+            // conflicto que se dispare antes de que ese guardado termine.
+            _captureSyncBaseline();
             if(_mB2||_mBC2||_mM2>0||_mO2>0)saveData();
             render();
             showToast('🔄 Datos actualizados por otro dispositivo');
@@ -20897,6 +20954,7 @@ function init(){
     var _bombaChgOffline=migrateBombaSubcats();
     var _bajaCompChgOffline=migrateBajaComponentes();
     if(_ecoChgOffline||_bombaChgOffline||_bajaCompChgOffline){saveData();}
+    _captureSyncBaseline();
     setTimeout(function(){render();},50);
     setTimeout(checkForUpdates,3000);
     setInterval(checkForUpdates,60*1000);

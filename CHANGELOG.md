@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v5.9.0 — 26/08/2026 (minor)
+
+- Corrige fallas que reaparecían tras marcarse como reparadas: el guardado ya no revive registros que otro dispositivo actualizó mientras este tenía una copia vieja en memoria
+
 ## v5.8.0 — 25/08/2026 (minor)
 
 - Unifica 'Dar de baja' de transductores y antenas: un solo botón con motivo y ubicación de guardado, se listan en Bajas y preservan todo su historial
