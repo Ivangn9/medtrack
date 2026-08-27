@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.08.26.001 -->
+<!-- v2026.08.27.001 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.08.26.001">
+<meta name="app-version" content="v2026.08.27.001">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3407,7 +3407,7 @@ function getAlertas(){
     if(ai.estado==='falla')a.push({k:'aire'+ai.id+'falla',niv:'advertencia',tit:ai.nombre||ai.ubicacion||'Aire acondicionado',desc:'❄️ Aire con falla'+((ai.equiposServidos||[]).length?' — afecta '+ai.equiposServidos.length+' equipo(s)':''),eid:''});
     else if(ai.estado==='fuera_servicio'||ai.estado==='fuera-de-servicio')a.push({k:'aire'+ai.id+'fs',niv:'critico',tit:ai.nombre||ai.ubicacion||'Aire acondicionado',desc:'❄️ Aire FUERA DE SERVICIO'+((ai.equiposServidos||[]).length?' — afecta '+ai.equiposServidos.length+' equipo(s)':''),eid:''});
   });
-  antenas.forEach(function(ant){
+  antenas.filter(function(ant){return !ant.baja;}).forEach(function(ant){
     (ant.roturas||[]).forEach(function(r){
       if(r.estado==='reparado')return;
       var linkedEq=eqs.find(function(e){return!e.baja&&_sedeMatch(e)&&(e.antenaIds||[]).indexOf(ant.id)!==-1;});
@@ -3417,7 +3417,7 @@ function getAlertas(){
       a.push({k:'ant'+ant.id+r.id+'rot',niv:niv,tit:eqNombre,desc:'📡 Antena: '+ant.nombre+' — '+(r.queSeRompio||r.descripcion||'Falla activa'),eid:eqId});
     });
   });
-  transductores.forEach(function(tr){
+  transductores.filter(function(tr){return !tr.baja;}).forEach(function(tr){
     (tr.roturas||[]).forEach(function(r){
       if(r.estado==='reparado')return;
       var linkedEq=eqs.find(function(e){return!e.baja&&_sedeMatch(e)&&(e.transductorIds||[]).indexOf(tr.id)!==-1;});
@@ -19584,12 +19584,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="5.9.0";
-var APP_BUILD="26/08/26 h";
+var APP_DISPLAY_VERSION="5.9.1";
+var APP_BUILD="27/08/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'5.9.1',fecha:'27/08/2026',tipo:'patch',cambios:[
+    'Corrige alertas activas que seguían mostrando fallas de antenas y transductores ya dados de baja'
+  ]},
   {v:'5.9.0',fecha:'26/08/2026',tipo:'minor',cambios:[
     'Corrige fallas que reaparecían tras marcarse como reparadas: el guardado ya no revive registros que otro dispositivo actualizó mientras este tenía una copia vieja en memoria'
   ]},

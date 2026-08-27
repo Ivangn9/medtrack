@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v5.9.1 — 27/08/2026 (patch)
+
+- Corrige alertas activas que seguían mostrando fallas de antenas y transductores ya dados de baja
+
 ## v5.9.0 — 26/08/2026 (minor)
 
 - Corrige fallas que reaparecían tras marcarse como reparadas: el guardado ya no revive registros que otro dispositivo actualizó mientras este tenía una copia vieja en memoria
