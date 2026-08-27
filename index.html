@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.08.27.004 -->
+<!-- v2026.08.27.005 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.08.27.004">
+<meta name="app-version" content="v2026.08.27.005">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -8132,15 +8132,32 @@ function _kpiAllRoturas(){
     (eq.partes||[]).forEach(function(p){
       if(p.estado==='roto'||p.fechaRotura)result.push({fechaRotura:p.fechaRotura,fechaArreglo:p.fechaArreglo,eqId:eq.id,eqNombre:eq.nombre,eqCat:eq.cat,estado:p.estado,descripcion:p.nombre,precio:parseFloat(p.precio)||0});
     });
+    // Al reparar una parte, confirmarReparacion() la saca de eq.partes y guarda un
+    // registro en historialMant con la fechaRotura original preservada — sin este
+    // bloque, cualquier falla ya reparada desaparecía por completo de las
+    // tendencias/KPI (incluida "tiempo promedio de reparación", que necesita
+    // fechaRotura + fechaArreglo juntas y solo las tiene acá, no en eq.partes).
+    (eq.historialMant||[]).forEach(function(h){
+      if(!h.fechaRotura)return;
+      result.push({fechaRotura:h.fechaRotura,fechaArreglo:h.fecha,eqId:eq.id,eqNombre:eq.nombre,eqCat:eq.cat,estado:'reparado',descripcion:h.nombre,precio:parseFloat(h.precio)||0});
+    });
   });
   antenas.forEach(function(ant){
     (ant.roturas||[]).forEach(function(r){
       result.push({fechaRotura:r.fecha,fechaArreglo:r.fechaArreglo,eqId:'ant-'+ant.id,eqNombre:ant.nombre+' (Antena)',eqCat:'ANTENA',estado:r.estado,descripcion:r.queSeRompio||'',precio:parseFloat(r.precio)||0});
     });
+    (ant.historialAntena||[]).forEach(function(h){
+      if(!h.fechaRotura)return;
+      result.push({fechaRotura:h.fechaRotura,fechaArreglo:h.fecha,eqId:'ant-'+ant.id,eqNombre:ant.nombre+' (Antena)',eqCat:'ANTENA',estado:'reparado',descripcion:h.queSeRompio||'',precio:parseFloat(h.precio)||0});
+    });
   });
   transductores.forEach(function(tr){
     (tr.roturas||[]).forEach(function(r){
       result.push({fechaRotura:r.fecha,fechaArreglo:r.fechaArreglo,eqId:'tr-'+tr.id,eqNombre:(tr.nombre||tr.modelo||tr.id)+' (Transductor)',eqCat:'TC',estado:r.estado,descripcion:r.queSeRompio||r.descripcion||'',precio:parseFloat(r.precio)||0});
+    });
+    (tr.historialTransductor||[]).forEach(function(h){
+      if(!h.fechaRotura)return;
+      result.push({fechaRotura:h.fechaRotura,fechaArreglo:h.fecha,eqId:'tr-'+tr.id,eqNombre:(tr.nombre||tr.modelo||tr.id)+' (Transductor)',eqCat:'TC',estado:'reparado',descripcion:h.queSeRompio||h.descripcion||'',precio:parseFloat(h.precio)||0});
     });
   });
   return result;
@@ -19617,12 +19634,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="6.1.0";
+var APP_DISPLAY_VERSION="6.1.1";
 var APP_BUILD="27/08/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'6.1.1',fecha:'27/08/2026',tipo:'patch',cambios:[
+    'Corrige el bug real detrás de \'julio y agosto no aparecen\': _kpiAllRoturas() solo leía las fallas todavía activas (eq.partes/roturas), así que cualquier falla ya reparada desaparecía de la tendencia mensual, el dashboard KPI, el PDF de KPI y el tiempo promedio de reparación. Ahora también lee las fallas ya reparadas desde el historial, que conserva la fecha de rotura original'
+  ]},
   {v:'6.1.0',fecha:'27/08/2026',tipo:'minor',cambios:[
     'Reporte gerencial: saca \'Mejoras\' del resumen visual (gráfico de actividad del período) y agrega una sección de Refrigeración y Sala al inicio de cada equipo de RM (chiller, compresor de helio, helio gaseoso/líquido, shimming)'
   ]},

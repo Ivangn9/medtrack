@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v6.1.1 — 27/08/2026 (patch)
+
+- Corrige el bug real detrás de 'julio y agosto no aparecen': _kpiAllRoturas() solo leía las fallas todavía activas (eq.partes/roturas), así que cualquier falla ya reparada desaparecía de la tendencia mensual, el dashboard KPI, el PDF de KPI y el tiempo promedio de reparación. Ahora también lee las fallas ya reparadas desde el historial, que conserva la fecha de rotura original
+
 ## v6.1.0 — 27/08/2026 (minor)
 
 - Reporte gerencial: saca 'Mejoras' del resumen visual (gráfico de actividad del período) y agrega una sección de Refrigeración y Sala al inicio de cada equipo de RM (chiller, compresor de helio, helio gaseoso/líquido, shimming)
