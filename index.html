@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.08.27.006 -->
+<!-- v2026.08.27.007 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.08.27.006">
+<meta name="app-version" content="v2026.08.27.007">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -2608,6 +2608,33 @@ function _mergeConflictData(serverData){
   var base=window._syncBaseline;
   var merged=Object.assign({},serverData);
   merged.eqs=_mergeByKey(eqs,serverData.eqs,byId,_dirtyIdsVs(eqs,base&&base.eqs,byId));
+  // eq.refrig.lecturas es un log de solo-agregar (igual que auditLog) escondido
+  // DENTRO de cada eq — pero _mergeByKey fusiona eqs.* completo por id, así que
+  // si este dispositivo "gana" un eq (porque tocó CUALQUIER otro campo de ese
+  // mismo equipo, no necesariamente refrig), su copia de lecturas pisaba entera
+  // a la del servidor y perdía en silencio cualquier lectura cargada desde otro
+  // dispositivo en el medio (bug real: "cargué Helio Líquido y no aparece en la
+  // tendencia" — el guardado de Gaseoso desde otro dispositivo ganaba el eq
+  // completo y se llevaba puesta la lectura de Líquido que nunca vio). Acá se
+  // repara post-merge: para cada eq fusionado, unir por id las lecturas locales
+  // y las del servidor, gane quien gane el resto del equipo.
+  merged.eqs=merged.eqs.map(function(mEq){
+    var localEq=eqs.find(function(e){return e.id===mEq.id;});
+    var serverEq=(serverData.eqs||[]).find(function(e){return e.id===mEq.id;});
+    if(!localEq||!serverEq)return mEq;
+    var localLec=(localEq.refrig&&localEq.refrig.lecturas)||[];
+    var serverLec=(serverEq.refrig&&serverEq.refrig.lecturas)||[];
+    if(!localLec.length&&!serverLec.length)return mEq;
+    var byIdLec={},order=[];
+    serverLec.concat(localLec).forEach(function(l){
+      if(!l||!l.id)return;
+      if(!(l.id in byIdLec))order.push(l.id);
+      byIdLec[l.id]=l;
+    });
+    var unioned=order.map(function(id){return byIdLec[id];});
+    unioned.sort(function(a,b){return(a.ts||a.fecha||'')<(b.ts||b.fecha||'')?-1:1;});
+    return Object.assign({},mEq,{refrig:Object.assign({},mEq.refrig||{},{lecturas:unioned})});
+  });
   merged.pmProgramados=_mergeByKey(pmProgramados,serverData.pmProgramados,byId,_dirtyIdsVs(pmProgramados,base&&base.pmProgramados,byId));
   merged.ordenesTrabajo=_mergeByKey(ordenesTrabajo,serverData.ordenesTrabajo,byId,_dirtyIdsVs(ordenesTrabajo,base&&base.ordenesTrabajo,byId));
   merged.reclamos=_mergeByKey(reclamos,serverData.reclamos,byId,_dirtyIdsVs(reclamos,base&&base.reclamos,byId));
@@ -19653,12 +19680,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="6.2.0";
+var APP_DISPLAY_VERSION="6.2.1";
 var APP_BUILD="27/08/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'6.2.1',fecha:'27/08/2026',tipo:'patch',cambios:[
+    'Corrige pérdida de lecturas de Helio Líquido en conflictos de sincronización multi-dispositivo: al fusionar un conflicto de guardado, eq.refrig.lecturas ahora se une por id entre la copia local y la del servidor en vez de que un dispositivo se lleve puesto por completo el historial de lecturas del otro'
+  ]},
   {v:'6.2.0',fecha:'27/08/2026',tipo:'minor',cambios:[
     'Rediseña la sección de Jaula de Faraday del Reporte Gerencial: diagrama más grande y centrado (antes quedaba chico al costado de la tabla, con un hueco vacío grande debajo), agrega leyenda de colores, y el encabezado ahora usa el mismo estilo de caja que el resto del informe'
   ]},

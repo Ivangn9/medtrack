@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v6.2.1 — 27/08/2026 (patch)
+
+- Corrige pérdida de lecturas de Helio Líquido en conflictos de sincronización multi-dispositivo: al fusionar un conflicto de guardado, eq.refrig.lecturas ahora se une por id entre la copia local y la del servidor en vez de que un dispositivo se lleve puesto por completo el historial de lecturas del otro
+
 ## v6.2.0 — 27/08/2026 (minor)
 
 - Rediseña la sección de Jaula de Faraday del Reporte Gerencial: diagrama más grande y centrado (antes quedaba chico al costado de la tabla, con un hueco vacío grande debajo), agrega leyenda de colores, y el encabezado ahora usa el mismo estilo de caja que el resto del informe
