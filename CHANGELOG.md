@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v6.3.1 — 27/08/2026 (patch)
+
+- Corrige el cálculo de riesgo de Helio Líquido/Gaseoso/Nivel: la tendencia reciente caminaba hacia atrás sin límite de tiempo por toda una racha no creciente, así que una caída vieja ya estabilizada (resuelta hace meses) seguía disparando 'Riesgo alto' aunque las últimas lecturas estuvieran quietas. Ahora se acota a los últimos 30 días
+
 ## v6.3.0 — 27/08/2026 (minor)
 
 - Rehace la alarma de Helio Líquido — Presión con 3 niveles: crítico (<0.8 o >=2.0), advertencia (>=1.3 sin llegar a crítico) y normal (0.8-1.3, con 0.9-1.1 como banda ideal de referencia). Antes era un único par de umbrales que no reflejaba la oscilación real del equipo

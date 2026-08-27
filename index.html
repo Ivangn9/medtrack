@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.08.27.009 -->
+<!-- v2026.08.27.010 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.08.27.009">
+<meta name="app-version" content="v2026.08.27.010">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -16487,7 +16487,17 @@ function _refrigHelioChart(rf,eqId){
     if(pts.length<2)return pts;
     var endIdx=pts.length-1;
     var startIdx=endIdx;
+    // Tope de 30 días: sin esto, una caída vieja ya estabilizada (ej. una baja
+    // fuerte hace meses seguida de lecturas planas desde entonces) seguía
+    // "caminando" hacia atrás sin límite hasta ese pico viejo — cualquier racha
+    // no-creciente, por larga que sea, contaba como "tendencia actual" y
+    // disparaba riesgo alto aunque las últimas lecturas reales estuvieran
+    // quietas. Acá se corta la caminata en cuanto se sale de los últimos 30
+    // días desde la lectura más reciente, así el riesgo refleja lo que
+    // realmente está pasando ahora, no un evento ya resuelto.
+    var maxWindowMs=30*86400000;
     for(var ri=endIdx-1;ri>=0;ri--){
+      if(pts[endIdx].t-pts[ri].t>maxWindowMs)break;
       if(pts[ri].v>=pts[startIdx].v)startIdx=ri;
       else break;
     }
@@ -19711,12 +19721,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="6.3.0";
+var APP_DISPLAY_VERSION="6.3.1";
 var APP_BUILD="27/08/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'6.3.1',fecha:'27/08/2026',tipo:'patch',cambios:[
+    'Corrige el cálculo de riesgo de Helio Líquido/Gaseoso/Nivel: la tendencia reciente caminaba hacia atrás sin límite de tiempo por toda una racha no creciente, así que una caída vieja ya estabilizada (resuelta hace meses) seguía disparando \'Riesgo alto\' aunque las últimas lecturas estuvieran quietas. Ahora se acota a los últimos 30 días'
+  ]},
   {v:'6.3.0',fecha:'27/08/2026',tipo:'minor',cambios:[
     'Rehace la alarma de Helio Líquido — Presión con 3 niveles: crítico (<0.8 o >=2.0), advertencia (>=1.3 sin llegar a crítico) y normal (0.8-1.3, con 0.9-1.1 como banda ideal de referencia). Antes era un único par de umbrales que no reflejaba la oscilación real del equipo'
   ]},
