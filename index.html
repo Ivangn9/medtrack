@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.08.27.007 -->
+<!-- v2026.08.27.008 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.08.27.007">
+<meta name="app-version" content="v2026.08.27.008">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -5486,7 +5486,7 @@ function _pdfRefrigSection(eq){
   var gasAlm=!isNaN(gasP)&&(gasP<2.0||gasP>2.3);
   var liqPorc=parseFloat(rf.helioLiqPorcentaje);
   var liqPres=parseFloat(rf.helioLiqPresion);
-  var liqAlm=(!isNaN(liqPorc)&&liqPorc<70)||(!isNaN(liqPres)&&(liqPres<0.9||liqPres>2.0));
+  var liqAlm=(!isNaN(liqPorc)&&liqPorc<70)||(!isNaN(liqPres)&&(liqPres<0.85||liqPres>1.1));
   var peor=(rf.chiller==='rotura'||liqAlm||gasAlm)?{color:'#dc2626',label:'🔴 Requiere atención'}:(rf.chiller==='service'||rf.shimming==='falta')?{color:'#d97706',label:'⚠️ Con observaciones'}:{color:'#16a34a',label:'✅ Normal'};
   var rows=[
     ['Chiller',chLbl],
@@ -10918,9 +10918,9 @@ function _rDetalleRefrig(eq,rf){
   h+='</div>';
   var liqPorc=parseFloat(rf.helioLiqPorcentaje);
   var liqPres=parseFloat(rf.helioLiqPresion);
-  var liqAlm=(!isNaN(liqPorc)&&liqPorc<70)||(!isNaN(liqPres)&&(liqPres<0.9||liqPres>2.0));
+  var liqAlm=(!isNaN(liqPorc)&&liqPorc<70)||(!isNaN(liqPres)&&(liqPres<0.85||liqPres>1.1));
   var liqPorcCol=(!isNaN(liqPorc)&&liqPorc<70)?'#f87171':'#0ea5e9';
-  var liqPresCol=(!isNaN(liqPres)&&(liqPres<0.9||liqPres>2.0))?'#f87171':'#34d399';
+  var liqPresCol=(!isNaN(liqPres)&&(liqPres<0.85||liqPres>1.1))?'#f87171':'#34d399';
   h+='<div class="cring-wrap" style="--cc:rgba(14,165,233,.9);margin-bottom:10px;"><div class="cring-el"></div><div class="gc" style="padding:0;overflow:hidden;">'+
     '<div style="background:linear-gradient(90deg,rgba(14,165,233,.10),rgba(8,145,178,.05));padding:8px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(14,165,233,.07);">'+
       '<span style="font-size:.72rem;font-weight:700;color:#0ea5e9;text-transform:uppercase;letter-spacing:.06em;flex:1;">💧 Helio Líquido</span>'+
@@ -10936,7 +10936,7 @@ function _rDetalleRefrig(eq,rf){
         '<div>'+
           '<div style="font-size:.6rem;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;">Presión</div>'+
           '<div style="font-size:1.5rem;font-weight:900;font-family:JetBrains Mono,monospace;color:'+liqPresCol+';">'+(isNaN(liqPres)?'—':liqPres.toFixed(1))+'<span style="font-size:.7rem;"> PSI</span></div>'+
-          '<div style="font-size:.62rem;color:'+((!isNaN(liqPres)&&(liqPres<0.9||liqPres>2.0))?'#f87171':'var(--text3)')+';">'+((!isNaN(liqPres)&&liqPres<0.9)?'⚠ baja (mín 0.9)':(!isNaN(liqPres)&&liqPres>2.0)?'⚠ alta (máx 2.0)':'0.9–2.0 PSI')+'</div>'+
+          '<div style="font-size:.62rem;color:'+((!isNaN(liqPres)&&(liqPres<0.85||liqPres>1.1))?'#f87171':'var(--text3)')+';">'+((!isNaN(liqPres)&&liqPres<0.85)?'⚠ baja (mín 0.85)':(!isNaN(liqPres)&&liqPres>1.1)?'⚠ alta (máx 1.1)':'0.85–1.1 PSI')+'</div>'+
         '</div>'+
       '</div>'+
       '<div style="display:flex;gap:6px;">'+
@@ -11409,7 +11409,7 @@ function rDetalle(){
     var _liqPorc=parseFloat(rf.helioLiqPorcentaje);
     var _liqPres=parseFloat(rf.helioLiqPresion);
     var _gasAlm=!isNaN(_gasP)&&(_gasP<2.0||_gasP>2.3);
-    var _liqAlm=(!isNaN(_liqPorc)&&_liqPorc<70)||(!isNaN(_liqPres)&&(_liqPres<0.9||_liqPres>2.0));
+    var _liqAlm=(!isNaN(_liqPorc)&&_liqPorc<70)||(!isNaN(_liqPres)&&(_liqPres<0.85||_liqPres>1.1));
     var _rfLastCarga=(rf.historial||[]).filter(function(ev){return ev.tipo==='carga_gaseoso'||ev.tipo==='carga_liquido';}).slice(-1)[0];
     var _chCol=rf.chiller==='operativo'?'#16a34a':rf.chiller==='service'?'#d97706':'#dc2626';
     var _chLbl=rf.chiller==='operativo'?'✅ Operativo':rf.chiller==='service'?'🔧 Service':'🔴 Rotura';
@@ -11418,7 +11418,7 @@ function rDetalle(){
     var _liqPTxt=!isNaN(_liqPorc)?_liqPorc.toFixed(0)+'%':'—';
     var _liqPCol=(!isNaN(_liqPorc)&&_liqPorc<70)?'#f87171':'#0ea5e9';
     var _liqPresTxt=!isNaN(_liqPres)?_liqPres.toFixed(1)+' PSI':'—';
-    var _liqPresCol=(!isNaN(_liqPres)&&(_liqPres<0.9||_liqPres>2.0))?'#f87171':'#34d399';
+    var _liqPresCol=(!isNaN(_liqPres)&&(_liqPres<0.85||_liqPres>1.1))?'#f87171':'#34d399';
     h+='<div class="gc tap" onclick="setDetalleTab(\'refrig\')" style="cursor:pointer;padding:0;margin-bottom:12px;overflow:hidden;border-left:4px solid rgba(99,179,237,.5);" ontouchstart="this.style.transform=\'scale(.98)\'" ontouchend="this.style.transform=\'\'">';
     h+='<div style="background:linear-gradient(90deg,rgba(8,145,178,.12),rgba(99,179,237,.06));padding:8px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(99,179,237,.08);">';
     h+='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(8,145,178,.9)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/></svg>';
@@ -11430,7 +11430,7 @@ function rDetalle(){
     h+=cCell('Chiller','<span style="font-size:.76rem;font-weight:700;padding:2px 8px;border-radius:20px;background:'+_chCol+'18;color:'+_chCol+';">'+_chLbl+'</span>',null);
     h+=cCell('Helio Gas','<span style="color:'+_gasCol+';font-family:JetBrains Mono,monospace;">'+_gasTxt+'</span>',(_gasAlm?'⚠ fuera de rango':'2.0–2.3 MPa'));
     h+=cCell('Nivel Líq.','<span style="color:'+_liqPCol+';font-family:JetBrains Mono,monospace;">'+_liqPTxt+'</span>',(!isNaN(_liqPorc)&&_liqPorc<70?'⚠ bajo (mín 70%)':'≥70% óptimo'));
-    h+=cCell('Pres. Líq.','<span style="color:'+_liqPresCol+';font-family:JetBrains Mono,monospace;">'+_liqPresTxt+'</span>',(!isNaN(_liqPres)&&(_liqPres<0.9||_liqPres>2.0)?'⚠ fuera de rango':'0.9–2.0 PSI'));
+    h+=cCell('Pres. Líq.','<span style="color:'+_liqPresCol+';font-family:JetBrains Mono,monospace;">'+_liqPresTxt+'</span>',(!isNaN(_liqPres)&&(_liqPres<0.85||_liqPres>1.1)?'⚠ fuera de rango':'0.85–1.1 PSI'));
     h+='</div>';
     h+='<div style="display:flex;gap:6px;flex-wrap:wrap;">';
     h+='<button onclick="event.stopPropagation();openActualizarHelioGaseoso(\''+eq.id+'\')" style="min-height:34px;padding:7px 13px;border-radius:var(--r-pill);font-size:.72rem;font-weight:700;cursor:pointer;border:1.5px solid rgba(99,179,237,.35);background:rgba(99,179,237,.10);color:#63b3ed;">📝 Gas</button>';
@@ -16369,7 +16369,7 @@ function _rLecturasSalaSection(eq,rf){
   var vars=[
     {key:'chillerTempC',label:'Temperatura Agua Chiller',icon:'❄️',unit:'°C',color:'#0891b2',refMin:null,refMax:null,decimals:1},
     {key:'helioGasPresion',label:'Presión Helio Gaseoso',icon:'⚗️',unit:' MPa',color:'#0ea5e9',refMin:2.0,refMax:2.3,decimals:2},
-    {key:'helioLiqPresion',label:'Presión Helio Líquido',icon:'💧',unit:' PSI',color:'#6366f1',refMin:0.9,refMax:2.0,decimals:2},
+    {key:'helioLiqPresion',label:'Presión Helio Líquido',icon:'💧',unit:' PSI',color:'#6366f1',refMin:0.85,refMax:1.1,decimals:2},
     {key:'helioLiqPorc',label:'Nivel Helio Líquido',icon:'🧊',unit:'%',color:'#10b981',refMin:70,refMax:100,decimals:0},
     {key:'salaTempC',label:'Temperatura Sala de Máquinas',icon:'🌡️',unit:'°C',color:'#f97316',refMin:18,refMax:24,decimals:1},
     {key:'salaHumedad',label:'Humedad Sala de Máquinas',icon:'💦',unit:'%',color:'#38bdf8',refMin:30,refMax:60,decimals:0}
@@ -16477,7 +16477,7 @@ function _refrigHelioChart(rf,eqId){
   // como umbral crítico directo. Presión: la banda segura de la reposición cotidiana es
   // 0.8–1.5; fuera de eso ya está mal.
   var LIQ_PORC_MIN=65;var LIQ_PORC_WARN=75;var LIQ_PORC_CRIT=65;
-  var LIQ_PRES_MIN=0.8;var LIQ_PRES_MAX=1.5;
+  var LIQ_PRES_MIN=0.85;var LIQ_PRES_MAX=1.1;
   var GAS_MIN=2.0;var GAS_MAX=2.3;
 
   // Current values for alarm badges
@@ -19680,12 +19680,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="6.2.1";
+var APP_DISPLAY_VERSION="6.2.2";
 var APP_BUILD="27/08/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'6.2.2',fecha:'27/08/2026',tipo:'patch',cambios:[
+    'Corrige el rango de alarma de Helio Líquido — Presión: era 0.8-1.5 PSI, el rango real de operación normal es 0.85-1.1 PSI (gráfico de tendencia, card de valor actual, resumen, monitoreo de sala y sección de refrigeración del Reporte Gerencial)'
+  ]},
   {v:'6.2.1',fecha:'27/08/2026',tipo:'patch',cambios:[
     'Corrige pérdida de lecturas de Helio Líquido en conflictos de sincronización multi-dispositivo: al fusionar un conflicto de guardado, eq.refrig.lecturas ahora se une por id entre la copia local y la del servidor en vez de que un dispositivo se lleve puesto por completo el historial de lecturas del otro'
   ]},

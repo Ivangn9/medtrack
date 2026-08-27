@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v6.2.2 — 27/08/2026 (patch)
+
+- Corrige el rango de alarma de Helio Líquido — Presión: era 0.8-1.5 PSI, el rango real de operación normal es 0.85-1.1 PSI (gráfico de tendencia, card de valor actual, resumen, monitoreo de sala y sección de refrigeración del Reporte Gerencial)
+
 ## v6.2.1 — 27/08/2026 (patch)
 
 - Corrige pérdida de lecturas de Helio Líquido en conflictos de sincronización multi-dispositivo: al fusionar un conflicto de guardado, eq.refrig.lecturas ahora se une por id entre la copia local y la del servidor en vez de que un dispositivo se lleve puesto por completo el historial de lecturas del otro
