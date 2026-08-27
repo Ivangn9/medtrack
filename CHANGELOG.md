@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v6.0.0 — 27/08/2026 (minor)
+
+- Agrega botón 'Programar Service' en la vista de detalle del equipo (pestaña Fallas): abre el calendario de PM con el equipo pre-seleccionado cuando hay una falla o rotura activa, para que la visita del ingeniero quede en un solo registro
+
 ## v5.9.1 — 27/08/2026 (patch)
 
 - Corrige alertas activas que seguían mostrando fallas de antenas y transductores ya dados de baja

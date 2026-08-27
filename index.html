@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.08.27.001 -->
+<!-- v2026.08.27.002 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.08.27.001">
+<meta name="app-version" content="v2026.08.27.002">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -8459,11 +8459,12 @@ function _pmHoraCellTxt(item){
   if(item.rangePos==='mid')return 'En curso';
   return item.horaInicio?(item.horaFin?item.horaInicio+'-'+item.horaFin:item.horaInicio):'';
 }
-function openModalProgramarPM(pmId,fechaDefault){
+function openModalProgramarPM(pmId,fechaDefault,eqIdPre){
   var pm=pmId?pmProgramados.find(function(p){return p.id===pmId;}):null;
   var eqOpts='<option value="">— Seleccionar equipo —</option>';
   var activeEqs3=eqs.filter(function(e){return !e.baja;}).slice().sort(function(a,b){return a.nombre>b.nombre?1:-1;});
-  activeEqs3.forEach(function(e){eqOpts+='<option value="'+e.id+'"'+((pm&&pm.eqId===e.id)?' selected':'')+'>'+esc(e.nombre)+'</option>';});
+  var eqIdSel=pm?pm.eqId:eqIdPre;
+  activeEqs3.forEach(function(e){eqOpts+='<option value="'+e.id+'"'+(eqIdSel===e.id?' selected':'')+'>'+esc(e.nombre)+'</option>';});
   openModal(
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">'+
     '<div class="modal-title">&#x1F4C5; '+(pm?'Editar':'Programar')+' PM</div>'+
@@ -11039,11 +11040,13 @@ function _rDetalleFallas(eq){
   aires.filter(function(ai){return !ai.baja&&(ai.equiposServidos||[]).indexOf(eq.id)!==-1&&ai.estado!=='operativo';}).forEach(function(ai){
     _linkedFaults.push({tipo:'aire',obj:ai,rotura:{queSeRompio:ai.estado==='falla'?'Con falla':'Fuera de servicio',estado:ai.estado,fecha:''}});
   });
+  var _hasActiveFaults=eq.partes.some(function(p){return p.estado==='roto'||p.estado==='pendiente';})||_linkedFaults.length>0;
   h+='<div onclick="setDetalleTab(null)" style="display:flex;align-items:center;gap:8px;padding:10px 14px;margin-bottom:10px;background:rgba(120,120,128,.06);border:1px solid rgba(120,120,128,.12);border-radius:var(--r-md);cursor:pointer;" ontouchstart="this.style.opacity=\'.7\'" ontouchend="this.style.opacity=\'1\'">'+
     '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2.2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>'+
     '<span style="font-size:.8rem;font-weight:600;color:var(--text2);">'+esc(eq.nombre)+'</span>'+
     '<span style="font-size:.7rem;color:var(--text3);margin-left:auto;">Equipo</span>'+
   '</div>';
+  if(_hasActiveFaults)h+='<button onclick="openModalProgramarPM(null,null,\''+eq.id+'\')" style="width:100%;padding:11px;margin-bottom:12px;border:1.5px dashed rgba(255,149,0,.4);border-radius:12px;background:rgba(255,149,0,.06);color:#ff9500;font-size:.82rem;font-weight:700;cursor:pointer;">📅 Programar Service</button>';
   h+='<div class="cring-wrap" style="--cc:rgba(255,59,48,.9);margin-bottom:12px;"><div class="cring-el"></div><div class="gc gc-notap" style="padding:0;overflow:hidden;background:linear-gradient(135deg,rgba(255,59,48,.08) 0%,rgba(255,69,58,.04) 100%);">';
   h+='<div style="background:linear-gradient(90deg,rgba(255,59,48,.12),rgba(255,69,58,.07));padding:9px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(255,59,48,.10);">';
   h+='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(220,38,38,.9)" stroke-width="2.2" stroke-linecap="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>';
@@ -19584,12 +19587,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="5.9.1";
+var APP_DISPLAY_VERSION="6.0.0";
 var APP_BUILD="27/08/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'6.0.0',fecha:'27/08/2026',tipo:'minor',cambios:[
+    'Agrega botón \'Programar Service\' en la vista de detalle del equipo (pestaña Fallas): abre el calendario de PM con el equipo pre-seleccionado cuando hay una falla o rotura activa, para que la visita del ingeniero quede en un solo registro'
+  ]},
   {v:'5.9.1',fecha:'27/08/2026',tipo:'patch',cambios:[
     'Corrige alertas activas que seguían mostrando fallas de antenas y transductores ya dados de baja'
   ]},
