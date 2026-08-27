@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v6.2.0 — 27/08/2026 (minor)
+
+- Rediseña la sección de Jaula de Faraday del Reporte Gerencial: diagrama más grande y centrado (antes quedaba chico al costado de la tabla, con un hueco vacío grande debajo), agrega leyenda de colores, y el encabezado ahora usa el mismo estilo de caja que el resto del informe
+
 ## v6.1.1 — 27/08/2026 (patch)
 
 - Corrige el bug real detrás de 'julio y agosto no aparecen': _kpiAllRoturas() solo leía las fallas todavía activas (eq.partes/roturas), así que cualquier falla ya reparada desaparecía de la tendencia mensual, el dashboard KPI, el PDF de KPI y el tiempo promedio de reparación. Ahora también lee las fallas ya reparadas desde el historial, que conserva la fecha de rotura original

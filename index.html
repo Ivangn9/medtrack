@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.08.27.005 -->
+<!-- v2026.08.27.006 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.08.27.005">
+<meta name="app-version" content="v2026.08.27.006">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -5410,18 +5410,37 @@ function _pdfH(t){return {text:t,fontSize:12,bold:true,color:'#1a3a6b',margin:[0
 // NUNCA dentro de una celda de tabla/_pdfCard (ver el comentario de _pdfEqSection: las
 // imágenes dentro de una celda no renderizan bien en pdfmake — mismo motivo por el que
 // acá tampoco se usa _pdfCard).
+function _pdfJaulaLeyenda(){
+  var items=[['optimo','Óptimo'],['leve','Leve'],['moderado','Moderado'],['grave','Grave']];
+  var cols=[];
+  items.forEach(function(it,i){
+    cols.push({width:9,stack:[{canvas:[{type:'rect',x:0,y:2,w:9,h:9,r:2,color:CJ[it[0]]}]}]});
+    cols.push({width:'auto',text:CJ_LABEL[it[0]],fontSize:7.5,color:'#475569',margin:[3,0,i<items.length-1?16:0,0]});
+  });
+  return {columns:[{width:'*',text:''}].concat(cols).concat([{width:'*',text:''}]),margin:[0,2,0,10]};
+}
 function _pdfJaulaEqNodes(eqR,imgsMap){
   var jd=_jaulaData(eqR),peor=_jaulaPeorNivel(eqR);
   var out=[];
-  out.push({columns:[
-    {text:_pdfDecode(eqR.nombre||eqR.id),bold:true,fontSize:10,color:'#1e293b'},
-    {text:CJ_LABEL[peor],bold:true,fontSize:9,color:CJ[peor],alignment:'right'}
-  ],margin:[0,10,0,4],unbreakable:true});
-  var svgIco={svg:jaulaSceneSVG(eqR).replace(/ onclick="[^"]*"/g,''),width:200};
-  var tabla=_pdfTableNode(['Parte','Nivel','Notas'],
+  // Encabezado con el mismo lenguaje visual que el resto del informe (caja con
+  // borde, mismo patrón que _hdrBox en _pdfEqSection). El diagrama y la tabla van
+  // AFUERA de esta caja, a nivel de página — un SVG dentro de una celda de tabla
+  // no renderiza bien en pdfmake (mismo motivo por el que las fotos de fallas
+  // también se emiten a nivel de página en vez de ir adentro de _pdfCard).
+  out.push({table:{widths:['*','auto'],body:[[
+    {text:_pdfDecode(eqR.nombre||eqR.id),bold:true,fontSize:10,color:'#0f2a52',margin:[9,6,0,6]},
+    {text:CJ_LABEL[peor],bold:true,fontSize:9,color:CJ[peor],alignment:'right',margin:[0,6,9,6]}
+  ]]},layout:_pdfBox('#fff7ed','#fed7aa'),margin:[0,10,0,6],unbreakable:true});
+  // Diagrama centrado y más grande (antes 200pt achicado al costado de la tabla,
+  // dejaba un hueco vacío grande debajo por ser más bajo que las 7 filas de la
+  // tabla) — ahora ocupa el ancho útil de la página, con la leyenda de colores
+  // debajo (antes solo se entendía cruzando con el texto de la tabla) y la tabla
+  // completa abajo en vez de apretada al costado.
+  out.push({columns:[{width:'*',text:''},{width:360,stack:[{svg:jaulaSceneSVG(eqR).replace(/ onclick="[^"]*"/g,''),width:360}]},{width:'*',text:''}],margin:[0,2,0,0]});
+  out.push(_pdfJaulaLeyenda());
+  out.push(_pdfTableNode(['Parte','Nivel','Notas'],
     JAULA_PARTES.map(function(p){return [p.label,CJ_LABEL[jd[p.id].nivel],_pdfDecode(jd[p.id].notas||'—')];}),
-    {widths:['auto','auto','*']});
-  out.push({columns:[{width:210,stack:[svgIco]},{width:'*',stack:[tabla]}],columnGap:10,margin:[0,0,0,4]});
+    {widths:['auto','auto','*']}));
   var fotosArr=[];
   JAULA_PARTES.forEach(function(p){
     var fid=jd[p.id].fotoId;
@@ -12437,7 +12456,7 @@ function rmSceneSVG(eq){
 function jaulaSceneSVG(eq){
   var jd=_jaulaData(eq);
   function col(id){return CJ[jd[id].nivel];}
-  var s='<svg viewBox="0 0 600 370" style="width:100%;height:auto;display:block;" xmlns="http://www.w3.org/2000/svg">';
+  var s='<svg width="600" height="370" viewBox="0 0 600 370" style="width:100%;height:auto;display:block;" xmlns="http://www.w3.org/2000/svg">';
   s+='<rect x="30" y="20" width="540" height="330" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="6 4" rx="4"/>';
   // Cielo Raso (banda superior) + Luces (3 focos empotrados, comparten una sola parte clickeable)
   s+='<g class="jaula-part" onclick="openModalJaulaParte(\''+eq.id+'\',\'cielo\')">'+
@@ -19634,12 +19653,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="6.1.1";
+var APP_DISPLAY_VERSION="6.2.0";
 var APP_BUILD="27/08/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'6.2.0',fecha:'27/08/2026',tipo:'minor',cambios:[
+    'Rediseña la sección de Jaula de Faraday del Reporte Gerencial: diagrama más grande y centrado (antes quedaba chico al costado de la tabla, con un hueco vacío grande debajo), agrega leyenda de colores, y el encabezado ahora usa el mismo estilo de caja que el resto del informe'
+  ]},
   {v:'6.1.1',fecha:'27/08/2026',tipo:'patch',cambios:[
     'Corrige el bug real detrás de \'julio y agosto no aparecen\': _kpiAllRoturas() solo leía las fallas todavía activas (eq.partes/roturas), así que cualquier falla ya reparada desaparecía de la tendencia mensual, el dashboard KPI, el PDF de KPI y el tiempo promedio de reparación. Ahora también lee las fallas ya reparadas desde el historial, que conserva la fecha de rotura original'
   ]},
