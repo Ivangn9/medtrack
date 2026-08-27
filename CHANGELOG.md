@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v6.0.1 — 27/08/2026 (patch)
+
+- Corrige la ubicación del botón Programar Service: ahora aparece junto a Editar en la card Mantenimiento (vista Resumen) y como botón inline junto a Editar/Eliminar en cada falla activa (vista Fallas), en vez del banner grande anterior
+
 ## v6.0.0 — 27/08/2026 (minor)
 
 - Agrega botón 'Programar Service' en la vista de detalle del equipo (pestaña Fallas): abre el calendario de PM con el equipo pre-seleccionado cuando hay una falla o rotura activa, para que la visita del ingeniero quede en un solo registro
