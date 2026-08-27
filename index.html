@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.08.27.003 -->
+<!-- v2026.08.27.004 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.08.27.003">
+<meta name="app-version" content="v2026.08.27.004">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -5430,6 +5430,30 @@ function _pdfJaulaEqNodes(eqR,imgsMap){
   if(fotosArr.length)out=out.concat(_pdfGallery(fotosArr,3,110));
   return out;
 }
+function _pdfRefrigSection(eq){
+  if(eq.cat!=='RM')return [];
+  var rf=_refrigData(eq);
+  var chLbl={operativo:'✅ Operativo',service:'🔧 En Service',rotura:'🔴 Rotura'}[rf.chiller]||rf.chiller;
+  var compLbl=rf.compresorHelio==='desconectado'?'🔴 Desconectado':'✅ Conectado';
+  var shimLbl=rf.shimming==='falta'?'⚠️ Falta homogeneización':'✅ Homogéneo';
+  var gasP=parseFloat(rf.helioGasPresionActual);
+  var gasAlm=!isNaN(gasP)&&(gasP<2.0||gasP>2.3);
+  var liqPorc=parseFloat(rf.helioLiqPorcentaje);
+  var liqPres=parseFloat(rf.helioLiqPresion);
+  var liqAlm=(!isNaN(liqPorc)&&liqPorc<70)||(!isNaN(liqPres)&&(liqPres<0.9||liqPres>2.0));
+  var peor=(rf.chiller==='rotura'||liqAlm||gasAlm)?{color:'#dc2626',label:'🔴 Requiere atención'}:(rf.chiller==='service'||rf.shimming==='falta')?{color:'#d97706',label:'⚠️ Con observaciones'}:{color:'#16a34a',label:'✅ Normal'};
+  var rows=[
+    ['Chiller',chLbl],
+    ['Compresor Helio',compLbl],
+    ['Helio gaseoso',(isNaN(gasP)?'—':gasP.toFixed(1)+' MPa')+(gasAlm?'  ⚠ fuera de rango (2.0–2.3)':'')],
+    ['Helio líquido',(isNaN(liqPorc)?'—':liqPorc.toFixed(0)+'%')+(!isNaN(liqPres)?' · '+liqPres.toFixed(1)+' PSI':'')+(liqAlm?'  ⚠ fuera de rango':'')],
+    ['Shimming',shimLbl]
+  ];
+  if(rf.chillerFlujoLMin)rows.push(['Flujo chiller',parseFloat(rf.chillerFlujoLMin).toFixed(2)+' L/min']);
+  if(rf.chillerTempC)rows.push(['Temp. chiller',parseFloat(rf.chillerTempC).toFixed(1)+' °C']);
+  if(rf.eficienciaCriostat)rows.push(['Eficiencia criostato',{alta:'Alta',normal:'Normal',baja:'Baja'}[rf.eficienciaCriostat]||rf.eficienciaCriostat]);
+  return [_pdfCard('❄️ Refrigeración y Sala',peor,[_pdfKV(rows)],'#f0f9ff','#bae6fd')];
+}
 function _pdfEqSection(d,imgsMap){
   var out=[],eq=d.eq,ci=d.ci;
   // Encabezado del equipo con el ícono de su categoría. El ícono va en un columns a
@@ -5440,6 +5464,7 @@ function _pdfEqSection(d,imgsMap){
   var _catIco=_pdfCatIcon(eq.cat,26);
   if(_catIco)out.push({columns:[{width:30,stack:[_catIco],margin:[0,3,4,0]},{width:'*',stack:[_hdrBox]}],margin:[0,12,0,5],unbreakable:true});
   else out.push({table:_hdrBox.table,layout:_hdrBox.layout,margin:[0,12,0,5],unbreakable:true});
+  out=out.concat(_pdfRefrigSection(eq));
   out=out.concat(_narrToPdf(_narrativeEq(eq,d.mantH,d.repH,d.mejH,d.actH,d.mejP,d.trasladosH||[],d.cancelPMH||[])));
   // galería de imágenes de fallas (actH + repH)
   var gal=[];
@@ -5610,7 +5635,7 @@ function _pdfStatsSection(){
   var operPct=Math.round(op/totalEq*100);
   out.push(_pdfH('Resumen visual'));
   var donut=_chartDonut(320,150,[{label:'Operativos',value:op,color:'#16a34a'},{label:'Con fallas',value:fallasN,color:'#d97706'},{label:'Fuera de servicio',value:fuera,color:'#dc2626'}],operPct+'%','operatividad');
-  var actBars=_chartVBars(195,150,[{label:'Mant.',value:R.tm||0,color:'#16a34a'},{label:'Reparac.',value:R.tr||0,color:'#0369a1'},{label:'Mejoras',value:R.tmej||0,color:'#7c3aed'},{label:'Fallas',value:R.tact||0,color:'#dc2626'}]);
+  var actBars=_chartVBars(195,150,[{label:'Mant.',value:R.tm||0,color:'#16a34a'},{label:'Reparac.',value:R.tr||0,color:'#0369a1'},{label:'Fallas',value:R.tact||0,color:'#dc2626'}]);
   out.push({columns:[
     {width:'*',stack:[{text:'Estado del parque',bold:true,fontSize:9,color:'#1a3a6b',margin:[0,0,0,4]},{svg:donut,width:300}]},
     {width:'auto',stack:[{text:'Actividad del período',bold:true,fontSize:9,color:'#1a3a6b',margin:[0,0,0,4]},{svg:actBars,width:185}]}
@@ -19592,12 +19617,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="6.0.1";
+var APP_DISPLAY_VERSION="6.1.0";
 var APP_BUILD="27/08/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'6.1.0',fecha:'27/08/2026',tipo:'minor',cambios:[
+    'Reporte gerencial: saca \'Mejoras\' del resumen visual (gráfico de actividad del período) y agrega una sección de Refrigeración y Sala al inicio de cada equipo de RM (chiller, compresor de helio, helio gaseoso/líquido, shimming)'
+  ]},
   {v:'6.0.1',fecha:'27/08/2026',tipo:'patch',cambios:[
     'Corrige la ubicación del botón Programar Service: ahora aparece junto a Editar en la card Mantenimiento (vista Resumen) y como botón inline junto a Editar/Eliminar en cada falla activa (vista Fallas), en vez del banner grande anterior'
   ]},

@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v6.1.0 — 27/08/2026 (minor)
+
+- Reporte gerencial: saca 'Mejoras' del resumen visual (gráfico de actividad del período) y agrega una sección de Refrigeración y Sala al inicio de cada equipo de RM (chiller, compresor de helio, helio gaseoso/líquido, shimming)
+
 ## v6.0.1 — 27/08/2026 (patch)
 
 - Corrige la ubicación del botón Programar Service: ahora aparece junto a Editar en la card Mantenimiento (vista Resumen) y como botón inline junto a Editar/Eliminar en cada falla activa (vista Fallas), en vez del banner grande anterior
