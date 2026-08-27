@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.08.27.008 -->
+<!-- v2026.08.27.009 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.08.27.008">
+<meta name="app-version" content="v2026.08.27.009">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -5486,13 +5486,15 @@ function _pdfRefrigSection(eq){
   var gasAlm=!isNaN(gasP)&&(gasP<2.0||gasP>2.3);
   var liqPorc=parseFloat(rf.helioLiqPorcentaje);
   var liqPres=parseFloat(rf.helioLiqPresion);
-  var liqAlm=(!isNaN(liqPorc)&&liqPorc<70)||(!isNaN(liqPres)&&(liqPres<0.85||liqPres>1.1));
-  var peor=(rf.chiller==='rotura'||liqAlm||gasAlm)?{color:'#dc2626',label:'🔴 Requiere atención'}:(rf.chiller==='service'||rf.shimming==='falta')?{color:'#d97706',label:'⚠️ Con observaciones'}:{color:'#16a34a',label:'✅ Normal'};
+  var liqPresNivel=_liqPresNivel(liqPres);
+  var liqAlm=(!isNaN(liqPorc)&&liqPorc<70)||liqPresNivel==='critico';
+  var liqWarn=liqPresNivel==='advertencia';
+  var peor=(rf.chiller==='rotura'||liqAlm||gasAlm)?{color:'#dc2626',label:'🔴 Requiere atención'}:(rf.chiller==='service'||rf.shimming==='falta'||liqWarn)?{color:'#d97706',label:'⚠️ Con observaciones'}:{color:'#16a34a',label:'✅ Normal'};
   var rows=[
     ['Chiller',chLbl],
     ['Compresor Helio',compLbl],
     ['Helio gaseoso',(isNaN(gasP)?'—':gasP.toFixed(1)+' MPa')+(gasAlm?'  ⚠ fuera de rango (2.0–2.3)':'')],
-    ['Helio líquido',(isNaN(liqPorc)?'—':liqPorc.toFixed(0)+'%')+(!isNaN(liqPres)?' · '+liqPres.toFixed(1)+' PSI':'')+(liqAlm?'  ⚠ fuera de rango':'')],
+    ['Helio líquido',(isNaN(liqPorc)?'—':liqPorc.toFixed(0)+'%')+(!isNaN(liqPres)?' · '+liqPres.toFixed(1)+' PSI':'')+(liqAlm?'  ⚠ fuera de rango':liqWarn?'  ⚠ en observación':'')],
     ['Shimming',shimLbl]
   ];
   if(rf.chillerFlujoLMin)rows.push(['Flujo chiller',parseFloat(rf.chillerFlujoLMin).toFixed(2)+' L/min']);
@@ -10918,13 +10920,14 @@ function _rDetalleRefrig(eq,rf){
   h+='</div>';
   var liqPorc=parseFloat(rf.helioLiqPorcentaje);
   var liqPres=parseFloat(rf.helioLiqPresion);
-  var liqAlm=(!isNaN(liqPorc)&&liqPorc<70)||(!isNaN(liqPres)&&(liqPres<0.85||liqPres>1.1));
+  var liqPresNivel=_liqPresNivel(liqPres);
+  var liqAlm=(!isNaN(liqPorc)&&liqPorc<70)||liqPresNivel==='critico';
   var liqPorcCol=(!isNaN(liqPorc)&&liqPorc<70)?'#f87171':'#0ea5e9';
-  var liqPresCol=(!isNaN(liqPres)&&(liqPres<0.85||liqPres>1.1))?'#f87171':'#34d399';
+  var liqPresCol=liqPresNivel==='critico'?'#f87171':liqPresNivel==='advertencia'?'#fb923c':'#34d399';
   h+='<div class="cring-wrap" style="--cc:rgba(14,165,233,.9);margin-bottom:10px;"><div class="cring-el"></div><div class="gc" style="padding:0;overflow:hidden;">'+
     '<div style="background:linear-gradient(90deg,rgba(14,165,233,.10),rgba(8,145,178,.05));padding:8px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(14,165,233,.07);">'+
       '<span style="font-size:.72rem;font-weight:700;color:#0ea5e9;text-transform:uppercase;letter-spacing:.06em;flex:1;">💧 Helio Líquido</span>'+
-      (liqAlm?'<span style="font-size:.6rem;padding:1px 6px;border-radius:20px;background:rgba(248,113,113,.15);color:#f87171;font-weight:700;">⚠ Alarma</span>':'')+
+      (liqAlm?'<span style="font-size:.6rem;padding:1px 6px;border-radius:20px;background:rgba(248,113,113,.15);color:#f87171;font-weight:700;">⚠ Alarma</span>':liqPresNivel==='advertencia'?'<span style="font-size:.6rem;padding:1px 6px;border-radius:20px;background:rgba(251,146,60,.15);color:#fb923c;font-weight:700;">⚠ Atención</span>':'')+
     '</div>'+
     '<div style="padding:12px 14px;">'+
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">'+
@@ -10936,7 +10939,7 @@ function _rDetalleRefrig(eq,rf){
         '<div>'+
           '<div style="font-size:.6rem;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;">Presión</div>'+
           '<div style="font-size:1.5rem;font-weight:900;font-family:JetBrains Mono,monospace;color:'+liqPresCol+';">'+(isNaN(liqPres)?'—':liqPres.toFixed(1))+'<span style="font-size:.7rem;"> PSI</span></div>'+
-          '<div style="font-size:.62rem;color:'+((!isNaN(liqPres)&&(liqPres<0.85||liqPres>1.1))?'#f87171':'var(--text3)')+';">'+((!isNaN(liqPres)&&liqPres<0.85)?'⚠ baja (mín 0.85)':(!isNaN(liqPres)&&liqPres>1.1)?'⚠ alta (máx 1.1)':'0.85–1.1 PSI')+'</div>'+
+          '<div style="font-size:.62rem;color:'+(liqPresNivel==='critico'?'#f87171':liqPresNivel==='advertencia'?'#fb923c':'var(--text3)')+';">'+(liqPresNivel==='critico'?(liqPres<0.8?'⚠ baja (mín 0.8)':'⚠ alta (máx 2.0)'):liqPresNivel==='advertencia'?'⚠ en observación (≥1.3)':'0.9–1.1 ideal · normal 0.8–1.3')+'</div>'+
         '</div>'+
       '</div>'+
       '<div style="display:flex;gap:6px;">'+
@@ -11409,7 +11412,9 @@ function rDetalle(){
     var _liqPorc=parseFloat(rf.helioLiqPorcentaje);
     var _liqPres=parseFloat(rf.helioLiqPresion);
     var _gasAlm=!isNaN(_gasP)&&(_gasP<2.0||_gasP>2.3);
-    var _liqAlm=(!isNaN(_liqPorc)&&_liqPorc<70)||(!isNaN(_liqPres)&&(_liqPres<0.85||_liqPres>1.1));
+    var _liqPresNiv=_liqPresNivel(_liqPres);
+    var _liqAlm=(!isNaN(_liqPorc)&&_liqPorc<70)||_liqPresNiv==='critico';
+    var _liqWarn=_liqPresNiv==='advertencia';
     var _rfLastCarga=(rf.historial||[]).filter(function(ev){return ev.tipo==='carga_gaseoso'||ev.tipo==='carga_liquido';}).slice(-1)[0];
     var _chCol=rf.chiller==='operativo'?'#16a34a':rf.chiller==='service'?'#d97706':'#dc2626';
     var _chLbl=rf.chiller==='operativo'?'✅ Operativo':rf.chiller==='service'?'🔧 Service':'🔴 Rotura';
@@ -11418,19 +11423,19 @@ function rDetalle(){
     var _liqPTxt=!isNaN(_liqPorc)?_liqPorc.toFixed(0)+'%':'—';
     var _liqPCol=(!isNaN(_liqPorc)&&_liqPorc<70)?'#f87171':'#0ea5e9';
     var _liqPresTxt=!isNaN(_liqPres)?_liqPres.toFixed(1)+' PSI':'—';
-    var _liqPresCol=(!isNaN(_liqPres)&&(_liqPres<0.85||_liqPres>1.1))?'#f87171':'#34d399';
+    var _liqPresCol=_liqPresNiv==='critico'?'#f87171':_liqPresNiv==='advertencia'?'#fb923c':'#34d399';
     h+='<div class="gc tap" onclick="setDetalleTab(\'refrig\')" style="cursor:pointer;padding:0;margin-bottom:12px;overflow:hidden;border-left:4px solid rgba(99,179,237,.5);" ontouchstart="this.style.transform=\'scale(.98)\'" ontouchend="this.style.transform=\'\'">';
     h+='<div style="background:linear-gradient(90deg,rgba(8,145,178,.12),rgba(99,179,237,.06));padding:8px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(99,179,237,.08);">';
     h+='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(8,145,178,.9)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/></svg>';
     h+='<span style="font-size:.72rem;font-weight:700;color:#0891b2;text-transform:uppercase;letter-spacing:.06em;flex:1;">Refrigeración</span>';
-    h+=((_gasAlm||_liqAlm)?'<span style="font-size:.62rem;font-weight:700;padding:2px 7px;border-radius:20px;background:rgba(248,113,113,.15);color:#f87171;border:1px solid rgba(248,113,113,.3);">⚠ Alarma</span>':'');
+    h+=((_gasAlm||_liqAlm)?'<span style="font-size:.62rem;font-weight:700;padding:2px 7px;border-radius:20px;background:rgba(248,113,113,.15);color:#f87171;border:1px solid rgba(248,113,113,.3);">⚠ Alarma</span>':_liqWarn?'<span style="font-size:.62rem;font-weight:700;padding:2px 7px;border-radius:20px;background:rgba(251,146,60,.15);color:#fb923c;border:1px solid rgba(251,146,60,.3);">⚠ Atención</span>':'');
     h+='</div>';
     h+='<div style="padding:10px 14px 12px;">';
     h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:10px;">';
     h+=cCell('Chiller','<span style="font-size:.76rem;font-weight:700;padding:2px 8px;border-radius:20px;background:'+_chCol+'18;color:'+_chCol+';">'+_chLbl+'</span>',null);
     h+=cCell('Helio Gas','<span style="color:'+_gasCol+';font-family:JetBrains Mono,monospace;">'+_gasTxt+'</span>',(_gasAlm?'⚠ fuera de rango':'2.0–2.3 MPa'));
     h+=cCell('Nivel Líq.','<span style="color:'+_liqPCol+';font-family:JetBrains Mono,monospace;">'+_liqPTxt+'</span>',(!isNaN(_liqPorc)&&_liqPorc<70?'⚠ bajo (mín 70%)':'≥70% óptimo'));
-    h+=cCell('Pres. Líq.','<span style="color:'+_liqPresCol+';font-family:JetBrains Mono,monospace;">'+_liqPresTxt+'</span>',(!isNaN(_liqPres)&&(_liqPres<0.85||_liqPres>1.1)?'⚠ fuera de rango':'0.85–1.1 PSI'));
+    h+=cCell('Pres. Líq.','<span style="color:'+_liqPresCol+';font-family:JetBrains Mono,monospace;">'+_liqPresTxt+'</span>',(_liqPresNiv==='critico'?'⚠ fuera de rango':_liqPresNiv==='advertencia'?'⚠ en observación':'0.9–1.1 ideal'));
     h+='</div>';
     h+='<div style="display:flex;gap:6px;flex-wrap:wrap;">';
     h+='<button onclick="event.stopPropagation();openActualizarHelioGaseoso(\''+eq.id+'\')" style="min-height:34px;padding:7px 13px;border-radius:var(--r-pill);font-size:.72rem;font-weight:700;cursor:pointer;border:1.5px solid rgba(99,179,237,.35);background:rgba(99,179,237,.10);color:#63b3ed;">📝 Gas</button>';
@@ -15893,6 +15898,23 @@ function _saveRefrig(eqId,rfUpdate,histEntry,lecturaEntry){
   });
   saveData();render();
 }
+// Clasifica la presión de Helio Líquido en 3 niveles (antes era solo alarma/no
+// alarma con un único par de umbrales, y ese par se probó mal calibrado dos
+// veces: 0.8–1.5 primero, 0.85–1.1 después — esto último disparaba alarma con
+// cualquier oscilación normal, porque 0.9–1.1 es apenas la banda IDEAL, no el
+// límite de alarma real). Los límites reales: por debajo de 0.8 o desde 2.0 es
+// crítico; entre 1.3 y 2.0 (sin llegar a crítico) es una advertencia — cubre el
+// caso de un salto que ya no es "oscilación normal" aunque no sea peligroso
+// todavía; 0.8–1.3 es normal, con 0.9–1.1 como referencia de lo esperable.
+var LIQ_PRES_CRIT_LOW=0.8,LIQ_PRES_WARN_HIGH=1.3,LIQ_PRES_CRIT_HIGH=2.0;
+var LIQ_PRES_IDEAL_MIN=0.9,LIQ_PRES_IDEAL_MAX=1.1;
+function _liqPresNivel(v){
+  v=parseFloat(v);
+  if(isNaN(v))return null;
+  if(v<LIQ_PRES_CRIT_LOW||v>=LIQ_PRES_CRIT_HIGH)return'critico';
+  if(v>=LIQ_PRES_WARN_HIGH)return'advertencia';
+  return'normal';
+}
 // ─── JAULA DE FARADAY (RM) ───
 var JAULA_PARTES=[
   {id:'suelo',   label:'Suelo de la Sala'},
@@ -16369,7 +16391,7 @@ function _rLecturasSalaSection(eq,rf){
   var vars=[
     {key:'chillerTempC',label:'Temperatura Agua Chiller',icon:'❄️',unit:'°C',color:'#0891b2',refMin:null,refMax:null,decimals:1},
     {key:'helioGasPresion',label:'Presión Helio Gaseoso',icon:'⚗️',unit:' MPa',color:'#0ea5e9',refMin:2.0,refMax:2.3,decimals:2},
-    {key:'helioLiqPresion',label:'Presión Helio Líquido',icon:'💧',unit:' PSI',color:'#6366f1',refMin:0.85,refMax:1.1,decimals:2},
+    {key:'helioLiqPresion',label:'Presión Helio Líquido',icon:'💧',unit:' PSI',color:'#6366f1',refMin:0.8,refMax:2.0,decimals:2},
     {key:'helioLiqPorc',label:'Nivel Helio Líquido',icon:'🧊',unit:'%',color:'#10b981',refMin:70,refMax:100,decimals:0},
     {key:'salaTempC',label:'Temperatura Sala de Máquinas',icon:'🌡️',unit:'°C',color:'#f97316',refMin:18,refMax:24,decimals:1},
     {key:'salaHumedad',label:'Humedad Sala de Máquinas',icon:'💦',unit:'%',color:'#38bdf8',refMin:30,refMax:60,decimals:0}
@@ -16474,10 +16496,11 @@ function _refrigHelioChart(rf,eqId){
 
   // ── Alarm thresholds ──
   // Nivel: por debajo de 65% ya es peligroso (no un umbral "óptimo" más laxo) — se usa
-  // como umbral crítico directo. Presión: la banda segura de la reposición cotidiana es
-  // 0.8–1.5; fuera de eso ya está mal.
+  // como umbral crítico directo. Presión: 3 niveles (ver _liqPresNivel más arriba en
+  // el archivo) — crítico <0.8 o ≥2.0, advertencia ≥1.3 (sin llegar a crítico),
+  // normal 0.8–1.3 con 0.9–1.1 como banda ideal de referencia visual.
   var LIQ_PORC_MIN=65;var LIQ_PORC_WARN=75;var LIQ_PORC_CRIT=65;
-  var LIQ_PRES_MIN=0.85;var LIQ_PRES_MAX=1.1;
+  var LIQ_PRES_MIN=LIQ_PRES_CRIT_LOW;var LIQ_PRES_MAX=LIQ_PRES_CRIT_HIGH;
   var GAS_MIN=2.0;var GAS_MAX=2.3;
 
   // Current values for alarm badges
@@ -16488,8 +16511,9 @@ function _refrigHelioChart(rf,eqId){
   var liqPorcAlarms='';
   if(!isNaN(curLiqPorc)&&curLiqPorc<LIQ_PORC_MIN)liqPorcAlarms+=alarmBadge('Nivel bajo '+curLiqPorc+'%','#f87171');
   var liqPresAlarms='';
-  if(!isNaN(curLiqPres)&&curLiqPres>LIQ_PRES_MAX)liqPresAlarms+=alarmBadge('Presión alta '+curLiqPres+' PSI','#fb923c');
-  if(!isNaN(curLiqPres)&&curLiqPres<LIQ_PRES_MIN)liqPresAlarms+=alarmBadge('Presión baja '+curLiqPres+' PSI','#f87171');
+  var curLiqPresNivel=_liqPresNivel(curLiqPres);
+  if(curLiqPresNivel==='critico')liqPresAlarms+=alarmBadge((curLiqPres>=LIQ_PRES_CRIT_HIGH?'Presión alta ':'Presión baja ')+curLiqPres+' PSI','#f87171');
+  else if(curLiqPresNivel==='advertencia')liqPresAlarms+=alarmBadge('Presión en observación '+curLiqPres+' PSI','#fb923c');
   var gasAlarms='';
   if(!isNaN(curGas)&&curGas>GAS_MAX)gasAlarms+=alarmBadge('Presión alta '+curGas+' MPa','#fb923c');
   if(!isNaN(curGas)&&curGas<GAS_MIN)gasAlarms+=alarmBadge('Presión baja '+curGas+' MPa','#f87171');
@@ -16592,14 +16616,20 @@ function _refrigHelioChart(rf,eqId){
   function liqPresYp2(v){return pTA2+plotHA2-(v/liqPresTop2)*plotHA2;}
   function xpA2(t){return pLA2+fracOf(t)*plotWA2;}
   var sA2='<svg width="100%" viewBox="0 0 '+WA2+' '+HA2+'" xmlns="http://www.w3.org/2000/svg" style="display:block;">';
-  var yLPmin=liqPresYp2(LIQ_PRES_MIN);var yLPmax=liqPresYp2(LIQ_PRES_MAX);
-  sA2+='<rect x="'+pLA2+'" y="'+yLPmax.toFixed(1)+'" width="'+plotWA2+'" height="'+(yLPmin-yLPmax).toFixed(1)+'" fill="rgba(52,211,153,.08)"/>';
-  sA2+='<rect x="'+pLA2+'" y="'+yLPmin.toFixed(1)+'" width="'+plotWA2+'" height="'+(pTA2+plotHA2-yLPmin).toFixed(1)+'" fill="rgba(248,113,113,.05)"/>';
-  if(yLPmax>pTA2)sA2+='<rect x="'+pLA2+'" y="'+pTA2+'" width="'+plotWA2+'" height="'+(yLPmax-pTA2).toFixed(1)+'" fill="rgba(251,146,60,.05)"/>';
-  sA2+='<line x1="'+pLA2+'" y1="'+yLPmin.toFixed(1)+'" x2="'+(WA2-pRA2)+'" y2="'+yLPmin.toFixed(1)+'" stroke="rgba(248,113,113,.45)" stroke-width="1" stroke-dasharray="5,3"/>';
-  sA2+='<line x1="'+pLA2+'" y1="'+yLPmax.toFixed(1)+'" x2="'+(WA2-pRA2)+'" y2="'+yLPmax.toFixed(1)+'" stroke="rgba(251,146,60,.45)" stroke-width="1" stroke-dasharray="5,3"/>';
-  sA2+='<text x="'+(WA2-pRA2-3)+'" y="'+(yLPmin-3).toFixed(1)+'" text-anchor="end" fill="rgba(248,113,113,.75)" font-size="7.5" font-family="JetBrains Mono,monospace">'+LIQ_PRES_MIN+' min</text>';
-  sA2+='<text x="'+(WA2-pRA2-3)+'" y="'+(yLPmax-3).toFixed(1)+'" text-anchor="end" fill="rgba(251,146,60,.75)" font-size="7.5" font-family="JetBrains Mono,monospace">'+LIQ_PRES_MAX+' max</text>';
+  // 3 niveles (ver _liqPresNivel): rojo <0.8 o ≥2.0 · naranja 1.3–2.0 (advertencia,
+  // sin llegar a crítico) · verde 0.8–1.3, con 0.9–1.1 remarcado como banda ideal.
+  var yLPCritLow=liqPresYp2(LIQ_PRES_CRIT_LOW);var yLPWarnHigh=liqPresYp2(LIQ_PRES_WARN_HIGH);var yLPCritHigh=liqPresYp2(LIQ_PRES_CRIT_HIGH);
+  var yLPIdealMin=liqPresYp2(LIQ_PRES_IDEAL_MIN);var yLPIdealMax=liqPresYp2(LIQ_PRES_IDEAL_MAX);
+  sA2+='<rect x="'+pLA2+'" y="'+yLPWarnHigh.toFixed(1)+'" width="'+plotWA2+'" height="'+(yLPCritLow-yLPWarnHigh).toFixed(1)+'" fill="rgba(52,211,153,.07)"/>';
+  sA2+='<rect x="'+pLA2+'" y="'+yLPIdealMax.toFixed(1)+'" width="'+plotWA2+'" height="'+(yLPIdealMin-yLPIdealMax).toFixed(1)+'" fill="rgba(52,211,153,.12)"/>';
+  sA2+='<rect x="'+pLA2+'" y="'+yLPCritLow.toFixed(1)+'" width="'+plotWA2+'" height="'+(pTA2+plotHA2-yLPCritLow).toFixed(1)+'" fill="rgba(248,113,113,.05)"/>';
+  if(yLPWarnHigh<yLPCritLow)sA2+='<rect x="'+pLA2+'" y="'+Math.max(yLPCritHigh,pTA2).toFixed(1)+'" width="'+plotWA2+'" height="'+(Math.min(yLPWarnHigh,pTA2+plotHA2)-Math.max(yLPCritHigh,pTA2)).toFixed(1)+'" fill="rgba(251,146,60,.06)"/>';
+  if(yLPCritHigh>pTA2)sA2+='<rect x="'+pLA2+'" y="'+pTA2+'" width="'+plotWA2+'" height="'+(yLPCritHigh-pTA2).toFixed(1)+'" fill="rgba(248,113,113,.05)"/>';
+  sA2+='<line x1="'+pLA2+'" y1="'+yLPCritLow.toFixed(1)+'" x2="'+(WA2-pRA2)+'" y2="'+yLPCritLow.toFixed(1)+'" stroke="rgba(248,113,113,.45)" stroke-width="1" stroke-dasharray="5,3"/>';
+  sA2+='<line x1="'+pLA2+'" y1="'+yLPWarnHigh.toFixed(1)+'" x2="'+(WA2-pRA2)+'" y2="'+yLPWarnHigh.toFixed(1)+'" stroke="rgba(251,146,60,.45)" stroke-width="1" stroke-dasharray="5,3"/>';
+  if(yLPCritHigh>pTA2)sA2+='<line x1="'+pLA2+'" y1="'+yLPCritHigh.toFixed(1)+'" x2="'+(WA2-pRA2)+'" y2="'+yLPCritHigh.toFixed(1)+'" stroke="rgba(248,113,113,.45)" stroke-width="1" stroke-dasharray="5,3"/>';
+  sA2+='<text x="'+(WA2-pRA2-3)+'" y="'+(yLPCritLow-3).toFixed(1)+'" text-anchor="end" fill="rgba(248,113,113,.75)" font-size="7.5" font-family="JetBrains Mono,monospace">'+LIQ_PRES_CRIT_LOW+' crít.</text>';
+  sA2+='<text x="'+(WA2-pRA2-3)+'" y="'+(yLPWarnHigh-3).toFixed(1)+'" text-anchor="end" fill="rgba(251,146,60,.75)" font-size="7.5" font-family="JetBrains Mono,monospace">'+LIQ_PRES_WARN_HIGH+' obs.</text>';
   var liqPresStep=liqPresTop2/4;
   for(var giA2=0;giA2<=4;giA2++){
     var gyA2=pTA2+plotHA2*giA2/4;
@@ -16626,7 +16656,8 @@ function _refrigHelioChart(rf,eqId){
   }
   for(var lpd2=0;lpd2<liqPresPts2.length;lpd2++){
     var lpv2=liqPresPts2[lpd2].v;
-    sA2+='<circle cx="'+liqPresPts2[lpd2].x.toFixed(1)+'" cy="'+liqPresPts2[lpd2].y.toFixed(1)+'" r="3.5" fill="'+(lpv2<LIQ_PRES_MIN||lpv2>LIQ_PRES_MAX?'#f87171':'#34d399')+'" stroke="rgba(0,0,0,.5)" stroke-width="1"/>';
+    var _lpd2Niv=_liqPresNivel(lpv2);
+    sA2+='<circle cx="'+liqPresPts2[lpd2].x.toFixed(1)+'" cy="'+liqPresPts2[lpd2].y.toFixed(1)+'" r="3.5" fill="'+(_lpd2Niv==='critico'?'#f87171':_lpd2Niv==='advertencia'?'#fb923c':'#34d399')+'" stroke="rgba(0,0,0,.5)" stroke-width="1"/>';
   }
   if(liqPresPts2.length===0)sA2+='<text x="'+(WA2/2)+'" y="'+(HA2/2+4)+'" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="11" font-family="system-ui,sans-serif">Sin lecturas para este período</text>';
   sA2+='</svg>';
@@ -16709,7 +16740,7 @@ function _refrigHelioChart(rf,eqId){
   h2+='<div style="margin-bottom:14px;">';
   h2+='<div style="display:flex;align-items:center;flex-wrap:wrap;gap:5px;margin-bottom:6px;">';
   h2+='<span style="font-size:.7rem;font-weight:700;color:#34d399;">💧 Helio Líquido — Presión</span>';
-  h2+='<span style="font-size:.6rem;color:var(--text3);">óptimo: '+LIQ_PRES_MIN+'–'+LIQ_PRES_MAX+' PSI</span>';
+  h2+='<span style="font-size:.6rem;color:var(--text3);">ideal: '+LIQ_PRES_IDEAL_MIN+'–'+LIQ_PRES_IDEAL_MAX+' PSI · normal hasta '+LIQ_PRES_WARN_HIGH+'</span>';
   h2+=liqPresAlarms;
   h2+='</div>';
   h2+='<div style="border-radius:8px;background:rgba(52,211,153,.03);border:1px solid rgba(52,211,153,.12);padding:8px 4px 4px;overflow:hidden;">'+sA2+'</div>';
@@ -19680,12 +19711,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="6.2.2";
+var APP_DISPLAY_VERSION="6.3.0";
 var APP_BUILD="27/08/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'6.3.0',fecha:'27/08/2026',tipo:'minor',cambios:[
+    'Rehace la alarma de Helio Líquido — Presión con 3 niveles: crítico (<0.8 o >=2.0), advertencia (>=1.3 sin llegar a crítico) y normal (0.8-1.3, con 0.9-1.1 como banda ideal de referencia). Antes era un único par de umbrales que no reflejaba la oscilación real del equipo'
+  ]},
   {v:'6.2.2',fecha:'27/08/2026',tipo:'patch',cambios:[
     'Corrige el rango de alarma de Helio Líquido — Presión: era 0.8-1.5 PSI, el rango real de operación normal es 0.85-1.1 PSI (gráfico de tendencia, card de valor actual, resumen, monitoreo de sala y sección de refrigeración del Reporte Gerencial)'
   ]},

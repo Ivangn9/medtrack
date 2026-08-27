@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v6.3.0 — 27/08/2026 (minor)
+
+- Rehace la alarma de Helio Líquido — Presión con 3 niveles: crítico (<0.8 o >=2.0), advertencia (>=1.3 sin llegar a crítico) y normal (0.8-1.3, con 0.9-1.1 como banda ideal de referencia). Antes era un único par de umbrales que no reflejaba la oscilación real del equipo
+
 ## v6.2.2 — 27/08/2026 (patch)
 
 - Corrige el rango de alarma de Helio Líquido — Presión: era 0.8-1.5 PSI, el rango real de operación normal es 0.85-1.1 PSI (gráfico de tendencia, card de valor actual, resumen, monitoreo de sala y sección de refrigeración del Reporte Gerencial)
