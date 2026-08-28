@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v6.3.2 — 28/08/2026 (patch)
+
+- Corrige riesgo de Helio: una racha corta de 1-2 dias (ruido normal de lectura) ya no se extrapola a un mes completo
+
 ## v6.3.1 — 27/08/2026 (patch)
 
 - Corrige el cálculo de riesgo de Helio Líquido/Gaseoso/Nivel: la tendencia reciente caminaba hacia atrás sin límite de tiempo por toda una racha no creciente, así que una caída vieja ya estabilizada (resuelta hace meses) seguía disparando 'Riesgo alto' aunque las últimas lecturas estuvieran quietas. Ahora se acota a los últimos 30 días

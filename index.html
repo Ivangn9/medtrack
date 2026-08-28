@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.08.27.010 -->
+<!-- v2026.08.28.001 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.08.27.010">
+<meta name="app-version" content="v2026.08.28.001">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -16532,13 +16532,21 @@ function _refrigHelioChart(rf,eqId){
   // del período elegido y proyecta cuándo llegaría al umbral crítico si sigue
   // a ese ritmo. Es una estimación a partir de tus propias lecturas — no un
   // cálculo certificado por el fabricante.
+  // Ventana mínima para animarse a proyectar una tasa mensual: con solo 1-2 días de
+  // diferencia entre los dos puntos de la racha, hasta una oscilación normal de lectura
+  // (ej. -0.10 PSI) se multiplicaba x30 y disparaba "Riesgo alto" con una proyección de
+  // "crítico en ~1 día" que no tenía sentido — la app misma advierte que la presión
+  // siempre oscila un poco entre lecturas. Por debajo de este mínimo no se extrapola:
+  // el riesgo pasa a depender solo de qué tan cerca está el valor actual del umbral
+  // (chequeo de proximidad, más abajo), no de una pendiente calculada sobre ruido.
+  var MIN_TREND_DAYS=7;
   function riesgoCalc(pts,rateLowMax,rateModMax,curVal,critVal,warnVal){
     if(pts.length<2)return null;
     var first=pts[0],last=pts[pts.length-1];
     var deltaAbs=first.v-last.v;
     var deltaPct=first.v?(deltaAbs/first.v*100):null;
     var days=Math.max(1,(last.t-first.t)/86400000);
-    var tasaMensual=deltaAbs/days*30;
+    var tasaMensual=days>=MIN_TREND_DAYS?deltaAbs/days*30:0;
     var riesgo='ok',label='Sin pérdida en el período',color='#34d399';
     if(tasaMensual>0){
       if(tasaMensual<rateLowMax){riesgo='bajo';label='Riesgo bajo';color='#34d399';}
@@ -19721,12 +19729,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="6.3.1";
-var APP_BUILD="27/08/26 h";
+var APP_DISPLAY_VERSION="6.3.2";
+var APP_BUILD="28/08/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'6.3.2',fecha:'28/08/2026',tipo:'patch',cambios:[
+    'Corrige riesgo de Helio: una racha corta de 1-2 dias (ruido normal de lectura) ya no se extrapola a un mes completo'
+  ]},
   {v:'6.3.1',fecha:'27/08/2026',tipo:'patch',cambios:[
     'Corrige el cálculo de riesgo de Helio Líquido/Gaseoso/Nivel: la tendencia reciente caminaba hacia atrás sin límite de tiempo por toda una racha no creciente, así que una caída vieja ya estabilizada (resuelta hace meses) seguía disparando \'Riesgo alto\' aunque las últimas lecturas estuvieran quietas. Ahora se acota a los últimos 30 días'
   ]},

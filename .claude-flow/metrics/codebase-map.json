@@ -1,0 +1,11 @@
+{
+  "timestamp": "2026-08-26T11:44:34.568Z",
+  "projectRoot": "/Users/ivan/projects/medtrack",
+  "structure": {
+    "hasPackageJson": false,
+    "hasTsConfig": false,
+    "hasClaudeConfig": true,
+    "hasClaudeFlow": true
+  },
+  "scannedAt": 1787744674568
+}
