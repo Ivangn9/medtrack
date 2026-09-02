@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v6.6.2 — 02/09/2026 (patch)
+
+- Fix real del bug de 'no muestra el mes pasado': una reparación registrada sin cargar Fecha de Rotura (campo no obligatorio) quedaba invisible para la tendencia mensual y el dashboard KPI, aunque sí se veía en la Línea de Tiempo del equipo — ahora usa la fecha de reparación como respaldo en vez de descartarla en silencio
+
 ## v6.6.1 — 02/09/2026 (patch)
 
 - Fix del diagnóstico de fallas: separar fechas válidas pero de más de 12 meses atrás (correcto que no aparezcan) de fechas realmente vacías/rotas — antes se mostraban mezcladas como 'no se pudo interpretar'

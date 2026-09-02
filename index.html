@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.09.02.009 -->
+<!-- v2026.09.02.010 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.09.02.009">
+<meta name="app-version" content="v2026.09.02.010">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -8256,8 +8256,17 @@ function _kpiAllRoturas(){
     // tendencias/KPI (incluida "tiempo promedio de reparación", que necesita
     // fechaRotura + fechaArreglo juntas y solo las tiene acá, no en eq.partes).
     (eq.historialMant||[]).forEach(function(h){
-      if(!h.fechaRotura)return;
-      result.push({fechaRotura:h.fechaRotura,fechaArreglo:h.fecha,eqId:eq.id,eqNombre:eq.nombre,eqCat:eq.cat,estado:'reparado',descripcion:h.nombre,precio:parseFloat(h.precio)||0});
+      if(h.tipo&&h.tipo!=='reparacion')return; // no cuenta mantenimientos preventivos ni mejoras como "falla"
+      // Bug real encontrado (02/09/2026): si la parte se marcó "roto" sin cargar Fecha
+      // Rotura (el formulario lo permite, no es obligatorio) y después se reparó, el
+      // registro de historial queda con fechaRotura vacía — _rDetalleTimeline() (la Línea
+      // de Tiempo del equipo) igual lo muestra porque usa h.fecha (fecha de reparación),
+      // pero acá se descartaba en silencio por completo: no aparecía ni en la gráfica NI
+      // en el diagnóstico de fechas rotas, porque nunca llegaba a entrar a "result". Con
+      // fallback a h.fecha, al menos cuenta en el mes correcto — mejor que desaparecer.
+      var fr=h.fechaRotura||h.fecha;
+      if(!fr)return;
+      result.push({fechaRotura:fr,fechaArreglo:h.fechaRotura?h.fecha:'',eqId:eq.id,eqNombre:eq.nombre,eqCat:eq.cat,estado:'reparado',descripcion:h.nombre,precio:parseFloat(h.precio)||0});
     });
     // Falla Directa (submitFallaDirecta) SIN componente vinculado (antena/transductor) no
     // tiene ningún espejo en ningún otro lado — vive únicamente en eq.fallasDirectas y,
@@ -19878,12 +19887,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="6.6.1";
+var APP_DISPLAY_VERSION="6.6.2";
 var APP_BUILD="02/09/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'6.6.2',fecha:'02/09/2026',tipo:'patch',cambios:[
+    'Fix real del bug de \'no muestra el mes pasado\': una reparación registrada sin cargar Fecha de Rotura (campo no obligatorio) quedaba invisible para la tendencia mensual y el dashboard KPI, aunque sí se veía en la Línea de Tiempo del equipo — ahora usa la fecha de reparación como respaldo en vez de descartarla en silencio'
+  ]},
   {v:'6.6.1',fecha:'02/09/2026',tipo:'patch',cambios:[
     'Fix del diagnóstico de fallas: separar fechas válidas pero de más de 12 meses atrás (correcto que no aparezcan) de fechas realmente vacías/rotas — antes se mostraban mezcladas como \'no se pudo interpretar\''
   ]},
