@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v6.9.1 — 02/09/2026 (patch)
+
+- Informe con IA: el botón muestra estado visible mientras genera (antes solo un toast que desaparecía) y tiene un límite de 90s para no quedar trabado si la conexión se cuelga
+
 ## v6.9.0 — 02/09/2026 (minor)
 
 - Nuevo botón 'Generar con IA' en el Reporte Gerencial: Claude arma el informe en vivo (mismos datos, fotos y diagramas SVG que el generador clásico) con diseño tipo Apple y colores/logo de CIMA — segunda opción experimental junto al PDF clásico

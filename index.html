@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.09.02.016 -->
+<!-- v2026.09.02.017 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.09.02.016">
+<meta name="app-version" content="v2026.09.02.017">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -16006,7 +16006,22 @@ function generateAIReport(){
   if(!window._fbUser){showToast('Iniciá sesión de nuevo para usar la IA','warn');return;}
   if(window._reportBusy){showToast('Ya se está generando un informe, esperá...','warn');return;}
   window._reportBusy=true;
+  // Estado visible en el botón — un toast que desaparece solo no alcanza para un proceso
+  // que puede tardar hasta un minuto: sin esto, el usuario no tiene forma de saber si
+  // sigue trabajando o si ya terminó/falló en silencio (bug real reportado 02/09/2026:
+  // "no pasa nada" era esto, no un cuelgue real, sumado a que _reportBusy se quedaba
+  // trabado para siempre en la red vieja sin la red de seguridad de abajo).
+  var _aiBtn=document.getElementById('ai-report-btn');
+  var _aiBtnOrigHtml=_aiBtn?_aiBtn.innerHTML:'';
+  function _aiBtnRestore(){window._reportBusy=false;if(_aiBtn){_aiBtn.disabled=false;_aiBtn.style.opacity='1';_aiBtn.innerHTML=_aiBtnOrigHtml;}}
+  if(_aiBtn){_aiBtn.disabled=true;_aiBtn.style.opacity='.6';_aiBtn.innerHTML='⏳ Generando con IA... (puede tardar ~1 min)';}
   showToast('✨ Armando el informe con IA — puede tardar hasta un minuto...');
+  // Red de seguridad: si la IA nunca responde (colgado de red, Worker caído) sin esto
+  // _reportBusy quedaba en true para siempre y bloqueaba CUALQUIER informe (clásico o
+  // con IA) hasta recargar la app — mismo criterio que ya tiene generateReport().
+  var _aiSafety=setTimeout(function(){
+    if(window._reportBusy){_aiBtnRestore();showToast('El informe con IA tardó demasiado — probá de nuevo','warn');}
+  },90000);
   var filtEqs=eqs.filter(function(e){return selIds.indexOf(e.id)!==-1;});
   var data=_gatherReportDataForAI(filtEqs,desde,hasta);
   var periodoLabel=(desde||hasta)?((desde?fD(desde):'inicio')+' al '+(hasta?fD(hasta):'presente')):'Período general';
@@ -16027,7 +16042,7 @@ function generateAIReport(){
           return{ok:r.ok,status:r.status,data:d2};
         });
       }).then(function(res){
-        window._reportBusy=false;
+        clearTimeout(_aiSafety);_aiBtnRestore();
         if(!res.ok){showToast('Error '+res.status+': '+(((res.data||{}).error||{}).message||'desconocido'),'err');return;}
         var htmlOut=(((res.data.content||[])[0])||{}).text||'';
         if(!htmlOut){showToast('La IA no devolvió el informe. Intentá de nuevo.','err');return;}
@@ -16049,11 +16064,11 @@ function generateAIReport(){
         openHTMLViewer(htmlOut,'Informe CIMA (IA) — '+periodoLabel);
         showToast('✅ Informe generado con IA');
       }).catch(function(err){
-        window._reportBusy=false;
+        clearTimeout(_aiSafety);_aiBtnRestore();
         showToast('Sin conexión con la IA: '+(err&&err.message?err.message:'error desconocido'),'err');
       });
     }).catch(function(){
-      window._reportBusy=false;
+      clearTimeout(_aiSafety);_aiBtnRestore();
       showToast('No se pudo verificar tu sesión — volvé a iniciar sesión','err');
     });
   });
@@ -20146,12 +20161,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="6.9.0";
+var APP_DISPLAY_VERSION="6.9.1";
 var APP_BUILD="02/09/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'6.9.1',fecha:'02/09/2026',tipo:'patch',cambios:[
+    'Informe con IA: el botón muestra estado visible mientras genera (antes solo un toast que desaparecía) y tiene un límite de 90s para no quedar trabado si la conexión se cuelga'
+  ]},
   {v:'6.9.0',fecha:'02/09/2026',tipo:'minor',cambios:[
     'Nuevo botón \'Generar con IA\' en el Reporte Gerencial: Claude arma el informe en vivo (mismos datos, fotos y diagramas SVG que el generador clásico) con diseño tipo Apple y colores/logo de CIMA — segunda opción experimental junto al PDF clásico'
   ]},
@@ -21880,7 +21898,7 @@ function rReporte(){
     '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>'+
     'Generar PDF (Clásico)'+
   '</button>';
-  h+='<button onclick="generateAIReport()" style="width:100%;padding:16px;background:linear-gradient(135deg,#6d28d9,#a855f7);color:#fff;border:none;border-radius:var(--r-pill);font-weight:700;font-size:.92rem;cursor:pointer;box-shadow:0 4px 20px rgba(168,85,247,.3);display:flex;align-items:center;justify-content:center;gap:10px;-webkit-tap-highlight-color:transparent;">'+
+  h+='<button id="ai-report-btn" onclick="generateAIReport()" style="width:100%;padding:16px;background:linear-gradient(135deg,#6d28d9,#a855f7);color:#fff;border:none;border-radius:var(--r-pill);font-weight:700;font-size:.92rem;cursor:pointer;box-shadow:0 4px 20px rgba(168,85,247,.3);display:flex;align-items:center;justify-content:center;gap:10px;-webkit-tap-highlight-color:transparent;">'+
     '✨ Generar con IA (experimental)'+
   '</button>';
   h+='<div style="font-size:.66rem;color:var(--text3);text-align:center;margin-top:6px;line-height:1.5;">La versión con IA usa los mismos datos, fotos y diagramas — el diseño y la redacción los arma Claude en el momento. Puede tardar hasta un minuto y no es 100% idéntico cada vez que se genera.</div>';
