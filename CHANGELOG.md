@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v6.8.0 — 02/09/2026 (minor)
+
+- Botón 'Guardar' en el visor de PDF: descarga el informe directo (sin pasar por el menú Compartir de macOS), como alternativa confiable al bug de macOS donde 'Copiar' desde la hoja de compartir nativa puede duplicar el archivo al pegarlo
+
 ## v6.7.1 — 02/09/2026 (patch)
 
 - Fix crítico: las secciones de Altas/Bajas de antenas y transductores solo se agregaron a la vista previa (generateReport), no al motor que arma el PDF exportado de verdad (_buildPdfDoc, pdfMake) — se veían en pantalla pero desaparecían del PDF final

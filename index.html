@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.09.02.013 -->
+<!-- v2026.09.02.014 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.09.02.013">
+<meta name="app-version" content="v2026.09.02.014">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1365,6 +1365,7 @@ body.dark .pill[style*="#ff9500"],body.dark .pill[style*="--orange"]{box-shadow:
   <div id="pdf-viewer-hdr">
     <button onclick="closePDFViewer()" style="flex-shrink:0;background:rgba(255,255,255,.12);color:#fff;border:none;border-radius:10px;padding:7px 14px;font-size:.82rem;font-weight:600;cursor:pointer;">← Cerrar</button>
     <span id="pdf-viewer-title">Documento</span>
+    <button id="pdf-save-btn" onclick="_saveReportPdfDirect()" style="display:none;flex-shrink:0;background:rgba(255,255,255,.14);color:#fff;border:none;border-radius:10px;padding:7px 12px;font-size:.82rem;font-weight:600;cursor:pointer;">💾 Guardar</button>
     <button id="pdf-export-btn" onclick="printReport()" style="flex-shrink:0;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:7px 14px;font-size:.82rem;font-weight:600;cursor:pointer;">📄 Exportar PDF</button>
   </div>
   <div id="pdf-viewer-body">
@@ -5186,6 +5187,7 @@ function openHTMLViewer(htmlContent,title){
     if(titleEl)titleEl.textContent=title||'Reporte';
     _reportHTML=htmlContent;
     _pendingPdfBlob=null; // reset para que el próximo export genere el nuevo informe
+    var _svBtn=document.getElementById('pdf-save-btn');if(_svBtn)_svBtn.style.display='none';
     _reportData=null; // por defecto, export genérico; generateReport lo setea luego para el doc estructurado
     // Extract body content
     var bodyMatch=htmlContent.match(/<body[^>]*>([\s\S]*)<\/body>/i);
@@ -5980,6 +5982,13 @@ function printReport(){
       window.pdfMake.createPdf(dd).getBlob(function(blob){
         _pendingPdfBlob=blob;
         if(btn){btn.disabled=false;btn.textContent='📤 Tocar para compartir';}
+        // "Guardar" descarga el PDF directo (<a download>), sin pasar por
+        // navigator.share() — evita el bug de macOS donde "Copiar" desde la hoja de
+        // compartir nativa deja el archivo en el portapapeles con más de una
+        // representación interna, y al pegar en Finder aparecen 2 PDF idénticos (fuera
+        // del control de la app, es comportamiento del sistema operativo). La descarga
+        // directa siempre produce un único archivo.
+        var _svBtn=document.getElementById('pdf-save-btn');if(_svBtn)_svBtn.style.display='inline-block';
       });
     }catch(e){restore();showToast('Error al generar: '+(e.message||e),'err');}
   };
@@ -5996,6 +6005,20 @@ function printReport(){
       _doPrintPdf();
     }
   });
+}
+function _saveReportPdfDirect(){
+  if(!_pendingPdfBlob){showToast('Generá el PDF primero (📄 Exportar PDF)','warn');return;}
+  var svBtn=document.getElementById('pdf-save-btn');
+  var pf=new File([_pendingPdfBlob],_pendingPdfName+'.pdf',{type:'application/pdf'});
+  var pu=URL.createObjectURL(pf);
+  var pa=document.createElement('a');pa.href=pu;pa.download=_pendingPdfName+'.pdf';
+  document.body.appendChild(pa);pa.click();
+  setTimeout(function(){pa.parentNode.removeChild(pa);URL.revokeObjectURL(pu);},1000);
+  if(svBtn){
+    var _orig=svBtn.textContent;
+    svBtn.textContent='✅ Guardado';
+    setTimeout(function(){svBtn.textContent=_orig;},1800);
+  }
 }
 function closePDFViewer(){
   var overlay=document.getElementById('pdf-viewer-overlay');
@@ -19973,12 +19996,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="6.7.1";
+var APP_DISPLAY_VERSION="6.8.0";
 var APP_BUILD="02/09/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'6.8.0',fecha:'02/09/2026',tipo:'minor',cambios:[
+    'Botón \'Guardar\' en el visor de PDF: descarga el informe directo (sin pasar por el menú Compartir de macOS), como alternativa confiable al bug de macOS donde \'Copiar\' desde la hoja de compartir nativa puede duplicar el archivo al pegarlo'
+  ]},
   {v:'6.7.1',fecha:'02/09/2026',tipo:'patch',cambios:[
     'Fix crítico: las secciones de Altas/Bajas de antenas y transductores solo se agregaron a la vista previa (generateReport), no al motor que arma el PDF exportado de verdad (_buildPdfDoc, pdfMake) — se veían en pantalla pero desaparecían del PDF final'
   ]},
