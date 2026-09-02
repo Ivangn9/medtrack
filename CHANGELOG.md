@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v6.7.0 — 02/09/2026 (minor)
+
+- Informe gerencial: antenas/transductores nuevos comprados ahora aparecen (sección Altas), y los upgrades de RM (antenas, camilla, gabinete, software, computadora, licencias) se categorizan como Hardware/Software con detalle específico en el informe
+
 ## v6.6.3 — 02/09/2026 (patch)
 
 - Fix formato PDF: en 'Seguimiento de Gestión' del informe gerencial, el número/fecha/texto quedaban pegados sin espacio (ej. '#102/09/2026Ya se tomo...') porque el motor de exportación a PDF no respeta el gap de flexbox — se usan separadores de texto en vez de layout

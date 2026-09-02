@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.09.02.011 -->
+<!-- v2026.09.02.012 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.09.02.011">
+<meta name="app-version" content="v2026.09.02.012">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3785,7 +3785,7 @@ function confirmarMejora(eqId,pid){
   var pt=eq.partes.find(function(p){return p.id===pid;});if(!pt)return;
   eqs=eqs.map(function(e){
     if(e.id!==eqId)return e;
-    var hist=(e.historialMant||[]).concat({id:"HM-"+Date.now(),fecha:fecha,tipo:"mejora",nombre:pt.nombre,descripcion:pt.descripcion||"",asignadoA:pt.asignadoA||"",notas:notas||pt.notas||"",tecnico:tecnico,registradoEn:new Date().toISOString(),_parteOriginal:Object.assign({},pt)});
+    var hist=(e.historialMant||[]).concat({id:"HM-"+Date.now(),fecha:fecha,tipo:"mejora",nombre:pt.nombre,descripcion:pt.descripcion||"",asignadoA:pt.asignadoA||"",upgradeCategoria:pt.upgradeCategoria||"",upgradeDetalle:pt.upgradeDetalle||"",notas:notas||pt.notas||"",tecnico:tecnico,registradoEn:new Date().toISOString(),_parteOriginal:Object.assign({},pt)});
     var partes=e.partes.filter(function(x){return x.id!==pid;});
     return Object.assign({},e,{partes:partes,historialMant:hist});
   });
@@ -6486,6 +6486,21 @@ function openModalParte(eqId,pt){
       '</div>'+
     '</div>'+
     '<div id="pt-mejora-fields" style="display:'+(isMejora?'block':'none')+'">'+
+      (_esRM?(
+        '<div class="ff"><div class="ff-label">Categoría del upgrade</div>'+
+          '<div style="display:flex;gap:6px;margin-bottom:4px;">'+
+            ['hardware','software'].map(function(uc){
+              var a=(f.upgradeCategoria||'')===uc;
+              var lbl=uc==='hardware'?'🔧 Hardware':'💾 Software';
+              return '<button type="button" data-upgcat="'+uc+'" onclick="_ptSetUpgCat(\''+uc+'\')" style="flex:1;padding:9px;border-radius:var(--r-sm);font-size:.72rem;font-weight:700;border:none;cursor:pointer;background:'+(a?'rgba(139,92,246,.15)':'rgba(120,120,128,.08)')+';color:'+(a?'#8b5cf6':'var(--text3)')+';">'+lbl+'</button>';
+            }).join('')+
+          '</div>'+
+          '<input type="hidden" id="pt-upgcat" value="'+esc(f.upgradeCategoria||'')+'">'+
+          '<div style="font-size:.66rem;color:var(--text3);margin-bottom:8px;">Hardware: antena, camilla, gabinete, computadora... · Software: versión de software, licencias...</div>'+
+          '<div class="ff-label">Detalle específico</div>'+
+          '<input class="inp" id="pt-upgdet" value="'+esc(f.upgradeDetalle||'')+'" placeholder="Ej: Antena Head/Neck, Camilla, Versión de software a XA60...">'+
+        '</div>'
+      ):'')+
       '<div class="g2">'+
         '<div class="ff"><div class="ff-label">Asignado a</div><input class="inp" id="pt-asig" value="'+esc(f.asignadoA||'')+'" placeholder="Ing. García..."></div>'+
         '<div class="ff"><div class="ff-label">Fecha programada</div><input class="inp" type="date" id="pt-fmej" value="'+(f.fechaMejora||'')+'"></div>'+
@@ -6570,6 +6585,15 @@ function setPtEst(e){
   if(rf)rf.style.display=e==="mejora"?"none":"block";
   if(mf)mf.style.display=e==="mejora"?"block":"none";
 }
+function _ptSetUpgCat(uc){
+  var el=document.getElementById("pt-upgcat");if(el)el.value=uc;
+  ['hardware','software'].forEach(function(s){
+    var btn=document.querySelector('[data-upgcat="'+s+'"]');if(!btn)return;
+    var a=s===uc;
+    btn.style.background=a?'rgba(139,92,246,.15)':'rgba(120,120,128,.08)';
+    btn.style.color=a?'#8b5cf6':'var(--text3)';
+  });
+}
 function removeExistingParteImage(imgId){_deletedParteImages.push(imgId);var el=document.querySelector('[data-imgid="'+imgId+'"]');if(el&&el.parentElement)el.parentElement.remove();}
 function submitPt(eqId,ptId){
   var n=document.getElementById("pt-n").value.trim();if(!n)return alert("Nombre obligatorio");
@@ -6585,7 +6609,7 @@ function submitPt(eqId,ptId){
   var sinCostoEl=document.getElementById("pt-sincosto");
   var compEl=document.getElementById("pt-comp");
   var newImgRefs=_pendingParteImages.map(function(f){return{id:f.id,nombre:f.nombre};});
-  var _baseFields={descripcion:document.getElementById("pt-d").value,estado:esEl?esEl.value:"roto",componenteRM:compEl?compEl.value:"",fechaRotura:esMej?"":document.getElementById("pt-fr").value,fechaArreglo:esMej?"":document.getElementById("pt-fa").value,canalReclamo:esMej?"":(document.getElementById("pt-canal")||{value:""}).value||"",tecnicoReparacion:esMej?"":(document.getElementById("pt-tec")||{value:""}).value||"",asignadoA:esMej?(document.getElementById("pt-asig")||{}).value||"":"",fechaMejora:esMej?(document.getElementById("pt-fmej")||{}).value||"":"",marca:document.getElementById("pt-mk").value,nroSerie:document.getElementById("pt-sn").value,notas:document.getElementById("pt-nt").value,sinCosto:esMej?false:!!(sinCostoEl&&sinCostoEl.checked),precio:esMej?"":(sinCostoEl&&sinCostoEl.checked?"":(document.getElementById("pt-pc")||{}).value||""),precioMoneda:esMej?'USD':((document.getElementById("pt-pcM")||{}).value||'USD'),presupuestoAprobado:esMej?false:!!(presOkEl&&presOkEl.checked),fechaAprobacion:esMej?"":(presFechaEl&&presOkEl&&presOkEl.checked?presFechaEl.value:""),archivos:archivosExist.concat(newPresRefs).concat(newRepRefs),imagenes:imgsExist.concat(newImgRefs)};
+  var _baseFields={descripcion:document.getElementById("pt-d").value,estado:esEl?esEl.value:"roto",componenteRM:compEl?compEl.value:"",fechaRotura:esMej?"":document.getElementById("pt-fr").value,fechaArreglo:esMej?"":document.getElementById("pt-fa").value,canalReclamo:esMej?"":(document.getElementById("pt-canal")||{value:""}).value||"",tecnicoReparacion:esMej?"":(document.getElementById("pt-tec")||{value:""}).value||"",asignadoA:esMej?(document.getElementById("pt-asig")||{}).value||"":"",fechaMejora:esMej?(document.getElementById("pt-fmej")||{}).value||"":"",upgradeCategoria:esMej?(document.getElementById("pt-upgcat")||{}).value||"":"",upgradeDetalle:esMej?(document.getElementById("pt-upgdet")||{}).value||"":"",marca:document.getElementById("pt-mk").value,nroSerie:document.getElementById("pt-sn").value,notas:document.getElementById("pt-nt").value,sinCosto:esMej?false:!!(sinCostoEl&&sinCostoEl.checked),precio:esMej?"":(sinCostoEl&&sinCostoEl.checked?"":(document.getElementById("pt-pc")||{}).value||""),precioMoneda:esMej?'USD':((document.getElementById("pt-pcM")||{}).value||'USD'),presupuestoAprobado:esMej?false:!!(presOkEl&&presOkEl.checked),fechaAprobacion:esMej?"":(presFechaEl&&presOkEl&&presOkEl.checked?presFechaEl.value:""),archivos:archivosExist.concat(newPresRefs).concat(newRepRefs),imagenes:imgsExist.concat(newImgRefs)};
   var extraNombres=[];
   if(!ptId)document.querySelectorAll('.pt-n-extra').forEach(function(inp){var v=inp.value.trim();if(v)extraNombres.push(v);});
   // Esperar a que los 3 tipos de archivo pendientes (presupuestos/reportes/fotos)
@@ -14535,7 +14559,10 @@ function _narrativeEq(eq,mantHist,repHist,mejHist,actToShow,mejPendToShow,trasla
   if(mejHist.length){
     html+='<div class="sub-label" style="margin:10px 0 4px;">Mejoras completadas</div><ul class="rep-list">';
     mejHist.forEach(function(h){
-      html+='<li><strong>'+esc(h.nombre||'sin descripción')+'</strong>';
+      html+='<li>';
+      if(h.upgradeCategoria)html+='<span class="list-note" style="font-weight:700;'+(h.upgradeCategoria==='hardware'?'color:#7c3aed;':'color:#0369a1;')+'">'+(h.upgradeCategoria==='hardware'?'🔧 HARDWARE':'💾 SOFTWARE')+'</span> — ';
+      html+='<strong>'+esc(h.nombre||'sin descripción')+'</strong>';
+      if(h.upgradeDetalle)html+=' — '+esc(h.upgradeDetalle);
       if(h.descripcion)html+=' — '+esc(h.descripcion);
       if(h.fecha)html+=', completada el <strong>'+fD(h.fecha)+'</strong>';
       if(h.asignadoA||h.tecnico)html+=', a cargo de <strong>'+esc(h.asignadoA||h.tecnico)+'</strong>';
@@ -14586,7 +14613,10 @@ function _narrativeEq(eq,mantHist,repHist,mejHist,actToShow,mejPendToShow,trasla
   if(mejPendToShow.length){
     html+='<div class="sub-label" style="margin:10px 0 4px;">Mejoras pendientes</div><ul class="rep-list">';
     mejPendToShow.forEach(function(p){
-      html+='<li><strong>'+esc(p.nombre)+'</strong>';
+      html+='<li>';
+      if(p.upgradeCategoria)html+='<span class="list-note" style="font-weight:700;'+(p.upgradeCategoria==='hardware'?'color:#7c3aed;':'color:#0369a1;')+'">'+(p.upgradeCategoria==='hardware'?'🔧 HARDWARE':'💾 SOFTWARE')+'</span> — ';
+      html+='<strong>'+esc(p.nombre)+'</strong>';
+      if(p.upgradeDetalle)html+=' — '+esc(p.upgradeDetalle);
       if(p.descripcion)html+=' — '+esc(p.descripcion);
       if(p.asignadoA)html+=', asignada a <strong>'+esc(p.asignadoA)+'</strong>';
       if(p.fechaMejora)html+=', programada para el '+fD(p.fechaMejora);
@@ -15367,6 +15397,34 @@ function generateReport(){
       if(desde&&fecha&&fecha<desde)return false;
       if(hasta&&fecha&&fecha>hasta)return false;
       return true;
+    }
+    // Altas del período: antenas y transductores nuevos comprados/agregados — antes no
+    // aparecían en absoluto en el informe, aunque ya guardan fechaCompra desde que se
+    // cargan (submitAddAntenna/submitAddTransductor). Se muestra también a qué equipo
+    // quedaron vinculados, para que sea legible sin tener que abrir la app.
+    var altasRango=[];
+    antenas.forEach(function(a){
+      var f=a.fechaCompra||(a.creadoEn?a.creadoEn.slice(0,10):'');
+      if(!f||!_enRangoBaja(f))return;
+      var eqLink=eqs.find(function(e){return(e.antenaIds||[]).indexOf(a.id)!==-1;});
+      altasRango.push({nombre:a.nombre,tipo:'Antena',fecha:f,eqNombre:eqLink?eqLink.nombre:'—',nroSerie:a.nroSerie||''});
+    });
+    transductores.forEach(function(t){
+      var f=t.fechaCompra||(t.creadoEn?t.creadoEn.slice(0,10):'');
+      if(!f||!_enRangoBaja(f))return;
+      var eqLink=eqs.find(function(e){return(e.transductorIds||[]).indexOf(t.id)!==-1;});
+      altasRango.push({nombre:t.nombre||t.modelo||t.id,tipo:'Transductor',fecha:f,eqNombre:eqLink?eqLink.nombre:'—',nroSerie:t.nroSerie||''});
+    });
+    altasRango.sort(function(a,b){return (b.fecha||'')>(a.fecha||'')?1:-1;});
+    if(altasRango.length){
+      _secN++;
+      var altasRows=altasRango.map(function(it){
+        return '<tr><td><strong>'+esc(it.nombre)+'</strong></td><td>'+esc(it.tipo)+'</td><td>'+fD(it.fecha)+'</td><td>'+esc(it.eqNombre)+'</td><td>'+esc(it.nroSerie||'—')+'</td></tr>';
+      }).join('');
+      html+='<div class="section"><div class="section-title">'+_secN+'. Antenas y transductores nuevos</div>'+
+        '<p style="font-size:9.5pt;color:#475569;margin-bottom:10px;">'+altasRango.length+' elemento'+(altasRango.length!==1?'s nuevos':' nuevo')+' agregados '+(desde||hasta?'en el período informado':'registrados')+'.</p>'+
+        '<table class="sum" style="border:1px solid #dbeafe;"><thead><tr><th>Nombre</th><th>Tipo</th><th>Fecha de alta</th><th>Equipo</th><th>N° Serie</th></tr></thead><tbody>'+altasRows+'</tbody></table>'+
+        '</div>';
     }
     var bajasRango=[];
     eqs.forEach(function(e){if(e.baja&&_enRangoBaja(e.baja.fecha||''))bajasRango.push({nombre:e.nombre,tipo:catById(e.cat).label,baja:e.baja});});
@@ -19892,12 +19950,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="6.6.3";
+var APP_DISPLAY_VERSION="6.7.0";
 var APP_BUILD="02/09/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'6.7.0',fecha:'02/09/2026',tipo:'minor',cambios:[
+    'Informe gerencial: antenas/transductores nuevos comprados ahora aparecen (sección Altas), y los upgrades de RM (antenas, camilla, gabinete, software, computadora, licencias) se categorizan como Hardware/Software con detalle específico en el informe'
+  ]},
   {v:'6.6.3',fecha:'02/09/2026',tipo:'patch',cambios:[
     'Fix formato PDF: en \'Seguimiento de Gestión\' del informe gerencial, el número/fecha/texto quedaban pegados sin espacio (ej. \'#102/09/2026Ya se tomo...\') porque el motor de exportación a PDF no respeta el gap de flexbox — se usan separadores de texto en vez de layout'
   ]},
