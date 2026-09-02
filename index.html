@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.09.02.001 -->
+<!-- v2026.09.02.002 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.09.02.001">
+<meta name="app-version" content="v2026.09.02.002">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3813,7 +3813,8 @@ function delHist(eqId,hid){
   var hh=(eq.historialMant||[]).find(function(h){return h.id===hid;});if(!hh)return;
   var tieneOrigen=!!(hh._parteOriginal);
   var esMant=hh.tipo==="mantenimiento";
-  var msg=tieneOrigen?"¿Eliminar este registro? El parte volverá a la lista como estaba antes.":esMant?"¿Eliminar este registro de mantenimiento? Las fechas del equipo se recalcularán con el último mantenimiento restante.":"¿Eliminar registro?";
+  var vieneDePM=esMant&&!!hh.generadoDesdePM;
+  var msg=vieneDePM?"¿Eliminar este registro? El PM programado en Calendario PM volverá a estar pendiente (se desmarca como realizado) y se eliminará la Orden de Trabajo que se generó automáticamente al confirmarlo.":tieneOrigen?"¿Eliminar este registro? El parte volverá a la lista como estaba antes.":esMant?"¿Eliminar este registro de mantenimiento? Las fechas del equipo se recalcularán con el último mantenimiento restante.":"¿Eliminar registro?";
   openModal(
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">'+
     '<div class="modal-title">Confirmar eliminación</div>'+
@@ -3831,6 +3832,7 @@ function _confirmDelHist(eqId,hid){
   var hh=(eq.historialMant||[]).find(function(h){return h.id===hid;});if(!hh)return;
   var tieneOrigen=!!(hh._parteOriginal);
   var esMant=hh.tipo==="mantenimiento";
+  var pmId=hh.generadoDesdePM||null;
   eqs=eqs.map(function(e){
     if(e.id!==eqId)return e;
     var newHist=(e.historialMant||[]).filter(function(h){return h.id!==hid;});
@@ -3844,8 +3846,24 @@ function _confirmDelHist(eqId,hid){
     }
     return Object.assign({},e,{historialMant:newHist,partes:newPartes},extra);
   });
+  // Si este registro vino de "Confirmar PM realizado" (submitPMRealizado), ese botón dejó
+  // TRES rastros enlazados: el PM marcado realizado:true, una OT preventiva autogenerada
+  // ya cerrada, y este registro de historial. Borrar solo el historial dejaba los otros dos
+  // sin tocar — el PM seguía figurando "hecho" en Calendario PM aunque el usuario acababa de
+  // decir que en realidad no se hizo, dando la sensación de que el mantenimiento "reaparecía".
+  // Deshacer los tres a la vez es lo consistente con la acción de "esto no se hizo".
+  if(pmId){
+    var pmExistia=pmProgramados.some(function(p){return p.id===pmId;});
+    if(pmExistia){
+      pmProgramados=pmProgramados.map(function(p){
+        if(p.id!==pmId)return p;
+        return Object.assign({},p,{realizado:false,fechaRealizado:null,tecnicoRealizo:'',notasRealizado:''});
+      });
+    }
+    ordenesTrabajo=ordenesTrabajo.filter(function(ot){return ot.generadoDesdePM!==pmId;});
+  }
   saveData();
-  showToast(tieneOrigen?"↩️ Registro eliminado y parte restaurado":esMant?"↩️ Mantenimiento eliminado — fechas actualizadas":"Eliminado","warn");
+  showToast(pmId?"↩️ Eliminado — el PM volvió a quedar pendiente en Calendario PM":tieneOrigen?"↩️ Registro eliminado y parte restaurado":esMant?"↩️ Mantenimiento eliminado — fechas actualizadas":"Eliminado","warn");
   render();
 }
 function openHistDetail(eqId,hid){
@@ -19762,12 +19780,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="6.4.0";
+var APP_DISPLAY_VERSION="6.4.1";
 var APP_BUILD="02/09/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'6.4.1',fecha:'02/09/2026',tipo:'patch',cambios:[
+    'Fix: al eliminar del historial un mantenimiento generado desde \'Confirmar PM realizado\', ahora también se desmarca el PM programado (vuelve a pendiente en Calendario PM) y se borra la OT autogenerada — antes quedaban colgados y el mantenimiento parecía \'reaparecer\''
+  ]},
   {v:'6.4.0',fecha:'02/09/2026',tipo:'minor',cambios:[
     'Aprobación de presupuesto editable en el historial: ahora se puede tildar \'Presupuesto aprobado\' con fecha en una reparación ya registrada, para los casos donde se aprueba después de arreglado'
   ]},
