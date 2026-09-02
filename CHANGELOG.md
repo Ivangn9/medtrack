@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v6.7.1 — 02/09/2026 (patch)
+
+- Fix crítico: las secciones de Altas/Bajas de antenas y transductores solo se agregaron a la vista previa (generateReport), no al motor que arma el PDF exportado de verdad (_buildPdfDoc, pdfMake) — se veían en pantalla pero desaparecían del PDF final
+
 ## v6.7.0 — 02/09/2026 (minor)
 
 - Informe gerencial: antenas/transductores nuevos comprados ahora aparecen (sección Altas), y los upgrades de RM (antenas, camilla, gabinete, software, computadora, licencias) se categorizan como Hardware/Software con detalle específico en el informe

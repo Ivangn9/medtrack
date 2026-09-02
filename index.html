@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.09.02.012 -->
+<!-- v2026.09.02.013 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.09.02.012">
+<meta name="app-version" content="v2026.09.02.013">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -5786,6 +5786,22 @@ function _buildPdfDoc(){
   _secN++;
   content.push(_pdfH(_secN+'. Cuadro resumen'));
   content.push(_pdfSumTable(R.sumData||[]));
+  // Altas/bajas de antenas y transductores — ya vienen calculados y filtrados por fecha
+  // desde generateReport() (ver _reportData), mismo orden y criterio que la vista previa
+  // en HTML: solo se muestran si hay al menos un elemento.
+  var _motivoLabelRep={'venta':'Venta','entrega_pago':'Entregado como forma de pago','falla_irreparable':'Falla irreparable','obsolescencia':'Obsolescencia','reemplazo':'Reemplazo','otro':'Otro'};
+  if(R.altasRango&&R.altasRango.length){
+    _secN++;
+    content.push(_pdfH(_secN+'. Antenas y transductores nuevos'));
+    content.push({text:R.altasRango.length+' elemento'+(R.altasRango.length!==1?'s nuevos':' nuevo')+' agregados.',fontSize:9,color:'#475569',margin:[0,0,0,4]});
+    content.push(_pdfTableNode(['Nombre','Tipo','Fecha de alta','Equipo','N° Serie'],R.altasRango.map(function(it){return[_pdfDecode(it.nombre),it.tipo,fD(it.fecha),_pdfDecode(it.eqNombre),it.nroSerie||'—'];})));
+  }
+  if(R.bajasRango&&R.bajasRango.length){
+    _secN++;
+    content.push(_pdfH(_secN+'. Equipos, antenas y transductores dados de baja'));
+    content.push({text:R.bajasRango.length+' elemento'+(R.bajasRango.length!==1?'s dados':' dado')+' de baja.',fontSize:9,color:'#475569',margin:[0,0,0,4]});
+    content.push(_pdfTableNode(['Nombre','Tipo','Fecha de baja','Motivo','Observación'],R.bajasRango.map(function(it){return[_pdfDecode(it.nombre),it.tipo,it.baja.fecha?fD(it.baja.fecha):'—',_motivoLabelRep[it.baja.motivo]||it.baja.motivo||'—',_pdfDecode(it.baja.observacion||'—')];})));
+  }
   _secN++;
   content.push(_pdfH(_secN+'. Conclusiones y recomendaciones'));
   content.push({text:_pdfPlain(R.conclusionText),margin:[0,0,0,10],lineHeight:1.2,alignment:'justify'});
@@ -15454,7 +15470,14 @@ function generateReport(){
     html+='</body></html>';
     openHTMLViewer(html,'Informe Equipos CIMA — '+mesAnio);
     // Stash datos estructurados DESPUÉS de openHTMLViewer (que resetea _reportData a null)
-    _reportData={eqData:eqData,imgsMap:imgsMap||{},logo:logoB64||_logoSync,nro:nroInforme,para:paraInforme,periodoLabel:periodoLabel,mesAnio:mesAnio,fechaCreacion:fechaCreacion,tm:tm,tr:tr,tmej:tmej,tact:tact,hasData:hasData,sumData:sumData,introText:introText,resumenText:resumenText,conclusionText:conclusionText,jaulaEqs:filtEqsRM};
+    // altasRango/bajasRango se calculan UNA sola vez acá (donde desde/hasta están en
+    // scope) y se guardan ya resueltos en _reportData — así _buildPdfDoc() (el motor
+    // que arma el PDF que se exporta de verdad, completamente separado de este HTML de
+    // vista previa) los puede usar directo sin duplicar la lógica de filtrado por fecha
+    // ni arriesgarse a que los dos motores queden desincronizados de nuevo. Bug real:
+    // esta sección se había agregado únicamente acá (la vista previa la mostraba bien)
+    // pero _buildPdfDoc() nunca la leía — el PDF exportado no la tenía.
+    _reportData={eqData:eqData,imgsMap:imgsMap||{},logo:logoB64||_logoSync,nro:nroInforme,para:paraInforme,periodoLabel:periodoLabel,mesAnio:mesAnio,fechaCreacion:fechaCreacion,tm:tm,tr:tr,tmej:tmej,tact:tact,hasData:hasData,sumData:sumData,introText:introText,resumenText:resumenText,conclusionText:conclusionText,jaulaEqs:filtEqsRM,altasRango:altasRango,bajasRango:bajasRango};
     }catch(err){window._reportBusy=false;showToast('Error al generar: '+(err&&err.message?err.message:String(err)),'warn');console.error('generateReport error:',err);}
   }
   // If no images: build synchronously (avoids async/XHR issues on iOS PWA)
@@ -19950,12 +19973,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="6.7.0";
+var APP_DISPLAY_VERSION="6.7.1";
 var APP_BUILD="02/09/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'6.7.1',fecha:'02/09/2026',tipo:'patch',cambios:[
+    'Fix crítico: las secciones de Altas/Bajas de antenas y transductores solo se agregaron a la vista previa (generateReport), no al motor que arma el PDF exportado de verdad (_buildPdfDoc, pdfMake) — se veían en pantalla pero desaparecían del PDF final'
+  ]},
   {v:'6.7.0',fecha:'02/09/2026',tipo:'minor',cambios:[
     'Informe gerencial: antenas/transductores nuevos comprados ahora aparecen (sección Altas), y los upgrades de RM (antenas, camilla, gabinete, software, computadora, licencias) se categorizan como Hardware/Software con detalle específico en el informe'
   ]},
