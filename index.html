@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.09.02.006 -->
+<!-- v2026.09.02.007 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.09.02.006">
+<meta name="app-version" content="v2026.09.02.007">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -5464,8 +5464,27 @@ function _pdfSegui(notas,accent){
   });
   return {table:{widths:['*'],body:body},layout:_pdfBox('#fffbeb','#fde68a'),margin:[0,3,0,3]};
 }
+// El label de un estadoObj suele venir con un emoji adelante (ej. '🔴 Requiere atención') —
+// pensado para la vista HTML en pantalla, donde el emoji SÍ renderiza. pdfMake usa Roboto,
+// que no tiene esos glifos de color: en el PDF salía como un cuadrito/tofu roto. En vez de
+// mostrar el emoji, se dibuja un punto de color propio (mismo estadoObj.color) vía SVG y se
+// saca el emoji del texto — arregla todas las tarjetas de estado del informe de una vez
+// (refrigeración, jaula de Faraday, fallas, antenas, transductores), no un caso puntual.
+function _pdfStatusDotSvg(color){
+  return '<svg width="8" height="8" viewBox="0 0 8 8" xmlns="http://www.w3.org/2000/svg"><circle cx="4" cy="4" r="4" fill="'+(color||'#64748b')+'"/></svg>';
+}
+function _pdfCleanStatusLabel(s){
+  // ️ (variation selector-16, "usar presentación emoji") sigue a varios de estos
+  // emojis (ej. ⚠️ = U+26A0 + U+FE0F) — sin incluirlo en la clase, quedaba un carácter
+  // invisible pegado antes del espacio (bug real encontrado al testear ⚠️ puntualmente).
+  return (s||'').replace(/^[☀-➿⬀-⯿️\u{1F300}-\u{1FAFF}]+\s*/u,'').trim();
+}
 function _pdfCard(titleText,estadoObj,inner,fill,border){
-  var head={columns:[{text:_pdfDecode(titleText),bold:true,fontSize:9,color:'#1e293b'},{text:estadoObj?estadoObj.label:'',bold:true,fontSize:8,color:estadoObj?estadoObj.color:'#64748b',alignment:'right'}],margin:[0,0,0,4]};
+  var statusCol=estadoObj?{width:'auto',columns:[
+    {width:9,svg:_pdfStatusDotSvg(estadoObj.color),margin:[0,2,4,0]},
+    {width:'auto',text:_pdfCleanStatusLabel(estadoObj.label),bold:true,fontSize:8,color:estadoObj.color||'#64748b'}
+  ]}:{width:'auto',text:''};
+  var head={columns:[{width:'*',text:_pdfDecode(titleText),bold:true,fontSize:9,color:'#1e293b'},statusCol],margin:[0,0,0,4]};
   return {table:{widths:['*'],body:[[{stack:[head].concat(inner),margin:[9,7,9,7]}]]},layout:_pdfBox(fill,border),margin:[0,3,0,6],unbreakable:true};
 }
 function _pdfH(t){return {text:t,fontSize:12,bold:true,color:'#1a3a6b',margin:[0,12,0,6]};}
@@ -19814,12 +19833,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="6.5.2";
+var APP_DISPLAY_VERSION="6.5.3";
 var APP_BUILD="02/09/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'6.5.3',fecha:'02/09/2026',tipo:'patch',cambios:[
+    'Íconos SVG en vez de emoji para los estados de las tarjetas del informe gerencial (Refrigeración, Jaula de Faraday, fallas, antenas, transductores) — el emoji salía como un cuadrito roto en el PDF porque pdfMake no tiene esos glifos de color'
+  ]},
   {v:'6.5.2',fecha:'02/09/2026',tipo:'patch',cambios:[
     'Fix estructural: las Fallas Directas cargadas sin vincular a una antena/transductor eran invisibles para la tendencia mensual, el dashboard KPI y el informe gerencial — _kpiAllRoturas() nunca leía eq.fallasDirectas'
   ]},

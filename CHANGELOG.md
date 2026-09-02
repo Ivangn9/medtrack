@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v6.5.3 — 02/09/2026 (patch)
+
+- Íconos SVG en vez de emoji para los estados de las tarjetas del informe gerencial (Refrigeración, Jaula de Faraday, fallas, antenas, transductores) — el emoji salía como un cuadrito roto en el PDF porque pdfMake no tiene esos glifos de color
+
 ## v6.5.2 — 02/09/2026 (patch)
 
 - Fix estructural: las Fallas Directas cargadas sin vincular a una antena/transductor eran invisibles para la tendencia mensual, el dashboard KPI y el informe gerencial — _kpiAllRoturas() nunca leía eq.fallasDirectas
