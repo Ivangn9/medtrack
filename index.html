@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.09.02.002 -->
+<!-- v2026.09.02.003 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.09.02.002">
+<meta name="app-version" content="v2026.09.02.003">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -12610,12 +12610,14 @@ function rJaula(){
 }
 var _jpFotoB64=null;
 var _jpFotoChanged=false; // true solo si el usuario eligió un archivo nuevo en ESTA apertura del modal
+var _jpFotoRemoved=false; // true si el usuario tocó "Eliminar foto" en ESTA apertura del modal
 function openModalJaulaParte(eqId,parteId){
   var eq=eqs.find(function(e){return e.id===eqId;});if(!eq)return;
   var parte=JAULA_PARTES.find(function(p){return p.id===parteId;});if(!parte)return;
   var d=_jaulaData(eq)[parteId];
   _jpFotoB64=d.fotoId?(_JAULA_IMGS[d.fotoId]||null):null;
   _jpFotoChanged=false;
+  _jpFotoRemoved=false;
   var nivBtns=['optimo','leve','moderado','grave'].map(function(n){
     var a=d.nivel===n;
     return '<button type="button" data-jniv="'+n+'" onclick="_jpSetNivel(\''+n+'\')" style="flex:1;padding:10px 4px;border-radius:var(--r-sm);font-size:.68rem;font-weight:700;border:none;cursor:pointer;background:'+(a?CJ[n]+'26':'rgba(120,120,128,.08)')+';color:'+(a?CJ[n]:'var(--text3)')+';">'+CJ_LABEL[n]+'</button>';
@@ -12626,8 +12628,9 @@ function openModalJaulaParte(eqId,parteId){
     '<div class="ff" style="margin-bottom:12px;"><div class="ff-label">Nivel de deterioro</div><div style="display:flex;gap:6px;">'+nivBtns+'</div></div>'+
     '<div class="ff" style="margin-bottom:12px;"><div class="ff-label">Notas</div><textarea class="inp" id="jp-notas" rows="3" placeholder="Detalle del estado observado...">'+esc(d.notas)+'</textarea></div>'+
     '<div class="ff" style="margin-bottom:14px;"><div class="ff-label">Foto vigente <span style="opacity:.6;">(opcional)</span></div>'+
-      '<div id="jp-foto-preview" style="margin-bottom:8px;">'+(_jpFotoB64?'<img src="'+_jpFotoB64+'" style="width:84px;height:84px;object-fit:cover;border-radius:10px;border:1px solid var(--border);">':'')+'</div>'+
+      '<div id="jp-foto-preview" style="margin-bottom:8px;display:flex;align-items:center;gap:10px;">'+(_jpFotoB64?'<img src="'+_jpFotoB64+'" style="width:84px;height:84px;object-fit:cover;border-radius:10px;border:1px solid var(--border);">':'')+'</div>'+
       '<input type="file" accept="image/*" id="jp-foto-input" onchange="_jpFotoChange(event)">'+
+      (_jpFotoB64?'<button type="button" id="jp-foto-del-btn" onclick="_jpFotoRemove()" style="margin-top:8px;padding:8px 14px;border-radius:var(--r-pill);background:rgba(255,59,48,.10);border:1.5px solid rgba(255,59,48,.25);color:var(--red);font-weight:700;font-size:.76rem;cursor:pointer;">🗑️ Eliminar foto</button>':'')+
     '</div>'+
     '<button class="btn-primary" style="width:100%;" onclick="submitJaulaParte(\''+eqId+'\',\''+parteId+'\')">Guardar</button>';
   openModal(h);
@@ -12653,6 +12656,12 @@ function openModalJaulaParte(eqId,parteId){
     };
     rdr.readAsDataURL(file);
   };
+  window._jpFotoRemove=function(){
+    _jpFotoB64=null;_jpFotoChanged=false;_jpFotoRemoved=true;
+    var prev=document.getElementById('jp-foto-preview');if(prev)prev.innerHTML='';
+    var input=document.getElementById('jp-foto-input');if(input)input.value='';
+    var btn=document.getElementById('jp-foto-del-btn');if(btn)btn.remove();
+  };
 }
 function submitJaulaParte(eqId,parteId){
   var eq=eqs.find(function(e){return e.id===eqId;});if(!eq)return;
@@ -12666,6 +12675,11 @@ function submitJaulaParte(eqId,parteId){
     _JAULA_IMGS[fotoId]=_jpFotoB64;
     dbSave(fotoId,(parte?parte.label:parteId)+' — '+(eq.nombre||eqId),_jpFotoB64,function(){_finish();});
   }else{
+    // El usuario tocó "Eliminar foto" en esta apertura del modal, sin subir una nueva —
+    // limpiar la referencia (fotoId:null) para que _jaulaData() deje de resolverla. No
+    // hace falta borrar el archivo de IndexedDB/Storage: dbSave() ya versiona por id
+    // nuevo en cada subida, así que este id simplemente queda huérfano sin costo real.
+    if(_jpFotoRemoved)update.fotoId=null;
     _finish();
   }
 }
@@ -19780,12 +19794,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="6.4.1";
+var APP_DISPLAY_VERSION="6.4.2";
 var APP_BUILD="02/09/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'6.4.2',fecha:'02/09/2026',tipo:'patch',cambios:[
+    'Fix: la Jaula de Faraday no dejaba eliminar una foto ya cargada, solo reemplazarla — se agregó botón \'Eliminar foto\''
+  ]},
   {v:'6.4.1',fecha:'02/09/2026',tipo:'patch',cambios:[
     'Fix: al eliminar del historial un mantenimiento generado desde \'Confirmar PM realizado\', ahora también se desmarca el PM programado (vuelve a pendiente en Calendario PM) y se borra la OT autogenerada — antes quedaban colgados y el mantenimiento parecía \'reaparecer\''
   ]},

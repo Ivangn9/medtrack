@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v6.4.2 — 02/09/2026 (patch)
+
+- Fix: la Jaula de Faraday no dejaba eliminar una foto ya cargada, solo reemplazarla — se agregó botón 'Eliminar foto'
+
 ## v6.4.1 — 02/09/2026 (patch)
 
 - Fix: al eliminar del historial un mantenimiento generado desde 'Confirmar PM realizado', ahora también se desmarca el PM programado (vuelve a pendiente en Calendario PM) y se borra la OT autogenerada — antes quedaban colgados y el mantenimiento parecía 'reaparecer'
