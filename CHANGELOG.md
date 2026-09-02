@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v6.6.1 — 02/09/2026 (patch)
+
+- Fix del diagnóstico de fallas: separar fechas válidas pero de más de 12 meses atrás (correcto que no aparezcan) de fechas realmente vacías/rotas — antes se mostraban mezcladas como 'no se pudo interpretar'
+
 ## v6.6.0 — 02/09/2026 (minor)
 
 - Botón de diagnóstico temporal en KPI: muestra en pantalla qué fallas encuentra el sistema mes a mes, y separa las que tienen una fecha que no se pudo interpretar (para rastrear el bug de 'no muestra el mes pasado' sin depender de la consola)

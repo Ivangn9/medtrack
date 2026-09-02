@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.09.02.008 -->
+<!-- v2026.09.02.009 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.09.02.008">
+<meta name="app-version" content="v2026.09.02.009">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -10513,11 +10513,16 @@ function openFallasDiagnostico(){
   var last12=_kpiLast12Months();
   var rot=_kpiAllRoturas();
   var porMes={};last12.forEach(function(k){porMes[k]=[];});
-  var sinFechaValida=[];
+  var sinFechaValida=[],fueraDeVentana=[];
   rot.forEach(function(r){
     var k=_kpiMonthKey(r.fechaRotura);
     if(k&&porMes.hasOwnProperty(k))porMes[k].push(r);
-    else if(!k||!porMes.hasOwnProperty(k))sinFechaValida.push(r);
+    // Bug real encontrado al usar esto: un mes válido pero ANTERIOR a los últimos 12
+    // (ej. algo de 2025) parseaba bien pero caía acá mezclado con fechas realmente
+    // rotas — mostraba "no se pudo interpretar" para fechas que sí se interpretaron
+    // perfecto, solo que quedan fuera de la ventana a propósito (correcto, no es bug).
+    else if(k)fueraDeVentana.push(r);
+    else sinFechaValida.push(r);
   });
   var rowsMeses=last12.map(function(k){
     var items=porMes[k]||[];
@@ -10528,13 +10533,17 @@ function openFallasDiagnostico(){
     (items.length?'<div style="padding:2px 10px 8px;font-size:.68rem;color:var(--text3);line-height:1.6;">'+items.map(function(r){return esc(r.eqNombre)+' — '+esc(r.descripcion||'(sin descripción)')+' · '+r.fechaRotura+' · '+r.estado;}).join('<br>')+'</div>':'');
   }).join('');
   var rowsSinFecha=sinFechaValida.length?('<div style="margin-top:14px;padding:10px;background:rgba(255,59,48,.08);border:1px solid rgba(255,59,48,.2);border-radius:10px;">'+
-    '<div style="font-size:.76rem;font-weight:700;color:var(--red);margin-bottom:6px;">⚠️ '+sinFechaValida.length+' falla'+(sinFechaValida.length===1?'':'s')+' con fecha que no se pudo interpretar (no cuentan en NINGÚN mes de la gráfica):</div>'+
+    '<div style="font-size:.76rem;font-weight:700;color:var(--red);margin-bottom:6px;">⚠️ '+sinFechaValida.length+' falla'+(sinFechaValida.length===1?'':'s')+' con fecha realmente vacía o sin formato (no cuentan en NINGÚN mes de la gráfica):</div>'+
     '<div style="font-size:.68rem;color:var(--text2);line-height:1.7;">'+sinFechaValida.map(function(r){return esc(r.eqNombre)+' — '+esc(r.descripcion||'(sin descripción)')+' · fechaRotura cruda: <b>"'+esc(String(r.fechaRotura))+'"</b> · '+r.estado;}).join('<br>')+'</div>'+
+  '</div>'):'';
+  var rowsFuera=fueraDeVentana.length?('<div style="margin-top:14px;padding:10px;background:rgba(120,120,128,.06);border:1px solid rgba(120,120,128,.15);border-radius:10px;">'+
+    '<div style="font-size:.76rem;font-weight:700;color:var(--text3);margin-bottom:6px;">📅 '+fueraDeVentana.length+' falla'+(fueraDeVentana.length===1?'':'s')+' con fecha válida pero fuera de los últimos 12 meses (correcto que no aparezcan en la gráfica):</div>'+
+    '<div style="font-size:.68rem;color:var(--text3);line-height:1.7;">'+fueraDeVentana.map(function(r){return esc(r.eqNombre)+' — '+esc(r.descripcion||'(sin descripción)')+' · '+r.fechaRotura+' · '+r.estado;}).join('<br>')+'</div>'+
   '</div>'):'';
   openModal(
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><div class="modal-title">🔍 Diagnóstico de fallas por mes</div><button class="modal-close" onclick="closeModal()">✕</button></div>'+
     '<div style="font-size:.72rem;color:var(--text3);margin-bottom:12px;">Esto es lo que el sistema encuentra HOY, ahora mismo, para cada uno de los últimos 12 meses. Total de fallas leídas: '+rot.length+'.</div>'+
-    rowsMeses+rowsSinFecha
+    rowsMeses+rowsSinFecha+rowsFuera
   );
 }
 // ── KPI PDF EXPORT ──
@@ -19869,12 +19878,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="6.6.0";
+var APP_DISPLAY_VERSION="6.6.1";
 var APP_BUILD="02/09/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'6.6.1',fecha:'02/09/2026',tipo:'patch',cambios:[
+    'Fix del diagnóstico de fallas: separar fechas válidas pero de más de 12 meses atrás (correcto que no aparezcan) de fechas realmente vacías/rotas — antes se mostraban mezcladas como \'no se pudo interpretar\''
+  ]},
   {v:'6.6.0',fecha:'02/09/2026',tipo:'minor',cambios:[
     'Botón de diagnóstico temporal en KPI: muestra en pantalla qué fallas encuentra el sistema mes a mes, y separa las que tienen una fecha que no se pudo interpretar (para rastrear el bug de \'no muestra el mes pasado\' sin depender de la consola)'
   ]},
