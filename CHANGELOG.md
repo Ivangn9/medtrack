@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v7.0.0 — 02/09/2026 (minor)
+
+- Nuevo botón 'Exportar datos (para pedirle a Claude directo)': descarga un JSON con toda la info del informe (mismo formato que 'Generar con IA') para subirlo a una conversación con Claude sin las limitaciones del Worker/tokens. También se sube el presupuesto de tokens de 'Generar con IA' (7000 base + 700/equipo, tope 16000) porque el CSS y la estructura consumían más de lo estimado
+
 ## v6.9.2 — 02/09/2026 (patch)
 
 - Informe con IA: se pide un máximo de tokens más chico y escalado según la cantidad de equipos (antes 16000 fijo, ahora 3000-10000) para evitar que se corte a mitad de camino gastando crédito sin entregar el informe — si igual se corta, ahora avisa claro en vez de abrir un documento roto

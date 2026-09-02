@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.09.02.018 -->
+<!-- v2026.09.02.019 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.09.02.018">
+<meta name="app-version" content="v2026.09.02.019">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -16040,7 +16040,14 @@ function generateAIReport(){
     // según cuántos equipos se seleccionaron (un informe de 1 equipo no necesita el
     // mismo presupuesto que uno de 30) — genera más rápido, cuesta menos, y baja
     // mucho la chance de chocar con ese límite.
-    var _maxTok=Math.min(3000+filtEqs.length*500,10000);
+    // El presupuesto anterior (3000 base) resultó insuficiente incluso con 1 solo
+    // equipo — confirmado con stop_reason:'max_tokens' real (02/09/2026): el CSS +
+    // encabezado + estructura del documento ya consume una parte fija grande antes
+    // de llegar al contenido de cada equipo, así que la base tiene que ser mucho
+    // mayor. Esta vez la respuesta SÍ llegó completa a la app (el aviso de corte
+    // funcionó como debía) — el problema era puramente presupuesto insuficiente,
+    // no el Worker cortando la conexión.
+    var _maxTok=Math.min(7000+filtEqs.length*700,16000);
     window._fbUser.getIdToken().then(function(idToken){
       fetch(proxyUrl,{method:'POST',mode:'cors',headers:{'Content-Type':'application/json','Authorization':'Bearer '+idToken},
         body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:_maxTok,system:pr.sys,messages:[{role:'user',content:pr.user}]})
@@ -20177,12 +20184,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="6.9.2";
+var APP_DISPLAY_VERSION="7.0.0";
 var APP_BUILD="02/09/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'7.0.0',fecha:'02/09/2026',tipo:'minor',cambios:[
+    'Nuevo botón \'Exportar datos (para pedirle a Claude directo)\': descarga un JSON con toda la info del informe (mismo formato que \'Generar con IA\') para subirlo a una conversación con Claude sin las limitaciones del Worker/tokens. También se sube el presupuesto de tokens de \'Generar con IA\' (7000 base + 700/equipo, tope 16000) porque el CSS y la estructura consumían más de lo estimado'
+  ]},
   {v:'6.9.2',fecha:'02/09/2026',tipo:'patch',cambios:[
     'Informe con IA: se pide un máximo de tokens más chico y escalado según la cantidad de equipos (antes 16000 fijo, ahora 3000-10000) para evitar que se corte a mitad de camino gastando crédito sin entregar el informe — si igual se corta, ahora avisa claro en vez de abrir un documento roto'
   ]},
@@ -21917,11 +21927,50 @@ function rReporte(){
     '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>'+
     'Generar PDF (Clásico)'+
   '</button>';
-  h+='<button id="ai-report-btn" onclick="generateAIReport()" style="width:100%;padding:16px;background:linear-gradient(135deg,#6d28d9,#a855f7);color:#fff;border:none;border-radius:var(--r-pill);font-weight:700;font-size:.92rem;cursor:pointer;box-shadow:0 4px 20px rgba(168,85,247,.3);display:flex;align-items:center;justify-content:center;gap:10px;-webkit-tap-highlight-color:transparent;">'+
+  h+='<button id="ai-report-btn" onclick="generateAIReport()" style="width:100%;padding:16px;background:linear-gradient(135deg,#6d28d9,#a855f7);color:#fff;border:none;border-radius:var(--r-pill);font-weight:700;font-size:.92rem;cursor:pointer;box-shadow:0 4px 20px rgba(168,85,247,.3);display:flex;align-items:center;justify-content:center;gap:10px;-webkit-tap-highlight-color:transparent;margin-bottom:8px;">'+
     '✨ Generar con IA (experimental)'+
   '</button>';
-  h+='<div style="font-size:.66rem;color:var(--text3);text-align:center;margin-top:6px;line-height:1.5;">La versión con IA usa los mismos datos, fotos y diagramas — el diseño y la redacción los arma Claude en el momento. Puede tardar hasta un minuto y no es 100% idéntico cada vez que se genera.</div>';
+  h+='<button onclick="exportReportDataForAI()" style="width:100%;padding:13px;background:rgba(109,40,217,.08);color:#6d28d9;border:1.5px solid rgba(109,40,217,.25);border-radius:var(--r-pill);font-weight:700;font-size:.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;-webkit-tap-highlight-color:transparent;">'+
+    '📤 Exportar datos (para pedirle a Claude directo)'+
+  '</button>';
+  h+='<div style="font-size:.66rem;color:var(--text3);text-align:center;margin-top:6px;line-height:1.5;">"Generar con IA" lo arma la app en el momento (puede tardar, y a veces la IA corta la respuesta si son muchos equipos). "Exportar datos" descarga un archivo con toda la info — se lo subís a una conversación con Claude y te arma el informe ahí, sin esos límites.</div>';
   return h;
+}
+function exportReportDataForAI(){
+  var selIds=[];
+  var _chks=document.querySelectorAll('.rep-eq-chk:checked');
+  for(var _ci=0;_ci<_chks.length;_ci++){selIds.push(_chks[_ci].value);}
+  if(!selIds.length){showToast('Seleccioná al menos un equipo','warn');return;}
+  var desde=(document.getElementById('rep-desde')||{}).value||'';
+  var hasta=(document.getElementById('rep-hasta')||{}).value||'';
+  var filtEqs=eqs.filter(function(e){return selIds.indexOf(e.id)!==-1;});
+  var data=_gatherReportDataForAI(filtEqs,desde,hasta);
+  // Se manda un pedido explícito adentro del archivo — así alcanza con subirlo a la
+  // conversación sin tener que reescribir instrucciones a mano cada vez.
+  var payload={
+    instrucciones:'Datos exportados desde CIMA Hub (MedTrack) para armar el Informe Gerencial de mantenimiento de equipamiento médico de CIMA Investigaciones Avanzadas. Pedile a Claude que arme un documento (PDF o Word) con diseño prolijo tipo Apple, colores de marca CIMA (azul marino #1a3a6b), a partir de estos datos reales — objeto, resumen ejecutivo, detalle por equipo (mantenimientos, reparaciones, fallas activas, mejoras/upgrades, y si corresponde el estado de la Jaula de Faraday), altas y bajas de antenas/transductores si hay, y conclusiones.',
+    numeroInforme:parseInt((document.getElementById('rep-nro')||{}).value,10)||1,
+    para:((document.getElementById('rep-para')||{}).value||'Comité Ejecutivo').trim(),
+    periodo:{desde:desde||null,hasta:hasta||null},
+    datos:data
+  };
+  var jsonStr=JSON.stringify(payload,null,2);
+  var fname='CIMA-datos-informe-'+today()+'.json';
+  if(window.__TAURI__&&window.__TAURI__.dialog&&window.__TAURI__.fs){
+    window.__TAURI__.dialog.save({defaultPath:fname,filters:[{name:'JSON',extensions:['json']}]}).then(function(path){
+      if(!path)return;
+      window.__TAURI__.fs.writeTextFile(path,jsonStr).then(function(){
+        showToast('✅ Datos exportados — subilo a una conversación con Claude');
+      }).catch(function(e){showToast('No se pudo guardar: '+(e&&e.message?e.message:String(e)),'err');});
+    }).catch(function(e){showToast('No se pudo abrir el diálogo de guardado: '+(e&&e.message?e.message:String(e)),'err');});
+    return;
+  }
+  var blob=new Blob([jsonStr],{type:'application/json'});
+  var pu=URL.createObjectURL(blob);
+  var pa=document.createElement('a');pa.href=pu;pa.download=fname;
+  document.body.appendChild(pa);pa.click();
+  setTimeout(function(){pa.parentNode.removeChild(pa);URL.revokeObjectURL(pu);},1000);
+  showToast('✅ Datos exportados — subilo a una conversación con Claude');
 }
 </script>
 
