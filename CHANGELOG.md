@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v6.5.0 — 02/09/2026 (minor)
+
+- Informe gerencial: antenas y transductores dados de baja ahora aparecen en la sección de bajas (antes solo se listaban equipos)
+
 ## v6.4.2 — 02/09/2026 (patch)
 
 - Fix: la Jaula de Faraday no dejaba eliminar una foto ya cargada, solo reemplazarla — se agregó botón 'Eliminar foto'

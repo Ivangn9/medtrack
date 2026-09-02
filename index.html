@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.09.02.003 -->
+<!-- v2026.09.02.004 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.09.02.003">
+<meta name="app-version" content="v2026.09.02.004">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -15264,26 +15264,31 @@ function generateReport(){
     html+='<div class="section"><div class="section-title">'+_secN+'. Cuadro resumen</div>';
     html+='<table class="sum"><thead><tr><th>Equipo</th><th>Categoría</th><th>Centro</th><th>Estado</th><th>Mant.</th><th>Reparaciones</th><th>Fallas activas</th></tr></thead><tbody>'+sumRows+'</tbody></table>';
     html+='</div>';
-    // Equipos dados de baja en el período — antes ni aparecían en el reporte, porque
-    // se excluyen de la lista de equipos seleccionables (correctamente, ya no están
-    // en servicio activo), pero eso los volvía invisibles también acá.
-    var bajasRango=eqs.filter(function(e){
-      if(!e.baja)return false;
-      var f=e.baja.fecha||'';
-      if(desde&&f&&f<desde)return false;
-      if(hasta&&f&&f>hasta)return false;
+    // Dados de baja en el período — antes solo se listaban equipos (correctamente
+    // excluidos de las listas de equipos activos en servicio, pero eso los volvía
+    // invisibles también acá). Antenas y transductores tienen exactamente el mismo
+    // shape de baja ({fecha,motivo,observacion}, ver darBajaAntena/darBajaTransductor)
+    // y hasta ahora no aparecían en el informe en absoluto — se unifican en una sola
+    // sección/tabla, mismo criterio que ya usa rBajas() (vista "Bajas" del panel).
+    function _enRangoBaja(fecha){
+      if(desde&&fecha&&fecha<desde)return false;
+      if(hasta&&fecha&&fecha>hasta)return false;
       return true;
-    }).sort(function(a,b){return (b.baja.fecha||'')>(a.baja.fecha||'')?1:-1;});
+    }
+    var bajasRango=[];
+    eqs.forEach(function(e){if(e.baja&&_enRangoBaja(e.baja.fecha||''))bajasRango.push({nombre:e.nombre,tipo:catById(e.cat).label,baja:e.baja});});
+    antenas.forEach(function(a){if(a.baja&&_enRangoBaja(a.baja.fecha||''))bajasRango.push({nombre:a.nombre,tipo:'Antena',baja:a.baja});});
+    transductores.forEach(function(t){if(t.baja&&_enRangoBaja(t.baja.fecha||''))bajasRango.push({nombre:t.nombre||t.modelo||t.id,tipo:'Transductor',baja:t.baja});});
+    bajasRango.sort(function(a,b){return (b.baja.fecha||'')>(a.baja.fecha||'')?1:-1;});
     if(bajasRango.length){
       _secN++;
       var _motivoLabelRep={'venta':'Venta','entrega_pago':'Entregado como forma de pago','falla_irreparable':'Falla irreparable','obsolescencia':'Obsolescencia','reemplazo':'Reemplazo','otro':'Otro'};
-      var bajasRows=bajasRango.map(function(e){
-        var ci2=catById(e.cat);
-        return '<tr><td><strong>'+esc(e.nombre)+'</strong></td><td>'+ci2.label+'</td><td>'+(e.baja.fecha?fD(e.baja.fecha):'—')+'</td><td>'+esc(_motivoLabelRep[e.baja.motivo]||e.baja.motivo||'—')+'</td><td>'+esc(e.baja.observacion||'—')+'</td></tr>';
+      var bajasRows=bajasRango.map(function(it){
+        return '<tr><td><strong>'+esc(it.nombre)+'</strong></td><td>'+esc(it.tipo)+'</td><td>'+(it.baja.fecha?fD(it.baja.fecha):'—')+'</td><td>'+esc(_motivoLabelRep[it.baja.motivo]||it.baja.motivo||'—')+'</td><td>'+esc(it.baja.observacion||'—')+'</td></tr>';
       }).join('');
-      html+='<div class="section"><div class="section-title">'+_secN+'. Equipos dados de baja</div>'+
-        '<p style="font-size:9.5pt;color:#475569;margin-bottom:10px;">'+bajasRango.length+' equipo'+(bajasRango.length!==1?'s dados':' dado')+' de baja '+(desde||hasta?'en el período informado':'registrados')+'.</p>'+
-        '<table class="sum" style="border:1px solid #dbeafe;"><thead><tr><th>Equipo</th><th>Categoría</th><th>Fecha de baja</th><th>Motivo</th><th>Observación</th></tr></thead><tbody>'+bajasRows+'</tbody></table>'+
+      html+='<div class="section"><div class="section-title">'+_secN+'. Equipos, antenas y transductores dados de baja</div>'+
+        '<p style="font-size:9.5pt;color:#475569;margin-bottom:10px;">'+bajasRango.length+' elemento'+(bajasRango.length!==1?'s dados':' dado')+' de baja '+(desde||hasta?'en el período informado':'registrados')+'.</p>'+
+        '<table class="sum" style="border:1px solid #dbeafe;"><thead><tr><th>Nombre</th><th>Tipo</th><th>Fecha de baja</th><th>Motivo</th><th>Observación</th></tr></thead><tbody>'+bajasRows+'</tbody></table>'+
         '</div>';
     }
     _secN++;
@@ -19794,12 +19799,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="6.4.2";
+var APP_DISPLAY_VERSION="6.5.0";
 var APP_BUILD="02/09/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'6.5.0',fecha:'02/09/2026',tipo:'minor',cambios:[
+    'Informe gerencial: antenas y transductores dados de baja ahora aparecen en la sección de bajas (antes solo se listaban equipos)'
+  ]},
   {v:'6.4.2',fecha:'02/09/2026',tipo:'patch',cambios:[
     'Fix: la Jaula de Faraday no dejaba eliminar una foto ya cargada, solo reemplazarla — se agregó botón \'Eliminar foto\''
   ]},
