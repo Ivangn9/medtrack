@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.09.02.007 -->
+<!-- v2026.09.02.008 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.09.02.007">
+<meta name="app-version" content="v2026.09.02.008">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -10297,6 +10297,7 @@ function rKpi(){
   h+='<div style="display:flex;gap:6px;align-items:center;">';
   h+='<div id="kpi-tc-badge" onclick="_kpiFetchRate(function(r){if(r)document.getElementById(\'kpi-tc-badge\').textContent=\'TC Oficial BNA: $\'+r;else showToast(\'Sin cotización disponible\',\'warn\');})" style="font-size:.63rem;font-family:JetBrains Mono,monospace;color:var(--text3);cursor:pointer;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px;">'+(_kpiUsdRate?'TC Oficial BNA: $'+_kpiUsdRate:'↺ Cotización USD')+'</div>';
   h+='<button onclick="exportKpiPDF()" style="display:flex;align-items:center;gap:5px;background:rgba(0,122,255,.14);border:1px solid rgba(0,122,255,.3);color:#4da3ff;border-radius:8px;padding:7px 12px;font-size:.75rem;font-weight:600;cursor:pointer;">📄 PDF</button>';
+  h+='<button onclick="openFallasDiagnostico()" title="Ver qué fallas está contando el sistema, mes a mes" style="display:flex;align-items:center;gap:5px;background:rgba(255,149,0,.14);border:1px solid rgba(255,149,0,.3);color:#ff9500;border-radius:8px;padding:7px 12px;font-size:.75rem;font-weight:600;cursor:pointer;">🔍 Diagnóstico</button>';
   h+='</div>';
   h+='</div>';
   h+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:7px;padding:0 14px 12px;">';
@@ -10500,6 +10501,41 @@ function rKpi(){
 
   h+='</div>';
   return h;
+}
+// ── DIAGNÓSTICO TEMPORAL: qué fallas está contando _kpiAllRoturas() por mes ──
+// Agregado 02/09/2026 para rastrear el bug real detrás de "no muestra [el mes pasado]"
+// sin depender de la consola del navegador (no se abre en la app instalada). Muestra,
+// en pantalla, exactamente qué encuentra el sistema mes a mes — y separado, cualquier
+// falla cuya fecha no se pudo interpretar en absoluto (probablemente la causa real:
+// un campo de fecha con formato distinto a YYYY-MM-DD se descarta en silencio). Sacar
+// este botón una vez identificado y resuelto el problema real.
+function openFallasDiagnostico(){
+  var last12=_kpiLast12Months();
+  var rot=_kpiAllRoturas();
+  var porMes={};last12.forEach(function(k){porMes[k]=[];});
+  var sinFechaValida=[];
+  rot.forEach(function(r){
+    var k=_kpiMonthKey(r.fechaRotura);
+    if(k&&porMes.hasOwnProperty(k))porMes[k].push(r);
+    else if(!k||!porMes.hasOwnProperty(k))sinFechaValida.push(r);
+  });
+  var rowsMeses=last12.map(function(k){
+    var items=porMes[k]||[];
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-bottom:1px solid rgba(120,120,128,.1);">'+
+      '<span style="font-size:.8rem;font-weight:600;">'+_kpiMonthLabel(k)+'</span>'+
+      '<span style="font-size:.8rem;font-weight:700;color:'+(items.length?'var(--text)':'var(--text3)')+';">'+items.length+' falla'+(items.length===1?'':'s')+'</span>'+
+    '</div>'+
+    (items.length?'<div style="padding:2px 10px 8px;font-size:.68rem;color:var(--text3);line-height:1.6;">'+items.map(function(r){return esc(r.eqNombre)+' — '+esc(r.descripcion||'(sin descripción)')+' · '+r.fechaRotura+' · '+r.estado;}).join('<br>')+'</div>':'');
+  }).join('');
+  var rowsSinFecha=sinFechaValida.length?('<div style="margin-top:14px;padding:10px;background:rgba(255,59,48,.08);border:1px solid rgba(255,59,48,.2);border-radius:10px;">'+
+    '<div style="font-size:.76rem;font-weight:700;color:var(--red);margin-bottom:6px;">⚠️ '+sinFechaValida.length+' falla'+(sinFechaValida.length===1?'':'s')+' con fecha que no se pudo interpretar (no cuentan en NINGÚN mes de la gráfica):</div>'+
+    '<div style="font-size:.68rem;color:var(--text2);line-height:1.7;">'+sinFechaValida.map(function(r){return esc(r.eqNombre)+' — '+esc(r.descripcion||'(sin descripción)')+' · fechaRotura cruda: <b>"'+esc(String(r.fechaRotura))+'"</b> · '+r.estado;}).join('<br>')+'</div>'+
+  '</div>'):'';
+  openModal(
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><div class="modal-title">🔍 Diagnóstico de fallas por mes</div><button class="modal-close" onclick="closeModal()">✕</button></div>'+
+    '<div style="font-size:.72rem;color:var(--text3);margin-bottom:12px;">Esto es lo que el sistema encuentra HOY, ahora mismo, para cada uno de los últimos 12 meses. Total de fallas leídas: '+rot.length+'.</div>'+
+    rowsMeses+rowsSinFecha
+  );
 }
 // ── KPI PDF EXPORT ──
 function exportKpiPDF(){
@@ -19833,12 +19869,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="6.5.3";
+var APP_DISPLAY_VERSION="6.6.0";
 var APP_BUILD="02/09/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'6.6.0',fecha:'02/09/2026',tipo:'minor',cambios:[
+    'Botón de diagnóstico temporal en KPI: muestra en pantalla qué fallas encuentra el sistema mes a mes, y separa las que tienen una fecha que no se pudo interpretar (para rastrear el bug de \'no muestra el mes pasado\' sin depender de la consola)'
+  ]},
   {v:'6.5.3',fecha:'02/09/2026',tipo:'patch',cambios:[
     'Íconos SVG en vez de emoji para los estados de las tarjetas del informe gerencial (Refrigeración, Jaula de Faraday, fallas, antenas, transductores) — el emoji salía como un cuadrito roto en el PDF porque pdfMake no tiene esos glifos de color'
   ]},

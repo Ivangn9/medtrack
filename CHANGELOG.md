@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v6.6.0 — 02/09/2026 (minor)
+
+- Botón de diagnóstico temporal en KPI: muestra en pantalla qué fallas encuentra el sistema mes a mes, y separa las que tienen una fecha que no se pudo interpretar (para rastrear el bug de 'no muestra el mes pasado' sin depender de la consola)
+
 ## v6.5.3 — 02/09/2026 (patch)
 
 - Íconos SVG en vez de emoji para los estados de las tarjetas del informe gerencial (Refrigeración, Jaula de Faraday, fallas, antenas, transductores) — el emoji salía como un cuadrito roto en el PDF porque pdfMake no tiene esos glifos de color
