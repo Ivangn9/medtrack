@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v6.9.0 — 02/09/2026 (minor)
+
+- Nuevo botón 'Generar con IA' en el Reporte Gerencial: Claude arma el informe en vivo (mismos datos, fotos y diagramas SVG que el generador clásico) con diseño tipo Apple y colores/logo de CIMA — segunda opción experimental junto al PDF clásico
+
 ## v6.8.1 — 02/09/2026 (patch)
 
 - Informe gerencial: se reordenan las secciones de Altas/Bajas de antenas y transductores antes de Jaulas de Faraday (antes quedaban casi al final del informe)

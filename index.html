@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.09.02.015 -->
+<!-- v2026.09.02.016 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.09.02.015">
+<meta name="app-version" content="v2026.09.02.016">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -15924,6 +15924,140 @@ function _buildAIContext(eq){
   return ctx;
 }
 
+// ─── INFORME GERENCIAL CON IA (02/09/2026) ───
+// Segunda opción de informe, pedida explícitamente por el usuario pese a la
+// recomendación de mantener el generador determinístico (generateReport/_buildPdfDoc)
+// como el principal — el usuario prefirió que Claude arme el documento en vivo cada vez,
+// con mejor diseño (estética Apple, colores/logo de CIMA). Mismos datos que el informe
+// clásico (mantenimientos, reparaciones, fallas activas, mejoras/upgrades, Jaula de
+// Faraday, altas/bajas), pero la redacción y el maquetado los decide la IA.
+function _gatherReportDataForAI(filtEqs,desde,hasta){
+  function inRange(f){if(!f)return true;if(desde&&f<desde)return false;if(hasta&&f>hasta)return false;return true;}
+  var equipos=filtEqs.map(function(eq){
+    var ci=catById(eq.cat);
+    var hist=(eq.historialMant||[]).filter(function(h){return inRange(h.fecha);});
+    var mant=hist.filter(function(h){return h.tipo==='mantenimiento';}).map(function(h){return{fecha:h.fecha,notas:h.notas||'',tecnico:h.tecnico||''};});
+    var rep=hist.filter(function(h){return h.tipo==='reparacion';}).map(function(h){return{fecha:h.fecha,fechaRotura:h.fechaRotura||'',nombre:h.nombre||'',notas:h.notas||'',precio:h.precio||''};});
+    var mej=hist.filter(function(h){return h.tipo==='mejora';}).map(function(h){return{fecha:h.fecha,nombre:h.nombre||'',categoria:h.upgradeCategoria||'',detalle:h.upgradeDetalle||''};});
+    var fallasActivas=(eq.partes||[]).filter(function(p){return p.estado==='roto'||p.estado==='pendiente';}).map(function(p){
+      return{nombre:p.nombre,descripcion:p.descripcion||'',fechaRotura:p.fechaRotura||'',estado:p.estado,presupuestoAprobado:!!p.presupuestoAprobado,precio:p.precio||'',sinCosto:!!p.sinCosto};
+    });
+    var mejorasPend=(eq.partes||[]).filter(function(p){return p.estado==='mejora';}).map(function(p){
+      return{nombre:p.nombre,categoria:p.upgradeCategoria||'',detalle:p.upgradeDetalle||'',fechaProgramada:p.fechaMejora||'',asignadoA:p.asignadoA||''};
+    });
+    var out={id:eq.id,nombre:eq.nombre,categoria:ci.label,ubicacion:eq.ubicacion||'',estado:eq.estado||'',mantenimientos:mant,reparaciones:rep,mejorasCompletadas:mej,fallasActivas:fallasActivas,mejorasPendientes:mejorasPend};
+    if(eq.cat==='RM'){
+      var jd=_jaulaData(eq);
+      out.jaulaDeFaraday={
+        nivelGeneral:CJ_LABEL[_jaulaPeorNivel(eq)],
+        diagramaPlaceholder:'{{SVG_JAULA:'+eq.id+'}}',
+        partes:JAULA_PARTES.map(function(p){return{parte:p.label,nivel:CJ_LABEL[jd[p.id].nivel],notas:jd[p.id].notas||'',fotoPlaceholder:jd[p.id].fotoId?'{{FOTO:'+jd[p.id].fotoId+'}}':null};})
+      };
+    }
+    return out;
+  });
+  var altas=[],bajas=[];
+  antenas.forEach(function(a){
+    var f=a.fechaCompra||(a.creadoEn?a.creadoEn.slice(0,10):'');
+    if(f&&inRange(f)){var eqL=eqs.find(function(e){return(e.antenaIds||[]).indexOf(a.id)!==-1;});altas.push({nombre:a.nombre,tipo:'Antena',fecha:f,equipo:eqL?eqL.nombre:'—'});}
+    if(a.baja&&inRange(a.baja.fecha)){bajas.push({nombre:a.nombre,tipo:'Antena',fecha:a.baja.fecha,motivo:a.baja.motivo,observacion:a.baja.observacion||''});}
+  });
+  transductores.forEach(function(t){
+    var f=t.fechaCompra||(t.creadoEn?t.creadoEn.slice(0,10):'');
+    if(f&&inRange(f)){var eqL=eqs.find(function(e){return(e.transductorIds||[]).indexOf(t.id)!==-1;});altas.push({nombre:t.nombre||t.modelo||t.id,tipo:'Transductor',fecha:f,equipo:eqL?eqL.nombre:'—'});}
+    if(t.baja&&inRange(t.baja.fecha)){bajas.push({nombre:t.nombre||t.modelo||t.id,tipo:'Transductor',fecha:t.baja.fecha,motivo:t.baja.motivo,observacion:t.baja.observacion||''});}
+  });
+  eqs.forEach(function(e){if(e.baja&&inRange(e.baja.fecha)){bajas.push({nombre:e.nombre,tipo:catById(e.cat).label,fecha:e.baja.fecha,motivo:e.baja.motivo,observacion:e.baja.observacion||''});}});
+  return{equipos:equipos,altasDelPeriodo:altas,bajasDelPeriodo:bajas};
+}
+function _buildAIReportPrompt(data,nroInforme,paraInforme,periodoLabel){
+  var sys='Sos un diseñador y redactor técnico que arma informes gerenciales de mantenimiento de equipamiento médico para CIMA Investigaciones Avanzadas (diagnóstico por imágenes: resonancia magnética, tomografía, ecografía, mamografía). '+
+    'Tu tarea es devolver un documento HTML completo y autocontenido que se muestra en pantalla y también se exporta a PDF.\n\n'+
+    'FORMATO DE RESPUESTA — muy importante: devolvé SOLO un <!DOCTYPE html> completo, sin explicaciones antes ni después, sin envolver la respuesta en un bloque de código markdown. '+
+    'Poné TODO tu CSS (el <style>) y todo el contenido visible DENTRO de un único <div class="ai-informe">...</div> en el <body> — el visor descarta cualquier cosa puesta en <head> aparte del <title>, así que el <style> tiene que estar en el body, con selectores que empiecen con ".ai-informe" para no chocar con nada externo.\n\n'+
+    'DISEÑO — estética tipo Apple: tipografía del sistema (-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif), mucho espacio en blanco, tarjetas con bordes suaves (border-radius ~12-16px) y sombras muy sutiles, jerarquía tipográfica clara, nada recargado. '+
+    'Colores de marca CIMA: azul marino #1a3a6b para títulos/acentos principales, azul #2563eb como acento secundario, fondos claros (#ffffff, #f8fafc, #eff6ff). Si te paso un logo en {{LOGO}}, mostralo en el encabezado. '+
+    'Paleta de estado (usala de forma consistente en toda la Jaula de Faraday y las fallas): verde #16a34a operativo/aprobado/óptimo, ámbar #d97706 pendiente/advertencia/leve o moderado, rojo #dc2626 falla/grave/vencido.\n\n'+
+    'REGLAS TÉCNICAS para que el PDF exportado salga bien (no son solo estética, son requisitos de funcionamiento del motor de exportación):\n'+
+    '- Usá SIEMPRE etiquetas HTML semánticas reales para el contenido: <h1>-<h4> para títulos de sección, <table> reales (nunca CSS grid/flexbox) para cualquier dato tabular, <p> para texto, <ul>/<li> para listas. El motor que exporta a PDF lee estas etiquetas — un dato metido en un <div> con solo CSS grid se pierde por completo en el PDF exportado.\n'+
+    '- NUNCA uses display:flex con gap para separar un número/fecha del texto que sigue en la misma línea (ej. "#1  15/08/2026  texto"). En la exportación a PDF ese gap no se respeta y quedan pegados sin espacio. Escribí el espacio o separador (" · ", " — ") como texto literal en el HTML, nunca dependiendo de gap de layout.\n'+
+    '- NUNCA pongas page-break-inside:avoid en una sección que puede ser más alta que una hoja A4 (ej. el detalle completo de todos los equipos juntos) — es imposible de cumplir y el motor de impresión corta en cualquier lado, a veces justo debajo de un título dejándolo huérfano. Para evitar eso, aplicá break-after:avoid-page en los TÍTULOS (h2/h3), no avoid en toda la sección larga.\n'+
+    '- En cada <table> usá <thead> con <th> (para que el encabezado se repita si la tabla se corta entre páginas).\n\n'+
+    'FOTOS Y DIAGRAMAS — no tenés las imágenes reales, se insertan después por código, así que tenés que dejar EXACTAMENTE estos textos donde corresponda (los recibís ya armados en cada parte de jaulaDeFaraday):\n'+
+    '- Foto de una parte de la Jaula de Faraday: <img src="EL_PLACEHOLDER_QUE_TE_PASO" style="..."> — usá tal cual el valor de "fotoPlaceholder" cuando no sea null.\n'+
+    '- Diagrama SVG de la jaula de un equipo: escribí tal cual el valor de "diagramaPlaceholder" SOLO (sin envolverlo en ninguna etiqueta ni atributo — se reemplaza entero por el SVG real).\n'+
+    '- Logo de CIMA en el encabezado: <img src="{{LOGO}}" style="...">\n\n'+
+    'ESTRUCTURA ESPERADA: encabezado (logo, nombre del informe, número, fecha, para quién, período), Objeto, Resumen ejecutivo (redactado por vos a partir de los datos reales, sin inventar nada que no esté en el JSON), Detalle por equipo (mantenimientos/reparaciones/fallas activas/mejoras, y si tiene jaulaDeFaraday mostrala con su diagrama, nivel por parte y foto si hay), Altas y bajas de antenas/transductores (solo si hay alguna), Conclusiones y recomendaciones (redactadas por vos), y al final la firma "Lic. García Núñez Iván — Responsable de Equipos Biomédicos". No inventes datos que no estén en el JSON que te paso.';
+  var userMsg='Generá el informe gerencial Nº '+nroInforme+', para: "'+paraInforme+'", período: "'+periodoLabel+'".\n\nDatos reales (única fuente de verdad, no agregues equipos ni eventos que no estén acá):\n'+JSON.stringify(data);
+  return{sys:sys,user:userMsg};
+}
+function generateAIReport(){
+  var tipo=(document.getElementById('rep-tipo')||{}).value||'todo';
+  var desde=(document.getElementById('rep-desde')||{}).value||'';
+  var hasta=(document.getElementById('rep-hasta')||{}).value||'';
+  var nroInforme=parseInt((document.getElementById('rep-nro')||{}).value,10)||1;
+  var paraInforme=((document.getElementById('rep-para')||{}).value||'Comité Ejecutivo').trim();
+  var selIds=[];
+  var _chks=document.querySelectorAll('.rep-eq-chk:checked');
+  for(var _ci=0;_ci<_chks.length;_ci++){selIds.push(_chks[_ci].value);}
+  if(!selIds.length){showToast('Seleccioná al menos un equipo','warn');return;}
+  var proxyUrl=_getAIProxy();
+  if(!proxyUrl){_confirmModal('Para usar el informe con IA necesitás configurar el proxy de Cloudflare. ¿Abrir configuración?',function(){openAIKeyModal();},null,'Abrir configuración');return;}
+  if(!window._fbUser){showToast('Iniciá sesión de nuevo para usar la IA','warn');return;}
+  if(window._reportBusy){showToast('Ya se está generando un informe, esperá...','warn');return;}
+  window._reportBusy=true;
+  showToast('✨ Armando el informe con IA — puede tardar hasta un minuto...');
+  var filtEqs=eqs.filter(function(e){return selIds.indexOf(e.id)!==-1;});
+  var data=_gatherReportDataForAI(filtEqs,desde,hasta);
+  var periodoLabel=(desde||hasta)?((desde?fD(desde):'inicio')+' al '+(hasta?fD(hasta):'presente')):'Período general';
+  var imgIds=[];
+  filtEqs.forEach(function(eq){
+    if(eq.cat!=='RM')return;
+    var jd=_jaulaData(eq);
+    JAULA_PARTES.forEach(function(p){if(jd[p.id].fotoId&&imgIds.indexOf(jd[p.id].fotoId)===-1)imgIds.push(jd[p.id].fotoId);});
+  });
+  _loadForReport(imgIds,function(logoB64,imgsMap){
+    var pr=_buildAIReportPrompt(data,nroInforme,paraInforme,periodoLabel);
+    window._fbUser.getIdToken().then(function(idToken){
+      fetch(proxyUrl,{method:'POST',mode:'cors',headers:{'Content-Type':'application/json','Authorization':'Bearer '+idToken},
+        body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:16000,system:pr.sys,messages:[{role:'user',content:pr.user}]})
+      }).then(function(r){
+        return r.text().then(function(txt){
+          var d2;try{d2=JSON.parse(txt);}catch(e){d2={error:{message:'Respuesta no válida del proxy: '+txt.slice(0,150)}};}
+          return{ok:r.ok,status:r.status,data:d2};
+        });
+      }).then(function(res){
+        window._reportBusy=false;
+        if(!res.ok){showToast('Error '+res.status+': '+(((res.data||{}).error||{}).message||'desconocido'),'err');return;}
+        var htmlOut=(((res.data.content||[])[0])||{}).text||'';
+        if(!htmlOut){showToast('La IA no devolvió el informe. Intentá de nuevo.','err');return;}
+        // Por si la IA envuelve la respuesta en un cerco de markdown pese a que se le pidió
+        // que no lo haga — se arma el patrón con fromCharCode para no meter comillas
+        // invertidas literales en el código fuente (el chequeo estático del repo las
+        // prohíbe, están reservadas para detectar template literals reales).
+        var _fence=String.fromCharCode(96,96,96);
+        if(htmlOut.indexOf(_fence)===0)htmlOut=htmlOut.replace(new RegExp('^'+_fence+'html\\s*'),'');
+        htmlOut=htmlOut.replace(new RegExp(_fence+'\\s*$'),'').trim();
+        htmlOut=htmlOut.replace(/\{\{LOGO\}\}/g,logoB64||'');
+        htmlOut=htmlOut.replace(/\{\{FOTO:([^}]+)\}\}/g,function(_m,fid){var v=imgsMap[fid];return(v&&_pdfIsImg(v))?v:'';});
+        htmlOut=htmlOut.replace(/\{\{SVG_JAULA:([^}]+)\}\}/g,function(_m,eid){
+          var eqR=filtEqs.filter(function(e){return e.id===eid;})[0];
+          if(!eqR)return'';
+          return jaulaSceneSVG(eqR).replace(/ onclick="[^"]*"/g,'');
+        });
+        if(!/<body/i.test(htmlOut))htmlOut='<html><body>'+htmlOut+'</body></html>';
+        openHTMLViewer(htmlOut,'Informe CIMA (IA) — '+periodoLabel);
+        showToast('✅ Informe generado con IA');
+      }).catch(function(err){
+        window._reportBusy=false;
+        showToast('Sin conexión con la IA: '+(err&&err.message?err.message:'error desconocido'),'err');
+      });
+    }).catch(function(){
+      window._reportBusy=false;
+      showToast('No se pudo verificar tu sesión — volvé a iniciar sesión','err');
+    });
+  });
+}
 function sendAIAssistantMsg(){
   var inp=document.getElementById('ai-chat-inp');
   if(!inp)return;
@@ -20012,12 +20146,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="6.8.1";
+var APP_DISPLAY_VERSION="6.9.0";
 var APP_BUILD="02/09/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'6.9.0',fecha:'02/09/2026',tipo:'minor',cambios:[
+    'Nuevo botón \'Generar con IA\' en el Reporte Gerencial: Claude arma el informe en vivo (mismos datos, fotos y diagramas SVG que el generador clásico) con diseño tipo Apple y colores/logo de CIMA — segunda opción experimental junto al PDF clásico'
+  ]},
   {v:'6.8.1',fecha:'02/09/2026',tipo:'patch',cambios:[
     'Informe gerencial: se reordenan las secciones de Altas/Bajas de antenas y transductores antes de Jaulas de Faraday (antes quedaban casi al final del informe)'
   ]},
@@ -21739,10 +21876,14 @@ function rReporte(){
     'Informe para Marcas (fallas activas)'+
   '</button>';
   h+='<button onclick="testVisor()" style="width:100%;padding:12px;background:rgba(120,120,128,.15);color:var(--text2);border:1.5px dashed rgba(120,120,128,.4);border-radius:var(--r-pill);font-weight:600;font-size:.8rem;cursor:pointer;margin-bottom:8px;-webkit-tap-highlight-color:transparent;">🔬 Test Visor (diagnóstico)</button>';
-  h+='<button onclick="generateReport()" style="width:100%;padding:18px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:var(--r-pill);font-weight:700;font-size:1rem;cursor:pointer;box-shadow:0 4px 20px rgba(0,113,227,.35);display:flex;align-items:center;justify-content:center;gap:10px;-webkit-tap-highlight-color:transparent;">'+
+  h+='<button onclick="generateReport()" style="width:100%;padding:18px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:var(--r-pill);font-weight:700;font-size:1rem;cursor:pointer;box-shadow:0 4px 20px rgba(0,113,227,.35);display:flex;align-items:center;justify-content:center;gap:10px;-webkit-tap-highlight-color:transparent;margin-bottom:8px;">'+
     '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>'+
-    'Generar PDF'+
+    'Generar PDF (Clásico)'+
   '</button>';
+  h+='<button onclick="generateAIReport()" style="width:100%;padding:16px;background:linear-gradient(135deg,#6d28d9,#a855f7);color:#fff;border:none;border-radius:var(--r-pill);font-weight:700;font-size:.92rem;cursor:pointer;box-shadow:0 4px 20px rgba(168,85,247,.3);display:flex;align-items:center;justify-content:center;gap:10px;-webkit-tap-highlight-color:transparent;">'+
+    '✨ Generar con IA (experimental)'+
+  '</button>';
+  h+='<div style="font-size:.66rem;color:var(--text3);text-align:center;margin-top:6px;line-height:1.5;">La versión con IA usa los mismos datos, fotos y diagramas — el diseño y la redacción los arma Claude en el momento. Puede tardar hasta un minuto y no es 100% idéntico cada vez que se genera.</div>';
   return h;
 }
 </script>

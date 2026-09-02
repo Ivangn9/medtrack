@@ -85,6 +85,40 @@ Además de las 12 categorías hardcodeadas (ahora en `CATS_BUILTIN`, ~línea 154
 6. **Borrado** (`deleteCustomCat`): bloqueado si hay equipos activos en esa categoría o si tiene subcategorías colgando — nunca borra en cascada ni reasigna equipos automáticamente.
 7. Todo lo demás (selector de categoría en "Nuevo Equipo", `openCatalogoComponentesModal`, `openEditMantConfigModal`, vencimientos/`getAlertas()`, `sinMant()`) ya funciona genéricamente desde `CATS`/`customCats` sin necesitar tocarlo — solo agregar a `CATS` (vía `rebuildCats()`) es suficiente para que una categoría nueva participe de todo el sistema.
 
+## Reporte Gerencial (el PDF más importante de la app)
+
+`generateReport()` (vista previa HTML) + `_buildPdfDoc()` (pdfMake, el que arma el PDF que
+realmente se exporta) son **dos motores independientes** que no se leen entre sí — cada uno
+construye su propio contenido desde `_reportData`. **Cualquier sección nueva del informe hay
+que agregarla en los DOS** (bug real 02/09/2026: Altas/Bajas de antenas/transductores se
+agregaron solo en `generateReport()`, se veían perfectas en la vista previa y desaparecían
+del PDF exportado). Toda feature nueva de MedTrack con datos operativos de un equipo debe
+evaluarse para sumarse acá — es prioridad #1, pedido explícito del usuario.
+
+Orden actual de secciones (numeración dinámica vía `_secN`, ver ambas funciones): Objeto →
+Resumen ejecutivo → Detalle por equipo → Antenas/transductores nuevos (altas, si hay) →
+Dados de baja (si hay) → Jaulas de Faraday (si hay equipos RM) → Cuadro resumen →
+Conclusiones. Altas/Bajas van antes de Jaulas de Faraday a pedido del usuario, para no
+quedar tan al final.
+
+**Segunda opción — "Generar con IA"** (`generateAIReport()`, 02/09/2026): en vez del
+generador determinístico, le pide a Claude (vía el mismo proxy de Cloudflare que ya usa el
+Asistente IA) que arme el documento completo en vivo, con mejor diseño (estética Apple,
+colores/logo CIMA). Usuario explícitamente prefirió esto sobre un rediseño estático del
+generador clásico, pese a la recomendación de mantenerlo determinístico (más lento, con
+costo por informe, no 100% idéntico cada vez — el usuario lo aceptó a sabiendas). Mismos
+datos que el clásico (`_gatherReportDataForAI()`, recomputa aparte, no toca
+`generateReport()`), mismas fotos (fotoId de Jaula de Faraday, resueltas via
+`_loadForReport()`) y mismo diagrama SVG de jaula (`jaulaSceneSVG()`) — se le pide a la IA
+que deje placeholders exactos (`{{LOGO}}`, `{{FOTO:<id>}}`, `{{SVG_JAULA:<eqId>}}`) que se
+reemplazan por código después de recibir la respuesta, nunca se le mandan las imágenes
+reales a la IA (payload más chico, más rápido, más barato).
+
+Gotcha real ya resuelto: `openHTMLViewer()` extrae SOLO el contenido de `<body>` y descarta
+todo lo de `<head>` (incluido cualquier `<style>` puesto ahí) — el prompt le exige a la IA
+que ponga TODO su CSS dentro de un `<div class="ai-informe">` en el body mismo, o pierde
+todo el diseño y le queda pisado por el `_reportCSS` del informe clásico.
+
 ## Integración con Google Stitch
 
 Stitch MCP (herramientas `mcp__stitch__*`) está disponible en sesiones de MedTrack.
