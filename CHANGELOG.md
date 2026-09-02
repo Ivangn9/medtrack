@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v6.9.2 — 02/09/2026 (patch)
+
+- Informe con IA: se pide un máximo de tokens más chico y escalado según la cantidad de equipos (antes 16000 fijo, ahora 3000-10000) para evitar que se corte a mitad de camino gastando crédito sin entregar el informe — si igual se corta, ahora avisa claro en vez de abrir un documento roto
+
 ## v6.9.1 — 02/09/2026 (patch)
 
 - Informe con IA: el botón muestra estado visible mientras genera (antes solo un toast que desaparecía) y tiene un límite de 90s para no quedar trabado si la conexión se cuelga
