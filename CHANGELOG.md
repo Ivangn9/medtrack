@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v6.6.3 — 02/09/2026 (patch)
+
+- Fix formato PDF: en 'Seguimiento de Gestión' del informe gerencial, el número/fecha/texto quedaban pegados sin espacio (ej. '#102/09/2026Ya se tomo...') porque el motor de exportación a PDF no respeta el gap de flexbox — se usan separadores de texto en vez de layout
+
 ## v6.6.2 — 02/09/2026 (patch)
 
 - Fix real del bug de 'no muestra el mes pasado': una reparación registrada sin cargar Fecha de Rotura (campo no obligatorio) quedaba invisible para la tendencia mensual y el dashboard KPI, aunque sí se veía en la Línea de Tiempo del equipo — ahora usa la fecha de reparación como respaldo en vez de descartarla en silencio

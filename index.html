@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.09.02.010 -->
+<!-- v2026.09.02.011 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.09.02.010">
+<meta name="app-version" content="v2026.09.02.011">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -14566,10 +14566,15 @@ function _narrativeEq(eq,mantHist,repHist,mejHist,actToShow,mejPendToShow,trasla
         for(var _si=0;_si<segsSorted.length;_si++){
           var sg=segsSorted[_si];
           var _num=_si+1;
-          html+='<div style="display:flex;gap:6px;padding:4px 0;border-bottom:1px solid rgba(255,149,0,.1);align-items:flex-start;">';
-          html+='<span style="font-size:.65rem;font-weight:700;color:rgba(255,149,0,.5);min-width:16px;padding-top:1px;">#'+_num+'</span>';
-          html+='<span style="font-size:.7rem;font-weight:700;color:#ff9500;white-space:nowrap;min-width:68px;">'+_fmtFechaCort(sg.fecha)+'</span>';
-          html+='<span style="font-size:.73rem;color:var(--text);flex:1;line-height:1.4;">'+esc(sg.nota||'')+'</span>';
+          // Sin display:flex a propósito: el motor que arma el PDF final desde este HTML
+          // (impresión/exportación) no respeta el gap de flexbox — el número, la fecha y
+          // el texto quedaban pegados sin espacio ("#102/09/2026Ya se tomo..."). Con
+          // separadores literales en el texto (espacio + "·") queda bien en cualquier motor
+          // de renderizado, con o sin soporte de flexbox.
+          html+='<div style="padding:4px 0;border-bottom:1px solid rgba(255,149,0,.1);font-size:.72rem;line-height:1.5;">';
+          html+='<span style="font-weight:700;color:rgba(255,149,0,.55);">#'+_num+'</span> · ';
+          html+='<span style="font-weight:700;color:#ff9500;">'+_fmtFechaCort(sg.fecha)+'</span> — ';
+          html+='<span style="color:var(--text);">'+esc(sg.nota||'')+'</span>';
           html+='</div>';
         }
         html+='</div>';
@@ -19887,12 +19892,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="6.6.2";
+var APP_DISPLAY_VERSION="6.6.3";
 var APP_BUILD="02/09/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'6.6.3',fecha:'02/09/2026',tipo:'patch',cambios:[
+    'Fix formato PDF: en \'Seguimiento de Gestión\' del informe gerencial, el número/fecha/texto quedaban pegados sin espacio (ej. \'#102/09/2026Ya se tomo...\') porque el motor de exportación a PDF no respeta el gap de flexbox — se usan separadores de texto en vez de layout'
+  ]},
   {v:'6.6.2',fecha:'02/09/2026',tipo:'patch',cambios:[
     'Fix real del bug de \'no muestra el mes pasado\': una reparación registrada sin cargar Fecha de Rotura (campo no obligatorio) quedaba invisible para la tendencia mensual y el dashboard KPI, aunque sí se veía en la Línea de Tiempo del equipo — ahora usa la fecha de reparación como respaldo en vez de descartarla en silencio'
   ]},
