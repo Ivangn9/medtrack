@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.09.02.014 -->
+<!-- v2026.09.02.015 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.09.02.014">
+<meta name="app-version" content="v2026.09.02.015">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -5780,17 +5780,10 @@ function _buildPdfDoc(){
   content.push(_pdfH('3. Detalle por equipo'));
   for(i=0;i<R.eqData.length;i++){content=content.concat(_pdfEqSection(R.eqData[i],R.imgsMap||{}));}
   var _secN=3;
-  if(R.jaulaEqs&&R.jaulaEqs.length){
-    _secN++;
-    content.push(_pdfH(_secN+'. Estado de Jaulas de Faraday (Salas de RM)'));
-    for(i=0;i<R.jaulaEqs.length;i++){content=content.concat(_pdfJaulaEqNodes(R.jaulaEqs[i],R.imgsMap||{}));}
-  }
-  _secN++;
-  content.push(_pdfH(_secN+'. Cuadro resumen'));
-  content.push(_pdfSumTable(R.sumData||[]));
   // Altas/bajas de antenas y transductores — ya vienen calculados y filtrados por fecha
   // desde generateReport() (ver _reportData), mismo orden y criterio que la vista previa
-  // en HTML: solo se muestran si hay al menos un elemento.
+  // en HTML: solo se muestran si hay al menos un elemento. Van ANTES de Jaulas de Faraday
+  // (pedido del usuario 02/09/2026: que no queden tan al final del informe).
   var _motivoLabelRep={'venta':'Venta','entrega_pago':'Entregado como forma de pago','falla_irreparable':'Falla irreparable','obsolescencia':'Obsolescencia','reemplazo':'Reemplazo','otro':'Otro'};
   if(R.altasRango&&R.altasRango.length){
     _secN++;
@@ -5804,6 +5797,14 @@ function _buildPdfDoc(){
     content.push({text:R.bajasRango.length+' elemento'+(R.bajasRango.length!==1?'s dados':' dado')+' de baja.',fontSize:9,color:'#475569',margin:[0,0,0,4]});
     content.push(_pdfTableNode(['Nombre','Tipo','Fecha de baja','Motivo','Observación'],R.bajasRango.map(function(it){return[_pdfDecode(it.nombre),it.tipo,it.baja.fecha?fD(it.baja.fecha):'—',_motivoLabelRep[it.baja.motivo]||it.baja.motivo||'—',_pdfDecode(it.baja.observacion||'—')];})));
   }
+  if(R.jaulaEqs&&R.jaulaEqs.length){
+    _secN++;
+    content.push(_pdfH(_secN+'. Estado de Jaulas de Faraday (Salas de RM)'));
+    for(i=0;i<R.jaulaEqs.length;i++){content=content.concat(_pdfJaulaEqNodes(R.jaulaEqs[i],R.imgsMap||{}));}
+  }
+  _secN++;
+  content.push(_pdfH(_secN+'. Cuadro resumen'));
+  content.push(_pdfSumTable(R.sumData||[]));
   _secN++;
   content.push(_pdfH(_secN+'. Conclusiones y recomendaciones'));
   content.push({text:_pdfPlain(R.conclusionText),margin:[0,0,0,10],lineHeight:1.2,alignment:'justify'});
@@ -6009,16 +6010,36 @@ function printReport(){
 function _saveReportPdfDirect(){
   if(!_pendingPdfBlob){showToast('Generá el PDF primero (📄 Exportar PDF)','warn');return;}
   var svBtn=document.getElementById('pdf-save-btn');
+  function _markSaved(){
+    if(!svBtn)return;
+    var _orig=svBtn.textContent;
+    svBtn.textContent='✅ Guardado';
+    setTimeout(function(){svBtn.textContent=_orig;},1800);
+  }
+  // Dentro de la app instalada (Tauri/CIMA Hub), un <a download> normal no dispara NADA —
+  // confirmado por el usuario ("no cumple ninguna función en mac, no guarda ni nada"). El
+  // WebView nativo no tiene el manejador de descargas de un navegador de verdad, así que
+  // acá hay que usar la API nativa de Tauri: diálogo de guardado + escritura directa a
+  // disco (plugins fs/dialog agregados 02/09/2026, ver medtrack-desktop/src-tauri).
+  if(window.__TAURI__&&window.__TAURI__.dialog&&window.__TAURI__.fs){
+    _pendingPdfBlob.arrayBuffer().then(function(buf){
+      window.__TAURI__.dialog.save({defaultPath:_pendingPdfName+'.pdf',filters:[{name:'PDF',extensions:['pdf']}]}).then(function(path){
+        if(!path)return; // el usuario canceló el diálogo
+        window.__TAURI__.fs.writeFile(path,new Uint8Array(buf)).then(function(){
+          showToast('✅ PDF guardado');
+          _markSaved();
+        }).catch(function(e){showToast('No se pudo guardar: '+(e&&e.message?e.message:String(e)),'err');});
+      }).catch(function(e){showToast('No se pudo abrir el diálogo de guardado: '+(e&&e.message?e.message:String(e)),'err');});
+    });
+    return;
+  }
+  // Navegador normal (no Tauri): <a download> funciona de forma nativa y confiable.
   var pf=new File([_pendingPdfBlob],_pendingPdfName+'.pdf',{type:'application/pdf'});
   var pu=URL.createObjectURL(pf);
   var pa=document.createElement('a');pa.href=pu;pa.download=_pendingPdfName+'.pdf';
   document.body.appendChild(pa);pa.click();
   setTimeout(function(){pa.parentNode.removeChild(pa);URL.revokeObjectURL(pu);},1000);
-  if(svBtn){
-    var _orig=svBtn.textContent;
-    svBtn.textContent='✅ Guardado';
-    setTimeout(function(){svBtn.textContent=_orig;},1800);
-  }
+  _markSaved();
 }
 function closePDFViewer(){
   var overlay=document.getElementById('pdf-viewer-overlay');
@@ -15414,24 +15435,11 @@ function generateReport(){
     html+='<div class="section"><div class="section-title">1. Objeto</div><div class="narrative"><p>'+introText+'</p></div></div>';
     html+='<div class="section"><div class="section-title">2. Resumen ejecutivo</div><div class="narrative"><p>'+resumenText+'</p></div></div>';
     html+='<div class="section"><div class="section-title">3. Detalle por equipo</div>'+eqSections+'</div>';
-    // Numeración dinámica desde acá: la sección de Jaulas de Faraday solo aparece si
-    // hay equipos RM seleccionados, y "Equipos dados de baja" solo si hubo bajas en el
-    // período — el resto de las secciones se corren según cuáles de estas dos existan.
+    // Numeración dinámica desde acá: Altas/Bajas solo aparecen si hubo movimientos en el
+    // período, Jaulas de Faraday solo si hay equipos RM — el resto de las secciones se
+    // corren según cuáles de estas existan. Orden pedido por el usuario (02/09/2026):
+    // Altas/Bajas antes de Jaulas de Faraday, para que no queden tan al final del informe.
     var _secN=3;
-    if(filtEqsRM.length){
-      _secN++;
-      html+='<div class="section"><div class="section-title">'+_secN+'. Estado de Jaulas de Faraday (Salas de RM)</div>'+jaulaSectionHtml+'</div>';
-    }
-    _secN++;
-    html+='<div class="section"><div class="section-title">'+_secN+'. Cuadro resumen</div>';
-    html+='<table class="sum"><thead><tr><th>Equipo</th><th>Categoría</th><th>Centro</th><th>Estado</th><th>Mant.</th><th>Reparaciones</th><th>Fallas activas</th></tr></thead><tbody>'+sumRows+'</tbody></table>';
-    html+='</div>';
-    // Dados de baja en el período — antes solo se listaban equipos (correctamente
-    // excluidos de las listas de equipos activos en servicio, pero eso los volvía
-    // invisibles también acá). Antenas y transductores tienen exactamente el mismo
-    // shape de baja ({fecha,motivo,observacion}, ver darBajaAntena/darBajaTransductor)
-    // y hasta ahora no aparecían en el informe en absoluto — se unifican en una sola
-    // sección/tabla, mismo criterio que ya usa rBajas() (vista "Bajas" del panel).
     function _enRangoBaja(fecha){
       if(desde&&fecha&&fecha<desde)return false;
       if(hasta&&fecha&&fecha>hasta)return false;
@@ -15481,6 +15489,14 @@ function generateReport(){
         '<table class="sum" style="border:1px solid #dbeafe;"><thead><tr><th>Nombre</th><th>Tipo</th><th>Fecha de baja</th><th>Motivo</th><th>Observación</th></tr></thead><tbody>'+bajasRows+'</tbody></table>'+
         '</div>';
     }
+    if(filtEqsRM.length){
+      _secN++;
+      html+='<div class="section"><div class="section-title">'+_secN+'. Estado de Jaulas de Faraday (Salas de RM)</div>'+jaulaSectionHtml+'</div>';
+    }
+    _secN++;
+    html+='<div class="section"><div class="section-title">'+_secN+'. Cuadro resumen</div>';
+    html+='<table class="sum"><thead><tr><th>Equipo</th><th>Categoría</th><th>Centro</th><th>Estado</th><th>Mant.</th><th>Reparaciones</th><th>Fallas activas</th></tr></thead><tbody>'+sumRows+'</tbody></table>';
+    html+='</div>';
     _secN++;
     html+='<div class="section"><div class="section-title">'+_secN+'. Conclusiones y recomendaciones</div><div class="narrative"><p>'+conclusionText+'</p></div></div>';
     html+='<div class="footer">';
@@ -19996,12 +20012,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="6.8.0";
+var APP_DISPLAY_VERSION="6.8.1";
 var APP_BUILD="02/09/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'6.8.1',fecha:'02/09/2026',tipo:'patch',cambios:[
+    'Informe gerencial: se reordenan las secciones de Altas/Bajas de antenas y transductores antes de Jaulas de Faraday (antes quedaban casi al final del informe)'
+  ]},
   {v:'6.8.0',fecha:'02/09/2026',tipo:'minor',cambios:[
     'Botón \'Guardar\' en el visor de PDF: descarga el informe directo (sin pasar por el menú Compartir de macOS), como alternativa confiable al bug de macOS donde \'Copiar\' desde la hoja de compartir nativa puede duplicar el archivo al pegarlo'
   ]},

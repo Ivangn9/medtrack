@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v6.8.1 — 02/09/2026 (patch)
+
+- Informe gerencial: se reordenan las secciones de Altas/Bajas de antenas y transductores antes de Jaulas de Faraday (antes quedaban casi al final del informe)
+
 ## v6.8.0 — 02/09/2026 (minor)
 
 - Botón 'Guardar' en el visor de PDF: descarga el informe directo (sin pasar por el menú Compartir de macOS), como alternativa confiable al bug de macOS donde 'Copiar' desde la hoja de compartir nativa puede duplicar el archivo al pegarlo
