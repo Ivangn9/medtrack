@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.08.28.001 -->
+<!-- v2026.09.02.001 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.08.28.001">
+<meta name="app-version" content="v2026.09.02.001">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3541,7 +3541,7 @@ function saveParte(eqId,pt){
     var ex=_ep.find(function(x){return x.id===pt.id;});
     var hist=(e.historialMant||[]).slice();
     if(ex&&ex.estado!=="ok"&&pt.estado==="ok"&&pt.fechaArreglo){
-      hist.push({id:"HP-"+Date.now(),fecha:pt.fechaArreglo,tipo:"reparacion",nombre:pt.nombre,marca:pt.marca||"",nroSerie:pt.nroSerie||"",fechaRotura:pt.fechaRotura||"",notas:pt.notas||"",sinCosto:pt.sinCosto||false,precio:pt.precio||"",registradoEn:new Date().toISOString()});
+      hist.push({id:"HP-"+Date.now(),fecha:pt.fechaArreglo,tipo:"reparacion",nombre:pt.nombre,marca:pt.marca||"",nroSerie:pt.nroSerie||"",fechaRotura:pt.fechaRotura||"",notas:pt.notas||"",sinCosto:pt.sinCosto||false,precio:pt.precio||"",presupuestoAprobado:pt.presupuestoAprobado||false,fechaAprobacion:pt.fechaAprobacion||"",registradoEn:new Date().toISOString()});
     }
     // Merge en vez de reemplazo: preserva campos internos que el formulario genérico no conoce
     // (_antenaRoturaId/_antenaId, seguimientos) — si no, la primera edición de una parte
@@ -3632,7 +3632,7 @@ function confirmarReparacion(eqId,pid){
   }
   eqs=eqs.map(function(e){
     if(e.id!==eqId)return e;
-    var hist=(e.historialMant||[]).concat({id:"HP-"+Date.now(),fecha:fecha,tipo:"reparacion",nombre:pt.nombre,marca:pt.marca||"",nroSerie:pt.nroSerie||"",fechaRotura:pt.fechaRotura||"",notas:notas||pt.notas||"",sinCosto:pt.sinCosto||false,precio:pt.precio||"",tecnico:tecnico,archivos:pt.archivos||[],registradoEn:new Date().toISOString(),_parteOriginal:Object.assign({},pt)});
+    var hist=(e.historialMant||[]).concat({id:"HP-"+Date.now(),fecha:fecha,tipo:"reparacion",nombre:pt.nombre,marca:pt.marca||"",nroSerie:pt.nroSerie||"",fechaRotura:pt.fechaRotura||"",notas:notas||pt.notas||"",sinCosto:pt.sinCosto||false,precio:pt.precio||"",presupuestoAprobado:pt.presupuestoAprobado||false,fechaAprobacion:pt.fechaAprobacion||"",tecnico:tecnico,archivos:pt.archivos||[],registradoEn:new Date().toISOString(),_parteOriginal:Object.assign({},pt)});
     var partes=e.partes.filter(function(x){return x.id!==pid;});
     return Object.assign({},e,{partes:partes,historialMant:hist});
   });
@@ -3878,6 +3878,9 @@ function openHistDetail(eqId,hid){
     (hh.fechaRotura?'<div class="ibox"><div class="ibox-l">Fecha Rotura</div><div class="ibox-v" style="color:var(--red);">'+fD(hh.fechaRotura)+'</div></div>':'')+
     (hh.precio?'<div class="ibox"><div class="ibox-l">Precio Reparación</div><div class="ibox-v" style="color:var(--green);">$'+esc(hh.precio)+'</div></div>':'')+
     '</div>'+
+    (!isMant&&!hh.sinCosto?'<div class="ff" style="margin-top:-4px;">'+
+      (hh.presupuestoAprobado?'<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:50px;font-size:.72rem;font-weight:700;background:rgba(52,199,89,.12);color:var(--green);">✅ Presupuesto aprobado'+(hh.fechaAprobacion?' · '+fD(hh.fechaAprobacion):'')+'</span>':'<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:50px;font-size:.72rem;font-weight:700;background:rgba(255,149,0,.10);color:var(--orange);">⏳ Presupuesto pendiente de aprobación</span>')+
+    '</div>':'')+
     (hh.notas?'<div class="ff"><div class="ff-label">Notas</div><div style="background:rgba(120,120,128,.06);border-radius:var(--r-sm);padding:10px 14px;font-size:.82rem;color:var(--text2);">'+esc(hh.notas)+'</div></div>':'')+
     '<div class="ff"><div class="ff-label">Archivos PDF</div>'+pdfRows+'</div>'+
     '<button onclick="openEditHist(\''+eqId+'\',\''+hid+'\')" style="width:100%;padding:13px;margin-top:12px;border:none;border-radius:var(--r-md);background:var(--accent);color:#fff;font-size:.9rem;font-weight:700;cursor:pointer;">'+icn('edit',12)+' Editar</button>'
@@ -3918,7 +3921,18 @@ function openEditHist(eqId,hid){
     '</div>'+
     '<div id="eh-precio-hint" style="font-size:.63rem;color:var(--text3);margin-top:3px;min-height:14px;"></div>'+
     '</div>'+
-    (isMant?'<div class="ff"><div class="ff-label">Ingeniero</div><input class="inp" id="eh-tecnico" value="'+esc(hh.tecnico||'')+'"></div>':'')+
+    (isMant?'<div class="ff"><div class="ff-label">Ingeniero</div><input class="inp" id="eh-tecnico" value="'+esc(hh.tecnico||'')+'"></div>':(hh.sinCosto?'':
+      '<div class="ff"><div class="ff-label">Aprobación de Presupuesto</div>'+
+        '<label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;padding:9px 14px;border-radius:12px;background:'+(hh.presupuestoAprobado?'rgba(52,199,89,.12)':'rgba(120,120,128,.07)')+';border:1px solid '+(hh.presupuestoAprobado?'rgba(52,199,89,.3)':'rgba(120,120,128,.15)')+';">'+
+          '<input type="checkbox" id="eh-pres-ok" onchange="toggleHistPresAprobado(this)" '+(hh.presupuestoAprobado?'checked':'')+' style="width:16px;height:16px;accent-color:var(--green);cursor:pointer;">'+
+          '<span style="font-size:.82rem;font-weight:600;color:'+(hh.presupuestoAprobado?'var(--green)':'var(--text3)')+';">'+(hh.presupuestoAprobado?'✅ Aprobado':'Presupuesto aprobado')+'</span>'+
+        '</label>'+
+        '<div id="eh-pres-fecha-wrap" style="margin-top:8px;display:'+(hh.presupuestoAprobado?'block':'none')+';">'+
+          '<div class="ff-label" style="font-size:.7rem;">Fecha de aprobación</div>'+
+          '<input class="inp" type="date" id="eh-pres-fecha" value="'+(hh.fechaAprobacion||'')+'">'+
+          '<div style="font-size:.62rem;color:var(--text3);margin-top:4px;">Puede ser posterior a la fecha de reparación de arriba — se aprueba a veces después de arreglado.</div>'+
+        '</div>'+
+      '</div>'))+
     '<div class="ff"><div class="ff-label">Notas</div><textarea class="inp" id="eh-notas" rows="3">'+esc(hh.notas)+'</textarea></div>'+
     '<div class="ff"><div class="ff-label" style="margin-bottom:6px;">Archivos PDF</div>'+histPdfSection('presupuesto','Presupuesto',presExist)+histPdfSection('reporte','Reporte',repExist)+'</div>'+
     '<button class="btn-primary" style="width:100%;padding:14px;font-size:.92rem;" onclick="submitHist(\''+eqId+'\',\''+hid+'\')">💾 Guardar cambios</button>'
@@ -3982,6 +3996,12 @@ function submitHist(eqId,hid){
         var updated=Object.assign({},h,{fecha:fecha,notas:document.getElementById("eh-notas").value,archivos:archivos});
         if(precioEl){updated.precio=precioEl.value;var pmEl=document.getElementById('eh-precio-moneda');updated.precioMoneda=pmEl?pmEl.value:'USD';}
         if(tecnicoEl)updated.tecnico=tecnicoEl.value;
+        var presOkEl=document.getElementById('eh-pres-ok');
+        if(presOkEl){
+          updated.presupuestoAprobado=presOkEl.checked;
+          var presFechaEl=document.getElementById('eh-pres-fecha');
+          updated.fechaAprobacion=presOkEl.checked&&presFechaEl?presFechaEl.value:"";
+        }
         return updated;
       });
       return Object.assign({},e,{historialMant:hist});
@@ -6460,6 +6480,19 @@ function setCentro(val){
 }
 function togglePresAprobado(cb){
   var wrap=document.getElementById("pt-pres-fecha-wrap");
+  var lbl=cb.parentElement;
+  if(cb.checked){
+    if(wrap)wrap.style.display="block";
+    lbl.style.background="rgba(52,199,89,.12)";lbl.style.borderColor="rgba(52,199,89,.3)";
+    var sp=lbl.querySelector("span");if(sp){sp.textContent="✅ Aprobado";sp.style.color="var(--green)";}
+  }else{
+    if(wrap)wrap.style.display="none";
+    lbl.style.background="rgba(120,120,128,.07)";lbl.style.borderColor="rgba(120,120,128,.15)";
+    var sp=lbl.querySelector("span");if(sp){sp.textContent="Presupuesto aprobado";sp.style.color="var(--text3)";}
+  }
+}
+function toggleHistPresAprobado(cb){
+  var wrap=document.getElementById("eh-pres-fecha-wrap");
   var lbl=cb.parentElement;
   if(cb.checked){
     if(wrap)wrap.style.display="block";
@@ -19729,12 +19762,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="6.3.2";
-var APP_BUILD="28/08/26 h";
+var APP_DISPLAY_VERSION="6.4.0";
+var APP_BUILD="02/09/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'6.4.0',fecha:'02/09/2026',tipo:'minor',cambios:[
+    'Aprobación de presupuesto editable en el historial: ahora se puede tildar \'Presupuesto aprobado\' con fecha en una reparación ya registrada, para los casos donde se aprueba después de arreglado'
+  ]},
   {v:'6.3.2',fecha:'28/08/2026',tipo:'patch',cambios:[
     'Corrige riesgo de Helio: una racha corta de 1-2 dias (ruido normal de lectura) ya no se extrapola a un mes completo'
   ]},

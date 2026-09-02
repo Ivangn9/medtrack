@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v6.4.0 — 02/09/2026 (minor)
+
+- Aprobación de presupuesto editable en el historial: ahora se puede tildar 'Presupuesto aprobado' con fecha en una reparación ya registrada, para los casos donde se aprueba después de arreglado
+
 ## v6.3.2 — 28/08/2026 (patch)
 
 - Corrige riesgo de Helio: una racha corta de 1-2 dias (ruido normal de lectura) ya no se extrapola a un mes completo
