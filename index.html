@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.09.02.005 -->
+<!-- v2026.09.02.006 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.09.02.005">
+<meta name="app-version" content="v2026.09.02.006">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -8239,6 +8239,21 @@ function _kpiAllRoturas(){
     (eq.historialMant||[]).forEach(function(h){
       if(!h.fechaRotura)return;
       result.push({fechaRotura:h.fechaRotura,fechaArreglo:h.fecha,eqId:eq.id,eqNombre:eq.nombre,eqCat:eq.cat,estado:'reparado',descripcion:h.nombre,precio:parseFloat(h.precio)||0});
+    });
+    // Falla Directa (submitFallaDirecta) SIN componente vinculado (antena/transductor) no
+    // tiene ningún espejo en ningún otro lado — vive únicamente en eq.fallasDirectas y,
+    // hasta acá, esta función nunca lo leía. Cualquier falla cargada así era invisible para
+    // la tendencia mensual, el dashboard KPI y el informe gerencial, sin importar el mes —
+    // no era un problema de fechas, sino que esta categoría entera de falla nunca se leía.
+    // Cuando SÍ hay componente vinculado (_componenteId), la rotura real ya se cuenta más
+    // abajo desde antenas[]/transductores[] — sumarla también acá la duplicaría.
+    (eq.fallasDirectas||[]).forEach(function(f){
+      if(f._componenteId)return;
+      // No hay fechaArreglo: a diferencia de eq.partes/historialMant, una Falla Directa
+      // nunca registra cuándo se reparó (setEstadoFallaDirecta solo cambia .estado) — se
+      // deja vacía en vez de inventar una, así "tiempo promedio de reparación" simplemente
+      // no la usa para ese cálculo puntual, en lugar de contar una fecha falsa.
+      result.push({fechaRotura:f.fecha,fechaArreglo:'',eqId:eq.id,eqNombre:eq.nombre,eqCat:eq.cat,estado:f.estado,descripcion:f.queSeRompio||f.descripcion||'',precio:parseFloat(f.precio)||0});
     });
   });
   antenas.forEach(function(ant){
@@ -19799,12 +19814,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="6.5.1";
+var APP_DISPLAY_VERSION="6.5.2";
 var APP_BUILD="02/09/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'6.5.2',fecha:'02/09/2026',tipo:'patch',cambios:[
+    'Fix estructural: las Fallas Directas cargadas sin vincular a una antena/transductor eran invisibles para la tendencia mensual, el dashboard KPI y el informe gerencial — _kpiAllRoturas() nunca leía eq.fallasDirectas'
+  ]},
   {v:'6.5.1',fecha:'02/09/2026',tipo:'patch',cambios:[
     'Informe gerencial: se corrigen saltos de página feos en _reportCSS — los títulos ya no quedan huérfanos al final de una página, la tabla resumen repite el encabezado si se corta entre páginas y ninguna fila se parte al medio'
   ]},

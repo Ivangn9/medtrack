@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v6.5.2 — 02/09/2026 (patch)
+
+- Fix estructural: las Fallas Directas cargadas sin vincular a una antena/transductor eran invisibles para la tendencia mensual, el dashboard KPI y el informe gerencial — _kpiAllRoturas() nunca leía eq.fallasDirectas
+
 ## v6.5.1 — 02/09/2026 (patch)
 
 - Informe gerencial: se corrigen saltos de página feos en _reportCSS — los títulos ya no quedan huérfanos al final de una página, la tabla resumen repite el encabezado si se corta entre páginas y ninguna fila se parte al medio
