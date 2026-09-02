@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v6.5.1 — 02/09/2026 (patch)
+
+- Informe gerencial: se corrigen saltos de página feos en _reportCSS — los títulos ya no quedan huérfanos al final de una página, la tabla resumen repite el encabezado si se corta entre páginas y ninguna fila se parte al medio
+
 ## v6.5.0 — 02/09/2026 (minor)
 
 - Informe gerencial: antenas y transductores dados de baja ahora aparecen en la sección de bajas (antes solo se listaban equipos)
