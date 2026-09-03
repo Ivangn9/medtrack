@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.09.03.018 -->
+<!-- v2026.09.03.019 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.09.03.018">
+<meta name="app-version" content="v2026.09.03.019">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1251,13 +1251,15 @@ body.dark .pill[style*="#ff9500"],body.dark .pill[style*="--orange"]{box-shadow:
    !important salvo donde ya lo exigía una regla existente.
    ══════════════════════════════════════════════════════════════ */
 @media(min-width:900px){
-  /* Fase 1 — overlay title bar (tauri.conf.json: titleBarStyle:"Overlay").
-     Los traffic lights reales de macOS quedan flotando arriba a la
-     izquierda del contenido (~26px alto, ~78px ancho) — la franja del logo
-     del sidebar es la zona arrastrable de la ventana (ver data-tauri-drag-
-     region en el HTML) y necesita bajar su contenido para no quedar debajo
-     de los círculos. */
-  #sb-logo-header{padding-top:34px;}
+  /* Fase 1 (overlay title bar) se probó y se revirtió el 03/09/2026: la
+     ventana real mostraba una franja negra sólida arriba de todo en vez
+     del contenido con los traffic lights flotando encima — resultado
+     visualmente roto ("horroroso" según el usuario). tauri.conf.json
+     volvió a la barra de título normal (sin titleBarStyle/hiddenTitle).
+     El atributo data-tauri-drag-region que quedó en el logo del sidebar
+     es inofensivo con la barra de título normal (Tauri lo ignora), así
+     que no hace falta sacarlo — si se retoma el overlay más adelante, hay
+     que investigar bien esa franja negra antes de volver a intentarlo. */
 
   /* Fase 2 — materiales reales de NSVisualEffectView, en vez del vidrio muy
      transparente pensado para el fondo con foto que se usa en mobile. Los
@@ -20084,12 +20086,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.6.1";
+var APP_DISPLAY_VERSION="8.6.2";
 var APP_BUILD="03/09/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'8.6.2',fecha:'03/09/2026',tipo:'patch',cambios:[
+    'Revertida la Fase 1 (overlay title bar): la ventana real mostraba una franja negra solida arriba en vez de los traffic lights flotando sobre el contenido - resultado roto. tauri.conf.json vuelve a la barra de titulo normal. Queda documentado el intento para retomarlo con mas investigacion mas adelante si hace falta'
+  ]},
   {v:'8.6.1',fecha:'03/09/2026',tipo:'patch',cambios:[
     'Fase 2 del rediseno nativo de macOS: materiales reales de NSVisualEffectView en escritorio - sidebar y toolbar pasan de vidrio muy transparente a fondo solido (sidebar ~.78 opacidad, blur 30px saturate 150%; toolbar ~.85, blur 20px saturate 180%), toolbar unificada de pill flotante a barra solida pegada arriba, panel de Ajustes con material tipo sheet'
   ]},

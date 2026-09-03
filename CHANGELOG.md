@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v8.6.2 — 03/09/2026 (patch)
+
+- Revertida la Fase 1 (overlay title bar): la ventana real mostraba una franja negra solida arriba en vez de los traffic lights flotando sobre el contenido - resultado roto. tauri.conf.json vuelve a la barra de titulo normal. Queda documentado el intento para retomarlo con mas investigacion mas adelante si hace falta
+
 ## v8.6.1 — 03/09/2026 (patch)
 
 - Fase 2 del rediseno nativo de macOS: materiales reales de NSVisualEffectView en escritorio - sidebar y toolbar pasan de vidrio muy transparente a fondo solido (sidebar ~.78 opacidad, blur 30px saturate 150%; toolbar ~.85, blur 20px saturate 180%), toolbar unificada de pill flotante a barra solida pegada arriba, panel de Ajustes con material tipo sheet
