@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v7.9.0 — 03/09/2026 (minor)
+
+- Octava tanda de reemplazo de emojis por iconos SVG: los items del buscador global (_gsItem) que usaban emoji como icono (equipos, fallas, antenas, transductores, ordenes, repuestos, reclamos, mejoras/reparaciones) ahora usan icn(), incluyendo el estado reparado/activo con color. Tambien el boton Guardar del visor de PDF y el de Informe Filtrado. Se agregan volume y megaphone a _ICONS. El boton Exportar PDF se dejo con emoji a proposito: su texto se resetea via textContent (no soporta HTML) en el flujo de compartir
+
 ## v7.8.0 — 03/09/2026 (minor)
 
 - Septima tanda de reemplazo de emojis por iconos SVG: mas etiquetas de estado restantes (check/warning/error) fuera de toasts, mas variantes de check, llave, caja/paquete, cerrar, guardar, refrigeracion, actualizar, red, termometro. Se restringio el script a coincidencias de comilla simple unicamente (la comilla doble puede ser un atributo HTML anidado dentro del string JS, no una cadena nueva - leccion de la tanda anterior). Se detectaron y revirtieron 9 casos que volvian a colarse a showToast en funciones ya corregidas antes
