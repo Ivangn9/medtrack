@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.09.03.010 -->
+<!-- v2026.09.03.011 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.09.03.010">
+<meta name="app-version" content="v2026.09.03.011">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3157,7 +3157,8 @@ var _ICONS={
   package:'<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>',
   thermometer:'<path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0z"/>',
   volume:'<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>',
-  megaphone:'<path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>'
+  megaphone:'<path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>',
+  sparkles:'<path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/>'
 };
 function icn(name,size,color){
   var p=_ICONS[name];if(!p)return'';
@@ -7563,13 +7564,13 @@ function rInicio(){
     if(o.estado==='cerrada')return;
     var eqO=eqs.find(function(e2){return e2.id===o.eqId;})||{};
     if(o.eqId&&eqO.id&&!_sedeMatch(eqO))return;
-    if(o.fechaProgramada&&o.fechaProgramada<_td)_tareas.push({pr:0,col:'var(--red)',ic:'📋',txt:'OT vencida: '+(o.titulo||o.id),sub:(eqO.nombre||'')+' · '+_fmd(o.fechaProgramada),go:"setView('ordenes')"});
-    else if(o.fechaProgramada===_td)_tareas.push({pr:1,col:'var(--orange)',ic:'📋',txt:'OT para hoy: '+(o.titulo||o.id),sub:eqO.nombre||'',go:"setView('ordenes')"});
-    else if(o.prioridad==='urgente')_tareas.push({pr:1,col:'var(--red)',ic:'🚨',txt:'OT urgente: '+(o.titulo||o.id),sub:eqO.nombre||'',go:"setView('ordenes')"});
+    if(o.fechaProgramada&&o.fechaProgramada<_td)_tareas.push({pr:0,col:'var(--red)',ic:icn('clipboard',15,'var(--red)'),txt:'OT vencida: '+(o.titulo||o.id),sub:(eqO.nombre||'')+' · '+_fmd(o.fechaProgramada),go:"setView('ordenes')"});
+    else if(o.fechaProgramada===_td)_tareas.push({pr:1,col:'var(--orange)',ic:icn('clipboard',15,'var(--orange)'),txt:'OT para hoy: '+(o.titulo||o.id),sub:eqO.nombre||'',go:"setView('ordenes')"});
+    else if(o.prioridad==='urgente')_tareas.push({pr:1,col:'var(--red)',ic:icn('alert',15,'var(--red)'),txt:'OT urgente: '+(o.titulo||o.id),sub:eqO.nombre||'',go:"setView('ordenes')"});
   });
   activeEqs.forEach(function(e3){
     if(e3.frecuencia&&e3.frecuencia!=='ninguna'&&e3.proximoMant&&e3.proximoMant<_td)
-      _tareas.push({pr:2,col:'var(--orange)',ic:'🔧',txt:'Mantenimiento vencido: '+e3.nombre,sub:'desde '+_fmd(e3.proximoMant),go:"goDetalle('"+e3.id+"')"});
+      _tareas.push({pr:2,col:'var(--orange)',ic:icn('wrench',15,'var(--orange)'),txt:'Mantenimiento vencido: '+e3.nombre,sub:'desde '+_fmd(e3.proximoMant),go:"goDetalle('"+e3.id+"')"});
   });
   pmProgramados.forEach(function(pm){
     var pmFin=pm.fechaFin||pm.fecha;
@@ -7577,16 +7578,16 @@ function rInicio(){
       var eqP=eqs.find(function(e4){return e4.id===pm.eqId;})||{};
       if(eqP.id&&!_sedeMatch(eqP))return;
       var pmHoy=pm.fecha<=_td&&pmFin>=_td;
-      _tareas.push({pr:pmHoy?1:3,col:pmHoy?'var(--orange)':'var(--accent)',ic:'📅',txt:'PM '+(pmHoy?'HOY':_fmd(pm.fecha))+': '+(eqP.nombre||pm.eqId),sub:(pm.horaInicio||'')+(pm.tecnico?' · '+pm.tecnico:''),go:"setView('calendario')"});
+      _tareas.push({pr:pmHoy?1:3,col:pmHoy?'var(--orange)':'var(--accent)',ic:icn('calendar',15,pmHoy?'var(--orange)':'var(--accent)'),txt:'PM '+(pmHoy?'HOY':_fmd(pm.fecha))+': '+(eqP.nombre||pm.eqId),sub:(pm.horaInicio||'')+(pm.tecnico?' · '+pm.tecnico:''),go:"setView('calendario')"});
     }
   });
   activeEqs.forEach(function(e5){
     if(e5.cat!=='RM')return;
     var pcH=rmHelioPct(e5);
-    if(pcH!==null&&pcH<75)_tareas.push({pr:pcH<60?0:2,col:pcH<60?'var(--red)':'var(--orange)',ic:'🧊',txt:'Helio '+(pcH<60?'crítico':'bajo')+': '+Math.round(pcH)+'%',sub:e5.nombre,go:"setView('estadorm')"});
+    if(pcH!==null&&pcH<75)_tareas.push({pr:pcH<60?0:2,col:pcH<60?'var(--red)':'var(--orange)',ic:icn('snowflake',15,pcH<60?'var(--red)':'var(--orange)'),txt:'Helio '+(pcH<60?'crítico':'bajo')+': '+Math.round(pcH)+'%',sub:e5.nombre,go:"setView('estadorm')"});
     var lecs=(_refrigData(e5).lecturas||[]);
     var ultF='';lecs.forEach(function(l){if((l.fecha||'')>ultF)ultF=l.fecha;});
-    if(ultF&&ultF<_hace7d)_tareas.push({pr:3,col:'var(--accent)',ic:'📝',txt:'Registrar lectura de helio',sub:e5.nombre+' · última '+_fmd(ultF),go:"setView('estadorm')"});
+    if(ultF&&ultF<_hace7d)_tareas.push({pr:3,col:'var(--accent)',ic:icn('edit',15,'var(--accent)'),txt:'Registrar lectura de helio',sub:e5.nombre+' · última '+_fmd(ultF),go:"setView('estadorm')"});
   });
   _tareas.sort(function(a,b){return a.pr-b.pr;});
   h+='<div class="gc" style="padding:16px;margin-bottom:14px;">';
@@ -14483,7 +14484,7 @@ function openReportPanel(){setView('reporte');}
 function _openReportPanelModal(){
   var locs=[].concat.apply([],eqs.map(function(e){return (e.ubicacion||'').trim();})).filter(Boolean);
   locs=locs.filter(function(v,i,a){return a.indexOf(v)===i;}).sort();
-  var tipoOpts=[{v:'todo',l:'Todo',icon:'📋'},{v:'mant',l:'Mantenimientos',icon:'🔩'},{v:'rep',l:'Reparaciones',icon:'🔧'},{v:'mejora',l:'Mejoras',icon:'✨'},{v:'activas',l:'Partes Activas',icon:'🔴'}];
+  var tipoOpts=[{v:'todo',l:'Todo',icon:icn('clipboard',14)},{v:'mant',l:'Mantenimientos',icon:icn('wrench',14)},{v:'rep',l:'Reparaciones',icon:icn('wrench',14)},{v:'mejora',l:'Mejoras',icon:icn('sparkles',14)},{v:'activas',l:'Partes Activas',icon:_statusDot('#ff3b30')}];
   var tipoPills=tipoOpts.map(function(t){var a=t.v==='todo';return'<button type="button" data-rep-tipo="'+t.v+'" onclick="setRepTipo(\''+t.v+'\')" class="clr-tap" style="display:flex;align-items:center;gap:5px;padding:9px 14px;border-radius:var(--r-pill);font-size:.73rem;font-weight:600;border:1.5px solid '+(a?'rgba(0,113,227,.40)':'rgba(255,255,255,.65)')+';cursor:pointer;white-space:nowrap;transition:background .18s,color .18s,box-shadow .18s;background:'+(a?'rgba(0,113,227,.22)':'rgba(255,255,255,.50)')+';color:'+(a?'var(--accent)':'var(--text2)')+(a?';box-shadow:0 0 0 1px rgba(0,113,227,.18),inset 0 1.5px 0 rgba(255,255,255,.8)':';box-shadow:inset 0 1.5px 0 rgba(255,255,255,.8)')+';">'+t.icon+' '+t.l+'</button>';}).join('');
   var usedCats=CATS.filter(function(c){return eqs.some(function(e){return e.cat===c.id;});});
   var catPills=usedCats.map(function(c){return'<button type="button" data-rep-cat-pill="'+esc(c.id)+'" onclick="toggleRepCat(\''+c.id+'\')" class="clr-tap" style="padding:8px 14px;border-radius:var(--r-pill);font-size:.73rem;font-weight:600;border:1.5px solid rgba(0,113,227,.35);background:rgba(0,113,227,.12);color:var(--accent);cursor:pointer;transition:background .18s,border-color .18s;box-shadow:inset 0 1.5px 0 rgba(255,255,255,.8);">'+esc(c.label)+'</button>';}).join('');
@@ -16659,12 +16660,12 @@ function _rLecturasSalaSection(eq,rf){
   var lecturas=(rf.lecturas||[]).filter(function(l){return l.ts;}).slice().sort(function(a,b){return a.ts<b.ts?-1:1;});
   var filtradas=rangoMs?lecturas.filter(function(l){return(nowMs-new Date(l.ts).getTime())<=rangoMs;}):lecturas;
   var vars=[
-    {key:'chillerTempC',label:'Temperatura Agua Chiller',icon:'❄️',unit:'°C',color:'#0891b2',refMin:null,refMax:null,decimals:1},
-    {key:'helioGasPresion',label:'Presión Helio Gaseoso',icon:'⚗️',unit:' MPa',color:'#0ea5e9',refMin:2.0,refMax:2.3,decimals:2},
-    {key:'helioLiqPresion',label:'Presión Helio Líquido',icon:'💧',unit:' PSI',color:'#6366f1',refMin:0.8,refMax:2.0,decimals:2},
-    {key:'helioLiqPorc',label:'Nivel Helio Líquido',icon:'🧊',unit:'%',color:'#10b981',refMin:70,refMax:100,decimals:0},
-    {key:'salaTempC',label:'Temperatura Sala de Máquinas',icon:'🌡️',unit:'°C',color:'#f97316',refMin:18,refMax:24,decimals:1},
-    {key:'salaHumedad',label:'Humedad Sala de Máquinas',icon:'💦',unit:'%',color:'#38bdf8',refMin:30,refMax:60,decimals:0}
+    {key:'chillerTempC',label:'Temperatura Agua Chiller',icon:icn('snowflake',14,'#0891b2'),unit:'°C',color:'#0891b2',refMin:null,refMax:null,decimals:1},
+    {key:'helioGasPresion',label:'Presión Helio Gaseoso',icon:icn('flask',14,'#0ea5e9'),unit:' MPa',color:'#0ea5e9',refMin:2.0,refMax:2.3,decimals:2},
+    {key:'helioLiqPresion',label:'Presión Helio Líquido',icon:icn('droplet',14,'#6366f1'),unit:' PSI',color:'#6366f1',refMin:0.8,refMax:2.0,decimals:2},
+    {key:'helioLiqPorc',label:'Nivel Helio Líquido',icon:icn('snowflake',14,'#10b981'),unit:'%',color:'#10b981',refMin:70,refMax:100,decimals:0},
+    {key:'salaTempC',label:'Temperatura Sala de Máquinas',icon:icn('thermometer',14,'#f97316'),unit:'°C',color:'#f97316',refMin:18,refMax:24,decimals:1},
+    {key:'salaHumedad',label:'Humedad Sala de Máquinas',icon:icn('droplet',14,'#38bdf8'),unit:'%',color:'#38bdf8',refMin:30,refMax:60,decimals:0}
   ];
   var rangoLbls={'24h':'24 h','7d':'7 días','30d':'30 días','90d':'90 días','todo':'Todo'};
   var rangoChips=['24h','7d','30d','90d','todo'].map(function(r){
@@ -19999,12 +20000,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="7.9.0";
+var APP_DISPLAY_VERSION="8.0.0";
 var APP_BUILD="03/09/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'8.0.0',fecha:'03/09/2026',tipo:'minor',cambios:[
+    'Novena tanda de reemplazo de emojis por iconos SVG: tarjetas de \'Mi dia\' (OT vencida/urgente, mantenimiento vencido, PM, helio critico, registrar lectura) con color segun severidad, filtro de tipo de historial (Todo/Mantenimientos/Reparaciones/Mejoras/Partes Activas) y los iconos de las variables del grafico de refrigeracion (temperatura, presion helio, nivel liquido, humedad). Se agrega sparkles a _ICONS. Se dejaron sin tocar los emoji-placeholder de categorias personalizadas del usuario (son contenido editable por el usuario, no chrome de la app) y las opciones de <select> (no soportan HTML)'
+  ]},
   {v:'7.9.0',fecha:'03/09/2026',tipo:'minor',cambios:[
     'Octava tanda de reemplazo de emojis por iconos SVG: los items del buscador global (_gsItem) que usaban emoji como icono (equipos, fallas, antenas, transductores, ordenes, repuestos, reclamos, mejoras/reparaciones) ahora usan icn(), incluyendo el estado reparado/activo con color. Tambien el boton Guardar del visor de PDF y el de Informe Filtrado. Se agregan volume y megaphone a _ICONS. El boton Exportar PDF se dejo con emoji a proposito: su texto se resetea via textContent (no soporta HTML) en el flujo de compartir'
   ]},

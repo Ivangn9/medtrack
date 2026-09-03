@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v8.0.0 — 03/09/2026 (minor)
+
+- Novena tanda de reemplazo de emojis por iconos SVG: tarjetas de 'Mi dia' (OT vencida/urgente, mantenimiento vencido, PM, helio critico, registrar lectura) con color segun severidad, filtro de tipo de historial (Todo/Mantenimientos/Reparaciones/Mejoras/Partes Activas) y los iconos de las variables del grafico de refrigeracion (temperatura, presion helio, nivel liquido, humedad). Se agrega sparkles a _ICONS. Se dejaron sin tocar los emoji-placeholder de categorias personalizadas del usuario (son contenido editable por el usuario, no chrome de la app) y las opciones de <select> (no soportan HTML)
+
 ## v7.9.0 — 03/09/2026 (minor)
 
 - Octava tanda de reemplazo de emojis por iconos SVG: los items del buscador global (_gsItem) que usaban emoji como icono (equipos, fallas, antenas, transductores, ordenes, repuestos, reclamos, mejoras/reparaciones) ahora usan icn(), incluyendo el estado reparado/activo con color. Tambien el boton Guardar del visor de PDF y el de Informe Filtrado. Se agregan volume y megaphone a _ICONS. El boton Exportar PDF se dejo con emoji a proposito: su texto se resetea via textContent (no soporta HTML) en el flujo de compartir
