@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v8.5.0 — 03/09/2026 (minor)
+
+- Tanda final de reemplazo de emojis por iconos SVG: 146 conversiones cubriendo cerrar/check/edit/settings/escudo/edificio/celular/alerta/volumen/deshacer/basura/mensaje/mail/ubicacion/dolar/ojo/llave/candado/telefono/tecnico/carpeta/gota/link mas variantes de estado. Se agregan settings/undo/messageCircle/mail/eye a _ICONS. Auditoria exhaustiva encontro y corrigio 4 bugs reales de tandas (esta y anteriores): 2 iconos que se habian colado dentro del generador de propuesta comercial en PDF (contexto pdfMake, no HTML) y 2 comentarios de codigo que quedaron con sintaxis rota por una conversion accidental de emoji de ejemplo dentro del comentario. Con esto se agota el trabajo razonable: lo que queda son flechas tipograficas, los 12 iconos por defecto de categorias (dato editable por el usuario), contenido de PDFs que ya usa su propio mecanismo, y un puñado de mensajes con textContent (no soportan HTML)
+
 ## v8.4.0 — 03/09/2026 (minor)
 
 - Treceava tanda de reemplazo de emojis por iconos SVG: patron 'espacio+EMOJI+espacio' dentro de un string (tecnico asignado, ubicacion de OT, hora, empresa, ID de red). Se agrega icono clock a _ICONS, el resto reusa user/mappin/dollarsign/building/cloudUpload/rss/camera. A esta altura ya se agoto el patron mecanico grande: lo que queda son ~280 instancias de flechas y simbolos tipograficos (que se dejan a proposito, ya se ven nativos) mas un resto disperso en 2-4 apariciones cada uno

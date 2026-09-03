@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.09.03.015 -->
+<!-- v2026.09.03.016 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.09.03.015">
+<meta name="app-version" content="v2026.09.03.016">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1449,7 +1449,7 @@ body.dark .pill[style*="#ff9500"],body.dark .pill[style*="--orange"]{box-shadow:
     </div>
     <div class="settings-item" style="margin-bottom:12px;">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;position:relative;z-index:1;">
-        <div style="width:36px;height:36px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1rem;flex-shrink:0;">👤</div>
+        <div style="width:36px;height:36px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1rem;flex-shrink:0;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
         <div style="flex:1;min-width:0;"><div style="font-size:.7rem;color:var(--text3);">Sesión activa</div><div id="user-info" style="font-size:.8rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">—</div></div>
       </div>
       <div id="access-admin-btn" style="display:none;margin-bottom:8px;">
@@ -2932,7 +2932,7 @@ function openRestoreBackup(){
         '<div style="text-align:left;"><div style="font-weight:700;font-size:.86rem;color:var(--text);">'+esc(it.fecha)+'</div>'+
         '<div style="font-size:.68rem;color:var(--text3);">'+it.n+' equipos'+(it.by?' · '+esc(it.by):'')+'</div></div></button>';
     }).join('');
-    openModal('<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><div class="modal-title">Restaurar copia</div><button class="modal-close" onclick="closeModal()">✕</button></div>'+
+    openModal('<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><div class="modal-title">Restaurar copia</div><button class="modal-close" onclick="closeModal()">'+icn('x',14)+'</button></div>'+
       '<p style="margin:0 0 12px;color:var(--text2);font-size:.8rem;line-height:1.4;">Elegí una fecha para restaurar. Esto reemplazará los datos actuales con la copia seleccionada (los archivos PDF no se ven afectados).</p>'+
       '<div style="max-height:50vh;overflow-y:auto;-webkit-overflow-scrolling:touch;">'+rows+'</div>');
   }).catch(function(e){console.warn(e);showToast('Error al cargar copias','err');});
@@ -3002,7 +3002,7 @@ function showToast(msg,tp){
 
 // ── Búsqueda global (⌘K / botón lupa) ──
 function openGlobalSearch(){
-  var html='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;"><div class="modal-title">'+icn('search',15)+' Buscar en todo</div><button class="modal-close" onclick="closeModal()">✕</button></div>'+
+  var html='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;"><div class="modal-title">'+icn('search',15)+' Buscar en todo</div><button class="modal-close" onclick="closeModal()">'+icn('x',14)+'</button></div>'+
     '<input class="inp" id="gs-input" type="search" placeholder="Equipo, falla, rotura, OT, antena…" style="width:100%;padding:13px 16px;font-size:1rem;margin-bottom:12px;" oninput="_gsOnInput(this.value)" autocomplete="off">'+
     '<div id="gs-results" style="min-height:120px;"><div style="text-align:center;padding:30px 0;color:var(--text3);font-size:.8rem;">Escribí al menos 2 letras</div></div>';
   openModal(html);
@@ -3104,7 +3104,7 @@ function showUndoToast(msg,undoFn){
     t.style.cssText='position:fixed;bottom:calc(var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px)) + 96px);left:50%;transform:translateX(-50%);z-index:9999;background:rgba(28,28,34,.96);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);color:#fff;border-radius:50px;padding:10px 10px 10px 18px;font-size:.82rem;font-weight:600;display:flex;align-items:center;gap:12px;box-shadow:0 6px 24px rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.12);white-space:nowrap;';
     document.body.appendChild(t);
   }
-  t.innerHTML='<span>'+msg+'</span><button onclick="_doUndo()" style="background:rgba(173,198,255,.18);color:#adc6ff;border:1px solid rgba(173,198,255,.35);border-radius:50px;padding:7px 16px;font-weight:700;font-size:.78rem;cursor:pointer;">↩︎ Deshacer</button>';
+  t.innerHTML='<span>'+msg+'</span><button onclick="_doUndo()" style="background:rgba(173,198,255,.18);color:#adc6ff;border:1px solid rgba(173,198,255,.35);border-radius:50px;padding:7px 16px;font-weight:700;font-size:.78rem;cursor:pointer;">'+icn('undo',13)+' Deshacer</button>';
   t.style.display='flex';
   if(_undoTimer)clearTimeout(_undoTimer);
   _undoTimer=setTimeout(function(){t.style.display='none';_undoFn=null;},6000);
@@ -3168,7 +3168,12 @@ var _ICONS={
   link:'<path d="M9 17H7A5 5 0 0 1 7 7h2"/><path d="M15 7h2a5 5 0 1 1 0 10h-2"/><line x1="8" y1="12" x2="16" y2="12"/>',
   folder:'<path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2z"/>',
   lightbulb:'<path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4.24 12.6c.8.62 1.24 1.6 1.24 2.4h6c0-.8.44-1.78 1.24-2.4A7 7 0 0 0 12 2z"/>',
-  clock:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>'
+  clock:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+  settings:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>',
+  undo:'<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"/>',
+  messageCircle:'<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>',
+  mail:'<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>',
+  eye:'<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>'
 };
 function icn(name,size,color){
   var p=_ICONS[name];if(!p)return'';
@@ -3395,7 +3400,7 @@ var _confirmCancelCb=null;
 // necesitan seguir un loop distinto según la respuesta, no solo actuar en confirmar.
 function _confirmModal(msg,cb,onCancel,btnLabel){
   _confirmCb=cb;_confirmCancelCb=onCancel||null;
-  openModal('<div class="modal-hdr"><div class="modal-title">Confirmar</div><button class="modal-x" onclick="_confirmModalCancel()">✕</button></div><div style="padding:4px 0 16px;font-size:.9rem;color:var(--text);">'+msg+'</div><div style="display:flex;gap:8px;"><button class="btn-secondary" style="flex:1;" onclick="_confirmModalCancel()">Cancelar</button><button class="btn-danger" style="flex:1;" onclick="closeModal();if(window._confirmCb){var f=window._confirmCb;window._confirmCb=null;window._confirmCancelCb=null;f();}">'+(btnLabel||'Eliminar')+'</button></div>');
+  openModal('<div class="modal-hdr"><div class="modal-title">Confirmar</div><button class="modal-x" onclick="_confirmModalCancel()">'+icn('x',14)+'</button></div><div style="padding:4px 0 16px;font-size:.9rem;color:var(--text);">'+msg+'</div><div style="display:flex;gap:8px;"><button class="btn-secondary" style="flex:1;" onclick="_confirmModalCancel()">Cancelar</button><button class="btn-danger" style="flex:1;" onclick="closeModal();if(window._confirmCb){var f=window._confirmCb;window._confirmCb=null;window._confirmCancelCb=null;f();}">'+(btnLabel||'Eliminar')+'</button></div>');
 }
 function _confirmModalCancel(){
   closeModal();
@@ -3429,8 +3434,8 @@ function getAlertas(){
   activeEqs.forEach(function(e){
     if(e.tieneServicio&&e.servicioContratoVenc){
       var dC=diasH(e.servicioContratoVenc);
-      if(dC<0)a.push({k:e.id+'ctvenc',niv:'critico',tit:e.nombre,desc:'🤝 Contrato de servicio VENCIDO — '+fD(e.servicioContratoVenc),eid:e.id});
-      else if(dC<=30)a.push({k:e.id+'ctprox',niv:'advertencia',tit:e.nombre,desc:'🤝 Contrato vence en '+dC+'d — '+fD(e.servicioContratoVenc),eid:e.id});
+      if(dC<0)a.push({k:e.id+'ctvenc',niv:'critico',tit:e.nombre,desc:icn('clipboard',14)+'Contrato de servicio VENCIDO — '+fD(e.servicioContratoVenc),eid:e.id});
+      else if(dC<=30)a.push({k:e.id+'ctprox',niv:'advertencia',tit:e.nombre,desc:icn('clipboard',14)+'Contrato vence en '+dC+'d — '+fD(e.servicioContratoVenc),eid:e.id});
     }
   });
   activeEqs.forEach(function(e){if(e.cat!=='DES')return;if(e.parches_vencimiento){var dp=diasH(e.parches_vencimiento);if(dp<0)a.push({k:e.id+"pv",niv:"critico",tit:e.nombre,desc:icn('zap',14)+"Parches VENCIDOS — "+fD(e.parches_vencimiento),eid:e.id});else if(dp<=60)a.push({k:e.id+"pp",niv:"advertencia",tit:e.nombre,desc:icn('zap',14)+"Parches vencen en "+dp+"d — "+fD(e.parches_vencimiento),eid:e.id});}if(e.bateria_vencimiento){var db=diasH(e.bateria_vencimiento);if(db<0)a.push({k:e.id+"bv",niv:"critico",tit:e.nombre,desc:icn('zap',14)+"Batería VENCIDA — "+fD(e.bateria_vencimiento),eid:e.id});else if(db<=60)a.push({k:e.id+"bp",niv:"advertencia",tit:e.nombre,desc:icn('zap',14)+"Batería vence en "+db+"d — "+fD(e.bateria_vencimiento),eid:e.id});}});
@@ -3441,7 +3446,7 @@ function getAlertas(){
   activeEqs.forEach(function(e){
     var _lc=calcLifecycle(e);
     if(!_lc)return;
-    if(_lc.zone==='reemplazo')a.push({k:e.id+'lcrep',niv:'advertencia',tit:e.nombre,desc:'♻️ Reemplazo sugerido — '+_lc.agePct+'% de vida útil'+(_lc.costPct!==null?', costo acum. '+_lc.costPct+'% del valor':''),eid:e.id});
+    if(_lc.zone==='reemplazo')a.push({k:e.id+'lcrep',niv:'advertencia',tit:e.nombre,desc:icn('refresh',14)+'Reemplazo sugerido — '+_lc.agePct+'% de vida útil'+(_lc.costPct!==null?', costo acum. '+_lc.costPct+'% del valor':''),eid:e.id});
   });
   repuestos.forEach(function(r){
     var cant=parseFloat(r.cantidad);if(isNaN(cant))cant=0;
@@ -3465,7 +3470,7 @@ function getAlertas(){
     var rf=_refrigData(e);
     if(rf.chiller==='rotura')a.push({k:e.id+'chillerrot',niv:'critico',tit:e.nombre,desc:icn('snowflake',14)+'Chiller en ROTURA — RM sin refrigeración',eid:e.id});
     else if(rf.chiller==='service')a.push({k:e.id+'chillerserv',niv:'advertencia',tit:e.nombre,desc:icn('snowflake',14)+'Chiller en service',eid:e.id});
-    if(rf.compresorHelio&&rf.compresorHelio!=='operativo')a.push({k:e.id+'comphelio',niv:'advertencia',tit:e.nombre,desc:'⚙️ Compresor de helio: '+rf.compresorHelio,eid:e.id});
+    if(rf.compresorHelio&&rf.compresorHelio!=='operativo')a.push({k:e.id+'comphelio',niv:'advertencia',tit:e.nombre,desc:icn('settings',14)+'Compresor de helio: '+rf.compresorHelio,eid:e.id});
     var hlp=parseFloat(rf.helioLiqPorcentaje||'100');
     if(!isNaN(hlp)){
       if(hlp<20)a.push({k:e.id+'heliocrit',niv:'critico',tit:e.nombre,desc:icn('snowflake',14)+'Helio líquido CRÍTICO: '+hlp+'%',eid:e.id});
@@ -3514,7 +3519,7 @@ function openCambioBateriasModal(eqId){
   openModal(
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">'+
     '<div class="modal-title">'+icn('battery',15)+' Registrar Cambio de Baterías</div>'+
-    '<button class="modal-close" onclick="closeModal()">✕</button></div>'+
+    '<button class="modal-close" onclick="closeModal()">'+icn('x',14)+'</button></div>'+
     '<div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.20);border-radius:var(--r-md);padding:10px 12px;margin-bottom:16px;font-size:.82rem;font-weight:600;color:#d97706;">'+esc(eq.nombre)+'</div>'+
     '<div class="ff"><div class="ff-label">Fecha del cambio</div><input class="inp" type="date" id="bat-fecha" value="'+today()+'"></div>'+
     '<div class="ff"><div class="ff-label">Proveedor de baterías</div><input class="inp" id="bat-prov" placeholder="Ej: APC, Yuasa, etc."></div>'+
@@ -3568,7 +3573,7 @@ function delEq(id){
     aires.forEach(function(a){a.equiposServidos=(a.equiposServidos||[]).filter(function(x){return x!==id;});});
     auditEntry('eliminar','eq',id,nombre,'Equipo eliminado — PMs y vínculos limpiados');
     saveDataCritical();goBack();
-    showUndoToast('Equipo "'+nombre+'" eliminado',function(){
+    showUndoToast('Equipo "'+esc(nombre)+'" eliminado',function(){
       var s=JSON.parse(_snap);
       eqs=s.eqs;pmProgramados=s.pmProgramados;mejoras=s.mejoras;antenas=s.antenas;transductores=s.transductores;aires=s.aires;
       auditEntry('restaurar','eq',id,nombre,'Eliminación deshecha');
@@ -3632,7 +3637,7 @@ function repararParte(eqId,pid){
   openModal(
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">'+
     '<div class="modal-title">'+icn('check',15)+' Marcar como Reparado</div>'+
-    '<button class="modal-close" onclick="closeModal()">✕</button></div>'+
+    '<button class="modal-close" onclick="closeModal()">'+icn('x',14)+'</button></div>'+
     '<div style="background:rgba(52,199,89,.08);border:1px solid rgba(52,199,89,.2);border-radius:var(--r-md);padding:14px;margin-bottom:18px;">'+
     '<div style="font-weight:700;font-size:.9rem;margin-bottom:4px;">'+esc(pt.nombre)+'</div>'+
     '<div style="font-size:.72rem;color:var(--text3);">'+( pt.descripcion?esc(pt.descripcion):'')+'</div></div>'+
@@ -3777,7 +3782,7 @@ function setParteEstadoRapido(eqId,pid,nuevoEstado){
     return Object.assign({},e,{partes:partes});
   });
   saveData();render();
-  var estadoLabel={ok:'OK ✅',pendiente:'Pendiente ⚠️',roto:'Roto 🔴',mejora:'Mejora 🎨'};
+  var estadoLabel={ok:'OK '+_statusDot('#34c759'),pendiente:'Pendiente '+_statusDot('#ff9500'),roto:'Roto '+_statusDot('#ff3b30'),mejora:'Mejora '+icn('sparkles',14)};
   showToast('Estado actualizado: '+(estadoLabel[nuevoEstado]||nuevoEstado));
 }
 function _initComponentesEquipo(eqId){
@@ -3804,9 +3809,9 @@ function completarMejora(eqId,pid){
   openModal(
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">'+
     '<div class="modal-title">'+icn('check',15)+' Completar Mejora</div>'+
-    '<button class="modal-close" onclick="closeModal()">✕</button></div>'+
+    '<button class="modal-close" onclick="closeModal()">'+icn('x',14)+'</button></div>'+
     '<div style="background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.2);border-radius:var(--r-md);padding:14px;margin-bottom:18px;">'+
-    '<div style="font-weight:700;font-size:.9rem;margin-bottom:4px;">🎨 '+esc(pt.nombre)+'</div>'+
+    '<div style="font-weight:700;font-size:.9rem;margin-bottom:4px;">'+icn('sparkles',14)+' '+esc(pt.nombre)+'</div>'+
     (pt.descripcion?'<div style="font-size:.72rem;color:var(--text3);">'+esc(pt.descripcion)+'</div>':'')+
     '</div>'+
     '<div class="ff"><div class="ff-label">Fecha de finalización *</div>'+
@@ -3860,7 +3865,7 @@ function delHist(eqId,hid){
   openModal(
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">'+
     '<div class="modal-title">Confirmar eliminación</div>'+
-    '<button class="modal-close" onclick="closeModal()">✕</button></div>'+
+    '<button class="modal-close" onclick="closeModal()">'+icn('x',14)+'</button></div>'+
     '<div style="font-size:.88rem;color:var(--text2);margin-bottom:20px;line-height:1.5;">'+esc(msg)+'</div>'+
     '<div style="display:flex;gap:10px;">'+
     '<button class="btn-secondary" style="flex:1;padding:13px;" onclick="closeModal()">Cancelar</button>'+
@@ -3928,7 +3933,7 @@ function openHistDetail(eqId,hid){
   openModal(
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">'+
     '<div class="modal-title">'+icn('wrench',15)+' '+(isMant?"Mantenimiento":"Reparación")+'</div>'+
-    '<button class="modal-close" onclick="closeModal()">✕</button></div>'+
+    '<button class="modal-close" onclick="closeModal()">'+icn('x',14)+'</button></div>'+
     '<div style="background:'+(isMant?"rgba(0,113,227,.07)":"rgba(52,199,89,.07)")+';border-radius:var(--r-md);padding:14px;margin-bottom:14px;">'+
     '<div style="font-weight:700;font-size:.92rem;margin-bottom:4px;">'+(isMant?"Mantenimiento preventivo":esc(hh.nombre||"Reparación"))+'</div>'+
     '<div style="font-size:.72rem;color:var(--text3);">'+icn('calendar',14)+' '+fD(hh.fecha)+(hh.tecnico?' · '+icn('user',14)+' Ing. '+esc(hh.tecnico):'')+'</div></div>'+
@@ -3969,7 +3974,7 @@ function openEditHist(eqId,hid){
   openModal(
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">'+
     '<div class="modal-title">'+icn('edit',12)+' Editar '+(isMant?"Mantenimiento":"Reparación")+'</div>'+
-    '<button class="modal-close" onclick="closeModal()">✕</button></div>'+
+    '<button class="modal-close" onclick="closeModal()">'+icn('x',14)+'</button></div>'+
     '<div class="ff"><div class="ff-label">Fecha *</div><input class="inp" type="date" id="eh-fecha" value="'+hh.fecha+'"></div>'+
     '<div class="ff"><div class="ff-label">Costo</div>'+
     '<div style="display:flex;gap:8px;">'+
@@ -4116,7 +4121,7 @@ function _upsEqChecklist(selectedIds){
           '<span style="font-size:.82rem;font-weight:'+(chk?'700':'500')+';color:var(--text);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+esc(e.nombre)+'</span>'+
           (sub?'<span style="font-size:.68rem;color:var(--text3);display:block;margin-top:1px;">'+icn('mappin',14)+' '+esc(sub)+'</span>':'')+
         '</span>'+
-        (chk?'<span style="font-size:.7rem;font-weight:800;color:#f59e0b;flex-shrink:0;">✓</span>':'')+
+        (chk?'<span style="font-size:.7rem;font-weight:800;color:#f59e0b;flex-shrink:0;">'+icn('check',14)+'</span>':'')+
       '</label>';
     });
   });
@@ -4152,7 +4157,7 @@ function openModalEq(eq){
   var fOpts=["semestral","anual","bianual","trimestral","mensual","ninguna"].map(function(x){return'<option'+(f.frecuencia===x?' selected':'')+'>'+x+'</option>';}).join("");
   var eOpts=["operativo","con-rotura","fuera-de-servicio"].map(function(x){var sel=f.estado===x||(f.estado==='advertencia'&&x==='con-rotura');return'<option'+(sel?' selected':'')+'>'+x+'</option>';}).join("");
   var _erDl=empresasRep.map(function(er){return '<option value="'+esc(er.nombre)+'">';}).join('');
-  openModal('<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><div class="modal-title">'+(n?"Nuevo Equipo":"Editar Equipo")+'</div><button class="modal-close" onclick="closeModal()">✕</button></div>'+
+  openModal('<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><div class="modal-title">'+(n?"Nuevo Equipo":"Editar Equipo")+'</div><button class="modal-close" onclick="closeModal()">'+icn('x',14)+'</button></div>'+
     (n?'<button id="scan-label-btn" type="button" onclick="scanLabelEquipo()" style="width:100%;padding:11px 14px;border-radius:14px;background:linear-gradient(135deg,rgba(0,113,227,.1),rgba(0,113,227,.05));border:1.5px solid rgba(0,113,227,.3);color:var(--accent);font-weight:700;font-size:.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:14px;">'+icn('camera',13)+' Escanear etiqueta con IA</button>':'')+
     '<div class="ff"><div class="ff-label">Nombre *</div><input class="inp" id="eq-n" value="'+esc(f.nombre)+'" placeholder="Ej: RM Explorer GN"></div>'+
     '<div class="ff"><div class="ff-label">Categoría</div><select class="inp" id="eq-cat">'+catOpts+'</select></div>'+
@@ -4195,7 +4200,7 @@ function openModalEq(eq){
     '<div class="ff"><div class="ff-label">Vencimiento Parches</div><input class="inp" type="date" id="eq-parches-venc" value="'+esc(f.parches_vencimiento||'')+'"></div>'+
     '<div class="ff"><div class="ff-label">Vencimiento Batería</div><input class="inp" type="date" id="eq-bateria-venc" value="'+esc(f.bateria_vencimiento||'')+'"></div>'+
     '</div>':'')
-    +(f.cat==='ECO'?'<div style="border-top:1px solid rgba(14,165,233,.18);margin:12px 0 10px;padding-top:12px;"><div style="font-size:.68rem;font-weight:800;color:#0ea5e9;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;">🔊 Datos Ecógrafo</div>'+
+    +(f.cat==='ECO'?'<div style="border-top:1px solid rgba(14,165,233,.18);margin:12px 0 10px;padding-top:12px;"><div style="font-size:.68rem;font-weight:800;color:#0ea5e9;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;">'+icn('volume',14)+' Datos Ecógrafo</div>'+
     '<div class="g2"><div class="ff"><div class="ff-label">N° Serie</div><input class="inp" id="eq-nro-serie" value="'+esc(f.nroSerie||'')+'" placeholder="Ej: US1234567"></div>'+
     '<div class="ff"><div class="ff-label">Consultorio</div><input class="inp" id="eq-consultorio" value="'+esc(f.consultorio||'')+'" placeholder="Ej: Consultorio 3"></div></div>'+
     '</div>':'')
@@ -4214,7 +4219,7 @@ function openModalEq(eq){
       '</div>'+
     '</div></div>'+
     '</div>':'')
-    +'<div style="border-top:1px solid rgba(8,145,178,.18);margin:12px 0 10px;padding-top:12px;"><div style="font-size:.68rem;font-weight:800;color:#0891b2;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;">🌐 Datos de Red</div>'
+    +'<div style="border-top:1px solid rgba(8,145,178,.18);margin:12px 0 10px;padding-top:12px;"><div style="font-size:.68rem;font-weight:800;color:#0891b2;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;">'+icn('globe',14)+' Datos de Red</div>'
     +'<div class="ff"><div class="ff-label">MAC Address</div><input class="inp" id="eq-mac" value="'+esc(f.macAddress||'')+'" placeholder="Ej: AA:BB:CC:DD:EE:FF" style="font-family:monospace;"></div>'
     +(f.cat==='UPS'?''
       :
@@ -4294,7 +4299,7 @@ function openImportRedModal(){
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">'+
       '<div><div class="modal-title">'+icn('globe',15)+' Importar Datos de Red</div>'+
       '<div style="font-size:.68rem;color:var(--text3);margin-top:2px;">Pegá las filas copiadas de Excel — matchea por SystemID o por nombre</div></div>'+
-      '<button class="modal-close" onclick="closeModal()">✕</button>'+
+      '<button class="modal-close" onclick="closeModal()">'+icn('x',14)+'</button>'+
     '</div>'+
     '<div style="font-size:.72rem;color:var(--text2);background:rgba(8,145,178,.07);border:1px solid rgba(8,145,178,.18);border-radius:10px;padding:10px 12px;margin-bottom:12px;line-height:1.5;">'+
       'Columnas esperadas, en este orden: <strong>SystemID (o nombre) · IP Local · Puerto TCP · AE Title · MAC Address</strong>.<br>'+
@@ -4773,7 +4778,7 @@ function openFileStoreV2Modal(){
       var h='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">'+
         '<div><div class="modal-title">'+icn('database',15)+' Archivos (IndexedDB v2)</div>'+
         '<div style="font-size:.68rem;color:var(--text3);margin-top:2px;">Store nuevo con Blob nativo — no reemplaza el actual, corre en paralelo</div></div>'+
-        '<button class="modal-close" onclick="closeModal()">✕</button></div>';
+        '<button class="modal-close" onclick="closeModal()">'+icn('x',14)+'</button></div>';
       h+='<div style="display:flex;gap:8px;margin-bottom:14px;">'+
         '<div class="gc" style="flex:1;padding:10px;text-align:center;"><div style="font-size:1.3rem;font-weight:900;color:var(--text2);">'+oldFiles.length+'</div><div style="font-size:.6rem;color:var(--text3);">En store viejo</div></div>'+
         '<div class="gc" style="flex:1;padding:10px;text-align:center;"><div style="font-size:1.3rem;font-weight:900;color:var(--green);">'+verificados+'</div><div style="font-size:.6rem;color:var(--text3);">Migrados y verificados</div></div>'+
@@ -4787,11 +4792,11 @@ function openFileStoreV2Modal(){
         '</div>';
       }
       h+='<button class="btn-secondary" style="width:100%;margin-bottom:8px;" onclick="fs2ExportBackup(function(r){showToast(r.ok?(\'✅ Backup descargado (\'+r.count+\' archivos)\'):(\'Error: \'+esc(r.error)),r.ok?\'\':\'err\');})">'+icn('download',14)+' Exportar backup ahora</button>';
-      h+='<label style="display:block;width:100%;text-align:center;padding:11px;border-radius:var(--r-pill);background:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.72);color:var(--accent);font-weight:600;font-size:.84rem;cursor:pointer;margin-bottom:8px;">⬆️ Importar backup'+
+      h+='<label style="display:block;width:100%;text-align:center;padding:11px;border-radius:var(--r-pill);background:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.72);color:var(--accent);font-weight:600;font-size:.84rem;cursor:pointer;margin-bottom:8px;">'+icn('cloudUpload',14)+' Importar backup'+
         '<input type="file" accept=".json" style="display:none;" onchange="if(this.files[0])fs2ImportBackup(this.files[0],function(d,t){showToast(\'Restaurando \'+d+\'/\'+t+\'…\');},function(r){showToast(r.ok?(\'✅ Restaurados: \'+r.restored+\' · Omitidos: \'+r.skipped+\' · Fallidos: \'+r.failed.length):(\'Error: \'+esc(r.error)),r.ok?\'\':\'err\');openFileStoreV2Modal();});">'+
       '</label>';
       h+='<button onclick="migrateFilesToV2(function(d,t){showToast(\'Migrando \'+d+\'/\'+t+\'…\');},function(r){showToast(\'✅ Migración: \'+r.migrated+\' nuevos, \'+r.skipped+\' ya estaban, \'+r.failed.length+\' fallidos\');openFileStoreV2Modal();})" style="width:100%;margin-bottom:8px;padding:11px;border-radius:var(--r-pill);background:rgba(0,113,227,.1);border:1.5px solid rgba(0,113,227,.25);color:var(--accent);font-weight:600;font-size:.84rem;cursor:pointer;">'+icn('refresh',14)+' Reintentar migración pendiente</button>';
-      h+='<button '+(puedePurgar?'onclick="_confirmModal(\'Se van a borrar '+oldFiles.length+' archivo(s) del store viejo — ya están verificados en el nuevo. ¿Continuar?\',function(){purgeOldFileStore(function(r){showToast(r.ok?(\'✅ \'+r.purged+\' archivo(s) purgados\'):(\'Error: \'+esc(r.error)),r.ok?\'\':\'err\');openFileStoreV2Modal();});})"':'disabled')+' style="width:100%;padding:11px;border-radius:var(--r-pill);background:'+(puedePurgar?'rgba(255,59,48,.1)':'rgba(120,120,128,.06)')+';border:1.5px solid '+(puedePurgar?'rgba(255,59,48,.25)':'rgba(120,120,128,.12)')+';color:'+(puedePurgar?'var(--red)':'var(--text3)')+';font-weight:600;font-size:.84rem;cursor:'+(puedePurgar?'pointer':'not-allowed')+';">🗑️ Purgar store viejo'+(puedePurgar?'':' (esperando que migre todo)')+'</button>';
+      h+='<button '+(puedePurgar?'onclick="_confirmModal(\'Se van a borrar '+oldFiles.length+' archivo(s) del store viejo — ya están verificados en el nuevo. ¿Continuar?\',function(){purgeOldFileStore(function(r){showToast(r.ok?(\'✅ \'+r.purged+\' archivo(s) purgados\'):(\'Error: \'+esc(r.error)),r.ok?\'\':\'err\');openFileStoreV2Modal();});})"':'disabled')+' style="width:100%;padding:11px;border-radius:var(--r-pill);background:'+(puedePurgar?'rgba(255,59,48,.1)':'rgba(120,120,128,.06)')+';border:1.5px solid '+(puedePurgar?'rgba(255,59,48,.25)':'rgba(120,120,128,.12)')+';color:'+(puedePurgar?'var(--red)':'var(--text3)')+';font-weight:600;font-size:.84rem;cursor:'+(puedePurgar?'pointer':'not-allowed')+';">'+icn('trash',14)+' Purgar store viejo'+(puedePurgar?'':' (esperando que migre todo)')+'</button>';
       openModal(h);
     });
   });
@@ -5518,8 +5523,8 @@ function _pdfStatusDotSvg(color){
 }
 function _pdfCleanStatusLabel(s){
   // ️ (variation selector-16, "usar presentación emoji") sigue a varios de estos
-  // emojis (ej. '+_statusDot('#ff9500')+' = U+26A0 + U+FE0F) — sin incluirlo en la clase, quedaba un carácter
-  // invisible pegado antes del espacio (bug real encontrado al testear '+_statusDot('#ff9500')+' puntualmente).
+  // emojis (ej. ⚠️ = U+26A0 + U+FE0F) — sin incluirlo en la clase, quedaba un carácter
+  // invisible pegado antes del espacio (bug real encontrado al testear ⚠️ puntualmente).
   return (s||'').replace(/^[☀-➿⬀-⯿️\u{1F300}-\u{1FAFF}]+\s*/u,'').trim();
 }
 function _pdfCard(titleText,estadoObj,inner,fill,border){
@@ -6118,7 +6123,7 @@ function _renderParteImages(){
   el.innerHTML=_pendingParteImages.map(function(f,i){
     return '<div style="display:inline-flex;align-items:center;gap:4px;background:rgba(0,0,0,.04);border-radius:8px;padding:4px 6px;margin:3px;">'+
       '<img src="'+f.data+'" style="width:48px;height:48px;object-fit:cover;border-radius:6px;">'+
-      '<button onclick="removeParteImagePending('+i+')" style="background:none;border:none;color:var(--red);font-size:.8rem;cursor:pointer;padding:0 2px;">✕</button></div>';
+      '<button onclick="removeParteImagePending('+i+')" style="background:none;border:none;color:var(--red);font-size:.8rem;cursor:pointer;padding:0 2px;">'+icn('x',14)+'</button></div>';
   }).join('');
 }
 function attachRotImage(){
@@ -6139,7 +6144,7 @@ function _renderRotImages(){
   el.innerHTML=_pendingRotImages.map(function(f,i){
     return '<div style="display:inline-flex;align-items:center;gap:4px;background:rgba(0,0,0,.04);border-radius:8px;padding:4px 6px;margin:3px;">'+
       '<img src="'+f.data+'" style="width:48px;height:48px;object-fit:cover;border-radius:6px;">'+
-      '<button onclick="removeRotImage('+i+')" style="background:none;border:none;color:var(--red);font-size:.8rem;cursor:pointer;padding:0 2px;">✕</button></div>';
+      '<button onclick="removeRotImage('+i+')" style="background:none;border:none;color:var(--red);font-size:.8rem;cursor:pointer;padding:0 2px;">'+icn('x',14)+'</button></div>';
   }).join('');
 }
 var _pendingOTImages=[];
@@ -6162,7 +6167,7 @@ function _renderOTImages(){
   el.innerHTML=_pendingOTImages.map(function(f,i){
     return '<div style="display:inline-flex;align-items:center;gap:4px;background:rgba(0,0,0,.04);border-radius:8px;padding:4px 6px;margin:3px;">'+
       '<img src="'+f.data+'" style="width:48px;height:48px;object-fit:cover;border-radius:6px;">'+
-      '<button onclick="removeOTImagePending('+i+')" style="background:none;border:none;color:var(--red);font-size:.8rem;cursor:pointer;padding:0 2px;">✕</button></div>';
+      '<button onclick="removeOTImagePending('+i+')" style="background:none;border:none;color:var(--red);font-size:.8rem;cursor:pointer;padding:0 2px;">'+icn('x',14)+'</button></div>';
   }).join('');
 }
 var _pendingOTCloseImages=[];
@@ -6185,12 +6190,12 @@ function _renderOTCloseImages(){
   el.innerHTML=_pendingOTCloseImages.map(function(f,i){
     return '<div style="display:inline-flex;align-items:center;gap:4px;background:rgba(0,0,0,.04);border-radius:8px;padding:4px 6px;margin:3px;">'+
       '<img src="'+f.data+'" style="width:48px;height:48px;object-fit:cover;border-radius:6px;">'+
-      '<button onclick="removeOTCloseImagePending('+i+')" style="background:none;border:none;color:var(--red);font-size:.8rem;cursor:pointer;padding:0 2px;">✕</button></div>';
+      '<button onclick="removeOTCloseImagePending('+i+')" style="background:none;border:none;color:var(--red);font-size:.8rem;cursor:pointer;padding:0 2px;">'+icn('x',14)+'</button></div>';
   }).join('');
 }
 function openOTImagesModal(imagenes, titulo){
   if(!imagenes||!imagenes.length)return;
-  openModal('<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;"><div class="modal-title">'+icn('camera',15)+' '+esc(titulo)+'</div><button class="modal-close" onclick="closeModal()">✕</button></div><div id="ot-img-viewer" style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding:8px 0;"></div>');
+  openModal('<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;"><div class="modal-title">'+icn('camera',15)+' '+esc(titulo)+'</div><button class="modal-close" onclick="closeModal()">'+icn('x',14)+'</button></div><div id="ot-img-viewer" style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding:8px 0;"></div>');
   var el=document.getElementById('ot-img-viewer');
   if(!el)return;
   el.innerHTML='<div style="color:var(--text3);font-size:.8rem;padding:20px;">Cargando imágenes...</div>';
@@ -6484,7 +6489,7 @@ function addComponenteExtra(){
   row.className='ff';
   row.style.cssText='display:flex;gap:8px;align-items:center;margin-bottom:8px;';
   row.innerHTML='<input class="inp pt-n-extra" list="pt-n-list" placeholder="Otro componente afectado..." style="flex:1;">'+
-    '<button type="button" onclick="this.parentElement.remove()" style="flex-shrink:0;width:36px;height:36px;border-radius:11px;border:1.5px solid rgba(255,59,48,.24);background:rgba(255,59,48,.08);color:#ff3b30;font-size:1rem;cursor:pointer;">✕</button>';
+    '<button type="button" onclick="this.parentElement.remove()" style="flex-shrink:0;width:36px;height:36px;border-radius:11px;border:1.5px solid rgba(255,59,48,.24);background:rgba(255,59,48,.08);color:#ff3b30;font-size:1rem;cursor:pointer;">'+icn('x',14)+'</button>';
   wrap.appendChild(row);
   var inp=row.querySelector('input');if(inp)inp.focus();
 }
@@ -6509,7 +6514,7 @@ function openModalParte(eqId,pt){
   }
   var _datalistOpts=_catSuggestions.map(function(s){return'<option value="'+esc(s)+'">';}).join('');
   var _datalistHtml='<datalist id="pt-n-list">'+_datalistOpts+'</datalist>';
-  var estBtns=["ok","pendiente","roto","mejora"].map(function(e){var a=f.estado===e;return'<button data-est="'+e+'" style="flex:1;padding:10px;border-radius:var(--r-sm);font-size:.68rem;font-weight:700;border:none;cursor:pointer;background:'+(a?CP[e]+"20":"rgba(120,120,128,.08)")+';color:'+(a?CP[e]:"var(--text3)")+';'+(a?"box-shadow:0 0 0 2px "+CP[e]+"40;":"")+'" onclick="setPtEst(\''+e+'\')">'+(e==="ok"?_statusDot('#34c759')+"OK":e==="pendiente"?_statusDot('#ff9500')+"Pend.":e==="roto"?_statusDot('#ff3b30')+"Roto":"🎨 Mejora")+'</button>';}).join("");
+  var estBtns=["ok","pendiente","roto","mejora"].map(function(e){var a=f.estado===e;return'<button data-est="'+e+'" style="flex:1;padding:10px;border-radius:var(--r-sm);font-size:.68rem;font-weight:700;border:none;cursor:pointer;background:'+(a?CP[e]+"20":"rgba(120,120,128,.08)")+';color:'+(a?CP[e]:"var(--text3)")+';'+(a?"box-shadow:0 0 0 2px "+CP[e]+"40;":"")+'" onclick="setPtEst(\''+e+'\')">'+(e==="ok"?_statusDot('#34c759')+"OK":e==="pendiente"?_statusDot('#ff9500')+"Pend.":e==="roto"?_statusDot('#ff3b30')+"Roto":icn('sparkles',14)+"Mejora")+'</button>';}).join("");
   function pdfSection(tipo,label){
     var existHtml=f.archivos.filter(function(a){return a.tipo===tipo||(tipo==='presupuesto'&&!a.tipo);}).map(function(a){return'<div id="pt-file-row-'+a.id+'" style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(0,0,0,.05);"><span style="font-size:1.1rem;">'+icn('file',14)+'</span><span style="font-size:.74rem;flex:1;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(a.nombre)+'</span>'+actBtn("openPDFViewer('"+a.id+"','"+esc(a.nombre)+"')",'Abrir','accent',null,'sm')+actBtnIcon("removeParteFile('"+a.id+"')",'trash','red','Eliminar PDF')+'</div>';}).join('');
     return '<div class="ff" style="background:rgba(0,0,0,.02);border-radius:var(--r-sm);padding:10px;margin-bottom:4px;"><div class="ff-label" style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;">'+label+'</div>'+(existHtml?'<div style="margin-bottom:6px;">'+existHtml+'</div>':'')+'<div id="pdf-list-'+tipo+'"></div><button onclick="attachPDF(\''+tipo+'\')" type="button" style="margin-top:6px;width:100%;padding:8px;border:1.5px dashed rgba(0,113,227,.4);border-radius:var(--r-md);background:rgba(0,113,227,.05);color:var(--accent);font-size:.78rem;font-weight:600;cursor:pointer;">'+icn('paperclip',14)+' Adjuntar '+label+'</button></div>';
@@ -6547,7 +6552,7 @@ function openModalParte(eqId,pt){
       _okCompBlock+='</div>';
     }
   }
-  openModal('<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><div class="modal-title">'+(n?"Nueva Rotura / Falla":"Editar Rotura / Falla")+'</div><button class="modal-close" onclick="closeModal()">✕</button></div>'+
+  openModal('<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><div class="modal-title">'+(n?"Nueva Rotura / Falla":"Editar Rotura / Falla")+'</div><button class="modal-close" onclick="closeModal()">'+icn('x',14)+'</button></div>'+
     _okCompBlock+
     _datalistHtml+
     '<div class="ff"><div class="ff-label">Componente / Nombre *'+(_catSuggestions.length?'<span style="font-size:.6rem;font-weight:400;color:var(--accent);margin-left:6px;">'+_catSuggestions.length+' sugerencias disponibles</span>':'')+'</div><input class="inp" id="pt-n" value="'+esc(f.nombre)+'" list="pt-n-list" placeholder="Escribí o elegí un componente..."></div>'+
@@ -6617,10 +6622,10 @@ function openModalParte(eqId,pt){
     (!n&&f.estado!=="ok"&&f.estado!=="mejora"?'<button onclick="repararParte(\''+eqId+'\',\''+f.id+'\')" style="width:100%;padding:14px;margin-bottom:10px;border:none;border-radius:var(--r-md);background:var(--green);color:#fff;font-size:.95rem;font-weight:700;cursor:pointer;box-shadow:0 2px 10px rgba(52,199,89,.4);">'+_statusDot('#34c759')+' Marcar como Reparado</button>':'')+
     '<button class="btn-primary" style="width:100%;padding:14px;font-size:.92rem;" onclick="submitPt(\''+eqId+'\',\''+(f.id||"")+'\')">'+(n?_statusDot('#34c759')+"Agregar":icn('save',14)+"Guardar")+'</button>');
 }
-var _CANALES=[{id:"telefono",label:icn('phone',14)+"Teléfono"},{id:"ilinq",label:"💬 Ilinq"},{id:"mail",label:"📧 Mail"},{id:"whatsapp",label:icn('smartphone',14)+"WhatsApp"}];
+var _CANALES=[{id:"telefono",label:icn('phone',14)+"Teléfono"},{id:"ilinq",label:icn('messageCircle',14)+"Ilinq"},{id:"mail",label:icn('mail',14)+"Mail"},{id:"whatsapp",label:icn('smartphone',14)+"WhatsApp"}];
 function canalBtnsHTML(groupId,selected){return _CANALES.map(function(c){var a=c.id===selected;return'<button type="button" data-canal-group="'+groupId+'" data-canal-val="'+c.id+'" onclick="setCanal(\''+groupId+'\',\''+c.id+'\')" class="clr-tap" style="flex:1;min-width:70px;padding:9px 4px;border-radius:12px;font-size:.7rem;font-weight:600;border:none;cursor:pointer;background:'+(a?'rgba(0,113,227,.18)':'rgba(120,120,128,.08)')+';color:'+(a?'var(--accent)':'var(--text3)')+(a?';box-shadow:0 0 0 2px rgba(0,113,227,.3)':'')+';transition:background .15s,color .15s,box-shadow .15s;">'+c.label+'</button>';}).join('');}
 function setCanal(groupId,val){var inp=document.getElementById(groupId);if(!inp)return;inp.value=inp.value===val?"":val;document.querySelectorAll('[data-canal-group="'+groupId+'"]').forEach(function(b){var a=b.dataset.canalVal===inp.value;b.style.background=a?'rgba(0,113,227,.18)':'rgba(120,120,128,.08)';b.style.color=a?'var(--accent)':'var(--text3)';b.style.boxShadow=a?'0 0 0 2px rgba(0,113,227,.3)':'none';});}
-function canalLabel(c){var m={telefono:icn('phone',14)+"Teléfono",ilinq:"💬 Ilinq",mail:"📧 Mail",whatsapp:icn('smartphone',14)+"WhatsApp"};return m[c]||c;}
+function canalLabel(c){var m={telefono:icn('phone',14)+"Teléfono",ilinq:icn('messageCircle',14)+"Ilinq",mail:icn('mail',14)+"Mail",whatsapp:icn('smartphone',14)+"WhatsApp"};return m[c]||c;}
 function setCentro(val){
   var inp=document.getElementById("eq-ub");if(!inp)return;
   inp.value=inp.value.toUpperCase()===val.toUpperCase()?"":val;
@@ -6751,7 +6756,7 @@ function openQRModal(eqId){
   openModal(
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">'+
     '<div class="modal-title">'+icn('qr',15)+' Código QR</div>'+
-    '<button class="modal-close" onclick="closeModal()">✕</button></div>'+
+    '<button class="modal-close" onclick="closeModal()">'+icn('x',14)+'</button></div>'+
     '<div style="display:flex;justify-content:center;padding:8px 0 18px;">'+
       '<div id="qr-card" style="background:#fff;border-radius:16px;padding:20px 20px 16px;box-shadow:0 4px 24px rgba(0,0,0,.18),0 1px 4px rgba(0,0,0,.12);display:inline-flex;flex-direction:column;align-items:center;border:2px solid #e2e8f0;">'+
         '<div style="font-size:.5rem;font-weight:900;color:#1a3a6b;letter-spacing:3px;text-transform:uppercase;margin-bottom:10px;text-align:center;">CIMA · Ingeniería Biomédica</div>'+
@@ -6891,7 +6896,7 @@ function openPrintQRModal(){
   openModal(
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">'+
     '<div class="modal-title">'+icn('printer',13)+' Imprimir QR Equipos</div>'+
-    '<button class="modal-close" onclick="closeModal()">✕</button></div>'+
+    '<button class="modal-close" onclick="closeModal()">'+icn('x',14)+'</button></div>'+
     '<div style="font-size:.75rem;color:var(--text3);margin-bottom:10px;">Seleccioná los equipos a imprimir. Se imprimen 6 tarjetas por página.</div>'+
     '<div style="display:flex;gap:8px;margin-bottom:10px;">'+
       '<button onclick="document.querySelectorAll(\'.qr-print-chk\').forEach(function(c){c.checked=true;})" style="flex:1;min-height:38px;padding:9px;border-radius:var(--r-pill);background:rgba(0,113,227,.12);border:1.5px solid rgba(0,113,227,.24);color:var(--accent);font-size:.76rem;font-weight:700;cursor:pointer;">'+_statusDot('#34c759')+' Todos</button>'+
@@ -6939,7 +6944,7 @@ function _doPrintQR(){
 function openModalMant(eqId){
   var eq=eqs.find(function(e){return e.id===eqId;});var ci=catById(eq.cat);var td=today();var px=calcP(td,eq.frecuencia);
   window._pendMantPdf=null;_mantSignData=null;
-  openModal('<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><div class="modal-title">Registrar Mantenimiento</div><button class="modal-close" onclick="closeModal()">✕</button></div>'+
+  openModal('<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><div class="modal-title">Registrar Mantenimiento</div><button class="modal-close" onclick="closeModal()">'+icn('x',14)+'</button></div>'+
     '<div class="gc" style="padding:12px;margin-bottom:14px;"><div style="font-size:.68rem;color:var(--text3);margin-bottom:3px;">Equipo</div><div style="font-weight:700;font-size:.9rem;">'+ci.label+' · '+esc(eq.nombre)+'</div><div style="font-size:.72rem;color:var(--text3);margin-top:2px;">Frecuencia: <span style="color:var(--accent);font-weight:600;">'+eq.frecuencia+'</span></div></div>'+
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">'+
       '<div class="ff" style="margin:0;"><div class="ff-label">Nº Orden de Servicio</div><input class="inp" id="mt-orden" placeholder="ej: OS-2026-001"></div>'+
@@ -6968,7 +6973,7 @@ function openModalMant(eqId){
     '<div style="border:1.5px solid var(--border);border-radius:var(--r-md);overflow:hidden;background:rgba(255,255,255,.97);">'+
       '<canvas id="sig-canvas" width="500" height="110" style="width:100%;height:110px;display:block;touch-action:none;"></canvas>'+
     '</div>'+
-    '<button onclick="clearSig()" type="button" style="margin-top:6px;min-height:32px;font-size:.7rem;font-weight:600;color:var(--text3);background:rgba(120,120,128,.08);border:1px solid rgba(120,120,128,.15);border-radius:8px;cursor:pointer;padding:6px 12px;">🗑 Limpiar</button>'+
+    '<button onclick="clearSig()" type="button" style="margin-top:6px;min-height:32px;font-size:.7rem;font-weight:600;color:var(--text3);background:rgba(120,120,128,.08);border:1px solid rgba(120,120,128,.15);border-radius:8px;cursor:pointer;padding:6px 12px;">'+icn('trash',14)+' Limpiar</button>'+
     '</div>'+
     '<div style="background:rgba(52,199,89,.08);border-radius:var(--r-sm);padding:10px;margin-bottom:14px;font-size:.76rem;color:var(--green);">'+_statusDot('#34c759')+' Próximo mant. calculado: <strong>'+fD(px)+'</strong></div>'+
     '<button class="btn-primary" style="width:100%;padding:14px;font-size:.92rem;" onclick="submitMant(\''+eqId+'\')">'+_statusDot('#34c759')+' Confirmar</button>');
@@ -6998,7 +7003,7 @@ function openEditMantConfigModal(eqId){
   openModal(
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">'+
       '<div class="modal-title">Configuración de mantenimiento</div>'+
-      '<button class="modal-close" onclick="closeModal()">✕</button>'+
+      '<button class="modal-close" onclick="closeModal()">'+icn('x',14)+'</button>'+
     '</div>'+
     '<div style="font-size:.75rem;color:var(--text3);margin-bottom:14px;">'+esc(eq.nombre)+'</div>'+
     '<div class="ff"><div class="ff-label">Frecuencia</div>'+
@@ -7805,7 +7810,7 @@ function openSnoozeModal(key,tit){
   openModal(
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">'+
     '<div class="modal-title">⏰ Posponer alerta</div>'+
-    '<button class="modal-close" onclick="closeModal()">✕</button></div>'+
+    '<button class="modal-close" onclick="closeModal()">'+icn('x',14)+'</button></div>'+
     '<div style="background:rgba(255,149,0,.09);border:1px solid rgba(255,149,0,.22);border-radius:var(--r-md);padding:9px 13px;margin-bottom:14px;font-size:.82rem;font-weight:600;color:var(--orange);">'+esc(tit)+'</div>'+
     '<div class="ff-label" style="margin-bottom:8px;">¿Cuánto tiempo posponer?</div>'+
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">'+
@@ -7888,7 +7893,7 @@ function rLista(){
       '<div><div style="font-size:.72rem;font-weight:700;color:'+fd.c+';">'+fd.l+'</div>'+
       '<div style="font-size:.64rem;color:var(--text3);">Filtro activo desde el panel</div></div>'+
       '</div>'+
-      '<button onclick="clearDashFilter()" style="background:'+fd.c+'22;border:1.5px solid '+fd.c+'40;border-radius:50px;min-height:34px;padding:7px 14px;font-size:.72rem;font-weight:700;color:'+fd.c+';cursor:pointer;">✕ Quitar</button>'+
+      '<button onclick="clearDashFilter()" style="background:'+fd.c+'22;border:1.5px solid '+fd.c+'40;border-radius:50px;min-height:34px;padding:7px 14px;font-size:.72rem;font-weight:700;color:'+fd.c+';cursor:pointer;">'+icn('x',14)+' Quitar</button>'+
       '</div>';
   }
   // ── Barra de búsqueda ──
@@ -7897,7 +7902,7 @@ function rLista(){
     '<input id="busq-inp" class="inp" value="'+esc(_busqueda)+'" placeholder="Buscar equipos, marcas, partes..." '+
     'oninput="setBusqueda(this.value)" '+
     'style="padding-left:42px;padding-right:'+(_busqueda?'36px':'12px')+';width:100%;font-size:.86rem;background:rgba(255,255,255,.45);border:1.5px solid rgba(255,255,255,.78);border-top-color:rgba(255,255,255,1.0);box-shadow:inset 0 2px 0 rgba(255,255,255,1.0),0 2px 10px rgba(0,0,0,.05);">'+
-    (_busqueda?'<button onclick="_busqueda=\'\';render();" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:rgba(120,120,128,.15);border:none;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:.75rem;cursor:pointer;color:var(--text3);z-index:2;">✕</button>':'')+'</div>';
+    (_busqueda?'<button onclick="_busqueda=\'\';render();" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:rgba(120,120,128,.15);border:none;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:.75rem;cursor:pointer;color:var(--text3);z-index:2;">'+icn('x',14)+'</button>':'')+'</div>';
 
   // ── Filtro Modalidad ──
   h+='<div style="margin-bottom:7px;font-size:.58rem;text-transform:uppercase;letter-spacing:.8px;font-weight:700;color:var(--text3);">Modalidad</div>';
@@ -7970,7 +7975,7 @@ function rLista(){
     resultados.forEach(function(r,ri){
       var e=r.eq;var ms=semafo(e);var d=diasH(e.proximoMant);var rot=e.partes.filter(function(p){return p.estado==="roto";}).length;
       var rfChipS='';if(e.cat==='RM'){var _rf2=_refrigData(e);var _rp2=_rf2.helioLiqPorcentaje;var _rs2=_rf2.helioLiqPresion;var _gp2=_rf2.helioGasPresionActual;var _gs2=_rf2.helioGaseoso;var _hasHe2=_rp2||_rs2||_gp2||_gs2;if(_hasHe2){var _gasOk2=_gs2!=='presion_baja';var _gasColor2=_gasOk2?'#10b981':'#f59e0b';var _gasLbl2=_gp2?(_gp2+' MPa'):(_gs2==='presion_baja'?'Pres. baja':'OK');rfChipS='<div style="display:flex;gap:5px;margin-top:5px;align-items:center;flex-wrap:wrap;">'+(_rp2?'<span style="font-size:.62rem;font-weight:700;color:#0891b2;background:rgba(8,145,178,.10);border:1px solid rgba(8,145,178,.22);border-radius:20px;padding:2px 7px;">'+icn('snowflake',14)+' Líq '+esc(_rp2)+'%</span>':'')+(_rs2?'<span style="font-size:.62rem;font-weight:700;color:#0891b2;background:rgba(8,145,178,.10);border:1px solid rgba(8,145,178,.22);border-radius:20px;padding:2px 7px;">'+esc(_rs2)+' psi</span>':'')+(_gp2||_gs2?'<span style="font-size:.62rem;font-weight:700;color:'+_gasColor2+';background:rgba(8,145,178,.08);border:1px solid '+_gasColor2+'33;border-radius:20px;padding:2px 7px;">'+icn('flask',14)+' Gas '+_gasLbl2+'</span>':'')+'</div>';}}
-      var _admChipS='';var _segVDS=e.seguroAlta&&e.seguroVenc&&diasH(e.seguroVenc)<=30;var _rugVDS=e.rugepresaAlta&&e.rugepresaVenc&&diasH(e.rugepresaVenc)<=30;var _admPS=[];if(e.seguroAlta)_admPS.push('<span style="font-size:.61rem;font-weight:700;color:'+(_segVDS?'#f59e0b':'#6366f1')+';background:rgba(99,102,241,.09);border:1px solid rgba(99,102,241,.22);border-radius:20px;padding:2px 6px;">'+icn('clipboard',14)+' Seg'+(_segVDS?' ⚠':'')+'</span>');if(e.epecAlta)_admPS.push('<span style="font-size:.61rem;font-weight:700;color:#6366f1;background:rgba(99,102,241,.09);border:1px solid rgba(99,102,241,.22);border-radius:20px;padding:2px 6px;">'+icn('zap',14)+' EPEC</span>');if(e.rugepresaAlta)_admPS.push('<span style="font-size:.61rem;font-weight:700;color:'+(_rugVDS?'#f59e0b':'#6366f1')+';background:rgba(99,102,241,.09);border:1px solid rgba(99,102,241,.22);border-radius:20px;padding:2px 6px;">📌 RUG'+(_rugVDS?' ⚠':'')+'</span>');if(_admPS.length)_admChipS='<div style="display:flex;gap:5px;margin-top:4px;flex-wrap:wrap;">'+_admPS.join('')+'</div>';
+      var _admChipS='';var _segVDS=e.seguroAlta&&e.seguroVenc&&diasH(e.seguroVenc)<=30;var _rugVDS=e.rugepresaAlta&&e.rugepresaVenc&&diasH(e.rugepresaVenc)<=30;var _admPS=[];if(e.seguroAlta)_admPS.push('<span style="font-size:.61rem;font-weight:700;color:'+(_segVDS?'#f59e0b':'#6366f1')+';background:rgba(99,102,241,.09);border:1px solid rgba(99,102,241,.22);border-radius:20px;padding:2px 6px;">'+icn('clipboard',14)+' Seg'+(_segVDS?' ⚠':'')+'</span>');if(e.epecAlta)_admPS.push('<span style="font-size:.61rem;font-weight:700;color:#6366f1;background:rgba(99,102,241,.09);border:1px solid rgba(99,102,241,.22);border-radius:20px;padding:2px 6px;">'+icn('zap',14)+' EPEC</span>');if(e.rugepresaAlta)_admPS.push('<span style="font-size:.61rem;font-weight:700;color:'+(_rugVDS?'#f59e0b':'#6366f1')+';background:rgba(99,102,241,.09);border:1px solid rgba(99,102,241,.22);border-radius:20px;padding:2px 6px;">'+icn('mappin',14)+' RUG'+(_rugVDS?' ⚠':'')+'</span>');if(_admPS.length)_admChipS='<div style="display:flex;gap:5px;margin-top:4px;flex-wrap:wrap;">'+_admPS.join('')+'</div>';
       var _liSubSR=[];if(e.ubicacion)_liSubSR.push(icn('mappin',14)+''+esc(e.ubicacion));if(e.consultorio)_liSubSR.push(icn('building',14)+'Cons. '+esc(e.consultorio));if(e.serie)_liSubSR.push('SID: '+esc(e.serie));
       h+='<div class="gc li-eq tap" data-aos="fade-up" data-aos-delay="'+Math.min(ri*45,450)+'" onclick="goDetalle(\''+e.id+'\')" style="border-left-color:'+(CE[e.estado]||"var(--green)")+';"><div style="display:flex;align-items:center;gap:16px;">'+
         '<div class="li-icon">'+iconFor(e,58)+'</div>'+
@@ -7981,8 +7986,8 @@ function rLista(){
         _admChipS+
         '<div style="display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;">'+
           pillH(CE[e.estado]||"var(--green)",e.estado==="operativo"?_statusDot('#34c759')+"OK":e.estado==="fuera-de-servicio"?_statusDot('#ff3b30')+"Fuera de servicio":icn('wrench',14)+"Roto/Con Fallas")+
-          (sinMant(e)?pillH("#8e8e93","⚫ Sin mant."):pillH(CM[ms],icn('wrench',14)+""+(ms==="vencido"?"VENC":ms==="urgente"?d+"d URG":ms==="proximo"?d+"d prox":d+"d")))+
-          (rot>0?pillH("var(--red)",_statusDot('#ff3b30')+""+rot+" roto"+(rot>1?"s":"")):"")+(e.tieneServicio?pillH("var(--green)","✔ Servicio"):"")+
+          (sinMant(e)?pillH("#8e8e93",_statusDot('#8e8e93')+"Sin mant."):pillH(CM[ms],icn('wrench',14)+""+(ms==="vencido"?"VENC":ms==="urgente"?d+"d URG":ms==="proximo"?d+"d prox":d+"d")))+
+          (rot>0?pillH("var(--red)",_statusDot('#ff3b30')+""+rot+" roto"+(rot>1?"s":"")):"")+(e.tieneServicio?pillH("var(--green)",icn('check',14)+"Servicio"):"")+
         (function(){var _rse=calcRiskScore(e);return _rse.level==='critico'||_rse.level==='alto'?'<span style="font-size:.6rem;font-weight:700;padding:2px 7px;border-radius:10px;background:'+riskLevelColor(_rse.level)+'22;color:'+riskLevelColor(_rse.level)+';border:1px solid '+riskLevelColor(_rse.level)+'44;">'+riskLevelLabel(_rse.level)+'</span>':'';})()+(function(){var _ots=ordenesTrabajo.filter(function(o){return o.eqId===e.id&&o.estado!=='cerrada'&&o.estado!=='cancelada';});return _ots.length?pillH('#f59e0b',icn('clipboard',14)+''+_ots.length+' OT'+(_ots.length!==1?'s':'')+' activa'+(_ots.length!==1?'s':'')):'';})()+'</div></div>'+
         '<div style="color:var(--text3);font-size:1.2rem;flex-shrink:0;">›</div></div></div>';
       if(r.matchParts.length){
@@ -8007,7 +8012,7 @@ function rLista(){
   lista.forEach(function(e,li){
     var ms=semafo(e);var d=diasH(e.proximoMant);var rot=e.partes.filter(function(p){return p.estado==="roto";}).length;
     var rfChip='';if(e.cat==='RM'){var _rf=_refrigData(e);var _rp=_rf.helioLiqPorcentaje;var _rs=_rf.helioLiqPresion;var _gp=_rf.helioGasPresionActual;var _gs=_rf.helioGaseoso;var _hasHe=_rp||_rs||_gp||_gs;if(_hasHe){var _gasOk=_gs!=='presion_baja';var _gasColor=_gasOk?'#10b981':'#f59e0b';var _gasLbl=_gp?(_gp+' MPa'):(_gs==='presion_baja'?'Pres. baja':'OK');rfChip='<div style="display:flex;gap:5px;margin-top:5px;align-items:center;flex-wrap:wrap;">'+(_rp?'<span style="font-size:.62rem;font-weight:700;color:#0891b2;background:rgba(8,145,178,.10);border:1px solid rgba(8,145,178,.22);border-radius:20px;padding:2px 7px;">'+icn('snowflake',14)+' Líq '+esc(_rp)+'%</span>':'')+(_rs?'<span style="font-size:.62rem;font-weight:700;color:#0891b2;background:rgba(8,145,178,.10);border:1px solid rgba(8,145,178,.22);border-radius:20px;padding:2px 7px;">'+esc(_rs)+' psi</span>':'')+(_gp||_gs?'<span style="font-size:.62rem;font-weight:700;color:'+_gasColor+';background:rgba(8,145,178,.08);border:1px solid '+_gasColor+'33;border-radius:20px;padding:2px 7px;">'+icn('flask',14)+' Gas '+_gasLbl+'</span>':'')+'</div>';}}
-    var _admChip='';var _segVD=e.seguroAlta&&e.seguroVenc&&diasH(e.seguroVenc)<=30;var _rugVD=e.rugepresaAlta&&e.rugepresaVenc&&diasH(e.rugepresaVenc)<=30;var _admPills=[];if(e.seguroAlta)_admPills.push('<span style="font-size:.61rem;font-weight:700;color:'+(_segVD?'#f59e0b':'#6366f1')+';background:rgba(99,102,241,.09);border:1px solid rgba(99,102,241,.22);border-radius:20px;padding:2px 6px;">'+icn('clipboard',14)+' Seg'+(_segVD?' ⚠':'')+'</span>');if(e.epecAlta)_admPills.push('<span style="font-size:.61rem;font-weight:700;color:#6366f1;background:rgba(99,102,241,.09);border:1px solid rgba(99,102,241,.22);border-radius:20px;padding:2px 6px;">'+icn('zap',14)+' EPEC</span>');if(e.rugepresaAlta)_admPills.push('<span style="font-size:.61rem;font-weight:700;color:'+(_rugVD?'#f59e0b':'#6366f1')+';background:rgba(99,102,241,.09);border:1px solid rgba(99,102,241,.22);border-radius:20px;padding:2px 6px;">📌 RUG'+(_rugVD?' ⚠':'')+'</span>');if(_admPills.length)_admChip='<div style="display:flex;gap:5px;margin-top:4px;flex-wrap:wrap;">'+_admPills.join('')+'</div>';
+    var _admChip='';var _segVD=e.seguroAlta&&e.seguroVenc&&diasH(e.seguroVenc)<=30;var _rugVD=e.rugepresaAlta&&e.rugepresaVenc&&diasH(e.rugepresaVenc)<=30;var _admPills=[];if(e.seguroAlta)_admPills.push('<span style="font-size:.61rem;font-weight:700;color:'+(_segVD?'#f59e0b':'#6366f1')+';background:rgba(99,102,241,.09);border:1px solid rgba(99,102,241,.22);border-radius:20px;padding:2px 6px;">'+icn('clipboard',14)+' Seg'+(_segVD?' ⚠':'')+'</span>');if(e.epecAlta)_admPills.push('<span style="font-size:.61rem;font-weight:700;color:#6366f1;background:rgba(99,102,241,.09);border:1px solid rgba(99,102,241,.22);border-radius:20px;padding:2px 6px;">'+icn('zap',14)+' EPEC</span>');if(e.rugepresaAlta)_admPills.push('<span style="font-size:.61rem;font-weight:700;color:'+(_rugVD?'#f59e0b':'#6366f1')+';background:rgba(99,102,241,.09);border:1px solid rgba(99,102,241,.22);border-radius:20px;padding:2px 6px;">'+icn('mappin',14)+' RUG'+(_rugVD?' ⚠':'')+'</span>');if(_admPills.length)_admChip='<div style="display:flex;gap:5px;margin-top:4px;flex-wrap:wrap;">'+_admPills.join('')+'</div>';
     var _liSubParts=[];if(e.ubicacion)_liSubParts.push(icn('mappin',14)+''+esc(e.ubicacion));if(e.consultorio)_liSubParts.push(icn('building',14)+'Cons. '+esc(e.consultorio));if(e.serie)_liSubParts.push('SID: '+esc(e.serie));
     h+='<div class="gc li-eq tap" data-aos="fade-up" data-aos-delay="'+Math.min(li*45,450)+'" onclick="goDetalle(\''+e.id+'\')" style="border-left-color:'+(CE[e.estado]||"var(--green)")+';"><div style="display:flex;align-items:center;gap:16px;">'+
       '<div class="li-icon">'+iconFor(e,58)+'</div>'+
@@ -8018,8 +8023,8 @@ function rLista(){
       _admChip+
       '<div style="display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;">'+
         pillH(CE[e.estado]||"var(--green)",e.estado==="operativo"?_statusDot('#34c759')+"OK":e.estado==="fuera-de-servicio"?_statusDot('#ff3b30')+"Fuera de servicio":icn('wrench',14)+"Roto/Con Fallas")+
-        (sinMant(e)?pillH("#8e8e93","⚫ Sin mant."):pillH(CM[ms],icn('wrench',14)+""+(ms==="vencido"?"VENC":ms==="urgente"?d+"d URG":ms==="proximo"?d+"d prox":d+"d")))+
-        (rot>0?pillH("var(--red)",_statusDot('#ff3b30')+""+rot+" roto"+(rot>1?"s":"")):"")+(e.tieneServicio?pillH("var(--green)","✔ Servicio"):"")+
+        (sinMant(e)?pillH("#8e8e93",_statusDot('#8e8e93')+"Sin mant."):pillH(CM[ms],icn('wrench',14)+""+(ms==="vencido"?"VENC":ms==="urgente"?d+"d URG":ms==="proximo"?d+"d prox":d+"d")))+
+        (rot>0?pillH("var(--red)",_statusDot('#ff3b30')+""+rot+" roto"+(rot>1?"s":"")):"")+(e.tieneServicio?pillH("var(--green)",icn('check',14)+"Servicio"):"")+
       (function(){var _rse=calcRiskScore(e);return _rse.level==='critico'||_rse.level==='alto'?'<span style="font-size:.6rem;font-weight:700;padding:2px 7px;border-radius:10px;background:'+riskLevelColor(_rse.level)+'22;color:'+riskLevelColor(_rse.level)+';border:1px solid '+riskLevelColor(_rse.level)+'44;">'+riskLevelLabel(_rse.level)+'</span>':'';})()+'</div></div>'+
       '<div style="color:var(--text3);font-size:1.2rem;flex-shrink:0;">›</div></div></div>';
   });
@@ -8725,7 +8730,7 @@ function _renderPMPasos(pasos){
     var p=_pmPasosTemp[i];
     h+='<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(120,120,128,.08);">'+
       '<span style="font-size:.78rem;color:var(--text);flex:1;">'+esc(p.texto||'')+'</span>'+
-      '<button type="button" onclick="_delPMPaso(\''+p.id+'\');" style="background:none;border:none;color:var(--red);font-size:.85rem;cursor:pointer;padding:0 4px;">✕</button>'+
+      '<button type="button" onclick="_delPMPaso(\''+p.id+'\');" style="background:none;border:none;color:var(--red);font-size:.85rem;cursor:pointer;padding:0 4px;">'+icn('x',14)+'</button>'+
     '</div>';
   }
   return h;
@@ -8850,7 +8855,7 @@ function cancelarPMProgramado(pmId){
     '<div class="ff"><div class="ff-label">Medio de comunicación</div>'+
       '<select class="inp" id="pm-cancel-medio"><option value="Teléfono">Teléfono</option><option value="WhatsApp">WhatsApp</option><option value="Email">Email</option><option value="Presencial">Presencial</option><option value="Otro">Otro</option></select>'+
     '</div>'+
-    '<button style="width:100%;padding:12px;background:rgba(255,59,48,.12);color:var(--red);border:1.5px solid rgba(255,59,48,.3);border-radius:var(--r-pill);font-weight:700;font-size:.9rem;cursor:pointer;margin-top:4px;" onclick="submitCancelarPM(\''+pmId+'\')">🚫 Confirmar cancelación</button>'
+    '<button style="width:100%;padding:12px;background:rgba(255,59,48,.12);color:var(--red);border:1.5px solid rgba(255,59,48,.3);border-radius:var(--r-pill);font-weight:700;font-size:.9rem;cursor:pointer;margin-top:4px;" onclick="submitCancelarPM(\''+pmId+'\')">'+icn('ban',14)+' Confirmar cancelación</button>'
   );
 }
 function submitCancelarPM(pmId){
@@ -9055,7 +9060,7 @@ function rOrdenes(){
     h+='<span style="font-size:.58rem;font-weight:700;font-family:monospace;color:var(--text3);">'+ot.id+'</span>';
     h+='<span style="font-size:.6rem;font-weight:700;padding:1px 7px;border-radius:20px;background:'+ec+'22;color:'+ec+';border:1px solid '+ec+'44;">'+OT_ESTADOS[ot.estado]+'</span>';
     h+='<span style="font-size:.6rem;font-weight:700;padding:1px 7px;border-radius:20px;background:'+pc+'22;color:'+pc+';border:1px solid '+pc+'44;">'+OT_PRIORIDADES[ot.prioridad]+'</span>';
-    if(isMejOT)h+='<span style="font-size:.6rem;font-weight:700;padding:1px 7px;border-radius:20px;background:rgba(139,92,246,.14);color:#8b5cf6;border:1px solid rgba(139,92,246,.3);">✏️ '+(tipoObraLabel[ot.tipoObra]||'Mejora')+'</span>';
+    if(isMejOT)h+='<span style="font-size:.6rem;font-weight:700;padding:1px 7px;border-radius:20px;background:rgba(139,92,246,.14);color:#8b5cf6;border:1px solid rgba(139,92,246,.3);">'+icn('edit',14)+' '+(tipoObraLabel[ot.tipoObra]||'Mejora')+'</span>';
     h+=slaBadge;
     h+='</div>';
     h+='<div style="font-weight:700;font-size:.88rem;margin-bottom:2px;">'+esc(ot.titulo)+(ot.generadoDesdePM?'<span style="margin-left:6px;font-size:.58rem;font-weight:700;background:rgba(52,199,89,.12);color:var(--green);border-radius:20px;padding:1px 6px;vertical-align:middle;">'+icn('calendar',14)+' Desde PM</span>':'')+( ot.migradoDesdeMejora?'<span style="margin-left:6px;font-size:.58rem;font-weight:700;background:rgba(139,92,246,.12);color:#8b5cf6;border-radius:20px;padding:1px 6px;vertical-align:middle;">migrada</span>':'')+'</div>';
@@ -9112,14 +9117,14 @@ function rOrdenes(){
         h+='<span style="font-size:.58rem;font-weight:700;font-family:monospace;color:var(--text3);">'+ot.id+'</span>';
         h+='<span style="font-size:.6rem;font-weight:700;padding:1px 7px;border-radius:20px;background:'+ec2+'22;color:'+ec2+';border:1px solid '+ec2+'44;">'+ec2lbl+'</span>';
         h+='<span style="font-size:.6rem;font-weight:700;padding:1px 7px;border-radius:20px;background:'+pc2+'22;color:'+pc2+';border:1px solid '+pc2+'44;">'+(OT_PRIORIDADES[ot.prioridad]||ot.prioridad)+'</span>';
-        if(isMej2)h+='<span style="font-size:.6rem;font-weight:700;padding:1px 7px;border-radius:20px;background:rgba(139,92,246,.14);color:#8b5cf6;border:1px solid rgba(139,92,246,.3);">✏️ '+(tipoObraLabel2[ot.tipoObra]||'Mejora')+'</span>';
+        if(isMej2)h+='<span style="font-size:.6rem;font-weight:700;padding:1px 7px;border-radius:20px;background:rgba(139,92,246,.14);color:#8b5cf6;border:1px solid rgba(139,92,246,.3);">'+icn('edit',14)+' '+(tipoObraLabel2[ot.tipoObra]||'Mejora')+'</span>';
         h+='</div>';
         h+='<div style="font-weight:700;font-size:.84rem;margin-bottom:2px;">'+esc(ot.titulo)+'</div>';
         h+='<div style="font-size:.7rem;color:var(--text3);">'+esc(eqNom)+(ot.tecnicoAsignado?' \xb7 '+icn('user',14)+' '+esc(ot.tecnicoAsignado):'')+'</div>';
         h+='<div style="font-size:.64rem;color:var(--text3);margin-top:3px;">Creada: '+fD(ot.fechaCreacion)+(ot.fechaCierre?' \xb7 Cerrada: '+fD(ot.fechaCierre):'')+'</div>';
         if(ot.resolucion)h+='<div style="font-size:.67rem;color:var(--text2);margin-top:3px;padding:4px 8px;background:rgba(52,199,89,.07);border-radius:6px;border-left:3px solid rgba(52,199,89,.35);">'+esc(ot.resolucion.slice(0,100))+(ot.resolucion.length>100?'…':'')+'</div>';
         if(ot.firma)h+='<div style="font-size:.6rem;color:rgba(52,199,89,.7);margin-top:2px;">'+icn('edit',14)+' Firmada</div>';
-        if(ot.gastosCierre)h+='<div style="font-size:.62rem;color:var(--orange);margin-top:2px;">💵 '+(ot.monedaGastos||'ARS')+' '+ot.gastosCierre+'</div>';
+        if(ot.gastosCierre)h+='<div style="font-size:.62rem;color:var(--orange);margin-top:2px;">'+icn('dollarsign',14)+' '+(ot.monedaGastos||'ARS')+' '+ot.gastosCierre+'</div>';
         if((ot.imagenesClose&&ot.imagenesClose.length)){
           h+='<div style="margin-top:4px;">';
           h+='<button onclick="openOTImagesModal('+JSON.stringify(ot.imagenesClose).replace(/'/g,"&#39;")+',\'Cierre - \'+\''+escJs(ot.titulo)+'\')" style="min-height:32px;padding:6px 12px;border-radius:var(--r-pill);background:rgba(52,199,89,.12);border:1.5px solid rgba(52,199,89,.26);color:var(--green);font-size:.68rem;font-weight:700;cursor:pointer;">'+icn('camera',14)+' '+ot.imagenesClose.length+' foto cierre</button>';
@@ -9181,7 +9186,7 @@ function openModalOT(eqId,otId){
     '<div class="ff"><div class="ff-label">'+icn('camera',12)+' Imágenes (opcional)</div>'+
     '<button type="button" onclick="attachOTImage()" style="padding:7px 14px;border-radius:var(--r-pill);background:rgba(0,113,227,.08);border:1.5px dashed rgba(0,113,227,.3);color:var(--accent);font-size:.76rem;font-weight:600;cursor:pointer;margin-bottom:6px;">+ Adjuntar imagen</button>'+
     '<div id="ot-img-list" style="display:flex;flex-wrap:wrap;gap:4px;"></div>'+
-    ((ot&&ot.imagenes&&ot.imagenes.length)?'<button onclick="openOTImagesModal('+(JSON.stringify(ot.imagenes)).replace(/'/g,"&#39;")+',\'Imágenes guardadas\')" style="margin-top:6px;min-height:34px;padding:7px 14px;border-radius:var(--r-pill);background:rgba(0,113,227,.1);border:1.5px solid rgba(0,113,227,.24);color:var(--accent);font-size:.72rem;font-weight:600;cursor:pointer;">👁 Ver '+ot.imagenes.length+' imagen'+(ot.imagenes.length!==1?'es':'')+' guardada'+(ot.imagenes.length!==1?'s':'')+'</button>':'')+
+    ((ot&&ot.imagenes&&ot.imagenes.length)?'<button onclick="openOTImagesModal('+(JSON.stringify(ot.imagenes)).replace(/'/g,"&#39;")+',\'Imágenes guardadas\')" style="margin-top:6px;min-height:34px;padding:7px 14px;border-radius:var(--r-pill);background:rgba(0,113,227,.1);border:1.5px solid rgba(0,113,227,.24);color:var(--accent);font-size:.72rem;font-weight:600;cursor:pointer;">'+icn('eye',14)+' Ver '+ot.imagenes.length+' imagen'+(ot.imagenes.length!==1?'es':'')+' guardada'+(ot.imagenes.length!==1?'s':'')+'</button>':'')+
     '</div>'+
     '<button class="btn-primary" style="width:100%;padding:13px;margin-top:8px;" onclick="submitOT(\''+((ot&&ot.id)||'')+'\')">'+(ot?'Guardar cambios':'Crear OT')+'</button>'
   );
@@ -9249,7 +9254,7 @@ function cerrarOT(otId){
   html+='<div style="margin-bottom:14px;"><label style="font-size:.72rem;color:var(--text2);font-weight:600;display:block;margin-bottom:6px;">'+icn('camera',14)+' Fotos del trabajo (opcional)</label>';
   html+='<button type="button" onclick="attachOTCloseImage()" style="padding:7px 14px;border-radius:var(--r-pill);background:rgba(52,199,89,.08);border:1.5px dashed rgba(52,199,89,.35);color:var(--green);font-size:.76rem;font-weight:600;cursor:pointer;margin-bottom:6px;">+ Adjuntar foto de cierre</button>';
   html+='<div id="ot-close-img-list" style="display:flex;flex-wrap:wrap;gap:4px;"></div>';
-  if(ot.imagenesClose&&ot.imagenesClose.length)html+='<button onclick="openOTImagesModal('+JSON.stringify(ot.imagenesClose).replace(/'/g,"&#39;")+',\'Fotos de cierre\')" style="margin-top:4px;min-height:34px;padding:7px 14px;border-radius:var(--r-pill);background:rgba(52,199,89,.10);border:1.5px solid rgba(52,199,89,.28);color:var(--green);font-size:.72rem;font-weight:600;cursor:pointer;">👁 Ver '+ot.imagenesClose.length+' foto'+(ot.imagenesClose.length!==1?'s':'')+' de cierre</button>';
+  if(ot.imagenesClose&&ot.imagenesClose.length)html+='<button onclick="openOTImagesModal('+JSON.stringify(ot.imagenesClose).replace(/'/g,"&#39;")+',\'Fotos de cierre\')" style="margin-top:4px;min-height:34px;padding:7px 14px;border-radius:var(--r-pill);background:rgba(52,199,89,.10);border:1.5px solid rgba(52,199,89,.28);color:var(--green);font-size:.72rem;font-weight:600;cursor:pointer;">'+icn('eye',14)+' Ver '+ot.imagenesClose.length+' foto'+(ot.imagenesClose.length!==1?'s':'')+' de cierre</button>';
   html+='</div>';
   html+='<div style="margin-bottom:12px;"><label style="font-size:.72rem;color:var(--text2);font-weight:600;display:block;margin-bottom:6px;">'+icn('dollarsign',14)+' Gastos del trabajo (opcional)</label>';
   html+='<div style="display:flex;gap:8px;">';
@@ -10190,7 +10195,7 @@ function rAuditoria(){
       var e=entries[i];
       var dt=e.ts?e.ts.slice(0,16).replace('T',' '):'—';
       var entityCol={eq:'#adc6ff',ot:'#ff9500',pm:'#30d158',repuesto:'#bf5af2',otros:'#98989d'}[e.entity]||'#98989d';
-      var actionIcon={crear:'＋',modificar:'✎',cerrar:'✓',eliminar:'✕',ajustar:'⇅',programar:icn('calendar',14),generar:icn('file',14)}[e.action]||'·';
+      var actionIcon={crear:'＋',modificar:icn('edit',14),cerrar:icn('check',14),eliminar:icn('x',14),ajustar:icn('refresh',14),programar:icn('calendar',14),generar:icn('file',14)}[e.action]||'·';
       rows+='<div style="display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid rgba(120,120,128,.08);">'+
         '<div style="width:28px;height:28px;border-radius:50%;background:'+entityCol+'22;color:'+entityCol+';display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0;margin-top:2px;">'+actionIcon+'</div>'+
         '<div style="flex:1;min-width:0;">'+
@@ -10251,7 +10256,7 @@ function rEjecutivo(){
       '<td style="padding:9px 12px;text-align:center;font-size:.8rem;">'+ses.length+'</td>'+
       '<td style="padding:9px 12px;text-align:center;"><span style="color:'+c+';font-weight:700;font-size:.82rem;">'+pct+'%</span></td>'+
       '<td style="padding:9px 12px;text-align:center;font-size:.8rem;">'+(sFu>0?'<span style="color:var(--red);font-weight:700;">'+sFu+'</span>':'<span style="color:var(--text3);">0</span>')+'</td>'+
-      '<td style="padding:9px 12px;text-align:center;font-size:.8rem;">'+(sAl>0?'<span style="color:var(--red);font-weight:700;">'+sAl+'</span>':'<span style="color:var(--green);">✓</span>')+'</td>'+
+      '<td style="padding:9px 12px;text-align:center;font-size:.8rem;">'+(sAl>0?'<span style="color:var(--red);font-weight:700;">'+sAl+'</span>':'<span style="color:var(--green);">'+icn('check',14)+'</span>')+'</td>'+
     '</tr>';
   });
   var recentMant=[];
@@ -10279,9 +10284,9 @@ function rEjecutivo(){
   var _pmKPIDone=_pmKPIAll.filter(function(p){return p.realizado;}).length;
   var _pmKPIPct=_pmKPIAll.length>0?Math.round((_pmKPIDone/_pmKPIAll.length)*100):null;
   h+='<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px;">'+
-    kpiCard('🏥','Equipos activos',totalN,'Total en servicio','var(--text)')+
+    kpiCard(icn('building',14),'Equipos activos',totalN,'Total en servicio','var(--text)')+
     kpiCard(_statusDot('#34c759'),'Operatividad',opN+'/'+totalN,(totalN?Math.round(opN/totalN*100):0)+'% operativos',opN===totalN?'var(--green)':'var(--orange)')+
-    kpiCard('🚨','Alertas críticas',critN,warnN+' advertencia'+(warnN!==1?'s':''),critN>0?'var(--red)':'var(--green)')+
+    kpiCard(icn('alert',14),'Alertas críticas',critN,warnN+' advertencia'+(warnN!==1?'s':''),critN>0?'var(--red)':'var(--green)')+
     kpiCard(_statusDot('#ff3b30'),'Fuera de servicio',fueraN,rotN+' con falla'+(rotN!==1?'s':''),fueraN>0?'var(--red)':'var(--green)')+
     kpiCard(icn('clipboard',14),'Cumplimiento PM',_pmKPIPct!==null?(_pmKPIDone+'/'+_pmKPIAll.length):'—',_pmKPIPct!==null?_pmKPIPct+'% este mes':'Sin PMs vencidos',_pmKPIPct===null?'var(--text3)':_pmKPIPct>=80?'var(--green)':_pmKPIPct>=50?'var(--orange)':'var(--red)')+
   '</div>';
@@ -10332,7 +10337,7 @@ function rEjecutivo(){
       '<div style="background:linear-gradient(90deg,rgba(255,149,0,.1),rgba(255,149,0,.05));padding:9px 14px;font-size:.7rem;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid rgba(255,149,0,.1);">⏰ Vencimientos próximos (30 días)</div>'+
       '<div style="padding:10px 14px;">';
     upcoming.slice(0,8).forEach(function(u){
-      var icon=u.tipo==='mant'?icn('wrench',14):u.tipo==='contrato'?'🤝':'🛡';
+      var icon=u.tipo==='mant'?icn('wrench',14):u.tipo==='contrato'?icn('clipboard',14):icn('shield',14);
       var lbl=u.tipo==='mant'?'Mantenimiento':u.tipo==='contrato'?'Contrato':'Seguro';
       var d2=diasH(u.fecha);
       h+='<div onclick="goDetalle(\''+u.eid+'\')" style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.05);cursor:pointer;">'+
@@ -10431,14 +10436,14 @@ function rKpi(){
   h+='<div style="display:flex;gap:6px;align-items:center;">';
   h+='<div id="kpi-tc-badge" onclick="_kpiFetchRate(function(r){if(r)document.getElementById(\'kpi-tc-badge\').textContent=\'TC Oficial BNA: $\'+r;else showToast(\'Sin cotización disponible\',\'warn\');})" style="font-size:.63rem;font-family:JetBrains Mono,monospace;color:var(--text3);cursor:pointer;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px;">'+(_kpiUsdRate?'TC Oficial BNA: $'+_kpiUsdRate:icn('refresh',14)+'Cotización USD')+'</div>';
   h+='<button onclick="exportKpiPDF()" style="display:flex;align-items:center;gap:5px;background:rgba(0,122,255,.14);border:1px solid rgba(0,122,255,.3);color:#4da3ff;border-radius:8px;padding:7px 12px;font-size:.75rem;font-weight:600;cursor:pointer;">'+icn('file',14)+' PDF</button>';
-  h+='<button onclick="openFallasDiagnostico()" title="Ver qué fallas está contando el sistema, mes a mes" style="display:flex;align-items:center;gap:5px;background:rgba(255,149,0,.14);border:1px solid rgba(255,149,0,.3);color:#ff9500;border-radius:8px;padding:7px 12px;font-size:.75rem;font-weight:600;cursor:pointer;">🔍 Diagnóstico</button>';
+  h+='<button onclick="openFallasDiagnostico()" title="Ver qué fallas está contando el sistema, mes a mes" style="display:flex;align-items:center;gap:5px;background:rgba(255,149,0,.14);border:1px solid rgba(255,149,0,.3);color:#ff9500;border-radius:8px;padding:7px 12px;font-size:.75rem;font-weight:600;cursor:pointer;">'+icn('search',14)+' Diagnóstico</button>';
   h+='</div>';
   h+='</div>';
   h+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:7px;padding:0 14px 12px;">';
-  h+=kCard('💰','Gasto Año',_kpiFmtCost(totalAnio),'mant. + roturas','#4ade80');
+  h+=kCard(icn('dollarsign',14),'Gasto Año',_kpiFmtCost(totalAnio),'mant. + roturas','#4ade80');
   h+=kCard(icn('calendar',14),'Gasto Mes',_kpiFmtCost(totalMes),new Date().toLocaleString('es-AR',{month:'long'}),'#34d399');
   h+=kCard(_statusDot('#ff3b30'),'Roturas Año',rotAnio,'incidencias','#f87171',rotAnio);
-  h+=kCard('📆','Roturas Mes',rotMes,'este mes','#fca5a5',rotMes);
+  h+=kCard(icn('calendar',14),'Roturas Mes',rotMes,'este mes','#fca5a5',rotMes);
   h+=kCard('⏱','T. Reparación',avgRT?avgRT+'d':'—','promedio','#f59e0b',avgRT||0);
   h+=kCard(icn('clipboard',14),'Con Costos',pctCosto+'%',Object.keys(byEq).length+'/'+activeEqs.length+' eq.','#818cf8',pctCosto);
   h+='</div>';
@@ -10577,7 +10582,7 @@ function rKpi(){
   var partArr=[];Object.keys(byPart).forEach(function(k){partArr.push({nombre:byPart[k].nombre,count:byPart[k].count,eqs:Object.keys(byPart[k].eqs).length});});
   partArr.sort(function(a,b){return b.count-a.count;});
   h+='<div style="padding:0 14px 10px;"><div class="gc" style="padding:14px;">';
-  h+='<div style="font-size:.77rem;font-weight:700;margin-bottom:10px;">🔩 Componentes que más fallan</div>';
+  h+='<div style="font-size:.77rem;font-weight:700;margin-bottom:10px;">'+icn('wrench',14)+' Componentes que más fallan</div>';
   if(partArr.length){
     var mxP=partArr[0].count||1;
     var PCOLS=['#f87171','#fb923c','#fbbf24','#a78bfa','#818cf8','#38bdf8','#34d399','#4ade80'];
@@ -10675,7 +10680,7 @@ function openFallasDiagnostico(){
     '<div style="font-size:.68rem;color:var(--text3);line-height:1.7;">'+fueraDeVentana.map(function(r){return esc(r.eqNombre)+' — '+esc(r.descripcion||'(sin descripción)')+' · '+r.fechaRotura+' · '+r.estado;}).join('<br>')+'</div>'+
   '</div>'):'';
   openModal(
-    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><div class="modal-title">'+icn('search',15)+' Diagnóstico de fallas por mes</div><button class="modal-close" onclick="closeModal()">✕</button></div>'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><div class="modal-title">'+icn('search',15)+' Diagnóstico de fallas por mes</div><button class="modal-close" onclick="closeModal()">'+icn('x',14)+'</button></div>'+
     '<div style="font-size:.72rem;color:var(--text3);margin-bottom:12px;">Esto es lo que el sistema encuentra HOY, ahora mismo, para cada uno de los últimos 12 meses. Total de fallas leídas: '+rot.length+'.</div>'+
     rowsMeses+rowsSinFecha+rowsFuera
   );
@@ -10811,7 +10816,7 @@ function _alertAgeBadge(key,niv){
   if(d>=7){c='var(--red)';bg='rgba(255,59,48,.15)';pulse=' style="display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:20px;font-size:.6rem;font-weight:700;background:rgba(255,59,48,.15);color:var(--red);animation:pulse-red 1.4s infinite;"';}
   else if(d>=3){c='var(--orange)';bg='rgba(255,149,0,.15)';pulse=' style="display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:20px;font-size:.6rem;font-weight:700;background:rgba(255,149,0,.15);color:var(--orange);"';}
   else{c='rgba(120,120,128,.7)';bg='rgba(120,120,128,.1)';pulse=' style="display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:20px;font-size:.6rem;font-weight:700;background:rgba(120,120,128,.1);color:rgba(120,120,128,.8);"';}
-  return'<span'+pulse+'>🕐 '+d+'d</span>';
+  return'<span'+pulse+'>'+icn('clock',14)+' '+d+'d</span>';
 }
 function rAlertas(){
   var al=getAlertas();
@@ -10898,7 +10903,7 @@ function _admVencChip(fecha){
 }
 function _admAltaChip(alta){
   return alta
-    ?'<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:50px;font-size:.72rem;font-weight:700;background:rgba(52,199,89,.12);color:var(--green);">✔ Dado de alta</span>'
+    ?'<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:50px;font-size:.72rem;font-weight:700;background:rgba(52,199,89,.12);color:var(--green);">'+icn('check',14)+' Dado de alta</span>'
     :'<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:50px;font-size:.72rem;font-weight:700;background:rgba(120,120,128,.10);color:var(--text3);">— Sin alta</span>';
 }
 function _rDetalleAdmin(eq){
@@ -10918,7 +10923,7 @@ function _rDetalleAdmin(eq){
     '<div style="padding:14px 16px;">'+
       // Seguro
       '<div style="margin-bottom:14px;">'+
-        '<div style="font-size:.63rem;font-weight:800;color:#5e5ce6;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">🛡 Seguro</div>'+
+        '<div style="font-size:.63rem;font-weight:800;color:#5e5ce6;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">'+icn('shield',14)+' Seguro</div>'+
         '<div class="det-grid">'+
           '<div class="ibox"><div class="ibox-l">Alta en seguro</div><div class="ibox-v">'+_admAltaChip(!!eq.seguroAlta)+'</div></div>'+
           (eq.seguroAlta?'<div class="ibox"><div class="ibox-l">N° de póliza</div><div class="ibox-v" style="font-family:monospace;font-size:.82rem;">'+(eq.seguroPoliza?esc(eq.seguroPoliza):'<span style="color:var(--text3);">—</span>')+'</div></div>':'')+
@@ -10934,7 +10939,7 @@ function _rDetalleAdmin(eq){
       '</div>'+
       // RUGEPRESA
       '<div>'+
-        '<div style="font-size:.63rem;font-weight:800;color:#5e5ce6;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">🏛 R.U.GE.PRE.SA</div>'+
+        '<div style="font-size:.63rem;font-weight:800;color:#5e5ce6;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">'+icn('building',14)+' R.U.GE.PRE.SA</div>'+
         '<div class="det-grid">'+
           '<div class="ibox"><div class="ibox-l">Alta en R.U.GE.PRE.SA</div><div class="ibox-v">'+_admAltaChip(!!eq.rugepresaAlta)+'</div></div>'+
           (eq.rugepresaAlta?'<div class="ibox"><div class="ibox-l">Venc. habilitación</div><div class="ibox-v">'+_admVencChip(eq.rugepresaVenc)+'</div></div>':'')+
@@ -10970,7 +10975,7 @@ function _rDetalleAdmin(eq){
   return h;
 }
 // ── Documentos del equipo ──
-var _DOC_TIPOS=[{id:'poliza',lbl:icn('shield',14)+'Póliza'},{id:'habilitacion',lbl:'🏛 Habilitación'},{id:'manual',lbl:'📘 Manual'},{id:'orden',lbl:'🧾 Orden de servicio'},{id:'otro',lbl:icn('file',14)+'Otro'}];
+var _DOC_TIPOS=[{id:'poliza',lbl:icn('shield',14)+'Póliza'},{id:'habilitacion',lbl:icn('building',14)+'Habilitación'},{id:'manual',lbl:icn('file',14)+'Manual'},{id:'orden',lbl:icn('file',14)+'Orden de servicio'},{id:'otro',lbl:icn('file',14)+'Otro'}];
 function _docTipoLbl(t){for(var i=0;i<_DOC_TIPOS.length;i++){if(_DOC_TIPOS[i].id===t)return _DOC_TIPOS[i].lbl;}return icn('file',14)+'Documento';}
 var _pendingDocs=[];
 function openDocsModal(eqId){
@@ -11055,7 +11060,7 @@ function openAdminModal(eqId){
         '<div style="font-size:.66rem;color:rgba(94,92,230,.65);">'+esc(eq.nombre)+'</div>'+
       '</div>'+
     '</div>'+
-    '<div style="font-size:.63rem;font-weight:800;color:#5e5ce6;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">🛡 Seguro</div>'+
+    '<div style="font-size:.63rem;font-weight:800;color:#5e5ce6;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">'+icn('shield',14)+' Seguro</div>'+
     '<label style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(120,120,128,.06);border-radius:var(--r-md);cursor:pointer;margin-bottom:10px;">'+
       '<input type="checkbox" id="adm-seguro" '+(eq.seguroAlta?'checked':'')+' style="width:20px;height:20px;accent-color:#5e5ce6;" onchange="document.getElementById(\'adm-seguro-extra\').style.display=this.checked?\'block\':\'none\';">'+
       '<span style="font-size:.84rem;font-weight:600;">Dado de alta en el seguro</span>'+
@@ -11069,7 +11074,7 @@ function openAdminModal(eqId){
       '<input type="checkbox" id="adm-epec" '+(eq.epecAlta?'checked':'')+' style="width:20px;height:20px;accent-color:#5e5ce6;">'+
       '<span style="font-size:.84rem;font-weight:600;">Dado de alta en EPEC</span>'+
     '</label>'+
-    '<div style="font-size:.63rem;font-weight:800;color:#5e5ce6;text-transform:uppercase;letter-spacing:.07em;margin:14px 0 8px;">🏛 R.U.GE.PRE.SA</div>'+
+    '<div style="font-size:.63rem;font-weight:800;color:#5e5ce6;text-transform:uppercase;letter-spacing:.07em;margin:14px 0 8px;">'+icn('building',14)+' R.U.GE.PRE.SA</div>'+
     '<label style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(120,120,128,.06);border-radius:var(--r-md);cursor:pointer;margin-bottom:10px;">'+
       '<input type="checkbox" id="adm-ruge" '+(eq.rugepresaAlta?'checked':'')+' style="width:20px;height:20px;accent-color:#5e5ce6;" onchange="document.getElementById(\'adm-ruge-extra\').style.display=this.checked?\'block\':\'none\';">'+
       '<span style="font-size:.84rem;font-weight:600;">Dado de alta en R.U.GE.PRE.SA</span>'+
@@ -11116,8 +11121,8 @@ function _rDetalleRefrig(eq,rf){
   var _hasGEData=rf.chillerFlujoLMin||rf.chillerTempC||rf.eficienciaCriostat;
   h+='<div class="cring-wrap" style="--cc:rgba(99,102,241,.9);margin-bottom:10px;"><div class="cring-el"></div><div class="gc" style="padding:0;overflow:hidden;">'+
     '<div style="background:linear-gradient(90deg,rgba(99,102,241,.12),rgba(139,92,246,.06));padding:8px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(99,102,241,.08);">'+
-      '<span style="font-size:.72rem;font-weight:700;color:#818cf8;text-transform:uppercase;letter-spacing:.06em;flex:1;">📱 Estado GE Healthcare</span>'+
-      '<button onclick="openGEShortcutGuide(\''+eq.id+'\')" style="min-height:32px;padding:6px 12px;border-radius:var(--r-pill);font-size:.68rem;font-weight:700;cursor:pointer;border:1.5px solid rgba(99,102,241,.3);background:rgba(99,102,241,.1);color:#818cf8;margin-right:6px;">⚙️ Shortcut</button>'+
+      '<span style="font-size:.72rem;font-weight:700;color:#818cf8;text-transform:uppercase;letter-spacing:.06em;flex:1;">'+icn('smartphone',14)+' Estado GE Healthcare</span>'+
+      '<button onclick="openGEShortcutGuide(\''+eq.id+'\')" style="min-height:32px;padding:6px 12px;border-radius:var(--r-pill);font-size:.68rem;font-weight:700;cursor:pointer;border:1.5px solid rgba(99,102,241,.3);background:rgba(99,102,241,.1);color:#818cf8;margin-right:6px;">'+icn('settings',14)+' Shortcut</button>'+
       '<button onclick="openActualizarEstadoMagneto(\''+eq.id+'\')" style="min-height:32px;padding:6px 12px;border-radius:var(--r-pill);font-size:.68rem;font-weight:700;cursor:pointer;border:1.5px solid rgba(99,102,241,.35);background:rgba(99,102,241,.15);color:#818cf8;">Actualizar</button>'+
     '</div>'+
     '<div style="padding:12px 14px;">'+
@@ -11128,7 +11133,7 @@ function _rDetalleRefrig(eq,rf){
         '</div>'+
         '<div>'+
           '<div style="font-size:.58rem;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Efic. Criostato</div>'+
-          '<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:.7rem;font-weight:700;background:'+_efiCol+'18;color:'+_efiCol+';">'+(_hasGEData&&rf.eficienciaCriostat?(_efiLbl==='Baja'?_statusDot('#ff9500')+'':_efiLbl==='Alta'?'⬆️ ':_statusDot('#34c759')+''):'')+ _efiLbl+'</span>'+
+          '<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:.7rem;font-weight:700;background:'+_efiCol+'18;color:'+_efiCol+';">'+(_hasGEData&&rf.eficienciaCriostat?(_efiLbl==='Baja'?_statusDot('#ff9500')+'':_efiLbl==='Alta'?icn('cloudUpload',14)+'':_statusDot('#34c759')+''):'')+ _efiLbl+'</span>'+
         '</div>'+
         '<div>'+
           '<div style="font-size:.58rem;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;">Flujo Chiller</div>'+
@@ -11225,7 +11230,7 @@ function _rDetalleRefrig(eq,rf){
   } else {
     histCargas.slice(0,8).forEach(function(ev){
       var isGas=ev.tipo==='carga_gaseoso';var isLiq=ev.tipo==='carga_liquido';
-      var evIcon=isGas?'⚗️':isLiq?icn('droplet',14):icn('snowflake',14);
+      var evIcon=isGas?icn('flask',14):isLiq?icn('droplet',14):icn('snowflake',14);
       h+='<div style="display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04);">'+
         '<span style="font-size:.9rem;flex-shrink:0;margin-top:1px;">'+evIcon+'</span>'+
         '<div style="flex:1;min-width:0;">'+
@@ -11286,7 +11291,7 @@ function _rDetalleComponentes(eq){
     for(var i=0;i<todasPartes.length;i++){
       var p=todasPartes[i];
       var stClr=p.estado==='roto'?'#ff3b30':p.estado==='pendiente'?'#ff9500':p.estado==='mejora'?'#bf5af2':'#30d158';
-      var stIcon=p.estado==='roto'?_statusDot('#ff3b30'):p.estado==='pendiente'?_statusDot('#ff9500'):p.estado==='mejora'?'🎨':_statusDot('#34c759');
+      var stIcon=p.estado==='roto'?_statusDot('#ff3b30'):p.estado==='pendiente'?_statusDot('#ff9500'):p.estado==='mejora'?icn('sparkles',14):_statusDot('#34c759');
       h+='<div style="display:flex;align-items:center;gap:10px;padding:8px 6px;border-bottom:1px solid rgba(255,255,255,.04);user-select:none;-webkit-user-select:none;">';
       h+='<div style="width:8px;height:8px;border-radius:50%;background:'+stClr+';flex-shrink:0;box-shadow:0 0 0 2px '+stClr+'22;"></div>';
       h+='<div style="flex:1;min-width:0;">';
@@ -11415,7 +11420,7 @@ function _rDetalleFallas(eq){
   if(_detalleSearchOpen){
     h+='<div style="position:relative;">';
     h+='<input id="det-busq" class="inp" value="'+esc(_detalleQ)+'" placeholder="Buscar..." oninput="setDetalleQ(this.value)" style="padding:5px 28px 5px 10px;font-size:.75rem;width:150px;">';
-    if(_detalleQ)h+='<button onclick="_detalleQ=\'\';render();" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:.9rem;cursor:pointer;color:var(--text3);">✕</button>';
+    if(_detalleQ)h+='<button onclick="_detalleQ=\'\';render();" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:.9rem;cursor:pointer;color:var(--text3);">'+icn('x',14)+'</button>';
     h+='</div>';
   }
   h+='<button onclick="toggleDetalleSearch()" style="display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;flex-shrink:0;background:'+((_detalleSearchOpen||_detalleQ)?'rgba(220,38,38,.14)':'rgba(255,59,48,.08)')+';border:1.5px solid '+((_detalleSearchOpen||_detalleQ)?'rgba(220,38,38,.3)':'rgba(255,59,48,.2)')+';border-radius:11px;cursor:pointer;font-size:.9rem;color:'+((_detalleSearchOpen||_detalleQ)?'#dc2626':'rgba(220,38,38,.6)')+';">'+icn('search',14)+'</button>';
@@ -11476,7 +11481,7 @@ function _rDetalleFallas(eq){
             sgHtml+='<span style="font-size:.6rem;font-weight:700;color:rgba(255,149,0,.6);min-width:18px;">#'+(_si+1)+'</span>';
             sgHtml+='<span style="font-size:.67rem;font-weight:700;color:#ff9500;white-space:nowrap;min-width:68px;">'+_fmtFechaCort(_sg.fecha)+'</span>';
             sgHtml+='<span style="font-size:.72rem;color:#555;flex:1;line-height:1.4;">'+esc(_sg.nota||'')+'</span>';
-            sgHtml+='<button onclick="event.stopPropagation();_delSeguimientoFalla(\''+eq.id+'\',\''+p.id+'\',\''+_sg.id+'\');" style="background:rgba(120,120,128,.08);border:none;border-radius:8px;color:var(--text3);font-size:.8rem;cursor:pointer;min-width:30px;min-height:30px;flex-shrink:0;">✕</button>';
+            sgHtml+='<button onclick="event.stopPropagation();_delSeguimientoFalla(\''+eq.id+'\',\''+p.id+'\',\''+_sg.id+'\');" style="background:rgba(120,120,128,.08);border:none;border-radius:8px;color:var(--text3);font-size:.8rem;cursor:pointer;min-width:30px;min-height:30px;flex-shrink:0;">'+icn('x',14)+'</button>';
             sgHtml+='</div>';
           }
           sgHtml+='</div>';
@@ -11513,7 +11518,7 @@ function _rDetalleFallas(eq){
       if(r.descripcion&&r.descripcion!==nombreParte)h+='<div style="font-size:.71rem;color:var(--text3);margin-bottom:4px;">'+esc(r.descripcion)+'</div>';
       h+='<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px;">';
       if(r.fecha||r.fechaRotura)h+='<span style="font-size:.67rem;color:var(--text3);">'+icn('calendar',14)+' '+fD(r.fecha||r.fechaRotura)+'</span>';
-      if(r.canal||r.canalReclamo)h+='<span style="font-size:.67rem;color:var(--text3);">📞 '+esc(canalLabel(r.canal||r.canalReclamo))+'</span>';
+      if(r.canal||r.canalReclamo)h+='<span style="font-size:.67rem;color:var(--text3);">'+icn('phone',14)+' '+esc(canalLabel(r.canal||r.canalReclamo))+'</span>';
       h+='</div>';
       h+='<button onclick="'+navFn+'" style="width:100%;padding:7px;border:1.5px solid rgba(8,145,178,.3);border-radius:9px;background:rgba(8,145,178,.07);color:#0891b2;font-size:.74rem;font-weight:700;cursor:pointer;">'+icn('link',14)+' Ver detalle del '+tipoLabel+'</button>';
       h+='</div>';
@@ -11555,11 +11560,11 @@ function _rDetalleFallas(eq){
         '<span style="font-size:.7rem;color:var(--text3);">'+fD(hh.fecha)+'</span>'+
         '</div>'+
         ((!isMant&&!isMej)?'<div style="font-weight:600;font-size:.82rem;margin-bottom:2px;">'+esc(hh.nombre||'')+'</div>':'')+
-        (hh.tecnico?'<div style="font-size:.7rem;color:var(--text3);">'+(isCancelPM?icn('user',14):'👷')+' '+esc(hh.tecnico)+'</div>':'')+
+        (hh.tecnico?'<div style="font-size:.7rem;color:var(--text3);">'+(isCancelPM?icn('user',14):icn('user',14))+' '+esc(hh.tecnico)+'</div>':'')+
         (hh.medio?'<div style="font-size:.7rem;color:var(--text3);">'+icn('rss',14)+' '+esc(hh.medio)+'</div>':'')+
-        (hh.empresa?'<div style="font-size:.7rem;color:var(--text3);">🏢 '+esc(hh.empresa)+'</div>':'')+
+        (hh.empresa?'<div style="font-size:.7rem;color:var(--text3);">'+icn('building',13)+' '+esc(hh.empresa)+'</div>':'')+
         (hh.nroOrden?'<div style="font-size:.68rem;color:var(--accent);font-weight:600;font-family:monospace;margin-top:2px;">'+icn('clipboard',14)+' OS: '+esc(hh.nroOrden)+'</div>':'')+
-        (hh.precio?'<div style="font-size:.7rem;color:var(--green);font-weight:600;">💲 $'+esc(hh.precio)+'</div>':'')+
+        (hh.precio?'<div style="font-size:.7rem;color:var(--green);font-weight:600;">'+icn('dollarsign',14)+' $'+esc(hh.precio)+'</div>':'')+
         (hh.notas?'<div style="font-size:.72rem;color:var(--text2);margin-top:4px;background:rgba(0,0,0,.03);padding:4px 8px;border-radius:7px;">'+esc(hh.notas)+'</div>':'')+
         (hh.firma?'<div style="margin-top:6px;border:1px solid rgba(0,0,0,.08);border-radius:6px;overflow:hidden;"><img src="'+hh.firma+'" style="width:100%;max-height:60px;object-fit:contain;display:block;background:#fff;" alt="Firma"></div>':'')+'</div>'+
         '<div style="display:flex;flex-direction:column;gap:7px;align-items:stretch;flex-shrink:0;min-width:104px;">'+
@@ -11635,11 +11640,11 @@ function rDetalle(){
   if(eq.cat==='UPS'&&eq.kva){h+='<div class="ibox"><div class="ibox-l">KVA</div><div class="ibox-v" style="font-weight:700;">'+esc(eq.kva)+'</div></div>';}
   if(eq.cat==='UPS'&&eq.equiposConectados&&(Array.isArray(eq.equiposConectados)?eq.equiposConectados.length:eq.equiposConectados)){var _eqConHtml='';if(Array.isArray(eq.equiposConectados)){_eqConHtml=eq.equiposConectados.map(function(id){var e2=eqs.find(function(x){return x.id===id;});return e2?'<span style="display:inline-flex;align-items:center;padding:2px 9px;border-radius:50px;font-size:.72rem;font-weight:600;background:rgba(245,158,11,.14);color:#d97706;">'+esc(e2.nombre)+'</span>':'';}).filter(Boolean).join(' ');}else{_eqConHtml=esc(eq.equiposConectados);}if(_eqConHtml)h+='<div class="ibox" style="grid-column:1/-1;"><div class="ibox-l">Equipos conectados</div><div class="ibox-v" style="display:flex;flex-wrap:wrap;gap:5px;">'+_eqConHtml+'</div></div>';}
   if(eq.empresaVendio){h+='<div class="ibox"><div class="ibox-l">Empresa representante</div><div class="ibox-v">'+esc(eq.empresaVendio)+'</div></div>';}
-  if(eq.garantia){var gd=diasH(eq.garantiaHasta);var gVenc=eq.garantiaHasta&&gd<0;var gProx=!gVenc&&eq.garantiaHasta&&gd<=30;var gColor=gVenc?"var(--red)":gProx?"var(--orange)":"var(--green)";var gBg=gVenc?"rgba(255,59,48,.12)":gProx?"rgba(255,149,0,.12)":"rgba(52,199,89,.12)";var gLabel=gVenc?"❌ Vencida":gProx?_statusDot('#ff9500')+"Vence en "+gd+"d":_statusDot('#34c759')+"En garantía";h+='<div class="ibox" style="grid-column:1/-1;"><div class="ibox-l">Garantía</div><div class="ibox-v"><span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:50px;font-size:.72rem;font-weight:700;background:'+gBg+';color:'+gColor+';">'+gLabel+(eq.garantiaHasta?' · hasta '+fD(eq.garantiaHasta):'')+'</span></div></div>';}
+  if(eq.garantia){var gd=diasH(eq.garantiaHasta);var gVenc=eq.garantiaHasta&&gd<0;var gProx=!gVenc&&eq.garantiaHasta&&gd<=30;var gColor=gVenc?"var(--red)":gProx?"var(--orange)":"var(--green)";var gBg=gVenc?"rgba(255,59,48,.12)":gProx?"rgba(255,149,0,.12)":"rgba(52,199,89,.12)";var gLabel=gVenc?_statusDot('#ff3b30')+"Vencida":gProx?_statusDot('#ff9500')+"Vence en "+gd+"d":_statusDot('#34c759')+"En garantía";h+='<div class="ibox" style="grid-column:1/-1;"><div class="ibox-l">Garantía</div><div class="ibox-v"><span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:50px;font-size:.72rem;font-weight:700;background:'+gBg+';color:'+gColor+';">'+gLabel+(eq.garantiaHasta?' · hasta '+fD(eq.garantiaHasta):'')+'</span></div></div>';}
   if(eq.tieneServicio){
     var _svVencHtml='';
     if(eq.servicioContratoVenc){var _svD=diasH(eq.servicioContratoVenc);var _svV=_svD<0;var _svP=!_svV&&_svD<=30;var _svC=_svV?'var(--red)':_svP?'var(--orange)':'var(--green)';var _svBg=_svV?'rgba(255,59,48,.12)':_svP?'rgba(255,149,0,.12)':'rgba(52,199,89,.12)';var _svLbl=_svV?icn('x',14)+'VENCIDO '+fD(eq.servicioContratoVenc):_svP?_statusDot('#ff9500')+'Vence en '+_svD+'d — '+fD(eq.servicioContratoVenc):_statusDot('#34c759')+'Vence '+fD(eq.servicioContratoVenc);_svVencHtml='<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:50px;font-size:.72rem;font-weight:700;background:'+_svBg+';color:'+_svC+';">'+_svLbl+'</span>';}
-    h+='<div class="ibox" style="grid-column:1/-1;"><div class="ibox-l">Servicio</div><div class="ibox-v" style="display:flex;flex-wrap:wrap;gap:5px;align-items:center;"><span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:50px;font-size:.72rem;font-weight:700;background:rgba(52,199,89,.12);color:var(--green);">✔ Contrato activo</span>'+_svVencHtml+'</div></div>';
+    h+='<div class="ibox" style="grid-column:1/-1;"><div class="ibox-l">Servicio</div><div class="ibox-v" style="display:flex;flex-wrap:wrap;gap:5px;align-items:center;"><span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:50px;font-size:.72rem;font-weight:700;background:rgba(52,199,89,.12);color:var(--green);">'+icn('check',14)+' Contrato activo</span>'+_svVencHtml+'</div></div>';
     if(eq.servicioContratoNumero)h+='<div class="ibox"><div class="ibox-l">Nº Contrato</div><div class="ibox-v" style="font-family:monospace;font-size:.8rem;">'+esc(eq.servicioContratoNumero)+'</div></div>';
     if(eq.servicioContratoContacto)h+='<div class="ibox"><div class="ibox-l">Contacto prov.</div><div class="ibox-v" style="font-size:.78rem;">'+esc(eq.servicioContratoContacto)+'</div></div>';
   }
@@ -11665,7 +11670,7 @@ function rDetalle(){
     var _lastBat=_batHist.length?_batHist[0].fecha:null;
     var _batDias=_lastBat?diasH(_lastBat):-1;
     var _batAlert=!_lastBat||(-_batDias)>730;
-    h+='<div style="background:rgba(245,158,11,.06);border:1.5px solid rgba(245,158,11,.20);border-radius:var(--r-md);padding:12px 14px;margin-bottom:12px;"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;"><div style="font-size:.66rem;font-weight:800;color:#f59e0b;text-transform:uppercase;letter-spacing:.07em;">'+icn('battery',14)+' Cambios de Baterías</div><button onclick="openCambioBateriasModal(\''+eq.id+'\')" style="min-height:34px;padding:7px 13px;border-radius:12px;background:rgba(245,158,11,.12);border:1.5px solid rgba(245,158,11,.30);color:#d97706;cursor:pointer;font-weight:700;font-size:.72rem;">+ Registrar</button></div>'+(_batAlert?'<div style="background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.30);border-radius:var(--r-md);padding:8px 10px;margin-bottom:10px;font-size:.74rem;color:#d97706;font-weight:600;">'+_statusDot('#ff9500')+' '+(!_lastBat?'Sin cambio de baterías registrado':'Último cambio hace más de 2 años — verificar')+'</div>':'')+(_batHist.length?'<div class="det-grid">'+_batHist.slice(0,3).map(function(b){return '<div class="ibox"><div class="ibox-l">'+fD(b.fecha)+'</div><div class="ibox-v" style="font-size:.74rem;">'+(b.proveedor?'🏢 '+esc(b.proveedor):'')+((b.proveedor&&b.tecnico)?' · ':'')+( b.tecnico?'Téc: '+esc(b.tecnico):'')+( b.notas?'<br><span style="color:var(--text3);font-size:.68rem;">'+esc(b.notas)+'</span>':'')+'</div></div>';}).join('')+(_batHist.length>3?'<div class="ibox" style="grid-column:1/-1;"><div style="font-size:.7rem;color:var(--text3);">+'+(_batHist.length-3)+' cambio(s) anteriores</div></div>':'')+
+    h+='<div style="background:rgba(245,158,11,.06);border:1.5px solid rgba(245,158,11,.20);border-radius:var(--r-md);padding:12px 14px;margin-bottom:12px;"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;"><div style="font-size:.66rem;font-weight:800;color:#f59e0b;text-transform:uppercase;letter-spacing:.07em;">'+icn('battery',14)+' Cambios de Baterías</div><button onclick="openCambioBateriasModal(\''+eq.id+'\')" style="min-height:34px;padding:7px 13px;border-radius:12px;background:rgba(245,158,11,.12);border:1.5px solid rgba(245,158,11,.30);color:#d97706;cursor:pointer;font-weight:700;font-size:.72rem;">+ Registrar</button></div>'+(_batAlert?'<div style="background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.30);border-radius:var(--r-md);padding:8px 10px;margin-bottom:10px;font-size:.74rem;color:#d97706;font-weight:600;">'+_statusDot('#ff9500')+' '+(!_lastBat?'Sin cambio de baterías registrado':'Último cambio hace más de 2 años — verificar')+'</div>':'')+(_batHist.length?'<div class="det-grid">'+_batHist.slice(0,3).map(function(b){return '<div class="ibox"><div class="ibox-l">'+fD(b.fecha)+'</div><div class="ibox-v" style="font-size:.74rem;">'+(b.proveedor?icn('building',13)+' '+esc(b.proveedor):'')+((b.proveedor&&b.tecnico)?' · ':'')+( b.tecnico?'Téc: '+esc(b.tecnico):'')+( b.notas?'<br><span style="color:var(--text3);font-size:.68rem;">'+esc(b.notas)+'</span>':'')+'</div></div>';}).join('')+(_batHist.length>3?'<div class="ibox" style="grid-column:1/-1;"><div style="font-size:.7rem;color:var(--text3);">+'+(_batHist.length-3)+' cambio(s) anteriores</div></div>':'')+
     '</div>':'<div style="font-size:.78rem;color:var(--text3);padding:8px 0;">Sin cambios de baterías registrados</div>')+'</div>';
   }
   h+='</div></div></div>';
@@ -11779,9 +11784,9 @@ function rDetalle(){
   hR+='<div class="ibox"><div class="ibox-l">Próx. Mant.</div><div class="ibox-v" style="color:'+CM[ms]+';">'+esc(fD(eq.proximoMant))+'</div></div>';
   hR+='</div>';
   hR+='<div style="background:'+(sinMant(eq)?"rgba(120,120,128,.06)":CM[ms]+"0d")+';border-radius:var(--r-md);padding:12px 14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">';
-  hR+='<div><div style="font-size:.64rem;color:var(--text3);margin-bottom:2px;">Días para próximo mantenimiento</div><div style="font-weight:700;font-size:.92rem;color:'+(sinMant(eq)?"var(--text3)":CM[ms])+';">'+(sinMant(eq)?"⚫ Sin mant. programado":ms==="vencido"?_statusDot('#ff3b30')+"VENCIDO":ms==="urgente"?_statusDot('#ff3b30')+"URGENTE — "+d+" días":ms==="proximo"?_statusDot('#ff9500')+""+d+" días":_statusDot('#34c759')+""+d+" días")+'</div></div>';
+  hR+='<div><div style="font-size:.64rem;color:var(--text3);margin-bottom:2px;">Días para próximo mantenimiento</div><div style="font-weight:700;font-size:.92rem;color:'+(sinMant(eq)?"var(--text3)":CM[ms])+';">'+(sinMant(eq)?_statusDot('#8e8e93')+"Sin mant. programado":ms==="vencido"?_statusDot('#ff3b30')+"VENCIDO":ms==="urgente"?_statusDot('#ff3b30')+"URGENTE — "+d+" días":ms==="proximo"?_statusDot('#ff9500')+""+d+" días":_statusDot('#34c759')+""+d+" días")+'</div></div>';
   hR+=(sinMant(eq)?'':'<button onclick="openModalMant(\''+eq.id+'\')" style="padding:7px 16px;border-radius:var(--r-pill);background:rgba(255,149,0,.12);border:1.5px solid rgba(255,149,0,.35);color:rgba(160,90,0,.9);font-weight:700;font-size:.78rem;cursor:pointer;box-shadow:inset 0 1.5px 0 rgba(255,255,255,.8);">Registrar</button>')+'</div>';
-  if(eq.tieneServicio&&parseFloat(eq.servicioContratoPrecio)>0){var _svP=parseFloat(eq.servicioContratoPrecio);var _svMon=eq.servicioContratoMoneda||'USD';hR+='<div style="display:flex;align-items:center;justify-content:space-between;background:rgba(52,199,89,.07);border:1px solid rgba(52,199,89,.2);border-radius:var(--r-md);padding:10px 14px;margin-bottom:8px;"><div><div style="font-size:.65rem;font-weight:700;color:rgba(52,199,89,.8);text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;">'+icn('dollarsign',14)+' Cuota mensual de servicio</div><div style="font-size:.88rem;font-weight:700;color:var(--text2);">'+_svMon+' '+_svP.toLocaleString('es-AR',{minimumFractionDigits:0,maximumFractionDigits:2})+' / mes</div><div style="font-size:.66rem;color:var(--text3);margin-top:1px;">Impacta en KPI de gastos mensuales</div></div><div style="font-size:1.6rem;opacity:.35;">🤝</div></div>';}
+  if(eq.tieneServicio&&parseFloat(eq.servicioContratoPrecio)>0){var _svP=parseFloat(eq.servicioContratoPrecio);var _svMon=eq.servicioContratoMoneda||'USD';hR+='<div style="display:flex;align-items:center;justify-content:space-between;background:rgba(52,199,89,.07);border:1px solid rgba(52,199,89,.2);border-radius:var(--r-md);padding:10px 14px;margin-bottom:8px;"><div><div style="font-size:.65rem;font-weight:700;color:rgba(52,199,89,.8);text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;">'+icn('dollarsign',14)+' Cuota mensual de servicio</div><div style="font-size:.88rem;font-weight:700;color:var(--text2);">'+_svMon+' '+_svP.toLocaleString('es-AR',{minimumFractionDigits:0,maximumFractionDigits:2})+' / mes</div><div style="font-size:.66rem;color:var(--text3);margin-top:1px;">Impacta en KPI de gastos mensuales</div></div><div style="font-size:1.6rem;opacity:.35;">'+icn('clipboard',14)+'</div></div>';}
   hR+=(eq.notas?'<div class="ibox"><div class="ibox-l">'+icn('edit',14)+' Nota</div><div style="font-size:.8rem;color:var(--text2);margin-top:2px;">'+esc(eq.notas)+'</div></div>':'');
   hR+='</div></div>';
 
@@ -11795,7 +11800,7 @@ function rDetalle(){
   '<div class="gc" style="padding:0;overflow:hidden;background:linear-gradient(135deg,rgba(139,92,246,.07) 0%,rgba(167,139,250,.04) 100%);">';
   hR+='<div style="background:linear-gradient(90deg,rgba(139,92,246,.12),rgba(167,139,250,.07));padding:8px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(139,92,246,.10);">';
   hR+='<span style="font-size:.72rem;font-weight:700;color:rgba(139,92,246,.9);text-transform:uppercase;letter-spacing:.06em;">'+icn('barchart',14)+' Análisis Técnico</span>';
-  hR+='<button onclick="openAIAssistant(\''+eq.id+'\')" style="display:flex;align-items:center;justify-content:center;gap:6px;min-height:36px;font-size:.72rem;font-weight:700;padding:8px 14px;border-radius:20px;background:rgba(173,198,255,.14);border:1.5px solid rgba(173,198,255,.32);color:#adc6ff;cursor:pointer;">🤖 Consultar IA</button>';
+  hR+='<button onclick="openAIAssistant(\''+eq.id+'\')" style="display:flex;align-items:center;justify-content:center;gap:6px;min-height:36px;font-size:.72rem;font-weight:700;padding:8px 14px;border-radius:20px;background:rgba(173,198,255,.14);border:1.5px solid rgba(173,198,255,.32);color:#adc6ff;cursor:pointer;">'+icn('sparkles',14)+' Consultar IA</button>';
   hR+='</div>';
   hR+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px 14px;">';
   if(_mtbf!==null)hR+='<div class="ibox"><div class="ibox-l">MTBF</div><div class="ibox-v" style="font-family:monospace;font-weight:700;">'+_mtbf+'d</div><div style="font-size:.6rem;color:var(--text3);margin-top:1px;">entre fallas</div></div>';
@@ -11918,7 +11923,7 @@ function rDetalle(){
 
 // ── ANTENAS VIEW ──
 function _bajaMotivoLabel(motivo){
-  return {'venta':'🤝 Venta','entrega_pago':icn('refresh',14)+'Entregado como forma de pago','falla_irreparable':'💥 Falla irreparable','obsolescencia':'⏳ Obsolescencia','reemplazo':icn('refresh',14)+'Reemplazo','otro':icn('edit',14)+'Otro'}[motivo]||(motivo||'—');
+  return {'venta':icn('clipboard',14)+'Venta','entrega_pago':icn('refresh',14)+'Entregado como forma de pago','falla_irreparable':icn('alert',14)+'Falla irreparable','obsolescencia':'⏳ Obsolescencia','reemplazo':icn('refresh',14)+'Reemplazo','otro':icn('edit',14)+'Otro'}[motivo]||(motivo||'—');
 }
 function _bajaRowHTML(nombre,chipsHtml,b,verDetalleOnclick,reactivarOnclick){
   var motivoLabel=_bajaMotivoLabel(b.motivo);
@@ -11937,7 +11942,7 @@ function _bajaRowHTML(nombre,chipsHtml,b,verDetalleOnclick,reactivarOnclick){
         '</div>'+
       '</div>'+
       '<div style="display:flex;gap:8px;margin-top:12px;">'+
-        '<button onclick="'+reactivarOnclick+'" style="flex:1;padding:9px;border-radius:var(--r-pill);background:rgba(52,199,89,.10);border:1.5px solid rgba(52,199,89,.25);color:var(--green);font-weight:700;font-size:.78rem;cursor:pointer;">↩ Reactivar</button>'+
+        '<button onclick="'+reactivarOnclick+'" style="flex:1;padding:9px;border-radius:var(--r-pill);background:rgba(52,199,89,.10);border:1.5px solid rgba(52,199,89,.25);color:var(--green);font-weight:700;font-size:.78rem;cursor:pointer;">'+icn('undo',14)+' Reactivar</button>'+
         '<button onclick="'+verDetalleOnclick+'" style="padding:9px 14px;border-radius:var(--r-pill);background:rgba(120,120,128,.08);border:1.5px solid rgba(120,120,128,.18);color:var(--text2);font-weight:600;font-size:.78rem;cursor:pointer;">Ver detalle</button>'+
       '</div>'+
     '</div>'+
@@ -11977,7 +11982,7 @@ function rBajas(){
   '</div>';
   if(items.length===0){
     h+='<div class="gc" style="padding:40px 20px;text-align:center;">'+
-      '<div style="font-size:2.5rem;opacity:.25;margin-bottom:12px;">🗃️</div>'+
+      '<div style="font-size:2.5rem;opacity:.25;margin-bottom:12px;">'+icn('folder',14)+'</div>'+
       '<div style="font-weight:600;font-size:.9rem;color:var(--text2);">Sin bajas registradas</div>'+
       '<div style="font-size:.75rem;color:var(--text3);margin-top:4px;">Cuando des de baja un equipo, transductor o antena aparecerá aquí</div>'+
     '</div>';
@@ -12023,9 +12028,9 @@ function openDarDeBajaModal(eqId){
     '</div>'+
     '<div class="ff"><div class="ff-label">Motivo</div>'+
       '<select class="inp" id="baja-motivo">'+
-        '<option value="venta">🤝 Venta</option>'+
+        '<option value="venta">'+icn('clipboard',14)+' Venta</option>'+
         '<option value="entrega_pago">🔁 Entregado como forma de pago</option>'+
-        '<option value="falla_irreparable">💥 Falla irreparable</option>'+
+        '<option value="falla_irreparable">'+icn('alert',14)+' Falla irreparable</option>'+
         '<option value="obsolescencia">⏳ Obsolescencia</option>'+
         '<option value="reemplazo">'+icn('refresh',14)+' Reemplazo por nuevo equipo</option>'+
         '<option value="otro">'+icn('edit',14)+' Otro</option>'+
@@ -12121,9 +12126,9 @@ function openDarDeBajaCompModal(tipo,compId){
     '</div>'+
     '<div class="ff"><div class="ff-label">Motivo</div>'+
       '<select class="inp" id="cbaja-motivo" onchange="_toggleCbajaUbicacion(this.value)">'+
-        '<option value="venta">🤝 Venta</option>'+
+        '<option value="venta">'+icn('clipboard',14)+' Venta</option>'+
         '<option value="entrega_pago">🔁 Entregado como forma de pago</option>'+
-        '<option value="falla_irreparable">💥 Rotura / falla irreparable</option>'+
+        '<option value="falla_irreparable">'+icn('alert',14)+' Rotura / falla irreparable</option>'+
         '<option value="obsolescencia">⏳ Obsolescencia</option>'+
         '<option value="reemplazo">'+icn('refresh',14)+' Reemplazo</option>'+
         '<option value="otro">'+icn('edit',14)+' Otro</option>'+
@@ -12843,7 +12848,7 @@ function openModalJaulaParte(eqId,parteId){
     '<div class="ff" style="margin-bottom:14px;"><div class="ff-label">Foto vigente <span style="opacity:.6;">(opcional)</span></div>'+
       '<div id="jp-foto-preview" style="margin-bottom:8px;display:flex;align-items:center;gap:10px;">'+(_jpFotoB64?'<img src="'+_jpFotoB64+'" style="width:84px;height:84px;object-fit:cover;border-radius:10px;border:1px solid var(--border);">':'')+'</div>'+
       '<input type="file" accept="image/*" id="jp-foto-input" onchange="_jpFotoChange(event)">'+
-      (_jpFotoB64?'<button type="button" id="jp-foto-del-btn" onclick="_jpFotoRemove()" style="margin-top:8px;padding:8px 14px;border-radius:var(--r-pill);background:rgba(255,59,48,.10);border:1.5px solid rgba(255,59,48,.25);color:var(--red);font-weight:700;font-size:.76rem;cursor:pointer;">🗑️ Eliminar foto</button>':'')+
+      (_jpFotoB64?'<button type="button" id="jp-foto-del-btn" onclick="_jpFotoRemove()" style="margin-top:8px;padding:8px 14px;border-radius:var(--r-pill);background:rgba(255,59,48,.10);border:1.5px solid rgba(255,59,48,.25);color:var(--red);font-weight:700;font-size:.76rem;cursor:pointer;">'+icn('trash',14)+' Eliminar foto</button>':'')+
     '</div>'+
     '<button class="btn-primary" style="width:100%;" onclick="submitJaulaParte(\''+eqId+'\',\''+parteId+'\')">Guardar</button>';
   openModal(h);
@@ -12996,7 +13001,7 @@ function rAntenas(){
       '</div>'+
       '<div style="font-size:.66rem;color:var(--accent);margin-bottom:2px;">'+icn('plug',14)+' Transductor: '+esc(t.nombre||t.modelo||t.id)+'</div>'+
       (r.fecha?'<div style="font-size:.66rem;color:var(--text3);">'+icn('calendar',14)+' '+fD(r.fecha)+'</div>':'')+
-      (r.empresa?'<div style="font-size:.66rem;color:rgba(245,158,11,1);margin-top:2px;">🏗️ '+esc(r.empresa)+'</div>':'')+
+      (r.empresa?'<div style="font-size:.66rem;color:rgba(245,158,11,1);margin-top:2px;">'+icn('building',14)+' '+esc(r.empresa)+'</div>':'')+
       '<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">'+
         actBtn("openSeguimientoTransductorRotura('"+t.id+"','"+r.id+"')",'Seguimiento','orange',null,'sm')+
         (_nFotos>0?actBtn("openFotosTransductorRotura('"+t.id+"','"+r.id+"')",_nFotos+' foto'+(_nFotos!==1?'s':''),'green','camera','sm'):'')+
@@ -13031,7 +13036,7 @@ function rAntenas(){
               '</div>'+
               (f.fecha?'<div style="font-size:.66rem;color:var(--text3);margin-top:2px;">'+icn('calendar',14)+' '+fD(f.fecha)+'</div>':'')+
               (f.descripcion?'<div style="font-size:.7rem;color:var(--text2);margin-top:2px;">'+esc(f.descripcion)+'</div>':'')+
-              (f.empresa?'<div style="font-size:.66rem;color:rgba(245,158,11,1);margin-top:2px;">🏗️ '+esc(f.empresa)+'</div>':'')+
+              (f.empresa?'<div style="font-size:.66rem;color:rgba(245,158,11,1);margin-top:2px;">'+icn('building',14)+' '+esc(f.empresa)+'</div>':'')+
             '</div>'+
           '</div>'+
           '<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">'+
@@ -13194,7 +13199,7 @@ function rAntenaDetalle(){
           (hh.descripcion&&hh.queSeRompio?'<div style="font-size:.71rem;color:var(--text2);margin-top:2px;">'+esc(hh.descripcion)+'</div>':'')+
           '<div style="font-size:.67rem;color:var(--text3);margin-top:4px;">'+
             (hh.fechaRotura?icn('calendar',14)+'Rotura: <span style="color:var(--red);font-weight:600;">'+fD(hh.fechaRotura)+'</span> · ':'')+
-            '✓ Arreglo: <span style="color:var(--green);font-weight:600;">'+fD(hh.fecha)+'</span>'+
+            icn('check',14)+'Arreglo: <span style="color:var(--green);font-weight:600;">'+fD(hh.fecha)+'</span>'+
             (hh.tecnico?' · '+icn('user',14)+' '+esc(hh.tecnico):'')+
           '</div>'+
           '<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">'+
@@ -13356,7 +13361,7 @@ function rTransductorDetalle(){
               '</div>'+
               (r.fecha?'<div style="font-size:.66rem;color:var(--text3);margin-top:2px;">'+icn('calendar',14)+' '+fD(r.fecha)+'</div>':'')+
               (r.descripcion&&r.queSeRompio?'<div style="font-size:.7rem;color:var(--text2);margin-top:2px;">'+esc(r.descripcion)+'</div>':'')+
-              ((r.empresa||r.fechaEnvio)?'<div style="font-size:.66rem;color:rgba(245,158,11,1);margin-top:2px;">'+(r.empresa?'🏭 '+esc(r.empresa):'')+(r.fechaEnvio?' \xb7 '+icn('cloudUpload',14)+' '+fD(r.fechaEnvio):'')+'</div>':'')+
+              ((r.empresa||r.fechaEnvio)?'<div style="font-size:.66rem;color:rgba(245,158,11,1);margin-top:2px;">'+(r.empresa?icn('building',14)+''+esc(r.empresa):'')+(r.fechaEnvio?' \xb7 '+icn('cloudUpload',14)+' '+fD(r.fechaEnvio):'')+'</div>':'')+
               '<div style="font-size:.65rem;color:var(--text3);margin-top:4px;">fotos '+_nFotos+' \xb7 presupuestos '+_nPres+'</div>'+
             '</div>'+
           '</div>'+
@@ -13397,13 +13402,13 @@ function rTransductorDetalle(){
           if(ent.tipo==='reparacion'){
             return '<div style="padding:10px 12px;margin-bottom:8px;border-radius:var(--r-md);background:rgba(52,199,89,.04);border:1px solid rgba(52,199,89,.12);">'+
               '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">'+
-                '<span style="font-size:.82rem;color:var(--green);font-weight:700;">✓</span>'+
+                '<span style="font-size:.82rem;color:var(--green);font-weight:700;">'+icn('check',14)+'</span>'+
                 '<span style="font-weight:700;font-size:.8rem;color:var(--green);">Reparado</span>'+
                 (ent.fecha?'<span style="font-size:.66rem;color:var(--text3);margin-left:auto;">'+fD(ent.fecha)+'</span>':'')+
               '</div>'+
               '<div style="font-size:.75rem;color:var(--text2);">'+esc(ent.queSeRompio||ent.descripcion||'—')+'</div>'+
               (ent.fechaRotura?'<div style="font-size:.65rem;color:var(--text3);margin-top:2px;">Rotura: '+fD(ent.fechaRotura)+(ent.tecnico?' \xb7 '+icn('user',14)+' '+esc(ent.tecnico):'')+'</div>':'')+
-              (ent.precio&&parseFloat(ent.precio)>0?'<div style="font-size:.65rem;color:var(--text3);margin-top:2px;">💵 '+(ent.precioMoneda||'USD')+' '+esc(ent.precio)+'</div>':'')+
+              (ent.precio&&parseFloat(ent.precio)>0?'<div style="font-size:.65rem;color:var(--text3);margin-top:2px;">'+icn('dollarsign',14)+' '+(ent.precioMoneda||'USD')+' '+esc(ent.precio)+'</div>':'')+
             '</div>';
           }
           return '<div style="padding:10px 12px;margin-bottom:8px;border-radius:var(--r-md);background:rgba(120,120,128,.05);border:1px solid rgba(120,120,128,.12);">'+
@@ -13583,7 +13588,7 @@ function checkAlertNotifs(){
     var body=criticos.slice(0,3).map(function(a){return '• '+a.tit+': '+a.desc;}).join('\n');
     if(criticos.length>3)body+='\n… y '+(criticos.length-3)+' más';
     try{
-      var n=new Notification('🚨 MedTrack — '+criticos.length+' alerta'+(criticos.length!==1?'s':'')+' crítica'+(criticos.length!==1?'s':'')+' sin resolver',{
+      var n=new Notification(icn('alert',14)+'MedTrack — '+criticos.length+' alerta'+(criticos.length!==1?'s':'')+' crítica'+(criticos.length!==1?'s':'')+' sin resolver',{
         body:body,
         tag:'mt-digest',
         icon:'/medtrack/logo.png',
@@ -13937,7 +13942,7 @@ function exportMarcaPDF(){
       var diasBd=dias===null?'#e2e8f0':dias>30?'#fca5a5':dias>14?'#fcd34d':'#86efac';
       var diasTag=dias!==null?('<span style="background:'+diasBg+';color:'+diasCol+';border:1px solid '+diasBd+';border-radius:20px;padding:2px 10px;font-size:8pt;font-weight:700;white-space:nowrap;margin-left:8px;">'+dias+' días sin resolución</span>'):'';
       var ptoBadge=p.presupuestoAprobado
-        ?'<span style="background:#f0fdf4;color:#15803d;border:1px solid #86efac;border-radius:20px;padding:2px 9px;font-size:8pt;font-weight:700;">✓ Presupuesto aprobado'+(p.precio?' — $'+esc(String(p.precio)):'')+' </span>'
+        ?'<span style="background:#f0fdf4;color:#15803d;border:1px solid #86efac;border-radius:20px;padding:2px 9px;font-size:8pt;font-weight:700;">'+icn('check',14)+' Presupuesto aprobado'+(p.precio?' — $'+esc(String(p.precio)):'')+' </span>'
         :p.precio
           ?'<span style="background:#fffbeb;color:#b45309;border:1px solid #fcd34d;border-radius:20px;padding:2px 9px;font-size:8pt;font-weight:700;">⏳ Presupuesto pendiente de aprobación — $'+esc(String(p.precio))+'</span>'
           :'<span style="background:#fef2f2;color:#dc2626;border:1px solid #fca5a5;border-radius:20px;padding:2px 9px;font-size:8pt;font-weight:700;">Sin presupuesto presentado</span>';
@@ -14470,7 +14475,7 @@ function expFiltered(){
       '</div>'+
     '</div>';
     if(repRows)sections+='<p class="sec-lbl">'+icn('wrench',14)+' Reparaciones</p><table><thead><tr><th>Rotura / Falla</th><th>Notas</th><th>F. Rotura</th><th>F. Arreglo</th></tr></thead><tbody>'+repRows+'</tbody></table>';
-    if(mantRows)sections+='<p class="sec-lbl">🔩 Mantenimientos</p><table><thead><tr><th>Fecha</th><th>Ingeniero</th><th>Notas</th></tr></thead><tbody>'+mantRows+'</tbody></table>';
+    if(mantRows)sections+='<p class="sec-lbl">'+icn('wrench',14)+' Mantenimientos</p><table><thead><tr><th>Fecha</th><th>Ingeniero</th><th>Notas</th></tr></thead><tbody>'+mantRows+'</tbody></table>';
     sections+='</div>';
   });
   if(!hasData){alert("Sin registros en "+fD(desde)+" — "+fD(hasta));return;}
@@ -14518,7 +14523,7 @@ function _openReportPanelModal(){
         '<div><div style="font-weight:800;font-size:1.1rem;letter-spacing:-.3px;">Generar Reporte</div>'+
         '<div style="font-size:.66rem;color:var(--text3);margin-top:1px;">Seleccioná tipo, rango y equipos</div></div>'+
       '</div>'+
-      '<button onclick="closeModal()" style="width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;transition:transform .15s;" ontouchstart="this.style.transform=\'scale(.88)\'" ontouchend="this.style.transform=\'\'">✕</button>'+
+      '<button onclick="closeModal()" style="width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;transition:transform .15s;" ontouchstart="this.style.transform=\'scale(.88)\'" ontouchend="this.style.transform=\'\'">'+icn('x',14)+'</button>'+
     '</div>'+
     /* Datos del informe */
     '<div style="'+secStyle+'">'+
@@ -14643,7 +14648,7 @@ function _narrativeEq(eq,mantHist,repHist,mejHist,actToShow,mejPendToShow,trasla
     html+='<div class="sub-label" style="margin:10px 0 4px;">Mejoras completadas</div><ul class="rep-list">';
     mejHist.forEach(function(h){
       html+='<li>';
-      if(h.upgradeCategoria)html+='<span class="list-note" style="font-weight:700;'+(h.upgradeCategoria==='hardware'?'color:#7c3aed;':'color:#0369a1;')+'">'+(h.upgradeCategoria==='hardware'?'🔧 HARDWARE':'💾 SOFTWARE')+'</span> — ';
+      if(h.upgradeCategoria)html+='<span class="list-note" style="font-weight:700;'+(h.upgradeCategoria==='hardware'?'color:#7c3aed;':'color:#0369a1;')+'">'+(h.upgradeCategoria==='hardware'?icn('wrench',13)+'HARDWARE':icn('save',13)+'SOFTWARE')+'</span> — ';
       html+='<strong>'+esc(h.nombre||'sin descripción')+'</strong>';
       if(h.upgradeDetalle)html+=' — '+esc(h.upgradeDetalle);
       if(h.descripcion)html+=' — '+esc(h.descripcion);
@@ -14697,7 +14702,7 @@ function _narrativeEq(eq,mantHist,repHist,mejHist,actToShow,mejPendToShow,trasla
     html+='<div class="sub-label" style="margin:10px 0 4px;">Mejoras pendientes</div><ul class="rep-list">';
     mejPendToShow.forEach(function(p){
       html+='<li>';
-      if(p.upgradeCategoria)html+='<span class="list-note" style="font-weight:700;'+(p.upgradeCategoria==='hardware'?'color:#7c3aed;':'color:#0369a1;')+'">'+(p.upgradeCategoria==='hardware'?'🔧 HARDWARE':'💾 SOFTWARE')+'</span> — ';
+      if(p.upgradeCategoria)html+='<span class="list-note" style="font-weight:700;'+(p.upgradeCategoria==='hardware'?'color:#7c3aed;':'color:#0369a1;')+'">'+(p.upgradeCategoria==='hardware'?icn('wrench',13)+'HARDWARE':icn('save',13)+'SOFTWARE')+'</span> — ';
       html+='<strong>'+esc(p.nombre)+'</strong>';
       if(p.upgradeDetalle)html+=' — '+esc(p.upgradeDetalle);
       if(p.descripcion)html+=' — '+esc(p.descripcion);
@@ -16129,7 +16134,7 @@ function openMoverAntenaModal(antenaId){
       '<div style="flex-shrink:0;">'+antenaSvgIcon(36)+'</div>'+
       '<div><div style="font-weight:800;font-size:1.05rem;">Mover Antena</div>'+
       '<div style="font-size:.65rem;color:var(--text3);">'+esc(ant.nombre||ant.tipo||'Antena')+(actual?' · actualmente en '+esc(actual.nombre):' · sin equipo vinculado')+'</div></div>'+
-      '<button onclick="closeModal()" style="margin-left:auto;width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">✕</button>'+
+      '<button onclick="closeModal()" style="margin-left:auto;width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">'+icn('x',14)+'</button>'+
     '</div>'+
     '<div style="font-size:.76rem;color:var(--text2);background:rgba(79,120,224,.07);border:1px solid rgba(79,120,224,.18);border-radius:10px;padding:10px 12px;margin-bottom:14px;line-height:1.5;">Se conserva todo el historial de la antena (roturas, reparaciones, PDFs) — solo cambia a qué resonador está asignada.</div>'+
     '<div class="ff"><div class="ff-label">Mover a</div><select class="inp" id="mover-ant-destino">'+opts+'</select></div>'+
@@ -16300,7 +16305,7 @@ function submitActualizarHelioGaseoso(eqId){
 function openCargaRealHelioGaseoso(eqId){
   openModal(
     '<div style="background:linear-gradient(90deg,rgba(8,145,178,.18),rgba(14,165,233,.09));margin:-16px -16px 14px -16px;padding:12px 16px;border-bottom:1px solid rgba(8,145,178,.2);border-radius:var(--r-md) var(--r-md) 0 0;display:flex;align-items:center;gap:8px;">'+
-      '<span style="font-size:1.2rem;">⚗️</span>'+
+      '<span style="font-size:1.2rem;">'+icn('flask',14)+'</span>'+
       '<div>'+
         '<div style="font-size:.82rem;font-weight:700;color:#0ea5e9;">Carga Real de Helio Gaseoso</div>'+
         '<div style="font-size:.66rem;color:rgba(14,165,233,.7);">Se registra en historial de cargas del ingeniero</div>'+
@@ -16403,7 +16408,7 @@ function openActualizarEstadoMagneto(eqId){
   var rf=_refrigData(eq);
   openModal(
     '<div style="background:linear-gradient(90deg,rgba(99,102,241,.18),rgba(139,92,246,.09));margin:-16px -16px 14px -16px;padding:12px 16px;border-bottom:1px solid rgba(99,102,241,.2);border-radius:var(--r-md) var(--r-md) 0 0;display:flex;align-items:center;gap:10px;">'+
-      '<span style="font-size:1.2rem;">📱</span>'+
+      '<span style="font-size:1.2rem;">'+icn('smartphone',14)+'</span>'+
       '<div>'+
         '<div style="font-size:.82rem;font-weight:700;color:#818cf8;">Actualizar desde GE Healthcare</div>'+
         '<div style="font-size:.66rem;color:rgba(129,140,248,.7);">Ingresá los datos de la app GE directamente en °C y L/min</div>'+
@@ -16427,13 +16432,13 @@ function openActualizarEstadoMagneto(eqId){
       '<div class="ff" style="margin-bottom:0;"><div class="ff-label">Eficiencia Criostato</div>'+
         '<select class="inp" id="ge-eficiencia">'+
           '<option value=""'+(!rf.eficienciaCriostat?' selected':'')+'>— Sin dato</option>'+
-          '<option value="alta"'+(rf.eficienciaCriostat==='alta'?' selected':'')+'>⬆️ Alta</option>'+
+          '<option value="alta"'+(rf.eficienciaCriostat==='alta'?' selected':'')+'>'+icn('cloudUpload',14)+' Alta</option>'+
           '<option value="normal"'+(rf.eficienciaCriostat==='normal'?' selected':'')+'>'+_statusDot('#34c759')+' Normal</option>'+
           '<option value="baja"'+(rf.eficienciaCriostat==='baja'?' selected':'')+'>'+_statusDot('#ff9500')+' Baja</option>'+
         '</select>'+
       '</div>'+
     '</div>'+
-    '<button class="btn-grad btn-grad-blue" onclick="submitActualizarEstadoMagneto(\''+eqId+'\')">📱 Guardar lectura GE</button>'
+    '<button class="btn-grad btn-grad-blue" onclick="submitActualizarEstadoMagneto(\''+eqId+'\')">'+icn('smartphone',14)+' Guardar lectura GE</button>'
   );
 }
 function submitActualizarEstadoMagneto(eqId){
@@ -16462,10 +16467,10 @@ function openGEShortcutGuide(eqId){
   var urlEx=baseUrl+'?ge_update=1&eqId='+encodeURIComponent(eqId)+'&lp=79&lpr=3.2&lmin=9.46&tc=8.3&comp=operativo&efi=baja';
   openModal(
     '<div style="background:linear-gradient(90deg,rgba(99,102,241,.18),rgba(139,92,246,.09));margin:-16px -16px 14px -16px;padding:12px 16px;border-bottom:1px solid rgba(99,102,241,.2);border-radius:var(--r-md) var(--r-md) 0 0;">'+
-      '<div style="font-size:.82rem;font-weight:700;color:#818cf8;">⚙️ Configurar iOS Shortcut</div>'+
+      '<div style="font-size:.82rem;font-weight:700;color:#818cf8;">'+icn('settings',14)+' Configurar iOS Shortcut</div>'+
       '<div style="font-size:.66rem;color:rgba(129,140,248,.7);margin-top:2px;">Automatizá la carga de datos desde la app GE Healthcare</div>'+
     '</div>'+
-    '<div style="font-size:.72rem;font-weight:700;color:var(--text2);margin-bottom:6px;">📟 Equipo: '+esc(eq.nombre)+'</div>'+
+    '<div style="font-size:.72rem;font-weight:700;color:var(--text2);margin-bottom:6px;">'+icn('smartphone',14)+' Equipo: '+esc(eq.nombre)+'</div>'+
     '<div style="font-size:.66rem;color:var(--text3);margin-bottom:10px;">ID interno: <span style="font-family:JetBrains Mono,monospace;font-size:.64rem;color:#818cf8;">'+esc(eqId)+'</span></div>'+
     '<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:var(--r-md);padding:10px 12px;margin-bottom:12px;">'+
       '<div style="font-size:.6rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Pasos en la app Atajos (iOS)</div>'+
@@ -16532,7 +16537,7 @@ function openRegistrarLecturaSalaModal(eqId){
   var now=new Date();
   openModal(
     '<div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">'+
-      '<span style="font-size:1.4rem;">🌡️</span>'+
+      '<span style="font-size:1.4rem;">'+icn('thermometer',14)+'</span>'+
       '<div><div style="font-weight:800;font-size:1rem;">Nueva Lectura — Sala de Máquinas</div>'+
       '<div style="font-size:.65rem;color:var(--text3);">Cargá los valores disponibles — no hace falta completar todos</div></div>'+
     '</div>'+
@@ -16548,7 +16553,7 @@ function openRegistrarLecturaSalaModal(eqId){
       '<div class="ff"><div class="ff-label">Presión líquido (PSI)</div><input class="inp" id="ls-liq-presion" type="number" step="0.01" placeholder="Ej: 1.2"></div>'+
     '</div>'+
     '<div class="ff"><div class="ff-label">Nivel de líquido (%)</div><input class="inp" id="ls-liq-porc" type="number" min="0" max="100" step="1" placeholder="Ej: 82"></div>'+
-    '<div style="font-size:.63rem;font-weight:800;color:#f97316;text-transform:uppercase;letter-spacing:.06em;margin:12px 0 8px;">🏠 Sala de máquinas</div>'+
+    '<div style="font-size:.63rem;font-weight:800;color:#f97316;text-transform:uppercase;letter-spacing:.06em;margin:12px 0 8px;">'+icn('building',14)+' Sala de máquinas</div>'+
     '<div class="g2">'+
       '<div class="ff"><div class="ff-label">Temperatura (°C)</div><input class="inp" id="ls-sala-temp" type="number" step="0.1" placeholder="Ej: 22.0"></div>'+
       '<div class="ff"><div class="ff-label">Humedad (%)</div><input class="inp" id="ls-sala-hum" type="number" min="0" max="100" step="1" placeholder="Ej: 45"></div>'+
@@ -16704,13 +16709,13 @@ function _rLecturasSalaSection(eq,rf){
       if(l.helioLiqPresion!=null)partes.push(icn('droplet',14)+''+l.helioLiqPresion+' PSI');
       if(l.helioLiqPorc!=null)partes.push(icn('snowflake',14)+''+l.helioLiqPorc+'%');
       if(l.salaTempC!=null)partes.push(icn('thermometer',14)+''+l.salaTempC+'°C');
-      if(l.salaHumedad!=null)partes.push('💦 '+l.salaHumedad+'%');
+      if(l.salaHumedad!=null)partes.push(icn('droplet',14)+''+l.salaHumedad+'%');
       return '<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04);">'+
         '<div style="flex:1;min-width:0;">'+
           '<div style="font-size:.7rem;color:var(--text3);">'+_fmtFechaHora(l.ts)+(l.notas?' · '+esc(l.notas):'')+'</div>'+
           '<div style="font-size:.72rem;color:var(--text2);font-family:JetBrains Mono,monospace;">'+esc(partes.join(' · ')||'—')+'</div>'+
         '</div>'+
-        '<button onclick="deleteLecturaSala(\''+eqId+'\',\''+l.id+'\')" style="flex-shrink:0;width:30px;height:30px;border-radius:8px;background:rgba(255,59,48,.08);border:1px solid rgba(255,59,48,.15);color:var(--red);cursor:pointer;font-size:.72rem;">✕</button>'+
+        '<button onclick="deleteLecturaSala(\''+eqId+'\',\''+l.id+'\')" style="flex-shrink:0;width:30px;height:30px;border-radius:8px;background:rgba(255,59,48,.08);border:1px solid rgba(255,59,48,.15);color:var(--red);cursor:pointer;font-size:.72rem;">'+icn('x',14)+'</button>'+
       '</div>';
     }).join('');
   }
@@ -16719,7 +16724,7 @@ function _rLecturasSalaSection(eq,rf){
     :'<div style="text-align:center;padding:20px 10px;color:var(--text3);font-size:.8rem;">Sin lecturas cargadas todavía — usá "+ Nueva lectura" para empezar</div>';
   return '<div class="cring-wrap" style="--cc:rgba(249,115,22,.85);margin-bottom:10px;"><div class="cring-el"></div><div class="gc" style="padding:0;overflow:hidden;">'+
     '<div style="background:linear-gradient(90deg,rgba(249,115,22,.10),rgba(8,145,178,.05));padding:8px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(249,115,22,.08);">'+
-      '<span style="font-size:.72rem;font-weight:700;color:#f97316;text-transform:uppercase;letter-spacing:.06em;flex:1;">🌡️ Monitoreo de Sala de Máquinas</span>'+
+      '<span style="font-size:.72rem;font-weight:700;color:#f97316;text-transform:uppercase;letter-spacing:.06em;flex:1;">'+icn('thermometer',14)+' Monitoreo de Sala de Máquinas</span>'+
       '<button onclick="openRegistrarLecturaSalaModal(\''+eqId+'\')" style="min-height:32px;padding:6px 12px;border-radius:var(--r-pill);font-size:.68rem;font-weight:700;cursor:pointer;border:1.5px solid rgba(249,115,22,.35);background:rgba(249,115,22,.14);color:#f97316;">+ Nueva lectura</button>'+
     '</div>'+
     '<div style="padding:12px 14px;">'+
@@ -17149,7 +17154,7 @@ function openAddRoturaModalV2(antenaId){
         '<div style="font-weight:800;font-size:1rem;">Nueva Rotura</div>'+
         '<div style="font-size:.65rem;color:var(--text3);">'+esc(ant.nombre)+'</div>'+
       '</div>'+
-      '<button onclick="closeModal()" style="margin-left:auto;width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">✕</button>'+
+      '<button onclick="closeModal()" style="margin-left:auto;width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">'+icn('x',14)+'</button>'+
     '</div>'+
     eqBanner+
     '<div class="ff"><div class="ff-label">Fecha de rotura *</div>'+
@@ -17293,7 +17298,7 @@ function openSeguimientoRotura(antenaId,roturaId){
         '<div style="font-weight:800;font-size:1rem;">Seguimiento de Reparaci\xf3n</div>'+
         '<div style="font-size:.65rem;color:var(--text3);">'+esc(rot.queSeRompio||'Rotura')+' \xb7 '+esc(ant.nombre)+'</div>'+
       '</div>'+
-      '<button onclick="closeModal()" style="margin-left:auto;width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">✕</button>'+
+      '<button onclick="closeModal()" style="margin-left:auto;width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">'+icn('x',14)+'</button>'+
     '</div>'+
     '<div class="gc" style="padding:10px 12px;margin-bottom:12px;">'+
       '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">'+
@@ -17389,7 +17394,7 @@ function openFotosRotura(antenaId,roturaId){
     '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">'+
       '<div style="font-weight:800;font-size:1rem;">'+icn('camera',14)+' Fotos de rotura</div>'+
       '<div style="font-size:.65rem;color:var(--text3);margin-left:4px;flex:1;">'+esc(rot.queSeRompio||'')+'</div>'+
-      '<button onclick="closeModal()" style="width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">✕</button>'+
+      '<button onclick="closeModal()" style="width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">'+icn('x',14)+'</button>'+
     '</div>'+
     '<div id="fotos-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;"></div>'+
     '<div id="fotos-loading" style="text-align:center;font-size:.78rem;color:var(--text2);padding:16px;">Cargando fotos...</div>'
@@ -17436,7 +17441,7 @@ function markRoturaReparada(antenaId,roturaId){
         '<div style="font-weight:800;font-size:1rem;">Marcar como Reparada</div>'+
         '<div style="font-size:.65rem;color:var(--text3);">'+esc(rot.queSeRompio||rot.descripcion||'Rotura')+'</div>'+
       '</div>'+
-      '<button onclick="closeModal()" style="margin-left:auto;width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">✕</button>'+
+      '<button onclick="closeModal()" style="margin-left:auto;width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">'+icn('x',14)+'</button>'+
     '</div>'+
     '<div class="ff"><div class="ff-label">Fecha de arreglo *</div>'+
       '<input class="inp" id="rep-fecha-v2" type="date" value="'+new Date().toISOString().split('T')[0]+'">'+
@@ -17461,7 +17466,7 @@ function markRoturaReparada(antenaId,roturaId){
         '<input type="file" accept=".pdf,application/pdf" style="display:none;" onchange="var f=this.files[0];if(f){window._pendRotRepArr=f;document.getElementById(\'rep-rep-name-v2\').textContent=\'✅ \'+f.name;}">'+
       '</label>'+
     '</div>'+
-    '<button class="btn-grad btn-grad-green" onclick="submitMarkReparada(\''+antenaId+'\',\''+roturaId+'\')">✓ Confirmar Reparación</button>'
+    '<button class="btn-grad btn-grad-green" onclick="submitMarkReparada(\''+antenaId+'\',\''+roturaId+'\')">'+icn('check',14)+' Confirmar Reparación</button>'
   );
 }
 
@@ -17638,7 +17643,7 @@ function openEditAntennaModal(antenaId){
         '<div style="font-weight:800;font-size:1.05rem;">Editar Antena</div>'+
         '<div style="font-size:.65rem;color:var(--text3);">Modificá los datos de la antena</div>'+
       '</div>'+
-      '<button onclick="closeModal()" style="margin-left:auto;width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">✕</button>'+
+      '<button onclick="closeModal()" style="margin-left:auto;width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">'+icn('x',14)+'</button>'+
     '</div>'+
     '<button id="scan-label-btn" type="button" onclick="scanLabelAntenaEdit()" style="width:100%;padding:10px 14px;border-radius:14px;background:linear-gradient(135deg,rgba(0,113,227,.10),rgba(0,113,227,.05));border:1.5px solid rgba(0,113,227,.30);color:var(--accent);font-weight:700;font-size:.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:14px;">'+icn('camera',14)+' Completar datos escaneando etiqueta con IA</button>'+
     '<div class="ff"><div class="ff-label">Nombre de la antena *</div>'+
@@ -17721,7 +17726,7 @@ function openEditRoturaModal(antenaId,roturaId){
         '<div style="font-weight:800;font-size:1rem;">Editar Rotura</div>'+
         '<div style="font-size:.65rem;color:var(--text3);">'+esc(ant.nombre)+'</div>'+
       '</div>'+
-      '<button onclick="closeModal()" style="margin-left:auto;width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">✕</button>'+
+      '<button onclick="closeModal()" style="margin-left:auto;width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">'+icn('x',14)+'</button>'+
     '</div>'+
     '<div class="ff"><div class="ff-label">Fecha de rotura *</div>'+
       '<input class="inp" id="editrot-fecha" type="date" value="'+(rot.fecha||'')+'">'+
@@ -17789,7 +17794,7 @@ function openEditHistorialModal(antenaId,histId){
         '<div style="font-weight:800;font-size:1rem;">Editar Historial</div>'+
         '<div style="font-size:.65rem;color:var(--text3);">'+esc(hh.queSeRompio||hh.descripcion||'Reparación')+'</div>'+
       '</div>'+
-      '<button onclick="closeModal()" style="margin-left:auto;width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">✕</button>'+
+      '<button onclick="closeModal()" style="margin-left:auto;width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">'+icn('x',14)+'</button>'+
     '</div>'+
     '<div class="ff"><div class="ff-label">¿Qué se rompió?</div>'+
       '<input class="inp" id="edithist-que" value="'+esc(hh.queSeRompio||'')+'" placeholder="Parte rota">'+
@@ -17864,7 +17869,7 @@ function openAntennasReportPanel(rmEquipId){
         '<div style="font-weight:800;font-size:1.05rem;">Reporte de Antenas</div>'+
         '<div style="font-size:.65rem;color:var(--text3);">Filtrar por rango y generar PDF</div>'+
       '</div>'+
-      '<button onclick="closeModal()" style="margin-left:auto;width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">✕</button>'+
+      '<button onclick="closeModal()" style="margin-left:auto;width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">'+icn('x',14)+'</button>'+
     '</div>'+
     '<div style="display:flex;align-items:center;gap:7px;font-size:.62rem;text-transform:uppercase;letter-spacing:.8px;font-weight:800;color:rgba(60,60,67,.75);margin:14px 0 8px;">'+
       '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>'+
@@ -18741,7 +18746,7 @@ function _openAgregarFotosModal(title,subtitle,onSaveStr){
       '</div>'+
       '<div><div style="font-weight:800;font-size:1rem;">Agregar fotos</div>'+
         '<div style="font-size:.65rem;color:var(--text3);">'+esc(subtitle)+'</div></div>'+
-      '<button onclick="closeModal()" style="margin-left:auto;width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.9rem;cursor:pointer;font-weight:700;">✕</button>'+
+      '<button onclick="closeModal()" style="margin-left:auto;width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.9rem;cursor:pointer;font-weight:700;">'+icn('x',14)+'</button>'+
     '</div>'+
     '<div id="agr-fotos-list" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;min-height:0;"></div>'+
     '<label style="display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;border-radius:var(--r-md);background:rgba(52,199,89,.08);border:2px dashed rgba(52,199,89,.3);cursor:pointer;font-size:.82rem;color:var(--green);font-weight:700;width:100%;box-sizing:border-box;">'+
@@ -18860,7 +18865,7 @@ function openEditTransductorRotura(transId,rotId){
         '<div style="font-weight:800;font-size:1rem;">Editar Rotura</div>'+
         '<div style="font-size:.65rem;color:var(--text3);">'+esc(tr.nombre||tr.modelo||tr.id)+'</div>'+
       '</div>'+
-      '<button onclick="closeModal()" style="margin-left:auto;width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">✕</button>'+
+      '<button onclick="closeModal()" style="margin-left:auto;width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">'+icn('x',14)+'</button>'+
     '</div>'+
     '<div class="ff"><div class="ff-label">Fecha *</div>'+
       '<input class="inp" id="etrot-fecha" type="date" value="'+(rot.fecha||'')+'">'+
@@ -18947,7 +18952,7 @@ function openEditFallaDirecta(eqId,fallaId){
         '<div style="font-weight:800;font-size:1rem;">Editar Falla</div>'+
         '<div style="font-size:.65rem;color:var(--text3);">'+esc((eq||{}).nombre||eqId)+'</div>'+
       '</div>'+
-      '<button onclick="closeModal()" style="margin-left:auto;width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">✕</button>'+
+      '<button onclick="closeModal()" style="margin-left:auto;width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;">'+icn('x',14)+'</button>'+
     '</div>'+
     '<div class="ff"><div class="ff-label">Fecha *</div>'+
       '<input class="inp" id="efd-fecha" type="date" value="'+(falla.fecha||'')+'">'+
@@ -19010,7 +19015,7 @@ function submitEditFallaDirecta(){
 }
 function openTrasladoTransductorModal(transductorId, fromEqId){
   var otrosEcos=eqs.filter(function(e){return e.cat==='ECO'&&e.id!==fromEqId&&!e.baja;});
-  var bodyHtml='<div class="modal-hdr"><div class="modal-title">'+icn('refresh',15)+' Trasladar Transductor</div><button class="modal-x" onclick="closeModal()">✕</button></div>'+
+  var bodyHtml='<div class="modal-hdr"><div class="modal-title">'+icn('refresh',15)+' Trasladar Transductor</div><button class="modal-x" onclick="closeModal()">'+icn('x',14)+'</button></div>'+
     '<div style="font-size:.78rem;color:var(--text3);margin-bottom:14px;">Seleccioná el equipo de destino</div>'+
     '<div class="ff"><div class="ff-label">Fecha *</div>'+
       '<input class="inp" id="tr-tras-fecha" type="date" value="'+today()+'">'+
@@ -19073,7 +19078,7 @@ function submitTrasladoTransductor(transductorId, fromEqId){
 function openMRotura(){
   var eqOpts=eqs.map(function(e){var ci=catById(e.cat);return'<option value="'+e.id+'">'+ci.label+' · '+esc(e.nombre)+(e.ubicacion?' ('+esc(e.ubicacion)+')':'')+'</option>';}).join("");
   openModal(
-    '<div class="modal-hdr"><div class="modal-title">'+icn('alert',15)+' Reportar Rotura</div><button class="modal-x" onclick="closeModal()">✕</button></div>'+
+    '<div class="modal-hdr"><div class="modal-title">'+icn('alert',15)+' Reportar Rotura</div><button class="modal-x" onclick="closeModal()">'+icn('x',14)+'</button></div>'+
     '<div style="background:rgba(255,59,48,.06);border:1px solid rgba(255,59,48,.15);border-radius:14px;padding:12px;margin-bottom:14px;font-size:.78rem;color:var(--red);font-weight:500;">'+
     _statusDot('#ff3b30')+'Completá este formulario para reportar una rotura. Se agregará automáticamente al equipo seleccionado.</div>'+
     '<div class="ff"><div class="ff-label">Equipo *</div><select class="inp" id="rot-eq">'+eqOpts+'</select></div>'+
@@ -19467,7 +19472,7 @@ function openModalVincularAireEquipo(aireId){
     eqOpts+='<option value="'+e.id+'">'+(e.cat||'')+' · '+esc(e.nombre)+(e.ubicacion?' ('+esc(e.ubicacion)+')':'')+'</option>';
   });
   openModal(
-    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;"><span style="font-size:1.3rem;">🔗</span><span style="font-size:.85rem;font-weight:700;color:#06b6d4;">Vincular equipo a este aire</span></div>'+
+    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;"><span style="font-size:1.3rem;">'+icn('link',14)+'</span><span style="font-size:.85rem;font-weight:700;color:#06b6d4;">Vincular equipo a este aire</span></div>'+
     '<div class="ff"><div class="ff-label">Equipo a vincular</div><select class="inp" id="aire-eq-link">'+eqOpts+'</select></div>'+
     '<button class="btn-grad" style="background:linear-gradient(135deg,#06b6d4,#0891b2);color:#fff;" onclick="submitVincularAireEquipo(\''+aireId+'\')">'+icn('link',14)+' Vincular</button>'
   );
@@ -19781,7 +19786,7 @@ function _buildPropuestaDoc(){
     return {columns:[{text:icon,width:18,fontSize:11,color:C_ACCENT,margin:[0,0,0,0]},{stack:[{text:title,fontSize:9,bold:true,color:C_NAVY,margin:[0,0,0,1]},{text:desc,fontSize:8,color:C_GRAY,lineHeight:1.3}],width:'*'}],columnGap:8,margin:[0,0,0,8]};
   }
   function planCard(nombre,precio,per,features,highlight){
-    var rows=features.map(function(f){return [{text:icn('check',14)+''+f,fontSize:8,color:'#334155',border:[false,false,false,false],margin:[0,1,0,1]}];});
+    var rows=features.map(function(f){return [{text:'✓ '+f,fontSize:8,color:'#334155',border:[false,false,false,false],margin:[0,1,0,1]}];});
     var titleRow=[{text:nombre+'\n',fontSize:10,bold:true,color:highlight?C_WHITE:C_NAVY,alignment:'center',fillColor:highlight?C_BLUE:C_LIGHT,border:[false,false,false,false],margin:[6,8,6,2]},{text:precio,fontSize:16,bold:true,color:highlight?C_WHITE:C_BLUE,alignment:'center',fillColor:highlight?C_BLUE:C_LIGHT,border:[false,false,false,false]},{text:per,fontSize:7,color:highlight?'#bfdbfe':'#94a3b8',alignment:'center',fillColor:highlight?C_BLUE:C_LIGHT,border:[false,false,false,false],margin:[0,0,0,6]}];
     return {table:{widths:['*'],body:[titleRow,rows]},layout:{hLineWidth:function(){return 0.3;},hLineColor:function(){return '#e2e8f0';},vLineWidth:function(){return highlight?0:0.3;},vLineColor:function(){return highlight?C_BLUE:'#e2e8f0';},paddingLeft:function(){return 10;},paddingRight:function(){return 10;}}};
   }
@@ -19840,13 +19845,13 @@ function _buildPropuestaDoc(){
   c.push({columns:[
     {stack:[
       featureRow('⚙','Gestión de Equipos','Ficha completa por equipo: modelo, serie, proveedor, garantía, contrato de servicio, estado operativo, ubicación y fotos.'),
-      featureRow(icn('clipboard',14),'Órdenes de Trabajo','Ciclo completo: reporte → asignación → diagnóstico → reparación → cierre, con tiempos y responsables.'),
+      featureRow('🤝','Órdenes de Trabajo','Ciclo completo: reporte → asignación → diagnóstico → reparación → cierre, con tiempos y responsables.'),
       featureRow('🗓','Mantenimientos Preventivos','Calendario de PMs con alertas de vencimiento, historial y firma digital del técnico.'),
       featureRow('📡','Antenas RF','Gestión de antenas por equipo de RM: roturas, reparaciones, presupuestos, fotos, seguimiento por fabricante.')
     ],width:'*'},
     {stack:[
       featureRow('🔬','Transductores de Ecografía','Trazabilidad completa de transductores: fallas, fotos, reparaciones externas, estado por unidad.'),
-      featureRow(icn('zap',14),'UPS / Respaldo Eléctrico','Vinculación UPS → equipos conectados, con alertas de estado y potencia instalada.'),
+      featureRow('⚡','UPS / Respaldo Eléctrico','Vinculación UPS → equipos conectados, con alertas de estado y potencia instalada.'),
       featureRow('📊','Informe Gerencial PDF','Reporte ejecutivo mensual con análisis IA, métricas MTBF/MTTR/disponibilidad y gráficos estadísticos.'),
       featureRow('🔔','Alertas y Notificaciones','Push notifications para vencimientos, equipos críticos y eventos relevantes en tiempo real.')
     ],width:'*'}
@@ -19911,10 +19916,10 @@ function _buildPropuestaDoc(){
         [{text:'USD 150',bold:true,fontSize:22,alignment:'center',color:C_BLUE,fillColor:C_LIGHT,border:[false,false,false,false]}],
         [{text:'por mes',fontSize:8,alignment:'center',color:C_GRAY,fillColor:C_LIGHT,border:[false,false,false,false],margin:[0,0,0,10]}],
         [{stack:[
-          {text:icn('check',14)+'Plataforma en producción',fontSize:8,margin:[0,2,0,2]},
-          {text:icn('check',14)+'Firebase hosting',fontSize:8,margin:[0,2,0,2]},
-          {text:icn('check',14)+'Backups automáticos',fontSize:8,margin:[0,2,0,2]},
-          {text:icn('check',14)+'Soporte por email',fontSize:8,margin:[0,2,0,2]},
+          {text:'✓ Plataforma en producción',fontSize:8,margin:[0,2,0,2]},
+          {text:'✓ Firebase hosting',fontSize:8,margin:[0,2,0,2]},
+          {text:'✓ Backups automáticos',fontSize:8,margin:[0,2,0,2]},
+          {text:'✓ Soporte por email',fontSize:8,margin:[0,2,0,2]},
           {text:'✘ Nuevas funcionalidades',fontSize:8,color:C_GRAY,margin:[0,2,0,2]},
           {text:'✘ Soporte urgente',fontSize:8,color:C_GRAY,margin:[0,2,0,8]}
         ],border:[false,false,false,false],margin:[14,0,14,0]}]
@@ -19926,12 +19931,12 @@ function _buildPropuestaDoc(){
         [{text:'USD 300',bold:true,fontSize:22,alignment:'center',color:C_WHITE,fillColor:C_BLUE,border:[false,false,false,false]}],
         [{text:'por mes · RECOMENDADO',fontSize:8,alignment:'center',color:'#bfdbfe',fillColor:C_BLUE,border:[false,false,false,false],margin:[0,0,0,10]}],
         [{stack:[
-          {text:icn('check',14)+'Todo el Plan Esencial',fontSize:8,bold:true,margin:[0,2,0,2]},
-          {text:icn('check',14)+'2-4 updates/mes con mejoras',fontSize:8,margin:[0,2,0,2]},
-          {text:icn('check',14)+'Soporte WhatsApp urgente',fontSize:8,margin:[0,2,0,2]},
-          {text:icn('check',14)+'Nuevas funcionalidades',fontSize:8,margin:[0,2,0,2]},
-          {text:icn('check',14)+'Capacitación de usuarios',fontSize:8,margin:[0,2,0,2]},
-          {text:icn('check',14)+'SLA 24h para bugs críticos',fontSize:8,margin:[0,2,0,8]}
+          {text:'✓ Todo el Plan Esencial',fontSize:8,bold:true,margin:[0,2,0,2]},
+          {text:'✓ 2-4 updates/mes con mejoras',fontSize:8,margin:[0,2,0,2]},
+          {text:'✓ Soporte WhatsApp urgente',fontSize:8,margin:[0,2,0,2]},
+          {text:'✓ Nuevas funcionalidades',fontSize:8,margin:[0,2,0,2]},
+          {text:'✓ Capacitación de usuarios',fontSize:8,margin:[0,2,0,2]},
+          {text:'✓ SLA 24h para bugs críticos',fontSize:8,margin:[0,2,0,8]}
         ],border:[false,false,false,false],margin:[14,0,14,0],color:C_WHITE}]
       ]},layout:{hLineWidth:function(){return 0;},hLineColor:function(){return C_BLUE;},vLineWidth:function(){return 0;},vLineColor:function(){return C_BLUE;}},margin:[0,0,0,0]}
     ],width:'*'},
@@ -19941,12 +19946,12 @@ function _buildPropuestaDoc(){
         [{text:'USD 600',bold:true,fontSize:22,alignment:'center',color:C_BLUE,fillColor:C_LIGHT,border:[false,false,false,false]}],
         [{text:'por mes',fontSize:8,alignment:'center',color:C_GRAY,fillColor:C_LIGHT,border:[false,false,false,false],margin:[0,0,0,10]}],
         [{stack:[
-          {text:icn('check',14)+'Todo el Plan Profesional',fontSize:8,bold:true,margin:[0,2,0,2]},
-          {text:icn('check',14)+'Desarrollo a medida',fontSize:8,margin:[0,2,0,2]},
-          {text:icn('check',14)+'Integraciones externas',fontSize:8,margin:[0,2,0,2]},
-          {text:icn('check',14)+'App adicionales en el repo',fontSize:8,margin:[0,2,0,2]},
-          {text:icn('check',14)+'Presencia on-site mensual',fontSize:8,margin:[0,2,0,2]},
-          {text:icn('check',14)+'SLA 4h cualquier día',fontSize:8,margin:[0,2,0,8]}
+          {text:'✓ Todo el Plan Profesional',fontSize:8,bold:true,margin:[0,2,0,2]},
+          {text:'✓ Desarrollo a medida',fontSize:8,margin:[0,2,0,2]},
+          {text:'✓ Integraciones externas',fontSize:8,margin:[0,2,0,2]},
+          {text:'✓ App adicionales en el repo',fontSize:8,margin:[0,2,0,2]},
+          {text:'✓ Presencia on-site mensual',fontSize:8,margin:[0,2,0,2]},
+          {text:'✓ SLA 4h cualquier día',fontSize:8,margin:[0,2,0,8]}
         ],border:[false,false,false,false],margin:[14,0,14,0]}]
       ]},layout:{hLineWidth:function(){return 0.3;},hLineColor:function(){return '#e2e8f0';},vLineWidth:function(){return 0.3;},vLineColor:function(){return '#e2e8f0';}},margin:[0,0,0,0]}
     ],width:'*'}
@@ -20010,12 +20015,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.4.0";
+var APP_DISPLAY_VERSION="8.5.0";
 var APP_BUILD="03/09/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'8.5.0',fecha:'03/09/2026',tipo:'minor',cambios:[
+    'Tanda final de reemplazo de emojis por iconos SVG: 146 conversiones cubriendo cerrar/check/edit/settings/escudo/edificio/celular/alerta/volumen/deshacer/basura/mensaje/mail/ubicacion/dolar/ojo/llave/candado/telefono/tecnico/carpeta/gota/link mas variantes de estado. Se agregan settings/undo/messageCircle/mail/eye a _ICONS. Auditoria exhaustiva encontro y corrigio 4 bugs reales de tandas (esta y anteriores): 2 iconos que se habian colado dentro del generador de propuesta comercial en PDF (contexto pdfMake, no HTML) y 2 comentarios de codigo que quedaron con sintaxis rota por una conversion accidental de emoji de ejemplo dentro del comentario. Con esto se agota el trabajo razonable: lo que queda son flechas tipograficas, los 12 iconos por defecto de categorias (dato editable por el usuario), contenido de PDFs que ya usa su propio mecanismo, y un puñado de mensajes con textContent (no soportan HTML)'
+  ]},
   {v:'8.4.0',fecha:'03/09/2026',tipo:'minor',cambios:[
     'Treceava tanda de reemplazo de emojis por iconos SVG: patron \'espacio+EMOJI+espacio\' dentro de un string (tecnico asignado, ubicacion de OT, hora, empresa, ID de red). Se agrega icono clock a _ICONS, el resto reusa user/mappin/dollarsign/building/cloudUpload/rss/camera. A esta altura ya se agoto el patron mecanico grande: lo que queda son ~280 instancias de flechas y simbolos tipograficos (que se dejan a proposito, ya se ven nativos) mas un resto disperso en 2-4 apariciones cada uno'
   ]},
@@ -20579,7 +20587,7 @@ var CHANGELOG=[
   ]}
 ];
 function openChangelogModal(){
-  var h='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;"><div class="modal-title">Novedades</div><button class="modal-close" onclick="closeModal()">✕</button></div>';
+  var h='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;"><div class="modal-title">Novedades</div><button class="modal-close" onclick="closeModal()">'+icn('x',14)+'</button></div>';
   h+='<div style="font-size:.7rem;color:var(--text3);margin-bottom:14px;">CIMA Hub · versión actual v'+APP_DISPLAY_VERSION+' · build '+APP_BUILD+'</div>';
   CHANGELOG.forEach(function(c){
     var col=c.tipo==='major'?'#af52de':c.tipo==='minor'?'var(--accent)':'var(--green)';
@@ -20727,7 +20735,7 @@ function signInEmail(){
 function openSetPasswordModal(){
   if(!window._fbUser){showToast(_statusDot('#ff9500')+'Iniciá sesión primero','warn');return;}
   openModal(
-    '<div style="font-weight:800;font-size:1.05rem;margin-bottom:6px;">🔑 Contraseña de acceso</div>'+
+    '<div style="font-weight:800;font-size:1.05rem;margin-bottom:6px;">'+icn('lock',14)+' Contraseña de acceso</div>'+
     '<div style="font-size:.76rem;color:var(--text2);margin-bottom:12px;">Configurá una contraseña para poder entrar con tu email ('+esc(window._fbUser.email||'')+') sin pasar por Google — útil cuando el login con Google no funciona en la app instalada.</div>'+
     '<div class="ff"><div class="ff-label">Nueva contraseña (mínimo 6 caracteres)</div><input class="inp" id="setpw-inp1" type="password" autocomplete="new-password"></div>'+
     '<div class="ff"><div class="ff-label">Repetir contraseña</div><input class="inp" id="setpw-inp2" type="password" autocomplete="new-password"></div>'+
@@ -20759,7 +20767,7 @@ function sendPasswordReset(){
   var em=((document.getElementById('login-email')||{}).value||'').trim();
   if(!em)return showLoginError('Escribí tu email arriba primero, y volvé a tocar "¿Olvidaste tu contraseña?"');
   window._fbAuth.sendPasswordResetEmail(em).then(function(){
-    showLoginError(_statusDot('#34c759')+'Si '+em+' tiene una contraseña configurada, te llegó un email para restablecerla.');
+    showLoginError('✅ Si '+em+' tiene una contraseña configurada, te llegó un email para restablecerla.');
   }).catch(function(e){
     showLoginError(e.code==='auth/invalid-email'?'Email inválido':(e.message||e.code));
   });
@@ -21167,7 +21175,7 @@ function renderAccessModal(emails){
   var rows=emails.map(function(em){
     var isOwner=_accessOwner&&em.toLowerCase()===_accessOwner.toLowerCase();
     return '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;margin-bottom:6px;border-radius:12px;background:rgba(120,120,128,.07);border:1px solid rgba(120,120,128,.12);">'+
-      '<div style="width:34px;height:34px;border-radius:50%;background:'+(isOwner?'rgba(0,113,227,.15)':'rgba(120,120,128,.12)')+';display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.9rem;">'+(isOwner?'👑':icn('user',14))+'</div>'+
+      '<div style="width:34px;height:34px;border-radius:50%;background:'+(isOwner?'rgba(0,113,227,.15)':'rgba(120,120,128,.12)')+';display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.9rem;">'+(isOwner?icn('shield',14):icn('user',14))+'</div>'+
       '<div style="flex:1;min-width:0;">'+
         '<div style="font-size:.78rem;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(em)+'</div>'+
         '<div style="font-size:.62rem;color:'+(isOwner?'var(--accent)':'var(--text3)')+';">'+(isOwner?'Administrador':'Usuario con acceso')+'</div>'+
@@ -21180,12 +21188,12 @@ function renderAccessModal(emails){
   }).join('');
   openModal(
     '<div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">'+
-      '<div style="width:38px;height:38px;border-radius:12px;background:rgba(0,113,227,.12);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;">🔐</div>'+
+      '<div style="width:38px;height:38px;border-radius:12px;background:rgba(0,113,227,.12);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;">'+icn('lock',14)+'</div>'+
       '<div style="flex:1;min-width:0;">'+
         '<div style="font-weight:800;font-size:1rem;">Control de Acceso</div>'+
         '<div style="font-size:.65rem;color:var(--text3);">Emails autorizados para iniciar sesión</div>'+
       '</div>'+
-      '<button onclick="closeModal()" style="width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.9rem;cursor:pointer;font-weight:700;flex-shrink:0;">✕</button>'+
+      '<button onclick="closeModal()" style="width:32px;height:32px;border-radius:50%;border:none;background:rgba(120,120,128,.12);color:var(--text3);font-size:.9rem;cursor:pointer;font-weight:700;flex-shrink:0;">'+icn('x',14)+'</button>'+
     '</div>'+
     '<div style="margin-bottom:16px;">'+(rows||'<div style="color:var(--text3);font-size:.78rem;text-align:center;padding:12px;">Sin emails autorizados</div>')+'</div>'+
     '<div style="border-top:1px solid rgba(120,120,128,.12);padding-top:14px;">'+
@@ -21736,7 +21744,7 @@ function sbCalNext(){_sbCalM++;if(_sbCalM>11){_sbCalM=0;_sbCalY++;}renderSbCalen
 function sbCalTap(ds){
   var ev=buildCalEvents();var des=ev[ds]||[];if(!des.length)return;
   var p=ds.split("-");var dl=p[2]+"/"+p[1]+"/"+p[0];
-  openModal('<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><div class="modal-title">'+icn('calendar',15)+' '+dl+'</div><button class="modal-close" onclick="closeModal()">✕</button></div>'+
+  openModal('<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><div class="modal-title">'+icn('calendar',15)+' '+dl+'</div><button class="modal-close" onclick="closeModal()">'+icn('x',14)+'</button></div>'+
     des.map(function(ev){var c=_CAL_TC[ev.type]||"#8e8e93";return'<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba('+hexRgb(c)+',.08);border-radius:12px;margin-bottom:8px;border-left:3px solid '+c+';">'+
     '<span style="font-size:.62rem;font-weight:700;color:'+c+';text-transform:uppercase;flex-shrink:0;min-width:60px;">'+(_CAL_TL[ev.type]||ev.type)+'</span>'+
     '<span style="font-size:.8rem;color:var(--text);font-weight:500;">'+esc(ev.label)+'</span></div>';}).join(""));
@@ -21856,7 +21864,7 @@ function rReporte(){
         <div style="font-weight:700;font-size:.92rem;color:#e8eaf6;">Asistente IA</div>
         <div id="ai-modal-sub" style="font-size:.68rem;color:#8890b0;">Consulta general · CIMA</div>
       </div>
-      <button onclick="closeAIAssistant()" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:50%;width:30px;height:30px;cursor:pointer;color:#b8bbd4;font-size:1rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;">✕</button>
+      <button onclick="closeAIAssistant()" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:50%;width:30px;height:30px;cursor:pointer;color:#b8bbd4;font-size:1rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+icn('x',14)+'</button>
     </div>
     <div id="ai-chat-msgs" style="flex:1;overflow-y:auto;padding:14px 16px;min-height:160px;"></div>
     <div style="padding:12px 16px 28px;border-top:1px solid rgba(255,255,255,.06);display:flex;gap:8px;align-items:flex-end;flex-shrink:0;">
