@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v8.2.0 — 03/09/2026 (minor)
+
+- Onceava tanda de reemplazo de emojis por iconos SVG: dos patrones nuevos, emoji como unico contenido de una etiqueta ('>EMOJI<') y emoji como string completo suelto ('EMOJI'), cubriendo archivo/carpeta/buscar/llave/editar/refrigeracion/usuario/rayo/clipboard/telefono/foco/dolar/gota/calendario/volumen mas los 5 de status. Se agregan folder y lightbulb a _ICONS. Se encontraron y corrigieron 2 bugs reales del script antes de publicar: duplicacion de comillas en el patron de string suelto, y 2 casos que rompian un <option> / un placeholder= de HTML (contextos que no soportan SVG) - revertidos a emoji plano
+
 ## v8.1.0 — 03/09/2026 (minor)
 
 - Decima tanda (la mas grande hasta ahora) de reemplazo de emojis por iconos SVG: 235 instancias del patron '>EMOJI texto' (emoji justo despues de cerrar una etiqueta HTML, dentro del mismo string de JS) repartidas por decenas de pantallas - detalle de antena/transductor, refrigeracion, historial, garantias, PMs, y mas. Se agrega icono link a _ICONS, el resto reusa los ya existentes. Auditoria exhaustiva (variable-mediada + insercion directa dentro del argumento) confirmo cero fugas a showToast/alert y cero casos que alimenten el PDF
