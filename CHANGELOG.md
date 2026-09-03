@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v7.4.0 — 03/09/2026 (minor)
+
+- Tercera tanda de reemplazo de emojis por iconos SVG: titulos de modal (Buscar en todo, Registrar Cambio de Baterias, Marcar como Reparado, Completar Mejora, Mantenimiento/Reparacion, Importar Datos de Red, Archivos IndexedDB v2, Diagnostico de fallas por mes, Trasladar Transductor, Reportar Rotura, modal de fecha). Se agrega icono battery a _ICONS
+
 ## v7.3.0 — 03/09/2026 (minor)
 
 - Segunda tanda de reemplazo de emojis por iconos SVG: pills de estado del Dashboard (Resonadores, Tomografos, aires, etc.) - se agrega _statusDot() y se saca el emoji delante de 'Operativos'/'urgente'/'fuera de servicio' en las 7 tarjetas de categoria, reusando el color que ya tenia cada pill

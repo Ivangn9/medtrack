@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.09.03.004 -->
+<!-- v2026.09.03.005 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.09.03.004">
+<meta name="app-version" content="v2026.09.03.005">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -2996,7 +2996,7 @@ function showToast(msg,tp){
 
 // ── Búsqueda global (⌘K / botón lupa) ──
 function openGlobalSearch(){
-  var html='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;"><div class="modal-title">🔍 Buscar en todo</div><button class="modal-close" onclick="closeModal()">✕</button></div>'+
+  var html='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;"><div class="modal-title">'+icn('search',15)+' Buscar en todo</div><button class="modal-close" onclick="closeModal()">✕</button></div>'+
     '<input class="inp" id="gs-input" type="search" placeholder="Equipo, falla, rotura, OT, antena…" style="width:100%;padding:13px 16px;font-size:1rem;margin-bottom:12px;" oninput="_gsOnInput(this.value)" autocomplete="off">'+
     '<div id="gs-results" style="min-height:120px;"><div style="text-align:center;padding:30px 0;color:var(--text3);font-size:.8rem;">Escribí al menos 2 letras</div></div>';
   openModal(html);
@@ -3135,7 +3135,8 @@ var _ICONS={
   cloudUpload:'<path d="M16 16l-4-4-4 4"/><path d="M12 12v9"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>',
   globe:'<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>',
   database:'<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/>',
-  rss:'<path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1" fill="currentColor" stroke="none"/>'
+  rss:'<path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1" fill="currentColor" stroke="none"/>',
+  battery:'<rect x="1" y="6" width="18" height="12" rx="2"/><line x1="23" y1="13" x2="23" y2="11"/>'
 };
 function icn(name,size,color){
   var p=_ICONS[name];if(!p)return'';
@@ -3480,7 +3481,7 @@ function openCambioBateriasModal(eqId){
   if(!eq)return;
   openModal(
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">'+
-    '<div class="modal-title">🔋 Registrar Cambio de Baterías</div>'+
+    '<div class="modal-title">'+icn('battery',15)+' Registrar Cambio de Baterías</div>'+
     '<button class="modal-close" onclick="closeModal()">✕</button></div>'+
     '<div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.20);border-radius:var(--r-md);padding:10px 12px;margin-bottom:16px;font-size:.82rem;font-weight:600;color:#d97706;">'+esc(eq.nombre)+'</div>'+
     '<div class="ff"><div class="ff-label">Fecha del cambio</div><input class="inp" type="date" id="bat-fecha" value="'+today()+'"></div>'+
@@ -3598,7 +3599,7 @@ function repararParte(eqId,pid){
   if(!pt)return;
   openModal(
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">'+
-    '<div class="modal-title">✅ Marcar como Reparado</div>'+
+    '<div class="modal-title">'+icn('check',15)+' Marcar como Reparado</div>'+
     '<button class="modal-close" onclick="closeModal()">✕</button></div>'+
     '<div style="background:rgba(52,199,89,.08);border:1px solid rgba(52,199,89,.2);border-radius:var(--r-md);padding:14px;margin-bottom:18px;">'+
     '<div style="font-weight:700;font-size:.9rem;margin-bottom:4px;">'+esc(pt.nombre)+'</div>'+
@@ -3770,7 +3771,7 @@ function completarMejora(eqId,pid){
   var pt=eq.partes.find(function(p){return p.id===pid;});if(!pt)return;
   openModal(
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">'+
-    '<div class="modal-title">✅ Completar Mejora</div>'+
+    '<div class="modal-title">'+icn('check',15)+' Completar Mejora</div>'+
     '<button class="modal-close" onclick="closeModal()">✕</button></div>'+
     '<div style="background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.2);border-radius:var(--r-md);padding:14px;margin-bottom:18px;">'+
     '<div style="font-weight:700;font-size:.9rem;margin-bottom:4px;">🎨 '+esc(pt.nombre)+'</div>'+
@@ -3894,7 +3895,7 @@ function openHistDetail(eqId,hid){
   if(!pdfRows)pdfRows='<div style="color:var(--text3);font-size:.78rem;text-align:center;padding:8px;">Sin archivos adjuntos</div>';
   openModal(
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">'+
-    '<div class="modal-title">'+(isMant?"🔧 Mantenimiento":"🔩 Reparación")+'</div>'+
+    '<div class="modal-title">'+icn('wrench',15)+' '+(isMant?"Mantenimiento":"Reparación")+'</div>'+
     '<button class="modal-close" onclick="closeModal()">✕</button></div>'+
     '<div style="background:'+(isMant?"rgba(0,113,227,.07)":"rgba(52,199,89,.07)")+';border-radius:var(--r-md);padding:14px;margin-bottom:14px;">'+
     '<div style="font-weight:700;font-size:.92rem;margin-bottom:4px;">'+(isMant?"Mantenimiento preventivo":esc(hh.nombre||"Reparación"))+'</div>'+
@@ -4259,7 +4260,7 @@ function _matchEquipoRed(token){
 function openImportRedModal(){
   openModal(
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">'+
-      '<div><div class="modal-title">🌐 Importar Datos de Red</div>'+
+      '<div><div class="modal-title">'+icn('globe',15)+' Importar Datos de Red</div>'+
       '<div style="font-size:.68rem;color:var(--text3);margin-top:2px;">Pegá las filas copiadas de Excel — matchea por SystemID o por nombre</div></div>'+
       '<button class="modal-close" onclick="closeModal()">✕</button>'+
     '</div>'+
@@ -4738,7 +4739,7 @@ function openFileStoreV2Modal(){
       var verificados=newFiles.length;
       var puedePurgar=oldFiles.length>0&&pendientes===0&&errs.length===0;
       var h='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">'+
-        '<div><div class="modal-title">🗄️ Archivos (IndexedDB v2)</div>'+
+        '<div><div class="modal-title">'+icn('database',15)+' Archivos (IndexedDB v2)</div>'+
         '<div style="font-size:.68rem;color:var(--text3);margin-top:2px;">Store nuevo con Blob nativo — no reemplaza el actual, corre en paralelo</div></div>'+
         '<button class="modal-close" onclick="closeModal()">✕</button></div>';
       h+='<div style="display:flex;gap:8px;margin-bottom:14px;">'+
@@ -10642,7 +10643,7 @@ function openFallasDiagnostico(){
     '<div style="font-size:.68rem;color:var(--text3);line-height:1.7;">'+fueraDeVentana.map(function(r){return esc(r.eqNombre)+' — '+esc(r.descripcion||'(sin descripción)')+' · '+r.fechaRotura+' · '+r.estado;}).join('<br>')+'</div>'+
   '</div>'):'';
   openModal(
-    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><div class="modal-title">🔍 Diagnóstico de fallas por mes</div><button class="modal-close" onclick="closeModal()">✕</button></div>'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><div class="modal-title">'+icn('search',15)+' Diagnóstico de fallas por mes</div><button class="modal-close" onclick="closeModal()">✕</button></div>'+
     '<div style="font-size:.72rem;color:var(--text3);margin-bottom:12px;">Esto es lo que el sistema encuentra HOY, ahora mismo, para cada uno de los últimos 12 meses. Total de fallas leídas: '+rot.length+'.</div>'+
     rowsMeses+rowsSinFecha+rowsFuera
   );
@@ -18977,7 +18978,7 @@ function submitEditFallaDirecta(){
 }
 function openTrasladoTransductorModal(transductorId, fromEqId){
   var otrosEcos=eqs.filter(function(e){return e.cat==='ECO'&&e.id!==fromEqId&&!e.baja;});
-  var bodyHtml='<div class="modal-hdr"><div class="modal-title">🔄 Trasladar Transductor</div><button class="modal-x" onclick="closeModal()">✕</button></div>'+
+  var bodyHtml='<div class="modal-hdr"><div class="modal-title">'+icn('refresh',15)+' Trasladar Transductor</div><button class="modal-x" onclick="closeModal()">✕</button></div>'+
     '<div style="font-size:.78rem;color:var(--text3);margin-bottom:14px;">Seleccioná el equipo de destino</div>'+
     '<div class="ff"><div class="ff-label">Fecha *</div>'+
       '<input class="inp" id="tr-tras-fecha" type="date" value="'+today()+'">'+
@@ -19040,7 +19041,7 @@ function submitTrasladoTransductor(transductorId, fromEqId){
 function openMRotura(){
   var eqOpts=eqs.map(function(e){var ci=catById(e.cat);return'<option value="'+e.id+'">'+ci.label+' · '+esc(e.nombre)+(e.ubicacion?' ('+esc(e.ubicacion)+')':'')+'</option>';}).join("");
   openModal(
-    '<div class="modal-hdr"><div class="modal-title">⚠️ Reportar Rotura</div><button class="modal-x" onclick="closeModal()">✕</button></div>'+
+    '<div class="modal-hdr"><div class="modal-title">'+icn('alert',15)+' Reportar Rotura</div><button class="modal-x" onclick="closeModal()">✕</button></div>'+
     '<div style="background:rgba(255,59,48,.06);border:1px solid rgba(255,59,48,.15);border-radius:14px;padding:12px;margin-bottom:14px;font-size:.78rem;color:var(--red);font-weight:500;">'+
     '🔴 Completá este formulario para reportar una rotura. Se agregará automáticamente al equipo seleccionado.</div>'+
     '<div class="ff"><div class="ff-label">Equipo *</div><select class="inp" id="rot-eq">'+eqOpts+'</select></div>'+
@@ -19977,12 +19978,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="7.3.0";
+var APP_DISPLAY_VERSION="7.4.0";
 var APP_BUILD="03/09/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'7.4.0',fecha:'03/09/2026',tipo:'minor',cambios:[
+    'Tercera tanda de reemplazo de emojis por iconos SVG: titulos de modal (Buscar en todo, Registrar Cambio de Baterias, Marcar como Reparado, Completar Mejora, Mantenimiento/Reparacion, Importar Datos de Red, Archivos IndexedDB v2, Diagnostico de fallas por mes, Trasladar Transductor, Reportar Rotura, modal de fecha). Se agrega icono battery a _ICONS'
+  ]},
   {v:'7.3.0',fecha:'03/09/2026',tipo:'minor',cambios:[
     'Segunda tanda de reemplazo de emojis por iconos SVG: pills de estado del Dashboard (Resonadores, Tomografos, aires, etc.) - se agrega _statusDot() y se saca el emoji delante de \'Operativos\'/\'urgente\'/\'fuera de servicio\' en las 7 tarjetas de categoria, reusando el color que ya tenia cada pill'
   ]},
@@ -21670,7 +21674,7 @@ function sbCalNext(){_sbCalM++;if(_sbCalM>11){_sbCalM=0;_sbCalY++;}renderSbCalen
 function sbCalTap(ds){
   var ev=buildCalEvents();var des=ev[ds]||[];if(!des.length)return;
   var p=ds.split("-");var dl=p[2]+"/"+p[1]+"/"+p[0];
-  openModal('<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><div class="modal-title">📅 '+dl+'</div><button class="modal-close" onclick="closeModal()">✕</button></div>'+
+  openModal('<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><div class="modal-title">'+icn('calendar',15)+' '+dl+'</div><button class="modal-close" onclick="closeModal()">✕</button></div>'+
     des.map(function(ev){var c=_CAL_TC[ev.type]||"#8e8e93";return'<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba('+hexRgb(c)+',.08);border-radius:12px;margin-bottom:8px;border-left:3px solid '+c+';">'+
     '<span style="font-size:.62rem;font-weight:700;color:'+c+';text-transform:uppercase;flex-shrink:0;min-width:60px;">'+(_CAL_TL[ev.type]||ev.type)+'</span>'+
     '<span style="font-size:.8rem;color:var(--text);font-weight:500;">'+esc(ev.label)+'</span></div>';}).join(""));
