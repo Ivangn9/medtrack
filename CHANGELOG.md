@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v7.1.1 — 03/09/2026 (patch)
+
+- Se saca la herramienta provisoria 'Antenas sin equipo vinculado' de Ajustes (botón + modal + deleteAntena) — era un diagnóstico temporal, ya no hace falta. El Informe de Antenas sigue mostrando la sección informativa de antenas huérfanas, solo se actualizó el texto que apuntaba a la herramienta eliminada
+
 ## v7.1.0 — 03/09/2026 (minor)
 
 - Se sacan los botones 'Generar con IA', 'Exportar datos' y 'Test Visor' del Reporte Gerencial — probados varias veces sin funcionar de forma confiable (el Worker gratuito cortaba la respuesta), a pedido del usuario. Queda solo el generador clásico (PDF)

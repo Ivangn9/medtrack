@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.09.03.001 -->
+<!-- v2026.09.03.002 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.09.03.001">
+<meta name="app-version" content="v2026.09.03.002">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1437,7 +1437,6 @@ body.dark .pill[style*="#ff9500"],body.dark .pill[style*="--orange"]{box-shadow:
       <button onclick="toggleSettings();exportAllPDF()" class="b-accent" style="width:100%;padding:12px;border-radius:50px;margin-bottom:10px;">📄 Reporte General</button>
       <div class="settings-desc" style="margin-bottom:8px;font-size:.7rem;">Estado, origen y antigüedad de cada antena RF</div>
       <button onclick="toggleSettings();exportAntenasPDF()" class="b-accent" style="width:100%;padding:12px;border-radius:50px;margin-bottom:10px;">📡 Informe de Antenas</button>
-      <button onclick="toggleSettings();openAntenasHuerfanasModal()" style="width:100%;padding:10px;background:rgba(120,120,128,.08);border:1px solid rgba(120,120,128,.18);color:var(--text2);font-weight:600;font-size:.76rem;border-radius:50px;cursor:pointer;margin-bottom:10px;">🧹 Antenas sin equipo vinculado</button>
       <button onclick="forzarSincronizacionArchivos()" style="width:100%;padding:10px;background:rgba(120,120,128,.08);border:1px solid rgba(120,120,128,.18);color:var(--text2);font-weight:600;font-size:.76rem;border-radius:50px;cursor:pointer;margin-bottom:10px;">☁️ Sincronizar archivos de este dispositivo</button>
       <button onclick="toggleSettings();openImportRedModal()" style="width:100%;padding:10px;background:rgba(8,145,178,.08);border:1px solid rgba(8,145,178,.20);color:#0891b2;font-weight:600;font-size:.76rem;border-radius:50px;cursor:pointer;margin-bottom:10px;">🌐 Importar datos de red</button>
       <button onclick="toggleSettings();openFileStoreV2Modal()" style="width:100%;padding:10px;background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.20);color:#8b5cf6;font-weight:600;font-size:.76rem;border-radius:50px;cursor:pointer;margin-bottom:10px;">🗄️ Archivos (IndexedDB v2)</button>
@@ -14214,23 +14213,6 @@ function _antAntiguedadAnios(fechaCompra){
   var ms=new Date()-d;
   return ms/(365.25*24*60*60*1000);
 }
-// Borrado real de antenas huérfanas: "quitar del equipo" (removeAntennaFromEq)
-// desvincula pero NO elimina el registro — queda invisible en la UI normal
-// (que navega antenas vía eq.antenaIds) pero sigue en el array antenas[].
-function openAntenasHuerfanasModal(){
-  var huerf=antenas.filter(function(a){return !a.baja&&!eqs.some(function(e){return(e.antenaIds||[]).indexOf(a.id)!==-1;});});
-  if(!huerf.length){showToast('No hay antenas huérfanas — todo está vinculado correctamente ✅','');return;}
-  var h='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><div class="modal-title">Antenas sin equipo vinculado</div><button class="modal-close" onclick="closeModal()">✕</button></div>';
-  h+='<div style="font-size:.78rem;color:var(--text2);margin-bottom:14px;line-height:1.5;">Estas antenas no están asignadas a ningún resonador. Puede ser una antena de repuesto en stock, o un registro que quedó huérfano al usar "Quitar del equipo" en vez de "Eliminar". Revisá y borrá las que correspondan.</div>';
-  huerf.forEach(function(a){
-    h+='<div class="gc" style="padding:12px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:10px;">'+
-      '<div style="min-width:0;"><div style="font-weight:700;font-size:.84rem;">'+esc(a.nombre||'Antena sin nombre')+'</div>'+
-      '<div style="font-size:.68rem;color:var(--text3);">'+esc(a.tipo||'—')+(a.nombreOrigen?' · Origen: '+esc(a.nombreOrigen):'')+(a.fechaCompra?' · Compra: '+fD(a.fechaCompra):'')+'</div></div>'+
-      '<button onclick="deleteAntena(\''+a.id+'\');setTimeout(openAntenasHuerfanasModal,300);" style="flex-shrink:0;padding:8px 14px;border-radius:var(--r-pill);background:rgba(255,59,48,.10);border:1px solid rgba(255,59,48,.25);color:var(--red);font-weight:700;font-size:.72rem;cursor:pointer;min-height:36px;">'+icn('trash',13)+' Eliminar</button>'+
-    '</div>';
-  });
-  openModal(h);
-}
 function exportAntenasPDF(){
   var logoTag='<div class="cima-wordmark"><div class="cima-title">CIMA<sup class="cima-reg">®</sup></div><div class="cima-sub">Investigaciones Avanzadas</div></div>';
   try{var imgs=document.querySelectorAll('img');for(var ii=0;ii<imgs.length;ii++){if(imgs[ii].src&&imgs[ii].src.indexOf('logo.png')!==-1&&imgs[ii].complete&&imgs[ii].naturalWidth>0){var cv=document.createElement('canvas');cv.width=imgs[ii].naturalWidth;cv.height=imgs[ii].naturalHeight;cv.getContext('2d').drawImage(imgs[ii],0,0);logoTag='<img src="'+cv.toDataURL('image/png')+'" style="height:80px;width:auto;display:block;">';break;}}}catch(e){}
@@ -14262,7 +14244,7 @@ function exportAntenasPDF(){
   // principales (no representan un equipo real en uso) y se listan aparte.
   var huerfanas=todas.filter(function(a){return origenDe(a).huerfana;});
   var activas=todas.filter(function(a){return !origenDe(a).huerfana;});
-  if(!activas.length){showToast('Todas las antenas están sin equipo vinculado — revisá "Antenas huérfanas" en Ajustes','warn');return;}
+  if(!activas.length){showToast('Todas las antenas están sin equipo vinculado','warn');return;}
 
   function estadoInfo(a){
     var e=a.estado||'operativa';
@@ -14371,8 +14353,7 @@ function exportAntenasPDF(){
   var sinFechaNote=sinFechaCompra?'<div style="font-size:8pt;color:#94a3b8;margin-top:6px;">* '+sinFechaCompra+' antena(s) sin fecha de compra cargada — no se incluyen en el cálculo de antigüedad promedio.</div>':'';
 
   // — Antenas sin equipo vinculado (huérfanas) — fuera de la tabla y estadísticas
-  // principales; se listan para que se revisen y, si corresponde, se eliminen
-  // desde Ajustes → Antenas sin equipo vinculado (usa deleteAntena, no solo desvincula).
+  // principales; se listan aparte para que se revisen manualmente si corresponde.
   var huerfSection='';
   if(huerfanas.length){
     var huerfRows=huerfanas.map(function(a){
@@ -14383,7 +14364,7 @@ function exportAntenasPDF(){
       '</tr>';
     }).join('');
     huerfSection='<div class="section" style="page-break-inside:avoid;"><div class="section-title" style="color:#94a3b8;border-color:#94a3b8;">Antenas Sin Equipo Vinculado ('+huerfanas.length+')</div>'+
-      '<div style="font-size:8pt;color:#94a3b8;margin-bottom:8px;">No están incluidas en las estadísticas ni en la tabla principal — no tienen un resonador asignado hoy. Pueden ser repuestos en stock o registros que quedaron sin eliminar al usar "Quitar del equipo" en vez de "Eliminar". Se pueden depurar desde Ajustes → Antenas sin equipo vinculado.</div>'+
+      '<div style="font-size:8pt;color:#94a3b8;margin-bottom:8px;">No están incluidas en las estadísticas ni en la tabla principal — no tienen un resonador asignado hoy. Pueden ser repuestos en stock o registros que quedaron sin eliminar al usar "Quitar del equipo" en vez de "Eliminar".</div>'+
       '<table class="sum"><thead><tr><th>Antena</th><th>Origen de compra</th><th>Fecha de compra</th></tr></thead><tbody>'+huerfRows+'</tbody></table>'+
     '</div>';
   }
@@ -16128,17 +16109,6 @@ function submitMoverAntena(antenaId){
   selAntenaEqId=destId;
   render();
 }
-function deleteAntena(antenaId){
-  // _confirmModal en vez de confirm() nativo — ver nota en deleteCustomCat.
-  _confirmModal('¿Eliminar esta antena permanentemente? Se quitará de todos los equipos vinculados.',function(){
-    var a=antenas.find(function(x){return x.id===antenaId;})||{};
-    antenas=antenas.filter(function(x){return x.id!==antenaId;});
-    eqs=eqs.map(function(e){return Object.assign({},e,{antenaIds:(e.antenaIds||[]).filter(function(id){return id!==antenaId;})});});
-    auditEntry('eliminar','eq',antenaId,a.nombre||antenaId,'Antena eliminada y desvinculada de todos los equipos');
-    saveDataCritical();showToast('Antena eliminada','warn');render();
-  });
-}
-
 // ─── REFRIGERACIÓN (RM) ───
 function _refrigData(eq){
   var rf=eq.refrig||{chiller:'operativo',helioGaseoso:'ok',helioGasPresionActual:'',helioLiqPresion:'',helioLiqPorcentaje:'',shimming:'ok',historial:[],lecturas:[],compresorHelio:'operativo',chillerFlujoLMin:'',chillerTempC:'',eficienciaCriostat:''};
@@ -19998,12 +19968,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="7.1.0";
+var APP_DISPLAY_VERSION="7.1.1";
 var APP_BUILD="03/09/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'7.1.1',fecha:'03/09/2026',tipo:'patch',cambios:[
+    'Se saca la herramienta provisoria \'Antenas sin equipo vinculado\' de Ajustes (botón + modal + deleteAntena) — era un diagnóstico temporal, ya no hace falta. El Informe de Antenas sigue mostrando la sección informativa de antenas huérfanas, solo se actualizó el texto que apuntaba a la herramienta eliminada'
+  ]},
   {v:'7.1.0',fecha:'03/09/2026',tipo:'minor',cambios:[
     'Se sacan los botones \'Generar con IA\', \'Exportar datos\' y \'Test Visor\' del Reporte Gerencial — probados varias veces sin funcionar de forma confiable (el Worker gratuito cortaba la respuesta), a pedido del usuario. Queda solo el generador clásico (PDF)'
   ]},
