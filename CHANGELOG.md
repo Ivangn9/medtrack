@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v7.3.0 — 03/09/2026 (minor)
+
+- Segunda tanda de reemplazo de emojis por iconos SVG: pills de estado del Dashboard (Resonadores, Tomografos, aires, etc.) - se agrega _statusDot() y se saca el emoji delante de 'Operativos'/'urgente'/'fuera de servicio' en las 7 tarjetas de categoria, reusando el color que ya tenia cada pill
+
 ## v7.2.0 — 03/09/2026 (minor)
 
 - Primera tanda de reemplazo de emojis por iconos SVG (estetica mas nativa de Mac): panel de Ajustes - Inventario, Reporte General, Informe de Antenas, Sincronizar archivos, Importar datos de red, Archivos IndexedDB v2. Se suman clipboard/file (reusados) + cloudUpload/globe/database/rss a _ICONS. Trabajo en curso, quedan las pills de estado y el resto del panel para tandas siguientes

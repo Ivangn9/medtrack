@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.09.03.003 -->
+<!-- v2026.09.03.004 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.09.03.003">
+<meta name="app-version" content="v2026.09.03.004">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3141,6 +3141,11 @@ function icn(name,size,color){
   var p=_ICONS[name];if(!p)return'';
   var s=size||14;
   return'<svg width="'+s+'" height="'+s+'" viewBox="0 0 24 24" fill="none" stroke="'+(color||'currentColor')+'" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;flex-shrink:0;">'+p+'</svg>';
+}
+// Punto de color para pills de estado en pantalla — mismo mecanismo que
+// _pdfStatusDotSvg() (informe PDF), reemplaza los emojis ✅/⚠️/🚫 sueltos.
+function _statusDot(color){
+  return '<svg width="7" height="7" viewBox="0 0 7 7" style="flex-shrink:0;"><circle cx="3.5" cy="3.5" r="3.5" fill="'+(color||'#64748b')+'"/></svg>';
 }
 function pillH(c,txt){return'<span class="pill" style="background:'+c+'18;color:'+c+';">'+txt+'</span>';}
 
@@ -7262,7 +7267,7 @@ function rDash(){
     var fuera=ces.filter(function(e){return e.estado==="fuera-de-servicio";}).length;
     var urg=ces.filter(function(e){return!sinMant(e)&&(semafo(e)==="vencido"||semafo(e)==="urgente");}).length;
     var statusColor=!ces.length?"var(--label3)":fuera?"#ff3b30":urg?"#ff9500":"#34c759";
-    var statusLabel=!ces.length?'Sin equipos':fuera?'🚫 '+fuera+' fuera de servicio':urg?'⚠️ '+urg+' urgente'+(urg!==1?'s':''):'✅ Operativos';
+    var statusLabel=!ces.length?'Sin equipos':fuera?fuera+' fuera de servicio':urg?urg+' urgente'+(urg!==1?'s':''):'Operativos';
     var iconSvg=catSvgIcon(cat.id,192)||'';
     hL+='<div class="cring-wrap'+(fuera?' cring-alert':'')+'" style="--cc:'+cat.color+';"><div class="cring-el"></div>'+
     '<div class="gc tap" data-aos="zoom-in" data-aos-delay="'+Math.min(_catIdx++*60,360)+'" onclick="filtCat=\''+cat.id+'\';setView(\'lista\');" style="padding:0;overflow:hidden;cursor:pointer;min-height:130px;">'+
@@ -7275,7 +7280,7 @@ function rDash(){
         '<div style="z-index:1;">'+
           '<div style="font-weight:800;font-size:1.05rem;letter-spacing:-.3px;color:var(--text);margin-bottom:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">'+esc(cat.label)+'</div>'+
           '<div style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:20px;background:'+statusColor+'16;border:1px solid '+statusColor+'30;">'+
-            '<span style="font-size:.72rem;font-weight:600;color:'+statusColor+';">'+statusLabel+'</span>'+
+            _statusDot(statusColor)+'<span style="font-size:.72rem;font-weight:600;color:'+statusColor+';">'+statusLabel+'</span>'+
           '</div>'+
         '</div>'+
       '</div>'+
@@ -7290,7 +7295,7 @@ function rDash(){
     var fuera=ces.filter(function(e){return e.estado==="fuera-de-servicio";}).length;
     var urg=ces.filter(function(e){return!sinMant(e)&&(semafo(e)==="vencido"||semafo(e)==="urgente");}).length;
     var statusColor=fuera?"#ff3b30":urg?"#ff9500":"#34c759";
-    var statusLabel=fuera?'🚫 '+fuera+' fuera de servicio':urg?'⚠️ '+urg+' urgente'+(urg!==1?'s':''):'✅ Operativos';
+    var statusLabel=fuera?fuera+' fuera de servicio':urg?urg+' urgente'+(urg!==1?'s':''):'Operativos';
     var iconSvg=catSvgIcon('BOMBA',192)||'';
     hL+='<div class="cring-wrap'+(fuera?' cring-alert':'')+'" style="--cc:'+bombasColor+';"><div class="cring-el"></div>'+
     '<div class="gc tap" data-aos="zoom-in" data-aos-delay="'+Math.min(_catIdx++*60,360)+'" onclick="setView(\'bombas\');" style="padding:0;overflow:hidden;cursor:pointer;min-height:130px;">'+
@@ -7303,7 +7308,7 @@ function rDash(){
         '<div style="z-index:1;">'+
           '<div style="font-weight:800;font-size:1.05rem;letter-spacing:-.3px;color:var(--text);margin-bottom:7px;">Bombas</div>'+
           '<div style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:20px;background:'+statusColor+'16;border:1px solid '+statusColor+'30;">'+
-            '<span style="font-size:.72rem;font-weight:600;color:'+statusColor+';">'+statusLabel+'</span>'+
+            _statusDot(statusColor)+'<span style="font-size:.72rem;font-weight:600;color:'+statusColor+';">'+statusLabel+'</span>'+
           '</div>'+
         '</div>'+
       '</div>'+
@@ -7320,7 +7325,7 @@ function rDash(){
       var fuera=ces.filter(function(e){return e.estado==="fuera-de-servicio";}).length;
       var urg=ces.filter(function(e){return!sinMant(e)&&(semafo(e)==="vencido"||semafo(e)==="urgente");}).length;
       var statusColor=!ces.length?"var(--label3)":fuera?"#ff3b30":urg?"#ff9500":"#34c759";
-      var statusLabel=!ces.length?'Sin equipos':fuera?'🚫 '+fuera+' fuera de servicio':urg?'⚠️ '+urg+' urgente'+(urg!==1?'s':''):'✅ Operativos';
+      var statusLabel=!ces.length?'Sin equipos':fuera?fuera+' fuera de servicio':urg?urg+' urgente'+(urg!==1?'s':''):'Operativos';
       var gColor=g.color||"#64748b";
       var iconSvg=catSvgIcon(g.id,192)||'';
       hL+='<div class="cring-wrap'+(fuera?' cring-alert':'')+'" style="--cc:'+gColor+';"><div class="cring-el"></div>'+
@@ -7334,7 +7339,7 @@ function rDash(){
           '<div style="z-index:1;">'+
             '<div style="font-weight:800;font-size:1.05rem;letter-spacing:-.3px;color:var(--text);margin-bottom:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">'+esc(g.label)+'</div>'+
             '<div style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:20px;background:'+statusColor+'16;border:1px solid '+statusColor+'30;">'+
-              '<span style="font-size:.72rem;font-weight:600;color:'+statusColor+';">'+statusLabel+'</span>'+
+              _statusDot(statusColor)+'<span style="font-size:.72rem;font-weight:600;color:'+statusColor+';">'+statusLabel+'</span>'+
             '</div>'+
           '</div>'+
         '</div>'+
@@ -7350,7 +7355,7 @@ function rDash(){
     var aireUrgentes=aires.filter(function(au){return semafoAire(au)==='urgente';}).length;
     var aireCrit=aireFallas+aireVencidos;
     var aireColor='#06b6d4';
-    var aireStatus=aireCrit>0?'🚫 '+aireCrit+' con falla/vencido':aireUrgentes>0?'⚠️ '+aireUrgentes+' service próximo':'✅ Operativos';
+    var aireStatus=aireCrit>0?aireCrit+' con falla/vencido':aireUrgentes>0?aireUrgentes+' service próximo':'Operativos';
     var aireStatusColor=aireCrit>0?'#ff3b30':aireUrgentes>0?'#f59e0b':'#34c759';
     var aireSvg=(typeof _PANEL_IMGS!=='undefined'&&_PANEL_IMGS['AIRES'])?'<img src="'+_PANEL_IMGS['AIRES']+'" width="200" height="200" style="object-fit:contain;display:block;" alt="AIRES">':'<svg viewBox="'+_AIRE_VB+'" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" width="200" height="200">'+_AIRE_ILLUS+'</svg>';
     hL+='<div class="cring-wrap'+(aireCrit>0?' cring-alert':'')+'" style="--cc:'+aireColor+';"><div class="cring-el"></div>'+
@@ -7364,7 +7369,7 @@ function rDash(){
         '<div style="z-index:1;">'+
           '<div style="font-weight:800;font-size:1.05rem;letter-spacing:-.3px;color:var(--text);margin-bottom:7px;">Aires Acondicionados</div>'+
           '<div style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:20px;background:'+aireStatusColor+'16;border:1px solid '+aireStatusColor+'30;">'+
-            '<span style="font-size:.72rem;font-weight:600;color:'+aireStatusColor+';">'+aireStatus+'</span>'+
+            _statusDot(aireStatusColor)+'<span style="font-size:.72rem;font-weight:600;color:'+aireStatusColor+';">'+aireStatus+'</span>'+
           '</div>'+
         '</div>'+
       '</div>'+
@@ -7434,7 +7439,7 @@ function rBombas(){
     var fuera=ces.filter(function(e){return e.estado==="fuera-de-servicio";}).length;
     var urg=ces.filter(function(e){return!sinMant(e)&&(semafo(e)==="vencido"||semafo(e)==="urgente");}).length;
     var statusColor=fuera?"#ff3b30":urg?"#ff9500":"#34c759";
-    var statusLabel=!ces.length?'Sin equipos':fuera?'🚫 '+fuera+' fuera de servicio':urg?'⚠️ '+urg+' urgente'+(urg!==1?'s':''):'✅ Operativos';
+    var statusLabel=!ces.length?'Sin equipos':fuera?fuera+' fuera de servicio':urg?urg+' urgente'+(urg!==1?'s':''):'Operativos';
     var iconSvg=catSvgIcon(cat.id,192)||'';
     h+='<div class="cring-wrap'+(fuera?' cring-alert':'')+'" style="--cc:'+cat.color+';"><div class="cring-el"></div>'+
     '<div class="gc tap" data-aos="zoom-in" data-aos-delay="'+Math.min(idx*60,360)+'" onclick="filtCat=\''+cat.id+'\';setView(\'lista\');" style="padding:0;overflow:hidden;cursor:pointer;min-height:130px;">'+
@@ -7447,7 +7452,7 @@ function rBombas(){
         '<div style="z-index:1;">'+
           '<div style="font-weight:800;font-size:1.05rem;letter-spacing:-.3px;color:var(--text);margin-bottom:7px;">'+cat.label+'</div>'+
           '<div style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:20px;background:'+statusColor+'16;border:1px solid '+statusColor+'30;">'+
-            '<span style="font-size:.72rem;font-weight:600;color:'+statusColor+';">'+statusLabel+'</span>'+
+            _statusDot(statusColor)+'<span style="font-size:.72rem;font-weight:600;color:'+statusColor+';">'+statusLabel+'</span>'+
           '</div>'+
         '</div>'+
       '</div>'+
@@ -7474,7 +7479,7 @@ function rCatGroup(){
     var fuera=ces.filter(function(e){return e.estado==="fuera-de-servicio";}).length;
     var urg=ces.filter(function(e){return!sinMant(e)&&(semafo(e)==="vencido"||semafo(e)==="urgente");}).length;
     var statusColor=fuera?"#ff3b30":urg?"#ff9500":"#34c759";
-    var statusLabel=!ces.length?'Sin equipos':fuera?'🚫 '+fuera+' fuera de servicio':urg?'⚠️ '+urg+' urgente'+(urg!==1?'s':''):'✅ Operativos';
+    var statusLabel=!ces.length?'Sin equipos':fuera?fuera+' fuera de servicio':urg?urg+' urgente'+(urg!==1?'s':''):'Operativos';
     var iconSvg=catSvgIcon(cat.id,192)||'';
     h+='<div class="cring-wrap'+(fuera?' cring-alert':'')+'" style="--cc:'+cat.color+';"><div class="cring-el"></div>'+
     '<div class="gc tap" data-aos="zoom-in" data-aos-delay="'+Math.min(idx*60,360)+'" onclick="filtCat=\''+cat.id+'\';setView(\'lista\');" style="padding:0;overflow:hidden;cursor:pointer;min-height:130px;">'+
@@ -7487,7 +7492,7 @@ function rCatGroup(){
         '<div style="z-index:1;">'+
           '<div style="font-weight:800;font-size:1.05rem;letter-spacing:-.3px;color:var(--text);margin-bottom:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">'+esc(cat.label)+'</div>'+
           '<div style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:20px;background:'+statusColor+'16;border:1px solid '+statusColor+'30;">'+
-            '<span style="font-size:.72rem;font-weight:600;color:'+statusColor+';">'+statusLabel+'</span>'+
+            _statusDot(statusColor)+'<span style="font-size:.72rem;font-weight:600;color:'+statusColor+';">'+statusLabel+'</span>'+
           '</div>'+
         '</div>'+
       '</div>'+
@@ -7669,7 +7674,7 @@ function rInicio(){
     var fuera=ces.filter(function(e){return e.estado==='fuera-de-servicio';}).length;
     var urg=ces.filter(function(e){return !sinMant(e)&&(semafo(e)==='vencido'||semafo(e)==='urgente');}).length;
     var statusColor=fuera?'#ff3b30':urg?'#ff9500':'#34c759';
-    var statusLabel=fuera?'🚫 '+fuera+' fuera de servicio':urg?'⚠️ '+urg+' urgente'+(urg!==1?'s':''):'✅ Operativos';
+    var statusLabel=fuera?fuera+' fuera de servicio':urg?urg+' urgente'+(urg!==1?'s':''):'Operativos';
     var iconSvg=catSvgIcon(cat.id,192)||'';
     h+='<div class="cring-wrap" style="--cc:'+cat.color+';">'+
       '<div class="cring-el"></div>'+
@@ -7683,7 +7688,7 @@ function rInicio(){
           '<div style="z-index:1;">'+
             '<div style="font-weight:800;font-size:1.0rem;letter-spacing:-.3px;color:var(--text);margin-bottom:6px;">'+cat.label+'</div>'+
             '<div style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;background:'+statusColor+'16;border:1px solid '+statusColor+'30;">'+
-              '<span style="font-size:.68rem;font-weight:600;color:'+statusColor+';">'+statusLabel+'</span>'+
+              _statusDot(statusColor)+'<span style="font-size:.68rem;font-weight:600;color:'+statusColor+';">'+statusLabel+'</span>'+
             '</div>'+
           '</div>'+
         '</div>'+
@@ -19972,12 +19977,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="7.2.0";
+var APP_DISPLAY_VERSION="7.3.0";
 var APP_BUILD="03/09/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'7.3.0',fecha:'03/09/2026',tipo:'minor',cambios:[
+    'Segunda tanda de reemplazo de emojis por iconos SVG: pills de estado del Dashboard (Resonadores, Tomografos, aires, etc.) - se agrega _statusDot() y se saca el emoji delante de \'Operativos\'/\'urgente\'/\'fuera de servicio\' en las 7 tarjetas de categoria, reusando el color que ya tenia cada pill'
+  ]},
   {v:'7.2.0',fecha:'03/09/2026',tipo:'minor',cambios:[
     'Primera tanda de reemplazo de emojis por iconos SVG (estetica mas nativa de Mac): panel de Ajustes - Inventario, Reporte General, Informe de Antenas, Sincronizar archivos, Importar datos de red, Archivos IndexedDB v2. Se suman clipboard/file (reusados) + cloudUpload/globe/database/rss a _ICONS. Trabajo en curso, quedan las pills de estado y el resto del panel para tandas siguientes'
   ]},
