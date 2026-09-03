@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v8.4.0 — 03/09/2026 (minor)
+
+- Treceava tanda de reemplazo de emojis por iconos SVG: patron 'espacio+EMOJI+espacio' dentro de un string (tecnico asignado, ubicacion de OT, hora, empresa, ID de red). Se agrega icono clock a _ICONS, el resto reusa user/mappin/dollarsign/building/cloudUpload/rss/camera. A esta altura ya se agoto el patron mecanico grande: lo que queda son ~280 instancias de flechas y simbolos tipograficos (que se dejan a proposito, ya se ven nativos) mas un resto disperso en 2-4 apariciones cada uno
+
 ## v8.3.0 — 03/09/2026 (minor)
 
 - Doceava tanda: toasts ahora soportan iconos SVG. showToast() paso de textContent a innerHTML, lo que permitio convertir 134 emojis mas (los toasts eran el bloque mas grande que quedaba). Antes del cambio se audito y corrigio el escapado: 50 sitios que concatenaban texto dinamico sin esc() (nombres de equipo/antena, mensajes de error, nombres de archivo) ahora usan esc() para prevenir XSS si algun dato contuviera HTML. Verificado con test de seguridad (nombre de equipo con <img onerror> queda escapado, no se ejecuta). Se encontraron y corrigieron 5 casos donde el script rompio comillas anidadas dentro de atributos onclick
