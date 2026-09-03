@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.09.03.016 -->
+<!-- v2026.09.03.017 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.09.03.016">
+<meta name="app-version" content="v2026.09.03.017">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1243,6 +1243,22 @@ body.dark .risk-badge-crit{color:#f87171;}
 body.dark .pill[style*="#34c759"],body.dark .pill[style*="--green"]{box-shadow:0 0 10px rgba(52,199,89,.35);}
 body.dark .pill[style*="#ff3b30"],body.dark .pill[style*="--red"]{box-shadow:0 0 10px rgba(255,59,48,.35);}
 body.dark .pill[style*="#ff9500"],body.dark .pill[style*="--orange"]{box-shadow:0 0 10px rgba(255,149,0,.35);}
+
+/* ══════════════════════════════════════════════════════════════
+   ── macOS NATIVO — solo escritorio (≥900px, donde vive CIMA Hub) ──
+   No toca nada del CSS mobile/iPad de arriba; capa nueva agregada al
+   final para que gane especificidad por orden de cascada sin usar
+   !important salvo donde ya lo exigía una regla existente.
+   ══════════════════════════════════════════════════════════════ */
+@media(min-width:900px){
+  /* Fase 1 — overlay title bar (tauri.conf.json: titleBarStyle:"Overlay").
+     Los traffic lights reales de macOS quedan flotando arriba a la
+     izquierda del contenido (~26px alto, ~78px ancho) — la franja del logo
+     del sidebar es la zona arrastrable de la ventana (ver data-tauri-drag-
+     region en el HTML) y necesita bajar su contenido para no quedar debajo
+     de los círculos. */
+  #sb-logo-header{padding-top:34px;}
+}
 </style>
 <!-- AOS animate-on-scroll -->
 <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
@@ -1466,9 +1482,12 @@ body.dark .pill[style*="#ff9500"],body.dark .pill[style*="--orange"]{box-shadow:
 </div>
 
 <div id="sidebar">
-  <!-- Logo header -->
-  <div style="padding:14px 16px 12px;border-bottom:1px solid rgba(120,120,128,.15);margin-bottom:6px;">
-    <div style="display:flex;align-items:center;gap:9px;">
+  <!-- Logo header — data-tauri-drag-region: en la app de escritorio (overlay
+       title bar, sin barra de título propia) esta franja es lo que permite
+       arrastrar la ventana; el atributo lo ignora cualquier otro contexto
+       (web, iPad, Tauri con decorations normales) sin efecto. -->
+  <div id="sb-logo-header" data-tauri-drag-region style="padding:14px 16px 12px;border-bottom:1px solid rgba(120,120,128,.15);margin-bottom:6px;">
+    <div style="display:flex;align-items:center;gap:9px;" data-tauri-drag-region>
       <img src="logo.png" style="height:30px;opacity:1;filter:drop-shadow(0 1px 3px rgba(0,0,0,.15));" onerror="this.style.display='none'">
       <div>
         <div style="font-weight:800;font-size:.92rem;color:var(--text);letter-spacing:-.3px;">CIMA Hub</div>
@@ -20015,12 +20034,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.5.0";
+var APP_DISPLAY_VERSION="8.6.0";
 var APP_BUILD="03/09/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'8.6.0',fecha:'03/09/2026',tipo:'minor',cambios:[
+    'Fase 1 del rediseno nativo de macOS: overlay title bar. El sidebar tiene una franja arrastrable (data-tauri-drag-region) en el logo, con padding extra para no quedar debajo de los traffic lights reales del sistema. Requiere el cambio en medtrack-desktop/tauri.conf.json (titleBarStyle:Overlay) + rebuild nativo para verse'
+  ]},
   {v:'8.5.0',fecha:'03/09/2026',tipo:'minor',cambios:[
     'Tanda final de reemplazo de emojis por iconos SVG: 146 conversiones cubriendo cerrar/check/edit/settings/escudo/edificio/celular/alerta/volumen/deshacer/basura/mensaje/mail/ubicacion/dolar/ojo/llave/candado/telefono/tecnico/carpeta/gota/link mas variantes de estado. Se agregan settings/undo/messageCircle/mail/eye a _ICONS. Auditoria exhaustiva encontro y corrigio 4 bugs reales de tandas (esta y anteriores): 2 iconos que se habian colado dentro del generador de propuesta comercial en PDF (contexto pdfMake, no HTML) y 2 comentarios de codigo que quedaron con sintaxis rota por una conversion accidental de emoji de ejemplo dentro del comentario. Con esto se agota el trabajo razonable: lo que queda son flechas tipograficas, los 12 iconos por defecto de categorias (dato editable por el usuario), contenido de PDFs que ya usa su propio mecanismo, y un puñado de mensajes con textContent (no soportan HTML)'
   ]},

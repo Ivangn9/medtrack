@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v8.6.0 — 03/09/2026 (minor)
+
+- Fase 1 del rediseno nativo de macOS: overlay title bar. El sidebar tiene una franja arrastrable (data-tauri-drag-region) en el logo, con padding extra para no quedar debajo de los traffic lights reales del sistema. Requiere el cambio en medtrack-desktop/tauri.conf.json (titleBarStyle:Overlay) + rebuild nativo para verse
+
 ## v8.5.0 — 03/09/2026 (minor)
 
 - Tanda final de reemplazo de emojis por iconos SVG: 146 conversiones cubriendo cerrar/check/edit/settings/escudo/edificio/celular/alerta/volumen/deshacer/basura/mensaje/mail/ubicacion/dolar/ojo/llave/candado/telefono/tecnico/carpeta/gota/link mas variantes de estado. Se agregan settings/undo/messageCircle/mail/eye a _ICONS. Auditoria exhaustiva encontro y corrigio 4 bugs reales de tandas (esta y anteriores): 2 iconos que se habian colado dentro del generador de propuesta comercial en PDF (contexto pdfMake, no HTML) y 2 comentarios de codigo que quedaron con sintaxis rota por una conversion accidental de emoji de ejemplo dentro del comentario. Con esto se agota el trabajo razonable: lo que queda son flechas tipograficas, los 12 iconos por defecto de categorias (dato editable por el usuario), contenido de PDFs que ya usa su propio mecanismo, y un puñado de mensajes con textContent (no soportan HTML)
