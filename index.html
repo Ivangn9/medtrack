@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.09.03.008 -->
+<!-- v2026.09.03.009 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.09.03.008">
+<meta name="app-version" content="v2026.09.03.009">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3153,7 +3153,9 @@ var _ICONS={
   user:'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
   trendingup:'<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>',
   phone:'<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>',
-  shield:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>'
+  shield:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+  package:'<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>',
+  thermometer:'<path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0z"/>'
 };
 function icn(name,size,color){
   var p=_ICONS[name];if(!p)return'';
@@ -3431,8 +3433,8 @@ function getAlertas(){
   repuestos.forEach(function(r){
     var cant=parseFloat(r.cantidad);if(isNaN(cant))cant=0;
     var minimo=parseFloat(r.stockMinimo);if(isNaN(minimo))minimo=0;
-    if(cant<=0)a.push({k:'rep'+r.id+'out',niv:'critico',tit:r.nombre,desc:'📦 Repuesto SIN STOCK',eid:''});
-    else if(minimo>0&&cant<=minimo)a.push({k:'rep'+r.id+'low',niv:'advertencia',tit:r.nombre,desc:'📦 Stock bajo: '+cant+' (mín '+minimo+')',eid:''});
+    if(cant<=0)a.push({k:'rep'+r.id+'out',niv:'critico',tit:r.nombre,desc:icn('package',14)+'Repuesto SIN STOCK',eid:''});
+    else if(minimo>0&&cant<=minimo)a.push({k:'rep'+r.id+'low',niv:'advertencia',tit:r.nombre,desc:icn('package',14)+'Stock bajo: '+cant+' (mín '+minimo+')',eid:''});
   });
   // Aires acondicionados — antes no tenían fecha de vencimiento de mantenimiento
   // ni participaban de este sistema de alertas en absoluto. (Variable del loop
@@ -10414,7 +10416,7 @@ function rKpi(){
   h+='<div><div style="font-size:1.05rem;font-weight:700;font-family:Hanken Grotesk,system-ui;">📊 KPI &amp; Estadísticas</div>';
   h+='<div style="font-size:.68rem;color:var(--text3);margin-top:1px;">'+curYear+(_sedeActiva?' · 📍 '+esc(_sedeActiva):'')+' · '+activeEqs.length+' equipos activos</div></div>';
   h+='<div style="display:flex;gap:6px;align-items:center;">';
-  h+='<div id="kpi-tc-badge" onclick="_kpiFetchRate(function(r){if(r)document.getElementById(\'kpi-tc-badge\').textContent=\'TC Oficial BNA: $\'+r;else showToast(\'Sin cotización disponible\',\'warn\');})" style="font-size:.63rem;font-family:JetBrains Mono,monospace;color:var(--text3);cursor:pointer;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px;">'+(_kpiUsdRate?'TC Oficial BNA: $'+_kpiUsdRate:'↺ Cotización USD')+'</div>';
+  h+='<div id="kpi-tc-badge" onclick="_kpiFetchRate(function(r){if(r)document.getElementById(\'kpi-tc-badge\').textContent=\'TC Oficial BNA: $\'+r;else showToast(\'Sin cotización disponible\',\'warn\');})" style="font-size:.63rem;font-family:JetBrains Mono,monospace;color:var(--text3);cursor:pointer;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:4px 8px;">'+(_kpiUsdRate?'TC Oficial BNA: $'+_kpiUsdRate:icn('refresh',14)+'Cotización USD')+'</div>';
   h+='<button onclick="exportKpiPDF()" style="display:flex;align-items:center;gap:5px;background:rgba(0,122,255,.14);border:1px solid rgba(0,122,255,.3);color:#4da3ff;border-radius:8px;padding:7px 12px;font-size:.75rem;font-weight:600;cursor:pointer;">📄 PDF</button>';
   h+='<button onclick="openFallasDiagnostico()" title="Ver qué fallas está contando el sistema, mes a mes" style="display:flex;align-items:center;gap:5px;background:rgba(255,149,0,.14);border:1px solid rgba(255,149,0,.3);color:#ff9500;border-radius:8px;padding:7px 12px;font-size:.75rem;font-weight:600;cursor:pointer;">🔍 Diagnóstico</button>';
   h+='</div>';
@@ -10878,7 +10880,7 @@ function _admVencChip(fecha){
   var d=diasH(fecha);var venc=d<0;var prox=!venc&&d<=30;
   var c=venc?'var(--red)':prox?'var(--orange)':'var(--green)';
   var bg=venc?'rgba(255,59,48,.12)':prox?'rgba(255,149,0,.12)':'rgba(52,199,89,.12)';
-  var lbl=venc?'❌ VENCIDO · '+fD(fecha):prox?_statusDot('#ff9500')+'Vence en '+d+'d · '+fD(fecha):_statusDot('#34c759')+''+fD(fecha);
+  var lbl=venc?icn('x',14)+'VENCIDO · '+fD(fecha):prox?_statusDot('#ff9500')+'Vence en '+d+'d · '+fD(fecha):_statusDot('#34c759')+''+fD(fecha);
   return'<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:50px;font-size:.72rem;font-weight:700;background:'+bg+';color:'+c+';">'+lbl+'</span>';
 }
 function _admAltaChip(alta){
@@ -11623,7 +11625,7 @@ function rDetalle(){
   if(eq.garantia){var gd=diasH(eq.garantiaHasta);var gVenc=eq.garantiaHasta&&gd<0;var gProx=!gVenc&&eq.garantiaHasta&&gd<=30;var gColor=gVenc?"var(--red)":gProx?"var(--orange)":"var(--green)";var gBg=gVenc?"rgba(255,59,48,.12)":gProx?"rgba(255,149,0,.12)":"rgba(52,199,89,.12)";var gLabel=gVenc?"❌ Vencida":gProx?_statusDot('#ff9500')+"Vence en "+gd+"d":_statusDot('#34c759')+"En garantía";h+='<div class="ibox" style="grid-column:1/-1;"><div class="ibox-l">Garantía</div><div class="ibox-v"><span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:50px;font-size:.72rem;font-weight:700;background:'+gBg+';color:'+gColor+';">'+gLabel+(eq.garantiaHasta?' · hasta '+fD(eq.garantiaHasta):'')+'</span></div></div>';}
   if(eq.tieneServicio){
     var _svVencHtml='';
-    if(eq.servicioContratoVenc){var _svD=diasH(eq.servicioContratoVenc);var _svV=_svD<0;var _svP=!_svV&&_svD<=30;var _svC=_svV?'var(--red)':_svP?'var(--orange)':'var(--green)';var _svBg=_svV?'rgba(255,59,48,.12)':_svP?'rgba(255,149,0,.12)':'rgba(52,199,89,.12)';var _svLbl=_svV?'❌ VENCIDO '+fD(eq.servicioContratoVenc):_svP?_statusDot('#ff9500')+'Vence en '+_svD+'d — '+fD(eq.servicioContratoVenc):_statusDot('#34c759')+'Vence '+fD(eq.servicioContratoVenc);_svVencHtml='<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:50px;font-size:.72rem;font-weight:700;background:'+_svBg+';color:'+_svC+';">'+_svLbl+'</span>';}
+    if(eq.servicioContratoVenc){var _svD=diasH(eq.servicioContratoVenc);var _svV=_svD<0;var _svP=!_svV&&_svD<=30;var _svC=_svV?'var(--red)':_svP?'var(--orange)':'var(--green)';var _svBg=_svV?'rgba(255,59,48,.12)':_svP?'rgba(255,149,0,.12)':'rgba(52,199,89,.12)';var _svLbl=_svV?icn('x',14)+'VENCIDO '+fD(eq.servicioContratoVenc):_svP?_statusDot('#ff9500')+'Vence en '+_svD+'d — '+fD(eq.servicioContratoVenc):_statusDot('#34c759')+'Vence '+fD(eq.servicioContratoVenc);_svVencHtml='<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:50px;font-size:.72rem;font-weight:700;background:'+_svBg+';color:'+_svC+';">'+_svLbl+'</span>';}
     h+='<div class="ibox" style="grid-column:1/-1;"><div class="ibox-l">Servicio</div><div class="ibox-v" style="display:flex;flex-wrap:wrap;gap:5px;align-items:center;"><span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:50px;font-size:.72rem;font-weight:700;background:rgba(52,199,89,.12);color:var(--green);">✔ Contrato activo</span>'+_svVencHtml+'</div></div>';
     if(eq.servicioContratoNumero)h+='<div class="ibox"><div class="ibox-l">Nº Contrato</div><div class="ibox-v" style="font-family:monospace;font-size:.8rem;">'+esc(eq.servicioContratoNumero)+'</div></div>';
     if(eq.servicioContratoContacto)h+='<div class="ibox"><div class="ibox-l">Contacto prov.</div><div class="ibox-v" style="font-size:.78rem;">'+esc(eq.servicioContratoContacto)+'</div></div>';
@@ -11642,7 +11644,7 @@ function rDetalle(){
   }
   h+='</div>';
   if(eq.cat==='DES'){
-    function _desVencChip(fecha,label){if(!fecha)return'<span style="font-size:.72rem;color:var(--text3);">Sin fecha</span>';var dv=diasH(fecha);var venc=dv<0;var prox=!venc&&dv<=60;var cv=venc?'var(--red)':prox?'var(--orange)':'var(--green)';var bv=venc?'rgba(255,59,48,.12)':prox?'rgba(255,149,0,.12)':'rgba(52,199,89,.12)';var lbl=venc?'❌ VENCIDO':prox?_statusDot('#ff9500')+'Vence en '+dv+'d':_statusDot('#34c759')+''+fD(fecha);return'<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:50px;font-size:.72rem;font-weight:700;background:'+bv+';color:'+cv+';">'+lbl+'</span>';}
+    function _desVencChip(fecha,label){if(!fecha)return'<span style="font-size:.72rem;color:var(--text3);">Sin fecha</span>';var dv=diasH(fecha);var venc=dv<0;var prox=!venc&&dv<=60;var cv=venc?'var(--red)':prox?'var(--orange)':'var(--green)';var bv=venc?'rgba(255,59,48,.12)':prox?'rgba(255,149,0,.12)':'rgba(52,199,89,.12)';var lbl=venc?icn('x',14)+'VENCIDO':prox?_statusDot('#ff9500')+'Vence en '+dv+'d':_statusDot('#34c759')+''+fD(fecha);return'<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:50px;font-size:.72rem;font-weight:700;background:'+bv+';color:'+cv+';">'+lbl+'</span>';}
     h+='<div style="background:rgba(244,63,94,.06);border:1.5px solid rgba(244,63,94,.18);border-radius:var(--r-md);padding:12px 14px;margin-bottom:12px;"><div style="font-size:.66rem;font-weight:800;color:#f43f5e;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;">⚡ Vencimientos</div><div class="det-grid"><div class="ibox"><div class="ibox-l">Parches</div><div class="ibox-v">'+_desVencChip(eq.parches_vencimiento,'Parches')+'</div></div><div class="ibox"><div class="ibox-l">Batería</div><div class="ibox-v">'+_desVencChip(eq.bateria_vencimiento,'Batería')+'</div></div></div></div>';
   }
   if(eq.cat==='UPS'){
@@ -11903,7 +11905,7 @@ function rDetalle(){
 
 // ── ANTENAS VIEW ──
 function _bajaMotivoLabel(motivo){
-  return {'venta':'🤝 Venta','entrega_pago':'🔁 Entregado como forma de pago','falla_irreparable':'💥 Falla irreparable','obsolescencia':'⏳ Obsolescencia','reemplazo':icn('refresh',14)+'Reemplazo','otro':icn('edit',14)+'Otro'}[motivo]||(motivo||'—');
+  return {'venta':'🤝 Venta','entrega_pago':icn('refresh',14)+'Entregado como forma de pago','falla_irreparable':'💥 Falla irreparable','obsolescencia':'⏳ Obsolescencia','reemplazo':icn('refresh',14)+'Reemplazo','otro':icn('edit',14)+'Otro'}[motivo]||(motivo||'—');
 }
 function _bajaRowHTML(nombre,chipsHtml,b,verDetalleOnclick,reactivarOnclick){
   var motivoLabel=_bajaMotivoLabel(b.motivo);
@@ -16469,7 +16471,7 @@ function openGEShortcutGuide(eqId){
         icn('download',14)+'Pedir número → <b>Temperatura chiller °C</b><br>'+
         icn('clipboard',14)+'Pedir en menú → <b>Compresor</b> (operativo / desconectado)<br>'+
         icn('clipboard',14)+'Pedir en menú → <b>Eficiencia</b> (alta / normal / baja)<br>'+
-        '🌐 Abrir URL → construir con los valores anteriores'+
+        icn('globe',14)+'Abrir URL → construir con los valores anteriores'+
       '</div>'+
     '</div>'+
     '<div style="background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.2);border-radius:var(--r-md);padding:10px 12px;margin-bottom:14px;">'+
@@ -16688,7 +16690,7 @@ function _rLecturasSalaSection(eq,rf){
       if(l.helioGasPresion!=null)partes.push(icn('flask',14)+''+l.helioGasPresion+' MPa');
       if(l.helioLiqPresion!=null)partes.push(icn('droplet',14)+''+l.helioLiqPresion+' PSI');
       if(l.helioLiqPorc!=null)partes.push(icn('snowflake',14)+''+l.helioLiqPorc+'%');
-      if(l.salaTempC!=null)partes.push('🌡️ '+l.salaTempC+'°C');
+      if(l.salaTempC!=null)partes.push(icn('thermometer',14)+''+l.salaTempC+'°C');
       if(l.salaHumedad!=null)partes.push('💦 '+l.salaHumedad+'%');
       return '<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04);">'+
         '<div style="flex:1;min-width:0;">'+
@@ -19182,7 +19184,7 @@ function rAires(){
         '<div style="width:42px;height:42px;border-radius:12px;overflow:hidden;flex-shrink:0;"><svg width="42" height="42" viewBox="'+_AIRE_VB+'" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" style="display:block;">'+_AIRE_ILLUS+'</svg></div>'+
         '<div style="flex:1;min-width:0;">'+
           '<div style="font-weight:700;font-size:.92rem;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(a.nombre)+'</div>'+
-          '<div style="font-size:.72rem;color:var(--text3);margin-top:2px;">'+(a.modelo?'📦 '+esc(a.modelo):'')+((a.modelo&&a.ubicacion)?' · ':'')+( a.ubicacion?icn('mappin',14)+''+esc(a.ubicacion):'')+'</div>'+
+          '<div style="font-size:.72rem;color:var(--text3);margin-top:2px;">'+(a.modelo?icn('package',14)+''+esc(a.modelo):'')+((a.modelo&&a.ubicacion)?' · ':'')+( a.ubicacion?icn('mappin',14)+''+esc(a.ubicacion):'')+'</div>'+
           '<div style="font-size:.68rem;color:var(--text3);margin-top:2px;">'+lastSvc+'</div>'+
           '<div style="font-size:.68rem;font-weight:600;color:'+_venColor+';margin-top:2px;">'+_venLabel+'</div>'+
         '</div>'+
@@ -19766,7 +19768,7 @@ function _buildPropuestaDoc(){
     return {columns:[{text:icon,width:18,fontSize:11,color:C_ACCENT,margin:[0,0,0,0]},{stack:[{text:title,fontSize:9,bold:true,color:C_NAVY,margin:[0,0,0,1]},{text:desc,fontSize:8,color:C_GRAY,lineHeight:1.3}],width:'*'}],columnGap:8,margin:[0,0,0,8]};
   }
   function planCard(nombre,precio,per,features,highlight){
-    var rows=features.map(function(f){return [{text:'✔ '+f,fontSize:8,color:'#334155',border:[false,false,false,false],margin:[0,1,0,1]}];});
+    var rows=features.map(function(f){return [{text:icn('check',14)+''+f,fontSize:8,color:'#334155',border:[false,false,false,false],margin:[0,1,0,1]}];});
     var titleRow=[{text:nombre+'\n',fontSize:10,bold:true,color:highlight?C_WHITE:C_NAVY,alignment:'center',fillColor:highlight?C_BLUE:C_LIGHT,border:[false,false,false,false],margin:[6,8,6,2]},{text:precio,fontSize:16,bold:true,color:highlight?C_WHITE:C_BLUE,alignment:'center',fillColor:highlight?C_BLUE:C_LIGHT,border:[false,false,false,false]},{text:per,fontSize:7,color:highlight?'#bfdbfe':'#94a3b8',alignment:'center',fillColor:highlight?C_BLUE:C_LIGHT,border:[false,false,false,false],margin:[0,0,0,6]}];
     return {table:{widths:['*'],body:[titleRow,rows]},layout:{hLineWidth:function(){return 0.3;},hLineColor:function(){return '#e2e8f0';},vLineWidth:function(){return highlight?0:0.3;},vLineColor:function(){return highlight?C_BLUE:'#e2e8f0';},paddingLeft:function(){return 10;},paddingRight:function(){return 10;}}};
   }
@@ -19896,10 +19898,10 @@ function _buildPropuestaDoc(){
         [{text:'USD 150',bold:true,fontSize:22,alignment:'center',color:C_BLUE,fillColor:C_LIGHT,border:[false,false,false,false]}],
         [{text:'por mes',fontSize:8,alignment:'center',color:C_GRAY,fillColor:C_LIGHT,border:[false,false,false,false],margin:[0,0,0,10]}],
         [{stack:[
-          {text:'✔ Plataforma en producción',fontSize:8,margin:[0,2,0,2]},
-          {text:'✔ Firebase hosting',fontSize:8,margin:[0,2,0,2]},
-          {text:'✔ Backups automáticos',fontSize:8,margin:[0,2,0,2]},
-          {text:'✔ Soporte por email',fontSize:8,margin:[0,2,0,2]},
+          {text:icn('check',14)+'Plataforma en producción',fontSize:8,margin:[0,2,0,2]},
+          {text:icn('check',14)+'Firebase hosting',fontSize:8,margin:[0,2,0,2]},
+          {text:icn('check',14)+'Backups automáticos',fontSize:8,margin:[0,2,0,2]},
+          {text:icn('check',14)+'Soporte por email',fontSize:8,margin:[0,2,0,2]},
           {text:'✘ Nuevas funcionalidades',fontSize:8,color:C_GRAY,margin:[0,2,0,2]},
           {text:'✘ Soporte urgente',fontSize:8,color:C_GRAY,margin:[0,2,0,8]}
         ],border:[false,false,false,false],margin:[14,0,14,0]}]
@@ -19911,12 +19913,12 @@ function _buildPropuestaDoc(){
         [{text:'USD 300',bold:true,fontSize:22,alignment:'center',color:C_WHITE,fillColor:C_BLUE,border:[false,false,false,false]}],
         [{text:'por mes · RECOMENDADO',fontSize:8,alignment:'center',color:'#bfdbfe',fillColor:C_BLUE,border:[false,false,false,false],margin:[0,0,0,10]}],
         [{stack:[
-          {text:'✔ Todo el Plan Esencial',fontSize:8,bold:true,margin:[0,2,0,2]},
-          {text:'✔ 2-4 updates/mes con mejoras',fontSize:8,margin:[0,2,0,2]},
-          {text:'✔ Soporte WhatsApp urgente',fontSize:8,margin:[0,2,0,2]},
-          {text:'✔ Nuevas funcionalidades',fontSize:8,margin:[0,2,0,2]},
-          {text:'✔ Capacitación de usuarios',fontSize:8,margin:[0,2,0,2]},
-          {text:'✔ SLA 24h para bugs críticos',fontSize:8,margin:[0,2,0,8]}
+          {text:icn('check',14)+'Todo el Plan Esencial',fontSize:8,bold:true,margin:[0,2,0,2]},
+          {text:icn('check',14)+'2-4 updates/mes con mejoras',fontSize:8,margin:[0,2,0,2]},
+          {text:icn('check',14)+'Soporte WhatsApp urgente',fontSize:8,margin:[0,2,0,2]},
+          {text:icn('check',14)+'Nuevas funcionalidades',fontSize:8,margin:[0,2,0,2]},
+          {text:icn('check',14)+'Capacitación de usuarios',fontSize:8,margin:[0,2,0,2]},
+          {text:icn('check',14)+'SLA 24h para bugs críticos',fontSize:8,margin:[0,2,0,8]}
         ],border:[false,false,false,false],margin:[14,0,14,0],color:C_WHITE}]
       ]},layout:{hLineWidth:function(){return 0;},hLineColor:function(){return C_BLUE;},vLineWidth:function(){return 0;},vLineColor:function(){return C_BLUE;}},margin:[0,0,0,0]}
     ],width:'*'},
@@ -19926,12 +19928,12 @@ function _buildPropuestaDoc(){
         [{text:'USD 600',bold:true,fontSize:22,alignment:'center',color:C_BLUE,fillColor:C_LIGHT,border:[false,false,false,false]}],
         [{text:'por mes',fontSize:8,alignment:'center',color:C_GRAY,fillColor:C_LIGHT,border:[false,false,false,false],margin:[0,0,0,10]}],
         [{stack:[
-          {text:'✔ Todo el Plan Profesional',fontSize:8,bold:true,margin:[0,2,0,2]},
-          {text:'✔ Desarrollo a medida',fontSize:8,margin:[0,2,0,2]},
-          {text:'✔ Integraciones externas',fontSize:8,margin:[0,2,0,2]},
-          {text:'✔ App adicionales en el repo',fontSize:8,margin:[0,2,0,2]},
-          {text:'✔ Presencia on-site mensual',fontSize:8,margin:[0,2,0,2]},
-          {text:'✔ SLA 4h cualquier día',fontSize:8,margin:[0,2,0,8]}
+          {text:icn('check',14)+'Todo el Plan Profesional',fontSize:8,bold:true,margin:[0,2,0,2]},
+          {text:icn('check',14)+'Desarrollo a medida',fontSize:8,margin:[0,2,0,2]},
+          {text:icn('check',14)+'Integraciones externas',fontSize:8,margin:[0,2,0,2]},
+          {text:icn('check',14)+'App adicionales en el repo',fontSize:8,margin:[0,2,0,2]},
+          {text:icn('check',14)+'Presencia on-site mensual',fontSize:8,margin:[0,2,0,2]},
+          {text:icn('check',14)+'SLA 4h cualquier día',fontSize:8,margin:[0,2,0,8]}
         ],border:[false,false,false,false],margin:[14,0,14,0]}]
       ]},layout:{hLineWidth:function(){return 0.3;},hLineColor:function(){return '#e2e8f0';},vLineWidth:function(){return 0.3;},vLineColor:function(){return '#e2e8f0';}},margin:[0,0,0,0]}
     ],width:'*'}
@@ -19995,12 +19997,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="7.7.0";
+var APP_DISPLAY_VERSION="7.8.0";
 var APP_BUILD="03/09/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'7.8.0',fecha:'03/09/2026',tipo:'minor',cambios:[
+    'Septima tanda de reemplazo de emojis por iconos SVG: mas etiquetas de estado restantes (check/warning/error) fuera de toasts, mas variantes de check, llave, caja/paquete, cerrar, guardar, refrigeracion, actualizar, red, termometro. Se restringio el script a coincidencias de comilla simple unicamente (la comilla doble puede ser un atributo HTML anidado dentro del string JS, no una cadena nueva - leccion de la tanda anterior). Se detectaron y revirtieron 9 casos que volvian a colarse a showToast en funciones ya corregidas antes'
+  ]},
   {v:'7.7.0',fecha:'03/09/2026',tipo:'minor',cambios:[
     'Sexta tanda de reemplazo de emojis por iconos SVG: rayo, gota, matraz, enchufe, celular, grafico de barras, edificio/hospital, clip, signo dolar, descargar, usuario, tendencia, telefono, escudo, bateria, editar, buscar, prohibido, ubicacion, refrigeracion, compartir. Se agregan 14 iconos nuevos a _ICONS. Se detecto y corrigio un bug real del script: convirtio mal un placeholder= de un input (atributo HTML anidado en string JS de comillas simples, no una nueva cadena JS) rompiendo la sintaxis; revertido antes de publicar'
   ]},

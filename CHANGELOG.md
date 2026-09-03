@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v7.8.0 — 03/09/2026 (minor)
+
+- Septima tanda de reemplazo de emojis por iconos SVG: mas etiquetas de estado restantes (check/warning/error) fuera de toasts, mas variantes de check, llave, caja/paquete, cerrar, guardar, refrigeracion, actualizar, red, termometro. Se restringio el script a coincidencias de comilla simple unicamente (la comilla doble puede ser un atributo HTML anidado dentro del string JS, no una cadena nueva - leccion de la tanda anterior). Se detectaron y revirtieron 9 casos que volvian a colarse a showToast en funciones ya corregidas antes
+
 ## v7.7.0 — 03/09/2026 (minor)
 
 - Sexta tanda de reemplazo de emojis por iconos SVG: rayo, gota, matraz, enchufe, celular, grafico de barras, edificio/hospital, clip, signo dolar, descargar, usuario, tendencia, telefono, escudo, bateria, editar, buscar, prohibido, ubicacion, refrigeracion, compartir. Se agregan 14 iconos nuevos a _ICONS. Se detecto y corrigio un bug real del script: convirtio mal un placeholder= de un input (atributo HTML anidado en string JS de comillas simples, no una nueva cadena JS) rompiendo la sintaxis; revertido antes de publicar
