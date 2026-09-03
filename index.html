@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.09.03.017 -->
+<!-- v2026.09.03.018 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.09.03.017">
+<meta name="app-version" content="v2026.09.03.018">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1258,6 +1258,56 @@ body.dark .pill[style*="#ff9500"],body.dark .pill[style*="--orange"]{box-shadow:
      region en el HTML) y necesita bajar su contenido para no quedar debajo
      de los círculos. */
   #sb-logo-header{padding-top:34px;}
+
+  /* Fase 2 — materiales reales de NSVisualEffectView, en vez del vidrio muy
+     transparente pensado para el fondo con foto que se usa en mobile. Los
+     valores son la traducción aproximada del material oficial de Apple
+     (sidebar: opacidad ~.72, blur 30px saturate 150%; titlebar: opacidad
+     ~.6, blur 20px saturate 180%) — no son los píxeles exactos de AppKit
+     (no son públicos), pero sí el criterio real: mucho más sólido que un
+     vidrio decorativo, para que se lea como un panel del sistema. */
+  #sidebar{
+    background:rgba(246,246,248,.78);
+    -webkit-backdrop-filter:saturate(150%) blur(30px);
+    backdrop-filter:saturate(150%) blur(30px);
+    border-right-color:rgba(0,0,0,.08);
+    box-shadow:1px 0 0 rgba(0,0,0,.05);
+  }
+  #sidebar::before{display:none;} /* el wash de color de fondo no hace falta sobre un material sólido */
+  body.dark #sidebar{
+    background:rgba(30,30,34,.72);
+    border-right-color:rgba(255,255,255,.08);
+    box-shadow:1px 0 0 rgba(0,0,0,.3);
+  }
+
+  /* Toolbar unificada: pasa de "pill flotante" a barra sólida pegada arriba,
+     como la titlebar/toolbar real — mismo criterio de material (~.85 de
+     opacidad, blur 20px saturate 180%) para que el contenido de abajo no se
+     transparente tanto al scrollear. */
+  #header{padding:0;background:transparent;}
+  #header-inner{
+    max-width:none;border-radius:0;
+    background:rgba(255,255,255,.85);
+    -webkit-backdrop-filter:saturate(180%) blur(20px);
+    backdrop-filter:saturate(180%) blur(20px);
+    border:none;border-bottom:1px solid rgba(0,0,0,.08);
+    box-shadow:0 1px 0 rgba(0,0,0,.03);
+    padding:14px 24px;min-height:auto;
+  }
+  #header-inner::before,#header-inner::after{display:none;}
+  body.dark #header-inner{
+    background:rgba(24,24,28,.80);
+    border-bottom-color:rgba(255,255,255,.08);
+  }
+
+  /* Panel de Ajustes: más cerca del material "sheet" (fondo sólido con
+     blur moderado) que del vidrio decorativo mobile. */
+  .settings-panel{
+    background:rgba(250,250,252,.90);
+    -webkit-backdrop-filter:saturate(160%) blur(25px);
+    backdrop-filter:saturate(160%) blur(25px);
+  }
+  body.dark .settings-panel{background:rgba(26,26,30,.90);}
 }
 </style>
 <!-- AOS animate-on-scroll -->
@@ -20034,12 +20084,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.6.0";
+var APP_DISPLAY_VERSION="8.6.1";
 var APP_BUILD="03/09/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'8.6.1',fecha:'03/09/2026',tipo:'patch',cambios:[
+    'Fase 2 del rediseno nativo de macOS: materiales reales de NSVisualEffectView en escritorio - sidebar y toolbar pasan de vidrio muy transparente a fondo solido (sidebar ~.78 opacidad, blur 30px saturate 150%; toolbar ~.85, blur 20px saturate 180%), toolbar unificada de pill flotante a barra solida pegada arriba, panel de Ajustes con material tipo sheet'
+  ]},
   {v:'8.6.0',fecha:'03/09/2026',tipo:'minor',cambios:[
     'Fase 1 del rediseno nativo de macOS: overlay title bar. El sidebar tiene una franja arrastrable (data-tauri-drag-region) en el logo, con padding extra para no quedar debajo de los traffic lights reales del sistema. Requiere el cambio en medtrack-desktop/tauri.conf.json (titleBarStyle:Overlay) + rebuild nativo para verse'
   ]},

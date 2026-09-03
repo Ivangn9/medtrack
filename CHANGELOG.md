@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v8.6.1 — 03/09/2026 (patch)
+
+- Fase 2 del rediseno nativo de macOS: materiales reales de NSVisualEffectView en escritorio - sidebar y toolbar pasan de vidrio muy transparente a fondo solido (sidebar ~.78 opacidad, blur 30px saturate 150%; toolbar ~.85, blur 20px saturate 180%), toolbar unificada de pill flotante a barra solida pegada arriba, panel de Ajustes con material tipo sheet
+
 ## v8.6.0 — 03/09/2026 (minor)
 
 - Fase 1 del rediseno nativo de macOS: overlay title bar. El sidebar tiene una franja arrastrable (data-tauri-drag-region) en el logo, con padding extra para no quedar debajo de los traffic lights reales del sistema. Requiere el cambio en medtrack-desktop/tauri.conf.json (titleBarStyle:Overlay) + rebuild nativo para verse
