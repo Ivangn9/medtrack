@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v7.7.0 — 03/09/2026 (minor)
+
+- Sexta tanda de reemplazo de emojis por iconos SVG: rayo, gota, matraz, enchufe, celular, grafico de barras, edificio/hospital, clip, signo dolar, descargar, usuario, tendencia, telefono, escudo, bateria, editar, buscar, prohibido, ubicacion, refrigeracion, compartir. Se agregan 14 iconos nuevos a _ICONS. Se detecto y corrigio un bug real del script: convirtio mal un placeholder= de un input (atributo HTML anidado en string JS de comillas simples, no una nueva cadena JS) rompiendo la sintaxis; revertido antes de publicar
+
 ## v7.6.0 — 03/09/2026 (minor)
 
 - Quinta tanda de reemplazo de emojis por iconos SVG: 55 iconos de herramientas/wrench, archivo, clipboard, camara, ubicacion, refrigeracion(snowflake), notas, guardar, refresh, antena/senal y calendario repartidos por toda la app. Se agregan mappin/snowflake/save a _ICONS, resto reusa iconos existentes. Mismo script auditado que la tanda anterior (excluye toasts/alert y funciones que alimentan el PDF)
