@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v7.2.0 — 03/09/2026 (minor)
+
+- Primera tanda de reemplazo de emojis por iconos SVG (estetica mas nativa de Mac): panel de Ajustes - Inventario, Reporte General, Informe de Antenas, Sincronizar archivos, Importar datos de red, Archivos IndexedDB v2. Se suman clipboard/file (reusados) + cloudUpload/globe/database/rss a _ICONS. Trabajo en curso, quedan las pills de estado y el resto del panel para tandas siguientes
+
 ## v7.1.1 — 03/09/2026 (patch)
 
 - Se saca la herramienta provisoria 'Antenas sin equipo vinculado' de Ajustes (botón + modal + deleteAntena) — era un diagnóstico temporal, ya no hace falta. El Informe de Antenas sigue mostrando la sección informativa de antenas huérfanas, solo se actualizó el texto que apuntaba a la herramienta eliminada
