@@ -101,23 +101,22 @@ Dados de baja (si hay) → Jaulas de Faraday (si hay equipos RM) → Cuadro resu
 Conclusiones. Altas/Bajas van antes de Jaulas de Faraday a pedido del usuario, para no
 quedar tan al final.
 
-**Segunda opción — "Generar con IA"** (`generateAIReport()`, 02/09/2026): en vez del
-generador determinístico, le pide a Claude (vía el mismo proxy de Cloudflare que ya usa el
-Asistente IA) que arme el documento completo en vivo, con mejor diseño (estética Apple,
-colores/logo CIMA). Usuario explícitamente prefirió esto sobre un rediseño estático del
-generador clásico, pese a la recomendación de mantenerlo determinístico (más lento, con
-costo por informe, no 100% idéntico cada vez — el usuario lo aceptó a sabiendas). Mismos
-datos que el clásico (`_gatherReportDataForAI()`, recomputa aparte, no toca
-`generateReport()`), mismas fotos (fotoId de Jaula de Faraday, resueltas via
-`_loadForReport()`) y mismo diagrama SVG de jaula (`jaulaSceneSVG()`) — se le pide a la IA
-que deje placeholders exactos (`{{LOGO}}`, `{{FOTO:<id>}}`, `{{SVG_JAULA:<eqId>}}`) que se
-reemplazan por código después de recibir la respuesta, nunca se le mandan las imágenes
-reales a la IA (payload más chico, más rápido, más barato).
-
-Gotcha real ya resuelto: `openHTMLViewer()` extrae SOLO el contenido de `<body>` y descarta
-todo lo de `<head>` (incluido cualquier `<style>` puesto ahí) — el prompt le exige a la IA
-que ponga TODO su CSS dentro de un `<div class="ai-informe">` en el body mismo, o pierde
-todo el diseño y le queda pisado por el `_reportCSS` del informe clásico.
+**"Generar con IA" — probado y descartado (02/09/2026 → 03/09/2026).** Se implementó una
+segunda opción (`generateAIReport()`) que le pedía a Claude, vía el mismo proxy de
+Cloudflare que usa el Asistente IA, armar el documento completo en vivo con mejor diseño.
+También se agregó un botón "Exportar datos" (JSON descargable para pegar en una
+conversación de Claude aparte) como alternativa más robusta. **El usuario probó ambos
+caminos varias veces y ninguno funcionó de forma confiable** (el Worker gratuito de
+Cloudflare parecía cortar la respuesta a mitad de camino incluso después de ajustar
+`max_tokens` varias veces — la IA llegó a gastar crédito real de la cuenta de Anthropic sin
+que el informe se entregara) — decidió sacar los dos botones (y de paso "Test Visor
+(diagnóstico)", que ya no hacía falta) y volver a enfocarse en mejorar el generador
+clásico, que sí funciona. **No reintroducir esto sin que el usuario lo pida explícitamente
+de nuevo** — si lo pide, revisar el historial de commits de esa fecha antes de reimplementar
+desde cero (ya se resolvieron ahí varios gotchas reales: `openHTMLViewer()` descarta todo lo
+de `<head>` incluido cualquier `<style>` puesto ahí; los permisos de Tauri para `fs`/`dialog`
+necesitan tanto `fs:allow-write-file` como `fs:allow-write-text-file` por separado, ver
+`medtrack-desktop/src-tauri/capabilities/default.json`).
 
 ## Integración con Google Stitch
 

@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v7.1.0 — 03/09/2026 (minor)
+
+- Se sacan los botones 'Generar con IA', 'Exportar datos' y 'Test Visor' del Reporte Gerencial — probados varias veces sin funcionar de forma confiable (el Worker gratuito cortaba la respuesta), a pedido del usuario. Queda solo el generador clásico (PDF)
+
 ## v7.0.0 — 02/09/2026 (minor)
 
 - Nuevo botón 'Exportar datos (para pedirle a Claude directo)': descarga un JSON con toda la info del informe (mismo formato que 'Generar con IA') para subirlo a una conversación con Claude sin las limitaciones del Worker/tokens. También se sube el presupuesto de tokens de 'Generar con IA' (7000 base + 700/equipo, tope 16000) porque el CSS y la estructura consumían más de lo estimado
