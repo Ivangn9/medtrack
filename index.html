@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.09.03.013 -->
+<!-- v2026.09.03.014 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.09.03.013">
+<meta name="app-version" content="v2026.09.03.014">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -2536,7 +2536,7 @@ function _fsWriteRetryOrGiveUp(tryN,err){
       try{localStorage.setItem('mt_timeout_streak',String(_streak));}catch(e){}
       if(_streak>=2){
         try{localStorage.setItem('mt_needs_persistence_reset','1');}catch(e){}
-        showToast('⚠️ La conexión con la nube quedó trabada — cerrá del todo la app (o recargá la página) para que se repare sola','err');
+        showToast(_statusDot('#ff9500')+'La conexión con la nube quedó trabada — cerrá del todo la app (o recargá la página) para que se repare sola','err');
       }
     }
     updateSyncIndicator();
@@ -2699,7 +2699,7 @@ function _fsWrite(tryN){
     if(_sz>700000&&!window._docSizeWarned){
       window._docSizeWarned=true;
       console.warn('Documento principal en '+Math.round(_sz/1024)+'KB de ~1MB');
-      showToast('⚠️ Base de datos al '+Math.round(_sz/10000)+'% del límite — avisar a soporte','warn');
+      showToast(_statusDot('#ff9500')+'Base de datos al '+Math.round(_sz/10000)+'% del límite — avisar a soporte','warn');
     }
     if(_sz>950000){
       clearTimeout(_safeguard);_fsWriting=false;_fsDirty=false;_fsFailed=true;
@@ -2805,7 +2805,7 @@ function _fsWrite(tryN){
         }
         _fsDirty=false;_fsFailed=false;_persistSyncError(null);
         render();
-        showToast('⚠️ Otro dispositivo guardó cambios justo ahora — tu cambio se combinó automáticamente, no hace falta rehacerlo.','warn');
+        showToast(_statusDot('#ff9500')+'Otro dispositivo guardó cambios justo ahora — tu cambio se combinó automáticamente, no hace falta rehacerlo.','warn');
         return;
       }
       console.warn("Firestore save (try "+(tryN+1)+"):",e);
@@ -2968,7 +2968,7 @@ function doRestoreBackup(fecha){
       if(Array.isArray(d.customCats)){customCats=d.customCats;rebuildCats();}
       saveData();
       closeModal();render();
-      showToast('✅ Datos restaurados al '+fecha);
+      showToast(_statusDot('#34c759')+'Datos restaurados al '+fecha);
     }).catch(function(e){console.warn(e);showToast('Error al restaurar','err');});
   });
 }
@@ -2977,11 +2977,17 @@ function doRestoreBackup(fecha){
 //  UI HELPERS
 // ═══════════════════════════════════════════
 var _toastCloseTimer=null;
+// msg puede traer un ícono SVG armado con icn()/_statusDot() (ver ambos más
+// arriba) — por eso usa innerHTML en vez de textContent. Todo el texto dinámico
+// que se concatena en los ~280 call sites de showToast() (nombres de equipo,
+// mensajes de error, nombres de archivo) pasa por esc() antes de llegar acá;
+// si en el futuro se agrega un showToast() nuevo con texto dinámico, hay que
+// escaparlo ahí también — showToast() en sí no vuelve a escapar nada.
 function showToast(msg,tp){
   var t=document.getElementById("toast");
   if(_toastCloseTimer){clearTimeout(_toastCloseTimer);_toastCloseTimer=null;}
   t.classList.remove("closing");
-  t.textContent=msg;
+  t.innerHTML=msg;
   t.style.background=tp==="warn"?"#78350f":tp==="err"?"#7f1d1d":"#14532d";t.style.color="#fff";
   t.classList.remove("hidden","fade");void t.offsetWidth;t.classList.add("fade");
   if(toastTimer)clearTimeout(toastTimer);
@@ -3267,14 +3273,14 @@ document.addEventListener('touchend',function(){_ptrOn=false;},{passive:true});
 function _doPullRefresh(){
   if(!window._fbdb||!window._fbUser){render();return;}
   if(_fsDirty||_fsWriting||_fsSaveTimer||_fsFailed){showToast('Hay cambios guardándose…','warn');return;}
-  showToast('🔄 Actualizando…');
+  showToast(icn('refresh',14)+'Actualizando…');
   orgDataRef().get().then(function(doc){
     if(doc.exists&&window._applyDataGlobal){
       window._applyDataGlobal(doc.data());
       if(typeof _histMergedOnce!=='undefined'&&_histMergedOnce)_histApplyMerge();
       try{localStorage.setItem('mt_updatedAt',doc.data().updatedAt||'');}catch(e){}
     }
-    render();showToast('✅ Datos actualizados');
+    render();showToast(_statusDot('#34c759')+'Datos actualizados');
   }).catch(function(){showToast('Sin conexión','warn');});
 }
 // Header compacto al scrollear (large-title collapse)
@@ -3671,7 +3677,7 @@ function confirmarReparacion(eqId,pid){
     var partes=e.partes.filter(function(x){return x.id!==pid;});
     return Object.assign({},e,{partes:partes,historialMant:hist});
   });
-  saveData();closeModal();showToast("✅ Reparación registrada en historial");render();
+  saveData();closeModal();showToast(_statusDot('#34c759')+"Reparación registrada en historial");render();
 }
 // ─── Sincronización de roturas espejadas ───
 // Una misma falla puede vivir hasta en 3 lugares a la vez: la rotura real en
@@ -3755,7 +3761,7 @@ function confirmarFallaComponente(eqId,pid,estadoTarget){
   var pt=((eq.partes)||[]).find(function(p){return p.id===pid;})||{};
   auditEntry('falla','parte',pid,pt.nombre||pid,(estadoTarget==='roto'?'Rotura registrada':'Pendiente marcado')+' en '+fecha);
   saveData();closeModal();render();
-  showToast(estadoTarget==='roto'?'🔴 Rotura registrada — visible en Roturas y Fallas':'⚠️ Componente marcado como pendiente');
+  showToast(estadoTarget==='roto'?_statusDot('#ff3b30')+'Rotura registrada — visible en Roturas y Fallas':_statusDot('#ff9500')+'Componente marcado como pendiente');
 }
 function setParteEstadoRapido(eqId,pid,nuevoEstado){
   eqs=eqs.map(function(e){
@@ -3824,7 +3830,7 @@ function confirmarMejora(eqId,pid){
     var partes=e.partes.filter(function(x){return x.id!==pid;});
     return Object.assign({},e,{partes:partes,historialMant:hist});
   });
-  saveData();closeModal();showToast("✅ Mejora completada y registrada en historial");render();
+  saveData();closeModal();showToast(_statusDot('#34c759')+"Mejora completada y registrada en historial");render();
 }
 function delParte(eqId,pid){_confirmModal('¿Eliminar esta falla/rotura?',function(){eqs=eqs.map(function(e){return e.id!==eqId?e:Object.assign({},e,{partes:e.partes.filter(function(x){return x.id!==pid;})});});saveData();showToast('Eliminada','warn');render();});}
 // Guard de click robusto para las filas de Historial/Roturas y Fallas — en la
@@ -3898,7 +3904,7 @@ function _confirmDelHist(eqId,hid){
     ordenesTrabajo=ordenesTrabajo.filter(function(ot){return ot.generadoDesdePM!==pmId;});
   }
   saveData();
-  showToast(pmId?"↩️ Eliminado — el PM volvió a quedar pendiente en Calendario PM":tieneOrigen?"↩️ Registro eliminado y parte restaurado":esMant?"↩️ Mantenimiento eliminado — fechas actualizadas":"Eliminado","warn");
+  showToast(pmId?icn('refresh',14)+"Eliminado — el PM volvió a quedar pendiente en Calendario PM":tieneOrigen?icn('refresh',14)+"Registro eliminado y parte restaurado":esMant?icn('refresh',14)+"Mantenimiento eliminado — fechas actualizadas":"Eliminado","warn");
   render();
 }
 function openHistDetail(eqId,hid){
@@ -3996,7 +4002,7 @@ function attachHistPDF(tipo){
   input.onchange=function(){
     Array.from(input.files).forEach(function(file){
       var reader=new FileReader();
-      reader.onerror=function(){showToast('⚠️ No se pudo leer "'+file.name+'"','err');};
+      reader.onerror=function(){showToast(_statusDot('#ff9500')+'No se pudo leer "'+esc(file.name)+'"','err');};
       reader.onload=function(e){
         var obj={id:'F-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),nombre:file.name,size:file.size,data:e.target.result};
         if(tipo==='presupuesto'){_pendingHistPresupuestos.push(obj);}else{_pendingHistReportes.push(obj);}
@@ -4060,7 +4066,7 @@ function submitHist(eqId,hid){
       return Object.assign({},e,{historialMant:hist});
     });
     _pendingHistPresupuestos=[];_pendingHistReportes=[];_deletedHistFiles=[];
-    saveData();showToast("✅ Historial actualizado");closeModal();render();
+    saveData();showToast(_statusDot('#34c759')+"Historial actualizado");closeModal();render();
   });
 }
 function regMant(eqId,fecha,notas,tecnico,pdfRef,nroOrden,empresa,firma){
@@ -4074,7 +4080,7 @@ function regMant(eqId,fecha,notas,tecnico,pdfRef,nroOrden,empresa,firma){
     var hist=(e.historialMant||[]).concat(entrada);
     return Object.assign({},e,{ultimoMant:fecha,proximoMant:calcP(fecha,e.frecuencia),historialMant:hist,notas:notas!==undefined?notas:e.notas});
   });
-  saveDataCritical();showToast("✅ Mantenimiento registrado");closeModal();render();
+  saveDataCritical();showToast(_statusDot('#34c759')+"Mantenimiento registrado");closeModal();render();
 }
 function setEst(eqId,est){eqs=eqs.map(function(e){return e.id!==eqId?e:Object.assign({},e,{estado:est});});saveData();showToast("Estado actualizado");render();}
 function estLabel(s){return{operativo:"Operativo","con-rotura":"Roto/Con Fallas",advertencia:"Roto/Con Fallas","fuera-de-servicio":"Fuera de servicio"}[s]||s||"—";}
@@ -4358,7 +4364,7 @@ function confirmImportRed(){
   auditEntry('modificar','eq','import-red',count+' equipo(s)','Importación masiva de datos de red (IP/Puerto/AE/MAC)');
   saveDataCritical();
   closeModal();
-  showToast('✅ Datos de red cargados en '+count+' equipo(s)','');
+  showToast(_statusDot('#34c759')+'Datos de red cargados en '+count+' equipo(s)','');
   render();
 }
 
@@ -4404,7 +4410,7 @@ function dbSave(id,nombre,data,cb){
       // si iOS libera ese almacenamiento. Avisar explícitamente cuando falla, en vez
       // de fallar en silencio y depender solo del reconcile periódico.
       _storageSaveB64(id,nombre,data,function(ok){
-        if(!ok)showToast('⚠️ "'+(nombre||'Archivo')+'" se guardó en este dispositivo pero no subió a la nube — no cierres la app todavía, o hacé Ajustes → Sincronizar archivos más tarde','warn');
+        if(!ok)showToast(_statusDot('#ff9500')+'"'+(nombre||'Archivo')+'" se guardó en este dispositivo pero no subió a la nube — no cierres la app todavía, o hacé Ajustes → Sincronizar archivos más tarde','warn');
       });
     };
     tx.onerror=function(ev){
@@ -4415,9 +4421,9 @@ function dbSave(id,nombre,data,cb){
       // para dar un mensaje accionable ("liberá espacio") en vez de uno genérico.
       var errName=(tx.error&&tx.error.name)||(ev&&ev.target&&ev.target.error&&ev.target.error.name)||'';
       if(errName==='QuotaExceededError'){
-        showToast('⚠️ No hay espacio suficiente en este dispositivo para guardar "'+(nombre||'el archivo')+'" — liberá espacio o borrá fotos/PDFs viejos','err');
+        showToast(_statusDot('#ff9500')+'No hay espacio suficiente en este dispositivo para guardar "'+(nombre||'el archivo')+'" — liberá espacio o borrá fotos/PDFs viejos','err');
       }else{
-        showToast('⚠️ No se pudo guardar "'+(nombre||'el archivo')+'" en este dispositivo'+(errName?' ('+errName+')':''),'err');
+        showToast(_statusDot('#ff9500')+'No se pudo guardar "'+(nombre||'el archivo')+'" en este dispositivo'+(errName?' ('+errName+')':''),'err');
       }
       cb&&cb(false);
     };
@@ -4442,7 +4448,7 @@ function _dbSaveAll(files,cb){
   var failed=[];
   function done(){
     if(--pending<=0){
-      if(failed.length)showToast('⚠️ '+failed.length+' archivo(s) no se pudieron guardar y no se van a adjuntar','err');
+      if(failed.length)showToast(_statusDot('#ff9500')+''+failed.length+' archivo(s) no se pudieron guardar y no se van a adjuntar','err');
       cb&&cb(failed);
     }
   }
@@ -4779,12 +4785,12 @@ function openFileStoreV2Modal(){
           (errs.length>5?'<div style="font-size:.64rem;color:var(--text3);">+'+(errs.length-5)+' más…</div>':'')+
         '</div>';
       }
-      h+='<button class="btn-secondary" style="width:100%;margin-bottom:8px;" onclick="fs2ExportBackup(function(r){showToast(r.ok?(\'✅ Backup descargado (\'+r.count+\' archivos)\'):(\'Error: \'+r.error),r.ok?\'\':\'err\');})">'+icn('download',14)+' Exportar backup ahora</button>';
+      h+='<button class="btn-secondary" style="width:100%;margin-bottom:8px;" onclick="fs2ExportBackup(function(r){showToast(r.ok?(\'✅ Backup descargado (\'+r.count+\' archivos)\'):(\'Error: \'+esc(r.error)),r.ok?\'\':\'err\');})">'+icn('download',14)+' Exportar backup ahora</button>';
       h+='<label style="display:block;width:100%;text-align:center;padding:11px;border-radius:var(--r-pill);background:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.72);color:var(--accent);font-weight:600;font-size:.84rem;cursor:pointer;margin-bottom:8px;">⬆️ Importar backup'+
-        '<input type="file" accept=".json" style="display:none;" onchange="if(this.files[0])fs2ImportBackup(this.files[0],function(d,t){showToast(\'Restaurando \'+d+\'/\'+t+\'…\');},function(r){showToast(r.ok?(\'✅ Restaurados: \'+r.restored+\' · Omitidos: \'+r.skipped+\' · Fallidos: \'+r.failed.length):(\'Error: \'+r.error),r.ok?\'\':\'err\');openFileStoreV2Modal();});">'+
+        '<input type="file" accept=".json" style="display:none;" onchange="if(this.files[0])fs2ImportBackup(this.files[0],function(d,t){showToast(\'Restaurando \'+d+\'/\'+t+\'…\');},function(r){showToast(r.ok?(\'✅ Restaurados: \'+r.restored+\' · Omitidos: \'+r.skipped+\' · Fallidos: \'+r.failed.length):(\'Error: \'+esc(r.error)),r.ok?\'\':\'err\');openFileStoreV2Modal();});">'+
       '</label>';
       h+='<button onclick="migrateFilesToV2(function(d,t){showToast(\'Migrando \'+d+\'/\'+t+\'…\');},function(r){showToast(\'✅ Migración: \'+r.migrated+\' nuevos, \'+r.skipped+\' ya estaban, \'+r.failed.length+\' fallidos\');openFileStoreV2Modal();})" style="width:100%;margin-bottom:8px;padding:11px;border-radius:var(--r-pill);background:rgba(0,113,227,.1);border:1.5px solid rgba(0,113,227,.25);color:var(--accent);font-weight:600;font-size:.84rem;cursor:pointer;">'+icn('refresh',14)+' Reintentar migración pendiente</button>';
-      h+='<button '+(puedePurgar?'onclick="_confirmModal(\'Se van a borrar '+oldFiles.length+' archivo(s) del store viejo — ya están verificados en el nuevo. ¿Continuar?\',function(){purgeOldFileStore(function(r){showToast(r.ok?(\'✅ \'+r.purged+\' archivo(s) purgados\'):(\'Error: \'+r.error),r.ok?\'\':\'err\');openFileStoreV2Modal();});})"':'disabled')+' style="width:100%;padding:11px;border-radius:var(--r-pill);background:'+(puedePurgar?'rgba(255,59,48,.1)':'rgba(120,120,128,.06)')+';border:1.5px solid '+(puedePurgar?'rgba(255,59,48,.25)':'rgba(120,120,128,.12)')+';color:'+(puedePurgar?'var(--red)':'var(--text3)')+';font-weight:600;font-size:.84rem;cursor:'+(puedePurgar?'pointer':'not-allowed')+';">🗑️ Purgar store viejo'+(puedePurgar?'':' (esperando que migre todo)')+'</button>';
+      h+='<button '+(puedePurgar?'onclick="_confirmModal(\'Se van a borrar '+oldFiles.length+' archivo(s) del store viejo — ya están verificados en el nuevo. ¿Continuar?\',function(){purgeOldFileStore(function(r){showToast(r.ok?(\'✅ \'+r.purged+\' archivo(s) purgados\'):(\'Error: \'+esc(r.error)),r.ok?\'\':\'err\');openFileStoreV2Modal();});})"':'disabled')+' style="width:100%;padding:11px;border-radius:var(--r-pill);background:'+(puedePurgar?'rgba(255,59,48,.1)':'rgba(120,120,128,.06)')+';border:1.5px solid '+(puedePurgar?'rgba(255,59,48,.25)':'rgba(120,120,128,.12)')+';color:'+(puedePurgar?'var(--red)':'var(--text3)')+';font-weight:600;font-size:.84rem;cursor:'+(puedePurgar?'pointer':'not-allowed')+';">🗑️ Purgar store viejo'+(puedePurgar?'':' (esperando que migre todo)')+'</button>';
       openModal(h);
     });
   });
@@ -5108,7 +5114,7 @@ function forzarSincronizacionArchivos(){
   var pendientesAntes=Object.keys(_upqGet()).length;
   var refsAntes=Object.keys(_collectFileRefs()).length;
   if(!window._fbUser||!window._fbStorage){showToast('Sin conexión a la nube — reintentá con internet','warn');return;}
-  showToast('🔄 Sincronizando archivos de este dispositivo…','');
+  showToast(icn('refresh',14)+'Sincronizando archivos de este dispositivo…','');
   _cloudConfirmed={}; // forzar re-chequeo completo, no solo lo ya confirmado en esta sesión
   reconcileFiles();
   var checks=0;
@@ -5117,8 +5123,8 @@ function forzarSincronizacionArchivos(){
     if(!_reconcileRunning||checks>40){
       clearInterval(iv);
       var pendientesAhora=Object.keys(_upqGet()).length;
-      if(pendientesAhora===0)showToast('✅ Todos los archivos de este dispositivo están sincronizados','');
-      else showToast('⚠️ '+pendientesAhora+' archivo(s) no se pudieron subir — revisá la conexión','warn');
+      if(pendientesAhora===0)showToast(_statusDot('#34c759')+'Todos los archivos de este dispositivo están sincronizados','');
+      else showToast(_statusDot('#ff9500')+''+pendientesAhora+' archivo(s) no se pudieron subir — revisá la conexión','warn');
     }
   },750);
 }
@@ -5260,7 +5266,7 @@ function openHTMLViewer(htmlContent,title){
     overlay.classList.remove('hidden');
     // Pre-load pdfmake (PDF nativo: texto vectorial, paginación nativa, sin html2canvas)
     _ensurePdfMake(function(){});
-  }catch(e){showToast('Error abriendo visor: '+(e.message||String(e)),'err');}
+  }catch(e){showToast('Error abriendo visor: '+esc(e.message||String(e)),'err');}
 }
 // Carga pdfmake (+ sus fuentes) una sola vez, encolando cualquier callback que
 // llegue mientras la carga está en curso. ANTES varios llamadores (printReport,
@@ -6025,7 +6031,7 @@ function printReport(){
         // directa siempre produce un único archivo.
         var _svBtn=document.getElementById('pdf-save-btn');if(_svBtn)_svBtn.style.display='inline-block';
       });
-    }catch(e){restore();showToast('Error al generar: '+(e.message||e),'err');}
+    }catch(e){restore();showToast('Error al generar: '+esc(e.message||e),'err');}
   };
   _ensurePdfMake(function(){
     // Intentar convertir URLs https a base64 antes de generar el PDF (para fotos que cargaron via Firebase Storage URL)
@@ -6033,7 +6039,7 @@ function printReport(){
       _convertHttpsImgs(_reportData.imgsMap,function(failed){
         // Si alguna foto no se pudo incrustar, avisarlo: antes se descartaba en
         // silencio y el informe salía sin imágenes sin que nadie se enterara.
-        if(failed>0)showToast('⚠️ '+failed+' imagen'+(failed!==1?'es':'')+' no se pudo incrustar en el PDF (sin conexión al almacenamiento)','warn');
+        if(failed>0)showToast(_statusDot('#ff9500')+''+failed+' imagen'+(failed!==1?'es':'')+' no se pudo incrustar en el PDF (sin conexión al almacenamiento)','warn');
         _doPrintPdf();
       });
     } else {
@@ -6060,10 +6066,10 @@ function _saveReportPdfDirect(){
       window.__TAURI__.dialog.save({defaultPath:_pendingPdfName+'.pdf',filters:[{name:'PDF',extensions:['pdf']}]}).then(function(path){
         if(!path)return; // el usuario canceló el diálogo
         window.__TAURI__.fs.writeFile(path,new Uint8Array(buf)).then(function(){
-          showToast('✅ PDF guardado');
+          showToast(_statusDot('#34c759')+'PDF guardado');
           _markSaved();
-        }).catch(function(e){showToast('No se pudo guardar: '+(e&&e.message?e.message:String(e)),'err');});
-      }).catch(function(e){showToast('No se pudo abrir el diálogo de guardado: '+(e&&e.message?e.message:String(e)),'err');});
+        }).catch(function(e){showToast('No se pudo guardar: '+esc(e&&e.message?e.message:String(e)),'err');});
+      }).catch(function(e){showToast('No se pudo abrir el diálogo de guardado: '+esc(e&&e.message?e.message:String(e)),'err');});
     });
     return;
   }
@@ -6239,7 +6245,7 @@ function attachPDF(tipo){
   input.onchange=function(){
     Array.from(input.files).forEach(function(file){
       var reader=new FileReader();
-      reader.onerror=function(){showToast('⚠️ No se pudo leer "'+file.name+'"','err');};
+      reader.onerror=function(){showToast(_statusDot('#ff9500')+'No se pudo leer "'+esc(file.name)+'"','err');};
       reader.onload=function(e){
         var obj={id:'F-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),nombre:file.name,size:file.size,data:e.target.result};
         if(tipo==='presupuesto'){_pendingPresupuestos.push(obj);}else{_pendingReportes.push(obj);}
@@ -6978,7 +6984,7 @@ function submitMant(eqId){
   if(!pdf){regMant(eqId,f,notas,tecnico,null,orden,empresa,firma);return;}
   var fid='F-'+Date.now()+'-'+Math.random().toString(36).slice(2);
   var reader=new FileReader();
-  reader.onerror=function(){showToast('⚠️ No se pudo leer "'+pdf.name+'"','err');regMant(eqId,f,notas,tecnico,null,orden,empresa,firma);};
+  reader.onerror=function(){showToast(_statusDot('#ff9500')+'No se pudo leer "'+esc(pdf.name)+'"','err');regMant(eqId,f,notas,tecnico,null,orden,empresa,firma);};
   reader.onload=function(e){
     dbSave(fid,pdf.name,e.target.result,function(ok){
       regMant(eqId,f,notas,tecnico,ok?{id:fid,nombre:pdf.name,tipo:pdf.type,tam:pdf.size}:null,orden,empresa,firma);
@@ -7028,7 +7034,7 @@ function submitEditMantConfig(eqId){
     }
     return upd;
   });
-  saveData();closeModal();render();showToast('✅ Mantenimiento actualizado','');
+  saveData();closeModal();render();showToast(_statusDot('#34c759')+'Mantenimiento actualizado','');
 }
 
 // ═══════════════════════════════════════════
@@ -8935,7 +8941,7 @@ function submitPMRealizado(pmId){
   });
   try{localStorage.setItem('mt_pm_prog',JSON.stringify(pmProgramados));}catch(e){}
   firestoreSave();closeModal();render();
-  showToast('✅ PM realizado — OT '+newOTId+' generada');
+  showToast(_statusDot('#34c759')+'PM realizado — OT '+newOTId+' generada');
   auditEntry('modificar','pm',pmId,eq.nombre||pm.eqId,'PM marcado como realizado — OT '+newOTId+' generada autom\xe1ticamente');
 }
 // ── ÓRDENES DE TRABAJO ──
@@ -9363,7 +9369,7 @@ function _pdfDeliver(docDef,filename){
   _pdfEnsurePdfMake(function(){
     showToast('⏳ Generando PDF...');
     try{window.pdfMake.createPdf(docDef).getBlob(function(blob){_pdfDeliverModal(blob,filename);});}
-    catch(e){showToast('Error al generar: '+(e.message||e),'err');}
+    catch(e){showToast('Error al generar: '+esc(e.message||e),'err');}
   });
   if(!window.pdfMake)showToast('Cargando generador, esperá...','');
 }
@@ -10990,7 +10996,7 @@ function attachDocPDF(){
   input.onchange=function(){
     Array.from(input.files).forEach(function(file){
       var reader=new FileReader();
-      reader.onerror=function(){showToast('⚠️ No se pudo leer "'+file.name+'"','err');};
+      reader.onerror=function(){showToast(_statusDot('#ff9500')+'No se pudo leer "'+esc(file.name)+'"','err');};
       reader.onload=function(e){
         _pendingDocs.push({id:'F-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),nombre:file.name,size:file.size,tipo:tipo,fecha:fecha,data:e.target.result});
         renderDocPending();
@@ -11024,7 +11030,7 @@ function submitDocs(eqId){
       if(e.id!==eqId)return e;
       return Object.assign({},e,{documentos:(e.documentos||[]).concat(refs)});
     });
-    saveData();render();closeModal();showToast('✅ Documentos guardados','');
+    saveData();render();closeModal();showToast(_statusDot('#34c759')+'Documentos guardados','');
   });
 }
 function delDoc(eqId,fileId){
@@ -11085,7 +11091,7 @@ function submitAdmin(eqId){
     return Object.assign({},e,{seguroAlta:seg,seguroPoliza:pol,seguroVenc:segV,epecAlta:epec,rugepresaAlta:ruge,rugepresaVenc:rugeV});
   });
   saveData();render();
-  closeModal();showToast('✅ Datos administrativos guardados','');
+  closeModal();showToast(_statusDot('#34c759')+'Datos administrativos guardados','');
 }
 
 // ── DETALLE SUB-VIEWS ──
@@ -12091,7 +12097,7 @@ function reactivarEquipo(eqId){
       if(e.id!==eqId)return e;
       var r=Object.assign({},e);delete r.baja;return r;
     });
-    saveData();render();showToast('✅ Equipo reactivado','');
+    saveData();render();showToast(_statusDot('#34c759')+'Equipo reactivado','');
   });
 }
 
@@ -12155,7 +12161,7 @@ function submitDarDeBajaComp(tipo,compId){
     selTransdId=null;selTransdEqId=null;
   }
   saveDataCritical();closeModal();setView('bajas');
-  showToast(tipo==='antena'?'🔴 Antena dada de baja':'🔴 Transductor dado de baja','warn');
+  showToast(tipo==='antena'?_statusDot('#ff3b30')+'Antena dada de baja':_statusDot('#ff3b30')+'Transductor dado de baja','warn');
 }
 function reactivarComp(tipo,compId){
   var msg=tipo==='antena'?'¿Reactivar esta antena? Va a quedar disponible para vincularla a un equipo de nuevo.':'¿Reactivar este transductor? Va a quedar disponible para vincularlo a un equipo de nuevo.';
@@ -12165,7 +12171,7 @@ function reactivarComp(tipo,compId){
     } else {
       transductores=transductores.map(function(t){if(t.id!==compId)return t;var r=Object.assign({},t);delete r.baja;return r;});
     }
-    saveDataCritical();render();showToast(tipo==='antena'?'✅ Antena reactivada':'✅ Transductor reactivado','');
+    saveDataCritical();render();showToast(tipo==='antena'?_statusDot('#34c759')+'Antena reactivada':_statusDot('#34c759')+'Transductor reactivado','');
   });
 }
 
@@ -12192,7 +12198,7 @@ function rmCompEstado(eq,compId){
 }
 function rmHelioPct(eq){var pc=parseFloat(_refrigData(eq).helioLiqPorcentaje);return isNaN(pc)?null:Math.max(0,Math.min(100,pc));}
 function setShimming(eqId,val){
-  var labels={ok:'✅ Homogéneo',falta:'⚠️ Falta homogeneización'};
+  var labels={ok:_statusDot('#34c759')+'Homogéneo',falta:_statusDot('#ff9500')+'Falta homogeneización'};
   var entry={id:'RH-'+Date.now(),fecha:today(),tipo:'shimming',descripcion:'Shimming: '+labels[val],valor:val,tecnico:'',notas:'',registradoEn:new Date().toISOString()};
   _saveRefrig(eqId,{shimming:val},entry);
   showToast(labels[val],'');
@@ -12852,7 +12858,7 @@ function openModalJaulaParte(eqId,parteId){
   window._jpFotoChange=function(ev){
     var file=ev.target.files&&ev.target.files[0];if(!file)return;
     var rdr=new FileReader();
-    rdr.onerror=function(){showToast('⚠️ No se pudo leer "'+file.name+'"','err');};
+    rdr.onerror=function(){showToast(_statusDot('#ff9500')+'No se pudo leer "'+esc(file.name)+'"','err');};
     rdr.onload=function(e){
       _resizeReportImg(e.target.result,function(resized){
         _jpFotoB64=resized;_jpFotoChanged=true;
@@ -13496,7 +13502,7 @@ function toggleMonthlyReminder(){
   else{
     if(!('Notification' in window)){showToast('Notificaciones no soportadas en este navegador','warn');return;}
     if(Notification.permission==='denied'){showToast('Notificaciones bloqueadas — habilitálas en Ajustes del sistema → Notificaciones','warn');return;}
-    var _grant=function(perm){if(perm==='granted'){localStorage.setItem('cima_reminder','1');updateSettingsUI();showToast('✅ Recordatorio activado — avisará el último día de cada mes','');}else{showToast('Permiso denegado para notificaciones','warn');}};
+    var _grant=function(perm){if(perm==='granted'){localStorage.setItem('cima_reminder','1');updateSettingsUI();showToast(_statusDot('#34c759')+'Recordatorio activado — avisará el último día de cada mes','');}else{showToast('Permiso denegado para notificaciones','warn');}};
     var p=Notification.requestPermission();
     if(p&&typeof p.then==='function')p.then(_grant);else _grant(p);
   }
@@ -13549,7 +13555,7 @@ function toggleAlertNotif(){
         localStorage.setItem('mt_alertnotif','1');
         localStorage.removeItem('mt_notif_sent');
         updateSettingsUI();
-        showToast('✅ Alertas críticas activadas','');
+        showToast(_statusDot('#34c759')+'Alertas críticas activadas','');
         checkAlertNotifs();
       }else{showToast('Permiso denegado para notificaciones','warn');}
     };
@@ -13663,7 +13669,7 @@ function _doExportBackup(archivos){
   var j=JSON.stringify({version:"cimahub_v4",fecha:new Date().toISOString(),equipos:eqs,archivos:archivos},null,2);
   var b=new Blob([j],{type:"application/json"});var u=URL.createObjectURL(b);
   var a=document.createElement("a");a.href=u;a.download="CIMAHub_Backup_"+today()+".json";document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(u);
-  showToast("📥 Backup listo ("+archivos.length+" PDF"+(archivos.length!==1?"s":"")+" incluido"+(archivos.length!==1?"s":"")+")"  );toggleSettings();
+  showToast(icn('download',14)+"Backup listo ("+archivos.length+" PDF"+(archivos.length!==1?"s":"")+" incluido"+(archivos.length!==1?"s":"")+")"  );toggleSettings();
 }
 function importBackup(ev){
   var f=ev.target.files[0];if(!f)return;var r=new FileReader();
@@ -13681,7 +13687,7 @@ function importBackup(ev){
           // antes de sincronizar los equipos (que ya los referencian) — ver _dbSaveAll.
           _dbSaveAll(_archs,function(){
             saveData();
-            showToast("✅ Restaurado ("+eqs.length+" equipos, "+nPDF+" PDFs)");toggleSettings();render();
+            showToast(_statusDot('#34c759')+"Restaurado ("+eqs.length+" equipos, "+nPDF+" PDFs)");toggleSettings();render();
           });
         },null,'Restaurar');
       } else {alert("Formato inválido.");}
@@ -14860,11 +14866,11 @@ var MT_MAX_FOTO_BYTES=20*1024*1024;
 function _readAndResizeFoto(file,cb){
   if(!file){cb(null);return;}
   if(file.size>MT_MAX_FOTO_BYTES){
-    showToast('⚠️ "'+file.name+'" pesa demasiado (>20MB) y se salteó','warn');
+    showToast(_statusDot('#ff9500')+'"'+esc(file.name)+'" pesa demasiado (>20MB) y se salteó','warn');
     cb(null);return;
   }
   var reader=new FileReader();
-  reader.onerror=function(){showToast('⚠️ No se pudo leer "'+file.name+'"','warn');cb(null);};
+  reader.onerror=function(){showToast(_statusDot('#ff9500')+'No se pudo leer "'+esc(file.name)+'"','warn');cb(null);};
   reader.onload=function(e){_resizeReportImg(e.target.result,function(resized){cb(resized);});};
   reader.readAsDataURL(file);
 }
@@ -15010,7 +15016,7 @@ function generateReportDirect(){
     html+='<div class="footer"><div class="footer-meta">CIMA Investigaciones Avanzadas · CIMA Hub · Generado: '+nowDate.toLocaleString("es-AR")+'</div><div class="sig-row"><div class="sig-block"><div class="sig-line">Lic. García Núñez Iván</div><div class="sig-title">Responsable de Equipos Biomédicos</div></div></div></div>';
     html+='</div></body></html>';
     openHTMLViewer(html,'Informe Equipos CIMA — '+mesAnio);
-  }catch(err){showToast('Error: '+(err&&err.message?err.message:String(err)),'warn');}
+  }catch(err){showToast('Error: '+esc(err&&err.message?err.message:String(err)),'warn');}
 }
 function generateReport(){
   var tipo=(document.getElementById('rep-tipo')||{}).value||'todo';
@@ -15118,7 +15124,7 @@ function generateReport(){
     hasData=true;
     tm+=mantH.length;tr+=repH.length;tmej+=mejH.length;tact+=actH.length;
     eqData.push({eq:eq,ci:ci,mantH:mantH,repH:repH,mejH:mejH,actH:actH,mejP:mejP,trasladosH:trasladosH,antRoturas:antRoturas,antHistorial:antHistorial,tranRoturas:tranRoturas,tranHistorial:tranHistorial,fallasDir:fallasDir});
-  });}catch(_fe){showToast('Error procesando equipos: '+(_fe&&_fe.message?_fe.message:String(_fe)),'err');return;}
+  });}catch(_fe){showToast('Error procesando equipos: '+esc(_fe&&_fe.message?_fe.message:String(_fe)),'err');return;}
   // Always generate if equipment selected — no-activity periods still produce a status report
   try{localStorage.setItem('cima_nro_informe',String(nroInforme+1));localStorage.setItem('cima_rep_para',paraInforme);}catch(e){}
   // Collect all image IDs needed
@@ -15156,7 +15162,7 @@ function generateReport(){
     // fotos" sin ninguna pista de cuáles ni por qué.
     if(allImgIds.length){
       var _imgOk=0;allImgIds.forEach(function(id){if(imgsMap[id]&&_pdfIsImg(imgsMap[id]))_imgOk++;});
-      if(_imgOk<allImgIds.length)showToast('⚠️ '+(allImgIds.length-_imgOk)+' de '+allImgIds.length+' foto(s) no se pudieron incluir en el PDF — revisá los recuadros de aviso en la vista previa del informe','warn');
+      if(_imgOk<allImgIds.length)showToast(_statusDot('#ff9500')+''+(allImgIds.length-_imgOk)+' de '+allImgIds.length+' foto(s) no se pudieron incluir en el PDF — revisá los recuadros de aviso en la vista previa del informe','warn');
     }
     var eqSections='';
     eqData.forEach(function(d){
@@ -15519,7 +15525,7 @@ function generateReport(){
     // esta sección se había agregado únicamente acá (la vista previa la mostraba bien)
     // pero _buildPdfDoc() nunca la leía — el PDF exportado no la tenía.
     _reportData={eqData:eqData,imgsMap:imgsMap||{},logo:logoB64||_logoSync,nro:nroInforme,para:paraInforme,periodoLabel:periodoLabel,mesAnio:mesAnio,fechaCreacion:fechaCreacion,tm:tm,tr:tr,tmej:tmej,tact:tact,hasData:hasData,sumData:sumData,introText:introText,resumenText:resumenText,conclusionText:conclusionText,jaulaEqs:filtEqsRM,altasRango:altasRango,bajasRango:bajasRango};
-    }catch(err){window._reportBusy=false;showToast('Error al generar: '+(err&&err.message?err.message:String(err)),'warn');console.error('generateReport error:',err);}
+    }catch(err){window._reportBusy=false;showToast('Error al generar: '+esc(err&&err.message?err.message:String(err)),'warn');console.error('generateReport error:',err);}
   }
   // If no images: build synchronously (avoids async/XHR issues on iOS PWA)
   if(!allImgIds.length){
@@ -15642,11 +15648,11 @@ function _doScanLabel(prompt,onResult){
     if(!file){document.body.removeChild(inp);return;}
     var sb=document.getElementById('scan-label-btn');
     if(sb){sb.disabled=true;sb.innerHTML='⏳ Analizando…';}
-    showToast('📷 Analizando etiqueta con IA…','');
+    showToast(icn('camera',14)+'Analizando etiqueta con IA…','');
     var reader=new FileReader();
     reader.onerror=function(){
       document.body.removeChild(inp);
-      showToast('⚠️ No se pudo leer la foto','err');
+      showToast(_statusDot('#ff9500')+'No se pudo leer la foto','err');
       var sb2=document.getElementById('scan-label-btn');
       if(sb2){sb2.disabled=false;sb2.innerHTML=icn('camera',14)+'Escanear etiqueta';}
     };
@@ -15731,7 +15737,7 @@ function scanLabelAntena(){
       if(data.canales)fill('ant-canales',String(data.canales));
       if(data.tipo){var el=document.getElementById('ant-tipo');if(el)el.value=data.tipo;}
       if(data.fecha){var f=String(data.fecha);if(/^\d{4}-\d{2}$/.test(f))f=f+'-01';fill('ant-fecha',f);}
-      showToast('✅ Datos cargados desde la etiqueta','');
+      showToast(_statusDot('#34c759')+'Datos cargados desde la etiqueta','');
     }
   );
 }
@@ -15745,7 +15751,7 @@ function scanLabelTransductor(){
       fill('tr-nro-serie',data.nroSerie);
       if(data.tipo){var el=document.getElementById('tr-tipo');if(el)el.value=data.tipo;}
       if(data.frecuencia)fill('tr-frec',String(data.frecuencia));
-      showToast('✅ Datos cargados desde la etiqueta','');
+      showToast(_statusDot('#34c759')+'Datos cargados desde la etiqueta','');
     }
   );
 }
@@ -15760,7 +15766,7 @@ function scanLabelAntenaEdit(){
       if(data.canales)fill('edit-ant-canales',String(data.canales));
       if(data.tipo){var el=document.getElementById('edit-ant-tipo');if(el)el.value=data.tipo;}
       if(data.fecha){var f=String(data.fecha);if(/^\d{4}-\d{2}$/.test(f))f=f+'-01';fill('edit-ant-fecha',f);}
-      showToast('✅ Datos cargados desde la etiqueta','');
+      showToast(_statusDot('#34c759')+'Datos cargados desde la etiqueta','');
     }
   );
 }
@@ -15774,7 +15780,7 @@ function scanLabelTransductorEdit(){
       fill('tr-e-nro-serie',data.nroSerie);
       if(data.tipo){var el=document.getElementById('tr-e-tipo');if(el)el.value=data.tipo;}
       if(data.frecuencia)fill('tr-e-frec',String(data.frecuencia));
-      showToast('✅ Datos cargados desde la etiqueta','');
+      showToast(_statusDot('#34c759')+'Datos cargados desde la etiqueta','');
     }
   );
 }
@@ -15795,7 +15801,7 @@ function scanLabelEquipo(){
         fill('eq-inst',f);
       }
       fill('eq-ct',data.contrato);
-      showToast('✅ Datos cargados desde la etiqueta','');
+      showToast(_statusDot('#34c759')+'Datos cargados desde la etiqueta','');
     }
   );
 }
@@ -16089,13 +16095,13 @@ function submitAddAntenna(rmEquipId){
   var ant={id:'ANTEN-'+Date.now(),nombre:nombre.trim(),tipo:tipo||null,nroSerie:nroSerie||null,nombreOrigen:origen,cantidadCanales:canales||null,estado:estado,fechaCompra:fecha,notas:notas,roturas:[],creadoEn:new Date().toISOString()};
   antenas.push(ant);
   eqs=eqs.map(function(e){if(e.id===rmEquipId)return Object.assign({},e,{antenaIds:(e.antenaIds||[]).concat(ant.id)});return e;});
-  saveDataCritical();closeModal();showToast('📡 Antena agregada','');
+  saveDataCritical();closeModal();showToast(icn('rss',14)+'Antena agregada','');
   render();
 }
 function setAntenaEstado(antenaId,estado){
   antenas=antenas.map(function(a){return a.id===antenaId?Object.assign({},a,{estado:estado}):a;});
   saveDataCritical();
-  var lbl={operativa:'✅ Operativa',con_fallas:'⚠️ Con fallas',fuera_servicio:'🔴 Fuera de servicio'}[estado]||estado;
+  var lbl={operativa:_statusDot('#34c759')+'Operativa',con_fallas:_statusDot('#ff9500')+'Con fallas',fuera_servicio:_statusDot('#ff3b30')+'Fuera de servicio'}[estado]||estado;
   showToast(lbl,'');render();
   if(estado==='con_fallas'||estado==='fuera_servicio'){
     setTimeout(function(){openAddRoturaModalV2(antenaId);},350);
@@ -16140,7 +16146,7 @@ function submitMoverAntena(antenaId){
   });
   var destino=eqs.find(function(e){return e.id===destId;});
   auditEntry('modificar','eq',antenaId,'Antena',(origen?'Movida de '+origen.nombre+' a ':'Vinculada a ')+(destino?destino.nombre:destId));
-  saveDataCritical();closeModal();showToast('✅ Antena movida a '+(destino?destino.nombre:'el equipo elegido'),'');
+  saveDataCritical();closeModal();showToast(_statusDot('#34c759')+'Antena movida a '+(destino?esc(destino.nombre):'el equipo elegido'),'');
   selAntenaEqId=destId;
   render();
 }
@@ -16226,7 +16232,7 @@ function _jaulaPeorNivel(eq){
   return peor;
 }
 function setChillerEstado(eqId,estado){
-  var labels={operativo:'✅ Operativo',service:'🔧 Service',rotura:'🔴 Rotura'};
+  var labels={operativo:_statusDot('#34c759')+'Operativo',service:icn('wrench',14)+'Service',rotura:_statusDot('#ff3b30')+'Rotura'};
   var entry={id:'RH-'+Date.now(),fecha:today(),tipo:'chiller',descripcion:'Chiller: '+labels[estado],valor:estado,tecnico:'',notas:'',registradoEn:new Date().toISOString()};
   _saveRefrig(eqId,{chiller:estado},entry);
   showToast(labels[estado],'');
@@ -16251,10 +16257,10 @@ function submitServiceChiller(eqId){
   var desc='Service Chiller'+(tec?' — '+tec:'');
   var entry={id:'RH-'+Date.now(),fecha:fecha,tipo:'chiller',descripcion:desc,valor:'service',tecnico:tec,notas:notas,registradoEn:new Date().toISOString()};
   _saveRefrig(eqId,{chiller:'service'},entry);
-  closeModal();showToast('✅ Service de Chiller registrado','');
+  closeModal();showToast(_statusDot('#34c759')+'Service de Chiller registrado','');
 }
 function setHelioGaseoso(eqId,estado){
-  var labels={ok:'✅ OK',presion_baja:'⚠️ Presión Baja'};
+  var labels={ok:_statusDot('#34c759')+'OK',presion_baja:_statusDot('#ff9500')+'Presión Baja'};
   // Solo actualiza el estado, NO crea registro de historial ni lectura
   _saveRefrig(eqId,{helioGaseoso:estado});
   showToast('Helio Gaseoso: '+labels[estado],'');
@@ -16288,7 +16294,7 @@ function submitActualizarHelioGaseoso(eqId){
   if(pres)rfUp.helioGasPresionActual=pres;
   var lectura=pres?{id:'RL-'+Date.now(),fecha:today(),helioGasPresion:parseFloat(pres),helioLiqPorc:null,helioLiqPresion:null,registradoEn:new Date().toISOString()}:null;
   _saveRefrig(eqId,rfUp,null,lectura);
-  closeModal();showToast('✅ Helio Gaseoso actualizado','');
+  closeModal();showToast(_statusDot('#34c759')+'Helio Gaseoso actualizado','');
 }
 function openCargaRealHelioGaseoso(eqId){
   openModal(
@@ -16322,7 +16328,7 @@ function submitCargaRealHelioGaseoso(eqId){
   var entry={id:'RH-'+Date.now(),fecha:fecha,tipo:'carga_gaseoso',descripcion:desc,valor:litros,empresa:empresa,tecnico:tec,notas:notas,registradoEn:new Date().toISOString()};
   var lectura=presPost?{id:'RL-'+Date.now(),fecha:fecha,helioGasPresion:parseFloat(presPost),helioLiqPorc:null,helioLiqPresion:null,registradoEn:new Date().toISOString()}:null;
   _saveRefrig(eqId,rfUp,entry,lectura);
-  closeModal();showToast('✅ Carga Real Helio Gaseoso registrada','');
+  closeModal();showToast(_statusDot('#34c759')+'Carga Real Helio Gaseoso registrada','');
 }
 function openActualizarHelioLiquido(eqId){
   var eq=eqs.find(function(e){return e.id===eqId;});
@@ -16347,7 +16353,7 @@ function submitHelioLiquido(eqId){
   // Actualización diaria: actualiza valores + guarda lectura para el gráfico, sin historial
   var lectura={id:'RL-'+Date.now(),fecha:today(),helioGasPresion:null,helioLiqPorc:porc?parseFloat(porc):null,helioLiqPresion:pres?parseFloat(pres):null,registradoEn:new Date().toISOString()};
   _saveRefrig(eqId,{helioLiqPresion:pres,helioLiqPorcentaje:porc},null,lectura);
-  closeModal();showToast('✅ Helio Líquido actualizado','');
+  closeModal();showToast(_statusDot('#34c759')+'Helio Líquido actualizado','');
 }
 function openCargaRealHelioLiquido(eqId){
   openModal(
@@ -16384,7 +16390,7 @@ function submitCargaRealHelioLiquido(eqId){
   var entry={id:'RH-'+Date.now(),fecha:fecha,tipo:'carga_liquido',descripcion:desc,valor:porc,litros:litros,empresa:empresa,tecnico:tec,notas:notas,registradoEn:new Date().toISOString()};
   var lectura={id:'RL-'+Date.now(),fecha:fecha,helioGasPresion:null,helioLiqPorc:porc?parseFloat(porc):null,helioLiqPresion:pres?parseFloat(pres):null,registradoEn:new Date().toISOString()};
   _saveRefrig(eqId,rfUp,entry,lectura);
-  closeModal();showToast('✅ Carga Real Helio Líquido registrada','');
+  closeModal();showToast(_statusDot('#34c759')+'Carga Real Helio Líquido registrada','');
 }
 // ── GE Healthcare input helpers (valores ya en L/min y °C desde app GE) ──
 function _geConvGPM(el){} // obsoleto — se mantiene por compatibilidad
@@ -16444,7 +16450,7 @@ function submitActualizarEstadoMagneto(eqId){
   var lectura=null;
   if(liqPorc||liqPres){lectura={id:'RL-'+Date.now(),fecha:today(),helioGasPresion:null,helioLiqPorc:liqPorc?parseFloat(liqPorc):null,helioLiqPresion:liqPres?parseFloat(liqPres):null,registradoEn:new Date().toISOString()};}
   _saveRefrig(eqId,rfUp,null,lectura);
-  closeModal();showToast('📱 Datos GE actualizados','');
+  closeModal();showToast(icn('smartphone',14)+'Datos GE actualizados','');
 }
 
 // ── iOS Shortcut guide modal ──
@@ -16504,7 +16510,7 @@ function _processGEUrlUpdate(){
   var lectura=null;
   if(p.lp||p.lpr){lectura={id:'RL-'+Date.now(),fecha:today(),helioGasPresion:null,helioLiqPorc:p.lp?parseFloat(p.lp):null,helioLiqPresion:p.lpr?parseFloat(p.lpr):null,registradoEn:new Date().toISOString()};}
   _saveRefrig(eqId,rfUp,null,lectura);
-  showToast('📱 Datos GE importados — '+esc(eq.nombre),'');
+  showToast(icn('smartphone',14)+'Datos GE importados — '+esc(eq.nombre),'');
   setTimeout(function(){goDetalle(eqId);},400);
 }
 
@@ -16570,7 +16576,7 @@ function submitLecturaSala(eqId){
   var cargados=[rec.chillerTempC,rec.helioGasPresion,rec.helioLiqPresion,rec.helioLiqPorc,rec.salaTempC,rec.salaHumedad].filter(function(v){return v!=null&&!isNaN(v);});
   if(!cargados.length){alert('Cargá al menos un valor');return;}
   _saveRefrig(eqId,{},null,rec);
-  closeModal();showToast('✅ Lectura registrada','');
+  closeModal();showToast(_statusDot('#34c759')+'Lectura registrada','');
 }
 function deleteLecturaSala(eqId,lecId){
   // _confirmModal en vez de confirm() nativo — ver nota en deleteCustomCat.
@@ -17069,7 +17075,7 @@ function uploadAntenaPresupuestoCompra(antenaId,file){
   if(!file)return;
   var fid='F-'+Date.now()+'-'+Math.random().toString(36).slice(2);
   var reader=new FileReader();
-  reader.onerror=function(){showToast('⚠️ No se pudo leer "'+file.name+'"','err');};
+  reader.onerror=function(){showToast(_statusDot('#ff9500')+'No se pudo leer "'+esc(file.name)+'"','err');};
   reader.onload=function(e){
     dbSave(fid,file.name,e.target.result,function(ok){
       if(!ok){showToast('Error al guardar PDF','err');return;}
@@ -17077,7 +17083,7 @@ function uploadAntenaPresupuestoCompra(antenaId,file){
         if(a.id===antenaId)return Object.assign({},a,{presupuestoCompraPdf:{id:fid,nombre:file.name,tipo:file.type,tam:file.size}});
         return a;
       });
-      saveData();showToast('📄 Presupuesto de compra subido','');render();
+      saveData();showToast(icn('file',14)+'Presupuesto de compra subido','');render();
     });
   };
   reader.readAsDataURL(file);
@@ -17093,7 +17099,7 @@ function uploadAntenaReporte(antenaId,file){
   if(!file)return;
   var fid='F-'+Date.now()+'-'+Math.random().toString(36).slice(2);
   var reader=new FileReader();
-  reader.onerror=function(){showToast('⚠️ No se pudo leer "'+file.name+'"','err');};
+  reader.onerror=function(){showToast(_statusDot('#ff9500')+'No se pudo leer "'+esc(file.name)+'"','err');};
   reader.onload=function(e){
     dbSave(fid,file.name,e.target.result,function(ok){
       if(!ok){showToast('Error al guardar PDF','err');return;}
@@ -17104,7 +17110,7 @@ function uploadAntenaReporte(antenaId,file){
         }
         return a;
       });
-      saveData();showToast('📄 Reporte agregado','');render();
+      saveData();showToast(icn('file',14)+'Reporte agregado','');render();
     });
   };
   reader.readAsDataURL(file);
@@ -17234,7 +17240,7 @@ function submitAddRoturaV2(antenaId){
       eqs=eqs.map(function(e){if(e.id!==linkedEq.id)return e;return Object.assign({},e,{partes:(e.partes||[]).concat(nuevaParte)});});
     }
     saveDataCritical();closeModal();
-    showToast(linkedEq?'⚠️ Rotura en antena \xb7 parte creada en '+linkedEq.nombre:'⚠️ Rotura registrada (antena sin equipo vinculado)','warn');
+    showToast(linkedEq?_statusDot('#ff9500')+'Rotura en antena \xb7 parte creada en '+esc(linkedEq.nombre):_statusDot('#ff9500')+'Rotura registrada (antena sin equipo vinculado)','warn');
     render();
   };
   var pendFotos=(window._pendRotFotos||[]).filter(Boolean);window._pendRotFotos=[];
@@ -17245,7 +17251,7 @@ function submitAddRoturaV2(antenaId){
       if(!presPend){saveAndFinish(null,uploadedFotos);return;}
       var fid='F-'+Date.now()+'-'+Math.random().toString(36).slice(2);
       var rdr=new FileReader();
-      rdr.onerror=function(){showToast('⚠️ No se pudo leer "'+presPend.name+'"','err');saveAndFinish(null,uploadedFotos);};
+      rdr.onerror=function(){showToast(_statusDot('#ff9500')+'No se pudo leer "'+esc(presPend.name)+'"','err');saveAndFinish(null,uploadedFotos);};
       rdr.onload=function(e2){dbSave(fid,presPend.name,e2.target.result,function(ok){saveAndFinish(ok?{id:fid,nombre:presPend.name,tipo:presPend.type,tam:presPend.size}:null,uploadedFotos);});};
       rdr.readAsDataURL(presPend);
       return;
@@ -17362,13 +17368,13 @@ function submitSeguimientoRotura(antenaId,roturaId){
         return Object.assign({},r,{fechaEnvio:fechaEnvio,empresa:empresa.trim(),estado:nuevoEstado,notasSeguimiento:nuevasNotas,presupuestosArreglo:nuevosPres});
       })});
     });
-    saveData();closeModal();showToast('📋 Seguimiento actualizado','');render();
+    saveData();closeModal();showToast(icn('clipboard',14)+'Seguimiento actualizado','');render();
   };
   var presPend=window._pendSegPres;window._pendSegPres=null;
   if(!presPend){saveAndFinish(null);return;}
   var fid='F-'+Date.now()+'-'+Math.random().toString(36).slice(2);
   var rdr=new FileReader();
-  rdr.onerror=function(){showToast('⚠️ No se pudo leer "'+presPend.name+'"','err');saveAndFinish(null);};
+  rdr.onerror=function(){showToast(_statusDot('#ff9500')+'No se pudo leer "'+esc(presPend.name)+'"','err');saveAndFinish(null);};
   rdr.onload=function(e){dbSave(fid,presPend.name,e.target.result,function(ok){saveAndFinish(ok?{id:fid,nombre:presPend.name,tipo:presPend.type,tam:presPend.size}:null);});};
   rdr.readAsDataURL(presPend);
 }
@@ -17513,14 +17519,14 @@ function submitMarkReparada(antenaId,roturaId){
     // (submitFallaDirecta) — cerrar también esa copia, si no queda "roto" ahí para siempre.
     if(rot._fallaDirectaId&&rot._eqId)_cerrarFallaDirectaMirror(rot._fallaDirectaId,rot._eqId);
     saveData();closeModal();
-    showToast(linkedEq?'✅ Reparación registrada · historial actualizado en '+linkedEq.nombre:'✅ Reparación registrada en historial de antena','');
+    showToast(linkedEq?_statusDot('#34c759')+'Reparación registrada · historial actualizado en '+esc(linkedEq.nombre):_statusDot('#34c759')+'Reparación registrada en historial de antena','');
     render();
   };
   var repPend=window._pendRotRepArr;window._pendRotRepArr=null;
   if(!repPend){saveAndFinish(null);return;}
   var fid='F-'+Date.now()+'-'+Math.random().toString(36).slice(2);
   var reader=new FileReader();
-  reader.onerror=function(){showToast('⚠️ No se pudo leer "'+repPend.name+'"','err');saveAndFinish(null);};
+  reader.onerror=function(){showToast(_statusDot('#ff9500')+'No se pudo leer "'+esc(repPend.name)+'"','err');saveAndFinish(null);};
   reader.onload=function(e){dbSave(fid,repPend.name,e.target.result,function(ok){saveAndFinish(ok?{id:fid,nombre:repPend.name,tipo:repPend.type,tam:repPend.size}:null);});};
   reader.readAsDataURL(repPend);
 }
@@ -17614,7 +17620,7 @@ function submitMarkTransductorReparado(trId,rotId){
   // (submitFallaDirecta) — cerrar también esa copia, si no queda "roto" ahí para siempre.
   if(rot._fallaDirectaId&&rot._eqId)_cerrarFallaDirectaMirror(rot._fallaDirectaId,rot._eqId);
   saveData();closeModal();
-  showToast(linkedEq?'✅ Reparaci\xf3n registrada \xb7 historial actualizado en '+linkedEq.nombre:'✅ Reparaci\xf3n registrada','');
+  showToast(linkedEq?_statusDot('#34c759')+'Reparaci\xf3n registrada \xb7 historial actualizado en '+esc(linkedEq.nombre):_statusDot('#34c759')+'Reparaci\xf3n registrada','');
   render();
 }
 
@@ -17695,7 +17701,7 @@ function submitEditAntenna(antenaId){
     if(a.id!==antenaId)return a;
     return Object.assign({},a,{nombre:nombre.trim(),tipo:tipo||null,nroSerie:nroSerie||null,nombreOrigen:origen,cantidadCanales:canales||null,estado:estado,fechaCompra:fecha,notas:notas.trim(),vecesReparadaManual:repManual});
   });
-  saveDataCritical();closeModal();showToast('✏️ Antena actualizada','');render();
+  saveDataCritical();closeModal();showToast(icn('edit',14)+'Antena actualizada','');render();
   if(estadoPrev!==estado&&(estado==='con_fallas'||estado==='fuera_servicio')){
     setTimeout(function(){openAddRoturaModalV2(antenaId);},350);
   }
@@ -17758,13 +17764,13 @@ function submitEditRotura(antenaId,roturaId){
         return Object.assign({},r,{fecha:fecha,queSeRompio:que.trim(),descripcion:desc.trim(),tecnico:tec.trim(),presupuestoArregloPdf:presRef!==undefined?presRef:r.presupuestoArregloPdf});
       })});
     });
-    saveData();closeModal();showToast('✏️ Rotura actualizada','');render();
+    saveData();closeModal();showToast(icn('edit',14)+'Rotura actualizada','');render();
   };
   var presPend=window._pendEditRotPres;window._pendEditRotPres=null;
   if(!presPend){saveAndFinish(undefined);return;}
   var fid='F-'+Date.now()+'-'+Math.random().toString(36).slice(2);
   var reader=new FileReader();
-  reader.onerror=function(){showToast('⚠️ No se pudo leer "'+presPend.name+'"','err');saveAndFinish(rot.presupuestoArregloPdf);};
+  reader.onerror=function(){showToast(_statusDot('#ff9500')+'No se pudo leer "'+esc(presPend.name)+'"','err');saveAndFinish(rot.presupuestoArregloPdf);};
   reader.onload=function(e){dbSave(fid,presPend.name,e.target.result,function(ok){saveAndFinish(ok?{id:fid,nombre:presPend.name,tipo:presPend.type,tam:presPend.size}:rot.presupuestoArregloPdf);});};
   reader.readAsDataURL(presPend);
 }
@@ -17831,13 +17837,13 @@ function submitEditHistorial(antenaId,histId){
         return Object.assign({},h,{fecha:fecha,fechaRotura:fechaRot,queSeRompio:que.trim(),descripcion:desc.trim(),tecnico:tec.trim(),reporteArregloPdf:repRef!==undefined?repRef:h.reporteArregloPdf});
       })});
     });
-    saveData();closeModal();showToast('✏️ Historial actualizado','');render();
+    saveData();closeModal();showToast(icn('edit',14)+'Historial actualizado','');render();
   };
   var repPend=window._pendEditHistRep;window._pendEditHistRep=null;
   if(!repPend){saveAndFinish(undefined);return;}
   var fid='F-'+Date.now()+'-'+Math.random().toString(36).slice(2);
   var reader=new FileReader();
-  reader.onerror=function(){showToast('⚠️ No se pudo leer "'+repPend.name+'"','err');saveAndFinish(hh.reporteArregloPdf);};
+  reader.onerror=function(){showToast(_statusDot('#ff9500')+'No se pudo leer "'+esc(repPend.name)+'"','err');saveAndFinish(hh.reporteArregloPdf);};
   reader.onload=function(e){dbSave(fid,repPend.name,e.target.result,function(ok){saveAndFinish(ok?{id:fid,nombre:repPend.name,tipo:repPend.type,tam:repPend.size}:hh.reporteArregloPdf);});};
   reader.readAsDataURL(repPend);
 }
@@ -17961,7 +17967,7 @@ function _buildAntennasReport(eq,assigned,desde,hasta,logoB64,imgsMap){
 function setTransductorEstado(transductorId,estado){
   transductores=transductores.map(function(t){if(t.id===transductorId)return Object.assign({},t,{estado:estado});return t;});
   saveDataCritical();
-  var lbl={operativo:'✅ Operativo',con_fallas:'⚠️ Con fallas',fuera_servicio:'🔴 Fuera de servicio'}[estado]||estado;
+  var lbl={operativo:_statusDot('#34c759')+'Operativo',con_fallas:_statusDot('#ff9500')+'Con fallas',fuera_servicio:_statusDot('#ff3b30')+'Fuera de servicio'}[estado]||estado;
   showToast(lbl,'');render();
   if(estado==='con_fallas'||estado==='fuera_servicio'){
     setTimeout(function(){openAddTransductorRoturaModal(transductorId);},350);
@@ -18040,7 +18046,7 @@ function submitAddTransductor(ecoEquipId){
   var tr={id:'TRSD-'+Date.now(),nombre:nombre,modelo:modelo||null,nroSerie:nroSerie||null,tipo:tipo||null,frecuencia:frec||null,estado:estado,fechaCompra:fecha,notas:notas,roturas:[],historialTransductor:[],creadoEn:new Date().toISOString()};
   transductores.push(tr);
   eqs=eqs.map(function(e){if(e.id===ecoEquipId)return Object.assign({},e,{transductorIds:(e.transductorIds||[]).concat(tr.id)});return e;});
-  saveData();closeModal();showToast('✅ Transductor agregado','');goTransductores(ecoEquipId);
+  saveData();closeModal();showToast(_statusDot('#34c759')+'Transductor agregado','');goTransductores(ecoEquipId);
 }
 function openEditTransductorModal(transductorId){
   var tr=transductores.find(function(t){return t.id===transductorId;});if(!tr)return;
@@ -18105,7 +18111,7 @@ function submitEditTransductor(transductorId){
     if(t.id!==transductorId)return t;
     return Object.assign({},t,{nombre:nombre,modelo:modelo||null,nroSerie:nroSerie||null,tipo:tipo||null,frecuencia:frec||null,estado:estado,fechaCompra:fecha,notas:notas});
   });
-  saveDataCritical();closeModal();render();showToast('✅ Transductor actualizado','');
+  saveDataCritical();closeModal();render();showToast(_statusDot('#34c759')+'Transductor actualizado','');
   if(estadoPrev!==estado&&(estado==='con_fallas'||estado==='fuera_servicio')){
     setTimeout(function(){openAddTransductorRoturaModal(transductorId);},350);
   }
@@ -18215,7 +18221,7 @@ function submitTransductorRotura(transductorId){
     // El estado elegido acá (operativo/con fallas/fuera de servicio) se refleja también
     // en la ficha del transductor — antes había que ir a "Editar Transductor" aparte.
     transductores=transductores.map(function(t){if(t.id===transductorId)return Object.assign({},t,{roturas:(t.roturas||[]).concat(rot),estado:trEstado});return t;});
-    saveDataCritical();closeModal();render();showToast('🔴 Rotura registrada','warn');
+    saveDataCritical();closeModal();render();showToast(_statusDot('#ff3b30')+'Rotura registrada','warn');
   };
   var pendFotos=(window._pendTrRotFotos||[]).filter(Boolean);window._pendTrRotFotos=[];
   var presPend=window._pendTrRotPresArr;window._pendTrRotPresArr=null;
@@ -18225,7 +18231,7 @@ function submitTransductorRotura(transductorId){
       if(!presPend){saveAndFinish(null,uploadedFotos);return;}
       var fid='F-'+Date.now()+'-'+Math.random().toString(36).slice(2);
       var rdr=new FileReader();
-      rdr.onerror=function(){showToast('⚠️ No se pudo leer "'+presPend.name+'"','err');saveAndFinish(null,uploadedFotos);};
+      rdr.onerror=function(){showToast(_statusDot('#ff9500')+'No se pudo leer "'+esc(presPend.name)+'"','err');saveAndFinish(null,uploadedFotos);};
       rdr.onload=function(e2){dbSave(fid,presPend.name,e2.target.result,function(ok){saveAndFinish(ok?{id:fid,nombre:presPend.name,tipo:presPend.type,tam:presPend.size}:null,uploadedFotos);});};
       rdr.readAsDataURL(presPend);
       return;
@@ -18338,13 +18344,13 @@ function submitSeguimientoTransductorRotura(transId,rotId){
     // Este desplegable de "Estado" también puede pasar a Reparado — si la rotura es el espejo
     // de una Falla Directa cargada desde el equipo, hay que cerrar esa copia también.
     if(nuevoEstado==='reparado'&&!eraReparado&&rot._fallaDirectaId&&rot._eqId)_cerrarFallaDirectaMirror(rot._fallaDirectaId,rot._eqId);
-    saveDataCritical();closeModal();showToast('📋 Seguimiento actualizado','');render();
+    saveDataCritical();closeModal();showToast(icn('clipboard',14)+'Seguimiento actualizado','');render();
   };
   var presPend=window._pendTrSegPres;window._pendTrSegPres=null;
   if(!presPend){saveAndFinish(null);return;}
   var fid='F-'+Date.now()+'-'+Math.random().toString(36).slice(2);
   var rdr=new FileReader();
-  rdr.onerror=function(){showToast('⚠️ No se pudo leer "'+presPend.name+'"','err');saveAndFinish(null);};
+  rdr.onerror=function(){showToast(_statusDot('#ff9500')+'No se pudo leer "'+esc(presPend.name)+'"','err');saveAndFinish(null);};
   rdr.onload=function(e){dbSave(fid,presPend.name,e.target.result,function(ok){saveAndFinish(ok?{id:fid,nombre:presPend.name,tipo:presPend.type,tam:presPend.size}:null);});};
   rdr.readAsDataURL(presPend);
 }
@@ -18518,7 +18524,7 @@ function submitFallaDirecta(eqId){
       }
     }
     saveDataCritical();closeModal();render();
-    showToast(compId?'⚠️ Falla registrada y rotura creada en '+(compTipo==='antena'?'antena':'transductor'):'⚠️ Falla registrada','warn');
+    showToast(compId?_statusDot('#ff9500')+'Falla registrada y rotura creada en '+(compTipo==='antena'?'antena':'transductor'):_statusDot('#ff9500')+'Falla registrada','warn');
   };
   var pendFotos=(window._pendFdFotos||[]).filter(Boolean);window._pendFdFotos=[];
   var presPend=window._pendFdPresArr;window._pendFdPresArr=null;
@@ -18528,7 +18534,7 @@ function submitFallaDirecta(eqId){
       if(!presPend){saveAndFinish(null,uploadedFotos);return;}
       var fid='F-'+Date.now()+'-'+Math.random().toString(36).slice(2);
       var rdr=new FileReader();
-      rdr.onerror=function(){showToast('⚠️ No se pudo leer "'+presPend.name+'"','err');saveAndFinish(null,uploadedFotos);};
+      rdr.onerror=function(){showToast(_statusDot('#ff9500')+'No se pudo leer "'+esc(presPend.name)+'"','err');saveAndFinish(null,uploadedFotos);};
       rdr.onload=function(e2){dbSave(fid,presPend.name,e2.target.result,function(ok){saveAndFinish(ok?{id:fid,nombre:presPend.name,tipo:presPend.type,tam:presPend.size}:null,uploadedFotos);});};
       rdr.readAsDataURL(presPend);
       return;
@@ -18630,13 +18636,13 @@ function submitSeguimientoFallaDirecta(eqId,fallaId){
     if(nuevoEstado==='reparado'&&!eraReparada&&falla._componenteId&&falla._componenteTipo){
       _cerrarRoturaMirrorDeFallaDirecta(eqId,falla._componenteId,falla._componenteTipo,fallaId,today(),'');
     }
-    saveDataCritical();closeModal();showToast('📋 Seguimiento actualizado','');render();
+    saveDataCritical();closeModal();showToast(icn('clipboard',14)+'Seguimiento actualizado','');render();
   };
   var presPend=window._pendFdSegPres;window._pendFdSegPres=null;
   if(!presPend){saveAndFinish(null);return;}
   var fid='F-'+Date.now()+'-'+Math.random().toString(36).slice(2);
   var rdr=new FileReader();
-  rdr.onerror=function(){showToast('⚠️ No se pudo leer "'+presPend.name+'"','err');saveAndFinish(null);};
+  rdr.onerror=function(){showToast(_statusDot('#ff9500')+'No se pudo leer "'+esc(presPend.name)+'"','err');saveAndFinish(null);};
   rdr.onload=function(e){dbSave(fid,presPend.name,e.target.result,function(ok){saveAndFinish(ok?{id:fid,nombre:presPend.name,tipo:presPend.type,tam:presPend.size}:null);});};
   rdr.readAsDataURL(presPend);
 }
@@ -18764,7 +18770,7 @@ function submitAgregarFotosAntenaRotura(antId,rotId){
           return Object.assign({},r,{fotos:(r.fotos||[]).concat(uploadedFotos)});
         })});
       });
-      saveData();closeModal();render();showToast('📷 '+uploadedFotos.length+' foto(s) guardadas','');
+      saveData();closeModal();render();showToast(icn('camera',14)+''+uploadedFotos.length+' foto(s) guardadas','');
       return;
     }
     var f=pendFotos[idx];
@@ -18795,7 +18801,7 @@ function submitAgregarFotosTransductorRotura(transId,rotId){
           return Object.assign({},r,{fotos:(r.fotos||[]).concat(uploadedFotos)});
         })});
       });
-      saveData();closeModal();render();showToast('📷 '+uploadedFotos.length+' foto(s) guardadas','');
+      saveData();closeModal();render();showToast(icn('camera',14)+''+uploadedFotos.length+' foto(s) guardadas','');
       return;
     }
     var f=pendFotos[idx];
@@ -18826,7 +18832,7 @@ function submitAgregarFotosFallaDirecta(eqId,fallaId){
           return Object.assign({},f,{fotos:(f.fotos||[]).concat(uploadedFotos)});
         })});
       });
-      saveData();closeModal();render();showToast('📷 '+uploadedFotos.length+' foto(s) guardadas','');
+      saveData();closeModal();render();showToast(icn('camera',14)+''+uploadedFotos.length+' foto(s) guardadas','');
       return;
     }
     var f=pendFotos[idx];
@@ -18922,7 +18928,7 @@ function submitEditTransductorRotura(){
   if(!presPend){saveAndFinish(undefined);return;}
   var fid='TR-PRES-'+Date.now()+'-'+Math.random().toString(36).slice(2);
   var reader=new FileReader();
-  reader.onerror=function(){showToast('⚠️ No se pudo leer "'+presPend.name+'"','err');saveAndFinish(rot.presupuestosArreglo);};
+  reader.onerror=function(){showToast(_statusDot('#ff9500')+'No se pudo leer "'+esc(presPend.name)+'"','err');saveAndFinish(rot.presupuestosArreglo);};
   reader.onload=function(e){dbSave(fid,presPend.name,e.target.result,function(ok){saveAndFinish(ok?[{id:fid,nombre:presPend.name}]:rot.presupuestosArreglo);});};
   reader.readAsDataURL(presPend);
 }
@@ -18997,7 +19003,7 @@ function submitEditFallaDirecta(){
   if(!presPend){saveAndFinish(undefined);return;}
   var fid='FD-PRES-'+Date.now()+'-'+Math.random().toString(36).slice(2);
   var reader=new FileReader();
-  reader.onerror=function(){showToast('⚠️ No se pudo leer "'+presPend.name+'"','err');saveAndFinish(falla.presupuestosArreglo);};
+  reader.onerror=function(){showToast(_statusDot('#ff9500')+'No se pudo leer "'+esc(presPend.name)+'"','err');saveAndFinish(falla.presupuestosArreglo);};
   reader.onload=function(e){dbSave(fid,presPend.name,e.target.result,function(ok){saveAndFinish(ok?[{id:fid,nombre:presPend.name}]:falla.presupuestosArreglo);});};
   reader.readAsDataURL(presPend);
 }
@@ -19056,7 +19062,7 @@ function submitTrasladoTransductor(transductorId, fromEqId){
     }
     return e;
   });
-  saveData();closeModal();showToast('🔄 Transductor trasladado','');
+  saveData();closeModal();showToast(icn('refresh',14)+'Transductor trasladado','');
   selTransdEqId=toEqId;view='transductores';render();
 }
 
@@ -19147,7 +19153,7 @@ function submitRotura(){
 
     saveData();
     closeModal();
-    showToast("🔴 Rotura registrada en "+eqs.find(function(e){return e.id===eqId;}).nombre);
+    showToast(_statusDot('#ff3b30')+"Rotura registrada en "+esc(eqs.find(function(e){return e.id===eqId;}).nombre));
     render();
   });
 }
@@ -19368,7 +19374,7 @@ function submitAddAire(){
     creadoEn:new Date().toISOString()
   };
   aires=aires.concat(a);
-  saveData();closeModal();showToast('✅ Aire agregado','');render();
+  saveData();closeModal();showToast(_statusDot('#34c759')+'Aire agregado','');render();
 }
 
 function openEditAire(id){
@@ -19410,7 +19416,7 @@ function submitEditAire(id){
       notas:((document.getElementById('ai-notas')||{}).value||'').trim()
     });
   });
-  saveData();closeModal();showToast('✅ Aire actualizado','');render();
+  saveData();closeModal();showToast(_statusDot('#34c759')+'Aire actualizado','');render();
 }
 
 function openServiceAire(id){
@@ -19444,12 +19450,12 @@ function submitServiceAire(id){
       historial:(a.historial||[]).concat(entry)
     });
   });
-  saveData();closeModal();showToast('✅ Service registrado','');render();
+  saveData();closeModal();showToast(_statusDot('#34c759')+'Service registrado','');render();
 }
 
 function setAireEstado(id,estado){
   aires=aires.map(function(a){return a.id!==id?a:Object.assign({},a,{estado:estado});});
-  var lbl={operativo:'✅ Operativo',falla:'⚠️ Con falla',fuera_servicio:'🔴 Fuera de servicio'}[estado]||estado;
+  var lbl={operativo:_statusDot('#34c759')+'Operativo',falla:_statusDot('#ff9500')+'Con falla',fuera_servicio:_statusDot('#ff3b30')+'Fuera de servicio'}[estado]||estado;
   saveData();showToast(lbl,'');render();
 }
 function openModalVincularAireEquipo(aireId){
@@ -19474,7 +19480,7 @@ function submitVincularAireEquipo(aireId){
     if(vinc.indexOf(eqId)===-1)vinc.push(eqId);
     return Object.assign({},a,{equiposServidos:vinc});
   });
-  saveData();closeModal();showToast('✅ Equipo vinculado al aire','');render();
+  saveData();closeModal();showToast(_statusDot('#34c759')+'Equipo vinculado al aire','');render();
 }
 function desvincularAireEquipo(aireId,eqId){
   aires=aires.map(function(a){
@@ -19637,7 +19643,7 @@ function _buildPDFEjecutivo(imgsMap){
       rmEqsActivos.forEach(function(eqR){c=c.concat(_pdfJaulaEqNodes(eqR,imgsMap));});
     }
     _pdfDeliver(_pdfStdDoc('CIMA — Vista Ejecutiva',c),'CIMA-Vista-Ejecutiva-'+todayStr+'.pdf');
-  }catch(e){showToast('Error al generar PDF: '+(e.message||e),'err');}
+  }catch(e){showToast('Error al generar PDF: '+esc(e.message||e),'err');}
 }
 
 // ═══════════════════════════════════════════
@@ -19991,7 +19997,7 @@ function generarPropuestaComercial(){
     var fn='MedTrack-Propuesta-Comercial-CIMA-'+now.getFullYear()+_pad2(now.getMonth()+1)+_pad2(now.getDate())+'.pdf';
     try{
       window.pdfMake.createPdf(dd).getBlob(function(blob){_pdfDeliverModal(blob,fn);});
-    }catch(e){showToast('Error generando propuesta: '+(e.message||e),'err');}
+    }catch(e){showToast('Error generando propuesta: '+esc(e.message||e),'err');}
   });
 }
 
@@ -20003,12 +20009,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.2.0";
+var APP_DISPLAY_VERSION="8.3.0";
 var APP_BUILD="03/09/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'8.3.0',fecha:'03/09/2026',tipo:'minor',cambios:[
+    'Doceava tanda: toasts ahora soportan iconos SVG. showToast() paso de textContent a innerHTML, lo que permitio convertir 134 emojis mas (los toasts eran el bloque mas grande que quedaba). Antes del cambio se audito y corrigio el escapado: 50 sitios que concatenaban texto dinamico sin esc() (nombres de equipo/antena, mensajes de error, nombres de archivo) ahora usan esc() para prevenir XSS si algun dato contuviera HTML. Verificado con test de seguridad (nombre de equipo con <img onerror> queda escapado, no se ejecuta). Se encontraron y corrigieron 5 casos donde el script rompio comillas anidadas dentro de atributos onclick'
+  ]},
   {v:'8.2.0',fecha:'03/09/2026',tipo:'minor',cambios:[
     'Onceava tanda de reemplazo de emojis por iconos SVG: dos patrones nuevos, emoji como unico contenido de una etiqueta (\'>EMOJI<\') y emoji como string completo suelto (\'EMOJI\'), cubriendo archivo/carpeta/buscar/llave/editar/refrigeracion/usuario/rayo/clipboard/telefono/foco/dolar/gota/calendario/volumen mas los 5 de status. Se agregan folder y lightbulb a _ICONS. Se encontraron y corrigieron 2 bugs reales del script antes de publicar: duplicacion de comillas en el patron de string suelto, y 2 casos que rompian un <option> / un placeholder= de HTML (contextos que no soportan SVG) - revertidos a emoji plano'
   ]},
@@ -20582,15 +20591,15 @@ function openChangelogModal(){
   });
   openModal(h);
 }
-window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+(err&&err.message?err.message:msg),'err');return false;};
+window.onerror=function(msg,src,line,col,err){showToast('JS Error: '+esc(err&&err.message?err.message:msg),'err');return false;};
 function doUpdate(){
-  showToast("⚡ Actualizando...");
+  showToast(icn('zap',14)+"Actualizando...");
   setTimeout(function(){
     window.location.href=window.location.href.split('?')[0].split('#')[0]+'?v='+Date.now();
   },400);
 }
 function doClearCache(){
-  showToast("🗑 Limpiando caché...");
+  showToast(icn('trash',14)+"Limpiando caché...");
   setTimeout(function(){
     // Limpiar Cache API si está disponible
     if(window.caches){
@@ -20615,7 +20624,7 @@ function checkForUpdates(){
       var reloadedTo=sessionStorage.getItem('_reloadedToVer')||'';
       if(reloadedTo===m[1])return;
       sessionStorage.setItem('_reloadedToVer',m[1]);
-      showToast("🔄 Nueva versión detectada — actualizando...");
+      showToast(icn('refresh',14)+"Nueva versión detectada — actualizando...");
       setTimeout(function(){window.location.href=base+'?v='+Date.now();},1800);
     }).catch(function(){});
 }
@@ -20712,7 +20721,7 @@ function signInEmail(){
 // instalada — bug reportado 2026-07-30). Es un segundo modo de entrar a la
 // MISMA cuenta, no una cuenta nueva.
 function openSetPasswordModal(){
-  if(!window._fbUser){showToast('⚠️ Iniciá sesión primero','warn');return;}
+  if(!window._fbUser){showToast(_statusDot('#ff9500')+'Iniciá sesión primero','warn');return;}
   openModal(
     '<div style="font-weight:800;font-size:1.05rem;margin-bottom:6px;">🔑 Contraseña de acceso</div>'+
     '<div style="font-size:.76rem;color:var(--text2);margin-bottom:12px;">Configurá una contraseña para poder entrar con tu email ('+esc(window._fbUser.email||'')+') sin pasar por Google — útil cuando el login con Google no funciona en la app instalada.</div>'+
@@ -20724,21 +20733,21 @@ function openSetPasswordModal(){
 function _confirmSetPassword(){
   var p1=((document.getElementById('setpw-inp1')||{}).value||'');
   var p2=((document.getElementById('setpw-inp2')||{}).value||'');
-  if(p1.length<6){showToast('⚠️ Mínimo 6 caracteres','warn');return;}
-  if(p1!==p2){showToast('⚠️ Las contraseñas no coinciden','warn');return;}
-  if(!window._fbUser){showToast('⚠️ Iniciá sesión primero','warn');return;}
+  if(p1.length<6){showToast(_statusDot('#ff9500')+'Mínimo 6 caracteres','warn');return;}
+  if(p1!==p2){showToast(_statusDot('#ff9500')+'Las contraseñas no coinciden','warn');return;}
+  if(!window._fbUser){showToast(_statusDot('#ff9500')+'Iniciá sesión primero','warn');return;}
   var cred=firebase.auth.EmailAuthProvider.credential(window._fbUser.email,p1);
   window._fbUser.linkWithCredential(cred).then(function(){
     closeModal();
-    showToast('✅ Contraseña configurada — entrá con '+window._fbUser.email+' y esta contraseña cuando Google no funcione');
+    showToast(_statusDot('#34c759')+'Contraseña configurada — entrá con '+window._fbUser.email+' y esta contraseña cuando Google no funcione');
   }).catch(function(e){
     if(e.code==='auth/provider-already-linked'||e.code==='auth/credential-already-in-use'||e.code==='auth/email-already-in-use'){
-      showToast('⚠️ Ya tenés una contraseña configurada — si no te acordás cuál, cerrá sesión y usá "¿Olvidaste tu contraseña?" en la pantalla de login','warn');
+      showToast(_statusDot('#ff9500')+'Ya tenés una contraseña configurada — si no te acordás cuál, cerrá sesión y usá "¿Olvidaste tu contraseña?" en la pantalla de login','warn');
       closeModal();
     } else if(e.code==='auth/requires-recent-login'||e.code==='auth/user-token-expired'){
-      showToast('⚠️ Tu sesión quedó vieja — cerrá sesión, volvé a entrar, y probá de nuevo enseguida','warn');
+      showToast(_statusDot('#ff9500')+'Tu sesión quedó vieja — cerrá sesión, volvé a entrar, y probá de nuevo enseguida','warn');
     } else {
-      showToast('⚠️ '+(e.message||e.code),'warn');
+      showToast(_statusDot('#ff9500')+''+esc(e.message||e.code),'warn');
     }
   });
 }
@@ -20955,7 +20964,7 @@ function openCustomCatModal(editId){
   window._ccFotoChange=function(ev){
     var file=ev.target.files&&ev.target.files[0];if(!file)return;
     var rdr=new FileReader();
-    rdr.onerror=function(){showToast('⚠️ No se pudo leer "'+file.name+'"','err');};
+    rdr.onerror=function(){showToast(_statusDot('#ff9500')+'No se pudo leer "'+esc(file.name)+'"','err');};
     rdr.onload=function(e){
       _resizeCatIconImg(e.target.result,function(resized){
         _ccFotoB64=resized;
@@ -20988,7 +20997,7 @@ function submitCustomCat(editId){
     var existingGroup=customCats.find(function(c){return c.isGroup&&(c.label||'').toLowerCase()===gName.toLowerCase();});
     if(existingGroup){
       parentId=existingGroup.id;
-      showToast('Ya existía el grupo "'+existingGroup.label+'" — se reutilizó','warn');
+      showToast('Ya existía el grupo "'+esc(existingGroup.label)+'" — se reutilizó','warn');
     } else {
       var gId='CCG-'+Date.now();
       customCats.push({id:gId,label:gName,isGroup:true,color:color});
@@ -21191,8 +21200,8 @@ function addAccessEmail(){
   if(_accessEmails.map(function(e){return e.toLowerCase();}).indexOf(em)>=0)return showToast("Ya está en la lista","warn");
   _accessEmails=_accessEmails.concat([em]);
   accessDocRef().update({emails:_accessEmails}).then(function(){
-    showToast("✅ Email agregado");renderAccessModal(_accessEmails);
-  }).catch(function(e){showToast("Error: "+e.message,"warn");});
+    showToast(_statusDot('#34c759')+"Email agregado");renderAccessModal(_accessEmails);
+  }).catch(function(e){showToast("Error: "+esc(e.message),"warn");});
 }
 function removeAccessEmail(em){
   // _confirmModal en vez de confirm() nativo — ver nota en deleteCustomCat.
@@ -21200,7 +21209,7 @@ function removeAccessEmail(em){
     _accessEmails=_accessEmails.filter(function(e){return e.toLowerCase()!==em.toLowerCase();});
     accessDocRef().update({emails:_accessEmails}).then(function(){
       showToast("Acceso removido","warn");renderAccessModal(_accessEmails);
-    }).catch(function(e){showToast("Error: "+e.message,"warn");});
+    }).catch(function(e){showToast("Error: "+esc(e.message),"warn");});
   });
 }
 function toggleLoginMode(){
@@ -21478,7 +21487,7 @@ function init(){
             _captureSyncBaseline();
             if(_mB2||_mBC2||_mM2>0||_mO2>0)saveData();
             render();
-            showToast('🔄 Datos actualizados por otro dispositivo');
+            showToast(icn('refresh',14)+'Datos actualizados por otro dispositivo');
           }
         },function(err){
           // Listener error — fall back to localStorage

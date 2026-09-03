@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v8.3.0 — 03/09/2026 (minor)
+
+- Doceava tanda: toasts ahora soportan iconos SVG. showToast() paso de textContent a innerHTML, lo que permitio convertir 134 emojis mas (los toasts eran el bloque mas grande que quedaba). Antes del cambio se audito y corrigio el escapado: 50 sitios que concatenaban texto dinamico sin esc() (nombres de equipo/antena, mensajes de error, nombres de archivo) ahora usan esc() para prevenir XSS si algun dato contuviera HTML. Verificado con test de seguridad (nombre de equipo con <img onerror> queda escapado, no se ejecuta). Se encontraron y corrigieron 5 casos donde el script rompio comillas anidadas dentro de atributos onclick
+
 ## v8.2.0 — 03/09/2026 (minor)
 
 - Onceava tanda de reemplazo de emojis por iconos SVG: dos patrones nuevos, emoji como unico contenido de una etiqueta ('>EMOJI<') y emoji como string completo suelto ('EMOJI'), cubriendo archivo/carpeta/buscar/llave/editar/refrigeracion/usuario/rayo/clipboard/telefono/foco/dolar/gota/calendario/volumen mas los 5 de status. Se agregan folder y lightbulb a _ICONS. Se encontraron y corrigieron 2 bugs reales del script antes de publicar: duplicacion de comillas en el patron de string suelto, y 2 casos que rompian un <option> / un placeholder= de HTML (contextos que no soportan SVG) - revertidos a emoji plano
