@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v7.5.0 — 03/09/2026 (minor)
+
+- Cuarta tanda (grande) de reemplazo de emojis por iconos SVG: ~92 etiquetas de estado en tarjetas, badges y encabezados por toda la app (riesgo institucional, refrigeracion en pantalla, estado de partes/antenas/transductores, garantias, PM, historial). Reemplazo scripteado y auditado linea por linea para excluir automaticamente los casos que van a showToast/alert (texto plano, no soportan SVG) y los que alimentan el PDF via _pdfCard (que ya tiene su propio mecanismo _pdfStatusDotSvg/_pdfCleanStatusLabel)
+
 ## v7.4.0 — 03/09/2026 (minor)
 
 - Tercera tanda de reemplazo de emojis por iconos SVG: titulos de modal (Buscar en todo, Registrar Cambio de Baterias, Marcar como Reparado, Completar Mejora, Mantenimiento/Reparacion, Importar Datos de Red, Archivos IndexedDB v2, Diagnostico de fallas por mes, Trasladar Transductor, Reportar Rotura, modal de fecha). Se agrega icono battery a _ICONS
