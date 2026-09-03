@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v8.1.0 — 03/09/2026 (minor)
+
+- Decima tanda (la mas grande hasta ahora) de reemplazo de emojis por iconos SVG: 235 instancias del patron '>EMOJI texto' (emoji justo despues de cerrar una etiqueta HTML, dentro del mismo string de JS) repartidas por decenas de pantallas - detalle de antena/transductor, refrigeracion, historial, garantias, PMs, y mas. Se agrega icono link a _ICONS, el resto reusa los ya existentes. Auditoria exhaustiva (variable-mediada + insercion directa dentro del argumento) confirmo cero fugas a showToast/alert y cero casos que alimenten el PDF
+
 ## v8.0.0 — 03/09/2026 (minor)
 
 - Novena tanda de reemplazo de emojis por iconos SVG: tarjetas de 'Mi dia' (OT vencida/urgente, mantenimiento vencido, PM, helio critico, registrar lectura) con color segun severidad, filtro de tipo de historial (Todo/Mantenimientos/Reparaciones/Mejoras/Partes Activas) y los iconos de las variables del grafico de refrigeracion (temperatura, presion helio, nivel liquido, humedad). Se agrega sparkles a _ICONS. Se dejaron sin tocar los emoji-placeholder de categorias personalizadas del usuario (son contenido editable por el usuario, no chrome de la app) y las opciones de <select> (no soportan HTML)
