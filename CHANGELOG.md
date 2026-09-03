@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v7.6.0 — 03/09/2026 (minor)
+
+- Quinta tanda de reemplazo de emojis por iconos SVG: 55 iconos de herramientas/wrench, archivo, clipboard, camara, ubicacion, refrigeracion(snowflake), notas, guardar, refresh, antena/senal y calendario repartidos por toda la app. Se agregan mappin/snowflake/save a _ICONS, resto reusa iconos existentes. Mismo script auditado que la tanda anterior (excluye toasts/alert y funciones que alimentan el PDF)
+
 ## v7.5.0 — 03/09/2026 (minor)
 
 - Cuarta tanda (grande) de reemplazo de emojis por iconos SVG: ~92 etiquetas de estado en tarjetas, badges y encabezados por toda la app (riesgo institucional, refrigeracion en pantalla, estado de partes/antenas/transductores, garantias, PM, historial). Reemplazo scripteado y auditado linea por linea para excluir automaticamente los casos que van a showToast/alert (texto plano, no soportan SVG) y los que alimentan el PDF via _pdfCard (que ya tiene su propio mecanismo _pdfStatusDotSvg/_pdfCleanStatusLabel)

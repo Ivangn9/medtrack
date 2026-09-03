@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.09.03.006 -->
+<!-- v2026.09.03.007 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.09.03.006">
+<meta name="app-version" content="v2026.09.03.007">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3064,7 +3064,7 @@ function _gsRun(q){
       if(out.length>=lim)return;
       if(!m(r.queSeRompio,r.descripcion))return;
       var reparada=r.estado==='reparado';
-      out.push(_gsItem(reparada?'✅':'🔴',esc(r.queSeRompio||'Falla de antena'),esc('📡 '+(a.nombre||'')+' · '+eqNombre+(r.fecha?' · '+fD(r.fecha):'')),linkedEq?"goDetalle('"+linkedEq.id+"')":"goAntenaDetalle('"+a.id+"')"));
+      out.push(_gsItem(reparada?'✅':'🔴',esc(r.queSeRompio||'Falla de antena'),esc(icn('rss',14)+''+(a.nombre||'')+' · '+eqNombre+(r.fecha?' · '+fD(r.fecha):'')),linkedEq?"goDetalle('"+linkedEq.id+"')":"goAntenaDetalle('"+a.id+"')"));
     });
   });
   transductores.forEach(function(t){
@@ -3136,7 +3136,10 @@ var _ICONS={
   globe:'<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>',
   database:'<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/>',
   rss:'<path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1" fill="currentColor" stroke="none"/>',
-  battery:'<rect x="1" y="6" width="18" height="12" rx="2"/><line x1="23" y1="13" x2="23" y2="11"/>'
+  battery:'<rect x="1" y="6" width="18" height="12" rx="2"/><line x1="23" y1="13" x2="23" y2="11"/>',
+  mappin:'<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/>',
+  snowflake:'<line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="22"/><path d="m20 16-4-4 4-4"/><path d="m4 8 4 4-4 4"/><path d="m16 4-4 4-4-4"/><path d="m8 20 4-4 4 4"/>',
+  save:'<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>'
 };
 function icn(name,size,color){
   var p=_ICONS[name];if(!p)return'';
@@ -3391,7 +3394,7 @@ function getAlertas(){
     if(lastBat){var dBat=diasH(lastBat);if((-dBat)>730)a.push({k:e.id+'batold',niv:'advertencia',tit:e.nombre,desc:'🔋 Baterías con más de 2 años — verificar cambio',eid:e.id});}
   });
   activeEqs.forEach(function(e){
-    if(e.seguroAlta&&e.seguroVenc){var dSeg=diasH(e.seguroVenc);if(dSeg<0)a.push({k:e.id+'segvenc',niv:'critico',tit:e.nombre,desc:'📋 Póliza de seguro VENCIDA — '+fD(e.seguroVenc),eid:e.id});else if(dSeg<=30)a.push({k:e.id+'segprox',niv:'advertencia',tit:e.nombre,desc:'📋 Póliza de seguro vence en '+dSeg+'d — '+fD(e.seguroVenc),eid:e.id});}
+    if(e.seguroAlta&&e.seguroVenc){var dSeg=diasH(e.seguroVenc);if(dSeg<0)a.push({k:e.id+'segvenc',niv:'critico',tit:e.nombre,desc:icn('clipboard',14)+'Póliza de seguro VENCIDA — '+fD(e.seguroVenc),eid:e.id});else if(dSeg<=30)a.push({k:e.id+'segprox',niv:'advertencia',tit:e.nombre,desc:icn('clipboard',14)+'Póliza de seguro vence en '+dSeg+'d — '+fD(e.seguroVenc),eid:e.id});}
     if(e.rugepresaAlta&&e.rugepresaVenc){var dRug=diasH(e.rugepresaVenc);if(dRug<0)a.push({k:e.id+'rugvenc',niv:'critico',tit:e.nombre,desc:'📌 Habilitación R.U.GE.PRE.SA VENCIDA — '+fD(e.rugepresaVenc),eid:e.id});else if(dRug<=30)a.push({k:e.id+'rugprox',niv:'advertencia',tit:e.nombre,desc:'📌 Habilitación R.U.GE.PRE.SA vence en '+dRug+'d — '+fD(e.rugepresaVenc),eid:e.id});}
   });
   activeEqs.forEach(function(e){
@@ -3422,17 +3425,17 @@ function getAlertas(){
   // renombrada a "au" a propósito: "a" ya es el array acumulador de alertas de
   // toda la función — usar el mismo nombre acá lo pisaba silenciosamente.)
   aires.filter(_sedeMatch).forEach(function(au){
-    if(au.estado==='fuera_servicio')a.push({k:au.id+'afs',niv:'critico',tit:au.nombre,desc:'❄️ Aire fuera de servicio',eid:au.id,tipo:'aire'});
-    else if(au.estado==='falla')a.push({k:au.id+'afa',niv:'advertencia',tit:au.nombre,desc:'❄️ Aire con falla',eid:au.id,tipo:'aire'});
+    if(au.estado==='fuera_servicio')a.push({k:au.id+'afs',niv:'critico',tit:au.nombre,desc:icn('snowflake',14)+'Aire fuera de servicio',eid:au.id,tipo:'aire'});
+    else if(au.estado==='falla')a.push({k:au.id+'afa',niv:'advertencia',tit:au.nombre,desc:icn('snowflake',14)+'Aire con falla',eid:au.id,tipo:'aire'});
     var _sfa=semafoAire(au);
-    if(_sfa==='vencido')a.push({k:au.id+'asv',niv:'critico',tit:au.nombre,desc:'❄️ Service VENCIDO — '+fD(au.proximoMant),eid:au.id,tipo:'aire'});
-    else if(_sfa==='urgente')a.push({k:au.id+'asu',niv:'advertencia',tit:au.nombre,desc:'❄️ Service en '+diasH(au.proximoMant)+' días',eid:au.id,tipo:'aire'});
+    if(_sfa==='vencido')a.push({k:au.id+'asv',niv:'critico',tit:au.nombre,desc:icn('snowflake',14)+'Service VENCIDO — '+fD(au.proximoMant),eid:au.id,tipo:'aire'});
+    else if(_sfa==='urgente')a.push({k:au.id+'asu',niv:'advertencia',tit:au.nombre,desc:icn('snowflake',14)+'Service en '+diasH(au.proximoMant)+' días',eid:au.id,tipo:'aire'});
   });
   activeEqs.forEach(function(e){
     if(e.cat!=='RM')return;
     var rf=_refrigData(e);
-    if(rf.chiller==='rotura')a.push({k:e.id+'chillerrot',niv:'critico',tit:e.nombre,desc:'❄️ Chiller en ROTURA — RM sin refrigeración',eid:e.id});
-    else if(rf.chiller==='service')a.push({k:e.id+'chillerserv',niv:'advertencia',tit:e.nombre,desc:'❄️ Chiller en service',eid:e.id});
+    if(rf.chiller==='rotura')a.push({k:e.id+'chillerrot',niv:'critico',tit:e.nombre,desc:icn('snowflake',14)+'Chiller en ROTURA — RM sin refrigeración',eid:e.id});
+    else if(rf.chiller==='service')a.push({k:e.id+'chillerserv',niv:'advertencia',tit:e.nombre,desc:icn('snowflake',14)+'Chiller en service',eid:e.id});
     if(rf.compresorHelio&&rf.compresorHelio!=='operativo')a.push({k:e.id+'comphelio',niv:'advertencia',tit:e.nombre,desc:'⚙️ Compresor de helio: '+rf.compresorHelio,eid:e.id});
     var hlp=parseFloat(rf.helioLiqPorcentaje||'100');
     if(!isNaN(hlp)){
@@ -3441,8 +3444,8 @@ function getAlertas(){
     }
   });
   aires.filter(function(ai){return !ai.baja;}).forEach(function(ai){
-    if(ai.estado==='falla')a.push({k:'aire'+ai.id+'falla',niv:'advertencia',tit:ai.nombre||ai.ubicacion||'Aire acondicionado',desc:'❄️ Aire con falla'+((ai.equiposServidos||[]).length?' — afecta '+ai.equiposServidos.length+' equipo(s)':''),eid:''});
-    else if(ai.estado==='fuera_servicio'||ai.estado==='fuera-de-servicio')a.push({k:'aire'+ai.id+'fs',niv:'critico',tit:ai.nombre||ai.ubicacion||'Aire acondicionado',desc:'❄️ Aire FUERA DE SERVICIO'+((ai.equiposServidos||[]).length?' — afecta '+ai.equiposServidos.length+' equipo(s)':''),eid:''});
+    if(ai.estado==='falla')a.push({k:'aire'+ai.id+'falla',niv:'advertencia',tit:ai.nombre||ai.ubicacion||'Aire acondicionado',desc:icn('snowflake',14)+'Aire con falla'+((ai.equiposServidos||[]).length?' — afecta '+ai.equiposServidos.length+' equipo(s)':''),eid:''});
+    else if(ai.estado==='fuera_servicio'||ai.estado==='fuera-de-servicio')a.push({k:'aire'+ai.id+'fs',niv:'critico',tit:ai.nombre||ai.ubicacion||'Aire acondicionado',desc:icn('snowflake',14)+'Aire FUERA DE SERVICIO'+((ai.equiposServidos||[]).length?' — afecta '+ai.equiposServidos.length+' equipo(s)':''),eid:''});
   });
   antenas.filter(function(ant){return !ant.baja;}).forEach(function(ant){
     (ant.roturas||[]).forEach(function(r){
@@ -3451,7 +3454,7 @@ function getAlertas(){
       var eqId=linkedEq?linkedEq.id:'';
       var eqNombre=linkedEq?linkedEq.nombre:ant.nombreOrigen||'Antena';
       var niv=ant.estado==='fuera_servicio'?'critico':'advertencia';
-      a.push({k:'ant'+ant.id+r.id+'rot',niv:niv,tit:eqNombre,desc:'📡 Antena: '+ant.nombre+' — '+(r.queSeRompio||r.descripcion||'Falla activa'),eid:eqId});
+      a.push({k:'ant'+ant.id+r.id+'rot',niv:niv,tit:eqNombre,desc:icn('rss',14)+'Antena: '+ant.nombre+' — '+(r.queSeRompio||r.descripcion||'Falla activa'),eid:eqId});
     });
   });
   transductores.filter(function(tr){return !tr.baja;}).forEach(function(tr){
@@ -4200,7 +4203,7 @@ function openModalEq(eq){
     +'<div class="ff"><div class="ff-label">Valor de reposición (USD)</div><input class="inp" type="number" id="eq-valor-repos" value="'+(f.valorReposicion?esc(f.valorReposicion):'')+'" placeholder="Ej: 200000" min="0"></div>'
     +'<div class="ff"><div class="ff-label">Vida útil esperada (años)</div><input class="inp" type="number" id="eq-vida-util" value="'+(f.vidaUtilAnios?esc(f.vidaUtilAnios):'')+'" placeholder="Ej: 10" min="1" max="30"></div>'
     +'</div>'
-    +'<button class="btn-primary" style="width:100%;padding:14px;font-size:.92rem;" onclick="submitEq(\''+((f.id)||"")+'\')">'+(n?_statusDot('#34c759')+"Agregar":"💾 Guardar")+'</button>');
+    +'<button class="btn-primary" style="width:100%;padding:14px;font-size:.92rem;" onclick="submitEq(\''+((f.id)||"")+'\')">'+(n?_statusDot('#34c759')+"Agregar":icn('save',14)+"Guardar")+'</button>');
 }
 function submitEq(eid){
   var n=document.getElementById("eq-n").value.trim();if(!n)return alert("Nombre obligatorio");
@@ -6560,7 +6563,7 @@ function openModalParte(eqId,pt){
           '<div style="display:flex;gap:6px;margin-bottom:4px;">'+
             ['hardware','software'].map(function(uc){
               var a=(f.upgradeCategoria||'')===uc;
-              var lbl=uc==='hardware'?'🔧 Hardware':'💾 Software';
+              var lbl=uc==='hardware'?icn('wrench',14)+'Hardware':icn('save',14)+'Software';
               return '<button type="button" data-upgcat="'+uc+'" onclick="_ptSetUpgCat(\''+uc+'\')" style="flex:1;padding:9px;border-radius:var(--r-sm);font-size:.72rem;font-weight:700;border:none;cursor:pointer;background:'+(a?'rgba(139,92,246,.15)':'rgba(120,120,128,.08)')+';color:'+(a?'#8b5cf6':'var(--text3)')+';">'+lbl+'</button>';
             }).join('')+
           '</div>'+
@@ -6583,7 +6586,7 @@ function openModalParte(eqId,pt){
     '<div id="pt-img-list"></div>'+
     '<button type="button" onclick="attachParteImage()" style="width:100%;padding:9px;border:1.5px dashed rgba(0,113,227,.35);border-radius:var(--r-md);background:rgba(0,113,227,.05);color:var(--accent);font-size:.78rem;font-weight:600;cursor:pointer;">📷 Adjuntar foto(s)</button></div>'+
     (!n&&f.estado!=="ok"&&f.estado!=="mejora"?'<button onclick="repararParte(\''+eqId+'\',\''+f.id+'\')" style="width:100%;padding:14px;margin-bottom:10px;border:none;border-radius:var(--r-md);background:var(--green);color:#fff;font-size:.95rem;font-weight:700;cursor:pointer;box-shadow:0 2px 10px rgba(52,199,89,.4);">✅ Marcar como Reparado</button>':'')+
-    '<button class="btn-primary" style="width:100%;padding:14px;font-size:.92rem;" onclick="submitPt(\''+eqId+'\',\''+(f.id||"")+'\')">'+(n?_statusDot('#34c759')+"Agregar":"💾 Guardar")+'</button>');
+    '<button class="btn-primary" style="width:100%;padding:14px;font-size:.92rem;" onclick="submitPt(\''+eqId+'\',\''+(f.id||"")+'\')">'+(n?_statusDot('#34c759')+"Agregar":icn('save',14)+"Guardar")+'</button>');
 }
 var _CANALES=[{id:"telefono",label:"📞 Teléfono"},{id:"ilinq",label:"💬 Ilinq"},{id:"mail",label:"📧 Mail"},{id:"whatsapp",label:"📱 WhatsApp"}];
 function canalBtnsHTML(groupId,selected){return _CANALES.map(function(c){var a=c.id===selected;return'<button type="button" data-canal-group="'+groupId+'" data-canal-val="'+c.id+'" onclick="setCanal(\''+groupId+'\',\''+c.id+'\')" class="clr-tap" style="flex:1;min-width:70px;padding:9px 4px;border-radius:12px;font-size:.7rem;font-weight:600;border:none;cursor:pointer;background:'+(a?'rgba(0,113,227,.18)':'rgba(120,120,128,.08)')+';color:'+(a?'var(--accent)':'var(--text3)')+(a?';box-shadow:0 0 0 2px rgba(0,113,227,.3)':'')+';transition:background .15s,color .15s,box-shadow .15s;">'+c.label+'</button>';}).join('');}
@@ -7787,7 +7790,7 @@ function openSnoozeModal(key,tit){
 }
 // ── Sede global (multi-centro): "" = Todas ──
 var _sedeActiva="";try{_sedeActiva=localStorage.getItem("mt_sede")||"";}catch(e){}
-var _SEDES=[{id:"",lbl:"🏥 Todas"},{id:"Pedernera",lbl:"📍 Pedernera"},{id:"CRS",lbl:"📍 CRS"},{id:"GN",lbl:"📍 GN"},{id:"Sarmiento",lbl:"📍 Sarmiento"}];
+var _SEDES=[{id:"",lbl:"🏥 Todas"},{id:"Pedernera",lbl:icn('mappin',14)+"Pedernera"},{id:"CRS",lbl:icn('mappin',14)+"CRS"},{id:"GN",lbl:icn('mappin',14)+"GN"},{id:"Sarmiento",lbl:icn('mappin',14)+"Sarmiento"}];
 function _sedeMatch(e){return !_sedeActiva||((e.ubicacion||"").toUpperCase()===_sedeActiva.toUpperCase());}
 function setSede(s){_sedeActiva=s;_filtCentro=s;try{localStorage.setItem("mt_sede",s);}catch(e){}render();}
 function sedeBarHTML(){
@@ -7939,7 +7942,7 @@ function rLista(){
       var e=r.eq;var ms=semafo(e);var d=diasH(e.proximoMant);var rot=e.partes.filter(function(p){return p.estado==="roto";}).length;
       var rfChipS='';if(e.cat==='RM'){var _rf2=_refrigData(e);var _rp2=_rf2.helioLiqPorcentaje;var _rs2=_rf2.helioLiqPresion;var _gp2=_rf2.helioGasPresionActual;var _gs2=_rf2.helioGaseoso;var _hasHe2=_rp2||_rs2||_gp2||_gs2;if(_hasHe2){var _gasOk2=_gs2!=='presion_baja';var _gasColor2=_gasOk2?'#10b981':'#f59e0b';var _gasLbl2=_gp2?(_gp2+' MPa'):(_gs2==='presion_baja'?'Pres. baja':'OK');rfChipS='<div style="display:flex;gap:5px;margin-top:5px;align-items:center;flex-wrap:wrap;">'+(_rp2?'<span style="font-size:.62rem;font-weight:700;color:#0891b2;background:rgba(8,145,178,.10);border:1px solid rgba(8,145,178,.22);border-radius:20px;padding:2px 7px;">❄️ Líq '+esc(_rp2)+'%</span>':'')+(_rs2?'<span style="font-size:.62rem;font-weight:700;color:#0891b2;background:rgba(8,145,178,.10);border:1px solid rgba(8,145,178,.22);border-radius:20px;padding:2px 7px;">'+esc(_rs2)+' psi</span>':'')+(_gp2||_gs2?'<span style="font-size:.62rem;font-weight:700;color:'+_gasColor2+';background:rgba(8,145,178,.08);border:1px solid '+_gasColor2+'33;border-radius:20px;padding:2px 7px;">⚗️ Gas '+_gasLbl2+'</span>':'')+'</div>';}}
       var _admChipS='';var _segVDS=e.seguroAlta&&e.seguroVenc&&diasH(e.seguroVenc)<=30;var _rugVDS=e.rugepresaAlta&&e.rugepresaVenc&&diasH(e.rugepresaVenc)<=30;var _admPS=[];if(e.seguroAlta)_admPS.push('<span style="font-size:.61rem;font-weight:700;color:'+(_segVDS?'#f59e0b':'#6366f1')+';background:rgba(99,102,241,.09);border:1px solid rgba(99,102,241,.22);border-radius:20px;padding:2px 6px;">📋 Seg'+(_segVDS?' ⚠':'')+'</span>');if(e.epecAlta)_admPS.push('<span style="font-size:.61rem;font-weight:700;color:#6366f1;background:rgba(99,102,241,.09);border:1px solid rgba(99,102,241,.22);border-radius:20px;padding:2px 6px;">⚡ EPEC</span>');if(e.rugepresaAlta)_admPS.push('<span style="font-size:.61rem;font-weight:700;color:'+(_rugVDS?'#f59e0b':'#6366f1')+';background:rgba(99,102,241,.09);border:1px solid rgba(99,102,241,.22);border-radius:20px;padding:2px 6px;">📌 RUG'+(_rugVDS?' ⚠':'')+'</span>');if(_admPS.length)_admChipS='<div style="display:flex;gap:5px;margin-top:4px;flex-wrap:wrap;">'+_admPS.join('')+'</div>';
-      var _liSubSR=[];if(e.ubicacion)_liSubSR.push('📍 '+esc(e.ubicacion));if(e.consultorio)_liSubSR.push('🏥 Cons. '+esc(e.consultorio));if(e.serie)_liSubSR.push('SID: '+esc(e.serie));
+      var _liSubSR=[];if(e.ubicacion)_liSubSR.push(icn('mappin',14)+''+esc(e.ubicacion));if(e.consultorio)_liSubSR.push('🏥 Cons. '+esc(e.consultorio));if(e.serie)_liSubSR.push('SID: '+esc(e.serie));
       h+='<div class="gc li-eq tap" data-aos="fade-up" data-aos-delay="'+Math.min(ri*45,450)+'" onclick="goDetalle(\''+e.id+'\')" style="border-left-color:'+(CE[e.estado]||"var(--green)")+';"><div style="display:flex;align-items:center;gap:16px;">'+
         '<div class="li-icon">'+iconFor(e,58)+'</div>'+
         '<div style="flex:1;min-width:0;">'+
@@ -7948,10 +7951,10 @@ function rLista(){
         rfChipS+
         _admChipS+
         '<div style="display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;">'+
-          pillH(CE[e.estado]||"var(--green)",e.estado==="operativo"?_statusDot('#34c759')+"OK":e.estado==="fuera-de-servicio"?_statusDot('#ff3b30')+"Fuera de servicio":"🔧 Roto/Con Fallas")+
-          (sinMant(e)?pillH("#8e8e93","⚫ Sin mant."):pillH(CM[ms],"🔧 "+(ms==="vencido"?"VENC":ms==="urgente"?d+"d URG":ms==="proximo"?d+"d prox":d+"d")))+
+          pillH(CE[e.estado]||"var(--green)",e.estado==="operativo"?_statusDot('#34c759')+"OK":e.estado==="fuera-de-servicio"?_statusDot('#ff3b30')+"Fuera de servicio":icn('wrench',14)+"Roto/Con Fallas")+
+          (sinMant(e)?pillH("#8e8e93","⚫ Sin mant."):pillH(CM[ms],icn('wrench',14)+""+(ms==="vencido"?"VENC":ms==="urgente"?d+"d URG":ms==="proximo"?d+"d prox":d+"d")))+
           (rot>0?pillH("var(--red)",_statusDot('#ff3b30')+""+rot+" roto"+(rot>1?"s":"")):"")+(e.tieneServicio?pillH("var(--green)","✔ Servicio"):"")+
-        (function(){var _rse=calcRiskScore(e);return _rse.level==='critico'||_rse.level==='alto'?'<span style="font-size:.6rem;font-weight:700;padding:2px 7px;border-radius:10px;background:'+riskLevelColor(_rse.level)+'22;color:'+riskLevelColor(_rse.level)+';border:1px solid '+riskLevelColor(_rse.level)+'44;">'+riskLevelLabel(_rse.level)+'</span>':'';})()+(function(){var _ots=ordenesTrabajo.filter(function(o){return o.eqId===e.id&&o.estado!=='cerrada'&&o.estado!=='cancelada';});return _ots.length?pillH('#f59e0b','📋 '+_ots.length+' OT'+(_ots.length!==1?'s':'')+' activa'+(_ots.length!==1?'s':'')):'';})()+'</div></div>'+
+        (function(){var _rse=calcRiskScore(e);return _rse.level==='critico'||_rse.level==='alto'?'<span style="font-size:.6rem;font-weight:700;padding:2px 7px;border-radius:10px;background:'+riskLevelColor(_rse.level)+'22;color:'+riskLevelColor(_rse.level)+';border:1px solid '+riskLevelColor(_rse.level)+'44;">'+riskLevelLabel(_rse.level)+'</span>':'';})()+(function(){var _ots=ordenesTrabajo.filter(function(o){return o.eqId===e.id&&o.estado!=='cerrada'&&o.estado!=='cancelada';});return _ots.length?pillH('#f59e0b',icn('clipboard',14)+''+_ots.length+' OT'+(_ots.length!==1?'s':'')+' activa'+(_ots.length!==1?'s':'')):'';})()+'</div></div>'+
         '<div style="color:var(--text3);font-size:1.2rem;flex-shrink:0;">›</div></div></div>';
       if(r.matchParts.length){
         r.matchParts.forEach(function(p){
@@ -7976,7 +7979,7 @@ function rLista(){
     var ms=semafo(e);var d=diasH(e.proximoMant);var rot=e.partes.filter(function(p){return p.estado==="roto";}).length;
     var rfChip='';if(e.cat==='RM'){var _rf=_refrigData(e);var _rp=_rf.helioLiqPorcentaje;var _rs=_rf.helioLiqPresion;var _gp=_rf.helioGasPresionActual;var _gs=_rf.helioGaseoso;var _hasHe=_rp||_rs||_gp||_gs;if(_hasHe){var _gasOk=_gs!=='presion_baja';var _gasColor=_gasOk?'#10b981':'#f59e0b';var _gasLbl=_gp?(_gp+' MPa'):(_gs==='presion_baja'?'Pres. baja':'OK');rfChip='<div style="display:flex;gap:5px;margin-top:5px;align-items:center;flex-wrap:wrap;">'+(_rp?'<span style="font-size:.62rem;font-weight:700;color:#0891b2;background:rgba(8,145,178,.10);border:1px solid rgba(8,145,178,.22);border-radius:20px;padding:2px 7px;">❄️ Líq '+esc(_rp)+'%</span>':'')+(_rs?'<span style="font-size:.62rem;font-weight:700;color:#0891b2;background:rgba(8,145,178,.10);border:1px solid rgba(8,145,178,.22);border-radius:20px;padding:2px 7px;">'+esc(_rs)+' psi</span>':'')+(_gp||_gs?'<span style="font-size:.62rem;font-weight:700;color:'+_gasColor+';background:rgba(8,145,178,.08);border:1px solid '+_gasColor+'33;border-radius:20px;padding:2px 7px;">⚗️ Gas '+_gasLbl+'</span>':'')+'</div>';}}
     var _admChip='';var _segVD=e.seguroAlta&&e.seguroVenc&&diasH(e.seguroVenc)<=30;var _rugVD=e.rugepresaAlta&&e.rugepresaVenc&&diasH(e.rugepresaVenc)<=30;var _admPills=[];if(e.seguroAlta)_admPills.push('<span style="font-size:.61rem;font-weight:700;color:'+(_segVD?'#f59e0b':'#6366f1')+';background:rgba(99,102,241,.09);border:1px solid rgba(99,102,241,.22);border-radius:20px;padding:2px 6px;">📋 Seg'+(_segVD?' ⚠':'')+'</span>');if(e.epecAlta)_admPills.push('<span style="font-size:.61rem;font-weight:700;color:#6366f1;background:rgba(99,102,241,.09);border:1px solid rgba(99,102,241,.22);border-radius:20px;padding:2px 6px;">⚡ EPEC</span>');if(e.rugepresaAlta)_admPills.push('<span style="font-size:.61rem;font-weight:700;color:'+(_rugVD?'#f59e0b':'#6366f1')+';background:rgba(99,102,241,.09);border:1px solid rgba(99,102,241,.22);border-radius:20px;padding:2px 6px;">📌 RUG'+(_rugVD?' ⚠':'')+'</span>');if(_admPills.length)_admChip='<div style="display:flex;gap:5px;margin-top:4px;flex-wrap:wrap;">'+_admPills.join('')+'</div>';
-    var _liSubParts=[];if(e.ubicacion)_liSubParts.push('📍 '+esc(e.ubicacion));if(e.consultorio)_liSubParts.push('🏥 Cons. '+esc(e.consultorio));if(e.serie)_liSubParts.push('SID: '+esc(e.serie));
+    var _liSubParts=[];if(e.ubicacion)_liSubParts.push(icn('mappin',14)+''+esc(e.ubicacion));if(e.consultorio)_liSubParts.push('🏥 Cons. '+esc(e.consultorio));if(e.serie)_liSubParts.push('SID: '+esc(e.serie));
     h+='<div class="gc li-eq tap" data-aos="fade-up" data-aos-delay="'+Math.min(li*45,450)+'" onclick="goDetalle(\''+e.id+'\')" style="border-left-color:'+(CE[e.estado]||"var(--green)")+';"><div style="display:flex;align-items:center;gap:16px;">'+
       '<div class="li-icon">'+iconFor(e,58)+'</div>'+
       '<div style="flex:1;min-width:0;">'+
@@ -7985,8 +7988,8 @@ function rLista(){
       rfChip+
       _admChip+
       '<div style="display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;">'+
-        pillH(CE[e.estado]||"var(--green)",e.estado==="operativo"?_statusDot('#34c759')+"OK":e.estado==="fuera-de-servicio"?_statusDot('#ff3b30')+"Fuera de servicio":"🔧 Roto/Con Fallas")+
-        (sinMant(e)?pillH("#8e8e93","⚫ Sin mant."):pillH(CM[ms],"🔧 "+(ms==="vencido"?"VENC":ms==="urgente"?d+"d URG":ms==="proximo"?d+"d prox":d+"d")))+
+        pillH(CE[e.estado]||"var(--green)",e.estado==="operativo"?_statusDot('#34c759')+"OK":e.estado==="fuera-de-servicio"?_statusDot('#ff3b30')+"Fuera de servicio":icn('wrench',14)+"Roto/Con Fallas")+
+        (sinMant(e)?pillH("#8e8e93","⚫ Sin mant."):pillH(CM[ms],icn('wrench',14)+""+(ms==="vencido"?"VENC":ms==="urgente"?d+"d URG":ms==="proximo"?d+"d prox":d+"d")))+
         (rot>0?pillH("var(--red)",_statusDot('#ff3b30')+""+rot+" roto"+(rot>1?"s":"")):"")+(e.tieneServicio?pillH("var(--green)","✔ Servicio"):"")+
       (function(){var _rse=calcRiskScore(e);return _rse.level==='critico'||_rse.level==='alto'?'<span style="font-size:.6rem;font-weight:700;padding:2px 7px;border-radius:10px;background:'+riskLevelColor(_rse.level)+'22;color:'+riskLevelColor(_rse.level)+';border:1px solid '+riskLevelColor(_rse.level)+'44;">'+riskLevelLabel(_rse.level)+'</span>':'';})()+'</div></div>'+
       '<div style="color:var(--text3);font-size:1.2rem;flex-shrink:0;">›</div></div></div>';
@@ -10938,8 +10941,8 @@ function _rDetalleAdmin(eq){
   return h;
 }
 // ── Documentos del equipo ──
-var _DOC_TIPOS=[{id:'poliza',lbl:'🛡 Póliza'},{id:'habilitacion',lbl:'🏛 Habilitación'},{id:'manual',lbl:'📘 Manual'},{id:'orden',lbl:'🧾 Orden de servicio'},{id:'otro',lbl:'📄 Otro'}];
-function _docTipoLbl(t){for(var i=0;i<_DOC_TIPOS.length;i++){if(_DOC_TIPOS[i].id===t)return _DOC_TIPOS[i].lbl;}return '📄 Documento';}
+var _DOC_TIPOS=[{id:'poliza',lbl:'🛡 Póliza'},{id:'habilitacion',lbl:'🏛 Habilitación'},{id:'manual',lbl:'📘 Manual'},{id:'orden',lbl:'🧾 Orden de servicio'},{id:'otro',lbl:icn('file',14)+'Otro'}];
+function _docTipoLbl(t){for(var i=0;i<_DOC_TIPOS.length;i++){if(_DOC_TIPOS[i].id===t)return _DOC_TIPOS[i].lbl;}return icn('file',14)+'Documento';}
 var _pendingDocs=[];
 function openDocsModal(eqId){
   var eq=eqs.find(function(e){return e.id===eqId;});if(!eq)return;
@@ -11111,7 +11114,7 @@ function _rDetalleRefrig(eq,rf){
   '</div>';
   h+='</div>';
   var chCol=rf.chiller==='operativo'?'#16a34a':rf.chiller==='service'?'#d97706':'#dc2626';
-  var chLbl=rf.chiller==='operativo'?_statusDot('#34c759')+'Operativo':rf.chiller==='service'?'🔧 En Service':_statusDot('#ff3b30')+'Rotura';
+  var chLbl=rf.chiller==='operativo'?_statusDot('#34c759')+'Operativo':rf.chiller==='service'?icn('wrench',14)+'En Service':_statusDot('#ff3b30')+'Rotura';
   h+='<div class="cring-wrap" style="--cc:rgba(8,145,178,.9);margin-bottom:10px;"><div class="cring-el"></div><div class="gc" style="padding:0;overflow:hidden;">'+
     '<div style="background:linear-gradient(90deg,rgba(8,145,178,.12),rgba(99,179,237,.06));padding:8px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid rgba(99,179,237,.08);">'+
       '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(8,145,178,.9)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/></svg>'+
@@ -11512,7 +11515,7 @@ function _rDetalleFallas(eq){
       var isMant=hh.tipo==='mantenimiento';var isMej=hh.tipo==='mejora';var isRefrig=hh.tipo==='refrigeracion';var isCancelPM=hh.tipo==='cancelacion_pm';
       var c=isMant?'var(--accent)':isMej?'#8b5cf6':isRefrig?'#0891b2':isCancelPM?'var(--red)':'var(--green)';
       var dotBg=isMant?'rgba(0,113,227,.15)':isMej?'rgba(139,92,246,.15)':isRefrig?'rgba(8,145,178,.15)':isCancelPM?'rgba(255,59,48,.12)':'rgba(52,199,89,.15)';
-      var label=isMant?'Mantenimiento':isMej?'Mejora':isRefrig?'❄️ Refrigeración':isCancelPM?_statusDot('#ff3b30')+'PM Cancelado':'Reparación';
+      var label=isMant?'Mantenimiento':isMej?'Mejora':isRefrig?icn('snowflake',14)+'Refrigeración':isCancelPM?_statusDot('#ff3b30')+'PM Cancelado':'Reparación';
       var hasPdf=(hh.archivos&&hh.archivos.length>0);
       h+='<div style="position:relative;margin-bottom:10px;">';
       h+='<div style="position:absolute;left:-16px;top:10px;width:10px;height:10px;border-radius:50%;background:'+c+';box-shadow:0 0 0 3px '+dotBg+';"></div>';
@@ -11649,7 +11652,7 @@ function rDetalle(){
     var _liqWarn=_liqPresNiv==='advertencia';
     var _rfLastCarga=(rf.historial||[]).filter(function(ev){return ev.tipo==='carga_gaseoso'||ev.tipo==='carga_liquido';}).slice(-1)[0];
     var _chCol=rf.chiller==='operativo'?'#16a34a':rf.chiller==='service'?'#d97706':'#dc2626';
-    var _chLbl=rf.chiller==='operativo'?_statusDot('#34c759')+'Operativo':rf.chiller==='service'?'🔧 Service':_statusDot('#ff3b30')+'Rotura';
+    var _chLbl=rf.chiller==='operativo'?_statusDot('#34c759')+'Operativo':rf.chiller==='service'?icn('wrench',14)+'Service':_statusDot('#ff3b30')+'Rotura';
     var _gasTxt=!isNaN(_gasP)?_gasP.toFixed(1)+' MPa':(rf.helioGaseoso==='presion_baja'?'Pres. baja':'OK');
     var _gasCol=_gasAlm?'#f87171':!isNaN(_gasP)?'#63b3ed':'#4ade80';
     var _liqPTxt=!isNaN(_liqPorc)?_liqPorc.toFixed(0)+'%':'—';
@@ -11818,7 +11821,7 @@ function rDetalle(){
   } else {
     _rotActivas.slice(0,3).forEach(function(p){
       var c=CP[p.estado]||'var(--green)';
-      var sl=p.estado==='roto'?_statusDot('#ff3b30')+'Roto':p.estado==='pendiente'?_statusDot('#ff9500')+'Pendiente':'🔧 '+p.estado;
+      var sl=p.estado==='roto'?_statusDot('#ff3b30')+'Roto':p.estado==='pendiente'?_statusDot('#ff9500')+'Pendiente':icn('wrench',14)+''+p.estado;
       hR+='<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);">';
       hR+='<div style="width:6px;height:6px;border-radius:50%;background:'+c+';flex-shrink:0;"></div>';
       hR+='<span style="flex:1;font-size:.78rem;font-weight:600;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(p.nombre)+'</span>';
@@ -11886,7 +11889,7 @@ function rDetalle(){
 
 // ── ANTENAS VIEW ──
 function _bajaMotivoLabel(motivo){
-  return {'venta':'🤝 Venta','entrega_pago':'🔁 Entregado como forma de pago','falla_irreparable':'💥 Falla irreparable','obsolescencia':'⏳ Obsolescencia','reemplazo':'🔄 Reemplazo','otro':'📝 Otro'}[motivo]||(motivo||'—');
+  return {'venta':'🤝 Venta','entrega_pago':'🔁 Entregado como forma de pago','falla_irreparable':'💥 Falla irreparable','obsolescencia':'⏳ Obsolescencia','reemplazo':icn('refresh',14)+'Reemplazo','otro':icn('edit',14)+'Otro'}[motivo]||(motivo||'—');
 }
 function _bajaRowHTML(nombre,chipsHtml,b,verDetalleOnclick,reactivarOnclick){
   var motivoLabel=_bajaMotivoLabel(b.motivo);
@@ -13161,7 +13164,7 @@ function rAntenaDetalle(){
           '<div style="font-weight:700;font-size:.82rem;color:var(--text);">'+esc(hh.queSeRompio||hh.descripcion||'—')+'</div>'+
           (hh.descripcion&&hh.queSeRompio?'<div style="font-size:.71rem;color:var(--text2);margin-top:2px;">'+esc(hh.descripcion)+'</div>':'')+
           '<div style="font-size:.67rem;color:var(--text3);margin-top:4px;">'+
-            (hh.fechaRotura?'📅 Rotura: <span style="color:var(--red);font-weight:600;">'+fD(hh.fechaRotura)+'</span> · ':'')+
+            (hh.fechaRotura?icn('calendar',14)+'Rotura: <span style="color:var(--red);font-weight:600;">'+fD(hh.fechaRotura)+'</span> · ':'')+
             '✓ Arreglo: <span style="color:var(--green);font-weight:600;">'+fD(hh.fecha)+'</span>'+
             (hh.tecnico?' · 👷 '+esc(hh.tecnico):'')+
           '</div>'+
@@ -13509,7 +13512,7 @@ function checkMonthlyReminder(){
     localStorage.setItem('cima_reminder_shown',today);
     var mes=new Date().toLocaleDateString('es-AR',{month:'long',year:'numeric'});
     mes=mes.charAt(0).toUpperCase()+mes.slice(1);
-    new Notification('📋 CIMA Hub — Reporte '+mes,{body:'Hoy es el último día del mes. Generá y compartí el informe mensual.',tag:'cima-monthly',icon:''});
+    new Notification(icn('clipboard',14)+'CIMA Hub — Reporte '+mes,{body:'Hoy es el último día del mes. Generá y compartí el informe mensual.',tag:'cima-monthly',icon:''});
   }catch(e){}
 }
 // ── Alertas críticas automáticas ──
@@ -13758,7 +13761,7 @@ function _marcaFallasDeEquipo(eq){
     (a.roturas||[]).filter(function(r){return r.estado!=='reparado';}).forEach(function(r){
       out.push({
         id:'ant-'+a.id+'-'+r.id,
-        nombre:'📡 Antena '+(a.nombre||a.tipo||'')+' — '+(r.queSeRompio||'Falla'),
+        nombre:icn('rss',14)+'Antena '+(a.nombre||a.tipo||'')+' — '+(r.queSeRompio||'Falla'),
         descripcion:r.descripcion||'',
         estado:r.estado==='en_reparacion'?'pendiente':'roto',
         fechaRotura:r.fecha||'',
@@ -15623,7 +15626,7 @@ function _doScanLabel(prompt,onResult){
       document.body.removeChild(inp);
       showToast('⚠️ No se pudo leer la foto','err');
       var sb2=document.getElementById('scan-label-btn');
-      if(sb2){sb2.disabled=false;sb2.innerHTML='📷 Escanear etiqueta';}
+      if(sb2){sb2.disabled=false;sb2.innerHTML=icn('camera',14)+'Escanear etiqueta';}
     };
     reader.onload=function(ev){
       var dataUrl=ev.target.result;
@@ -15648,7 +15651,7 @@ function _doScanLabel(prompt,onResult){
         var _scanFail=function(msg){
           showToast(msg,'err');
           var sb=document.getElementById('scan-label-btn');
-          if(sb){sb.disabled=false;sb.innerHTML='📷 Escanear etiqueta';}
+          if(sb){sb.disabled=false;sb.innerHTML=icn('camera',14)+'Escanear etiqueta';}
         };
         if(!window._fbUser){_scanFail('Iniciá sesión de nuevo para usar el escáner');return;}
         window._fbUser.getIdToken().then(function(idToken){
@@ -15677,7 +15680,7 @@ function _doScanLabel(prompt,onResult){
             if(!m)throw new Error('La IA no pudo leer la etiqueta — intentá con mejor iluminación');
             onResult(JSON.parse(m[0]));
             var sb=document.getElementById('scan-label-btn');
-            if(sb){sb.disabled=false;sb.innerHTML='📷 Escanear otra etiqueta';}
+            if(sb){sb.disabled=false;sb.innerHTML=icn('camera',14)+'Escanear otra etiqueta';}
           })
           .catch(function(err){
             console.error('AI scan:',err);
@@ -16450,8 +16453,8 @@ function openGEShortcutGuide(eqId){
         '📥 Pedir número → <b>Presión helio PSI</b><br>'+
         '📥 Pedir número → <b>Flujo chiller L/min</b><br>'+
         '📥 Pedir número → <b>Temperatura chiller °C</b><br>'+
-        '📋 Pedir en menú → <b>Compresor</b> (operativo / desconectado)<br>'+
-        '📋 Pedir en menú → <b>Eficiencia</b> (alta / normal / baja)<br>'+
+        icn('clipboard',14)+'Pedir en menú → <b>Compresor</b> (operativo / desconectado)<br>'+
+        icn('clipboard',14)+'Pedir en menú → <b>Eficiencia</b> (alta / normal / baja)<br>'+
         '🌐 Abrir URL → construir con los valores anteriores'+
       '</div>'+
     '</div>'+
@@ -16667,7 +16670,7 @@ function _rLecturasSalaSection(eq,rf){
   if(ultimas.length){
     listaHtml=ultimas.map(function(l){
       var partes=[];
-      if(l.chillerTempC!=null)partes.push('❄️ '+l.chillerTempC+'°C');
+      if(l.chillerTempC!=null)partes.push(icn('snowflake',14)+''+l.chillerTempC+'°C');
       if(l.helioGasPresion!=null)partes.push('⚗️ '+l.helioGasPresion+' MPa');
       if(l.helioLiqPresion!=null)partes.push('💧 '+l.helioLiqPresion+' PSI');
       if(l.helioLiqPorc!=null)partes.push('🧊 '+l.helioLiqPorc+'%');
@@ -18134,14 +18137,14 @@ function openAddTransductorRoturaModal(transductorId){
     '<div class="ff"><div class="ff-label">Fotos</div>'+
       '<div id="trrot-fotos-list" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px;"></div>'+
       '<label style="display:flex;align-items:center;gap:6px;padding:9px 12px;border-radius:var(--r-md);background:rgba(52,199,89,.06);border:1.5px dashed rgba(52,199,89,.25);cursor:pointer;font-size:.75rem;color:var(--green);font-weight:600;">'+
-        '📷 Agregar fotos'+
+        icn('camera',14)+'Agregar fotos'+
         '<input type="file" accept="image/*" multiple style="display:none;" onchange="_addTrRotFotos(this.files)">'+
       '</label>'+
     '</div>'+
     '<div class="ff"><div class="ff-label">Presupuesto PDF</div>'+
       '<div id="trrot-pres-name" style="font-size:.7rem;color:var(--green);margin-bottom:4px;min-height:16px;"></div>'+
       '<label style="display:flex;align-items:center;gap:6px;padding:9px 12px;border-radius:var(--r-md);background:rgba(0,113,227,.06);border:1.5px dashed rgba(0,113,227,.25);cursor:pointer;font-size:.75rem;color:var(--accent);font-weight:600;">'+
-        '📄 Subir presupuesto PDF'+
+        icn('file',14)+'Subir presupuesto PDF'+
         '<input type="file" accept=".pdf,application/pdf" style="display:none;" onchange="var f=this.files[0];if(f){window._pendTrRotPresArr=f;document.getElementById(\'trrot-pres-name\').textContent=\'✅ \'+f.name;}">'+
       '</label>'+
     '</div>'+
@@ -18271,7 +18274,7 @@ function openSeguimientoTransductorRotura(transId,rotId){
       '</div>':'')+
       '<div id="trseg-pres-name" style="font-size:.7rem;color:var(--green);margin-bottom:4px;min-height:16px;"></div>'+
       '<label style="display:flex;align-items:center;gap:6px;padding:9px 12px;border-radius:var(--r-md);background:rgba(0,113,227,.08);border:1.5px dashed rgba(0,113,227,.25);cursor:pointer;font-size:.75rem;color:var(--accent);font-weight:600;">'+
-        '📄 Agregar presupuesto PDF'+
+        icn('file',14)+'Agregar presupuesto PDF'+
         '<input type="file" accept=".pdf,application/pdf" style="display:none;" onchange="var f=this.files[0];if(f){window._pendTrSegPres=f;document.getElementById(\'trseg-pres-name\').textContent=\'✅ \'+f.name;}">'+
       '</label>'+
     '</div>'+
@@ -18425,14 +18428,14 @@ function openAddFallaDirectaModal(eqId){
     '<div class="ff"><div class="ff-label">Fotos</div>'+
       '<div id="fd-fotos-list" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px;"></div>'+
       '<label style="display:flex;align-items:center;gap:6px;padding:9px 12px;border-radius:var(--r-md);background:rgba(52,199,89,.06);border:1.5px dashed rgba(52,199,89,.25);cursor:pointer;font-size:.75rem;color:var(--green);font-weight:600;">'+
-        '📷 Agregar fotos'+
+        icn('camera',14)+'Agregar fotos'+
         '<input type="file" accept="image/*" multiple style="display:none;" onchange="_addFdFotos(this.files)">'+
       '</label>'+
     '</div>'+
     '<div class="ff"><div class="ff-label">Presupuesto PDF</div>'+
       '<div id="fd-pres-name" style="font-size:.7rem;color:var(--green);margin-bottom:4px;min-height:16px;"></div>'+
       '<label style="display:flex;align-items:center;gap:6px;padding:9px 12px;border-radius:var(--r-md);background:rgba(0,113,227,.06);border:1.5px dashed rgba(0,113,227,.25);cursor:pointer;font-size:.75rem;color:var(--accent);font-weight:600;">'+
-        '📄 Subir presupuesto PDF'+
+        icn('file',14)+'Subir presupuesto PDF'+
         '<input type="file" accept=".pdf,application/pdf" style="display:none;" onchange="var f=this.files[0];if(f){window._pendFdPresArr=f;document.getElementById(\'fd-pres-name\').textContent=\'✅ \'+f.name;}">'+
       '</label>'+
     '</div>'+
@@ -18561,7 +18564,7 @@ function openSeguimientoFallaDirecta(eqId,fallaId){
       '</div>':'')+
       '<div id="fdseg-pres-name" style="font-size:.7rem;color:var(--green);margin-bottom:4px;min-height:16px;"></div>'+
       '<label style="display:flex;align-items:center;gap:6px;padding:9px 12px;border-radius:var(--r-md);background:rgba(0,113,227,.08);border:1.5px dashed rgba(0,113,227,.25);cursor:pointer;font-size:.75rem;color:var(--accent);font-weight:600;">'+
-        '📄 Agregar presupuesto PDF'+
+        icn('file',14)+'Agregar presupuesto PDF'+
         '<input type="file" accept=".pdf,application/pdf" style="display:none;" onchange="var f=this.files[0];if(f){window._pendFdSegPres=f;document.getElementById(\'fdseg-pres-name\').textContent=\'✅ \'+f.name;}">'+
       '</label>'+
     '</div>'+
@@ -18714,7 +18717,7 @@ function _openAgregarFotosModal(title,subtitle,onSaveStr){
     '<div id="agr-fotos-list" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;min-height:0;"></div>'+
     '<label style="display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;border-radius:var(--r-md);background:rgba(52,199,89,.08);border:2px dashed rgba(52,199,89,.3);cursor:pointer;font-size:.82rem;color:var(--green);font-weight:700;width:100%;box-sizing:border-box;">'+
       '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>'+
-      '📷 Tomar foto o elegir de galería'+
+      icn('camera',14)+'Tomar foto o elegir de galería'+
       '<input type="file" accept="image/*" multiple style="display:none;" onchange="_addAgrFotos(this.files)">'+
     '</label>'+
     '<button class="btn-grad" style="width:100%;margin-top:12px;" onclick="'+onSaveStr+'">💾 Guardar fotos</button>'
@@ -19165,7 +19168,7 @@ function rAires(){
         '<div style="width:42px;height:42px;border-radius:12px;overflow:hidden;flex-shrink:0;"><svg width="42" height="42" viewBox="'+_AIRE_VB+'" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" style="display:block;">'+_AIRE_ILLUS+'</svg></div>'+
         '<div style="flex:1;min-width:0;">'+
           '<div style="font-weight:700;font-size:.92rem;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+esc(a.nombre)+'</div>'+
-          '<div style="font-size:.72rem;color:var(--text3);margin-top:2px;">'+(a.modelo?'📦 '+esc(a.modelo):'')+((a.modelo&&a.ubicacion)?' · ':'')+( a.ubicacion?'📍 '+esc(a.ubicacion):'')+'</div>'+
+          '<div style="font-size:.72rem;color:var(--text3);margin-top:2px;">'+(a.modelo?'📦 '+esc(a.modelo):'')+((a.modelo&&a.ubicacion)?' · ':'')+( a.ubicacion?icn('mappin',14)+''+esc(a.ubicacion):'')+'</div>'+
           '<div style="font-size:.68rem;color:var(--text3);margin-top:2px;">'+lastSvc+'</div>'+
           '<div style="font-size:.68rem;font-weight:600;color:'+_venColor+';margin-top:2px;">'+_venLabel+'</div>'+
         '</div>'+
@@ -19978,12 +19981,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="7.5.0";
+var APP_DISPLAY_VERSION="7.6.0";
 var APP_BUILD="03/09/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'7.6.0',fecha:'03/09/2026',tipo:'minor',cambios:[
+    'Quinta tanda de reemplazo de emojis por iconos SVG: 55 iconos de herramientas/wrench, archivo, clipboard, camara, ubicacion, refrigeracion(snowflake), notas, guardar, refresh, antena/senal y calendario repartidos por toda la app. Se agregan mappin/snowflake/save a _ICONS, resto reusa iconos existentes. Mismo script auditado que la tanda anterior (excluye toasts/alert y funciones que alimentan el PDF)'
+  ]},
   {v:'7.5.0',fecha:'03/09/2026',tipo:'minor',cambios:[
     'Cuarta tanda (grande) de reemplazo de emojis por iconos SVG: ~92 etiquetas de estado en tarjetas, badges y encabezados por toda la app (riesgo institucional, refrigeracion en pantalla, estado de partes/antenas/transductores, garantias, PM, historial). Reemplazo scripteado y auditado linea por linea para excluir automaticamente los casos que van a showToast/alert (texto plano, no soportan SVG) y los que alimentan el PDF via _pdfCard (que ya tiene su propio mecanismo _pdfStatusDotSvg/_pdfCleanStatusLabel)'
   ]},
