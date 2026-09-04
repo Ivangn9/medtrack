@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v8.6.3 — 04/09/2026 (patch)
+
+- Correccion de la Fase 2: se habia pasado de solida (opacidad .78-.85 y sin redondeo se leia como panel opaco tipo Windows 95, no vidrio). Vuelve a ser vidrio real: mas translucido, con curvas suaves en la toolbar (redondeado abajo en vez de esquinas duras), y se restaura el shimmer/specular que se habia sacado por error
+
 ## v8.6.2 — 03/09/2026 (patch)
 
 - Revertida la Fase 1 (overlay title bar): la ventana real mostraba una franja negra solida arriba en vez de los traffic lights flotando sobre el contenido - resultado roto. tauri.conf.json vuelve a la barra de titulo normal. Queda documentado el intento para retomarlo con mas investigacion mas adelante si hace falta

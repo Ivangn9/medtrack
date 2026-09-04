@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.09.03.019 -->
+<!-- v2026.09.04.001 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.09.03.019">
+<meta name="app-version" content="v2026.09.04.001">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1261,55 +1261,44 @@ body.dark .pill[style*="#ff9500"],body.dark .pill[style*="--orange"]{box-shadow:
      que no hace falta sacarlo — si se retoma el overlay más adelante, hay
      que investigar bien esa franja negra antes de volver a intentarlo. */
 
-  /* Fase 2 — materiales reales de NSVisualEffectView, en vez del vidrio muy
-     transparente pensado para el fondo con foto que se usa en mobile. Los
-     valores son la traducción aproximada del material oficial de Apple
-     (sidebar: opacidad ~.72, blur 30px saturate 150%; titlebar: opacidad
-     ~.6, blur 20px saturate 180%) — no son los píxeles exactos de AppKit
-     (no son públicos), pero sí el criterio real: mucho más sólido que un
-     vidrio decorativo, para que se lea como un panel del sistema. */
+  /* Fase 2 (corregida 04/09/2026) — la v1 se pasó de sólida: subir la
+     opacidad hasta ~.78-.85 y sacar el redondeado/shimmer mató el efecto
+     vidrio (el usuario probó la app real: "no veo efecto vidrio en ningún
+     lado", "parece Windows 95"). Vuelve a ser vidrio de verdad — más
+     translúcido que la v1, algo más sólido que el original mobile (pensado
+     para tapar mejor la foto de fondo detrás), CON curvas y CON el
+     shimmer/specular que le daba la sensación de "material", no de panel
+     pintado. */
   #sidebar{
-    background:rgba(246,246,248,.78);
-    -webkit-backdrop-filter:saturate(150%) blur(30px);
-    backdrop-filter:saturate(150%) blur(30px);
-    border-right-color:rgba(0,0,0,.08);
-    box-shadow:1px 0 0 rgba(0,0,0,.05);
+    background:rgba(255,255,255,.34);
+    -webkit-backdrop-filter:saturate(180%) blur(26px);
+    backdrop-filter:saturate(180%) blur(26px);
   }
-  #sidebar::before{display:none;} /* el wash de color de fondo no hace falta sobre un material sólido */
-  body.dark #sidebar{
-    background:rgba(30,30,34,.72);
-    border-right-color:rgba(255,255,255,.08);
-    box-shadow:1px 0 0 rgba(0,0,0,.3);
-  }
+  body.dark #sidebar{background:rgba(20,20,28,.42);}
 
-  /* Toolbar unificada: pasa de "pill flotante" a barra sólida pegada arriba,
-     como la titlebar/toolbar real — mismo criterio de material (~.85 de
-     opacidad, blur 20px saturate 180%) para que el contenido de abajo no se
-     transparente tanto al scrollear. */
-  #header{padding:0;background:transparent;}
+  /* Toolbar: sigue unificada (ancho completo, ya no la píldora flotante
+     con margen alrededor) pero con curvas suaves abajo y vidrio real en
+     vez de un panel opaco con línea dura. */
+  #header{padding:0 0 1px;background:transparent;}
   #header-inner{
-    max-width:none;border-radius:0;
-    background:rgba(255,255,255,.85);
-    -webkit-backdrop-filter:saturate(180%) blur(20px);
-    backdrop-filter:saturate(180%) blur(20px);
-    border:none;border-bottom:1px solid rgba(0,0,0,.08);
-    box-shadow:0 1px 0 rgba(0,0,0,.03);
-    padding:14px 24px;min-height:auto;
+    max-width:none;
+    border-radius:0 0 20px 20px;
+    background:rgba(255,255,255,.40);
+    -webkit-backdrop-filter:saturate(180%) blur(22px);
+    backdrop-filter:saturate(180%) blur(22px);
+    border:1px solid var(--gc-border);border-top:none;
+    box-shadow:0 4px 20px rgba(0,0,0,.05);
+    padding:16px 24px;min-height:auto;
   }
-  #header-inner::before,#header-inner::after{display:none;}
-  body.dark #header-inner{
-    background:rgba(24,24,28,.80);
-    border-bottom-color:rgba(255,255,255,.08);
-  }
+  body.dark #header-inner{background:rgba(20,20,28,.45);}
 
-  /* Panel de Ajustes: más cerca del material "sheet" (fondo sólido con
-     blur moderado) que del vidrio decorativo mobile. */
+  /* Panel de Ajustes: mismo criterio — más translúcido que la v1. */
   .settings-panel{
-    background:rgba(250,250,252,.90);
-    -webkit-backdrop-filter:saturate(160%) blur(25px);
-    backdrop-filter:saturate(160%) blur(25px);
+    background:rgba(255,255,255,.42);
+    -webkit-backdrop-filter:saturate(170%) blur(28px);
+    backdrop-filter:saturate(170%) blur(28px);
   }
-  body.dark .settings-panel{background:rgba(26,26,30,.90);}
+  body.dark .settings-panel{background:rgba(20,20,28,.50);}
 }
 </style>
 <!-- AOS animate-on-scroll -->
@@ -20086,12 +20075,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.6.2";
-var APP_BUILD="03/09/26 h";
+var APP_DISPLAY_VERSION="8.6.3";
+var APP_BUILD="04/09/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'8.6.3',fecha:'04/09/2026',tipo:'patch',cambios:[
+    'Correccion de la Fase 2: se habia pasado de solida (opacidad .78-.85 y sin redondeo se leia como panel opaco tipo Windows 95, no vidrio). Vuelve a ser vidrio real: mas translucido, con curvas suaves en la toolbar (redondeado abajo en vez de esquinas duras), y se restaura el shimmer/specular que se habia sacado por error'
+  ]},
   {v:'8.6.2',fecha:'03/09/2026',tipo:'patch',cambios:[
     'Revertida la Fase 1 (overlay title bar): la ventana real mostraba una franja negra solida arriba en vez de los traffic lights flotando sobre el contenido - resultado roto. tauri.conf.json vuelve a la barra de titulo normal. Queda documentado el intento para retomarlo con mas investigacion mas adelante si hace falta'
   ]},
