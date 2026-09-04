@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.09.04.004 -->
+<!-- v2026.09.04.005 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.09.04.004">
+<meta name="app-version" content="v2026.09.04.005">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1358,6 +1358,16 @@ body.dark .pill[style*="#ff9500"],body.dark .pill[style*="--orange"]{box-shadow:
   }
   .glass-live:hover .glass-live-spot{opacity:1;}
   body.dark .glass-live-spot{background:radial-gradient(circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,.10),transparent 45%);}
+
+  /* Fase 6 — accent color real de Apple (systemBlue) en vez del azul de
+     marketing (#0071e3) que usa mobile. Un solo cambio de custom property,
+     pero de impacto visual alto porque --accent se usa en botones/estados
+     activos/focus en toda la app — por eso va como paso propio, ya con
+     todo lo anterior revisado. --red/--orange/--green/--yellow del :root
+     original ya coinciden casi exacto con los semánticos de Apple, no
+     hacía falta tocarlos. */
+  :root{--accent:#007aff;--accent2:#0060c7;}
+  body.dark{--accent:#0a84ff;--accent2:#0068d6;}
 }
 @media(prefers-reduced-motion:reduce){.glass-live-spot{display:none!important;}}
 @keyframes modalScaleIn{from{transform:scale(.94);opacity:0}to{transform:scale(1);opacity:1}}
@@ -20137,12 +20147,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.9.0";
+var APP_DISPLAY_VERSION="9.0.0";
 var APP_BUILD="04/09/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'9.0.0',fecha:'04/09/2026',tipo:'minor',cambios:[
+    'Fase 6 (ultima) del rediseno nativo de macOS: accent color real de Apple en escritorio. --accent/--accent2 pasan de #0071e3 (azul de marketing) a #007aff claro / #0a84ff oscuro (systemBlue real), scoped a @media(min-width:900px) - mobile sigue con el azul original. Con esto se completa la ronda de 6 fases del rediseno nativo de macOS (Fase 1 - overlay title bar - quedo revertida por un bug visual sin resolver, documentado en el codigo)'
+  ]},
   {v:'8.9.0',fecha:'04/09/2026',tipo:'minor',cambios:[
     'Fase 5 del rediseno nativo de macOS: vidrio dinamico, brillo que sigue el cursor en sidebar/toolbar/modal (clase .glass-live). Un solo listener de mousemove delegado en document (no uno por elemento), spot creado como div hijo por JS la primera vez que hace falta (sidebar/header-inner ya usan sus propios ::before/::after para shimmer, no se podian reusar). Gateado por ancho de escritorio (innerWidth>=900) y por prefers-reduced-motion (se desactiva el listener entero)'
   ]},

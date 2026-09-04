@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v9.0.0 — 04/09/2026 (minor)
+
+- Fase 6 (ultima) del rediseno nativo de macOS: accent color real de Apple en escritorio. --accent/--accent2 pasan de #0071e3 (azul de marketing) a #007aff claro / #0a84ff oscuro (systemBlue real), scoped a @media(min-width:900px) - mobile sigue con el azul original. Con esto se completa la ronda de 6 fases del rediseno nativo de macOS (Fase 1 - overlay title bar - quedo revertida por un bug visual sin resolver, documentado en el codigo)
+
 ## v8.9.0 — 04/09/2026 (minor)
 
 - Fase 5 del rediseno nativo de macOS: vidrio dinamico, brillo que sigue el cursor en sidebar/toolbar/modal (clase .glass-live). Un solo listener de mousemove delegado en document (no uno por elemento), spot creado como div hijo por JS la primera vez que hace falta (sidebar/header-inner ya usan sus propios ::before/::after para shimmer, no se podian reusar). Gateado por ancho de escritorio (innerWidth>=900) y por prefers-reduced-motion (se desactiva el listener entero)
