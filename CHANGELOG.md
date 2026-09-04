@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v8.7.0 — 04/09/2026 (minor)
+
+- Fase 3 del rediseno nativo de macOS: modales como sheet centrado en escritorio. .modal-box pasa de hoja de accion de iOS (ancla abajo, solo esquinas de arriba redondeadas, entra deslizando) a modal centrado con las 4 esquinas redondeadas y animacion de scale+opacity en vez de desplazamiento. Se oculta el handle de arrastre (sin sentido sin gesto tactil). Mobile/iPad sin cambios
+
 ## v8.6.3 — 04/09/2026 (patch)
 
 - Correccion de la Fase 2: se habia pasado de solida (opacidad .78-.85 y sin redondeo se leia como panel opaco tipo Windows 95, no vidrio). Vuelve a ser vidrio real: mas translucido, con curvas suaves en la toolbar (redondeado abajo en vez de esquinas duras), y se restaura el shimmer/specular que se habia sacado por error

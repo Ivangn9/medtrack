@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.09.04.001 -->
+<!-- v2026.09.04.002 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.09.04.001">
+<meta name="app-version" content="v2026.09.04.002">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1299,7 +1299,27 @@ body.dark .pill[style*="#ff9500"],body.dark .pill[style*="--orange"]{box-shadow:
     backdrop-filter:saturate(170%) blur(28px);
   }
   body.dark .settings-panel{background:rgba(20,20,28,.50);}
+
+  /* Fase 3 — modal como sheet centrado. Hoy .modal-box es una hoja de
+     acción de iOS: ancla abajo, solo redondea las esquinas de arriba, y
+     entra deslizando desde abajo (modalSlideUp) — clarísimo "de celular"
+     en una ventana de Mac. En escritorio: centrado, las 4 esquinas
+     redondeadas, entra con scale+opacity en vez de desplazamiento. La
+     franja/handle de arrastre (el "pill" gris arriba) no tiene sentido
+     sin gesto táctil, se oculta. .settings-panel NO se toca acá: ya es un
+     panel lateral fijo de 320px con su propio patrón, no una hoja mobile. */
+  .modal-bg{align-items:center;}
+  .modal-box{
+    border-radius:var(--r-xl);
+    max-width:600px;width:calc(100% - 48px);max-height:85vh;
+    margin:0;padding-top:20px;
+    animation:modalScaleIn .28s var(--spring);
+  }
+  .modal-box.closing{animation:modalScaleOut .22s var(--ease-out) both!important;}
+  .modal-handle{display:none;}
 }
+@keyframes modalScaleIn{from{transform:scale(.94);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes modalScaleOut{from{transform:scale(1);opacity:1}to{transform:scale(.96);opacity:0}}
 </style>
 <!-- AOS animate-on-scroll -->
 <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
@@ -20075,12 +20095,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.6.3";
+var APP_DISPLAY_VERSION="8.7.0";
 var APP_BUILD="04/09/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'8.7.0',fecha:'04/09/2026',tipo:'minor',cambios:[
+    'Fase 3 del rediseno nativo de macOS: modales como sheet centrado en escritorio. .modal-box pasa de hoja de accion de iOS (ancla abajo, solo esquinas de arriba redondeadas, entra deslizando) a modal centrado con las 4 esquinas redondeadas y animacion de scale+opacity en vez de desplazamiento. Se oculta el handle de arrastre (sin sentido sin gesto tactil). Mobile/iPad sin cambios'
+  ]},
   {v:'8.6.3',fecha:'04/09/2026',tipo:'patch',cambios:[
     'Correccion de la Fase 2: se habia pasado de solida (opacidad .78-.85 y sin redondeo se leia como panel opaco tipo Windows 95, no vidrio). Vuelve a ser vidrio real: mas translucido, con curvas suaves en la toolbar (redondeado abajo en vez de esquinas duras), y se restaura el shimmer/specular que se habia sacado por error'
   ]},
