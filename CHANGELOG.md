@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v9.1.0 — 04/09/2026 (minor)
+
+- Se saca el selector de Transparencia de Ajustes (Ultra/Alta/Media/Solido). El usuario siempre elegia Ultra a mano, asi que esos valores pasan a ser el default permanente de --gc-bg/--item-bg/etc en :root y body.dark, sin picker ni clases body.glass-N. Se remueve setGlassMode(), la lectura de mt_glass en init(), y el bloque de 4 botones en el panel de Ajustes. Aplica a toda la app (mobile y desktop), no solo al bloque de escritorio de esta sesion
+
 ## v9.0.0 — 04/09/2026 (minor)
 
 - Fase 6 (ultima) del rediseno nativo de macOS: accent color real de Apple en escritorio. --accent/--accent2 pasan de #0071e3 (azul de marketing) a #007aff claro / #0a84ff oscuro (systemBlue real), scoped a @media(min-width:900px) - mobile sigue con el azul original. Con esto se completa la ronda de 6 fases del rediseno nativo de macOS (Fase 1 - overlay title bar - quedo revertida por un bug visual sin resolver, documentado en el codigo)
