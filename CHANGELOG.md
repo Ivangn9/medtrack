@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v8.9.0 — 04/09/2026 (minor)
+
+- Fase 5 del rediseno nativo de macOS: vidrio dinamico, brillo que sigue el cursor en sidebar/toolbar/modal (clase .glass-live). Un solo listener de mousemove delegado en document (no uno por elemento), spot creado como div hijo por JS la primera vez que hace falta (sidebar/header-inner ya usan sus propios ::before/::after para shimmer, no se podian reusar). Gateado por ancho de escritorio (innerWidth>=900) y por prefers-reduced-motion (se desactiva el listener entero)
+
 ## v8.8.0 — 04/09/2026 (minor)
 
 - Fase 4 del rediseno nativo de macOS: controles a escala de escritorio. Los botones (btn-primary/secondary/danger/grad) y tabs pasan de tamano touch-target (pensado para el dedo) a un tamano mas chico y proporcionado para mouse/trackpad, manteniendo el estilo vidrio/pill existente (no se aplanaron ni se hicieron cuadrados). El spring de escritorio para estos controles pasa a reusar --ease-out (menos rebote que el cubic-bezier bastante bouncy que se usa en mobile). Mobile/iPad sin cambios

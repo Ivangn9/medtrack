@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.09.04.003 -->
+<!-- v2026.09.04.004 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.09.04.003">
+<meta name="app-version" content="v2026.09.04.004">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1340,7 +1340,26 @@ body.dark .pill[style*="#ff9500"],body.dark .pill[style*="--orange"]{box-shadow:
   .btn-primary,.btn-secondary,.btn-danger,.btn-grad,.tab{
     transition:transform .18s var(--ease-out),box-shadow .18s var(--ease-out),background .15s var(--ease-out);
   }
+
+  /* Fase 5 — vidrio dinámico: brillo que sigue el cursor, pedido explícito
+     del usuario aunque no sea el comportamiento real de NSVisualEffectView
+     (ese material es estático). Ver _initGlassLive() más abajo: un solo
+     listener de mousemove delegado en document (no uno por elemento), que
+     solo actualiza --mx/--my en los 2-3 elementos .glass-live que existen
+     (sidebar, toolbar, modal) — no se aplica a las cientos de .gc de toda
+     la app por costo de repintado. El spot es un <div> hijo creado por JS
+     la primera vez que hace falta (no un ::before/::after: sidebar y
+     header-inner ya usan esos dos para su shimmer/specular propio). */
+  .glass-live{position:relative;}
+  .glass-live-spot{
+    position:absolute;inset:0;z-index:3;pointer-events:none;border-radius:inherit;overflow:hidden;
+    background:radial-gradient(circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,.32),transparent 45%);
+    opacity:0;transition:opacity .25s var(--ease-out);
+  }
+  .glass-live:hover .glass-live-spot{opacity:1;}
+  body.dark .glass-live-spot{background:radial-gradient(circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,.10),transparent 45%);}
 }
+@media(prefers-reduced-motion:reduce){.glass-live-spot{display:none!important;}}
 @keyframes modalScaleIn{from{transform:scale(.94);opacity:0}to{transform:scale(1);opacity:1}}
 @keyframes modalScaleOut{from{transform:scale(1);opacity:1}to{transform:scale(.96);opacity:0}}
 </style>
@@ -1565,7 +1584,7 @@ body.dark .pill[style*="#ff9500"],body.dark .pill[style*="--orange"]{box-shadow:
   </div>
 </div>
 
-<div id="sidebar">
+<div id="sidebar" class="glass-live">
   <!-- Logo header — data-tauri-drag-region: en la app de escritorio (overlay
        title bar, sin barra de título propia) esta franja es lo que permite
        arrastrar la ventana; el atributo lo ignora cualquier otro contexto
@@ -1618,14 +1637,14 @@ body.dark .pill[style*="#ff9500"],body.dark .pill[style*="--orange"]{box-shadow:
 
 <!-- MODAL -->
 <div id="modal-overlay" class="modal-bg hidden" onclick="if(event.target===this)closeModal();">
-  <div id="modal-box" class="modal-box"><div class="modal-handle"></div></div>
+  <div id="modal-box" class="modal-box glass-live"><div class="modal-handle"></div></div>
 </div>
 
 <!-- APP -->
 <!-- MEDICAL ILLUSTRATIONS OVERLAY -->
 <div style="position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;background-image:url('bg3.jpg');background-size:cover;background-position:center center;background-repeat:no-repeat;opacity:0.32;"></div>
 <div id="app">
-  <div id="header"><div id="header-inner">
+  <div id="header"><div id="header-inner" class="glass-live">
     <div id="header-left">
       <button id="back-btn" class="hidden" onclick="goBack()" style="
         width:40px;height:40px;border-radius:50%;border:none;cursor:pointer;
@@ -20118,12 +20137,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.8.0";
+var APP_DISPLAY_VERSION="8.9.0";
 var APP_BUILD="04/09/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'8.9.0',fecha:'04/09/2026',tipo:'minor',cambios:[
+    'Fase 5 del rediseno nativo de macOS: vidrio dinamico, brillo que sigue el cursor en sidebar/toolbar/modal (clase .glass-live). Un solo listener de mousemove delegado en document (no uno por elemento), spot creado como div hijo por JS la primera vez que hace falta (sidebar/header-inner ya usan sus propios ::before/::after para shimmer, no se podian reusar). Gateado por ancho de escritorio (innerWidth>=900) y por prefers-reduced-motion (se desactiva el listener entero)'
+  ]},
   {v:'8.8.0',fecha:'04/09/2026',tipo:'minor',cambios:[
     'Fase 4 del rediseno nativo de macOS: controles a escala de escritorio. Los botones (btn-primary/secondary/danger/grad) y tabs pasan de tamano touch-target (pensado para el dedo) a un tamano mas chico y proporcionado para mouse/trackpad, manteniendo el estilo vidrio/pill existente (no se aplanaron ni se hicieron cuadrados). El spring de escritorio para estos controles pasa a reusar --ease-out (menos rebote que el cubic-bezier bastante bouncy que se usa en mobile). Mobile/iPad sin cambios'
   ]},
@@ -21928,6 +21950,33 @@ function rReporte(){
   '</button>';
   return h;
 }
+
+// ── Fase 5 rediseño macOS: vidrio dinámico (brillo que sigue el cursor) ──
+// Ver el comentario del CSS .glass-live para el porqué de este enfoque
+// (un solo listener delegado, spot como <div> hijo autocreado, no
+// ::before/::after porque sidebar/header-inner ya los usan para su propio
+// shimmer). Gateado por ancho de escritorio y prefers-reduced-motion.
+function _glassLiveSpot(el){
+  var spot=el.querySelector(':scope > .glass-live-spot');
+  if(!spot){spot=document.createElement('div');spot.className='glass-live-spot';el.appendChild(spot);}
+  return spot;
+}
+function _initGlassLive(){
+  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  document.addEventListener('mousemove',function(e){
+    if(window.innerWidth<900)return;
+    var els=document.querySelectorAll('.glass-live');
+    for(var i=0;i<els.length;i++){
+      var el=els[i],r=el.getBoundingClientRect();
+      if(e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom){
+        _glassLiveSpot(el);
+        el.style.setProperty('--mx',((e.clientX-r.left)/r.width*100)+'%');
+        el.style.setProperty('--my',((e.clientY-r.top)/r.height*100)+'%');
+      }
+    }
+  },{passive:true});
+}
+_initGlassLive();
 </script>
 
 <!-- Ajustes floating submenu -->
