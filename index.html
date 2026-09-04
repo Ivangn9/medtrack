@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.09.04.002 -->
+<!-- v2026.09.04.003 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.09.04.002">
+<meta name="app-version" content="v2026.09.04.003">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -1317,6 +1317,29 @@ body.dark .pill[style*="#ff9500"],body.dark .pill[style*="--orange"]{box-shadow:
   }
   .modal-box.closing{animation:modalScaleOut .22s var(--ease-out) both!important;}
   .modal-handle{display:none;}
+
+  /* Fase 4 — controles a escala de escritorio + motion menos rebotado.
+     Los botones actuales están pensados para el dedo (padding/tamaño de
+     touch target, pill completo) — en escritorio se ven grandes/redondos
+     de más. Se los achica y se baja un poco el radio (sigue redondeado,
+     no cuadrado — la lección de la Fase 2 es no chatar todo de golpe),
+     conservando el degradé/sombra que ya tenían. */
+  .btn-primary,.btn-secondary,.btn-danger{
+    padding:7px 15px;font-size:.8rem;border-radius:var(--r-md);min-height:auto;
+  }
+  .btn-grad{padding:9px 16px;font-size:.82rem;border-radius:var(--r-md);}
+  .tab{padding:7px 16px;font-size:.78rem;min-height:auto;}
+
+  /* Spring de escritorio: el actual (cubic-bezier(.34,1.56,.64,1)) tiene
+     bastante rebote — apropiado para gestos táctiles con momentum, no
+     para el click seco de mouse/trackpad. Reusa --ease-out (ya definido,
+     mismo criterio que usa el collapse del header) en vez de inventar un
+     valor nuevo. Los .gc/tarjetas NO se tocan acá: ese rebote sutil al
+     tocar una tarjeta se conserva, es la misma app en la misma ventana,
+     no hace falta desactivarlo — este ajuste es solo para botones/tabs. */
+  .btn-primary,.btn-secondary,.btn-danger,.btn-grad,.tab{
+    transition:transform .18s var(--ease-out),box-shadow .18s var(--ease-out),background .15s var(--ease-out);
+  }
 }
 @keyframes modalScaleIn{from{transform:scale(.94);opacity:0}to{transform:scale(1);opacity:1}}
 @keyframes modalScaleOut{from{transform:scale(1);opacity:1}to{transform:scale(.96);opacity:0}}
@@ -20095,12 +20118,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="8.7.0";
+var APP_DISPLAY_VERSION="8.8.0";
 var APP_BUILD="04/09/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'8.8.0',fecha:'04/09/2026',tipo:'minor',cambios:[
+    'Fase 4 del rediseno nativo de macOS: controles a escala de escritorio. Los botones (btn-primary/secondary/danger/grad) y tabs pasan de tamano touch-target (pensado para el dedo) a un tamano mas chico y proporcionado para mouse/trackpad, manteniendo el estilo vidrio/pill existente (no se aplanaron ni se hicieron cuadrados). El spring de escritorio para estos controles pasa a reusar --ease-out (menos rebote que el cubic-bezier bastante bouncy que se usa en mobile). Mobile/iPad sin cambios'
+  ]},
   {v:'8.7.0',fecha:'04/09/2026',tipo:'minor',cambios:[
     'Fase 3 del rediseno nativo de macOS: modales como sheet centrado en escritorio. .modal-box pasa de hoja de accion de iOS (ancla abajo, solo esquinas de arriba redondeadas, entra deslizando) a modal centrado con las 4 esquinas redondeadas y animacion de scale+opacity en vez de desplazamiento. Se oculta el handle de arrastre (sin sentido sin gesto tactil). Mobile/iPad sin cambios'
   ]},

@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v8.8.0 — 04/09/2026 (minor)
+
+- Fase 4 del rediseno nativo de macOS: controles a escala de escritorio. Los botones (btn-primary/secondary/danger/grad) y tabs pasan de tamano touch-target (pensado para el dedo) a un tamano mas chico y proporcionado para mouse/trackpad, manteniendo el estilo vidrio/pill existente (no se aplanaron ni se hicieron cuadrados). El spring de escritorio para estos controles pasa a reusar --ease-out (menos rebote que el cubic-bezier bastante bouncy que se usa en mobile). Mobile/iPad sin cambios
+
 ## v8.7.0 — 04/09/2026 (minor)
 
 - Fase 3 del rediseno nativo de macOS: modales como sheet centrado en escritorio. .modal-box pasa de hoja de accion de iOS (ancla abajo, solo esquinas de arriba redondeadas, entra deslizando) a modal centrado con las 4 esquinas redondeadas y animacion de scale+opacity en vez de desplazamiento. Se oculta el handle de arrastre (sin sentido sin gesto tactil). Mobile/iPad sin cambios
