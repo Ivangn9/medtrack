@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.09.07.001 -->
+<!-- v2026.09.07.002 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.09.07.001">
+<meta name="app-version" content="v2026.09.07.002">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3291,6 +3291,7 @@ function iconFor(eq,size){
 // ═══════════════════════════════════════════
 //  NAVIGATION
 // ═══════════════════════════════════════════
+var _bbIndTimer=null;
 function moveBBIndicator(){
   var ind=document.getElementById("bb-indicator");
   var inner=document.getElementById("bb-inner");
@@ -3305,6 +3306,11 @@ function moveBBIndicator(){
   var prevLeft=parseFloat(ind.style.left);
   var prevWidth=parseFloat(ind.style.width);
   ind.classList.add("show");
+  // Cancelar cualquier settle pendiente de un cambio de pestaña anterior — si no, al
+  // tocar varias pestañas rápido (uso normalísimo de una tab bar) el setTimeout viejo
+  // termina disparando después del nuevo y tira el indicador a una posición vieja ya
+  // superada. Este era el bug real detrás de "el movimiento anda mal".
+  if(_bbIndTimer){clearTimeout(_bbIndTimer);_bbIndTimer=null;}
   // "Liquid glass": si ya había una pestaña activa distinta, el indicador primero se
   // estira para cubrir desde la posición vieja hasta la nueva (como una gota que se
   // arrastra), y recién después se contrae al tamaño final de la pestaña — en vez de
@@ -3314,14 +3320,15 @@ function moveBBIndicator(){
   if(wasShown&&!reduceMotion&&!isNaN(prevLeft)&&!isNaN(prevWidth)&&prevLeft!==newLeft){
     var stretchLeft=Math.min(prevLeft,newLeft);
     var stretchRight=Math.max(prevLeft+prevWidth,newLeft+newWidth);
-    ind.style.transition='left .14s var(--ease-out),width .14s var(--ease-out)';
+    ind.style.transition='left .1s var(--ease-out),width .1s var(--ease-out)';
     ind.style.left=stretchLeft+"px";
     ind.style.width=(stretchRight-stretchLeft)+"px";
-    setTimeout(function(){
-      ind.style.transition='left .32s var(--spring),width .32s var(--spring),opacity .25s var(--ease-out)';
+    _bbIndTimer=setTimeout(function(){
+      ind.style.transition='left .26s var(--spring),width .26s var(--spring),opacity .25s var(--ease-out)';
       ind.style.left=newLeft+"px";
       ind.style.width=newWidth+"px";
-    },130);
+      _bbIndTimer=null;
+    },95);
   }else{
     ind.style.transition='left .32s var(--spring),width .32s var(--spring),opacity .25s var(--ease-out)';
     ind.style.left=newLeft+"px";
@@ -20122,12 +20129,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="9.2.0";
+var APP_DISPLAY_VERSION="9.2.1";
 var APP_BUILD="07/09/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'9.2.1',fecha:'07/09/2026',tipo:'patch',cambios:[
+    'Arreglar indicador de la barra inferior: quedaba en una pestaña vieja al tocar varias rápido (timer de la animación sin cancelar)'
+  ]},
   {v:'9.2.0',fecha:'07/09/2026',tipo:'minor',cambios:[
     'Barra inferior de iPhone rediseñada: 5 pestañas sin overflow al estilo iOS 26/WhatsApp, vidrio dinámico en el indicador, cierre de modal arrastrable, botón X con hit-area de 44px'
   ]},

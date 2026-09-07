@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v9.2.1 — 07/09/2026 (patch)
+
+- Arreglar indicador de la barra inferior: quedaba en una pestaña vieja al tocar varias rápido (timer de la animación sin cancelar)
+
 ## v9.2.0 — 07/09/2026 (minor)
 
 - Barra inferior de iPhone rediseñada: 5 pestañas sin overflow al estilo iOS 26/WhatsApp, vidrio dinámico en el indicador, cierre de modal arrastrable, botón X con hit-area de 44px
