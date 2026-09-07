@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v9.2.3 — 07/09/2026 (patch)
+
+- Arreglar listener de arrastre de modal escuchando toda la app en vez de solo el modal (causa real de la sensación de lentitud general)
+
 ## v9.2.2 — 07/09/2026 (patch)
 
 - Arreglar íconos rotos mostrando código SVG crudo como texto en Alertas e Informe de Marcas (campos de datos que pasaban por esc())

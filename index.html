@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.09.07.003 -->
+<!-- v2026.09.07.004 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.09.07.003">
+<meta name="app-version" content="v2026.09.07.004">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3470,29 +3470,21 @@ function closeModal(){
 // .modal-handle tiene display:none (ver bloque @media(min-width:900px)) y por lo
 // tanto nunca recibe pointerdown. Se desactiva con prefers-reduced-motion (queda el
 // cierre por tap en la X o en el fondo, que ya no depende de esta animación).
-var _mdY0=0,_mdOn=false,_mdBox=null,_mdLastY=0,_mdLastT=0,_mdVel=0;
+var _mdY0=0,_mdBox=null,_mdLastY=0,_mdLastT=0,_mdVel=0;
 if(!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches)){
-document.addEventListener('pointerdown',function(e){
-  var h=e.target.closest&&e.target.closest('.modal-handle');
-  if(!h)return;
-  var box=document.getElementById('modal-box');
-  if(!box||box.classList.contains('closing'))return;
-  _mdOn=true;_mdBox=box;_mdY0=e.clientY;_mdLastY=e.clientY;_mdLastT=performance.now();_mdVel=0;
-  box.style.transition='none';
-  try{h.setPointerCapture(e.pointerId);}catch(err){}
-});
-document.addEventListener('pointermove',function(e){
-  if(!_mdOn||!_mdBox)return;
+function _mdMove(e){
   var dy=e.clientY-_mdY0;
   if(dy<0)dy=dy*.25; // resistencia hacia arriba — la hoja no sube, solo cierra hacia abajo
   _mdBox.style.transform='translateY('+dy+'px)';
   var now=performance.now(),dt=now-_mdLastT;
   if(dt>0)_mdVel=(e.clientY-_mdLastY)/dt;
   _mdLastY=e.clientY;_mdLastT=now;
-});
-document.addEventListener('pointerup',function(e){
-  if(!_mdOn||!_mdBox)return;
-  var box=_mdBox;_mdOn=false;_mdBox=null;
+}
+function _mdEnd(e){
+  document.removeEventListener('pointermove',_mdMove);
+  document.removeEventListener('pointerup',_mdEnd);
+  document.removeEventListener('pointercancel',_mdCancel);
+  var box=_mdBox;_mdBox=null;
   var dy=e.clientY-_mdY0;
   if(dy>90||_mdVel>.5){
     var o=document.getElementById('modal-overlay');
@@ -3511,10 +3503,31 @@ document.addEventListener('pointerup',function(e){
     box.style.transition='transform .32s var(--spring)';
     box.style.transform='translateY(0)';
   }
-});
-document.addEventListener('pointercancel',function(){
+}
+function _mdCancel(){
+  document.removeEventListener('pointermove',_mdMove);
+  document.removeEventListener('pointerup',_mdEnd);
+  document.removeEventListener('pointercancel',_mdCancel);
   if(_mdBox){_mdBox.style.transition='transform .32s var(--spring)';_mdBox.style.transform='translateY(0)';}
-  _mdOn=false;_mdBox=null;
+  _mdBox=null;
+}
+// Escuchado directo en #modal-box (no en document) y sin closest(): .modal-handle
+// es una hoja sin hijos, el target siempre es ella misma cuando se toca. Los
+// listeners de movimiento (pointermove/up/cancel) solo se agregan MIENTRAS dura un
+// arrastre real y se sacan al soltar — antes quedaban puestos en document todo el
+// tiempo, así que corrían en cada scroll/tap de toda la app (no solo el modal), que
+// era la causa real de la sensación de lentitud general.
+document.getElementById('modal-box').addEventListener('pointerdown',function(e){
+  if(!e.target.classList||!e.target.classList.contains('modal-handle'))return;
+  var h=e.target;
+  var box=document.getElementById('modal-box');
+  if(!box||box.classList.contains('closing'))return;
+  _mdBox=box;_mdY0=e.clientY;_mdLastY=e.clientY;_mdLastT=performance.now();_mdVel=0;
+  box.style.transition='none';
+  try{h.setPointerCapture(e.pointerId);}catch(err){}
+  document.addEventListener('pointermove',_mdMove);
+  document.addEventListener('pointerup',_mdEnd);
+  document.addEventListener('pointercancel',_mdCancel);
 });
 }
 var _confirmCb=null;
@@ -20129,12 +20142,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="9.2.2";
+var APP_DISPLAY_VERSION="9.2.3";
 var APP_BUILD="07/09/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'9.2.3',fecha:'07/09/2026',tipo:'patch',cambios:[
+    'Arreglar listener de arrastre de modal escuchando toda la app en vez de solo el modal (causa real de la sensación de lentitud general)'
+  ]},
   {v:'9.2.2',fecha:'07/09/2026',tipo:'patch',cambios:[
     'Arreglar íconos rotos mostrando código SVG crudo como texto en Alertas e Informe de Marcas (campos de datos que pasaban por esc())'
   ]},
