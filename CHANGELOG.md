@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v9.2.0 — 07/09/2026 (minor)
+
+- Barra inferior de iPhone rediseñada: 5 pestañas sin overflow al estilo iOS 26/WhatsApp, vidrio dinámico en el indicador, cierre de modal arrastrable, botón X con hit-area de 44px
+
 ## v9.1.0 — 04/09/2026 (minor)
 
 - Se saca el selector de Transparencia de Ajustes (Ultra/Alta/Media/Solido). El usuario siempre elegia Ultra a mano, asi que esos valores pasan a ser el default permanente de --gc-bg/--item-bg/etc en :root y body.dark, sin picker ni clases body.glass-N. Se remueve setGlassMode(), la lectura de mt_glass en init(), y el bloque de 4 botones en el panel de Ajustes. Aplica a toda la app (mobile y desktop), no solo al bloque de escritorio de esta sesion

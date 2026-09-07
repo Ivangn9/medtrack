@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.09.04.006 -->
+<!-- v2026.09.07.001 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.09.04.006">
+<meta name="app-version" content="v2026.09.07.001">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -285,21 +285,13 @@ body.modal-open #header{transform:scale(.985);filter:brightness(.90);}
   position:absolute;top:5px;height:calc(100% - 10px);
   border-radius:var(--r-pill);
   background:rgba(255,255,255,.68);
+  -webkit-backdrop-filter:blur(6px) saturate(160%);backdrop-filter:blur(6px) saturate(160%);
   box-shadow:0 1px 4px rgba(0,0,0,.10),0 2px 12px rgba(0,0,0,.06),inset 0 1px 0 rgba(255,255,255,.96),inset 0 -1px 0 rgba(0,0,0,.04);
-  transition:left .28s var(--spring),width .28s var(--spring),opacity .25s var(--ease-out);
+  transition:left .32s var(--spring),width .32s var(--spring),opacity .25s var(--ease-out);
   pointer-events:none;z-index:0;
   opacity:0;}
+body.dark #bb-indicator{background:rgba(255,255,255,.14);}
 #bb-indicator.show{opacity:1;}
-/* Search (lupa) button — circular, always left of tabs */
-#bottom-bar .bb-search-btn{
-  background:rgba(255,255,255,.30);
-  border:1px solid rgba(255,255,255,.72);border-top-color:rgba(255,255,255,1.0);
-  color:var(--text2);border-radius:50%;width:44px;height:44px;flex-shrink:0;
-  display:flex;align-items:center;justify-content:center;
-  box-shadow:0 1px 4px rgba(0,0,0,.06),inset 0 2px 0 rgba(255,255,255,1.0),inset 0 0 0 1px rgba(255,255,255,.35);
-  transition:transform .2s var(--spring),box-shadow .2s;
-  position:relative;z-index:1;align-self:center;}
-#bottom-bar .bb-search-btn:active{transform:scale(.84);}
 #bottom-bar .tab{
   flex:1;position:relative;z-index:1;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -316,33 +308,6 @@ body.modal-open #header{transform:scale(.985);filter:brightness(.90);}
 #bottom-bar .tab:active{transform:scale(.88);}
 #bottom-bar .tab.on svg{transform:scale(1.08);}
 #bottom-bar .tab-badge{background:var(--red);color:#fff;border-radius:10px;padding:1px 5px;font-size:.52rem;font-weight:700;margin-left:0;vertical-align:middle;}
-#bottom-bar .bar-sep{width:1px;height:28px;background:rgba(60,60,67,.12);flex-shrink:0;margin:0 2px;position:relative;z-index:1;}
-#bottom-bar .bar-btn{
-  background:rgba(255,255,255,.40);border:1px solid rgba(255,255,255,.65);
-  color:var(--text2);border-radius:50%;width:42px;height:42px;
-  display:flex;align-items:center;justify-content:center;font-size:1.1rem;
-  cursor:pointer;flex-shrink:0;pointer-events:auto;position:relative;z-index:1;
-  transition:transform .2s var(--spring);
-  box-shadow:0 1px 4px rgba(0,0,0,.06),inset 0 1px 0 rgba(255,255,255,.9);}
-#bottom-bar .bar-btn:active{transform:scale(.86);}
-#bottom-bar .bar-btn-red{
-  background:rgba(255,59,48,.08);color:var(--red);
-  border:1px solid rgba(255,59,48,.20);border-radius:var(--r-pill);
-  padding:6px 12px 4px;min-height:52px;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
-  font-size:.58rem;font-weight:700;cursor:pointer;flex-shrink:0;
-  position:relative;z-index:1;transition:transform .2s var(--spring);
-  -webkit-tap-highlight-color:transparent;}
-#bottom-bar .bar-btn-red:active{transform:scale(.88);}
-#bottom-bar .bar-btn-blue{
-  background:var(--accent);color:#fff;border:none;border-radius:var(--r-pill);
-  padding:6px 12px 4px;min-height:52px;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
-  font-size:.58rem;font-weight:700;cursor:pointer;flex-shrink:0;
-  box-shadow:0 2px 12px rgba(0,113,227,.35),inset 0 1px 0 rgba(255,255,255,.25);
-  position:relative;z-index:1;transition:transform .2s var(--spring);
-  -webkit-tap-highlight-color:transparent;}
-#bottom-bar .bar-btn-blue:active{transform:scale(.88);}
 .tab{padding:11px 22px;font-size:.82rem;font-weight:500;color:var(--text2);background:none;border:none;border-radius:50px;letter-spacing:-.1px;transition:color .25s,background .25s;min-height:44px;cursor:pointer;pointer-events:auto;position:relative;z-index:5;}
 .tab.on{color:#fff;font-weight:700;background:var(--accent);box-shadow:0 2px 10px rgba(0,113,227,.35);}
 .tab-badge{background:var(--red);color:#fff;border-radius:10px;padding:1px 6px;font-size:.6rem;font-weight:700;margin-left:4px;vertical-align:middle;}
@@ -543,7 +508,7 @@ body.dark .ig{box-shadow:0 2px 8px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255
 @keyframes modalQuickIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
 .modal-handle{width:36px;height:5px;background:rgba(60,60,67,.18);border-radius:3px;margin:8px auto 14px;}
 .modal-title{font-weight:800;font-size:1.15rem;letter-spacing:-.4px;}
-.modal-close{background:rgba(120,120,128,.12);width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:.85rem;border:1px solid rgba(255,255,255,.65);transition:transform .2s var(--spring);}
+.modal-close{background:rgba(120,120,128,.12);width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:.85rem;border:1px solid rgba(255,255,255,.65);transition:transform .2s var(--spring);}
 .modal-close:active{transform:scale(.88);}
 
 /* ── DETAIL ── */
@@ -942,13 +907,6 @@ body.dark .ibox{background:rgba(50,50,58,.5);border-color:rgba(80,80,90,.4);}
   #pdf-viewer-body{overflow:visible!important;display:block!important;max-height:none!important;background:transparent!important;}
   #pdf-report-div{overflow:visible!important;max-height:none!important;}
 }
-/* Botones de acción en bottom bar: icon-only en todos los dispositivos que muestran bottom bar */
-@media(max-width:899px){
-  #bottom-bar .bar-btn-red,#bottom-bar .bar-btn-blue{
-    font-size:0;width:42px;min-width:42px;padding:0;min-height:42px;
-    border-radius:50%;align-self:center;flex-shrink:0;}
-  #bottom-bar .bar-btn-red svg,#bottom-bar .bar-btn-blue svg{margin:0!important;}
-}
 /* ── RESPONSIVE MOBILE ── */
 @media(max-width:480px){
   #header{padding:calc(var(--safe-area-inset-top,env(safe-area-inset-top,0px)) + 8px) 10px 14px;}
@@ -987,9 +945,6 @@ body.dark .ibox{background:rgba(50,50,58,.5);border-color:rgba(80,80,90,.4);}
     font-size:.6rem;font-weight:600;letter-spacing:.01em;border-radius:14px;}
   #bottom-bar .tab svg{margin:0!important;flex-shrink:0;}
   #bottom-bar .tab.on svg{stroke:currentColor;}
-  #bottom-bar .bar-sep{height:28px;margin:auto 1px;}
-  #bottom-bar .bar-btn{
-    width:42px;height:42px;font-size:1.1rem;flex-shrink:0;align-self:center;}
   #bottom-bar .tab-badge{margin-left:0;font-size:.55rem;padding:1px 5px;}
 
   #main{padding:12px 10px calc(var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px)) + 170px);}
@@ -1653,16 +1608,11 @@ body.dark .pill[style*="#ff9500"],body.dark .pill[style*="--orange"]{box-shadow:
   <div id="bottom-bar">
     <div id="bb-inner">
     <div id="bb-indicator"></div>
-    <button class="bar-btn bb-search-btn" onclick="openListaSearch()" title="Buscar"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/></svg></button>
-    <button class="tab on" data-tab="inicio" onclick="setView('inicio')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px;vertical-align:middle;"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H5a1 1 0 01-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg>Inicio</button>
-    <button class="tab" data-tab="dash" onclick="setView('dash')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px;vertical-align:middle;"><rect x="3" y="3" width="7" height="8" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="15" width="7" height="6" rx="1.5"/></svg>Panel</button>
-    <button class="tab" data-tab="lista" onclick="setView('lista')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px;vertical-align:middle;"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg>Equipos</button>
-    <button class="tab" data-tab="alertas" onclick="setView('alertas')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px;vertical-align:middle;"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>Alertas<span id="tab-alert-badge" class="tab-badge hidden"></span></button>
-    <button class="tab" id="tab-nav-menu" onclick="toggleMobileNav()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px;vertical-align:middle;"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>Menú</button>
-    <div class="bar-sep"></div>
-    <button class="bar-btn" onclick="toggleSettings()" title="Ajustes"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></button>
-    <button class="bar-btn-red" onclick="openMRotura()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;vertical-align:middle;"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Rotura</button>
-    <button class="bar-btn-blue" onclick="openModalEq(null)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-right:4px;vertical-align:middle;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Equipo</button>
+    <button class="tab on" data-tab="inicio" onclick="setView('inicio')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H5a1 1 0 01-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg>Inicio</button>
+    <button class="tab" data-tab="dash" onclick="setView('dash')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="8" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="15" width="7" height="6" rx="1.5"/></svg>Panel</button>
+    <button class="tab" data-tab="lista" onclick="setView('lista')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg>Equipos</button>
+    <button class="tab" data-tab="alertas" onclick="setView('alertas')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>Alertas<span id="tab-alert-badge" class="tab-badge hidden"></span></button>
+    <button class="tab" id="tab-nav-menu" onclick="toggleMobileNav()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>Menú</button>
     </div>
   </div>
   <div id="main"></div>
@@ -3349,10 +3299,34 @@ function moveBBIndicator(){
   if(!active){ind.classList.remove("show");return;}
   var innerRect=inner.getBoundingClientRect();
   var tabRect=active.getBoundingClientRect();
-  var left=tabRect.left-innerRect.left;
-  ind.style.left=left+"px";
-  ind.style.width=tabRect.width+"px";
+  var newLeft=tabRect.left-innerRect.left;
+  var newWidth=tabRect.width;
+  var wasShown=ind.classList.contains("show");
+  var prevLeft=parseFloat(ind.style.left);
+  var prevWidth=parseFloat(ind.style.width);
   ind.classList.add("show");
+  // "Liquid glass": si ya había una pestaña activa distinta, el indicador primero se
+  // estira para cubrir desde la posición vieja hasta la nueva (como una gota que se
+  // arrastra), y recién después se contrae al tamaño final de la pestaña — en vez de
+  // solo deslizar con el ancho fijo. Se salta este paso si es el primer render (no
+  // "wasShown") o si el usuario pidió reducir el movimiento.
+  var reduceMotion=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(wasShown&&!reduceMotion&&!isNaN(prevLeft)&&!isNaN(prevWidth)&&prevLeft!==newLeft){
+    var stretchLeft=Math.min(prevLeft,newLeft);
+    var stretchRight=Math.max(prevLeft+prevWidth,newLeft+newWidth);
+    ind.style.transition='left .14s var(--ease-out),width .14s var(--ease-out)';
+    ind.style.left=stretchLeft+"px";
+    ind.style.width=(stretchRight-stretchLeft)+"px";
+    setTimeout(function(){
+      ind.style.transition='left .32s var(--spring),width .32s var(--spring),opacity .25s var(--ease-out)';
+      ind.style.left=newLeft+"px";
+      ind.style.width=newWidth+"px";
+    },130);
+  }else{
+    ind.style.transition='left .32s var(--spring),width .32s var(--spring),opacity .25s var(--ease-out)';
+    ind.style.left=newLeft+"px";
+    ind.style.width=newWidth+"px";
+  }
 }
 window.addEventListener("resize",function(){moveBBIndicator();});
 // Pull-to-refresh: arrastrar hacia abajo desde el tope re-lee Firestore
@@ -3480,8 +3454,61 @@ function closeModal(){
   if(_modalCloseTimer)clearTimeout(_modalCloseTimer);
   _modalCloseTimer=setTimeout(function(){
     o.classList.add("hidden");o.classList.remove('closing','fade');b.classList.remove('closing');
+    b.style.transition='';b.style.transform='';b.style.opacity='';
     _modalCloseTimer=null;
   },280);
+}
+// Arrastrar el modal-handle para cerrar la hoja (direct manipulation 1:1 — el handle
+// ya prometía visualmente el gesto, ahora responde). Solo mobile: en desktop
+// .modal-handle tiene display:none (ver bloque @media(min-width:900px)) y por lo
+// tanto nunca recibe pointerdown. Se desactiva con prefers-reduced-motion (queda el
+// cierre por tap en la X o en el fondo, que ya no depende de esta animación).
+var _mdY0=0,_mdOn=false,_mdBox=null,_mdLastY=0,_mdLastT=0,_mdVel=0;
+if(!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches)){
+document.addEventListener('pointerdown',function(e){
+  var h=e.target.closest&&e.target.closest('.modal-handle');
+  if(!h)return;
+  var box=document.getElementById('modal-box');
+  if(!box||box.classList.contains('closing'))return;
+  _mdOn=true;_mdBox=box;_mdY0=e.clientY;_mdLastY=e.clientY;_mdLastT=performance.now();_mdVel=0;
+  box.style.transition='none';
+  try{h.setPointerCapture(e.pointerId);}catch(err){}
+});
+document.addEventListener('pointermove',function(e){
+  if(!_mdOn||!_mdBox)return;
+  var dy=e.clientY-_mdY0;
+  if(dy<0)dy=dy*.25; // resistencia hacia arriba — la hoja no sube, solo cierra hacia abajo
+  _mdBox.style.transform='translateY('+dy+'px)';
+  var now=performance.now(),dt=now-_mdLastT;
+  if(dt>0)_mdVel=(e.clientY-_mdLastY)/dt;
+  _mdLastY=e.clientY;_mdLastT=now;
+});
+document.addEventListener('pointerup',function(e){
+  if(!_mdOn||!_mdBox)return;
+  var box=_mdBox;_mdOn=false;_mdBox=null;
+  var dy=e.clientY-_mdY0;
+  if(dy>90||_mdVel>.5){
+    var o=document.getElementById('modal-overlay');
+    box.style.transition='transform .22s var(--ease-out),opacity .22s var(--ease-out)';
+    box.style.transform='translateY('+(dy+140)+'px)';
+    box.style.opacity='.01';
+    document.body.classList.remove('modal-open');
+    if(o)o.classList.add('closing');
+    if(_modalCloseTimer)clearTimeout(_modalCloseTimer);
+    _modalCloseTimer=setTimeout(function(){
+      if(o){o.classList.add('hidden');o.classList.remove('closing','fade');}
+      box.classList.remove('closing');box.style.transition='';box.style.transform='';box.style.opacity='';
+      _modalCloseTimer=null;
+    },230);
+  }else{
+    box.style.transition='transform .32s var(--spring)';
+    box.style.transform='translateY(0)';
+  }
+});
+document.addEventListener('pointercancel',function(){
+  if(_mdBox){_mdBox.style.transition='transform .32s var(--spring)';_mdBox.style.transform='translateY(0)';}
+  _mdOn=false;_mdBox=null;
+});
 }
 var _confirmCb=null;
 var _confirmCancelCb=null;
@@ -20095,12 +20122,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="9.1.0";
-var APP_BUILD="04/09/26 h";
+var APP_DISPLAY_VERSION="9.2.0";
+var APP_BUILD="07/09/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'9.2.0',fecha:'07/09/2026',tipo:'minor',cambios:[
+    'Barra inferior de iPhone rediseñada: 5 pestañas sin overflow al estilo iOS 26/WhatsApp, vidrio dinámico en el indicador, cierre de modal arrastrable, botón X con hit-area de 44px'
+  ]},
   {v:'9.1.0',fecha:'04/09/2026',tipo:'minor',cambios:[
     'Se saca el selector de Transparencia de Ajustes (Ultra/Alta/Media/Solido). El usuario siempre elegia Ultra a mano, asi que esos valores pasan a ser el default permanente de --gc-bg/--item-bg/etc en :root y body.dark, sin picker ni clases body.glass-N. Se remueve setGlassMode(), la lectura de mt_glass en init(), y el bloque de 4 botones en el panel de Ajustes. Aplica a toda la app (mobile y desktop), no solo al bloque de escritorio de esta sesion'
   ]},
