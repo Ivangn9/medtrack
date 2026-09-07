@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v9.2.2 — 07/09/2026 (patch)
+
+- Arreglar íconos rotos mostrando código SVG crudo como texto en Alertas e Informe de Marcas (campos de datos que pasaban por esc())
+
 ## v9.2.1 — 07/09/2026 (patch)
 
 - Arreglar indicador de la barra inferior: quedaba en una pestaña vieja al tocar varias rápido (timer de la animación sin cancelar)

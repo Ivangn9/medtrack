@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.09.07.002 -->
+<!-- v2026.09.07.003 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.09.07.002">
+<meta name="app-version" content="v2026.09.07.003">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -3111,7 +3111,7 @@ function _gsRun(q){
       if(out.length>=lim)return;
       if(!m(r.queSeRompio,r.descripcion))return;
       var reparada=r.estado==='reparado';
-      out.push(_gsItem(reparada?icn('check',16,'#34c759'):icn('alert',16,'#ff3b30'),esc(r.queSeRompio||'Falla de antena'),esc(icn('rss',14)+''+(a.nombre||'')+' · '+eqNombre+(r.fecha?' · '+fD(r.fecha):'')),linkedEq?"goDetalle('"+linkedEq.id+"')":"goAntenaDetalle('"+a.id+"')"));
+      out.push(_gsItem(reparada?icn('check',16,'#34c759'):icn('alert',16,'#ff3b30'),esc(r.queSeRompio||'Falla de antena'),esc((a.nombre||'')+' · '+eqNombre+(r.fecha?' · '+fD(r.fecha):'')),linkedEq?"goDetalle('"+linkedEq.id+"')":"goAntenaDetalle('"+a.id+"')"));
     });
   });
   transductores.forEach(function(t){
@@ -3123,7 +3123,7 @@ function _gsRun(q){
       if(out.length>=lim)return;
       if(!m(r.queSeRompio,r.descripcion))return;
       var reparada=r.estado==='reparado';
-      out.push(_gsItem(reparada?icn('check',16,'#34c759'):icn('alert',16,'#ff3b30'),esc(r.queSeRompio||'Falla de transductor'),esc(icn('plug',14)+''+(t.nombre||'')+' · '+eqNombre+(r.fecha?' · '+fD(r.fecha):'')),linkedEq?"goDetalle('"+linkedEq.id+"')":"goTransductorDetalle('"+t.id+"')"));
+      out.push(_gsItem(reparada?icn('check',16,'#34c759'):icn('alert',16,'#ff3b30'),esc(r.queSeRompio||'Falla de transductor'),esc((t.nombre||'')+' · '+eqNombre+(r.fecha?' · '+fD(r.fecha):'')),linkedEq?"goDetalle('"+linkedEq.id+"')":"goTransductorDetalle('"+t.id+"')"));
     });
   });
   ordenesTrabajo.forEach(function(o){if(out.length<lim&&m(o.titulo,o.descripcion,o.id)){var eqn=(eqs.find(function(e){return e.id===o.eqId;})||{}).nombre||'';out.push(_gsItem(icn('clipboard',16),esc(o.titulo||o.id),esc(eqn+' · '+(o.estado||'')),"setView('ordenes')"));}});
@@ -3550,61 +3550,61 @@ function getAlertas(){
     if(e.cat!=='UPS')return;
     var batH=(e.historialCambioBaterias||[]);
     var lastBat=batH.length?batH.slice().sort(function(a,b){return a.fecha<b.fecha?1:-1;})[0].fecha:null;
-    if(lastBat){var dBat=diasH(lastBat);if((-dBat)>730)a.push({k:e.id+'batold',niv:'advertencia',tit:e.nombre,desc:icn('battery',14)+'Baterías con más de 2 años — verificar cambio',eid:e.id});}
+    if(lastBat){var dBat=diasH(lastBat);if((-dBat)>730)a.push({k:e.id+'batold',niv:'advertencia',tit:e.nombre,desc:'Baterías con más de 2 años — verificar cambio',eid:e.id});}
   });
   activeEqs.forEach(function(e){
-    if(e.seguroAlta&&e.seguroVenc){var dSeg=diasH(e.seguroVenc);if(dSeg<0)a.push({k:e.id+'segvenc',niv:'critico',tit:e.nombre,desc:icn('clipboard',14)+'Póliza de seguro VENCIDA — '+fD(e.seguroVenc),eid:e.id});else if(dSeg<=30)a.push({k:e.id+'segprox',niv:'advertencia',tit:e.nombre,desc:icn('clipboard',14)+'Póliza de seguro vence en '+dSeg+'d — '+fD(e.seguroVenc),eid:e.id});}
-    if(e.rugepresaAlta&&e.rugepresaVenc){var dRug=diasH(e.rugepresaVenc);if(dRug<0)a.push({k:e.id+'rugvenc',niv:'critico',tit:e.nombre,desc:icn('mappin',14)+'Habilitación R.U.GE.PRE.SA VENCIDA — '+fD(e.rugepresaVenc),eid:e.id});else if(dRug<=30)a.push({k:e.id+'rugprox',niv:'advertencia',tit:e.nombre,desc:icn('mappin',14)+'Habilitación R.U.GE.PRE.SA vence en '+dRug+'d — '+fD(e.rugepresaVenc),eid:e.id});}
+    if(e.seguroAlta&&e.seguroVenc){var dSeg=diasH(e.seguroVenc);if(dSeg<0)a.push({k:e.id+'segvenc',niv:'critico',tit:e.nombre,desc:'Póliza de seguro VENCIDA — '+fD(e.seguroVenc),eid:e.id});else if(dSeg<=30)a.push({k:e.id+'segprox',niv:'advertencia',tit:e.nombre,desc:'Póliza de seguro vence en '+dSeg+'d — '+fD(e.seguroVenc),eid:e.id});}
+    if(e.rugepresaAlta&&e.rugepresaVenc){var dRug=diasH(e.rugepresaVenc);if(dRug<0)a.push({k:e.id+'rugvenc',niv:'critico',tit:e.nombre,desc:'Habilitación R.U.GE.PRE.SA VENCIDA — '+fD(e.rugepresaVenc),eid:e.id});else if(dRug<=30)a.push({k:e.id+'rugprox',niv:'advertencia',tit:e.nombre,desc:'Habilitación R.U.GE.PRE.SA vence en '+dRug+'d — '+fD(e.rugepresaVenc),eid:e.id});}
   });
   activeEqs.forEach(function(e){
     if(e.tieneServicio&&e.servicioContratoVenc){
       var dC=diasH(e.servicioContratoVenc);
-      if(dC<0)a.push({k:e.id+'ctvenc',niv:'critico',tit:e.nombre,desc:icn('clipboard',14)+'Contrato de servicio VENCIDO — '+fD(e.servicioContratoVenc),eid:e.id});
-      else if(dC<=30)a.push({k:e.id+'ctprox',niv:'advertencia',tit:e.nombre,desc:icn('clipboard',14)+'Contrato vence en '+dC+'d — '+fD(e.servicioContratoVenc),eid:e.id});
+      if(dC<0)a.push({k:e.id+'ctvenc',niv:'critico',tit:e.nombre,desc:'Contrato de servicio VENCIDO — '+fD(e.servicioContratoVenc),eid:e.id});
+      else if(dC<=30)a.push({k:e.id+'ctprox',niv:'advertencia',tit:e.nombre,desc:'Contrato vence en '+dC+'d — '+fD(e.servicioContratoVenc),eid:e.id});
     }
   });
-  activeEqs.forEach(function(e){if(e.cat!=='DES')return;if(e.parches_vencimiento){var dp=diasH(e.parches_vencimiento);if(dp<0)a.push({k:e.id+"pv",niv:"critico",tit:e.nombre,desc:icn('zap',14)+"Parches VENCIDOS — "+fD(e.parches_vencimiento),eid:e.id});else if(dp<=60)a.push({k:e.id+"pp",niv:"advertencia",tit:e.nombre,desc:icn('zap',14)+"Parches vencen en "+dp+"d — "+fD(e.parches_vencimiento),eid:e.id});}if(e.bateria_vencimiento){var db=diasH(e.bateria_vencimiento);if(db<0)a.push({k:e.id+"bv",niv:"critico",tit:e.nombre,desc:icn('zap',14)+"Batería VENCIDA — "+fD(e.bateria_vencimiento),eid:e.id});else if(db<=60)a.push({k:e.id+"bp",niv:"advertencia",tit:e.nombre,desc:icn('zap',14)+"Batería vence en "+db+"d — "+fD(e.bateria_vencimiento),eid:e.id});}});
+  activeEqs.forEach(function(e){if(e.cat!=='DES')return;if(e.parches_vencimiento){var dp=diasH(e.parches_vencimiento);if(dp<0)a.push({k:e.id+"pv",niv:"critico",tit:e.nombre,desc:"Parches VENCIDOS — "+fD(e.parches_vencimiento),eid:e.id});else if(dp<=60)a.push({k:e.id+"pp",niv:"advertencia",tit:e.nombre,desc:"Parches vencen en "+dp+"d — "+fD(e.parches_vencimiento),eid:e.id});}if(e.bateria_vencimiento){var db=diasH(e.bateria_vencimiento);if(db<0)a.push({k:e.id+"bv",niv:"critico",tit:e.nombre,desc:"Batería VENCIDA — "+fD(e.bateria_vencimiento),eid:e.id});else if(db<=60)a.push({k:e.id+"bp",niv:"advertencia",tit:e.nombre,desc:"Batería vence en "+db+"d — "+fD(e.bateria_vencimiento),eid:e.id});}});
   activeEqs.forEach(function(e){
     var _rsk=calcRiskScore(e);
-    if(_rsk.level==='critico')a.push({k:e.id+'rsk',niv:'advertencia',tit:e.nombre,desc:_statusDot('#ff9500')+'Riesgo institucional CRÍTICO (score '+_rsk.score+'/20)',eid:e.id});
+    if(_rsk.level==='critico')a.push({k:e.id+'rsk',niv:'advertencia',tit:e.nombre,desc:'Riesgo institucional CRÍTICO (score '+_rsk.score+'/20)',eid:e.id});
   });
   activeEqs.forEach(function(e){
     var _lc=calcLifecycle(e);
     if(!_lc)return;
-    if(_lc.zone==='reemplazo')a.push({k:e.id+'lcrep',niv:'advertencia',tit:e.nombre,desc:icn('refresh',14)+'Reemplazo sugerido — '+_lc.agePct+'% de vida útil'+(_lc.costPct!==null?', costo acum. '+_lc.costPct+'% del valor':''),eid:e.id});
+    if(_lc.zone==='reemplazo')a.push({k:e.id+'lcrep',niv:'advertencia',tit:e.nombre,desc:'Reemplazo sugerido — '+_lc.agePct+'% de vida útil'+(_lc.costPct!==null?', costo acum. '+_lc.costPct+'% del valor':''),eid:e.id});
   });
   repuestos.forEach(function(r){
     var cant=parseFloat(r.cantidad);if(isNaN(cant))cant=0;
     var minimo=parseFloat(r.stockMinimo);if(isNaN(minimo))minimo=0;
-    if(cant<=0)a.push({k:'rep'+r.id+'out',niv:'critico',tit:r.nombre,desc:icn('package',14)+'Repuesto SIN STOCK',eid:''});
-    else if(minimo>0&&cant<=minimo)a.push({k:'rep'+r.id+'low',niv:'advertencia',tit:r.nombre,desc:icn('package',14)+'Stock bajo: '+cant+' (mín '+minimo+')',eid:''});
+    if(cant<=0)a.push({k:'rep'+r.id+'out',niv:'critico',tit:r.nombre,desc:'Repuesto SIN STOCK',eid:''});
+    else if(minimo>0&&cant<=minimo)a.push({k:'rep'+r.id+'low',niv:'advertencia',tit:r.nombre,desc:'Stock bajo: '+cant+' (mín '+minimo+')',eid:''});
   });
   // Aires acondicionados — antes no tenían fecha de vencimiento de mantenimiento
   // ni participaban de este sistema de alertas en absoluto. (Variable del loop
   // renombrada a "au" a propósito: "a" ya es el array acumulador de alertas de
   // toda la función — usar el mismo nombre acá lo pisaba silenciosamente.)
   aires.filter(_sedeMatch).forEach(function(au){
-    if(au.estado==='fuera_servicio')a.push({k:au.id+'afs',niv:'critico',tit:au.nombre,desc:icn('snowflake',14)+'Aire fuera de servicio',eid:au.id,tipo:'aire'});
-    else if(au.estado==='falla')a.push({k:au.id+'afa',niv:'advertencia',tit:au.nombre,desc:icn('snowflake',14)+'Aire con falla',eid:au.id,tipo:'aire'});
+    if(au.estado==='fuera_servicio')a.push({k:au.id+'afs',niv:'critico',tit:au.nombre,desc:'Aire fuera de servicio',eid:au.id,tipo:'aire'});
+    else if(au.estado==='falla')a.push({k:au.id+'afa',niv:'advertencia',tit:au.nombre,desc:'Aire con falla',eid:au.id,tipo:'aire'});
     var _sfa=semafoAire(au);
-    if(_sfa==='vencido')a.push({k:au.id+'asv',niv:'critico',tit:au.nombre,desc:icn('snowflake',14)+'Service VENCIDO — '+fD(au.proximoMant),eid:au.id,tipo:'aire'});
-    else if(_sfa==='urgente')a.push({k:au.id+'asu',niv:'advertencia',tit:au.nombre,desc:icn('snowflake',14)+'Service en '+diasH(au.proximoMant)+' días',eid:au.id,tipo:'aire'});
+    if(_sfa==='vencido')a.push({k:au.id+'asv',niv:'critico',tit:au.nombre,desc:'Service VENCIDO — '+fD(au.proximoMant),eid:au.id,tipo:'aire'});
+    else if(_sfa==='urgente')a.push({k:au.id+'asu',niv:'advertencia',tit:au.nombre,desc:'Service en '+diasH(au.proximoMant)+' días',eid:au.id,tipo:'aire'});
   });
   activeEqs.forEach(function(e){
     if(e.cat!=='RM')return;
     var rf=_refrigData(e);
-    if(rf.chiller==='rotura')a.push({k:e.id+'chillerrot',niv:'critico',tit:e.nombre,desc:icn('snowflake',14)+'Chiller en ROTURA — RM sin refrigeración',eid:e.id});
-    else if(rf.chiller==='service')a.push({k:e.id+'chillerserv',niv:'advertencia',tit:e.nombre,desc:icn('snowflake',14)+'Chiller en service',eid:e.id});
-    if(rf.compresorHelio&&rf.compresorHelio!=='operativo')a.push({k:e.id+'comphelio',niv:'advertencia',tit:e.nombre,desc:icn('settings',14)+'Compresor de helio: '+rf.compresorHelio,eid:e.id});
+    if(rf.chiller==='rotura')a.push({k:e.id+'chillerrot',niv:'critico',tit:e.nombre,desc:'Chiller en ROTURA — RM sin refrigeración',eid:e.id});
+    else if(rf.chiller==='service')a.push({k:e.id+'chillerserv',niv:'advertencia',tit:e.nombre,desc:'Chiller en service',eid:e.id});
+    if(rf.compresorHelio&&rf.compresorHelio!=='operativo')a.push({k:e.id+'comphelio',niv:'advertencia',tit:e.nombre,desc:'Compresor de helio: '+rf.compresorHelio,eid:e.id});
     var hlp=parseFloat(rf.helioLiqPorcentaje||'100');
     if(!isNaN(hlp)){
-      if(hlp<20)a.push({k:e.id+'heliocrit',niv:'critico',tit:e.nombre,desc:icn('snowflake',14)+'Helio líquido CRÍTICO: '+hlp+'%',eid:e.id});
-      else if(hlp<40)a.push({k:e.id+'heliobajo',niv:'advertencia',tit:e.nombre,desc:icn('snowflake',14)+'Nivel de helio bajo: '+hlp+'%',eid:e.id});
+      if(hlp<20)a.push({k:e.id+'heliocrit',niv:'critico',tit:e.nombre,desc:'Helio líquido CRÍTICO: '+hlp+'%',eid:e.id});
+      else if(hlp<40)a.push({k:e.id+'heliobajo',niv:'advertencia',tit:e.nombre,desc:'Nivel de helio bajo: '+hlp+'%',eid:e.id});
     }
   });
   aires.filter(function(ai){return !ai.baja;}).forEach(function(ai){
-    if(ai.estado==='falla')a.push({k:'aire'+ai.id+'falla',niv:'advertencia',tit:ai.nombre||ai.ubicacion||'Aire acondicionado',desc:icn('snowflake',14)+'Aire con falla'+((ai.equiposServidos||[]).length?' — afecta '+ai.equiposServidos.length+' equipo(s)':''),eid:''});
-    else if(ai.estado==='fuera_servicio'||ai.estado==='fuera-de-servicio')a.push({k:'aire'+ai.id+'fs',niv:'critico',tit:ai.nombre||ai.ubicacion||'Aire acondicionado',desc:icn('snowflake',14)+'Aire FUERA DE SERVICIO'+((ai.equiposServidos||[]).length?' — afecta '+ai.equiposServidos.length+' equipo(s)':''),eid:''});
+    if(ai.estado==='falla')a.push({k:'aire'+ai.id+'falla',niv:'advertencia',tit:ai.nombre||ai.ubicacion||'Aire acondicionado',desc:'Aire con falla'+((ai.equiposServidos||[]).length?' — afecta '+ai.equiposServidos.length+' equipo(s)':''),eid:''});
+    else if(ai.estado==='fuera_servicio'||ai.estado==='fuera-de-servicio')a.push({k:'aire'+ai.id+'fs',niv:'critico',tit:ai.nombre||ai.ubicacion||'Aire acondicionado',desc:'Aire FUERA DE SERVICIO'+((ai.equiposServidos||[]).length?' — afecta '+ai.equiposServidos.length+' equipo(s)':''),eid:''});
   });
   antenas.filter(function(ant){return !ant.baja;}).forEach(function(ant){
     (ant.roturas||[]).forEach(function(r){
@@ -3613,7 +3613,7 @@ function getAlertas(){
       var eqId=linkedEq?linkedEq.id:'';
       var eqNombre=linkedEq?linkedEq.nombre:ant.nombreOrigen||'Antena';
       var niv=ant.estado==='fuera_servicio'?'critico':'advertencia';
-      a.push({k:'ant'+ant.id+r.id+'rot',niv:niv,tit:eqNombre,desc:icn('rss',14)+'Antena: '+ant.nombre+' — '+(r.queSeRompio||r.descripcion||'Falla activa'),eid:eqId});
+      a.push({k:'ant'+ant.id+r.id+'rot',niv:niv,tit:eqNombre,desc:'Antena: '+ant.nombre+' — '+(r.queSeRompio||r.descripcion||'Falla activa'),eid:eqId});
     });
   });
   transductores.filter(function(tr){return !tr.baja;}).forEach(function(tr){
@@ -3623,13 +3623,13 @@ function getAlertas(){
       var eqId=linkedEq?linkedEq.id:'';
       var eqNombre=linkedEq?linkedEq.nombre:tr.nombre||'Transductor';
       var niv=tr.estado==='fuera_servicio'?'critico':'advertencia';
-      a.push({k:'tr'+tr.id+r.id+'rot',niv:niv,tit:eqNombre,desc:icn('plug',14)+'Transductor: '+tr.nombre+' — '+(r.queSeRompio||r.descripcion||'Falla activa'),eid:eqId});
+      a.push({k:'tr'+tr.id+r.id+'rot',niv:niv,tit:eqNombre,desc:'Transductor: '+tr.nombre+' — '+(r.queSeRompio||r.descripcion||'Falla activa'),eid:eqId});
     });
   });
   activeEqs.forEach(function(e){
     (e.fallasDirectas||[]).forEach(function(f){
       if(f.estado==='reparada'||f.estado==='reparado')return;
-      a.push({k:'fd'+e.id+f.id+'act',niv:'advertencia',tit:e.nombre,desc:_statusDot('#ff9500')+'Falla: '+(f.queSeRompio||f.descripcion||'Falla directa'),eid:e.id});
+      a.push({k:'fd'+e.id+f.id+'act',niv:'advertencia',tit:e.nombre,desc:'Falla: '+(f.queSeRompio||f.descripcion||'Falla directa'),eid:e.id});
     });
   });
   return a;
@@ -11643,7 +11643,7 @@ function _rDetalleFallas(eq){
       if(r.descripcion&&r.descripcion!==nombreParte)h+='<div style="font-size:.71rem;color:var(--text3);margin-bottom:4px;">'+esc(r.descripcion)+'</div>';
       h+='<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px;">';
       if(r.fecha||r.fechaRotura)h+='<span style="font-size:.67rem;color:var(--text3);">'+icn('calendar',14)+' '+fD(r.fecha||r.fechaRotura)+'</span>';
-      if(r.canal||r.canalReclamo)h+='<span style="font-size:.67rem;color:var(--text3);">'+icn('phone',14)+' '+esc(canalLabel(r.canal||r.canalReclamo))+'</span>';
+      if(r.canal||r.canalReclamo)h+='<span style="font-size:.67rem;color:var(--text3);">'+canalLabel(r.canal||r.canalReclamo)+'</span>';
       h+='</div>';
       h+='<button onclick="'+navFn+'" style="width:100%;padding:7px;border:1.5px solid rgba(8,145,178,.3);border-radius:9px;background:rgba(8,145,178,.07);color:#0891b2;font-size:.74rem;font-weight:700;cursor:pointer;">'+icn('link',14)+' Ver detalle del '+tipoLabel+'</button>';
       h+='</div>';
@@ -13891,7 +13891,7 @@ function _marcaFallasDeEquipo(eq){
     (t.roturas||[]).filter(function(r){return r.estado!=='reparado';}).forEach(function(r){
       out.push({
         id:'tr-'+t.id+'-'+r.id,
-        nombre:icn('plug',14)+'Transductor '+(t.nombre||t.modelo||'')+' — '+(r.queSeRompio||'Falla'),
+        nombre:'Transductor '+(t.nombre||t.modelo||'')+' — '+(r.queSeRompio||'Falla'),
         descripcion:r.descripcion||'',
         estado:r.estado==='en_reparacion'?'pendiente':'roto',
         fechaRotura:r.fecha||'',
@@ -13909,7 +13909,7 @@ function _marcaFallasDeEquipo(eq){
     (a.roturas||[]).filter(function(r){return r.estado!=='reparado';}).forEach(function(r){
       out.push({
         id:'ant-'+a.id+'-'+r.id,
-        nombre:icn('rss',14)+'Antena '+(a.nombre||a.tipo||'')+' — '+(r.queSeRompio||'Falla'),
+        nombre:'Antena '+(a.nombre||a.tipo||'')+' — '+(r.queSeRompio||'Falla'),
         descripcion:r.descripcion||'',
         estado:r.estado==='en_reparacion'?'pendiente':'roto',
         fechaRotura:r.fecha||'',
@@ -20129,12 +20129,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="9.2.1";
+var APP_DISPLAY_VERSION="9.2.2";
 var APP_BUILD="07/09/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'9.2.2',fecha:'07/09/2026',tipo:'patch',cambios:[
+    'Arreglar íconos rotos mostrando código SVG crudo como texto en Alertas e Informe de Marcas (campos de datos que pasaban por esc())'
+  ]},
   {v:'9.2.1',fecha:'07/09/2026',tipo:'patch',cambios:[
     'Arreglar indicador de la barra inferior: quedaba en una pestaña vieja al tocar varias rápido (timer de la animación sin cancelar)'
   ]},
