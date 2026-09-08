@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2026.09.08.002 -->
+<!-- v2026.09.08.003 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -68,7 +68,7 @@
 <link rel="preload" href="bg3.jpg" as="image">
 <title>CIMA Hub</title>
 <meta name="version" content="4.0">
-<meta name="app-version" content="v2026.09.08.002">
+<meta name="app-version" content="v2026.09.08.003">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -2560,44 +2560,19 @@ function _scheduleSlowRetry(){
     _fsDirty=true;_fsWrite(0);
   },45000);
 }
-// Alerta dura de guardado fallido — a propósito MÁS insistente que el punto
-// naranja del header (updateSyncIndicator), que se suavizó deliberadamente
-// para no generar pánico por fallas transitorias (ver su comentario) y eso
-// mismo dejó pasar días sin que nadie notara un fallo real (incidente real,
-// 2026-09-08: 3 días de carga nunca llegaron a la nube, sin aviso visible).
-// Se repite cada 5 min mientras _fsFailed siga activo — no alcanza con
-// mostrarla una sola vez, porque el usuario puede no verla a tiempo o
-// cerrarla sin leerla del todo.
-var _lastSyncAlertShown=0;
-function _showSyncFailureAlert(){
-  var now=Date.now();
-  if(now-_lastSyncAlertShown<300000)return; // no repetir antes de 5 min
-  var ov=document.getElementById('modal-overlay');
-  if(ov&&!ov.classList.contains('hidden'))return; // no interrumpir un modal ya abierto
-  _lastSyncAlertShown=now;
-  var code='desconocido',msg='';
-  try{var e=JSON.parse(localStorage.getItem('mt_lastSyncErr')||'{}');code=e.code||code;msg=e.message||'';}catch(e2){}
-  openModal(
-    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">'+
-      '<div style="width:36px;height:36px;border-radius:10px;background:rgba(255,59,48,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+
-        '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ff3b30" stroke-width="2.2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'+
-      '</div>'+
-      '<div><div style="font-weight:800;font-size:.95rem;">No se están guardando tus cambios en la nube</div>'+
-      '<div style="font-size:.68rem;color:var(--text3);">Código: '+esc(code)+(msg?' — '+esc(msg):'')+'</div></div>'+
-    '</div>'+
-    '<p style="margin:0 0 14px;color:var(--text2);font-size:.83rem;line-height:1.5;">Lo que cargues ahora queda SOLO en este dispositivo hasta que se resuelva. La app sigue reintentando sola cada 45s — si en unos minutos no vuelve a decir "Guardado en la nube" arriba de todo, avisale a soporte antes de seguir cargando datos importantes acá.</p>'+
-    '<button class="btn-primary" style="width:100%;margin-bottom:8px;" onclick="closeModal();repairCloudConnection();">'+icn('wrench',14)+' Reparar conexión con la nube</button>'+
-    '<button style="width:100%;padding:12px;background:rgba(120,120,128,.1);border:none;border-radius:var(--r-pill);color:var(--text2);font-weight:600;font-size:.84rem;cursor:pointer;" onclick="closeModal();">Entendido, sigo reintentando</button>'
-  );
-}
-setInterval(function(){if(_fsFailed)_showSyncFailureAlert();},60000);
+// NOTA (2026-09-08): hubo acá una alerta modal + botón "Reparar conexión"
+// que se mostraba cuando el guardado fallaba — el usuario la sacó a
+// propósito: no quiere UI que dependa de que alguien la note y actúe. La
+// decisión de producto es que el guardado tiene que ser confiable de por sí
+// (ver _fsWrite()/_mergeConflictData() y la investigación de PITR en
+// Firestore), no que la app avise cuando deja de serlo. El reintento
+// silencioso de _scheduleSlowRetry() de abajo sigue solo, sin ningún cartel.
 function _fsWriteRetryOrGiveUp(tryN,err){
   _persistSyncError(err);
   var t=(tryN||0)+1;
   if(t<6){setTimeout(function(){_fsWrite(t);},Math.min(1000*Math.pow(2,t),20000));}
   else{
     _fsDirty=false;_fsFailed=true;
-    _showSyncFailureAlert();
     console.warn('Firestore: reintentos rápidos agotados, pasando a reintento en segundo plano cada 45s');
     // Timeouts repetidos (no otro tipo de error) son la firma típica de una caché de
     // persistencia offline trabada (ver el fix en el arranque, antes de
@@ -20174,12 +20149,15 @@ var antenas=[];
 var aires=[];
 var transductores=[];
 var _mantSignData=null;
-var APP_DISPLAY_VERSION="9.3.0";
+var APP_DISPLAY_VERSION="9.3.1";
 var APP_BUILD="08/09/26 h";
 // ── CHANGELOG — SemVer: MAJOR.MINOR.PATCH ──
 // PATCH: fixes y ajustes menores · MINOR: features nuevas · MAJOR: cambios estructurales
 // Actualizar con tools/bump.js — no editar la versión a mano.
 var CHANGELOG=[
+  {v:'9.3.1',fecha:'08/09/2026',tipo:'patch',cambios:[
+    'Sacar la alerta modal de guardado fallido — sin UI que dependa de que alguien la note, el reintento sigue siendo silencioso'
+  ]},
   {v:'9.3.0',fecha:'08/09/2026',tipo:'minor',cambios:[
     'Alerta dura y persistente cuando el guardado en la nube falla de verdad (antes solo un puntito naranja chico en el header, fácil de no notar por días)'
   ]},

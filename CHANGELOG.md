@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v9.3.1 — 08/09/2026 (patch)
+
+- Sacar la alerta modal de guardado fallido — sin UI que dependa de que alguien la note, el reintento sigue siendo silencioso
+
 ## v9.3.0 — 08/09/2026 (minor)
 
 - Alerta dura y persistente cuando el guardado en la nube falla de verdad (antes solo un puntito naranja chico en el header, fácil de no notar por días)
