@@ -1,5 +1,9 @@
 # Changelog — MedTrack
 
+## v9.3.0 — 08/09/2026 (minor)
+
+- Alerta dura y persistente cuando el guardado en la nube falla de verdad (antes solo un puntito naranja chico en el header, fácil de no notar por días)
+
 ## v9.2.4 — 08/09/2026 (patch)
 
 - Restaurar copia: agregar el botón que faltaba para acceder a la función de restauración de backups
